@@ -52,9 +52,17 @@ class LoggingManager:
             # Create formatter
             formatter = logging.Formatter(self.log_format, self.date_format)
             
-            # Console handler
+            # Console handler with UTF-8 encoding support
             if enable_console:
-                console_handler = logging.StreamHandler(sys.stdout)
+                # Ensure stdout can handle Unicode characters
+                import io
+                if hasattr(sys.stdout, 'buffer'):
+                    # Use UTF-8 encoding for console output
+                    utf8_stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+                    console_handler = logging.StreamHandler(utf8_stdout)
+                else:
+                    console_handler = logging.StreamHandler(sys.stdout)
+
                 console_handler.setLevel(self.log_level)
                 console_handler.setFormatter(formatter)
                 root_logger.addHandler(console_handler)

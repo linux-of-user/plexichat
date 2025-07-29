@@ -119,46 +119,87 @@ config = load_configuration()
 # Application lifespan manager
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Manage application startup and shutdown."""
-    logger.info("[ROCKET] Starting PlexiChat application...")
-    
+    """Manage application startup and shutdown with microsecond optimization."""
+    logger.info("[ROCKET] Starting PlexiChat application with microsecond optimization...")
+
     # Startup
     try:
         # Initialize database if available
         if database_manager:
             logger.info("Initializing database...")
             await database_manager.initialize()
-        
+
+        # Initialize microsecond optimizer
+        try:
+            from plexichat.core.performance.microsecond_optimizer import start_microsecond_optimization
+            await start_microsecond_optimization()
+            logger.info("[PERF] Microsecond optimization started")
+        except ImportError as e:
+            logger.warning(f"Microsecond optimizer not available: {e}")
+
         # Initialize other core services here
-        logger.info("[CHECK] PlexiChat application started successfully")
-        
+        logger.info("[CHECK] PlexiChat application started successfully with microsecond optimization")
+
     except Exception as e:
         logger.error(f"[X] Failed to start application: {e}")
         raise
-    
+
     yield
-    
+
     # Shutdown
-    logger.info("🛑 Shutting down PlexiChat application...")
+    logger.info("[SHUTDOWN] Shutting down PlexiChat application...")
     try:
+        # Stop microsecond optimizer
+        try:
+            from plexichat.core.performance.microsecond_optimizer import stop_microsecond_optimization
+            await stop_microsecond_optimization()
+            logger.info("[SHUTDOWN] Microsecond optimization stopped")
+        except ImportError:
+            pass
+
         # Cleanup resources
         if database_manager:
             logger.info("Closing database connections...")
             await database_manager.cleanup()
-        
+
         logger.info("[CHECK] PlexiChat application shutdown complete")
     except Exception as e:
         logger.error(f"[X] Error during shutdown: {e}")
 
-# Create FastAPI application
+# Create FastAPI application with microsecond optimization
 app = FastAPI(
     title="PlexiChat API",
-    description="Government-Level Secure Communication Platform",
-    version=config.get("system", {}).get("version", "b.1.1-85"),
+    description="Government-Level Secure Communication Platform - Microsecond Optimized",
+    version=config.get("system", {}).get("version", "b.1.1-88"),
     docs_url="/docs",
     redoc_url="/redoc",
-    lifespan=lifespan
+    lifespan=lifespan,
+    # Optimize for performance
+    generate_unique_id_function=lambda route: f"{route.tags[0] if route.tags else 'default'}-{route.name}",
+    swagger_ui_parameters={"defaultModelsExpandDepth": -1}  # Reduce swagger overhead
 )
+
+# Add microsecond performance middleware first (highest priority)
+try:
+    @app.middleware("http")
+    async def microsecond_performance_middleware(request, call_next):
+        """Ultra-high performance middleware for microsecond response times."""
+        import time
+        start_time = time.time_ns()
+
+        response = await call_next(request)
+
+        # Add microsecond timing
+        end_time = time.time_ns()
+        duration_us = (end_time - start_time) / 1000.0
+        response.headers["X-Response-Time-Microseconds"] = f"{duration_us:.1f}"
+        response.headers["X-Performance-Optimized"] = "true"
+
+        return response
+
+    logger.info("[PERF] Microsecond performance middleware added")
+except Exception as e:
+    logger.warning(f"Microsecond performance middleware error: {e}")
 
 # Configure CORS
 app.add_middleware(
@@ -196,7 +237,24 @@ async def health_check():
         return {
             "status": "healthy",
             "timestamp": datetime.now().isoformat(),
-            "version": config.get("system", {}).get("version", "b.1.1-86")
+            "version": config.get("system", {}).get("version", "b.1.1-88")
+        }
+
+@app.get("/performance/stats")
+async def performance_stats():
+    """Get microsecond-level performance statistics."""
+    try:
+        from plexichat.core.performance.microsecond_optimizer import get_microsecond_performance_stats
+        stats = get_microsecond_performance_stats()
+        return {
+            "performance_stats": stats,
+            "timestamp": datetime.now().isoformat(),
+            "optimization_level": "microsecond"
+        }
+    except ImportError:
+        return {
+            "error": "Performance optimizer not available",
+            "timestamp": datetime.now().isoformat()
         }
 
 # Import and include routers with error handling

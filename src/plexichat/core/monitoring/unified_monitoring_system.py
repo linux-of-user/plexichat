@@ -229,6 +229,16 @@ def track_event(event_type: str, data: Dict[str, Any], user_id: Optional[str] = 
     unified_monitoring_system.track_event(event_type, data, user_id, session_id)
 
 
+def get_analytics_manager():
+    """Get the analytics manager (backward compatibility)."""
+    return unified_monitoring_system
+
+
+def get_analytics_metrics(**kwargs) -> Dict[str, Any]:
+    """Get analytics metrics (backward compatibility)."""
+    return unified_monitoring_system.get_system_status()
+
+
 # Alias for backward compatibility
 UnifiedMonitoringManager = UnifiedMonitoringSystem
 AnalyticsCollector = UnifiedMonitoringSystem  # Another alias
@@ -260,4 +270,6 @@ __all__ = [
     "get_latest_metric",
     "get_system_status",
     "track_event",
+    "get_analytics_manager",  # Backward compatibility
+    "get_analytics_metrics",  # Backward compatibility
 ]

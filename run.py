@@ -337,19 +337,19 @@ class PerformanceMonitor:
             return ""
             
         # Get recent calls (last 50)
-        recent_calls = self.api_calls[-50:]
-        
-        table_lines = []
+        recent_calls: list[dict[str, Any]] = self.api_calls[-50:]
+
+        table_lines: list[str] = []
         table_lines.append(f"{Colors.BOLD}{Colors.BRIGHT_MAGENTA}DETAILED API CALLS{Colors.RESET}")
         table_lines.append(f"{Colors.DIM}{'=' * 100}{Colors.RESET}")
         table_lines.append(
             f"{Colors.BRIGHT_WHITE}{'Time':<20} {'Method':<6} {'Endpoint':<30} {'Status':<6} {'Time':<8} {'User':<15}{Colors.RESET}"
         )
         table_lines.append(f"{Colors.DIM}{'-' * 100}{Colors.RESET}")
-        
+
         for call in reversed(recent_calls):  # Most recent first
             timestamp = datetime.fromtimestamp(call['timestamp']).strftime('%H:%M:%S')
-            
+
             # Color code status
             if 200 <= call['status_code'] < 300:
                 status_color = Colors.BRIGHT_GREEN
@@ -357,9 +357,10 @@ class PerformanceMonitor:
                 status_color = Colors.BRIGHT_YELLOW
             else:
                 status_color = Colors.BRIGHT_RED
-                
-            user_display = call.get('user_id', 'anonymous')[:15]
-            
+
+            user_id = call.get('user_id', 'anonymous')
+            user_display = str(user_id)[:15]
+
             table_lines.append(
                 f"  {Colors.DIM}{timestamp:<20}{Colors.RESET} "
                 f"{Colors.BRIGHT_CYAN}{call['method']:<6}{Colors.RESET} "
@@ -368,7 +369,7 @@ class PerformanceMonitor:
                 f"{Colors.BRIGHT_YELLOW}{call['response_time']*1000:>6.1f}ms{Colors.RESET} "
                 f"{Colors.BRIGHT_BLACK}{user_display:<15}{Colors.RESET}"
             )
-        
+
         return "\n".join(table_lines)
 
 class EnhancedColoredFormatter(logging.Formatter):
@@ -448,7 +449,7 @@ class EnhancedColoredFormatter(logging.Formatter):
         # Logger name with module highlighting
         if '.' in logger_name:
             parts = logger_name.split('.')
-            colored_parts = []
+            colored_parts: list[str] = []
             for i, part in enumerate(parts):
                 if i == 0:  # Root module
                     colored_parts.append(f"{Colors.BOLD}{Colors.BRIGHT_BLUE}{part}{Colors.RESET}")
@@ -571,11 +572,11 @@ logging.basicConfig(
 try:
     from src.plexichat.core.logging import get_logger
     logger = get_logger(__name__)
-    UNIFIED_LOGGING_AVAILABLE = True
+    unified_logging_available = True
 except ImportError:
     # Fallback to basic logging for install/setup modes
     logger = logging.getLogger(__name__)
-    UNIFIED_LOGGING_AVAILABLE = False
+    unified_logging_available = False
 
 # Add src to path for imports FIRST
 src_path = str(Path(__file__).parent / "src")
@@ -583,7 +584,7 @@ if src_path not in sys.path:
     sys.path.insert(0, src_path)
     
     # Define fallback functions
-    async def handle_test_command(*_args, **_kwargs) -> int:
+    async def handle_test_command(*_args: Any, **_kwargs: Any) -> int:
         """Run the test suite with a clean progress bar and logs only."""
         import asyncio
         import time
@@ -1513,9 +1514,9 @@ class DependencyManager:
                 if self.ui and hasattr(self.ui, 'add_log'):
                     self.ui.add_log(f"Installing {len(deps_to_install)} dependencies...", "INFO")
 
-                process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding='utf-8', bufsize=1)
+                process: Optional[subprocess.Popen[Any]] = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding='utf-8', bufsize=1)
 
-                def kill_proc_after_timeout(proc: subprocess.Popen, timeout: float) -> None:
+                def kill_proc_after_timeout(proc: subprocess.Popen[Any], timeout: float) -> None:
                     time.sleep(timeout)
                     if proc.poll() is None:
                         proc.kill()
@@ -1527,42 +1528,43 @@ class DependencyManager:
                 current_package = ""
                 package_start_time = time.time()
 
-                for line in iter(process.stdout.readline, ''):
-                    stripped_line = line.strip()
-                    if logger:
-                        logger.debug(stripped_line)
-                    if self.ui and hasattr(self.ui, 'setup_logger'):
-                        self.ui.setup_logger.debug(stripped_line)
+                if process and process.stdout:
+                    for line in iter(process.stdout.readline, ''):
+                        stripped_line = line.strip()
+                        if logger:
+                            logger.debug(stripped_line)
+                        if self.ui and hasattr(self.ui, 'setup_logger'):
+                            self.ui.setup_logger.debug(stripped_line)
 
-                    if "Collecting " in stripped_line:
-                        package_name = stripped_line.split("Collecting ")[1].split('==')[0].split('>=')[0].split('<')[0].split('(')[0].strip()
-                        current_package = package_name
-                        package_start_time = time.time()
-                        print(f"  Collecting {package_name}...")
-                        if self.ui and hasattr(self.ui, 'add_log'):
-                            self.ui.add_log(f"Collecting {package_name}...", "INFO")
-
-                    elif "Installing collected packages" in stripped_line:
-                        print("  Installing collected packages...")
-                        if self.ui and hasattr(self.ui, 'add_log'):
-                            self.ui.add_log("Installing collected packages...", "INFO")
-
-                    elif "Installing " in stripped_line and current_package:
-                        elapsed = time.time() - package_start_time
-                        if elapsed > 30:  # If taking more than 30 seconds
-                            print(f"  Installing {current_package}... (this may take a while)")
+                        if "Collecting " in stripped_line:
+                            package_name = stripped_line.split("Collecting ")[1].split('==')[0].split('>=')[0].split('<')[0].split('(')[0].strip()
+                            current_package = package_name
+                            package_start_time = time.time()
+                            print(f"  Collecting {package_name}...")
                             if self.ui and hasattr(self.ui, 'add_log'):
-                                self.ui.add_log(f"Installing {current_package}... (this may take a while)", "INFO")
-                        elif elapsed > 10:  # If taking more than 10 seconds
-                            print(f"  Installing {current_package}...")
-                            if self.ui and hasattr(self.ui, 'add_log'):
-                                self.ui.add_log(f"Installing {current_package}...", "INFO")
+                                self.ui.add_log(f"Collecting {package_name}...", "INFO")
 
-                    elif "Requirement already satisfied" in stripped_line:
-                        package_name = stripped_line.split("Requirement already satisfied: ")[1].split(' ')[0] if "Requirement already satisfied: " in stripped_line else "package"
-                        print(f"  Already installed: {package_name}")
-                        if self.ui and hasattr(self.ui, 'add_log'):
-                            self.ui.add_log(f"Already installed: {package_name}", "INFO")
+                        elif "Installing collected packages" in stripped_line:
+                            print("  Installing collected packages...")
+                            if self.ui and hasattr(self.ui, 'add_log'):
+                                self.ui.add_log("Installing collected packages...", "INFO")
+
+                        elif "Installing " in stripped_line and current_package:
+                            elapsed = time.time() - package_start_time
+                            if elapsed > 30:  # If taking more than 30 seconds
+                                print(f"  Installing {current_package}... (this may take a while)")
+                                if self.ui and hasattr(self.ui, 'add_log'):
+                                    self.ui.add_log(f"Installing {current_package}... (this may take a while)", "INFO")
+                            elif elapsed > 10:  # If taking more than 10 seconds
+                                print(f"  Installing {current_package}...")
+                                if self.ui and hasattr(self.ui, 'add_log'):
+                                    self.ui.add_log(f"Installing {current_package}...", "INFO")
+
+                        elif "Requirement already satisfied" in stripped_line:
+                            package_name = stripped_line.split("Requirement already satisfied: ")[1].split(' ')[0] if "Requirement already satisfied: " in stripped_line else "package"
+                            print(f"  Already installed: {package_name}")
+                            if self.ui and hasattr(self.ui, 'add_log'):
+                                self.ui.add_log(f"Already installed: {package_name}", "INFO")
 
                 stdout, stderr = process.communicate()
                 if self.ui and hasattr(self.ui, 'setup_logger'):
@@ -1641,19 +1643,24 @@ class DependencyManager:
                         self.ui.add_log("System package installation failed", "WARNING")
 
                 return True
+            except Exception as e:
+                if logger:
+                    logger.error(f"Error installing dependencies: {e}", exc_info=True)
+                if self.ui and hasattr(self.ui, 'setup_logger'):
+                    self.ui.setup_logger.error(f"Error installing dependencies: {e}", exc_info=True)
+                if self.ui and hasattr(self.ui, 'add_log'):
+                    self.ui.add_log(f"Error installing dependencies: {e}", "ERROR")
+                    if hasattr(self.ui, 'setup_log_file'):
+                        self.ui.add_log(f"See {self.ui.setup_log_file} for full details.", "ERROR")
+                return False
             finally:
-                os.remove(temp_reqs_path)
-                if process and process.poll() is None:
+                if 'temp_reqs_path' in locals() and os.path.exists(temp_reqs_path):
+                    os.remove(temp_reqs_path)
+                if 'process' in locals() and process and process.poll() is None:
                     process.kill()
         except Exception as e:
             if logger:
-                logger.error(f"Error installing dependencies: {e}", exc_info=True)
-            if self.ui and hasattr(self.ui, 'setup_logger'):
-                self.ui.setup_logger.error(f"Error installing dependencies: {e}", exc_info=True)
-            if self.ui and hasattr(self.ui, 'add_log'):
-                self.ui.add_log(f"Error installing dependencies: {e}", "ERROR")
-                if hasattr(self.ui, 'setup_log_file'):
-                    self.ui.add_log(f"See {self.ui.setup_log_file} for full details.", "ERROR")
+                logger.error(f"Error in install_dependencies: {e}", exc_info=True)
             return False
 
     def create_virtual_environment(self) -> bool:
@@ -1825,7 +1832,7 @@ class ConfigurationManager:
     def setup_environment_variables(self, config: Dict[str, Any]) -> bool:
         """Setup environment variables from configuration."""
         try:
-            env_vars = {
+            env_vars: dict[str, Any] = {
                 'PLEXICHAT_HOST': config['server']['host'],
                 'PLEXICHAT_PORT': str(config['server']['port']),
                 'PLEXICHAT_DEBUG': str(config['server']['debug']),
@@ -1834,7 +1841,7 @@ class ConfigurationManager:
                 'PLEXICHAT_LOG_LEVEL': config['logging']['level']
             }
 
-            for var, value in env_vars.items():
+            for var, value in env_vars.items():  # type: ignore
                 os.environ[var] = value
 
             if logger:
@@ -1849,14 +1856,14 @@ class ConfigurationManager:
 class SystemManager:
     """Manages system operations and maintenance."""
 
-    def __init__(self, ui=None):
+    def __init__(self, ui: Any = None):
         self.github_manager = GitHubVersionManager()
         self.dependency_manager = DependencyManager(ui)
         self.config_manager = ConfigurationManager()
 
     def check_system_health(self) -> dict[str, Any]:
         """Check overall system health."""
-        health = {
+        health: dict[str, Any] = {
             "python_version": sys.version,
             "platform": platform.platform(),
             "working_directory": os.getcwd(),
@@ -2146,7 +2153,7 @@ def run_system_manager():
                 for key, value in health.items():
                     if isinstance(value, dict):
                         print(f"  {key}:")
-                        for sub_key, sub_value in value.items():
+                        for sub_key, sub_value in value.items():  # type: ignore
                             print(f"    {sub_key}: {sub_value}")
                     else:
                         print(f"  {key}: {value}")
@@ -2246,10 +2253,37 @@ def run_enhanced_tests():
 def run_splitscreen_cli():
     """Run the enhanced splitscreen CLI interface."""
     try:
-        from plexichat.interfaces.cli.console_manager import EnhancedSplitScreen
-        cli = EnhancedSplitScreen(logger=logger)
+        # Import with timeout to avoid deadlocks
+        import threading
+        import time
+
+        def import_cli():
+            try:
+                from plexichat.interfaces.cli.console_manager import EnhancedSplitScreen
+                return EnhancedSplitScreen(logger=logger)
+            except Exception as e:
+                if logger:
+                    logger.warning(f"CLI import failed: {e}")
+                return None
+
+        # Try to import with a timeout
+        cli = None
+        import_thread = threading.Thread(target=lambda: setattr(import_cli, 'result', import_cli()))
+        import_thread.daemon = True
+        import_thread.start()
+        import_thread.join(timeout=5.0)  # 5 second timeout
+
+        if import_thread.is_alive():
+            if logger:
+                logger.warning("CLI import timed out, skipping splitscreen CLI")
+            return
+
+        cli = getattr(import_cli, 'result', None)
         if cli and hasattr(cli, "start"):
             cli.start()
+        else:
+            if logger:
+                logger.info("Splitscreen CLI not available, continuing without it")
     except Exception as e:
         if logger:
             logger.error(f"Could not start splitscreen CLI: {e}")
@@ -2267,7 +2301,7 @@ def run_api_and_cli(args: Optional[Any] = None):
 
     # Check for --noui flag
     start_webui = True
-    if args and hasattr(args, 'noui') and args.noui:
+    if args and getattr(args, 'noui', False):  # type: ignore
         start_webui = False
     elif args and isinstance(args, list) and '--noui' in args:
         start_webui = False
@@ -2293,31 +2327,36 @@ def run_api_and_cli(args: Optional[Any] = None):
             # Start the WebUI in a separate thread
             webui_thread = threading.Thread(target=lambda: run_webui_server(args), daemon=True)
             webui_thread.start()
-            logger.info("WebUI thread started successfully")
+            if logger:
+                logger.info("WebUI thread started successfully")
         except Exception as e:
-            logger.warning(f"Failed to start WebUI interface: {e}")
-            logger.info("Continuing with API server only...")
+            if logger:
+                logger.warning(f"Failed to start WebUI interface: {e}")
+                logger.info("Continuing with API server only...")
     else:
-        logger.info("WebUI interface disabled (--noui flag)")
+        if logger:
+            logger.info("WebUI interface disabled (--noui flag)")
 
     # Start the API server (blocking)
     run_api_server(args)
 
-def run_gui(args=None):
+def run_gui(args: Any = None) -> None:
     """Launch the modern GUI interface with optional API server integration."""
     # Check for --noserver flag
     start_server = True
-    if args and hasattr(args, 'noserver') and args.noserver:
+    if args and getattr(args, 'noserver', False):
         start_server = False
     elif args and isinstance(args, list) and '--noserver' in args:
         start_server = False
 
-    logger.info(f"{Colors.BOLD}{Colors.BLUE}Launching PlexiChat Modern GUI...{Colors.RESET}")
+    if logger:
+        logger.info(f"{Colors.BOLD}{Colors.BLUE}Launching PlexiChat Modern GUI...{Colors.RESET}")
 
     # Start API server in background if requested
     server_process = None
     if start_server:
-        logger.info(f"{Colors.CYAN}Starting API server for GUI integration...{Colors.RESET}")
+        if logger:
+            logger.info(f"{Colors.CYAN}Starting API server for GUI integration...{Colors.RESET}")
         try:
             import threading
             import time
@@ -2326,21 +2365,25 @@ def run_gui(args=None):
                 try:
                     run_api_server(args)
                 except Exception as e:
-                    logger.error(f"API server error: {e}")
+                    if logger:
+                        logger.error(f"API server error: {e}")
 
             server_thread = threading.Thread(target=start_api_server, daemon=False)
             server_thread.start()
 
             # Give server time to start
             time.sleep(2)
-            logger.info(f"{Colors.GREEN}API server started on http://127.0.0.1:8000{Colors.RESET}")
+            if logger:
+                logger.info(f"{Colors.GREEN}API server started on http://127.0.0.1:8000{Colors.RESET}")
 
         except Exception as e:
-            logger.warning(f"Failed to start API server: {e}")
+            if logger:
+                logger.warning(f"Failed to start API server: {e}")
             start_server = False
 
     try:
-        logger.debug(f"{Colors.CYAN}Loading GUI modules...{Colors.RESET}")
+        if logger:
+            logger.debug(f"{Colors.CYAN}Loading GUI modules...{Colors.RESET}")
 
         # Try to launch GUI with fallbacks
         gui_launched = False
@@ -2351,7 +2394,8 @@ def run_gui(args=None):
             from tkinter import ttk, messagebox
             import webbrowser
             
-            logger.info(f"{Colors.GREEN}Tkinter GUI available{Colors.RESET}")
+            if logger:
+                logger.info(f"{Colors.GREEN}Tkinter GUI available{Colors.RESET}")
             
             # Create simple GUI window
             root = tk.Tk()
@@ -2360,7 +2404,7 @@ def run_gui(args=None):
             
             # Main frame
             main_frame = ttk.Frame(root, padding="10")
-            main_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+            main_frame.grid(row=0, column=0, sticky="nsew")
             
             # Title
             title_label = ttk.Label(main_frame, text="PlexiChat", font=('Arial', 24, 'bold'))
@@ -2416,18 +2460,21 @@ For help: python run.py --help
             main_frame.columnconfigure(0, weight=1)
             main_frame.columnconfigure(1, weight=1)
             
-            logger.info(f"{Colors.GREEN}Simple GUI launched successfully{Colors.RESET}")
+            if logger:
+                logger.info(f"{Colors.GREEN}Simple GUI launched successfully{Colors.RESET}")
             
             # Run the GUI
             root.mainloop()
             gui_launched = True
             
         except ImportError as e:
-            logger.warning(f"Tkinter not available: {e}")
+            if logger:
+                logger.warning(f"Tkinter not available: {e}")
             
         # If GUI couldn't be launched, show message
         if not gui_launched:
-            logger.error(f"{Colors.RED}No GUI framework available{Colors.RESET}")
+            if logger:
+                logger.error(f"{Colors.RED}No GUI framework available{Colors.RESET}")
             print(f"\n{Colors.YELLOW}GUI not available. Install tkinter or PyQt6:{Colors.RESET}")
             print(f"  Windows: tkinter comes with Python")
             print(f"  Linux: sudo apt-get install python3-tk")
@@ -2437,74 +2484,88 @@ For help: python run.py --help
 
         # If server was started and GUI closes, keep server running unless --noserver
         if start_server:
-            logger.info(f"{Colors.CYAN}GUI closed but API server continues running...{Colors.RESET}")
-            logger.info(f"{Colors.INFO}Access web interface at: http://localhost:8000{Colors.RESET}")
-            logger.info(f"{Colors.INFO}Press Ctrl+C to stop the server{Colors.RESET}")
+            if logger:
+                logger.info(f"{Colors.CYAN}GUI closed but API server continues running...{Colors.RESET}")
+                logger.info(f"{Colors.INFO}Access web interface at: http://localhost:8000{Colors.RESET}")
+                logger.info(f"{Colors.INFO}Press Ctrl+C to stop the server{Colors.RESET}")
 
             # Keep the main thread alive so server continues
             try:
                 while True:
                     time.sleep(1)
             except KeyboardInterrupt:
-                logger.info(f"{Colors.YELLOW}Shutting down API server...{Colors.RESET}")
+                if logger:
+                    logger.info(f"{Colors.YELLOW}Shutting down API server...{Colors.RESET}")
 
     except ImportError as e:
-        logger.error(f"{Colors.RED}Failed to import GUI modules: {e}{Colors.RESET}")
-        logger.error(f"{Colors.YELLOW}Make sure PyQt6 is installed{Colors.RESET}")
-        logger.error(f"{Colors.CYAN}Install with: pip install PyQt6{Colors.RESET}")
-        import traceback
-        logger.debug(traceback.format_exc())
+        if logger:
+            logger.error(f"{Colors.RED}Failed to import GUI modules: {e}{Colors.RESET}")
+            logger.error(f"{Colors.YELLOW}Make sure PyQt6 is installed{Colors.RESET}")
+            logger.error(f"{Colors.CYAN}Install with: pip install PyQt6{Colors.RESET}")
+            import traceback
+            logger.debug(traceback.format_exc())
         return False
     except Exception as e:
-        logger.error(f"{Colors.RED}GUI startup error: {e}{Colors.RESET}")
-        import traceback
-        logger.debug(traceback.format_exc())
+        if logger:
+            logger.error(f"{Colors.RED}GUI startup error: {e}{Colors.RESET}")
+            import traceback
+            logger.debug(traceback.format_exc())
         return False
 
     return True
 
-def run_gui_standalone():
+def run_gui_standalone() -> bool:
     """Launch the GUI interface in standalone mode (without server integration)."""
-    logger.info(f"{Colors.BOLD}{Colors.BLUE}Launching PlexiChat GUI (Standalone Mode)...{Colors.RESET}")
+    if logger:
+        logger.info(f"{Colors.BOLD}{Colors.BLUE}Launching PlexiChat GUI (Standalone Mode)...{Colors.RESET}")
     try:
-        logger.debug(f"{Colors.CYAN}Importing GUI modules...{Colors.RESET}")
+        if logger:
+            logger.debug(f"{Colors.CYAN}Importing GUI modules...{Colors.RESET}")
         from plexichat.interfaces.gui.main_application import PlexiChatGUI
 
-        logger.info(f"{Colors.GREEN}GUI modules imported successfully{Colors.RESET}")
-        logger.info(f"{Colors.BOLD}{Colors.GREEN}Opening PlexiChat GUI in Standalone Mode...{Colors.RESET}")
+        if logger:
+            logger.info(f"{Colors.GREEN}GUI modules imported successfully{Colors.RESET}")
+            logger.info(f"{Colors.BOLD}{Colors.GREEN}Opening PlexiChat GUI in Standalone Mode...{Colors.RESET}")
 
         # Create and run GUI in standalone mode
         app = PlexiChatGUI()
-        app.standalone_mode = True  # Set standalone flag
+        if hasattr(app, 'standalone_mode'):
+            app.standalone_mode = True  # Set standalone flag
         app.run()
 
-        logger.info(f"{Colors.BLUE}GUI closed successfully{Colors.RESET}")
+        if logger:
+            logger.info(f"{Colors.BLUE}GUI closed successfully{Colors.RESET}")
 
     except ImportError as e:
-        logger.error(f"{Colors.RED}Failed to import GUI modules: {e}{Colors.RESET}")
-        logger.error(f"{Colors.YELLOW}Make sure tkinter is installed{Colors.RESET}")
-        import traceback
-        logger.debug(traceback.format_exc())
+        if logger:
+            logger.error(f"{Colors.RED}Failed to import GUI modules: {e}{Colors.RESET}")
+            logger.error(f"{Colors.YELLOW}Make sure tkinter is installed{Colors.RESET}")
+            import traceback
+            logger.debug(traceback.format_exc())
         return False
     except Exception as e:
-        logger.error(f"{Colors.RED}GUI startup error: {e}{Colors.RESET}")
-        import traceback
-        logger.debug(traceback.format_exc())
+        if logger:
+            logger.error(f"{Colors.RED}GUI startup error: {e}{Colors.RESET}")
+            import traceback
+            logger.debug(traceback.format_exc())
         return False
 
     return True
 
-def run_webui_server(args=None):
+def run_webui_server(args: Optional[Any] = None) -> None:
     """Start just the WebUI server component."""
+    from typing import Any, Optional
     try:
-        logger.info("Starting PlexiChat WebUI server...")
+        if logger:
+            logger.info("Starting PlexiChat WebUI server...")
 
         # Get port from args or environment, but use a different port for WebUI
         base_port = 8003  # Default base port
-        if args and hasattr(args, 'port') and args.port:
-            base_port = args.port
-        elif os.getenv('PLEXICHAT_PORT'):
-            base_port = int(os.getenv('PLEXICHAT_PORT'))
+        if args and hasattr(args, 'port') and getattr(args, 'port', None) is not None:
+            base_port = getattr(args, 'port', 8003)
+        else:
+            port_env = os.getenv('PLEXICHAT_PORT')
+            base_port = int(port_env) if port_env is not None else 8003
 
         # Use base_port + 1 for WebUI to avoid conflicts
         webui_port = base_port + 1
@@ -2513,29 +2574,34 @@ def run_webui_server(args=None):
         from plexichat.interfaces.web import app
         import uvicorn
 
-        logger.info(f"WebUI server starting on port {webui_port}")
+        if logger:
+            logger.info(f"WebUI server starting on port {webui_port}")
         uvicorn.run(app, host="0.0.0.0", port=webui_port, log_level="info")
 
     except Exception as e:
-        logger.error(f"Failed to start WebUI server: {e}")
+        if logger:
+            logger.error(f"Failed to start WebUI server: {e}")
 
-def run_webui(args=None):
+def run_webui(args: Optional[Any] = None) -> None:
     """Launch the web UI interface with API server by default."""
+    from typing import Any, Optional
     # Check for --noserver flag
     start_server = True
-    if args and hasattr(args, 'noserver') and args.noserver:
+    if args and hasattr(args, 'noserver') and getattr(args, 'noserver', False):
         start_server = False
     elif args and isinstance(args, list) and '--noserver' in args:
         start_server = False
 
     if start_server:
-        logger.info("Launching PlexiChat Web UI with API server...")
-        logger.info("Starting web server with enhanced UI...")
-        logger.info("Web interface available at: http://localhost:8000")
-        logger.info("API documentation at: http://localhost:8000/docs")
+        if logger:
+            logger.info("Launching PlexiChat Web UI with API server...")
+            logger.info("Starting web server with enhanced UI...")
+            logger.info("Web interface available at: http://localhost:8000")
+            logger.info("API documentation at: http://localhost:8000/docs")
         run_api_and_cli(args)  # Start with API server and CLI
     else:
-        logger.info("Launching PlexiChat Web UI without API server...")
+        if logger:
+            logger.info("Launching PlexiChat Web UI without API server...")
         run_webui_server(args)
 
 def run_configuration_wizard():
@@ -2614,17 +2680,20 @@ def run_configuration_wizard():
         print(f"\n{Colors.YELLOW}Configuration wizard cancelled{Colors.RESET}")
         return False
     except Exception as e:
-        logger.error(f"Configuration wizard failed: {e}")
+        if logger:
+            logger.error(f"Configuration wizard failed: {e}")
         return False
 
 def run_refresh_current_version():
     """Refresh current version by redownloading and verifying all files."""
     try:
-        logger.info("Starting refresh of current version...")
+        if logger:
+            logger.info("Starting refresh of current version...")
 
         # Get current version from version.json
         current_version = get_version_from_json()
-        logger.info(f"Current version: {current_version}")
+        if logger:
+            logger.info(f"Current version: {current_version}")
 
         # Create backup before refresh
         backup_dir = Path("backups") / f"pre_refresh_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
@@ -2643,7 +2712,8 @@ def run_refresh_current_version():
                     else:
                         shutil.copy2(item, backup_dir / item)
                 except Exception as e:
-                    logger.warning(f"Could not backup {item}: {e}")
+                    if logger:
+                        logger.warning(f"Could not backup {item}: {e}")
 
         print(f"{Colors.GREEN}Backup created at: {backup_dir}{Colors.RESET}")
 
@@ -2720,13 +2790,15 @@ def run_refresh_current_version():
             return True
 
         except Exception as e:
-            logger.error(f"Refresh failed: {e}")
+            if logger:
+                logger.error(f"Refresh failed: {e}")
             print(f"{Colors.RED}✗ Refresh failed: {e}{Colors.RESET}")
             print(f"{Colors.YELLOW}Backup available at: {backup_dir}{Colors.RESET}")
             return False
 
     except Exception as e:
-        logger.error(f"Refresh system failed: {e}")
+        if logger:
+            logger.error(f"Refresh system failed: {e}")
         print(f"{Colors.RED}✗ Refresh system failed: {e}{Colors.RESET}")
         return False
 
@@ -2765,13 +2837,15 @@ def run_bootstrap_update_system():
 def run_update_system():
     """Run the update system using existing update functionality."""
     try:
-        logger.info("Starting PlexiChat Update System...")
+        if logger:
+            logger.info("Starting PlexiChat Update System...")
 
         # Check if we're in bootstrap mode (no src directory available)
         bootstrap_mode = not Path("src").exists()
 
         if bootstrap_mode:
-            logger.info("Running in bootstrap mode - using standalone update system")
+            if logger:
+                logger.info("Running in bootstrap mode - using standalone update system")
             return run_bootstrap_update_system()
 
         # Import the existing CLI system and plugin commands
@@ -2786,13 +2860,15 @@ def run_update_system():
 
             # Discover and load plugin commands
             asyncio.run(plugin_manager.discover_plugins())
-            plugin_commands = plugin_manager.plugin_commands
+            plugin_commands = plugin_manager.plugin_commands  # type: ignore
 
             _update_cli_available = True  # Prefix with _ to indicate intentionally unused
-            logger.info(f"Loaded {len(plugin_commands)} plugin commands")
+            if logger:
+                logger.info(f"Loaded {len(plugin_commands)} plugin commands")  # type: ignore
 
         except ImportError as e:
-            logger.warning(f"Full CLI system not available: {e}, using basic functionality")
+            if logger:
+                logger.warning(f"Full CLI system not available: {e}, using basic functionality")
             update_cli = None
             plugin_manager = None
             _unified_cli = None  # Prefix with _ to indicate intentionally unused
@@ -2817,7 +2893,7 @@ def run_update_system():
                 print(f"\n{Colors.BOLD}Plugin Commands:{Colors.RESET}")
                 plugin_menu_start = 10
                 plugin_choices = {}
-                for i, (cmd_name, cmd_func) in enumerate(plugin_commands.items(), plugin_menu_start):
+                for i, (cmd_name, cmd_func) in enumerate(plugin_commands.items(), plugin_menu_start):  # type: ignore
                     print(f"{i}. {cmd_name}")
                     plugin_choices[str(i)] = (cmd_name, cmd_func)
                 print(f"\n8. List all plugin commands")
@@ -2897,22 +2973,22 @@ def run_update_system():
                 if cmd_name in plugin_commands:
                     try:
                         print(f"{Colors.GREEN}Executing {cmd_name}...{Colors.RESET}")
-                        result = asyncio.run(plugin_commands[cmd_name]())
+                        result = asyncio.run(plugin_commands[cmd_name]())  # type: ignore
                         print(f"{Colors.GREEN}Command completed: {result}{Colors.RESET}")
                     except Exception as e:
                         print(f"{Colors.RED}Command failed: {e}{Colors.RESET}")
                 else:
                     print(f"{Colors.RED}Command not found: {cmd_name}{Colors.RESET}")
 
-            elif plugin_commands and choice in [str(i) for i in range(10, 10 + len(plugin_commands))]:
+            elif plugin_commands and choice in [str(i) for i in range(10, 10 + len(plugin_commands))]:  # type: ignore
                 # Execute specific plugin command
-                plugin_list = list(plugin_commands.items())
+                plugin_list = list(plugin_commands.items())  # type: ignore
                 plugin_index = int(choice) - 10
-                if 0 <= plugin_index < len(plugin_list):
-                    cmd_name, cmd_func = plugin_list[plugin_index]
+                if 0 <= plugin_index < len(plugin_list):  # type: ignore
+                    cmd_name, cmd_func = plugin_list[plugin_index]  # type: ignore
                     try:
                         print(f"{Colors.GREEN}Executing {cmd_name}...{Colors.RESET}")
-                        result = asyncio.run(cmd_func())
+                        result = asyncio.run(cmd_func())  # type: ignore
                         print(f"{Colors.GREEN}Command completed: {result}{Colors.RESET}")
                     except Exception as e:
                         print(f"{Colors.RED}Command failed: {e}{Colors.RESET}")
@@ -2924,21 +3000,24 @@ def run_update_system():
                 print(f"{Colors.RED}Invalid choice.{Colors.RESET}")
 
     except ImportError as e:
-        logger.error(f"Update system not available: {e}")
+        if logger:
+            logger.error(f"Update system not available: {e}")
         print(f"{Colors.RED}Update system not available. Using fallback GitHub version manager.{Colors.RESET}")
         run_version_manager()
     except KeyboardInterrupt:
         print(f"\n{Colors.YELLOW}Update system exited{Colors.RESET}")
     except Exception as e:
-        logger.error(f"Update system error: {e}")
+        if logger:
+            logger.error(f"Update system error: {e}")
         print(f"{Colors.RED}Update system error: {e}{Colors.RESET}")
 
-def run_first_time_setup(level: Optional[str] = None):
+def run_first_time_setup(level: Optional[str] = None) -> bool:
     """Run comprehensive first-time setup with dynamic terminal UI and timeout handling."""
     cancelled = False
     start_time = time.time()
     
-    def signal_handler(signum, frame):
+    from typing import Any
+    def signal_handler(signum: int, frame: Any) -> None:
         nonlocal cancelled
         cancelled = True
         print(f"\n{Colors.YELLOW}Setup cancelled by user{Colors.RESET}")
@@ -3253,7 +3332,7 @@ def show_setup_interface_choice():
             sys.exit(0)
 
 
-def launch_setup_interface(interface_type):
+def launch_setup_interface(interface_type: str) -> bool:
     """Launch GUI or WebUI setup interface."""
     try:
         if interface_type == 'gui':
@@ -3269,7 +3348,7 @@ def launch_setup_interface(interface_type):
                 from plexichat.interfaces.gui.main_application import PlexiChatGUI
 
                 gui = PlexiChatGUI()
-                gui.show_setup_page()  # This method needs to be implemented
+                gui.show_setup_page()  # type: ignore  # This method needs to be implemented
                 gui.run()
                 return True
 
@@ -3322,6 +3401,7 @@ def launch_setup_interface(interface_type):
 
 def run_api_server(args=None):
     """Start the PlexiChat API server."""
+    from typing import Any, Optional
     try:
         # Set process name for easier identification
         try:
@@ -3330,32 +3410,35 @@ def run_api_server(args=None):
         except ImportError:
             pass
         import uvicorn
-        logger.info("About to import FastAPI app from src.plexichat.main...")
+        if logger:
+            logger.info("About to import FastAPI app from src.plexichat.main...")
         from src.plexichat.main import app
-        logger.info("FastAPI app imported successfully!")
+        if logger:
+            logger.info("FastAPI app imported successfully!")
         config = load_configuration()
-        host = "0.0.0.0"
-        port = 8000
+        host: str = "0.0.0.0"
+        port: int = 8000
 
         # Load from config first
         if config:
-            host = config.get('server', {}).get('host', '0.0.0.0')
-            port = config.get('server', {}).get('port', 8000)
+            host = str(config.get('server', {}).get('host', '0.0.0.0'))
+            port = int(config.get('server', {}).get('port', 8000))
 
         # Override with command line arguments if provided
         if args:
-            if hasattr(args, 'host') and args.host:
-                host = args.host
-            if hasattr(args, 'port') and args.port:
-                port = args.port
+            if hasattr(args, 'host') and getattr(args, 'host', None):
+                host = str(getattr(args, 'host', '0.0.0.0'))
+            if hasattr(args, 'port') and getattr(args, 'port', None):
+                port = int(getattr(args, 'port', 8000))
 
-        logger.info(f"Starting PlexiChat API server on {host}:{port}")
-        logger.info("PlexiChat API server starting...")
-        logger.info(f"Version: {PLEXICHAT_VERSION}")
-        logger.info(f"API Documentation available at: http://{host}:{port}/docs")
-        logger.info(f"Web interface available at: http://{host}:{port}")
-        logger.info(f"Health check: http://{host}:{port}/health")
-        logger.info(f"Version info: http://{host}:{port}/api/v1/version")
+        if logger:
+            logger.info(f"Starting PlexiChat API server on {host}:{port}")
+            logger.info("PlexiChat API server starting...")
+            logger.info(f"Version: {PLEXICHAT_VERSION}")
+            logger.info(f"API Documentation available at: http://{host}:{port}/docs")
+            logger.info(f"Web interface available at: http://{host}:{port}")
+            logger.info(f"Health check: http://{host}:{port}/health")
+            logger.info(f"Version info: http://{host}:{port}/api/v1/version")
 
         uvicorn.run(
             app,
@@ -3367,10 +3450,11 @@ def run_api_server(args=None):
         return True
 
     except Exception as e:
-        logger.error(f"Could not start API server: {e}")
+        if logger:
+            logger.error(f"Could not start API server: {e}")
         return False
 
-def run_cli():
+def run_cli() -> None:
     """Run the enhanced CLI interface."""
     try:
         # Import the enhanced CLI system
@@ -3396,12 +3480,13 @@ def run_cli():
             enhanced_cli.show_help()
 
     except Exception as e:
-        logger.error(f"Could not start CLI: {e}")
-        logger.debug(f"CLI error details: {e}", exc_info=True)
+        if logger:
+            logger.error(f"Could not start CLI: {e}")
+            logger.debug(f"CLI error details: {e}", exc_info=True)
         print(f"{Colors.RED}CLI Error: {e}{Colors.RESET}")
         sys.exit(1)
 
-def run_admin_cli():
+def run_admin_cli() -> None:
     """Run admin CLI commands."""
     try:
         # Import the main CLI
@@ -3423,19 +3508,21 @@ def run_admin_cli():
             sys.argv = original_argv
 
     except Exception as e:
-        logger.error(f"Could not start admin CLI: {e}")
+        if logger:
+            logger.error(f"Could not start admin CLI: {e}")
         print("Admin CLI not available. Please check your installation.")
 
-def run_backup_node():
+def run_backup_node() -> None:
     """Run backup node."""
     try:
         from plexichat.features.backup.nodes.backup_node_main import main as backup_main
         import asyncio
         asyncio.run(backup_main())
     except Exception as e:
-        logger.error(f"Could not start backup node: {e}")
+        if logger:
+            logger.error(f"Could not start backup node: {e}")
 
-def run_plugin_manager():
+def run_plugin_manager() -> None:
     """Run plugin management CLI."""
     try:
         # Import the main CLI
@@ -3457,7 +3544,8 @@ def run_plugin_manager():
             sys.argv = original_argv
 
     except Exception as e:
-        logger.error(f"Could not start plugin manager: {e}")
+        if logger:
+            logger.error(f"Could not start plugin manager: {e}")
         print("Plugin manager CLI not available. Please check your installation.")
 
 def show_help():
@@ -3677,9 +3765,10 @@ Examples:
         return args
 
     except Exception as e:
-        logger.error(f"Error parsing command line arguments: {e}")
-        if logger.isEnabledFor(logging.DEBUG):
-            logger.debug(traceback.format_exc())
+        if logger:
+            logger.error(f"Error parsing command line arguments: {e}")
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.debug(traceback.format_exc())
         sys.exit(1)
 
 def print_config_info(config: Optional[Dict[str, Any]]):
@@ -3740,21 +3829,21 @@ def handle_github_commands(command: str, args: List[str], target_dir: str):
 # Process lock logic (cross-platform, adapted from __main__.py)
 try:
     import fcntl
-    HAS_FCNTL = True
+    has_fcntl = True
 except ImportError:
     try:
         import msvcrt
-        HAS_MSVCRT = True
-        HAS_FCNTL = False
+        has_msvcrt = True
+        has_fcntl = False
     except ImportError:
-        HAS_FCNTL = False
-        HAS_MSVCRT = False
+        has_fcntl = False
+        has_msvcrt = False
 
 # Global install path for all runtime modes
-INSTALL_PATH = Path(os.environ.get('PLEXICHAT_HOME', Path.cwd()))
+install_path = Path(os.environ.get('PLEXICHAT_HOME', Path.cwd()))
 
 # Update process lock file to be in INSTALL_PATH for all runtime modes
-PROCESS_LOCK_FILE = str(INSTALL_PATH / "plexichat.lock")
+PROCESS_LOCK_FILE = str(install_path / "plexichat.lock")
 
 _lock_file = None
 _thread_pool = None
@@ -3779,10 +3868,12 @@ def acquire_process_lock():
                         if content:
                             existing_pid = int(content)
                             if _is_process_running(existing_pid):
-                                logger.error(f"Another PlexiChat instance is already running (PID: {existing_pid})")
+                                if logger:
+                                    logger.error(f"Another PlexiChat instance is already running (PID: {existing_pid})")
                                 return False
                             else:
-                                logger.info(f"Removing stale lock file (PID {existing_pid} no longer running)")
+                                if logger:
+                                    logger.info(f"Removing stale lock file (PID {existing_pid} no longer running)")
                                 try:
                                     # On Windows, try to force delete if needed
                                     if sys.platform == "win32":
@@ -3791,7 +3882,8 @@ def acquire_process_lock():
                                     else:
                                         lock_path.unlink(missing_ok=True)
                                 except PermissionError:
-                                    logger.warning(f"Could not remove stale lock file, retrying...")
+                                    if logger:
+                                        logger.warning(f"Could not remove stale lock file, retrying...")
                                     time.sleep(delay)
                                     continue
                 except (ValueError, FileNotFoundError):
@@ -3809,7 +3901,8 @@ def acquire_process_lock():
                     f.flush()
                     os.fsync(f.fileno())
                 temp_lock.replace(lock_path)  # Atomic replace
-                logger.info(f"Process lock acquired successfully (PID: {current_pid})")
+                if logger:
+                    logger.info(f"Process lock acquired successfully (PID: {current_pid})")
                 return True
             finally:
                 if temp_lock.exists():
@@ -3817,15 +3910,17 @@ def acquire_process_lock():
 
         except (OSError, IOError, BlockingIOError) as e:
             if isinstance(e, PermissionError) and i < retries - 1:
-                logger.warning(f"Failed to acquire lock, retrying in {delay}s...")
+                if logger:
+                    logger.warning(f"Failed to acquire lock, retrying in {delay}s...")
                 time.sleep(delay)
                 delay *= backoff_factor  # Exponential backoff
             else:
-                logger.error(f"Failed to acquire process lock: {e}")
+                if logger:
+                    logger.error(f"Failed to acquire process lock: {e}")
                 return False
     return False
 
-def _is_process_running(pid):
+def _is_process_running(pid: int) -> bool:
     """Check if a process with given PID is running."""
     import subprocess  # Import at function level to ensure it's available
     try:
@@ -3872,11 +3967,13 @@ def release_process_lock():
                                         lock_path.unlink(missing_ok=True)
                                     except:
                                         pass
-                            logger.info("Process lock released")
+                            if logger:
+                                logger.info("Process lock released")
             except (ValueError, FileNotFoundError):
                 pass
     except Exception as e:
-        logger.warning(f"Error during process lock release: {e}")
+        if logger:
+            logger.warning(f"Error during process lock release: {e}")
 
 # ============================================================================
 # ENHANCED STARTUP AND OS SUPPORT
@@ -3922,7 +4019,7 @@ def setup_enhanced_logging_with_files(log_level: str = "INFO"):
     """Setup enhanced logging with file handlers and performance monitoring."""
     try:
         # Create logs directory in INSTALL_PATH if it doesn't exist
-        logs_dir = INSTALL_PATH / "logs"
+        logs_dir = install_path / "logs"
         logs_dir.mkdir(exist_ok=True, parents=True)
 
         # Setup enhanced logging with performance monitoring
@@ -4154,9 +4251,10 @@ def setup_macos_specific_features():
     except Exception as e:
         print(f"{Colors.YELLOW}macOS-specific setup warning: {e}{Colors.RESET}")
 
-def get_detailed_system_info():
+from typing import Any
+def get_detailed_system_info() -> dict[str, Any]:
     """Get detailed system information for platform-specific optimizations."""
-    info = {
+    info: dict[str, Any] = {
         'os': platform.system(),
         'version': platform.release(),
         'arch': platform.machine(),
@@ -4226,8 +4324,8 @@ def install_linux_dependencies():
         print(f"{Colors.CYAN}Installing Linux system dependencies...{Colors.RESET}")
 
         # Detect Linux distribution
-        distro_info = detect_linux_distro()
-        distro = distro_info.get('id', 'unknown').lower()
+        distro_info: dict[str, Any] = detect_linux_distro()
+        distro: str = str(distro_info.get('id', 'unknown')).lower()
 
         if distro in ['ubuntu', 'debian', 'linuxmint']:
             install_debian_packages()
@@ -4244,14 +4342,15 @@ def install_linux_dependencies():
         print(f"{Colors.YELLOW}Linux dependency installation warning: {e}{Colors.RESET}")
 
 
-def detect_linux_distro():
+from typing import Any
+def detect_linux_distro() -> dict[str, str]:
     """Detect Linux distribution."""
     try:
         # Try to read /etc/os-release
         if os.path.exists('/etc/os-release'):
             with open('/etc/os-release', 'r') as f:
                 lines = f.readlines()
-                info = {}
+                info: dict[str, str] = {}
                 for line in lines:
                     if '=' in line:
                         key, value = line.strip().split('=', 1)
@@ -4271,14 +4370,15 @@ def detect_linux_distro():
         return {'id': 'unknown'}
 
 
-def check_admin_privileges():
+def check_admin_privileges() -> bool:
     """Check if running with admin/root privileges."""
     try:
         if sys.platform.startswith('win'):
             import ctypes
             return ctypes.windll.shell32.IsUserAnAdmin() != 0
         else:
-            return os.geteuid() == 0
+            # geteuid is not available on all platforms (e.g., Windows)
+            return hasattr(os, 'geteuid') and os.geteuid() == 0
     except Exception:
         return False
 
@@ -4330,7 +4430,7 @@ def install_debian_packages():
         return False
 
 
-def print_debian_manual_instructions(packages):
+def print_debian_manual_instructions(packages: list[str]) -> None:
     """Print manual installation instructions for Debian/Ubuntu."""
     print(f"{Colors.YELLOW}Manual installation required{Colors.RESET}")
     print(f"{Colors.CYAN}Please run the following commands:{Colors.RESET}")
@@ -4620,7 +4720,7 @@ def optimize_windows_performance(): pass
 def optimize_macos_performance(): pass
 def setup_common_performance_optimizations(): pass
 
-def download_plexichat_from_github(repo, version_tag):
+def download_plexichat_from_github(repo: str, version_tag: str) -> str:
     """Download PlexiChat from GitHub repository for a specific version."""
     try:
         print(f"  {Colors.BRIGHT_CYAN}Downloading PlexiChat from GitHub...{Colors.RESET}")
@@ -4743,28 +4843,28 @@ def select_installation_type():
 
 def select_installation_path(install_type):
     """Prompt user to select or enter installation path based on type."""
-    global INSTALL_PATH
+    global install_path
     if install_type == 1:
-        INSTALL_PATH = Path(os.getcwd())
-        return INSTALL_PATH
+        install_path = Path(os.getcwd())
+        return install_path
     elif install_type == 2:
         default_path = Path("C:/Program Files/PlexiChat") if sys.platform == 'win32' else Path("/opt/plexichat")
-        INSTALL_PATH = default_path
+        install_path = default_path
         print(f"System Installation Path:\n  Default: {default_path}")
         use_default = input("Use default path? (Y/n): ").strip().lower()
         if use_default in ('', 'y', 'yes'):
-            return INSTALL_PATH
+            return install_path
         else:
             custom_path = input("Enter custom system install path: ").strip()
-            INSTALL_PATH = Path(custom_path)
-            return INSTALL_PATH
+            install_path = Path(custom_path)
+            return install_path
     elif install_type == 3:
         custom_path = input("Enter custom installation path: ").strip()
-        INSTALL_PATH = Path(custom_path)
-        return INSTALL_PATH
+        install_path = Path(custom_path)
+        return install_path
     else:
-        INSTALL_PATH = Path(os.getcwd())
-        return INSTALL_PATH
+        install_path = Path(os.getcwd())
+        return install_path
 
 def setup_configuration_path(install_type):
     """Setup configuration path based on installation type."""

@@ -110,4 +110,47 @@ SHARD_SIZE = 1024 * 1024  # 1MB shard size for backup files
 MIN_BACKUP_SHARDS = 3  # Minimum number of backup shards
 PARITY_SHARD_RATIO = 0.2  # 20% parity shards for redundancy
 
+# Database constants (default values, can be overridden by config)
+DEFAULT_DATABASE_URL = "sqlite:///plexichat.db"
+
+# Security constants (default values, can be overridden by config)
+TOKEN_EXPIRY_HOURS = 24
+DEFAULT_RATE_LIMIT = 100  # requests per minute
+DEFAULT_BURST_LIMIT = 200  # burst requests
+
+# System constants
+DEFAULT_PORT = 8000
+DEFAULT_HOST = "localhost"
+
+# Message constants
+MAX_MESSAGE_LENGTH = 10000
+MAX_ATTACHMENT_SIZE = 50 * 1024 * 1024  # 50MB
+
+# Session constants
+SESSION_TIMEOUT_MINUTES = 60
+MAX_SESSIONS_PER_USER = 5
+
+# Database pool constants
+DATABASE_POOL_SIZE = 20
+DATABASE_POOL_MAX_OVERFLOW = 30
+DATABASE_POOL_TIMEOUT = 30
+
+# Password constants
+PASSWORD_MIN_LENGTH = 8
+PASSWORD_MAX_LENGTH = 128
+PASSWORD_REQUIRE_UPPERCASE = True
+PASSWORD_REQUIRE_LOWERCASE = True
+PASSWORD_REQUIRE_NUMBERS = True
+PASSWORD_REQUIRE_SPECIAL = True
+
+# Analytics constants
+ANALYTICS_ENABLED = True
+ANALYTICS_RETENTION_DAYS = 90
+ANALYTICS_BATCH_SIZE = 100
+
+# Security constants
+MAX_LOGIN_ATTEMPTS = 5
+LOCKOUT_DURATION_MINUTES = 15
+RATE_LIMIT_REQUESTS_PER_MINUTE = 60
+
 

