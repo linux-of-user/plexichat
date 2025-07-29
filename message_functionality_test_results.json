@@ -1,0 +1,233 @@
+[
+  {
+    "test": "Server Availability",
+    "status": "PASS",
+    "details": "Server responding (version: b.1.1-87)",
+    "data": null,
+    "timestamp": "2025-07-29T16:31:15.069519"
+  },
+  {
+    "test": "Endpoint Availability: /messages/messages/send",
+    "status": "WARNING",
+    "details": "Unexpected status: 405",
+    "data": null,
+    "timestamp": "2025-07-29T16:31:15.070604"
+  },
+  {
+    "test": "Endpoint Availability: /messages/messages/list",
+    "status": "PASS",
+    "details": "Endpoint exists (status: 403)",
+    "data": null,
+    "timestamp": "2025-07-29T16:31:15.073116"
+  },
+  {
+    "test": "Endpoint Availability: /messages/messages/",
+    "status": "FAIL",
+    "details": "Endpoint not found",
+    "data": null,
+    "timestamp": "2025-07-29T16:31:15.335464"
+  },
+  {
+    "test": "Endpoint Availability: /messages/messages/search",
+    "status": "FAIL",
+    "details": "Endpoint not found",
+    "data": null,
+    "timestamp": "2025-07-29T16:31:15.337160"
+  },
+  {
+    "test": "Message Send Without Auth",
+    "status": "PASS",
+    "details": "Correctly rejected unauthenticated request",
+    "data": null,
+    "timestamp": "2025-07-29T16:31:15.589636"
+  },
+  {
+    "test": "Message Retrieval Without Auth",
+    "status": "PASS",
+    "details": "Correctly rejected unauthenticated request",
+    "data": null,
+    "timestamp": "2025-07-29T16:31:15.590539"
+  },
+  {
+    "test": "Message Validation Test 1",
+    "status": "WARNING",
+    "details": "Error: Connection closed",
+    "data": null,
+    "timestamp": "2025-07-29T16:31:15.591287"
+  },
+  {
+    "test": "Message Validation Test 2",
+    "status": "WARNING",
+    "details": "Error: Connection closed",
+    "data": null,
+    "timestamp": "2025-07-29T16:31:15.592600"
+  },
+  {
+    "test": "Message Validation Test 3",
+    "status": "WARNING",
+    "details": "Error: Connection closed",
+    "data": null,
+    "timestamp": "2025-07-29T16:31:15.858135"
+  },
+  {
+    "test": "Message Validation Test 4",
+    "status": "WARNING",
+    "details": "Error: Connection closed",
+    "data": null,
+    "timestamp": "2025-07-29T16:31:15.859727"
+  },
+  {
+    "test": "Message Validation Test 5",
+    "status": "WARNING",
+    "details": "Error: Connection closed",
+    "data": null,
+    "timestamp": "2025-07-29T16:31:16.123584"
+  },
+  {
+    "test": "Message Validation Test 6",
+    "status": "WARNING",
+    "details": "Error: Connection closed",
+    "data": null,
+    "timestamp": "2025-07-29T16:31:16.125003"
+  },
+  {
+    "test": "Message Validation Test 7",
+    "status": "WARNING",
+    "details": "Error: Connection closed",
+    "data": null,
+    "timestamp": "2025-07-29T16:31:16.390509"
+  },
+  {
+    "test": "Message Search Test 1",
+    "status": "FAIL",
+    "details": "Unexpected status 404: {\"detail\":\"Not Found\"}",
+    "data": null,
+    "timestamp": "2025-07-29T16:31:16.392210"
+  },
+  {
+    "test": "Message Search Test 2",
+    "status": "FAIL",
+    "details": "Unexpected status 404: {\"detail\":\"Not Found\"}",
+    "data": null,
+    "timestamp": "2025-07-29T16:31:16.392986"
+  },
+  {
+    "test": "Message Search Test 3",
+    "status": "FAIL",
+    "details": "Unexpected status 404: {\"detail\":\"Not Found\"}",
+    "data": null,
+    "timestamp": "2025-07-29T16:31:16.393708"
+  },
+  {
+    "test": "Message Search Test 4",
+    "status": "FAIL",
+    "details": "Unexpected status 404: {\"detail\":\"Not Found\"}",
+    "data": null,
+    "timestamp": "2025-07-29T16:31:16.394438"
+  },
+  {
+    "test": "Message Search Test 5",
+    "status": "FAIL",
+    "details": "Unexpected status 404: {\"detail\":\"Not Found\"}",
+    "data": null,
+    "timestamp": "2025-07-29T16:31:16.395171"
+  },
+  {
+    "test": "Message Search Test 6",
+    "status": "FAIL",
+    "details": "Unexpected status 404: {\"detail\":\"Not Found\"}",
+    "data": null,
+    "timestamp": "2025-07-29T16:31:16.395919"
+  },
+  {
+    "test": "Message Pagination Test 1",
+    "status": "PASS",
+    "details": "Authentication required (expected)",
+    "data": null,
+    "timestamp": "2025-07-29T16:31:16.396776"
+  },
+  {
+    "test": "Message Pagination Test 2",
+    "status": "PASS",
+    "details": "Authentication required (expected)",
+    "data": null,
+    "timestamp": "2025-07-29T16:31:16.397557"
+  },
+  {
+    "test": "Message Pagination Test 3",
+    "status": "PASS",
+    "details": "Authentication required (expected)",
+    "data": null,
+    "timestamp": "2025-07-29T16:31:16.398281"
+  },
+  {
+    "test": "Message Pagination Test 4",
+    "status": "PASS",
+    "details": "Authentication required (expected)",
+    "data": null,
+    "timestamp": "2025-07-29T16:31:16.399044"
+  },
+  {
+    "test": "Message Pagination Test 5",
+    "status": "PASS",
+    "details": "Authentication required (expected)",
+    "data": null,
+    "timestamp": "2025-07-29T16:31:16.399839"
+  },
+  {
+    "test": "Message Pagination Test 6",
+    "status": "PASS",
+    "details": "Authentication required (expected)",
+    "data": null,
+    "timestamp": "2025-07-29T16:31:16.400603"
+  },
+  {
+    "test": "Message Content Type Test 1",
+    "status": "PASS",
+    "details": "Authentication required (expected)",
+    "data": null,
+    "timestamp": "2025-07-29T16:31:16.401341"
+  },
+  {
+    "test": "Message Content Type Test 2",
+    "status": "PASS",
+    "details": "Authentication required (expected)",
+    "data": null,
+    "timestamp": "2025-07-29T16:31:16.401994"
+  },
+  {
+    "test": "Message Content Type Test 3",
+    "status": "PASS",
+    "details": "Authentication required (expected)",
+    "data": null,
+    "timestamp": "2025-07-29T16:31:16.402675"
+  },
+  {
+    "test": "Message Content Type Test 4",
+    "status": "PASS",
+    "details": "Authentication required (expected)",
+    "data": null,
+    "timestamp": "2025-07-29T16:31:16.403593"
+  },
+  {
+    "test": "Message Content Type Test 5",
+    "status": "PASS",
+    "details": "Authentication required (expected)",
+    "data": null,
+    "timestamp": "2025-07-29T16:31:16.404264"
+  },
+  {
+    "test": "Message Content Type Test 6",
+    "status": "PASS",
+    "details": "Authentication required (expected)",
+    "data": null,
+    "timestamp": "2025-07-29T16:31:16.404943"
+  },
+  {
+    "test": "Concurrent Message Operations",
+    "status": "PASS",
+    "details": "Handled 10/10 concurrent requests successfully",
+    "data": null,
+    "timestamp": "2025-07-29T16:31:16.663810"
+  }
+]

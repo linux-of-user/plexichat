@@ -51,6 +51,8 @@ aio-pika>=9.3.1
 jsonschema>=4.20.0
 werkzeug>=3.0.1
 flask>=3.0.0
+pefile>=2023.2.7
+phonenumbers>=8.13.27
 
 # === FULL INSTALLATION ===
 # Additional dependencies for full feature set

@@ -5,7 +5,7 @@ Integrates the enhanced CLI system into the GUI with a full-featured terminal in
 """
 
 import tkinter as tk
-from tkinter import ttk, scrolledtext, font
+from tkinter import ttk, scrolledtext, font, messagebox
 import threading
 import asyncio
 import subprocess

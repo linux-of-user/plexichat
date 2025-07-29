@@ -169,26 +169,38 @@ class Colors:
         """Create RGB background color code."""
         return f'\033[48;2;{r};{g};{b}m'
 
+
+
+# Only set RICH_AVAILABLE once, using a lowercase internal variable
+_rich_available = False
 try:
     from rich.console import Console as RichConsole
     from rich.panel import Panel
-
     from rich.prompt import Prompt
-    RICH_AVAILABLE = True
+    _rich_available = True
 except ImportError:
-    RICH_AVAILABLE = False
+    _rich_available = False
+RICH_AVAILABLE = _rich_available
+
+
+from typing import Any, Dict, List, Optional
 
 class PerformanceMonitor:
     """Enhanced performance monitoring with table-based reporting."""
-    
-    def __init__(self):
-        self.metrics = {}
-        self.api_calls = []
-        self.start_time = time.time()
-        self.last_report_time = time.time()
-        self.report_interval = 300  # 5 minutes
-        
-    def record_metric(self, name: str, value: float, unit: str = ""):
+    metrics: Dict[str, List[Dict[str, Any]]]
+    api_calls: List[Dict[str, Any]]
+    start_time: float
+    last_report_time: float
+    report_interval: int
+
+    def __init__(self) -> None:
+        self.metrics: Dict[str, List[Dict[str, Any]]] = {}
+        self.api_calls: List[Dict[str, Any]] = []
+        self.start_time: float = time.time()
+        self.last_report_time: float = time.time()
+        self.report_interval: int = 300  # 5 minutes
+
+    def record_metric(self, name: str, value: float, unit: str = "") -> None:
         """Record a performance metric."""
         if name not in self.metrics:
             self.metrics[name] = []
@@ -197,11 +209,11 @@ class PerformanceMonitor:
             'unit': unit,
             'timestamp': time.time()
         })
-        
-    def record_api_call(self, endpoint: str, method: str, status_code: int, 
-                       response_time: float, user_id: str = None):
+
+    def record_api_call(self, endpoint: str, method: str, status_code: int,
+                        response_time: float, user_id: Optional[str] = None) -> None:
         """Record an API call for monitoring."""
-        call_data = {
+        call_data: Dict[str, Any] = {
             'endpoint': endpoint,
             'method': method,
             'status_code': status_code,
@@ -210,33 +222,33 @@ class PerformanceMonitor:
             'timestamp': time.time()
         }
         self.api_calls.append(call_data)
-        
+
         # Keep only last 1000 calls to prevent memory issues
         if len(self.api_calls) > 1000:
             self.api_calls = self.api_calls[-1000:]
-    
+
     def get_performance_table(self, log_level: str = "INFO") -> str:
         """Generate a formatted performance table."""
         if not self.metrics:
             return ""
-            
-        table_lines = []
+
+        table_lines: List[str] = []
         table_lines.append(f"{Colors.BOLD}{Colors.BRIGHT_BLUE}PERFORMANCE METRICS{Colors.RESET}")
         table_lines.append(f"{Colors.DIM}{'=' * 60}{Colors.RESET}")
-        
+
         # Calculate averages and current values
         for metric_name, values in self.metrics.items():
             if not values:
                 continue
-                
+
             recent_values = [v for v in values if time.time() - v['timestamp'] < 300]  # Last 5 minutes
             if not recent_values:
                 continue
-                
+
             current_value = recent_values[-1]['value']
             avg_value = sum(v['value'] for v in recent_values) / len(recent_values)
             unit = recent_values[-1].get('unit', '')
-            
+
             # Color code based on performance
             if 'cpu' in metric_name.lower() or 'memory' in metric_name.lower():
                 if current_value > 80:
@@ -247,25 +259,25 @@ class PerformanceMonitor:
                     color = Colors.BRIGHT_GREEN
             else:
                 color = Colors.BRIGHT_CYAN
-                
+
             table_lines.append(
                 f"  {Colors.BRIGHT_WHITE}{metric_name:<25}{Colors.RESET} "
                 f"{color}{current_value:>8.2f}{unit}{Colors.RESET} "
                 f"{Colors.DIM}(avg: {avg_value:.2f}{unit}){Colors.RESET}"
             )
-        
+
         return "\n".join(table_lines)
-    
+
     def get_api_summary_table(self, minutes: int = 5) -> str:
         """Generate API call summary table."""
         cutoff_time = time.time() - (minutes * 60)
         recent_calls = [call for call in self.api_calls if call['timestamp'] > cutoff_time]
-        
+
         if not recent_calls:
             return ""
-            
+
         # Group by endpoint
-        endpoint_stats = {}
+        endpoint_stats: Dict[str, Dict[str, Any]] = {}
         for call in recent_calls:
             key = f"{call['method']} {call['endpoint']}"
             if key not in endpoint_stats:
@@ -273,24 +285,24 @@ class PerformanceMonitor:
                     'count': 0,
                     'success_count': 0,
                     'error_count': 0,
-                    'total_time': 0,
-                    'avg_time': 0
+                    'total_time': 0.0,
+                    'avg_time': 0.0
                 }
-            
+
             endpoint_stats[key]['count'] += 1
             endpoint_stats[key]['total_time'] += call['response_time']
-            
+
             if 200 <= call['status_code'] < 400:
                 endpoint_stats[key]['success_count'] += 1
             else:
                 endpoint_stats[key]['error_count'] += 1
-        
+
         # Calculate averages
         for stats in endpoint_stats.values():
-            stats['avg_time'] = stats['total_time'] / stats['count']
-        
+            stats['avg_time'] = stats['total_time'] / stats['count'] if stats['count'] else 0.0
+
         # Generate table
-        table_lines = []
+        table_lines: List[str] = []
         table_lines.append(f"{Colors.BOLD}{Colors.BRIGHT_MAGENTA}API CALLS (Last {minutes} minutes){Colors.RESET}")
         table_lines.append(f"{Colors.DIM}{'=' * 80}{Colors.RESET}")
         table_lines.append(
@@ -362,7 +374,7 @@ class PerformanceMonitor:
 class EnhancedColoredFormatter(logging.Formatter):
     """Enhanced formatter with proper log levels and performance tables."""
 
-    LEVEL_CONFIGS = {
+    LEVEL_CONFIGS: Dict[str, Dict[str, Any]] = {
         'DEBUG': {
             'color': Colors.DIM + Colors.BRIGHT_BLACK,
             'prefix': 'DEBUG',
@@ -400,14 +412,15 @@ class EnhancedColoredFormatter(logging.Formatter):
         }
     }
 
-    def __init__(self, *args, performance_monitor=None, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.use_colors = True
-        self.performance_monitor = performance_monitor or PerformanceMonitor()
-        self.last_performance_report = 0
-        self.last_api_report = 0
 
-    def format(self, record):
+    def __init__(self, *args: Any, performance_monitor: Optional[PerformanceMonitor] = None, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.use_colors: bool = True
+        self.performance_monitor: PerformanceMonitor = performance_monitor or PerformanceMonitor()
+        self.last_performance_report: float = 0
+        self.last_api_report: float = 0
+
+    def format(self, record: logging.LogRecord) -> str:
         # Get the original formatted message
         original_format = super().format(record)
 
@@ -495,11 +508,11 @@ class EnhancedColoredFormatter(logging.Formatter):
 
         return formatted_message
 
-    def disable_colors(self):
+    def disable_colors(self) -> None:
         """Disable color output."""
         self.use_colors = False
 
-def setup_enhanced_logging(log_level: str = "INFO"):
+def setup_enhanced_logging(log_level: str = "INFO") -> Any:
     """Setup enhanced logging with performance monitoring and API tracking."""
     # Try to use unified logging system first
     if UNIFIED_LOGGING_AVAILABLE:
@@ -543,9 +556,9 @@ def setup_enhanced_logging(log_level: str = "INFO"):
     return root_logger, performance_monitor
 
 # Module-level variables - will be properly initialized in main()
-logger = None
-UNIFIED_LOGGING_AVAILABLE = False
-get_logger = None
+logger: Optional[logging.Logger] = None
+UNIFIED_LOGGING_AVAILABLE: bool = False
+get_logger: Any = None
 
 # Setup basic logging immediately to prevent errors
 logging.basicConfig(
@@ -606,14 +619,30 @@ if src_path not in sys.path:
 class TerminalUI:
     """Advanced terminal UI with beautiful ASCII formatting and progress bars."""
 
-    def __init__(self):
+    width: int
+    height: int
+    running: bool
+    animation_frame: int
+    status_lines: List[str]
+    progress_bars: Dict[str, Any]
+    logs: List[str]
+    max_logs: int
+    current_step: int
+    total_steps: int
+    step_names: List[str]
+    setup_logger: logging.Logger
+    setup_log_file: str
+    current_progress: float
+    progress_label: str
+
+    def __init__(self) -> None:
         self.width = TERMINAL_WIDTH
         self.height = TERMINAL_HEIGHT
         self.running = False
         self.animation_frame = 0
-        self.status_lines = []
-        self.progress_bars = {}
-        self.logs = []
+        self.status_lines: List[str] = []
+        self.progress_bars: Dict[str, Any] = {}
+        self.logs: List[str] = []
         self.max_logs = 20
         self.current_step = 0
         self.total_steps = 6
@@ -625,7 +654,8 @@ class TerminalUI:
             "Database",
             "Finalization"
         ]
-        
+        self.current_progress = 0.0
+        self.progress_label = ""
         # Setup detailed setup logger
         self.setup_logger = logging.getLogger('plexichat.setup')
         self.setup_log_file = 'logs/setup_debug.log'
@@ -637,23 +667,23 @@ class TerminalUI:
             self.setup_logger.addHandler(file_handler)
         self.setup_logger.setLevel(logging.DEBUG)
 
-    def clear_screen(self):
+    def clear_screen(self) -> None:
         """Clear the terminal screen."""
         os.system('cls' if os.name == 'nt' else 'clear')
 
-    def move_cursor(self, row: int, col: int):
+    def move_cursor(self, row: int, col: int) -> None:
         """Move cursor to specific position."""
         print(f"\033[{row};{col}H", end='')
 
-    def hide_cursor(self):
+    def hide_cursor(self) -> None:
         """Hide the cursor."""
         print("\033[?25l", end='')
 
-    def show_cursor(self):
+    def show_cursor(self) -> None:
         """Show the cursor."""
         print("\033[?25h", end='')
 
-    def draw_progress_bar(self, progress: float, label: str = "", width: int = None):
+    def draw_progress_bar(self, progress: float, label: str = "", width: Optional[int] = None) -> str:
         """Draw a beautiful ASCII progress bar."""
         if width is None:
             width = self.width - 20
@@ -682,7 +712,7 @@ class TerminalUI:
         else:
             return f"{bar} {percentage}"
 
-    def add_log(self, message: str, level: str = "INFO"):
+    def add_log(self, message: str, level: str = "INFO") -> None:
         """Add a log message with beautiful formatting."""
         timestamp = datetime.now().strftime("%H:%M:%S")
         
@@ -713,7 +743,7 @@ class TerminalUI:
         self.animation_frame += 1
         return char
 
-    def draw_header(self):
+    def draw_header(self) -> None:
         """Draw a beautiful ASCII header."""
         print(f"{Colors.BOLD}{Colors.BRIGHT_BLUE}{'=' * self.width}{Colors.RESET}")
         
@@ -727,7 +757,7 @@ class TerminalUI:
         print(f"{Colors.BOLD}{Colors.BRIGHT_BLUE}{'=' * self.width}{Colors.RESET}")
         print()
 
-    def draw_step_progress(self):
+    def draw_step_progress(self) -> None:
         """Draw step-by-step progress."""
         print(f"{Colors.BOLD}{Colors.BRIGHT_CYAN}SETUP PROGRESS:{Colors.RESET}")
         print(f"{Colors.DIM}{'-' * 50}{Colors.RESET}")
@@ -746,7 +776,7 @@ class TerminalUI:
         print(f"{Colors.DIM}{'-' * 50}{Colors.RESET}")
         print()
 
-    def draw_system_info(self):
+    def draw_system_info(self) -> None:
         """Draw system information panel."""
         print(f"{Colors.BOLD}{Colors.BRIGHT_GREEN}SYSTEM INFORMATION:{Colors.RESET}")
         print(f"{Colors.DIM}{'-' * 50}{Colors.RESET}")
@@ -768,7 +798,7 @@ class TerminalUI:
         print(f"{Colors.DIM}{'-' * 50}{Colors.RESET}")
         print()
 
-    def draw_current_progress(self, progress: float, label: str):
+    def draw_current_progress(self, progress: float, label: str) -> None:
         """Draw current operation progress."""
         print(f"{Colors.BOLD}{Colors.BRIGHT_YELLOW}CURRENT OPERATION:{Colors.RESET}")
         print(f"{Colors.DIM}{'-' * 50}{Colors.RESET}")
@@ -781,7 +811,7 @@ class TerminalUI:
         print(f"{Colors.DIM}{'-' * 50}{Colors.RESET}")
         print()
 
-    def draw_logs_panel(self):
+    def draw_logs_panel(self) -> None:
         """Draw the logs panel with beautiful formatting."""
         print(f"{Colors.BOLD}{Colors.BRIGHT_MAGENTA}ACTIVITY LOG:{Colors.RESET}")
         print(f"{Colors.DIM}{'-' * 50}{Colors.RESET}")
@@ -801,13 +831,13 @@ class TerminalUI:
         
         print(f"{Colors.DIM}{'-' * 50}{Colors.RESET}")
 
-    def draw_footer(self):
+    def draw_footer(self) -> None:
         """Draw footer with instructions."""
         print(f"{Colors.DIM}{'=' * self.width}{Colors.RESET}")
         print(f"{Colors.BRIGHT_BLACK}Press Ctrl+C to cancel setup{Colors.RESET}")
         print(f"{Colors.DIM}{'=' * self.width}{Colors.RESET}")
 
-    def refresh_display(self):
+    def refresh_display(self) -> None:
         """Refresh the entire display with beautiful formatting."""
         self.clear_screen()
         self.hide_cursor()
@@ -834,14 +864,14 @@ class TerminalUI:
         # Show cursor at bottom
         self.show_cursor()
 
-    def update_progress(self, step: int, progress: float, label: str = ""):
+    def update_progress(self, step: int, progress: float, label: str = "") -> None:
         """Update the current progress."""
         self.current_step = step
         self.current_progress = progress
         self.progress_label = label
         self.refresh_display()
 
-    def complete_step(self, step: int, success: bool = True):
+    def complete_step(self, step: int, success: bool = True) -> None:
         """Mark a step as complete."""
         self.current_step = step + 1
         if success:
@@ -850,19 +880,19 @@ class TerminalUI:
             self.add_log(f"Step {step + 1} completed with warnings", "WARNING")
         self.refresh_display()
 
-    def show_success_message(self, message: str):
+    def show_success_message(self, message: str) -> None:
         """Show a success message."""
         print(f"\n{Colors.BOLD}{Colors.BRIGHT_GREEN}SUCCESS!{Colors.RESET}")
         print(f"{Colors.BRIGHT_GREEN}{message}{Colors.RESET}")
         print()
 
-    def show_error_message(self, message: str):
+    def show_error_message(self, message: str) -> None:
         """Show an error message."""
         print(f"\n{Colors.BOLD}{Colors.BRIGHT_RED}ERROR!{Colors.RESET}")
         print(f"{Colors.BRIGHT_RED}{message}{Colors.RESET}")
         print()
 
-    def show_warning_message(self, message: str):
+    def show_warning_message(self, message: str) -> None:
         """Show a warning message."""
         print(f"\n{Colors.BOLD}{Colors.BRIGHT_YELLOW}WARNING!{Colors.RESET}")
         print(f"{Colors.BRIGHT_YELLOW}{message}{Colors.RESET}")
@@ -872,7 +902,7 @@ class TerminalUI:
 class ProcessLockManager:
     """Centralized process lock management."""
     
-    def __init__(self):
+    def __init__(self) -> None:
         self._lock_file_handle = None
         self._lock_file_path = Path("plexichat.lock")
         
@@ -911,7 +941,7 @@ class ProcessLockManager:
             logger.error(f"Failed to acquire process lock: {e}")
             return False
     
-    def release_lock(self):
+    def release_lock(self) -> None:
         """Release process lock with proper cleanup."""
         try:
             if self._lock_file_handle:
@@ -927,45 +957,47 @@ class ProcessLockManager:
             logger.warning(f"Error releasing process lock: {e}")
 
 # Global process lock manager
-process_lock_manager = ProcessLockManager()
+process_lock_manager: ProcessLockManager = ProcessLockManager()
+
+from typing import Dict, List, Any, Optional, Callable
+import signal
+import sys
+import subprocess
+import logging
+from pathlib import Path
 
 class SetupWizard:
     """Interactive setup wizard with terminal UI."""
 
-    def __init__(self):
-        self.ui = TerminalUI()
-        self.steps = [
+    def __init__(self) -> None:
+        self.ui: TerminalUI = TerminalUI()
+        self.steps: List[str] = [
             "Environment Check",
- 
-            "Dependency Installation", 
- 
-            "Dependency Installation",
- 
-            "Configuration Setup",
+            "Dependency Setup", 
+            "Configuration",
             "Database Initialization",
             "Security Setup",
             "Final Verification"
         ]
-        self.current_step = 0
-        self.setup_data = {}
- 
-        self.cancelled = False
-        self.cleanup_tasks = []
-        self.thread_pool = None
-        
+        self.current_step: int = 0
+        self.setup_data: Dict[str, Any] = {}
+        self.cancelled: bool = False
+        self.cleanup_tasks: List[Callable[[], None]] = []
+        self.thread_pool: Optional[Any] = None
+        self.level: str = 'standard'  # Default installation level        
         # Setup signal handler for Ctrl+C
         signal.signal(signal.SIGINT, self._signal_handler)
         if hasattr(signal, 'SIGTERM'):
             signal.signal(signal.SIGTERM, self._signal_handler)
             
-    def _signal_handler(self, signum, frame):
+    def _signal_handler(self, signum: int, frame: Optional[Any]) -> None:
         """Handle SIGINT (Ctrl+C) and SIGTERM gracefully."""
         self.cancelled = True
         self.ui.add_log("Setup cancellation requested...", "WARNING")
         self._cleanup()
         sys.exit(0)
         
-    def _cleanup(self):
+    def _cleanup(self) -> None:
         """Perform cleanup tasks with guaranteed execution."""
         try:
             # Always release process lock first
@@ -995,12 +1027,41 @@ class SetupWizard:
             # Guarantee process lock release even if cleanup fails
             process_lock_manager.release_lock()
 
-    def run(self):
-        """Run the setup wizard."""
+    def run(self, level: Optional[str] = None) -> bool:
+        """Run the setup wizard with specified dependency level.
+        
+        Args:
+            level: Installation level (minimal, standard, full, or developer).
+                  If None, user will be prompted to choose.
+        """
         try:
- 
+            self.level = level or self.level
             self.ui.clear_screen()
-            self.ui.add_log("Starting PlexiChat Setup Wizard", "INFO")
+            self.ui.add_log("Starting PlexiChat Setup Wizard", "INFO") 
+            self.ui.add_log(f"Installation level: {self.level}", "INFO")
+
+            # Show installation level choice if not specified
+            if not level:
+                choices = ["minimal", "standard", "full", "developer"]
+                descriptions = [
+                    "Core dependencies only (fastest)",
+                    "Standard features (recommended)",
+                    "All features (most complete)", 
+                    "All features + developer tools"
+                ]
+
+                print(f"\n{Colors.CYAN}Choose installation level:{Colors.RESET}")
+                for i, (choice, desc) in enumerate(zip(choices, descriptions), 1):
+                    print(f"{i}. {choice} - {desc}")
+
+                while True:
+                    try:
+                        choice = input(f"\nEnter choice (1-4, default=2): ").strip() or "2"
+                        if choice in ["1", "2", "3", "4"]:
+                            self.level = choices[int(choice)-1]
+                            break
+                    except (ValueError, IndexError):
+                        print("Invalid choice. Please enter 1-4.")
 
             for i, step in enumerate(self.steps):
                 self.current_step = i
@@ -1013,6 +1074,7 @@ class SetupWizard:
                 self.ui.add_log(f"Completed step {i+1}: {step}", "SUCCESS")
 
             self.ui.add_log("Setup completed successfully!", "SUCCESS")
+            self.ui.add_log("You can now start PlexiChat with: python run.py", "INFO")
             return True
 
         except KeyboardInterrupt:
@@ -1026,17 +1088,19 @@ class SetupWizard:
 
     def execute_step(self, step_index: int) -> bool:
         """Execute a specific setup step."""
-        step_methods = [
-            self.check_environment,
-            self.install_dependencies,
-            self.setup_configuration,
-            self.initialize_database,
-            self.setup_security,
-            self.verify_installation
-        ]
-
-        if step_index < len(step_methods):
-            return step_methods[step_index]()
+        if step_index == 0:  # Environment Check
+            return self.check_environment()
+        elif step_index == 1:  # Dependency Setup
+            return self.install_dependencies(self.level)
+        elif step_index == 2:  # Configuration
+            return self.setup_configuration()
+        elif step_index == 3:  # Database Init
+            return self.initialize_database()
+        elif step_index == 4:  # Security Setup
+            return self.setup_security()
+        elif step_index == 5:  # Final Verification
+            return self.verify_installation()
+        
         return False
 
     def check_environment(self) -> bool:
@@ -1054,15 +1118,46 @@ class SetupWizard:
 
         return True
 
-    def install_dependencies(self) -> bool:
-        """Install required dependencies."""
-        self.ui.add_log("Installing dependencies...", "INFO")
+    def install_dependencies(self, level: str = 'standard') -> bool:
+        """Install required dependencies based on installation level.
+        
+        Args:
+            level: Installation level (minimal, standard, full, or developer)
+        
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        level_files = {
+            'minimal': 'requirements.txt',
+            'standard': 'requirements.txt',  # Standard includes minimal
+            'full': 'requirements.txt',      # Full includes standard and extras 
+            'developer': 'requirements.txt'  # Dev includes full and dev tools
+        }
+
+        self.ui.add_log(f"Installing {level} dependencies...", "INFO")
+
         try:
-            subprocess.run([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"],
+            # Install base requirements first
+            subprocess.run([sys.executable, "-m", "pip", "install", "-r", level_files[level]],
                          check=True, capture_output=True)
+
+            # Install additional requirements based on level
+            if level in ['full', 'developer']:
+                # Install optional/extra dependencies
+                self.ui.add_log("Installing extra dependencies...", "INFO")
+                subprocess.run([sys.executable, "-m", "pip", "install", "-r", "docs/requirements.txt"],
+                             check=True, capture_output=True)
+            
+            if level == 'developer':
+                # Install development dependencies
+                self.ui.add_log("Installing development dependencies...", "INFO")
+                subprocess.run([sys.executable, "-m", "pip", "install", "pytest", "pytest-cov", "mypy", "black", "isort"],
+                             check=True, capture_output=True)
+
             return True
-        except subprocess.CalledProcessError:
-            self.ui.add_log("Failed to install dependencies", "ERROR")
+
+        except subprocess.CalledProcessError as e:
+            self.ui.add_log(f"Failed to install dependencies: {e}", "ERROR")
             return False
 
     def setup_configuration(self) -> bool:
@@ -1160,7 +1255,7 @@ class SetupWizard:
 class GitHubVersionManager:
     """Manages version downloads and updates from GitHub."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.repo = GITHUB_REPO
         self.api_url = GITHUB_API_URL
         self.releases_url = GITHUB_RELEASES_URL
@@ -3416,13 +3511,11 @@ Examples:
   run.py gui --noserver     # Launch GUI without API server
   run.py webui              # Launch WebUI with API server
   run.py webui --noserver   # Launch WebUI without API server
-  run.py version            # Manage versions and downloads
-  run.py update             # Check for and install updates
-  run.py deps               # Manage dependencies
-  run.py clean              # Clean system cache
-  run.py wizard             # Configure PlexiChat
-  run.py --verbose          # Enable verbose logging
-  run.py --log-level DEBUG  # Set log level to DEBUG
+  run.py update            # Check for and install updates
+  run.py clean             # Clean system cache and temporary files
+  run.py install           # Install or repair system components
+  run.py --verbose         # Enable verbose logging
+  run.py --log-level DEBUG # Set log level to DEBUG
   run.py setup --level developer # Non-interactive setup with developer tools
 """
         )
@@ -3432,10 +3525,12 @@ Examples:
                           nargs='?',
                           default='api',
                           choices=[
-                              'api', 'gui', 'gui-standalone', 'webui', 'cli', 'admin', 'backup-node', 'plugin',
-                              'test', 'config', 'wizard', 'help', 'setup', 'update', 'version',
-                              'deps', 'system', 'clean', 'download', 'latest', 'versions', 'install',
-                              'advanced-setup', 'optimize', 'diagnostic', 'maintenance', 'bootstrap'
+                              # Core functionality
+                              'api', 'gui', 'gui-standalone', 'webui', 'cli', 'admin',
+                              # System management
+                              'setup', 'clean', 'install', 'update',
+                              # Core features
+                              'backup-node', 'plugin', 'help'
                           ],
                           help='Command to execute (default: %(default)s)')
 
@@ -4751,13 +4846,22 @@ def get_current_version():
 def main():
     """Main execution function."""
     try:
-        # Acquire process lock
+        # Parse command line arguments first
+        try:
+            args = parse_arguments()
+        except SystemExit as e:
+            # This catches when --help or -h is used, allowing help to display without lock
+            return e.code
+
+        # Skip process lock for help command
+        if getattr(args, 'command', None) == 'help' or '--help' in sys.argv or '-h' in sys.argv:
+            show_help()
+            return 0
+
+        # Acquire process lock for all other commands
         if not process_lock_manager.acquire_lock():
             print(f"{Colors.RED}PlexiChat is already running. Use --force-kill to terminate existing processes.{Colors.RESET}")
             return 1
-
-        # Parse command line arguments
-        args = parse_arguments()
 
         # Setup enhanced logging
         log_level = "DEBUG" if (args.verbose or args.debug) else args.log_level
@@ -4828,55 +4932,22 @@ def main():
             logger.info("Running version manager")
             return run_version_manager()
 
-        elif args.command == 'deps':
-            logger.info("Running dependency manager")
-            return run_dependency_manager(args.level or 'full')
-
-        elif args.command == 'system':
-            logger.info("Running system diagnostics")
-            return run_system_diagnostics()
-
         elif args.command == 'clean':
             logger.info("Running system cleanup")
             return run_system_cleanup()
 
-        elif args.command == 'download':
-            logger.info("Running download manager")
-            return run_download_manager(args.target_dir)
-
-        elif args.command == 'latest':
-            logger.info("Downloading latest version")
-            handle_github_commands('latest', args.args, args.target_dir)
-            return 0
-
-        elif args.command == 'versions':
-            logger.info("Showing available versions")
-            handle_github_commands('versions', args.args, args.target_dir)
-            return 0
+        elif args.command == 'update':
+            logger.info("Running update process")
+            if args.args and args.args[0] == 'check':
+                # Just check for updates
+                return handle_github_commands('versions', [], args.target_dir)
+            else:
+                # Get and install latest version
+                return handle_github_commands('latest', args.args, args.target_dir)
 
         elif args.command == 'install':
             logger.info("Running installer")
             return run_install_command(args)
-
-        elif args.command == 'advanced-setup':
-            logger.info("Running advanced setup")
-            return run_advanced_setup()
-
-        elif args.command == 'optimize':
-            logger.info("Running system optimization")
-            return run_system_optimization()
-
-        elif args.command == 'diagnostic':
-            logger.info("Running system diagnostics")
-            return run_system_diagnostics()
-
-        elif args.command == 'maintenance':
-            logger.info("Running system maintenance")
-            return run_system_maintenance()
-
-        elif args.command == 'bootstrap':
-            logger.info("Running bootstrap mode")
-            return run_bootstrap_mode()
 
         else:
             logger.error(f"Unknown command: {args.command}")

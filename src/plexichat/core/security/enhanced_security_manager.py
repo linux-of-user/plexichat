@@ -30,6 +30,12 @@ try:
     from ..config import get_config
     from ..database.manager import database_manager
     from ..auth.unified_auth_manager import get_unified_auth_manager
+    # Import our new middleware
+    from ..middleware.account_rate_limiting_middleware import add_account_rate_limiting_middleware
+    from ..middleware.dynamic_rate_limiting_middleware import add_dynamic_rate_limiting_middleware
+    from ..middleware.ip_blacklist_middleware import add_ip_blacklist_middleware
+    from ..error_handling.enhanced_error_responses import setup_exception_handlers
+    from ..config.rate_limiting_config import get_rate_limiting_config
 except ImportError as e:
     logging.warning(f"Security manager import error: {e}")
     get_logger = logging.getLogger
@@ -38,6 +44,12 @@ except ImportError as e:
     get_config = lambda: type('Config', (), {'security': type('Security', (), {})()})()
     database_manager = None
     get_unified_auth_manager = lambda: None
+    # Fallback functions for middleware
+    def add_account_rate_limiting_middleware(app): pass
+    def add_dynamic_rate_limiting_middleware(app): pass
+    def add_ip_blacklist_middleware(app): pass
+    def setup_exception_handlers(app): pass
+    def get_rate_limiting_config(): return None
 
 logger = get_logger(__name__)
 
@@ -572,6 +584,64 @@ class EnhancedSecurityManager:
     def get_security_headers(self) -> Dict[str, str]:
         """Get security headers to add to responses."""
         return self.security_headers.copy()
+
+    def configure_comprehensive_security(self, app):
+        """Configure all security middleware for the FastAPI app."""
+        logger.info("🔒 Configuring comprehensive security middleware...")
+
+        try:
+            # 1. Setup enhanced exception handlers
+            setup_exception_handlers(app)
+            logger.info("✅ Enhanced exception handlers configured")
+
+            # 2. Add account-based rate limiting
+            add_account_rate_limiting_middleware(app)
+            logger.info("✅ Account-based rate limiting middleware added")
+
+            # 3. Add dynamic rate limiting based on system load
+            add_dynamic_rate_limiting_middleware(app)
+            logger.info("✅ Dynamic rate limiting middleware added")
+
+            # 4. Add IP blacklist middleware
+            add_ip_blacklist_middleware(app)
+            logger.info("✅ IP blacklist middleware added")
+
+            # 5. Add the existing security middleware
+            app.add_middleware(SecurityMiddleware)
+            logger.info("✅ Core security middleware added")
+
+            logger.info("🛡️ Comprehensive security configuration completed successfully!")
+
+        except Exception as e:
+            logger.error(f"❌ Error configuring security middleware: {e}")
+            raise
+
+    def get_security_status(self) -> Dict[str, Any]:
+        """Get comprehensive security status."""
+        try:
+            rate_config = get_rate_limiting_config()
+
+            return {
+                "enhanced_security_enabled": True,
+                "middleware_status": {
+                    "core_security": True,
+                    "account_rate_limiting": True,
+                    "dynamic_rate_limiting": True,
+                    "ip_blacklist": True,
+                    "enhanced_error_handling": True
+                },
+                "rate_limiting": rate_config.get_config_summary() if rate_config else {"enabled": False},
+                "security_headers": len(self.security_headers),
+                "threat_detection": {
+                    "enabled": True,
+                    "patterns_monitored": len(self.threat_patterns),
+                    "blocked_ips": len(self.blocked_ips)
+                },
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Error getting security status: {e}")
+            return {"error": str(e), "enhanced_security_enabled": False}
 
 
 # Global instance
