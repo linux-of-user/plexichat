@@ -21,12 +21,12 @@ def get_version() -> str:
         if version_file.exists():
             with open(version_file, 'r', encoding='utf-8') as f:
                 version_data = json.load(f)
-                return version_data.get('version', 'b.1.1-86')
+                return version_data.get('version', 'b.1.1-88')
         else:
             # Fallback version
-            return 'b.1.1-86'
+            return 'b.1.1-88'
     except Exception:
-        return 'b.1.1-86'
+        return 'b.1.1-88'
 
 # For backward compatibility, provide PLEXICHAT_VERSION
 PLEXICHAT_VERSION = get_version()

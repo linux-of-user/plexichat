@@ -234,6 +234,14 @@ def setup_routers():
     except ImportError as e:
         logger.warning(f"Admin router not available: {e}")
 
+    try:
+        # Easter eggs routes (fun endpoints that don't disrupt normal operation)
+        from plexichat.interfaces.api.routers.easter_eggs import router as easter_eggs_router
+        app.include_router(easter_eggs_router, tags=["easter-eggs"])
+        logger.info("[CHECK] Easter eggs router loaded")
+    except ImportError as e:
+        logger.warning(f"Easter eggs router not available: {e}")
+
 # Setup static files and templates
 def setup_static_files():
     """Setup static files and templates."""

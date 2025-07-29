@@ -220,8 +220,8 @@ class VersionManager:
     def __init__(self):
         # Get current build number from GitHub releases
         self.build_number = self._get_github_release_count()
-        self.current_version = f"a.1.1-{self.build_number}"
-        self.version_type = "alpha"
+        self.current_version = f"b.1.1-{self.build_number}"
+        self.version_type = "beta"
         self.major_version = 1
         self.minor_version = 1
         self.api_version = "v1"

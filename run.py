@@ -918,12 +918,14 @@ class ProcessLockManager:
                     # Try to signal the process to check if it's alive
                     try:
                         os.kill(existing_pid, 0)
-                        logger.warning(f"PlexiChat is already running (PID: {existing_pid})")
+                        if logger:
+                            logger.warning(f"PlexiChat is already running (PID: {existing_pid})")
                         return False
                     except (ProcessLookupError, PermissionError):
                         # Process doesn't exist, remove stale lock
                         self._lock_file_path.unlink(missing_ok=True)
-                        logger.info("Removed stale lock file")
+                        if logger:
+                            logger.info("Removed stale lock file")
                         
                 except (ValueError, FileNotFoundError):
                     # Invalid lock file, remove it
@@ -934,11 +936,13 @@ class ProcessLockManager:
             self._lock_file_handle.write(f"{os.getpid()}\n")
             self._lock_file_handle.flush()
             
-            logger.info(f"Process lock acquired (PID: {os.getpid()})")
+            if logger:
+                logger.info(f"Process lock acquired (PID: {os.getpid()})")
             return True
             
         except Exception as e:
-            logger.error(f"Failed to acquire process lock: {e}")
+            if logger:
+                logger.error(f"Failed to acquire process lock: {e}")
             return False
     
     def release_lock(self) -> None:
@@ -951,10 +955,12 @@ class ProcessLockManager:
             if self._lock_file_path.exists():
                 self._lock_file_path.unlink(missing_ok=True)
                 
-            logger.info("Process lock released")
+            if logger:
+                logger.info("Process lock released")
             
         except Exception as e:
-            logger.warning(f"Error releasing process lock: {e}")
+            if logger:
+                logger.warning(f"Error releasing process lock: {e}")
 
 # Global process lock manager
 process_lock_manager: ProcessLockManager = ProcessLockManager()
@@ -971,7 +977,7 @@ class SetupWizard:
 
     def __init__(self) -> None:
         self.ui: TerminalUI = TerminalUI()
-        self.steps: List[str] = [
+        self.steps: list[str] = [
             "Environment Check",
             "Dependency Setup", 
             "Configuration",
@@ -980,9 +986,9 @@ class SetupWizard:
             "Final Verification"
         ]
         self.current_step: int = 0
-        self.setup_data: Dict[str, Any] = {}
+        self.setup_data: dict[str, Any] = {}
         self.cancelled: bool = False
-        self.cleanup_tasks: List[Callable[[], None]] = []
+        self.cleanup_tasks: list[Callable[[], None]] = []
         self.thread_pool: Optional[Any] = None
         self.level: str = 'standard'  # Default installation level        
         # Setup signal handler for Ctrl+C
@@ -1009,20 +1015,23 @@ class SetupWizard:
                     self.thread_pool.shutdown(wait=True, timeout=10)
                     self.ui.add_log("Thread pool shutdown completed", "INFO")
                 except Exception as e:
-                    logger.warning(f"Thread pool shutdown error: {e}")
+                    if logger:
+                        logger.warning(f"Thread pool shutdown error: {e}")
                     
             # Execute other cleanup tasks
             for task in self.cleanup_tasks:
                 try:
                     task()
                 except Exception as e:
-                    logger.debug(f"Cleanup task failed: {e}")
+                    if logger:
+                        logger.debug(f"Cleanup task failed: {e}")
                     
             self.ui.show_cursor()
             self.ui.add_log("Cleanup completed", "INFO")
             
         except Exception as e:
-            logger.error(f"Cleanup failed: {e}")
+            if logger:
+                logger.error(f"Cleanup failed: {e}")
         finally:
             # Guarantee process lock release even if cleanup fails
             process_lock_manager.release_lock()
@@ -1268,7 +1277,7 @@ class GitHubVersionManager:
             with urllib.request.urlopen(self.releases_url) as response:
                 data = json.loads(response.read().decode())
 
-            versions = []
+            versions: list[dict[str, Any]] = []
             for release in data:
                 versions.append({
                     'tag': release['tag_name'],
@@ -1282,7 +1291,8 @@ class GitHubVersionManager:
             return versions
 
         except Exception as e:
-            logger.error(f"Failed to fetch versions from GitHub: {e}")
+            if logger:
+                logger.error(f"Failed to fetch versions from GitHub: {e}")
             return []
 
     def get_latest_version(self) -> Optional[Dict[str, Any]]:
@@ -1301,7 +1311,8 @@ class GitHubVersionManager:
             }
 
         except Exception as e:
-            logger.error(f"Failed to fetch latest version from GitHub: {e}")
+            if logger:
+                logger.error(f"Failed to fetch latest version from GitHub: {e}")
             return None
 
     def download_version(self, version_tag: str, target_dir: str) -> bool:
@@ -1310,24 +1321,28 @@ class GitHubVersionManager:
             download_url = f"{self.download_url}/{version_tag}.zip"
             target_path = Path(target_dir) / f"plexichat-{version_tag}.zip"
 
-            logger.info(f"Downloading version {version_tag} from GitHub...")
+            if logger:
+                logger.info(f"Downloading version {version_tag} from GitHub...")
 
             with urllib.request.urlopen(download_url) as response:
                 with open(target_path, 'wb') as f:
                     shutil.copyfileobj(response, f)
 
-            logger.info(f"Downloaded to {target_path}")
+            if logger:
+                logger.info(f"Downloaded to {target_path}")
 
             # Extract the zip file
             extract_dir = Path(target_dir) / f"plexichat-{version_tag}"
             with zipfile.ZipFile(target_path, 'r') as zip_ref:
                 zip_ref.extractall(extract_dir)
 
-            logger.info(f"Extracted to {extract_dir}")
+            if logger:
+                logger.info(f"Extracted to {extract_dir}")
             return True
 
         except Exception as e:
-            logger.error(f"Failed to download version {version_tag}: {e}")
+            if logger:
+                logger.error(f"Failed to download version {version_tag}: {e}")
             return False
 
     def verify_download(self, file_path: str) -> bool:
@@ -1343,16 +1358,18 @@ class GitHubVersionManager:
             return True
 
         except zipfile.BadZipFile:
-            logger.error("Downloaded file is not a valid zip file")
+            if logger:
+                logger.error("Downloaded file is not a valid zip file")
             return False
         except Exception as e:
-            logger.error(f"Download verification failed: {e}")
+            if logger:
+                logger.error(f"Download verification failed: {e}")
             return False
 
 class DependencyManager:
     """Manages Python dependencies and environment setup with cross-platform support."""
 
-    def __init__(self, ui=None):
+    def __init__(self, ui: Optional[Any] = None):
         self.requirements_file = Path("requirements.txt")
         self.venv_dir = Path("venv")
         self.ui = ui
@@ -1362,33 +1379,29 @@ class DependencyManager:
         # Platform-specific pip installation methods
         self.pip_methods = self._get_pip_installation_methods()
         
-    def _get_pip_installation_methods(self) -> List[List[str]]:
+    def _get_pip_installation_methods(self) -> list[list[str]]:
         """Get fallback pip installation methods for different systems."""
-        methods = []
-        
+        methods: list[list[str]] = []
         # Method 1: Standard pip module
         methods.append([sys.executable, "-m", "pip", "install"])
-        
         # Method 2: Direct pip command (if available)
         if shutil.which("pip"):
             methods.append(["pip", "install"])
-            
         # Method 3: pip3 command (common on Linux/Mac)
         if shutil.which("pip3"):
             methods.append(["pip3", "install"])
-            
         # Method 4: python -m ensurepip then pip
         methods.append([sys.executable, "-m", "ensurepip", "--upgrade"])
-        
         return methods
 
-    def _parse_requirements(self) -> Dict[str, List[str]]:
+    def _parse_requirements(self) -> dict[str, list[str]]:
         """Parse requirements.txt into sections."""
         if not self.requirements_file.exists():
-            logger.warning("requirements.txt not found")
+            if logger:
+                logger.warning("requirements.txt not found")
             return {}
 
-        sections = {'minimal': [], 'full': [], 'developer': []}
+        sections: dict[str, list[str]] = {'minimal': [], 'full': [], 'developer': []}
         current_section = 'minimal'  # Default to minimal for anything at the top
 
         with open(self.requirements_file, 'r') as f:
@@ -1396,7 +1409,6 @@ class DependencyManager:
                 line = line.strip()
                 if not line:
                     continue
-                
                 if line.startswith('# ==='):
                     if 'MINIMAL INSTALLATION' in line:
                         current_section = 'minimal'
@@ -1405,27 +1417,27 @@ class DependencyManager:
                     elif 'DEVELOPMENT DEPENDENCIES' in line:
                         current_section = 'developer'
                     continue
-                
                 if not line.startswith('#'):
                     sections[current_section].append(line)
         return sections
 
-    def check_dependencies(self) -> Dict[str, bool]:
+    def check_dependencies(self) -> dict[str, bool]:
         """Check if all dependencies are installed."""
-        results = {}
+        results: dict[str, bool] = {}
 
         if not self.requirements_file.exists():
-            logger.warning("requirements.txt not found")
+            if logger:
+                logger.warning("requirements.txt not found")
             return results
 
         try:
             with open(self.requirements_file, 'r') as f:
-                requirements = f.readlines()
+                requirements: list[str] = f.readlines()
 
             for req in requirements:
                 req = req.strip()
                 if req and not req.startswith('#'):
-                    package_name = req.split('>=')[0].split('==')[0].split('<')[0]
+                    package_name: str = req.split('>=')[0].split('==')[0].split('<')[0]
                     try:
                         __import__(package_name.replace('-', '_'))
                         results[package_name] = True
@@ -1433,7 +1445,8 @@ class DependencyManager:
                         results[package_name] = False
 
         except Exception as e:
-            logger.error(f"Failed to check dependencies: {e}")
+            if logger:
+                logger.error(f"Failed to check dependencies: {e}")
 
         return results
 
@@ -1441,17 +1454,19 @@ class DependencyManager:
         """Install dependencies for a specific level with progress. Now with timeout and hang protection."""
         import threading
         try:
-            logger.info(f"Installing '{level}' dependencies...")
+            if logger:
+                logger.info(f"Installing '{level}' dependencies...")
             if self.ui and hasattr(self.ui, 'setup_logger'):
                 self.ui.setup_logger.debug(f"Installing '{level}' dependencies...")
-            sections = self._parse_requirements()
+            sections: dict[str, list[str]] = self._parse_requirements()
             if not sections:
-                logger.error("Could not parse requirements.txt")
+                if logger:
+                    logger.error("Could not parse requirements.txt")
                 if self.ui and hasattr(self.ui, 'setup_logger'):
                     self.ui.setup_logger.error("Could not parse requirements.txt")
                 return False
 
-            deps_to_install = []
+            deps_to_install: list[str] = []
             if level == 'minimal':
                 deps_to_install.extend(sections.get('minimal', []))
             elif level == 'standard':
@@ -1465,14 +1480,16 @@ class DependencyManager:
                 deps_to_install.extend(sections.get('full', []))
                 deps_to_install.extend(sections.get('developer', []))
             else:
-                logger.error(f"Unknown installation level: {level}")
+                if logger:
+                    logger.error(f"Unknown installation level: {level}")
                 if self.ui and hasattr(self.ui, 'setup_logger'):
                     self.ui.setup_logger.error(f"Unknown installation level: {level}")
                 return False
 
             deps_to_install = [d for d in deps_to_install if d and not d.startswith('#')]
             if not deps_to_install:
-                logger.info("No dependencies to install for this level.")
+                if logger:
+                    logger.info("No dependencies to install for this level.")
                 if self.ui and hasattr(self.ui, 'setup_logger'):
                     self.ui.setup_logger.info("No dependencies to install for this level.")
                 return True
@@ -1498,7 +1515,7 @@ class DependencyManager:
 
                 process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding='utf-8', bufsize=1)
 
-                def kill_proc_after_timeout(proc, timeout):
+                def kill_proc_after_timeout(proc: subprocess.Popen, timeout: float) -> None:
                     time.sleep(timeout)
                     if proc.poll() is None:
                         proc.kill()
@@ -1512,7 +1529,8 @@ class DependencyManager:
 
                 for line in iter(process.stdout.readline, ''):
                     stripped_line = line.strip()
-                    logger.debug(stripped_line)
+                    if logger:
+                        logger.debug(stripped_line)
                     if self.ui and hasattr(self.ui, 'setup_logger'):
                         self.ui.setup_logger.debug(stripped_line)
 
@@ -1552,7 +1570,8 @@ class DependencyManager:
                     self.ui.setup_logger.debug(f"pip stderr:\n{stderr}")
 
                 if process.returncode is None:
-                    logger.error(f"Dependency installation timed out after {timeout_seconds} seconds. Killing process.")
+                    if logger:
+                        logger.error(f"Dependency installation timed out after {timeout_seconds} seconds. Killing process.")
                     if self.ui and hasattr(self.ui, 'setup_logger'):
                         self.ui.setup_logger.error(f"Dependency installation timed out after {timeout_seconds} seconds. Killing process.")
                     process.kill()
@@ -1561,8 +1580,9 @@ class DependencyManager:
                     return False
 
                 if process.returncode != 0:
-                    logger.error(f"Failed to install dependencies:\n{stderr}")
-                    logger.error(f"Pip stdout:\n{stdout}")
+                    if logger:
+                        logger.error(f"Failed to install dependencies:\n{stderr}")
+                        logger.error(f"Pip stdout:\n{stdout}")
                     if self.ui and hasattr(self.ui, 'setup_logger'):
                         self.ui.setup_logger.error(f"Failed to install dependencies:\n{stderr}")
                         self.ui.setup_logger.error(f"Pip stdout:\n{stdout}")
@@ -1572,45 +1592,53 @@ class DependencyManager:
                             self.ui.add_log(f"See {self.ui.setup_log_file} for full pip output.", "INFO")
 
                     # Try platform-specific installation as fallback
-                    logger.info("Attempting platform-specific package installation as fallback...")
+                    if logger:
+                        logger.info("Attempting platform-specific package installation as fallback...")
                     if self.ui and hasattr(self.ui, 'add_log'):
                         self.ui.add_log("Installing system packages (including tkinter)...", "INFO")
 
                     platform_success = install_platform_dependencies()
                     if platform_success:
-                        logger.info("Platform-specific packages installed successfully")
+                        if logger:
+                            logger.info("Platform-specific packages installed successfully")
                         if self.ui and hasattr(self.ui, 'add_log'):
                             self.ui.add_log("System packages installed successfully", "INFO")
                         # Continue with partial success
                     else:
-                        logger.warning("Platform-specific package installation also failed")
+                        if logger:
+                            logger.warning("Platform-specific package installation also failed")
                         if self.ui and hasattr(self.ui, 'add_log'):
                             self.ui.add_log("System package installation failed", "WARNING")
 
                     # Don't return False immediately - some packages may have installed
-                    logger.warning("Some dependencies may not be available, but continuing...")
+                    if logger:
+                        logger.warning("Some dependencies may not be available, but continuing...")
                     if self.ui and hasattr(self.ui, 'add_log'):
                         self.ui.add_log("Continuing with partial installation...", "WARNING")
-                logger.info("Dependencies installed successfully.")
+                if logger:
+                    logger.info("Dependencies installed successfully.")
                 if self.ui and hasattr(self.ui, 'setup_logger'):
                     self.ui.setup_logger.info("Dependencies installed successfully.")
                 if self.ui and hasattr(self.ui, 'add_log'):
                     self.ui.add_log("Dependencies installed successfully.", "INFO")
 
                 # Always try to install system packages (especially tkinter) for full functionality
-                logger.info("Installing system packages for full functionality...")
+                if logger:
+                    logger.info("Installing system packages for full functionality...")
                 if self.ui and hasattr(self.ui, 'add_log'):
                     self.ui.add_log("Installing system packages (including tkinter)...", "INFO")
 
                 platform_success = install_platform_dependencies()
                 if platform_success:
-                    logger.info("System packages installed successfully")
+                    if logger:
+                        logger.info("System packages installed successfully")
                     if self.ui and hasattr(self.ui, 'add_log'):
                         self.ui.add_log("System packages installed successfully", "INFO")
                 else:
-                    logger.warning("System package installation failed - some features may not work")
+                    if logger:
+                        logger.warning("System package installation failed - some features may not work")
                     if self.ui and hasattr(self.ui, 'add_log'):
-                        self.ui.add_log("System package installation failed - GUI may not work", "WARNING")
+                        self.ui.add_log("System package installation failed", "WARNING")
 
                 return True
             finally:
@@ -1618,7 +1646,8 @@ class DependencyManager:
                 if process and process.poll() is None:
                     process.kill()
         except Exception as e:
-            logger.error(f"Error installing dependencies: {e}", exc_info=True)
+            if logger:
+                logger.error(f"Error installing dependencies: {e}", exc_info=True)
             if self.ui and hasattr(self.ui, 'setup_logger'):
                 self.ui.setup_logger.error(f"Error installing dependencies: {e}", exc_info=True)
             if self.ui and hasattr(self.ui, 'add_log'):
@@ -1631,22 +1660,27 @@ class DependencyManager:
         """Create a virtual environment."""
         try:
             if self.venv_dir.exists():
-                logger.info("Virtual environment already exists")
+                if logger:
+                    logger.info("Virtual environment already exists")
                 return True
 
-            logger.info("Creating virtual environment...")
+            if logger:
+                logger.info("Creating virtual environment...")
             subprocess.run([sys.executable, "-m", "venv", str(self.venv_dir)], check=True)
-            logger.info("Virtual environment created successfully")
+            if logger:
+                logger.info("Virtual environment created successfully")
             return True
 
         except Exception as e:
-            logger.error(f"Failed to create virtual environment: {e}")
+            if logger:
+                logger.error(f"Failed to create virtual environment: {e}")
             return False
 
     def clean_cache(self) -> bool:
         """Clean pip cache and temporary files."""
         try:
-            logger.info("Cleaning pip cache...")
+            if logger:
+                logger.info("Cleaning pip cache...")
             subprocess.run([sys.executable, "-m", "pip", "cache", "purge"],
                          capture_output=True, check=True)
 
@@ -1655,26 +1689,31 @@ class DependencyManager:
             for temp_dir in temp_dirs:
                 if temp_dir.exists():
                     shutil.rmtree(temp_dir)
-                    logger.info(f"Cleaned {temp_dir}")
+                    if logger:
+                        logger.info(f"Cleaned {temp_dir}")
 
-            logger.info("Cache cleaned successfully")
+            if logger:
+                logger.info("Cache cleaned successfully")
             return True
 
         except Exception as e:
-            logger.error(f"Failed to clean cache: {e}")
+            if logger:
+                logger.error(f"Failed to clean cache: {e}")
             return False
 
 def setup_environment():
     """Set up the runtime environment including required directories and environment variables. Robust, with logging and fallbacks."""
     try:
-        logger.info("Setting up environment...")
+        if logger:
+            logger.info("Setting up environment...")
         # Create only essential directories that are immediately needed
         # Other directories will be created by components that actually use them
         essential_dirs = ['config', 'logs']
         for dir_name in essential_dirs:
             dir_path = Path(dir_name)
             dir_path.mkdir(exist_ok=True, parents=True)
-            logger.debug(f"Essential directory ready: {dir_path.absolute()}")
+            if logger:
+                logger.debug(f"Essential directory ready: {dir_path.absolute()}")
         # Set environment variables with defaults if not already set
         env_vars = {
             'PLEXICHAT_ENV': 'production',
@@ -1689,10 +1728,13 @@ def setup_environment():
         }
         for var, default in env_vars.items():
             os.environ.setdefault(var, default)
-            logger.debug(f"Environment variable set: {var}={os.environ[var]}")
-        logger.info("Environment setup completed")
+            if logger:
+                logger.debug(f"Environment variable set: {var}={os.environ[var]}")
+        if logger:
+            logger.info("Environment setup completed")
     except Exception as e:
-        logger.error(f"Failed to set up environment: {e}")
+        if logger:
+            logger.error(f"Failed to set up environment: {e}")
         raise
 
 # ============================================================================
@@ -1751,15 +1793,18 @@ class ConfigurationManager:
             if self.config_file.exists():
                 with open(self.config_file, 'r') as f:
                     config = json.load(f)
-                logger.info("Configuration loaded from file")
+                if logger:
+                    logger.info("Configuration loaded from file")
                 return config
             else:
-                logger.info("Creating default configuration")
+                if logger:
+                    logger.info("Creating default configuration")
                 self.save_configuration(self.default_config)
                 return self.default_config
 
         except Exception as e:
-            logger.error(f"Failed to load configuration: {e}")
+            if logger:
+                logger.error(f"Failed to load configuration: {e}")
             return self.default_config
 
     def save_configuration(self, config: Dict[str, Any]) -> bool:
@@ -1768,11 +1813,13 @@ class ConfigurationManager:
             self.config_dir.mkdir(exist_ok=True)
             with open(self.config_file, 'w') as f:
                 json.dump(config, f, indent=2)
-            logger.info("Configuration saved successfully")
+            if logger:
+                logger.info("Configuration saved successfully")
             return True
 
         except Exception as e:
-            logger.error(f"Failed to save configuration: {e}")
+            if logger:
+                logger.error(f"Failed to save configuration: {e}")
             return False
 
     def setup_environment_variables(self, config: Dict[str, Any]) -> bool:
@@ -1790,11 +1837,13 @@ class ConfigurationManager:
             for var, value in env_vars.items():
                 os.environ[var] = value
 
-            logger.info("Environment variables configured")
+            if logger:
+                logger.info("Environment variables configured")
             return True
 
         except Exception as e:
-            logger.error(f"Failed to setup environment variables: {e}")
+            if logger:
+                logger.error(f"Failed to setup environment variables: {e}")
             return False
 
 class SystemManager:
@@ -1805,7 +1854,7 @@ class SystemManager:
         self.dependency_manager = DependencyManager(ui)
         self.config_manager = ConfigurationManager()
 
-    def check_system_health(self) -> Dict[str, Any]:
+    def check_system_health(self) -> dict[str, Any]:
         """Check overall system health."""
         health = {
             "python_version": sys.version,
@@ -1819,7 +1868,7 @@ class SystemManager:
 
         return health
 
-    def get_disk_space(self) -> Dict[str, Any]:
+    def get_disk_space(self) -> dict[str, Any]:
         """Get disk space information."""
         try:
             total, used, free = shutil.disk_usage(os.getcwd())
@@ -1832,7 +1881,7 @@ class SystemManager:
         except Exception:
             return {"error": "Unable to get disk space"}
 
-    def get_memory_usage(self) -> Dict[str, Any]:
+    def get_memory_usage(self) -> dict[str, Any]:
         """Get memory usage information."""
         try:
             import psutil
@@ -1852,7 +1901,8 @@ class SystemManager:
     def cleanup_system(self) -> bool:
         """Perform system cleanup."""
         try:
-            logger.info("Starting system cleanup...")
+            if logger:
+                logger.info("Starting system cleanup...")
 
             # Clean dependency cache
             self.dependency_manager.clean_cache()
@@ -1863,11 +1913,13 @@ class SystemManager:
             # Clean temporary files
             self.cleanup_temp_files()
 
-            logger.info("System cleanup completed")
+            if logger:
+                logger.info("System cleanup completed")
             return True
 
         except Exception as e:
-            logger.error(f"System cleanup failed: {e}")
+            if logger:
+                logger.error(f"System cleanup failed: {e}")
             return False
 
     def cleanup_old_logs(self):
@@ -1878,7 +1930,8 @@ class SystemManager:
             for log_file in logs_dir.glob("*.log*"):
                 if log_file.stat().st_mtime < cutoff_time:
                     log_file.unlink()
-                    logger.info(f"Removed old log file: {log_file}")
+                    if logger:
+                        logger.info(f"Removed old log file: {log_file}")
 
     def cleanup_temp_files(self):
         """Clean up temporary files."""
@@ -1888,7 +1941,8 @@ class SystemManager:
                 for item in temp_dir.rglob("*"):
                     if item.is_file():
                         item.unlink()
-                logger.info(f"Cleaned temporary directory: {temp_dir}")
+                if logger:
+                    logger.info(f"Cleaned temporary directory: {temp_dir}")
 
 def load_configuration() -> Optional[Dict[str, Any]]:
     """Load and validate application configuration.
@@ -1896,28 +1950,33 @@ def load_configuration() -> Optional[Dict[str, Any]]:
     Returns:
         Dict containing configuration if successful, None otherwise
     """
-    logger.debug("Loading configuration...")
+    if logger:
+        logger.debug("Loading configuration...")
 
     try:
         config_manager = ConfigurationManager()
         config = config_manager.load_configuration()
 
         if not config:
-            logger.warning("Empty configuration returned")
+            if logger:
+                logger.warning("Empty configuration returned")
             return None
 
-        logger.info("Configuration loaded successfully")
-        logger.debug(f"Configuration keys: {list(config.keys())}")
+        if logger:
+            logger.info("Configuration loaded successfully")
+            logger.debug(f"Configuration keys: {list(config.keys())}")
         return config
 
     except ImportError as e:
-        logger.error(f"Failed to import configuration module: {e}")
-        logger.debug(traceback.format_exc())
+        if logger:
+            logger.error(f"Failed to import configuration module: {e}")
+            logger.debug(traceback.format_exc())
+        return None
     except Exception as e:
-        logger.error(f"Error loading configuration: {e}")
-        logger.debug(f"Error details: {traceback.format_exc()}")
-
-    return None
+        if logger:
+            logger.error(f"Error loading configuration: {e}")
+            logger.debug(f"Error details: {traceback.format_exc()}")
+        return None
 
 # ============================================================================
 # INTERACTIVE SETUP AND MANAGEMENT FUNCTIONS
@@ -1929,7 +1988,8 @@ def run_interactive_setup():
         wizard = SetupWizard()
         return wizard.run()
     except Exception as e:
-        logger.error(f"Setup wizard failed: {e}")
+        if logger:
+            logger.error(f"Setup wizard failed: {e}")
         return False
 
 def run_version_manager():
@@ -1996,7 +2056,8 @@ def run_version_manager():
     except KeyboardInterrupt:
         print(f"\n{Colors.YELLOW}Version manager exited{Colors.RESET}")
     except Exception as e:
-        logger.error(f"Version manager error: {e}")
+        if logger:
+            logger.error(f"Version manager error: {e}")
 
 def run_dependency_manager():
     """Run the dependency management interface."""
@@ -2057,7 +2118,8 @@ def run_dependency_manager():
     except KeyboardInterrupt:
         print(f"\n{Colors.YELLOW}Dependency manager exited{Colors.RESET}")
     except Exception as e:
-        logger.error(f"Dependency manager error: {e}")
+        if logger:
+            logger.error(f"Dependency manager error: {e}")
 
 def run_system_manager():
     """Run the system management interface."""
@@ -2131,7 +2193,8 @@ def run_system_manager():
     except KeyboardInterrupt:
         print(f"\n{Colors.YELLOW}System manager exited{Colors.RESET}")
     except Exception as e:
-        logger.error(f"System manager error: {e}")
+        if logger:
+            logger.error(f"System manager error: {e}")
 
 def run_enhanced_tests():
     """Run the comprehensive test suite."""
@@ -2140,10 +2203,12 @@ def run_enhanced_tests():
         try:
             from src.plexichat.tests.unified_test_manager import run_tests
         except ImportError:
-            logger.error("Test runner not available")
+            if logger:
+                logger.error("Test runner not available")
             return False
 
-        logger.info("Running PlexiChat comprehensive test suite...")
+        if logger:
+            logger.info("Running PlexiChat comprehensive test suite...")
 
         # Run all tests
         report = asyncio.run(run_tests(
@@ -2154,20 +2219,24 @@ def run_enhanced_tests():
 
         # Check results
         if report.get('summary', {}).get('failed', 0) == 0:
-            logger.info("All tests passed!")
+            if logger:
+                logger.info("All tests passed!")
             return True
         else:
             failed_count = report['summary']['failed']
             total_count = report['summary']['total_tests']
-            logger.error(f"{failed_count}/{total_count} tests failed")
+            if logger:
+                logger.error(f"{failed_count}/{total_count} tests failed")
             return False
 
     except ImportError as e:
-        logger.error(f"Test system not available: {e}")
-        logger.info("Make sure all test dependencies are installed")
+        if logger:
+            logger.error(f"Test system not available: {e}")
+            logger.info("Make sure all test dependencies are installed")
         return False
     except Exception as e:
-        logger.error(f"Error running tests: {e}")
+        if logger:
+            logger.error(f"Error running tests: {e}")
         return False
 
 # ============================================================================
@@ -2182,10 +2251,12 @@ def run_splitscreen_cli():
         if cli and hasattr(cli, "start"):
             cli.start()
     except Exception as e:
-        logger.error(f"Could not start splitscreen CLI: {e}")
-        logger.debug(f"CLI error details: {e}", exc_info=True)
+        if logger:
+            logger.error(f"Could not start splitscreen CLI: {e}")
+            logger.debug(f"CLI error details: {e}", exc_info=True)
 
-def run_api_and_cli(args=None):
+from typing import Any, Optional
+def run_api_and_cli(args: Optional[Any] = None):
     """Run API server with optional CLI interface and WebUI."""
     # Check for --nocli flag
     start_cli = True
@@ -2207,12 +2278,15 @@ def run_api_and_cli(args=None):
             cli_thread = threading.Thread(target=run_splitscreen_cli, daemon=True)
             if cli_thread and hasattr(cli_thread, "start"):
                 cli_thread.start()
-                logger.info("CLI thread started successfully")
+                if logger:
+                    logger.info("CLI thread started successfully")
         except Exception as e:
-            logger.warning(f"Failed to start CLI interface: {e}")
-            logger.info("Continuing with API server only...")
+            if logger:
+                logger.warning(f"Failed to start CLI interface: {e}")
+                logger.info("Continuing with API server only...")
     else:
-        logger.info("CLI interface disabled (--nocli flag)")
+        if logger:
+            logger.info("CLI interface disabled (--nocli flag)")
 
     if start_webui:
         try:

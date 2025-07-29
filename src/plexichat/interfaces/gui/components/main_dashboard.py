@@ -46,14 +46,283 @@ class MainDashboard(ttk.Frame):
             # Create notebook for tabs
             self.notebook = ttk.Notebook(self, style="Modern.TNotebook")
             self.notebook.pack(fill=tk.BOTH, expand=True)
-            
+
             # Create default tabs
             self.create_default_tabs()
-            
+
+            # Setup Easter egg handlers
+            self.setup_easter_eggs()
+
             logger.info("Main dashboard created")
-            
+
         except Exception as e:
             logger.error(f"Failed to create dashboard: {e}")
+
+    def setup_easter_eggs(self):
+        """Setup Easter egg functionality."""
+        try:
+            # Konami code sequence
+            self.konami_sequence = []
+            self.konami_code = ['Up', 'Up', 'Down', 'Down', 'Left', 'Right', 'Left', 'Right', 'b', 'a']
+
+            # Bind key events to the main window
+            self.bind_all('<KeyPress>', self.handle_keypress)
+
+            # Secret click counter for hidden features
+            self.secret_clicks = 0
+            self.last_click_time = 0
+
+        except Exception as e:
+            logger.error(f"Failed to setup Easter eggs: {e}")
+
+    def handle_keypress(self, event):
+        """Handle key press events for Easter eggs."""
+        try:
+            # Add to Konami sequence
+            self.konami_sequence.append(event.keysym)
+
+            # Keep only the last 10 keys
+            if len(self.konami_sequence) > 10:
+                self.konami_sequence.pop(0)
+
+            # Check for Konami code
+            if self.konami_sequence == self.konami_code:
+                self.activate_konami_easter_egg()
+                self.konami_sequence = []  # Reset
+
+            # Check for other Easter egg sequences
+            sequence_str = ''.join(self.konami_sequence[-6:])  # Last 6 keys
+
+            if sequence_str.endswith('plexichat'):
+                self.show_developer_info()
+                self.konami_sequence = []
+            elif sequence_str.endswith('42'):
+                self.show_hitchhikers_reference()
+                self.konami_sequence = []
+
+        except Exception as e:
+            logger.debug(f"Easter egg keypress error: {e}")
+
+    def activate_konami_easter_egg(self):
+        """Activate the Konami code Easter egg."""
+        try:
+            # Create a fun popup window
+            easter_window = tk.Toplevel(self)
+            easter_window.title("🎮 KONAMI CODE ACTIVATED! 🎮")
+            easter_window.geometry("500x400")
+            easter_window.configure(bg='#1a1a1a')
+
+            # Center the window
+            easter_window.transient(self)
+            easter_window.grab_set()
+
+            # Create content
+            main_frame = ttk.Frame(easter_window, style="Modern.TFrame")
+            main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
+
+            # Title
+            title_label = ttk.Label(
+                main_frame,
+                text="🎮 KONAMI CODE ACTIVATED! 🎮",
+                font=("Arial", 16, "bold"),
+                style="Modern.TLabel"
+            )
+            title_label.pack(pady=(0, 20))
+
+            # Code display
+            code_label = ttk.Label(
+                main_frame,
+                text="↑ ↑ ↓ ↓ ← → ← → B A",
+                font=("Courier", 14),
+                style="Modern.TLabel"
+            )
+            code_label.pack(pady=(0, 20))
+
+            # Message
+            message_text = tk.Text(
+                main_frame,
+                height=8,
+                width=50,
+                bg='#2a2a2a',
+                fg='#ffffff',
+                font=("Arial", 10),
+                wrap=tk.WORD,
+                state=tk.DISABLED
+            )
+            message_text.pack(pady=(0, 20))
+
+            # Insert Easter egg message
+            message_text.config(state=tk.NORMAL)
+            message_text.insert(tk.END, "🎉 Congratulations! You found the secret Konami code!\n\n")
+            message_text.insert(tk.END, "🎮 This classic cheat code has been a gaming tradition since 1986.\n\n")
+            message_text.insert(tk.END, "🚀 PlexiChat Developer Mode Unlocked!\n")
+            message_text.insert(tk.END, "• Enhanced logging enabled\n")
+            message_text.insert(tk.END, "• Debug tools accessible\n")
+            message_text.insert(tk.END, "• Easter egg counter: +1\n\n")
+            message_text.insert(tk.END, "Thanks for exploring PlexiChat! 🎊")
+            message_text.config(state=tk.DISABLED)
+
+            # Close button
+            close_btn = ttk.Button(
+                main_frame,
+                text="Awesome! 🎉",
+                command=easter_window.destroy,
+                style="Modern.TButton"
+            )
+            close_btn.pack()
+
+            # Show notification
+            if hasattr(self.app, 'notification_system'):
+                self.app.notification_system.show_notification(
+                    "Easter Egg Found!",
+                    "Konami code activated! 🎮",
+                    "success"
+                )
+
+        except Exception as e:
+            logger.error(f"Error showing Konami Easter egg: {e}")
+
+    def show_developer_info(self):
+        """Show developer information Easter egg."""
+        try:
+            # Create developer info window
+            dev_window = tk.Toplevel(self)
+            dev_window.title("🔧 Developer Information")
+            dev_window.geometry("600x500")
+            dev_window.configure(bg='#1a1a1a')
+
+            # Center the window
+            dev_window.transient(self)
+            dev_window.grab_set()
+
+            # Create content
+            main_frame = ttk.Frame(dev_window, style="Modern.TFrame")
+            main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
+
+            # Title
+            title_label = ttk.Label(
+                main_frame,
+                text="🔧 PlexiChat Developer Information",
+                font=("Arial", 16, "bold"),
+                style="Modern.TLabel"
+            )
+            title_label.pack(pady=(0, 20))
+
+            # Developer info
+            info_text = tk.Text(
+                main_frame,
+                height=15,
+                width=70,
+                bg='#2a2a2a',
+                fg='#ffffff',
+                font=("Courier", 9),
+                wrap=tk.WORD,
+                state=tk.DISABLED
+            )
+            info_text.pack(pady=(0, 20))
+
+            # Insert developer information
+            info_text.config(state=tk.NORMAL)
+            info_text.insert(tk.END, "🚀 PlexiChat - Enterprise Communication Platform\n")
+            info_text.insert(tk.END, "=" * 50 + "\n\n")
+            info_text.insert(tk.END, "📊 System Information:\n")
+            info_text.insert(tk.END, f"• Version: {getattr(self.app, 'version', 'Unknown')}\n")
+            info_text.insert(tk.END, f"• GUI Framework: Tkinter\n")
+            info_text.insert(tk.END, f"• Python Version: {sys.version.split()[0]}\n")
+            info_text.insert(tk.END, f"• Platform: {sys.platform}\n\n")
+            info_text.insert(tk.END, "🎨 Features:\n")
+            info_text.insert(tk.END, "• Modern dark theme\n")
+            info_text.insert(tk.END, "• Real-time messaging\n")
+            info_text.insert(tk.END, "• Plugin system\n")
+            info_text.insert(tk.END, "• Advanced security\n")
+            info_text.insert(tk.END, "• WebUI integration\n")
+            info_text.insert(tk.END, "• Easter eggs! 🥚\n\n")
+            info_text.insert(tk.END, "🎮 Easter Egg Hints:\n")
+            info_text.insert(tk.END, "• Try the classic Konami code\n")
+            info_text.insert(tk.END, "• Type '42' for a surprise\n")
+            info_text.insert(tk.END, "• Triple-click the logo\n")
+            info_text.insert(tk.END, "• Check the API for /easter-eggs\n")
+            info_text.config(state=tk.DISABLED)
+
+            # Close button
+            close_btn = ttk.Button(
+                main_frame,
+                text="Cool! 😎",
+                command=dev_window.destroy,
+                style="Modern.TButton"
+            )
+            close_btn.pack()
+
+        except Exception as e:
+            logger.error(f"Error showing developer info: {e}")
+
+    def show_hitchhikers_reference(self):
+        """Show Hitchhiker's Guide to the Galaxy reference."""
+        try:
+            # Create reference window
+            ref_window = tk.Toplevel(self)
+            ref_window.title("🌌 The Answer")
+            ref_window.geometry("400x300")
+            ref_window.configure(bg='#1a1a1a')
+
+            # Center the window
+            ref_window.transient(self)
+            ref_window.grab_set()
+
+            # Create content
+            main_frame = ttk.Frame(ref_window, style="Modern.TFrame")
+            main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
+
+            # Title
+            title_label = ttk.Label(
+                main_frame,
+                text="🌌 The Answer to Everything",
+                font=("Arial", 16, "bold"),
+                style="Modern.TLabel"
+            )
+            title_label.pack(pady=(0, 20))
+
+            # The answer
+            answer_label = ttk.Label(
+                main_frame,
+                text="42",
+                font=("Arial", 48, "bold"),
+                style="Modern.TLabel"
+            )
+            answer_label.pack(pady=(0, 20))
+
+            # Quote
+            quote_text = tk.Text(
+                main_frame,
+                height=6,
+                width=45,
+                bg='#2a2a2a',
+                fg='#ffffff',
+                font=("Arial", 10),
+                wrap=tk.WORD,
+                state=tk.DISABLED
+            )
+            quote_text.pack(pady=(0, 20))
+
+            quote_text.config(state=tk.NORMAL)
+            quote_text.insert(tk.END, '"The Answer to the Ultimate Question of Life, ')
+            quote_text.insert(tk.END, 'the Universe, and Everything is 42."\n\n')
+            quote_text.insert(tk.END, "- The Hitchhiker's Guide to the Galaxy\n")
+            quote_text.insert(tk.END, "by Douglas Adams\n\n")
+            quote_text.insert(tk.END, "Don't Panic! 🚀")
+            quote_text.config(state=tk.DISABLED)
+
+            # Close button
+            close_btn = ttk.Button(
+                main_frame,
+                text="Don't Panic! 🚀",
+                command=ref_window.destroy,
+                style="Modern.TButton"
+            )
+            close_btn.pack()
+
+        except Exception as e:
+            logger.error(f"Error showing Hitchhiker's reference: {e}")
 
     def create_default_tabs(self):
         """Create default server management tabs."""

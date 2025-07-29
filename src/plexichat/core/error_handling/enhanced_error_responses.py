@@ -93,6 +93,7 @@ class EnhancedErrorHandler:
     def _initialize_error_mappings(self) -> Dict[int, Dict[str, Any]]:
         """Initialize HTTP status code to error information mappings."""
         return {
+            # 4xx Client Errors
             400: {
                 "category": ErrorCategory.VALIDATION,
                 "severity": ErrorSeverity.LOW,
@@ -191,6 +192,301 @@ class EnhancedErrorHandler:
                     "The service is undergoing maintenance",
                     "Try again later",
                     "Check the system status page for maintenance schedules"
+                ]
+            },
+
+            # Additional 4xx Client Errors
+            402: {
+                "category": ErrorCategory.AUTHORIZATION,
+                "severity": ErrorSeverity.MEDIUM,
+                "default_message": "Payment required to access this resource",
+                "suggestions": [
+                    "Upgrade your account to access premium features",
+                    "Check your subscription status",
+                    "Contact billing support for assistance"
+                ]
+            },
+            405: {
+                "category": ErrorCategory.VALIDATION,
+                "severity": ErrorSeverity.LOW,
+                "default_message": "HTTP method not allowed for this endpoint",
+                "suggestions": [
+                    "Check the API documentation for allowed methods",
+                    "Verify you're using the correct HTTP method (GET, POST, PUT, DELETE)",
+                    "Ensure the endpoint supports your requested operation"
+                ]
+            },
+            406: {
+                "category": ErrorCategory.VALIDATION,
+                "severity": ErrorSeverity.LOW,
+                "default_message": "Requested content type not acceptable",
+                "suggestions": [
+                    "Check the Accept header in your request",
+                    "Verify the server supports your requested content type",
+                    "Try requesting application/json or text/html"
+                ]
+            },
+            407: {
+                "category": ErrorCategory.AUTHENTICATION,
+                "severity": ErrorSeverity.MEDIUM,
+                "default_message": "Proxy authentication required",
+                "suggestions": [
+                    "Provide valid proxy authentication credentials",
+                    "Check your proxy configuration",
+                    "Contact your network administrator"
+                ]
+            },
+            408: {
+                "category": ErrorCategory.SERVER_ERROR,
+                "severity": ErrorSeverity.MEDIUM,
+                "default_message": "Request timeout - the server did not receive a complete request",
+                "suggestions": [
+                    "Try sending the request again",
+                    "Check your network connection",
+                    "Reduce the size of your request if possible"
+                ]
+            },
+            410: {
+                "category": ErrorCategory.RESOURCE_NOT_FOUND,
+                "severity": ErrorSeverity.LOW,
+                "default_message": "The requested resource is no longer available",
+                "suggestions": [
+                    "This resource has been permanently removed",
+                    "Check if there's a newer version of the resource",
+                    "Update your bookmarks or links"
+                ]
+            },
+            411: {
+                "category": ErrorCategory.VALIDATION,
+                "severity": ErrorSeverity.LOW,
+                "default_message": "Content-Length header is required",
+                "suggestions": [
+                    "Include a Content-Length header in your request",
+                    "Ensure your HTTP client sets the Content-Length automatically",
+                    "Check your request body size"
+                ]
+            },
+            412: {
+                "category": ErrorCategory.VALIDATION,
+                "severity": ErrorSeverity.LOW,
+                "default_message": "Precondition failed",
+                "suggestions": [
+                    "Check the If-Match or If-None-Match headers",
+                    "Verify the resource hasn't been modified",
+                    "Refresh your data and try again"
+                ]
+            },
+            413: {
+                "category": ErrorCategory.VALIDATION,
+                "severity": ErrorSeverity.MEDIUM,
+                "default_message": "Request entity too large",
+                "suggestions": [
+                    "Reduce the size of your request body",
+                    "Split large requests into smaller chunks",
+                    "Check the maximum allowed request size"
+                ]
+            },
+            414: {
+                "category": ErrorCategory.VALIDATION,
+                "severity": ErrorSeverity.LOW,
+                "default_message": "Request URI too long",
+                "suggestions": [
+                    "Shorten your request URL",
+                    "Use POST instead of GET for large data",
+                    "Remove unnecessary query parameters"
+                ]
+            },
+            415: {
+                "category": ErrorCategory.VALIDATION,
+                "severity": ErrorSeverity.LOW,
+                "default_message": "Unsupported media type",
+                "suggestions": [
+                    "Check the Content-Type header in your request",
+                    "Verify the server supports your media type",
+                    "Try using application/json or application/x-www-form-urlencoded"
+                ]
+            },
+            416: {
+                "category": ErrorCategory.VALIDATION,
+                "severity": ErrorSeverity.LOW,
+                "default_message": "Requested range not satisfiable",
+                "suggestions": [
+                    "Check the Range header in your request",
+                    "Verify the requested byte range is valid",
+                    "Request the entire resource instead"
+                ]
+            },
+            417: {
+                "category": ErrorCategory.VALIDATION,
+                "severity": ErrorSeverity.LOW,
+                "default_message": "Expectation failed",
+                "suggestions": [
+                    "Check the Expect header in your request",
+                    "Remove the Expect header if not needed",
+                    "Verify the server supports your expectation"
+                ]
+            },
+            418: {
+                "category": ErrorCategory.BUSINESS_LOGIC,
+                "severity": ErrorSeverity.LOW,
+                "default_message": "I'm a teapot - The server refuses to brew coffee because it is, permanently, a teapot",
+                "suggestions": [
+                    "This is an Easter egg error from RFC 2324",
+                    "Try requesting tea instead of coffee ☕",
+                    "Check if you're using the correct endpoint",
+                    "This error indicates a playful server response"
+                ]
+            },
+            421: {
+                "category": ErrorCategory.VALIDATION,
+                "severity": ErrorSeverity.MEDIUM,
+                "default_message": "Misdirected request",
+                "suggestions": [
+                    "Check the request URL and hostname",
+                    "Verify you're connecting to the correct server",
+                    "Check your DNS configuration"
+                ]
+            },
+            423: {
+                "category": ErrorCategory.CONFLICT,
+                "severity": ErrorSeverity.MEDIUM,
+                "default_message": "Resource is locked",
+                "suggestions": [
+                    "The resource is currently being modified by another user",
+                    "Wait a moment and try again",
+                    "Check if you have the necessary permissions"
+                ]
+            },
+            424: {
+                "category": ErrorCategory.VALIDATION,
+                "severity": ErrorSeverity.MEDIUM,
+                "default_message": "Failed dependency",
+                "suggestions": [
+                    "A dependent operation failed",
+                    "Check all required resources are available",
+                    "Verify the order of operations"
+                ]
+            },
+            426: {
+                "category": ErrorCategory.VALIDATION,
+                "severity": ErrorSeverity.MEDIUM,
+                "default_message": "Upgrade required",
+                "suggestions": [
+                    "The client needs to upgrade to a different protocol",
+                    "Check the Upgrade header in the response",
+                    "Update your client software"
+                ]
+            },
+            428: {
+                "category": ErrorCategory.VALIDATION,
+                "severity": ErrorSeverity.MEDIUM,
+                "default_message": "Precondition required",
+                "suggestions": [
+                    "Include appropriate precondition headers",
+                    "Add If-Match or If-None-Match headers",
+                    "Check the API documentation for required headers"
+                ]
+            },
+            431: {
+                "category": ErrorCategory.VALIDATION,
+                "severity": ErrorSeverity.MEDIUM,
+                "default_message": "Request header fields too large",
+                "suggestions": [
+                    "Reduce the size of your request headers",
+                    "Remove unnecessary headers",
+                    "Check for extremely long cookie values"
+                ]
+            },
+            451: {
+                "category": ErrorCategory.AUTHORIZATION,
+                "severity": ErrorSeverity.HIGH,
+                "default_message": "Unavailable for legal reasons",
+                "suggestions": [
+                    "This content is blocked due to legal restrictions",
+                    "Contact support for more information",
+                    "Check if you're accessing from a restricted region"
+                ]
+            },
+
+            # 5xx Server Errors
+            501: {
+                "category": ErrorCategory.SERVER_ERROR,
+                "severity": ErrorSeverity.MEDIUM,
+                "default_message": "Not implemented - The server does not support this functionality",
+                "suggestions": [
+                    "This feature is not yet implemented",
+                    "Check the API documentation for supported features",
+                    "Contact support to request this feature"
+                ]
+            },
+            504: {
+                "category": ErrorCategory.EXTERNAL_SERVICE,
+                "severity": ErrorSeverity.HIGH,
+                "default_message": "Gateway timeout - Upstream server did not respond in time",
+                "suggestions": [
+                    "The upstream service is taking too long to respond",
+                    "Try again in a few moments",
+                    "Check the system status page for service issues"
+                ]
+            },
+            505: {
+                "category": ErrorCategory.SERVER_ERROR,
+                "severity": ErrorSeverity.MEDIUM,
+                "default_message": "HTTP version not supported",
+                "suggestions": [
+                    "Your HTTP version is not supported by this server",
+                    "Try using HTTP/1.1 or HTTP/2",
+                    "Update your client software"
+                ]
+            },
+            506: {
+                "category": ErrorCategory.SERVER_ERROR,
+                "severity": ErrorSeverity.HIGH,
+                "default_message": "Variant also negotiates",
+                "suggestions": [
+                    "Server configuration error in content negotiation",
+                    "Contact the server administrator",
+                    "Try a different Accept header"
+                ]
+            },
+            507: {
+                "category": ErrorCategory.SERVER_ERROR,
+                "severity": ErrorSeverity.HIGH,
+                "default_message": "Insufficient storage",
+                "suggestions": [
+                    "The server has run out of storage space",
+                    "Try again later when space is available",
+                    "Contact support if this persists"
+                ]
+            },
+            508: {
+                "category": ErrorCategory.SERVER_ERROR,
+                "severity": ErrorSeverity.HIGH,
+                "default_message": "Loop detected",
+                "suggestions": [
+                    "The server detected an infinite loop in processing",
+                    "This is a server configuration issue",
+                    "Contact the server administrator"
+                ]
+            },
+            510: {
+                "category": ErrorCategory.SERVER_ERROR,
+                "severity": ErrorSeverity.MEDIUM,
+                "default_message": "Not extended",
+                "suggestions": [
+                    "Further extensions to the request are required",
+                    "Check the API documentation for required extensions",
+                    "Contact support for guidance"
+                ]
+            },
+            511: {
+                "category": ErrorCategory.AUTHENTICATION,
+                "severity": ErrorSeverity.MEDIUM,
+                "default_message": "Network authentication required",
+                "suggestions": [
+                    "You need to authenticate with the network",
+                    "Check your network connection and credentials",
+                    "Contact your network administrator"
                 ]
             }
         }
@@ -490,6 +786,62 @@ def create_authorization_error(message: str = "Insufficient permissions") -> HTT
         message=message
     )
     raise HTTPException(status_code=403, detail=asdict(error_response))
+
+def create_teapot_error(request_content: str = "") -> HTTPException:
+    """Create the famous 418 'I'm a teapot' error.
+
+    This is triggered only by very specific conditions to avoid disrupting normal use:
+    - Request must contain 'coffee' in the content
+    - Must be a POST request to a specific endpoint
+    - Must include a special header
+    """
+    import hashlib
+    import time
+
+    # Only trigger if very specific conditions are met
+    current_hour = time.localtime().tm_hour
+    content_hash = hashlib.md5(request_content.lower().encode()).hexdigest()
+
+    # Easter egg conditions (very specific to avoid normal operation disruption)
+    coffee_keywords = ['coffee', 'espresso', 'latte', 'cappuccino', 'brew']
+    has_coffee_keyword = any(keyword in request_content.lower() for keyword in coffee_keywords)
+
+    # Only trigger during specific hours and with specific content
+    if has_coffee_keyword and current_hour in [10, 14, 16] and content_hash.startswith('c0ff33'):
+        error_response = error_handler.create_error_response(
+            status_code=418,
+            error="I'm a teapot",
+            message="I'm a teapot - The server refuses to brew coffee because it is, permanently, a teapot ☕",
+            custom_suggestions=[
+                "This is an Easter egg error from RFC 2324 (April 1, 1998)",
+                "Try requesting tea instead of coffee 🍵",
+                "The server is having a bit of fun with you!",
+                "This error only appears under very specific conditions",
+                "Don't worry, your request wasn't actually processed incorrectly"
+            ]
+        )
+        raise HTTPException(status_code=418, detail=asdict(error_response))
+
+    # If conditions aren't met, return a normal validation error instead
+    return create_validation_error("content", "Invalid request content", request_content)
+
+def check_for_teapot_condition(request_content: str, endpoint: str, headers: dict) -> bool:
+    """Check if the teapot error should be triggered.
+
+    This is a very specific check to ensure the 418 error only appears
+    as an Easter egg and doesn't disrupt normal operations.
+    """
+    # Very specific conditions that are unlikely to occur in normal use
+    special_header = headers.get('X-Brew-Coffee', '').lower()
+    coffee_request = 'coffee' in request_content.lower()
+    teapot_endpoint = '/api/v1/brew' in endpoint
+    magic_phrase = 'please brew coffee' in request_content.lower()
+
+    # All conditions must be met for the Easter egg
+    return (special_header == 'true' and
+            coffee_request and
+            teapot_endpoint and
+            magic_phrase)
 
 # FastAPI exception handlers
 def setup_exception_handlers(app):

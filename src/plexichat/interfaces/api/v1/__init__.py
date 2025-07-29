@@ -27,6 +27,15 @@ from . import files
 from . import admin
 from . import system
 
+# Import Easter eggs router
+try:
+    from ..routers.easter_eggs import router as easter_eggs_router
+    easter_eggs_available = True
+except ImportError as e:
+    logger.warning(f"Easter eggs router not available: {e}")
+    easter_eggs_router = None
+    easter_eggs_available = False
+
 # Create main v1 router
 v1_router = APIRouter(prefix="/api/v1", tags=["v1"])
 
@@ -37,6 +46,11 @@ v1_router.include_router(messages.router)
 v1_router.include_router(files.router)
 v1_router.include_router(admin.router)
 v1_router.include_router(system.router)
+
+# Include Easter eggs router if available
+if easter_eggs_available and easter_eggs_router:
+    v1_router.include_router(easter_eggs_router)
+    logger.info("Easter eggs router included in API v1")
 
 logger.info("PlexiChat API v1 routers loaded successfully")
 

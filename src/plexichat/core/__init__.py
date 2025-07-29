@@ -171,10 +171,10 @@ try:
         with open(version_file, 'r') as f:
             version_data = json.load(f)
             APP_NAME = "PlexiChat"
-            APP_VERSION = version_data.get('version', 'b.1.1-86')
+            APP_VERSION = version_data.get('version', 'b.1.1-88')
     else:
         APP_NAME = "PlexiChat"
-        APP_VERSION = "b.1.1-86"
+        APP_VERSION = "b.1.1-88"
 
     # Load config from config file
     config_file = Path(__file__).parent.parent.parent / "config" / "plexichat.json"

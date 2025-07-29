@@ -268,11 +268,132 @@ async def webui_dashboard(request: Request):
                 <p>Monitor system health and performance.</p>
                 <a href="/system/status">View Status</a>
             </div>
+
+            <div class="widget" style="background: linear-gradient(45deg, #ff6b6b, #4ecdc4); cursor: pointer;" onclick="easterEggClick()" id="easterEggWidget">
+                <h3>🥚 Easter Eggs</h3>
+                <p>Discover hidden features and fun surprises!</p>
+                <a href="/api/v1/easter-eggs/">Explore Easter Eggs</a>
+            </div>
         </div>
-        
+
         <div style="text-align: center; margin-top: 40px; color: #666;">
             PlexiChat {PLEXICHAT_VERSION}
+            <div id="secretMessage" style="display: none; margin-top: 10px; color: #4ecdc4;">
+                🎉 You found the secret! Try the Konami code: ↑↑↓↓←→←→BA
+            </div>
         </div>
+
+        <script>
+            // Easter egg functionality
+            let clickCount = 0;
+            let konamiSequence = [];
+            const konamiCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'KeyB', 'KeyA'];
+
+            function easterEggClick() {{
+                clickCount++;
+                if (clickCount === 3) {{
+                    document.getElementById('secretMessage').style.display = 'block';
+                    setTimeout(() => {{
+                        document.getElementById('secretMessage').style.display = 'none';
+                    }}, 5000);
+                }}
+                if (clickCount === 7) {{
+                    showDeveloperInfo();
+                }}
+            }}
+
+            function showDeveloperInfo() {{
+                alert('🔧 PlexiChat Developer Mode\\n\\n' +
+                      '🚀 Version: {PLEXICHAT_VERSION}\\n' +
+                      '🎨 Framework: FastAPI + HTML/CSS/JS\\n' +
+                      '🔒 Security: Enterprise-grade\\n' +
+                      '⚡ Performance: Sub-millisecond API\\n\\n' +
+                      '🎮 Easter Eggs Found: ' + (clickCount >= 7 ? 'Developer Mode!' : clickCount) + '\\n\\n' +
+                      'Thanks for exploring PlexiChat! 🎊');
+            }}
+
+            // Konami code listener
+            document.addEventListener('keydown', function(event) {{
+                konamiSequence.push(event.code);
+                if (konamiSequence.length > 10) {{
+                    konamiSequence.shift();
+                }}
+
+                if (konamiSequence.join(',') === konamiCode.join(',')) {{
+                    showKonamiEasterEgg();
+                    konamiSequence = [];
+                }}
+            }});
+
+            function showKonamiEasterEgg() {{
+                // Create Easter egg overlay
+                const overlay = document.createElement('div');
+                overlay.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.9);
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    z-index: 9999;
+                    color: white;
+                    text-align: center;
+                    font-family: Arial, sans-serif;
+                `;
+
+                overlay.innerHTML = `
+                    <div>
+                        <h1 style="font-size: 3em; margin-bottom: 20px;">🎮 KONAMI CODE ACTIVATED! 🎮</h1>
+                        <p style="font-size: 1.5em; margin-bottom: 20px;">↑ ↑ ↓ ↓ ← → ← → B A</p>
+                        <p style="font-size: 1.2em; margin-bottom: 30px;">
+                            🎉 Congratulations! You found the secret Konami code!<br>
+                            🚀 PlexiChat WebUI Developer Mode Unlocked!<br>
+                            🎊 Thanks for exploring our Easter eggs!
+                        </p>
+                        <button onclick="this.parentElement.parentElement.remove()"
+                                style="padding: 15px 30px; font-size: 1.2em; background: #4ecdc4;
+                                       color: white; border: none; border-radius: 5px; cursor: pointer;">
+                            Awesome! 🎉
+                        </button>
+                    </div>
+                `;
+
+                document.body.appendChild(overlay);
+
+                // Auto-remove after 10 seconds
+                setTimeout(() => {{
+                    if (overlay.parentElement) {{
+                        overlay.remove();
+                    }}
+                }}, 10000);
+            }}
+
+            // Secret 42 reference
+            let keySequence = '';
+            document.addEventListener('keypress', function(event) {{
+                keySequence += event.key;
+                if (keySequence.length > 10) {{
+                    keySequence = keySequence.slice(-10);
+                }}
+
+                if (keySequence.includes('42')) {{
+                    show42Reference();
+                    keySequence = '';
+                }}
+            }});
+
+            function show42Reference() {{
+                alert('🌌 The Answer to Everything: 42\\n\\n' +
+                      '"The Answer to the Ultimate Question of Life, ' +
+                      'the Universe, and Everything is 42."\\n\\n' +
+                      '- The Hitchhiker\\'s Guide to the Galaxy\\n' +
+                      'by Douglas Adams\\n\\n' +
+                      'Don\\'t Panic! 🚀');
+            }}
+        </script>
     </body>
     </html>
     """

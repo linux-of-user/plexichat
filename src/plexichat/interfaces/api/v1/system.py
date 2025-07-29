@@ -187,9 +187,9 @@ async def version_info():
         return version_data
     except ImportError:
         return {
-            "version": "b.1.1-86",
+            "version": "b.1.1-88",
             "api_version": "v1",
-            "build_date": "2024-07-26",
+            "build_date": "2025-07-29",
             "environment": "development",
             "features": [
                 "authentication",
