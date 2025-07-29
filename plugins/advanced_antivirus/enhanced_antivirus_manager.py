@@ -82,7 +82,7 @@ class EnhancedAntivirusManager:
 
     def __init__(self, data_dir: str = "data"):
         from pathlib import Path
-self.data_dir = Path(data_dir)
+        self.data_dir = Path(data_dir)
         self.antivirus_dir = self.data_dir / "antivirus"
         self.quarantine_dir = self.antivirus_dir / "quarantine"
         self.config_path = self.antivirus_dir / "enhanced_config.json"
@@ -154,7 +154,8 @@ self.data_dir = Path(data_dir)
         await self._load_config()
 
         # Initialize core antivirus engine
-        await self.if antivirus_engine and hasattr(antivirus_engine, "initialize"): antivirus_engine.initialize()
+        if self.antivirus_engine and hasattr(self.antivirus_engine, "initialize"):
+            await self.antivirus_engine.initialize()
 
         # Load quarantine entries
         await self._load_quarantine_entries()
@@ -196,7 +197,7 @@ self.data_dir = Path(data_dir)
 
         logger.info("Enhanced Antivirus Manager shutdown complete")
 
-    async def scan_file(self, file_path: str, scan_types: Optional[List[ScanType]] = None, )
+    async def scan_file(self, file_path: str, scan_types: Optional[List[ScanType]] = None,
                        priority: int = 1, requester: str = "manual") -> List[ScanResult]:
         """
         Scan a file with specified scan types.
@@ -280,7 +281,7 @@ self.data_dir = Path(data_dir)
         logger.debug(f"Scanning URL: {url}")
         return await self.antivirus_engine.link_scanner.scan_url(url)
 
-    async def quarantine_file(self, file_path: str, scan_results: List[ScanResult], )
+    async def quarantine_file(self, file_path: str, scan_results: List[ScanResult],
                              threat_name: Optional[str] = None) -> bool:
         """
         Quarantine a file that was detected as a threat.
@@ -296,7 +297,7 @@ self.data_dir = Path(data_dir)
         try:
             from pathlib import Path
 
-            self.path = Path(file_path)
+            file_path_obj = Path(file_path)
             if not path.exists():
                 logger.warning(f"Cannot quarantine non-existent file: {file_path}")
                 return False

@@ -154,6 +154,60 @@ class ThemeManagerPyQt(QObject):
                     "error": "#EF5350"
                 },
                 "stylesheet": self.get_royal_purple_stylesheet()
+            },
+            "ocean_blue": {
+                "name": "Ocean Blue",
+                "description": "Deep ocean blue theme with glassmorphism",
+                "colors": {
+                    "primary": "#0077be",
+                    "secondary": "#005a8b",
+                    "background": "#0a1628",
+                    "surface": "#1a2332",
+                    "accent": "#2a3441",
+                    "text": "#ffffff",
+                    "text_secondary": "#87ceeb",
+                    "border": "#0077be",
+                    "success": "#66BB6A",
+                    "warning": "#FFCA28",
+                    "error": "#EF5350"
+                },
+                "stylesheet": self.get_ocean_blue_stylesheet()
+            },
+            "midnight_purple": {
+                "name": "Midnight Purple",
+                "description": "Deep purple theme with elegant gradients",
+                "colors": {
+                    "primary": "#6a4c93",
+                    "secondary": "#4a3269",
+                    "background": "#1a0f2e",
+                    "surface": "#2a1b3d",
+                    "accent": "#3a2a4d",
+                    "text": "#ffffff",
+                    "text_secondary": "#c8a2c8",
+                    "border": "#6a4c93",
+                    "success": "#66BB6A",
+                    "warning": "#FFCA28",
+                    "error": "#EF5350"
+                },
+                "stylesheet": self.get_midnight_purple_stylesheet()
+            },
+            "emerald_green": {
+                "name": "Emerald Green",
+                "description": "Rich emerald theme with nature vibes",
+                "colors": {
+                    "primary": "#50c878",
+                    "secondary": "#3a9b5c",
+                    "background": "#0f1f0f",
+                    "surface": "#1f2f1f",
+                    "accent": "#2f3f2f",
+                    "text": "#ffffff",
+                    "text_secondary": "#90ee90",
+                    "border": "#50c878",
+                    "success": "#66BB6A",
+                    "warning": "#FFCA28",
+                    "error": "#EF5350"
+                },
+                "stylesheet": self.get_emerald_green_stylesheet()
             }
         }
     
@@ -920,6 +974,213 @@ class ThemeManagerPyQt(QObject):
 
             QTabBar::tab:selected {
                 background: #9C27B0;
+                color: #ffffff;
+            }
+        """
+
+    def get_ocean_blue_stylesheet(self) -> str:
+        """Get ocean blue theme stylesheet with glassmorphism."""
+        return """
+            QMainWindow {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+                    stop:0 #0a1628, stop:0.5 #1a2332, stop:1 #2a3441);
+                color: #ffffff;
+            }
+
+            QWidget {
+                background-color: rgba(26, 35, 50, 0.85);
+                color: #ffffff;
+                border: 1px solid rgba(0, 119, 190, 0.3);
+                border-radius: 12px;
+            }
+
+            QPushButton {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+                    stop:0 rgba(0, 119, 190, 0.3), stop:1 rgba(135, 206, 235, 0.2));
+                color: #ffffff;
+                border: 1px solid rgba(0, 119, 190, 0.5);
+                border-radius: 8px;
+                padding: 10px 20px;
+                font-weight: 600;
+                font-size: 13px;
+            }
+
+            QPushButton:hover {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+                    stop:0 rgba(0, 119, 190, 0.5), stop:1 rgba(135, 206, 235, 0.3));
+                border: 1px solid #0077be;
+            }
+
+            QLineEdit, QTextEdit, QComboBox {
+                background-color: rgba(10, 22, 40, 0.9);
+                color: #87ceeb;
+                border: 1px solid rgba(0, 119, 190, 0.4);
+                border-radius: 8px;
+                padding: 8px 12px;
+                font-size: 13px;
+            }
+
+            QLineEdit:focus, QTextEdit:focus, QComboBox:focus {
+                border: 2px solid #0077be;
+                background-color: rgba(10, 22, 40, 1.0);
+            }
+
+            QTabWidget::pane {
+                border: 1px solid rgba(0, 119, 190, 0.3);
+                background-color: rgba(26, 35, 50, 0.9);
+                border-radius: 8px;
+            }
+
+            QTabBar::tab {
+                background: rgba(26, 35, 50, 0.7);
+                color: #87ceeb;
+                padding: 10px 16px;
+                margin: 2px;
+                border-radius: 6px;
+                border: 1px solid rgba(0, 119, 190, 0.3);
+            }
+
+            QTabBar::tab:selected {
+                background: rgba(0, 119, 190, 0.3);
+                border: 1px solid #0077be;
+                color: #ffffff;
+            }
+        """
+
+    def get_midnight_purple_stylesheet(self) -> str:
+        """Get midnight purple theme stylesheet with elegant gradients."""
+        return """
+            QMainWindow {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+                    stop:0 #1a0f2e, stop:0.5 #2a1b3d, stop:1 #3a2a4d);
+                color: #ffffff;
+            }
+
+            QWidget {
+                background-color: rgba(42, 27, 61, 0.85);
+                color: #ffffff;
+                border: 1px solid rgba(106, 76, 147, 0.3);
+                border-radius: 12px;
+            }
+
+            QPushButton {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+                    stop:0 rgba(106, 76, 147, 0.3), stop:1 rgba(200, 162, 200, 0.2));
+                color: #ffffff;
+                border: 1px solid rgba(106, 76, 147, 0.5);
+                border-radius: 8px;
+                padding: 10px 20px;
+                font-weight: 600;
+                font-size: 13px;
+            }
+
+            QPushButton:hover {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+                    stop:0 rgba(106, 76, 147, 0.5), stop:1 rgba(200, 162, 200, 0.3));
+                border: 1px solid #6a4c93;
+            }
+
+            QLineEdit, QTextEdit, QComboBox {
+                background-color: rgba(26, 15, 46, 0.9);
+                color: #c8a2c8;
+                border: 1px solid rgba(106, 76, 147, 0.4);
+                border-radius: 8px;
+                padding: 8px 12px;
+                font-size: 13px;
+            }
+
+            QLineEdit:focus, QTextEdit:focus, QComboBox:focus {
+                border: 2px solid #6a4c93;
+                background-color: rgba(26, 15, 46, 1.0);
+            }
+
+            QTabWidget::pane {
+                border: 1px solid rgba(106, 76, 147, 0.3);
+                background-color: rgba(42, 27, 61, 0.9);
+                border-radius: 8px;
+            }
+
+            QTabBar::tab {
+                background: rgba(42, 27, 61, 0.7);
+                color: #c8a2c8;
+                padding: 10px 16px;
+                margin: 2px;
+                border-radius: 6px;
+                border: 1px solid rgba(106, 76, 147, 0.3);
+            }
+
+            QTabBar::tab:selected {
+                background: rgba(106, 76, 147, 0.3);
+                border: 1px solid #6a4c93;
+                color: #ffffff;
+            }
+        """
+
+    def get_emerald_green_stylesheet(self) -> str:
+        """Get emerald green theme stylesheet with nature vibes."""
+        return """
+            QMainWindow {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+                    stop:0 #0f1f0f, stop:0.5 #1f2f1f, stop:1 #2f3f2f);
+                color: #ffffff;
+            }
+
+            QWidget {
+                background-color: rgba(31, 47, 31, 0.85);
+                color: #ffffff;
+                border: 1px solid rgba(80, 200, 120, 0.3);
+                border-radius: 12px;
+            }
+
+            QPushButton {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+                    stop:0 rgba(80, 200, 120, 0.3), stop:1 rgba(144, 238, 144, 0.2));
+                color: #ffffff;
+                border: 1px solid rgba(80, 200, 120, 0.5);
+                border-radius: 8px;
+                padding: 10px 20px;
+                font-weight: 600;
+                font-size: 13px;
+            }
+
+            QPushButton:hover {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+                    stop:0 rgba(80, 200, 120, 0.5), stop:1 rgba(144, 238, 144, 0.3));
+                border: 1px solid #50c878;
+            }
+
+            QLineEdit, QTextEdit, QComboBox {
+                background-color: rgba(15, 31, 15, 0.9);
+                color: #90ee90;
+                border: 1px solid rgba(80, 200, 120, 0.4);
+                border-radius: 8px;
+                padding: 8px 12px;
+                font-size: 13px;
+            }
+
+            QLineEdit:focus, QTextEdit:focus, QComboBox:focus {
+                border: 2px solid #50c878;
+                background-color: rgba(15, 31, 15, 1.0);
+            }
+
+            QTabWidget::pane {
+                border: 1px solid rgba(80, 200, 120, 0.3);
+                background-color: rgba(31, 47, 31, 0.9);
+                border-radius: 8px;
+            }
+
+            QTabBar::tab {
+                background: rgba(31, 47, 31, 0.7);
+                color: #90ee90;
+                padding: 10px 16px;
+                margin: 2px;
+                border-radius: 6px;
+                border: 1px solid rgba(80, 200, 120, 0.3);
+            }
+
+            QTabBar::tab:selected {
+                background: rgba(80, 200, 120, 0.3);
+                border: 1px solid #50c878;
                 color: #ffffff;
             }
         """

@@ -374,11 +374,11 @@ class QueryOptimizer:
                 original_query=query,
                 optimized_query=optimized_query,
                 estimated_cost=analysis.get('complexity_score', 1.0),
-                estimated_rows=1000,  # Would be estimated from statistics
-                operations=self._extract_operations(analysis),
-                indexes_used=[],  # Would be populated from actual execution
+                estimated_rows=1000,  # Default estimate
+                operations=analysis.get('operations', []),
+                indexes_used=analysis.get('indexes_used', []),
                 tables_accessed=analysis.get('tables', []),
-                join_order=[join['table'] for join in analysis.get('joins', [])],
+                join_order=analysis.get('join_order', []),
                 optimizations_applied=optimizations_applied,
                 optimization_savings_ms=estimated_savings
             )
@@ -390,16 +390,17 @@ class QueryOptimizer:
             self.optimization_stats['queries_optimized'] += 1
             self.optimization_stats['total_time_saved_ms'] += estimated_savings
             
-            # Generate index recommendations
-            await self._generate_index_recommendations(analysis, query)
-            
-            logger.info(f"Optimized query {query_id}: {len(optimizations_applied)} optimizations applied, estimated savings: {estimated_savings:.2f}ms")
+            if self.optimization_stats['queries_optimized'] > 0:
+                self.optimization_stats['average_improvement_percent'] = (
+                    self.optimization_stats['total_time_saved_ms'] / 
+                    self.optimization_stats['queries_optimized']
+                )
             
             return plan
             
         except Exception as e:
-            logger.error(f"Error optimizing query: {e}")
-            # Return basic plan for original query
+            logger.error(f"Query optimization failed: {e}")
+            # Return unoptimized plan
             return QueryPlan(
                 query_id=self._generate_query_id(query, parameters),
                 original_query=query,
@@ -409,36 +410,16 @@ class QueryOptimizer:
             )
     
     def _generate_query_id(self, query: str, parameters: Optional[Dict] = None) -> str:
-        """Generate unique ID for query."""
-        query_data = f"{query}:{json.dumps(parameters or {}, sort_keys=True)}"
-        return hashlib.sha256(query_data.encode()).hexdigest()[:16]
+        """Generate unique query ID."""
+        key_data = f"{query}:{json.dumps(parameters or {}, sort_keys=True)}"
+        return hashlib.sha256(key_data.encode()).hexdigest()[:16]
     
-    def _extract_operations(self, analysis: Dict[str, Any]) -> List[str]:
-        """Extract database operations from query analysis."""
-        operations = []
-        
-        if analysis.get('query_type') == QueryType.SELECT:
-            operations.append('scan')
-            
-            if analysis.get('joins'):
-                operations.append('join')
-            
-            if analysis.get('where_conditions'):
-                operations.append('filter')
-            
-            if analysis.get('group_by'):
-                operations.append('group')
-            
-            if analysis.get('order_by'):
-                operations.append('sort')
-        
-        return operations
-    
-    async def _apply_optimization(self, query: str, strategy: OptimizationStrategy, analysis: Dict[str, Any]) -> Dict[str, Any]:
+    async def _apply_optimization(self, query: str, strategy: OptimizationStrategy, 
+                                analysis: Dict[str, Any]) -> Dict[str, Any]:
         """Apply specific optimization strategy."""
         try:
             if strategy == OptimizationStrategy.INDEX_SCAN:
-                return await self._optimize_with_indexes(query, analysis)
+                return await self._optimize_index_usage(query, analysis)
             elif strategy == OptimizationStrategy.JOIN_REORDER:
                 return await self._optimize_join_order(query, analysis)
             elif strategy == OptimizationStrategy.SUBQUERY_FLATTEN:
@@ -449,156 +430,78 @@ class QueryOptimizer:
                 return {'success': False, 'optimized_query': query}
                 
         except Exception as e:
-            logger.error(f"Error applying optimization strategy {strategy.value}: {e}")
+            logger.error(f"Optimization strategy {strategy} failed: {e}")
             return {'success': False, 'optimized_query': query}
     
-    async def _optimize_with_indexes(self, query: str, analysis: Dict[str, Any]) -> Dict[str, Any]:
-        """Optimize query by suggesting index usage."""
-        # This would analyze WHERE conditions and suggest index usage
-        # For now, return the original query with a note about potential optimization
+    async def _optimize_index_usage(self, query: str, analysis: Dict[str, Any]) -> Dict[str, Any]:
+        """Optimize index usage in query."""
+        # Simple optimization: suggest adding LIMIT if missing
+        optimized_query = query
+        estimated_savings = 0.0
+        
+        if 'limit' not in query.lower() and query.strip().lower().startswith('select'):
+            # Add reasonable LIMIT for large result sets
+            if 'order by' in query.lower():
+                optimized_query = f"{query} LIMIT 1000"
+            else:
+                optimized_query = f"{query} ORDER BY 1 LIMIT 1000"
+            estimated_savings = 50.0  # Estimated 50ms savings
+        
         return {
-            'success': True,
-            'optimized_query': query,
-            'estimated_savings_ms': 50.0,  # Estimated savings from index usage
-            'notes': 'Index optimization applied'
+            'success': optimized_query != query,
+            'optimized_query': optimized_query,
+            'estimated_savings_ms': estimated_savings
         }
     
     async def _optimize_join_order(self, query: str, analysis: Dict[str, Any]) -> Dict[str, Any]:
         """Optimize JOIN order for better performance."""
-        joins = analysis.get('joins', [])
-        if len(joins) <= 1:
-            return {'success': False, 'optimized_query': query}
-        
-        # Simple join reordering (in practice, this would use cost-based optimization)
         # For now, just return the original query
+        # In a real implementation, this would analyze table sizes and reorder JOINs
         return {
-            'success': True,
+            'success': False,
             'optimized_query': query,
-            'estimated_savings_ms': 25.0,
-            'notes': 'Join order optimization applied'
+            'estimated_savings_ms': 0.0
         }
     
     async def _flatten_subqueries(self, query: str, analysis: Dict[str, Any]) -> Dict[str, Any]:
         """Flatten subqueries where possible."""
-        subqueries = analysis.get('subqueries', [])
-        if not subqueries:
-            return {'success': False, 'optimized_query': query}
+        # Simple optimization: convert EXISTS to JOIN where applicable
+        optimized_query = query
+        estimated_savings = 0.0
         
-        # Subquery flattening logic would go here
+        # This is a simplified example
+        if 'exists (' in query.lower():
+            # Could implement subquery flattening logic here
+            estimated_savings = 25.0
+        
         return {
-            'success': True,
-            'optimized_query': query,
-            'estimated_savings_ms': 30.0,
-            'notes': 'Subquery flattening applied'
+            'success': False,  # Not implemented yet
+            'optimized_query': optimized_query,
+            'estimated_savings_ms': estimated_savings
         }
     
     async def _pushdown_predicates(self, query: str, analysis: Dict[str, Any]) -> Dict[str, Any]:
-        """Push down WHERE predicates to reduce intermediate result sets."""
-        joins = analysis.get('joins', [])
-        where_conditions = analysis.get('where_conditions', [])
-        
-        if not joins or not where_conditions:
-            return {'success': False, 'optimized_query': query}
-        
-        # Predicate pushdown logic would go here
+        """Push predicates down to reduce intermediate result sets."""
+        # For now, just return the original query
+        # In a real implementation, this would move WHERE conditions closer to table scans
         return {
-            'success': True,
+            'success': False,
             'optimized_query': query,
-            'estimated_savings_ms': 20.0,
-            'notes': 'Predicate pushdown applied'
+            'estimated_savings_ms': 0.0
         }
-    
-    async def _generate_index_recommendations(self, analysis: Dict[str, Any], query: str):
-        """Generate index recommendations based on query analysis."""
-        try:
-            tables = analysis.get('tables', [])
-            where_conditions = analysis.get('where_conditions', [])
-            
-            for table in tables:
-                # Analyze WHERE conditions for this table
-                table_conditions = [
-                    cond for cond in where_conditions
-                    if table in cond  # Simple check, could be improved
-                ]
-                
-                if table_conditions:
-                    # Extract columns from conditions
-                    columns = []
-                    for condition in table_conditions:
-                        # Simple column extraction
-                        col_match = re.search(r'(\w+)\s*[=<>!]', condition)
-                        if col_match:
-                            columns.append(col_match.group(1))
-                    
-                    if columns:
-                        # Check if we already have this recommendation
-                        existing = next(
-                            (rec for rec in self.index_recommendations
-                             if rec.table_name == table and set(rec.columns) == set(columns)),
-                            None
-                        )
-                        
-                        if not existing:
-                            recommendation = IndexRecommendation(
-                                table_name=table,
-                                columns=columns,
-                                estimated_benefit=50.0,  # Would be calculated based on statistics
-                                queries_benefited=[query]
-                            )
-                            self.index_recommendations.append(recommendation)
-                            
-                            logger.info(f"Generated index recommendation: {table}({', '.join(columns)})")
-                        else:
-                            existing.queries_benefited.append(query)
-                            existing.estimated_benefit += 10.0  # Increase benefit for multiple queries
-                            
-        except Exception as e:
-            logger.error(f"Error generating index recommendations: {e}")
     
     def get_optimization_stats(self) -> Dict[str, Any]:
-        """Get query optimization statistics."""
-        if self.optimization_stats['queries_optimized'] > 0:
-            avg_improvement = (
-                self.optimization_stats['total_time_saved_ms'] / 
-                self.optimization_stats['queries_optimized']
-            )
-        else:
-            avg_improvement = 0.0
-        
-        return {
-            **self.optimization_stats,
-            'average_improvement_ms': avg_improvement,
-            'cached_plans': len(self.query_plans),
-            'index_recommendations': len(self.index_recommendations),
-            'top_optimizations': self._get_top_optimizations()
-        }
+        """Get optimization statistics."""
+        return self.optimization_stats.copy()
     
-    def _get_top_optimizations(self) -> List[Dict[str, Any]]:
-        """Get top optimization strategies by usage."""
-        strategy_counts = defaultdict(int)
-        
-        for plan in self.query_plans.values():
-            for strategy in plan.optimizations_applied:
-                strategy_counts[strategy.value] += 1
-        
-        return [
-            {'strategy': strategy, 'usage_count': count}
-            for strategy, count in sorted(strategy_counts.items(), key=lambda x: x[1], reverse=True)
-        ]
+    def get_query_plans(self) -> List[QueryPlan]:
+        """Get all cached query plans."""
+        return list(self.query_plans.values())
     
-    def get_index_recommendations(self) -> List[Dict[str, Any]]:
-        """Get index recommendations."""
-        return [
-            {
-                'table_name': rec.table_name,
-                'columns': rec.columns,
-                'index_type': rec.index_type,
-                'estimated_benefit': rec.estimated_benefit,
-                'queries_benefited_count': len(rec.queries_benefited),
-                'created': rec.created
-            }
-            for rec in sorted(self.index_recommendations, key=lambda r: r.estimated_benefit, reverse=True)
-        ]
+    def clear_cache(self):
+        """Clear query plan cache."""
+        self.query_plans.clear()
+        logger.info("Query plan cache cleared")
 
 
 # Global query optimizer instance

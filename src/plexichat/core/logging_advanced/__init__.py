@@ -28,6 +28,56 @@ try:
     from .performance_logger import get_performance_logger
 except ImportError:
     get_performance_logger = None
+
+# Enhanced logging system exports
+try:
+    from .enhanced_logging_system import (
+        get_enhanced_logging_system, get_logger, setup_module_logging,
+        LogLevel, LogCategory, LogContext, PerformanceMetrics, SecurityMetrics,
+        LogEntry, PerformanceTracker, track_performance
+    )
+except ImportError as e:
+    print(f"Enhanced logging system import error: {e}")
+    # Fallback to basic implementations
+    import logging
+    get_enhanced_logging_system = lambda: None
+    get_logger = logging.getLogger
+    setup_module_logging = lambda name=None, level="INFO": logging.getLogger(name or __name__)
+    
+    class LogLevel:
+        TRACE = 5
+        DEBUG = 10
+        INFO = 20
+        WARNING = 30
+        ERROR = 40
+        CRITICAL = 50
+        SECURITY = 60
+        AUDIT = 70
+        PERFORMANCE = 80
+    
+    class LogCategory:
+        SYSTEM = "system"
+        SECURITY = "security"
+        PERFORMANCE = "performance"
+        API = "api"
+        DATABASE = "database"
+        BACKUP = "backup"
+        AUTH = "auth"
+        MESSAGING = "messaging"
+        PLUGIN = "plugin"
+        AUDIT = "audit"
+        ERROR = "error"
+        DEBUG = "debug"
+        MONITORING = "monitoring"
+        NETWORK = "network"
+        FILE_SYSTEM = "file_system"
+    
+    LogContext = type('LogContext', (), {})
+    PerformanceMetrics = type('PerformanceMetrics', (), {})
+    SecurityMetrics = type('SecurityMetrics', (), {})
+    LogEntry = type('LogEntry', (), {})
+    PerformanceTracker = type('PerformanceTracker', (), {})
+    track_performance = lambda op_name, logger=None: lambda func: func
 # from .security_logger import get_security_logger
 
 """

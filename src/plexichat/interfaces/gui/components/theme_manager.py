@@ -48,33 +48,33 @@ class ThemeManager:
         self.configure_base_styles()
 
     def create_dark_modern_theme(self) -> Dict[str, Any]:
-        """Create dark modern theme."""
+        """Create dark modern glassmorphic theme."""
         return {
             "name": "Dark Modern",
-            "description": "Modern dark theme with blue accents",
+            "description": "Modern dark theme with glassmorphic effects",
             "colors": {
-                "primary": "#2c3e50",
-                "secondary": "#3498db",
-                "accent": "#e74c3c",
-                "success": "#27ae60",
-                "warning": "#f39c12",
-                "danger": "#e74c3c",
-                "dark": "#1a252f",
-                "light": "#ecf0f1",
-                "background": "#2c3e50",
-                "surface": "#34495e",
-                "text": "#ecf0f1",
-                "text_secondary": "#bdc3c7",
-                "border": "#34495e",
-                "hover": "#3498db",
-                "active": "#2980b9",
-                "disabled": "#7f8c8d"
+                "primary": "#1a1a2e",
+                "secondary": "#4A90E2",
+                "accent": "#6C7CE7",
+                "success": "#00D4AA",
+                "warning": "#FFB800",
+                "danger": "#FF6B6B",
+                "dark": "#0f0f23",
+                "light": "#ffffff",
+                "background": "#1a1a2e",
+                "surface": "rgba(42, 52, 94, 0.8)",
+                "text": "#ffffff",
+                "text_secondary": "#B8C5D6",
+                "border": "rgba(74, 144, 226, 0.3)",
+                "hover": "rgba(74, 144, 226, 0.2)",
+                "active": "#4A90E2",
+                "disabled": "#6B7280"
             },
             "fonts": {
-                "default": ("Segoe UI", 10),
-                "heading": ("Segoe UI", 14, "bold"),
-                "title": ("Segoe UI", 18, "bold"),
-                "mono": ("Consolas", 10)
+                "default": ("Inter", 10),
+                "heading": ("Inter", 14, "bold"),
+                "title": ("Inter", 18, "bold"),
+                "mono": ("JetBrains Mono", 10)
             },
             "effects": {
                 "shadows": True,

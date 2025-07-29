@@ -48,6 +48,32 @@ PLUGIN_TYPE_THEME = "theme"
 DEFAULT_PLUGINS_DIR = "plugins"
 DEFAULT_CONFIG_DIR = "config"
 DEFAULT_DATA_DIR = "data"
+
+# Authentication Constants
+TOKEN_EXPIRY_HOURS = 24  # Token expiry time in hours
+SESSION_TIMEOUT_MINUTES = 60  # Session timeout in minutes
+MAX_LOGIN_ATTEMPTS = 5  # Maximum login attempts before lockout
+LOCKOUT_DURATION_MINUTES = 15  # Account lockout duration
+
+# Security Constants
+BCRYPT_ROUNDS = 12  # Number of bcrypt rounds for password hashing
+SALT_LENGTH = 32  # Salt length for password hashing
+API_KEY_LENGTH = 64  # API key length
+DEFAULT_SECRET_KEY = "your-secret-key-here-change-in-production"  # Default secret key for JWT tokens
+
+# Rate Limiting Constants
+DEFAULT_RATE_LIMIT_PER_MINUTE = 60
+DEFAULT_RATE_LIMIT_PER_HOUR = 1000
+DEFAULT_BURST_LIMIT = 10
+
+# File Upload Constants
+MAX_FILE_SIZE_MB = 50  # Maximum file size in MB
+ALLOWED_FILE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.pdf', '.txt', '.zip']
+
+# Performance Constants
+SLOW_QUERY_THRESHOLD_SECONDS = 1.0
+MEMORY_WARNING_THRESHOLD_MB = 512
+CPU_WARNING_THRESHOLD_PERCENT = 80
 DEFAULT_LOGS_DIR = "logs"
 
 # API Constants
@@ -102,6 +128,10 @@ EVENT_TIMEOUT = 5.0
 DEFAULT_BACKUP_DIR = "backups"
 MAX_BACKUP_FILES = 10
 BACKUP_COMPRESSION = True
+BACKUP_ENCRYPTION_ENABLED = True
+SHARD_SIZE = 1024 * 1024  # 1MB shard size for backup files
+MIN_BACKUP_SHARDS = 3  # Minimum number of backup shards
+PARITY_SHARD_RATIO = 0.2  # 20% parity shards for redundancy
 
 # Monitoring Constants
 METRICS_COLLECTION_INTERVAL = 60  # seconds

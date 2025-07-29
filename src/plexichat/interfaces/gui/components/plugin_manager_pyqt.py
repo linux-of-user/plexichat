@@ -157,7 +157,7 @@ class PluginInstallDialog(QDialog):
             self.file_path.setText(file_path)
 
 
-class PluginManagerPyQt(QWidget):
+class PluginManagerPyQt(QDialog):
     """
     Advanced plugin management interface.
     Features:
@@ -167,17 +167,25 @@ class PluginManagerPyQt(QWidget):
     - Plugin development tools
     - Plugin security scanning
     """
-    
+
     # Signals
     plugin_action = pyqtSignal(str, str)  # action, plugin_name
-    
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.parent_app = parent
         self.plugins_data = []
+
+        # Make window movable and resizable
+        self.setWindowTitle("Plugin Manager")
+        self.setWindowFlags(Qt.WindowType.Window | Qt.WindowType.WindowCloseButtonHint |
+                           Qt.WindowType.WindowMinMaxButtonsHint)
+        self.setModal(False)  # Allow interaction with other windows
+        self.resize(900, 700)
+
         self.setup_ui()
         self.load_plugins()
-        
+
         logger.info("Plugin manager initialized")
     
     def setup_ui(self):
@@ -462,8 +470,27 @@ For detailed documentation, visit: localhost/docs/plugins
     
     def configure_plugin(self, plugin_name: str):
         """Open plugin configuration dialog."""
-        QMessageBox.information(self, "Plugin Configuration",
-                              f"Configuration for {plugin_name} would open here.")
+        try:
+            # Find plugin data
+            plugin_data = None
+            for plugin in self.plugins_data:
+                if plugin["name"] == plugin_name:
+                    plugin_data = plugin
+                    break
+
+            if not plugin_data:
+                QMessageBox.warning(self, "Plugin Not Found",
+                                  f"Plugin '{plugin_name}' not found.")
+                return
+
+            # Create configuration dialog
+            config_dialog = PluginConfigDialog(plugin_data, self)
+            config_dialog.exec()
+
+        except Exception as e:
+            logger.error(f"Failed to open plugin configuration: {e}")
+            QMessageBox.critical(self, "Configuration Error",
+                               f"Failed to open configuration for {plugin_name}:\n{str(e)}")
     
     def show_install_dialog(self):
         """Show plugin installation dialog."""
@@ -496,3 +523,235 @@ For detailed documentation, visit: localhost/docs/plugins
         """Package plugin for distribution."""
         QMessageBox.information(self, "Package Plugin",
                               "Plugin packaging tool would run here.")
+
+
+class PluginConfigDialog(QDialog):
+    """Plugin configuration dialog with dynamic form generation."""
+
+    def __init__(self, plugin_data: Dict[str, Any], parent=None):
+        super().__init__(parent)
+        self.plugin_data = plugin_data
+        self.config_widgets = {}
+
+        self.setWindowTitle(f"Configure {plugin_data.get('name', 'Plugin')}")
+        self.setModal(True)
+        self.resize(600, 500)
+
+        self.setup_ui()
+        self.load_current_config()
+
+    def setup_ui(self):
+        """Setup the configuration dialog UI."""
+        layout = QVBoxLayout(self)
+
+        # Header
+        header_frame = QFrame()
+        header_layout = QHBoxLayout(header_frame)
+
+        title_label = QLabel(f"Configure {self.plugin_data.get('name', 'Plugin')}")
+        title_label.setStyleSheet("font-size: 16px; font-weight: bold; color: #4A90E2;")
+        header_layout.addWidget(title_label)
+
+        version_label = QLabel(f"v{self.plugin_data.get('version', '1.0.0')}")
+        version_label.setStyleSheet("color: #666; font-size: 12px;")
+        header_layout.addWidget(version_label)
+        header_layout.addStretch()
+
+        layout.addWidget(header_frame)
+
+        # Scroll area for configuration options
+        scroll_area = QScrollArea()
+        scroll_widget = QWidget()
+        self.config_layout = QFormLayout(scroll_widget)
+
+        # Generate configuration form
+        self.generate_config_form()
+
+        scroll_area.setWidget(scroll_widget)
+        scroll_area.setWidgetResizable(True)
+        layout.addWidget(scroll_area)
+
+        # Button box
+        button_box = QDialogButtonBox(
+            QDialogButtonBox.StandardButton.Ok |
+            QDialogButtonBox.StandardButton.Cancel |
+            QDialogButtonBox.StandardButton.RestoreDefaults
+        )
+        button_box.accepted.connect(self.save_config)
+        button_box.rejected.connect(self.reject)
+        button_box.button(QDialogButtonBox.StandardButton.RestoreDefaults).clicked.connect(self.restore_defaults)
+
+        layout.addWidget(button_box)
+
+    def generate_config_form(self):
+        """Generate configuration form based on plugin schema."""
+        try:
+            # Get plugin configuration schema
+            config_schema = self.plugin_data.get('config_schema', {})
+            if not config_schema:
+                # Create basic configuration options
+                self.add_basic_config_options()
+                return
+
+            # Generate form from schema
+            properties = config_schema.get('properties', {})
+            for key, schema in properties.items():
+                self.add_config_field(key, schema)
+
+        except Exception as e:
+            logger.error(f"Failed to generate config form: {e}")
+            self.add_basic_config_options()
+
+    def add_basic_config_options(self):
+        """Add basic configuration options when no schema is available."""
+        # Enabled checkbox
+        enabled_checkbox = QCheckBox()
+        enabled_checkbox.setChecked(self.plugin_data.get('enabled', True))
+        self.config_widgets['enabled'] = enabled_checkbox
+        self.config_layout.addRow("Enabled:", enabled_checkbox)
+
+        # Auto-start checkbox
+        auto_start_checkbox = QCheckBox()
+        auto_start_checkbox.setChecked(self.plugin_data.get('auto_start', True))
+        self.config_widgets['auto_start'] = auto_start_checkbox
+        self.config_layout.addRow("Auto Start:", auto_start_checkbox)
+
+        # Priority spinner
+        priority_spinner = QSpinBox()
+        priority_spinner.setRange(1, 10)
+        priority_spinner.setValue(self.plugin_data.get('priority', 5))
+        self.config_widgets['priority'] = priority_spinner
+        self.config_layout.addRow("Priority:", priority_spinner)
+
+        # Description (read-only)
+        description_text = QTextEdit()
+        description_text.setPlainText(self.plugin_data.get('description', 'No description available'))
+        description_text.setMaximumHeight(80)
+        description_text.setReadOnly(True)
+        self.config_layout.addRow("Description:", description_text)
+
+    def add_config_field(self, key: str, schema: Dict[str, Any]):
+        """Add a configuration field based on schema."""
+        field_type = schema.get('type', 'string')
+        title = schema.get('title', key.replace('_', ' ').title())
+        description = schema.get('description', '')
+        default_value = schema.get('default')
+
+        if field_type == 'boolean':
+            widget = QCheckBox()
+            if default_value is not None:
+                widget.setChecked(default_value)
+        elif field_type == 'integer':
+            widget = QSpinBox()
+            widget.setRange(schema.get('minimum', -999999), schema.get('maximum', 999999))
+            if default_value is not None:
+                widget.setValue(default_value)
+        elif field_type == 'number':
+            widget = QSpinBox()  # Could use QDoubleSpinBox for floats
+            widget.setRange(int(schema.get('minimum', -999999)), int(schema.get('maximum', 999999)))
+            if default_value is not None:
+                widget.setValue(int(default_value))
+        elif field_type == 'string':
+            if 'enum' in schema:
+                widget = QComboBox()
+                widget.addItems(schema['enum'])
+                if default_value and default_value in schema['enum']:
+                    widget.setCurrentText(default_value)
+            else:
+                widget = QLineEdit()
+                if default_value is not None:
+                    widget.setText(str(default_value))
+        else:
+            # Default to text input
+            widget = QLineEdit()
+            if default_value is not None:
+                widget.setText(str(default_value))
+
+        # Add tooltip if description exists
+        if description:
+            widget.setToolTip(description)
+
+        self.config_widgets[key] = widget
+        self.config_layout.addRow(f"{title}:", widget)
+
+    def load_current_config(self):
+        """Load current plugin configuration."""
+        try:
+            current_config = self.plugin_data.get('config', {})
+            for key, widget in self.config_widgets.items():
+                if key in current_config:
+                    value = current_config[key]
+                    if isinstance(widget, QCheckBox):
+                        widget.setChecked(bool(value))
+                    elif isinstance(widget, QSpinBox):
+                        widget.setValue(int(value))
+                    elif isinstance(widget, QLineEdit):
+                        widget.setText(str(value))
+                    elif isinstance(widget, QComboBox):
+                        widget.setCurrentText(str(value))
+        except Exception as e:
+            logger.error(f"Failed to load current config: {e}")
+
+    def save_config(self):
+        """Save plugin configuration."""
+        try:
+            new_config = {}
+            for key, widget in self.config_widgets.items():
+                if isinstance(widget, QCheckBox):
+                    new_config[key] = widget.isChecked()
+                elif isinstance(widget, QSpinBox):
+                    new_config[key] = widget.value()
+                elif isinstance(widget, QLineEdit):
+                    new_config[key] = widget.text()
+                elif isinstance(widget, QComboBox):
+                    new_config[key] = widget.currentText()
+
+            # Update plugin data
+            self.plugin_data['config'] = new_config
+
+            # Here you would typically save to file or send to plugin manager
+            logger.info(f"Saved configuration for {self.plugin_data.get('name')}: {new_config}")
+
+            QMessageBox.information(self, "Configuration Saved",
+                                  f"Configuration for {self.plugin_data.get('name')} has been saved.")
+
+            self.accept()
+
+        except Exception as e:
+            logger.error(f"Failed to save config: {e}")
+            QMessageBox.critical(self, "Save Error", f"Failed to save configuration:\n{str(e)}")
+
+    def restore_defaults(self):
+        """Restore default configuration values."""
+        try:
+            # Reset all widgets to their default values
+            config_schema = self.plugin_data.get('config_schema', {})
+            properties = config_schema.get('properties', {})
+
+            for key, widget in self.config_widgets.items():
+                if key in properties:
+                    default_value = properties[key].get('default')
+                    if default_value is not None:
+                        if isinstance(widget, QCheckBox):
+                            widget.setChecked(bool(default_value))
+                        elif isinstance(widget, QSpinBox):
+                            widget.setValue(int(default_value))
+                        elif isinstance(widget, QLineEdit):
+                            widget.setText(str(default_value))
+                        elif isinstance(widget, QComboBox):
+                            widget.setCurrentText(str(default_value))
+                else:
+                    # Basic defaults
+                    if key == 'enabled':
+                        widget.setChecked(True)
+                    elif key == 'auto_start':
+                        widget.setChecked(True)
+                    elif key == 'priority':
+                        widget.setValue(5)
+
+            QMessageBox.information(self, "Defaults Restored",
+                                  "Configuration has been reset to default values.")
+
+        except Exception as e:
+            logger.error(f"Failed to restore defaults: {e}")
+            QMessageBox.critical(self, "Restore Error", f"Failed to restore defaults:\n{str(e)}")

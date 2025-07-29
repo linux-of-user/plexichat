@@ -232,16 +232,24 @@ class UnifiedAuthManager:
 
     async def _validate_password(self, username: str, password: str) -> Optional[Dict[str, Any]]:
         """Validate username/password credentials."""
-        # TODO: Implement actual password validation with database
-        # This is a placeholder implementation
-        if username == "admin" and password == "admin123":
-            return {
-                'user_id': '1',
-                'username': username,
-                'requires_mfa': False,
-                'must_change_password': False
-            }
-        return None
+        try:
+            # Import and use the admin credentials manager
+            from .admin_credentials import admin_credentials_manager
+
+            if admin_credentials_manager.verify_admin_credentials(username, password):
+                return {
+                    'user_id': '1',
+                    'username': username,
+                    'requires_mfa': False,
+                    'must_change_password': False
+                }
+
+            logger.warning(f"Invalid credentials for user: {username}")
+            return None
+
+        except Exception as e:
+            logger.error(f"Password validation error: {e}")
+            return None
 
     async def _validate_api_key(self, api_key: str) -> Optional[Dict[str, Any]]:
         """Validate API key."""

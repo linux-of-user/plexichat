@@ -88,6 +88,74 @@ router = APIRouter(prefix="/auth", tags=["authentication"])
 performance_logger = get_performance_logger() if get_performance_logger else None
 optimization_engine = PerformanceOptimizationEngine() if PerformanceOptimizationEngine else None
 
+# Import enhanced security decorators
+try:
+    from plexichat.core.security.security_decorators import (
+        secure_endpoint, require_auth, rate_limit, audit_access, validate_input,
+        SecurityLevel, RequiredPermission
+    )
+    from plexichat.core.logging_advanced.enhanced_logging_system import (
+        get_enhanced_logging_system, LogCategory, LogLevel, PerformanceTracker, SecurityMetrics
+    )
+    ENHANCED_SECURITY_AVAILABLE = True
+    
+    # Get enhanced logging system
+    logging_system = get_enhanced_logging_system()
+    if logging_system:
+        enhanced_logger = logging_system.get_logger(__name__)
+        logger.info("Enhanced security and logging initialized for auth")
+    else:
+        enhanced_logger = None
+        
+except ImportError as e:
+    logger.warning(f"Enhanced security not available for auth: {e}")
+    # Fallback decorators
+    def secure_endpoint(*args, **kwargs):
+        def decorator(func): return func
+        return decorator
+    
+    def require_auth(*args, **kwargs):
+        def decorator(func): return func
+        return decorator
+    
+    def rate_limit(*args, **kwargs):
+        def decorator(func): return func
+        return decorator
+    
+    def audit_access(*args, **kwargs):
+        def decorator(func): return func
+        return decorator
+    
+    def validate_input(*args, **kwargs):
+        def decorator(func): return func
+        return decorator
+    
+    class SecurityLevel:
+        PUBLIC = 0
+        AUTHENTICATED = 2
+    
+    class RequiredPermission:
+        WRITE = "write"
+    
+    class PerformanceTracker:
+        def __init__(self, name, logger):
+            self.name = name
+            self.logger = logger
+        def __enter__(self):
+            return self
+        def __exit__(self, *args):
+            pass
+        def add_metadata(self, **kwargs):
+            pass
+    
+    class SecurityMetrics:
+        def __init__(self, **kwargs):
+            pass
+    
+    ENHANCED_SECURITY_AVAILABLE = False
+    enhanced_logger = None
+    logging_system = None
+
 # Security
 security = HTTPBearer()
 
@@ -226,23 +294,71 @@ auth_service = AuthService()
     response_model=TokenResponse,
     responses={401: {"model": ErrorDetail}, 400: {"model": ErrorDetail}}
 )
+@rate_limit(requests_per_minute=10, burst=3)  # Strict rate limiting for login
+@validate_input(max_size=1024, validate_json=True)
+@audit_access("user_login", resource_type="authentication", include_request_body=False)
 async def login(
     request: Request,
     login_data: LoginRequest
 ):
-    """Authenticate user and return access token with performance optimization."""
+    """Authenticate user and return access token with enhanced security monitoring."""
     client_ip = request.client.host if request.client else "unknown"
-    logger.info(f"Login attempt for user '{login_data.username}' from {client_ip}")
+    
+    # Enhanced logging with security context
+    if enhanced_logger and logging_system:
+        logging_system.set_context(
+            endpoint="/auth/login",
+            method="POST",
+            ip_address=client_ip
+        )
+        
+        enhanced_logger.info(
+            f"Login attempt for user '{login_data.username}'",
+            extra={
+                "category": LogCategory.AUTH,
+                "metadata": {
+                    "username": login_data.username,
+                    "client_ip": client_ip,
+                    "user_agent": request.headers.get("User-Agent", "unknown")
+                },
+                "tags": ["auth", "login_attempt"]
+            }
+        )
+    else:
+        logger.info(f"Login attempt for user '{login_data.username}' from {client_ip}")
 
-    # Performance tracking
-    if performance_logger:
-        performance_logger.record_metric("login_attempt", 1, "count")
+    # Performance tracking with enhanced system
+    if ENHANCED_SECURITY_AVAILABLE and enhanced_logger:
+        with PerformanceTracker("user_login", enhanced_logger) as tracker:
+            tracker.add_metadata(
+                username=login_data.username,
+                client_ip=client_ip
+            )
 
     try:
         # Authenticate user using service
         user = await auth_service.authenticate_user(login_data.username, login_data.password)
 
         if not user:
+            # Enhanced security logging for failed login
+            if enhanced_logger and logging_system:
+                enhanced_logger.security(
+                    f"Failed login attempt for user '{login_data.username}'",
+                    extra={
+                        "category": LogCategory.SECURITY,
+                        "security": SecurityMetrics(
+                            failed_authentications=1,
+                            threat_score=0.3
+                        ),
+                        "metadata": {
+                            "username": login_data.username,
+                            "client_ip": client_ip,
+                            "failure_reason": "invalid_credentials"
+                        },
+                        "tags": ["auth", "login_failed", "security_event"]
+                    }
+                )
+            
             # Performance tracking for failed login
             if performance_logger:
                 performance_logger.record_metric("login_failed", 1, "count")
@@ -251,7 +367,7 @@ async def login(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Incorrect username or password"
             )
-
+        
         # Create access token
         access_token_expires = timedelta(minutes=getattr(settings, 'ACCESS_TOKEN_EXPIRE_MINUTES', 30))
         token_data = {
@@ -261,12 +377,32 @@ async def login(
         }
 
         access_token = create_access_token(data=token_data, expires_delta=access_token_expires)
+        
+        # Enhanced security logging for successful login
+        if enhanced_logger and logging_system:
+            logging_system.set_context(user_id=str(user.id))
+            
+            enhanced_logger.audit(
+                f"User '{user.username}' logged in successfully",
+                extra={
+                    "category": LogCategory.AUDIT,
+                    "metadata": {
+                        "user_id": user.id,
+                        "username": user.username,
+                        "client_ip": client_ip,
+                        "login_time": datetime.now().isoformat(),
+                        "token_expires": (datetime.now() + access_token_expires).isoformat()
+                    },
+                    "tags": ["auth", "login_successful", "audit"]
+                }
+            )
 
         # Performance tracking for successful login
         if performance_logger:
             performance_logger.record_metric("login_successful", 1, "count")
 
-        logger.info(f"User '{user.username}' logged in successfully at {datetime.now().isoformat()}Z")
+        if not enhanced_logger:
+            logger.info(f"User '{user.username}' logged in successfully at {datetime.now().isoformat()}Z")
 
         return TokenResponse(
             access_token=access_token,

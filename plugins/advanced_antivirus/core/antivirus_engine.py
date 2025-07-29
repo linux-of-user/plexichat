@@ -14,7 +14,7 @@ from .behavioral_analyzer import BehavioralAnalyzer
 from .filename_analyzer import FilenameAnalyzer
 from .hash_scanner import HashBasedScanner
 from .link_scanner import LinkSafetyScanner
-from .threat_intelligence import ThreatIntelligenceEngine
+from .threat_intelligence import ThreatIntelligenceManager
 
 """
 Advanced Antivirus Engine
@@ -54,7 +54,7 @@ class AdvancedAntivirusEngine:
         self.behavioral_analyzer = BehavioralAnalyzer(self.antivirus_dir)
         self.link_scanner = LinkSafetyScanner(self.antivirus_dir)
         self.filename_analyzer = FilenameAnalyzer()
-        self.threat_intelligence = ThreatIntelligenceEngine(self.antivirus_dir)
+        self.threat_intelligence = ThreatIntelligenceManager({})
 
         # Scan statistics
         self.scan_stats = {
@@ -176,10 +176,10 @@ class AdvancedAntivirusEngine:
         """Get comprehensive scan statistics."""
         return {
             **self.scan_stats,
-            'hash_scanner_stats': await self.hash_scanner.get_statistics(),
-            'behavioral_stats': await self.behavioral_analyzer.get_statistics(),
-            'link_scanner_stats': await self.link_scanner.get_statistics(),
-            'threat_intel_stats': await self.threat_intelligence.get_statistics()
+            'hash_scanner_stats': self.hash_scanner.get_statistics(),
+            'behavioral_stats': self.behavioral_analyzer.get_statistics(),
+            'link_scanner_stats': self.link_scanner.get_statistics(),
+            'threat_intel_stats': self.threat_intelligence.get_threat_statistics()
         }
 
     async def update_threat_databases(self) -> bool:
@@ -191,15 +191,15 @@ class AdvancedAntivirusEngine:
             hash_updated = await self.hash_scanner.update_database()
 
             # Update threat intelligence
-            intel_updated = await self.threat_intelligence.update_feeds()
+            intel_updated = await self.threat_intelligence.update_intelligence_feeds()
 
             # Update behavioral patterns
-            behavioral_updated = await self.behavioral_analyzer.update_patterns()
+            behavioral_updated = await self.behavioral_analyzer.update_patterns({})
 
             self.scan_stats['last_update'] = datetime.now(timezone.utc).isoformat()
 
             logger.info(f"Database update completed - Hash: {hash_updated}, Intel: {intel_updated}, Behavioral: {behavioral_updated}")
-            return hash_updated or intel_updated or behavioral_updated
+            return bool(hash_updated or intel_updated or behavioral_updated)
 
         except Exception as e:
             logger.error(f"Failed to update threat databases: {e}")

@@ -9,6 +9,7 @@ from typing import Dict, Any, Optional, List
 import logging
 import time
 import platform
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
@@ -3415,3 +3416,298 @@ Documentation: https://docs.plexichat.com/plugins/{plugin_name.lower().replace('
                      justify=tk.CENTER).pack(pady=10)
 
             return error_frame
+
+    # ==================== LOGS & ANALYTICS TAB ====================
+
+    def create_logs_analytics_tab(self, parent):
+        """Create logs and analytics tab with real-time log viewing."""
+        try:
+            # Main container
+            main_frame = ttk.Frame(parent, style="Modern.TFrame")
+            main_frame.pack(fill=tk.BOTH, expand=True)
+
+            # Header
+            header_frame = ttk.Frame(main_frame, style="Modern.TFrame")
+            header_frame.pack(fill=tk.X, padx=10, pady=10)
+
+            ttk.Label(header_frame, text="[CLIPBOARD] Logs & Analytics",
+                     font=("Segoe UI", 16, "bold"), style="Modern.TLabel").pack(side=tk.LEFT)
+
+            # Controls
+            controls_frame = ttk.Frame(header_frame)
+            controls_frame.pack(side=tk.RIGHT)
+
+            ttk.Button(controls_frame, text="[REFRESH] Refresh",
+                      command=self.refresh_logs, style="Modern.TButton").pack(side=tk.LEFT, padx=2)
+            ttk.Button(controls_frame, text="[CLEAN] Clear",
+                      command=self.clear_log_display, style="Modern.TButton").pack(side=tk.LEFT, padx=2)
+            ttk.Button(controls_frame, text="[SAVE] Export",
+                      command=self.export_logs, style="Modern.TButton").pack(side=tk.LEFT, padx=2)
+
+            # Log level filter
+            filter_frame = ttk.Frame(main_frame, style="Modern.TFrame")
+            filter_frame.pack(fill=tk.X, padx=10, pady=(0, 10))
+
+            ttk.Label(filter_frame, text="Filter Level:", style="Modern.TLabel").pack(side=tk.LEFT)
+
+            self.log_level_var = tk.StringVar(value="ALL")
+            log_levels = ["ALL", "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
+            log_level_combo = ttk.Combobox(filter_frame, textvariable=self.log_level_var,
+                                         values=log_levels, state="readonly", width=10)
+            log_level_combo.pack(side=tk.LEFT, padx=(5, 10))
+            log_level_combo.bind("<<ComboboxSelected>>", lambda e: self.filter_logs())
+
+            # Auto-refresh checkbox
+            self.auto_refresh_var = tk.BooleanVar(value=True)
+            ttk.Checkbutton(filter_frame, text="Auto-refresh",
+                           variable=self.auto_refresh_var, style="Modern.TCheckbutton").pack(side=tk.LEFT, padx=10)
+
+            # Log display area
+            log_frame = ttk.Frame(main_frame, style="Modern.TFrame")
+            log_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=(0, 10))
+
+            # Create text widget with scrollbar
+            text_frame = ttk.Frame(log_frame)
+            text_frame.pack(fill=tk.BOTH, expand=True)
+
+            self.log_text = tk.Text(text_frame, wrap=tk.WORD, font=("Consolas", 10),
+                                   bg="#1a1a2e", fg="#ffffff", insertbackground="#ffffff")
+
+            scrollbar = ttk.Scrollbar(text_frame, orient=tk.VERTICAL, command=self.log_text.yview)
+            self.log_text.configure(yscrollcommand=scrollbar.set)
+
+            self.log_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+            scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+            # Configure text tags for different log levels
+            self.log_text.tag_configure("DEBUG", foreground="#B8C5D6")
+            self.log_text.tag_configure("INFO", foreground="#00D4AA")
+            self.log_text.tag_configure("WARNING", foreground="#FFB800")
+            self.log_text.tag_configure("ERROR", foreground="#FF6B6B")
+            self.log_text.tag_configure("CRITICAL", foreground="#FF0000", background="#330000")
+
+            # Statistics frame
+            stats_frame = ttk.LabelFrame(main_frame, text="Log Statistics", style="Modern.TLabelframe")
+            stats_frame.pack(fill=tk.X, padx=10, pady=(0, 10))
+
+            stats_grid = ttk.Frame(stats_frame)
+            stats_grid.pack(fill=tk.X, padx=10, pady=10)
+
+            # Create statistics labels
+            self.stats_labels = {}
+            stats_items = [("Total Logs", "total"), ("Errors", "error"), ("Warnings", "warning"),
+                          ("Info", "info"), ("Debug", "debug")]
+
+            for i, (label, key) in enumerate(stats_items):
+                ttk.Label(stats_grid, text=f"{label}:", style="Modern.TLabel").grid(row=0, column=i*2, sticky="w", padx=(0, 5))
+                self.stats_labels[key] = ttk.Label(stats_grid, text="0", style="Modern.TLabel", foreground="#4A90E2")
+                self.stats_labels[key].grid(row=0, column=i*2+1, sticky="w", padx=(0, 20))
+
+            # Configure grid weights
+            for i in range(10):
+                stats_grid.columnconfigure(i, weight=1)
+
+            # Initialize logs
+            self.log_entries = []
+            self.load_logs()
+
+            # Start auto-refresh timer
+            self.schedule_log_refresh()
+
+            logger.info("Logs & Analytics tab created successfully")
+            return main_frame
+
+        except Exception as e:
+            logger.error(f"Failed to create logs analytics tab: {e}")
+            # Create error interface
+            error_frame = ttk.Frame(parent, style="Modern.TFrame")
+            error_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
+
+            ttk.Label(error_frame, text="Error Creating Logs & Analytics",
+                     style="Modern.TLabel", font=('Arial', 16, 'bold')).pack(pady=20)
+
+            ttk.Label(error_frame, text=f"An error occurred:\n{str(e)}",
+                     style="Modern.TLabel", justify=tk.CENTER).pack(pady=10)
+
+            return error_frame
+
+    def load_logs(self):
+        """Load logs from various sources."""
+        try:
+            self.log_entries = []
+
+            # Load from log files
+            log_dir = Path("logs")
+            if log_dir.exists():
+                for log_file in log_dir.glob("*.log"):
+                    try:
+                        with open(log_file, 'r', encoding='utf-8') as f:
+                            for line_num, line in enumerate(f, 1):
+                                line = line.strip()
+                                if line:
+                                    # Parse log entry
+                                    level = self.extract_log_level(line)
+                                    timestamp = self.extract_timestamp(line)
+                                    message = line
+
+                                    self.log_entries.append({
+                                        'timestamp': timestamp,
+                                        'level': level,
+                                        'message': message,
+                                        'source': log_file.name
+                                    })
+                    except Exception as e:
+                        logger.error(f"Failed to read log file {log_file}: {e}")
+
+            # Sort by timestamp (most recent first)
+            self.log_entries.sort(key=lambda x: x['timestamp'], reverse=True)
+
+            # Limit to last 1000 entries for performance
+            self.log_entries = self.log_entries[:1000]
+
+            self.update_log_display()
+            self.update_log_statistics()
+
+        except Exception as e:
+            logger.error(f"Failed to load logs: {e}")
+
+    def extract_log_level(self, line):
+        """Extract log level from log line."""
+        levels = ['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG']
+        for level in levels:
+            if level in line.upper():
+                return level
+        return 'INFO'
+
+    def extract_timestamp(self, line):
+        """Extract timestamp from log line."""
+        import re
+        from datetime import datetime
+
+        # Try to find timestamp patterns
+        patterns = [
+            r'(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})',
+            r'(\d{2}/\d{2}/\d{4} \d{2}:\d{2}:\d{2})',
+            r'(\d{2}:\d{2}:\d{2})'
+        ]
+
+        for pattern in patterns:
+            match = re.search(pattern, line)
+            if match:
+                try:
+                    timestamp_str = match.group(1)
+                    if len(timestamp_str) == 8:  # HH:MM:SS format
+                        timestamp_str = f"{datetime.now().strftime('%Y-%m-%d')} {timestamp_str}"
+                    return datetime.strptime(timestamp_str, '%Y-%m-%d %H:%M:%S')
+                except:
+                    continue
+
+        return datetime.now()
+
+    def update_log_display(self):
+        """Update the log display with filtered entries."""
+        try:
+            if not hasattr(self, 'log_text'):
+                return
+
+            # Clear current display
+            self.log_text.configure(state=tk.NORMAL)
+            self.log_text.delete(1.0, tk.END)
+
+            # Filter logs based on selected level
+            level_filter = self.log_level_var.get()
+            filtered_entries = self.log_entries
+
+            if level_filter != "ALL":
+                filtered_entries = [entry for entry in self.log_entries
+                                  if entry['level'] == level_filter]
+
+            # Display filtered entries
+            for entry in filtered_entries[:500]:  # Limit display for performance
+                timestamp_str = entry['timestamp'].strftime('%Y-%m-%d %H:%M:%S')
+                log_line = f"[{timestamp_str}] [{entry['level']}] {entry['message']}\n"
+
+                # Insert with appropriate tag for coloring
+                self.log_text.insert(tk.END, log_line, entry['level'])
+
+            # Auto-scroll to bottom
+            self.log_text.see(tk.END)
+            self.log_text.configure(state=tk.DISABLED)
+
+        except Exception as e:
+            logger.error(f"Failed to update log display: {e}")
+
+    def update_log_statistics(self):
+        """Update log statistics display."""
+        try:
+            if not hasattr(self, 'stats_labels'):
+                return
+
+            stats = {
+                'total': len(self.log_entries),
+                'error': len([e for e in self.log_entries if e['level'] in ['ERROR', 'CRITICAL']]),
+                'warning': len([e for e in self.log_entries if e['level'] == 'WARNING']),
+                'info': len([e for e in self.log_entries if e['level'] == 'INFO']),
+                'debug': len([e for e in self.log_entries if e['level'] == 'DEBUG'])
+            }
+
+            for key, value in stats.items():
+                if key in self.stats_labels:
+                    self.stats_labels[key].configure(text=str(value))
+
+        except Exception as e:
+            logger.error(f"Failed to update log statistics: {e}")
+
+    def refresh_logs(self):
+        """Refresh log display."""
+        self.load_logs()
+
+    def clear_log_display(self):
+        """Clear the log display."""
+        try:
+            if hasattr(self, 'log_text'):
+                self.log_text.configure(state=tk.NORMAL)
+                self.log_text.delete(1.0, tk.END)
+                self.log_text.configure(state=tk.DISABLED)
+        except Exception as e:
+            logger.error(f"Failed to clear log display: {e}")
+
+    def filter_logs(self):
+        """Filter logs based on selected level."""
+        self.update_log_display()
+
+    def export_logs(self):
+        """Export logs to file."""
+        try:
+            from tkinter import filedialog
+
+            filename = filedialog.asksaveasfilename(
+                defaultextension=".txt",
+                filetypes=[("Text files", "*.txt"), ("All files", "*.*")],
+                title="Export Logs"
+            )
+
+            if filename:
+                with open(filename, 'w', encoding='utf-8') as f:
+                    for entry in self.log_entries:
+                        timestamp_str = entry['timestamp'].strftime('%Y-%m-%d %H:%M:%S')
+                        f.write(f"[{timestamp_str}] [{entry['level']}] {entry['message']}\n")
+
+                messagebox.showinfo("Export Complete", f"Logs exported to {filename}")
+
+        except Exception as e:
+            logger.error(f"Failed to export logs: {e}")
+            messagebox.showerror("Export Error", f"Failed to export logs: {e}")
+
+    def schedule_log_refresh(self):
+        """Schedule automatic log refresh."""
+        try:
+            if hasattr(self, 'auto_refresh_var') and self.auto_refresh_var.get():
+                self.load_logs()
+
+            # Schedule next refresh in 5 seconds
+            if hasattr(self, 'log_text'):
+                self.log_text.after(5000, self.schedule_log_refresh)
+
+        except Exception as e:
+            logger.error(f"Failed to schedule log refresh: {e}")

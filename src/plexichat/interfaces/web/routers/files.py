@@ -73,6 +73,76 @@ router = APIRouter(prefix="/files", tags=["files"])
 
 # Initialize EXISTING performance systems
 performance_logger = get_performance_logger() if get_performance_logger else None
+
+# Import enhanced security decorators
+try:
+    from plexichat.core.security.security_decorators import (
+        secure_endpoint, require_auth, rate_limit, audit_access, validate_input,
+        SecurityLevel, RequiredPermission
+    )
+    from plexichat.core.logging_advanced.enhanced_logging_system import (
+        get_enhanced_logging_system, LogCategory, LogLevel, PerformanceTracker, SecurityMetrics
+    )
+    ENHANCED_SECURITY_AVAILABLE = True
+    
+    # Get enhanced logging system
+    logging_system = get_enhanced_logging_system()
+    if logging_system:
+        enhanced_logger = logging_system.get_logger(__name__)
+        logger.info("Enhanced security and logging initialized for files")
+    else:
+        enhanced_logger = None
+        
+except ImportError as e:
+    logger.warning(f"Enhanced security not available for files: {e}")
+    # Fallback decorators
+    def secure_endpoint(*args, **kwargs):
+        def decorator(func): return func
+        return decorator
+    
+    def require_auth(*args, **kwargs):
+        def decorator(func): return func
+        return decorator
+    
+    def rate_limit(*args, **kwargs):
+        def decorator(func): return func
+        return decorator
+    
+    def audit_access(*args, **kwargs):
+        def decorator(func): return func
+        return decorator
+    
+    def validate_input(*args, **kwargs):
+        def decorator(func): return func
+        return decorator
+    
+    class SecurityLevel:
+        AUTHENTICATED = 2
+        ADMIN = 4
+    
+    class RequiredPermission:
+        READ = "read"
+        WRITE = "write"
+        DELETE = "delete"
+    
+    class PerformanceTracker:
+        def __init__(self, name, logger):
+            self.name = name
+            self.logger = logger
+        def __enter__(self):
+            return self
+        def __exit__(self, *args):
+            pass
+        def add_metadata(self, **kwargs):
+            pass
+    
+    class SecurityMetrics:
+        def __init__(self, **kwargs):
+            pass
+    
+    ENHANCED_SECURITY_AVAILABLE = False
+    enhanced_logger = None
+    logging_system = None
 optimization_engine = PerformanceOptimizationEngine() if PerformanceOptimizationEngine else None
 
 # Thread pool for background tasks
@@ -279,16 +349,47 @@ class FileListResponse(BaseModel):
     per_page: int
 
 @router.post("/upload", response_model=FileUploadResponse, status_code=status.HTTP_201_CREATED)
+@secure_endpoint(
+    auth_level=SecurityLevel.AUTHENTICATED,
+    permissions=[RequiredPermission.WRITE],
+    rate_limit_rpm=10,  # Stricter rate limiting for file uploads
+    audit_action="upload_file"
+)
 async def upload_file(
     request: Request,
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     current_user=Depends(get_current_user)
 ):
-    """Upload a file with enhanced validation and performance optimization."""
+    """Upload a file with enhanced security validation and comprehensive logging."""
     client_ip = request.client.host if request.client else "unknown"
     operation_id = f"file_upload_{current_user.get('id')}_{datetime.now().timestamp()}"
-    logger.info(f"User {current_user.get('id')} from {client_ip} uploading file: {file.filename} (operation: {operation_id})")
+    
+    # Enhanced logging with security context
+    if enhanced_logger and logging_system:
+        logging_system.set_context(
+            user_id=str(current_user.get("id", "")),
+            endpoint="/files/upload",
+            method="POST",
+            ip_address=client_ip
+        )
+        
+        enhanced_logger.info(
+            f"File upload initiated by user {current_user.get('id')}",
+            extra={
+                "category": LogCategory.API,
+                "metadata": {
+                    "uploader_id": current_user.get("id"),
+                    "filename": file.filename,
+                    "content_type": file.content_type,
+                    "client_ip": client_ip,
+                    "operation_id": operation_id
+                },
+                "tags": ["file_upload", "user_action", "security_sensitive"]
+            }
+        )
+    else:
+        logger.info(f"User {current_user.get('id')} from {client_ip} uploading file: {file.filename} (operation: {operation_id})")
 
     # Performance tracking
     if performance_logger:

@@ -141,17 +141,6 @@ class AuthenticationCore:
                 logger.error(f"Error authenticating user: {e}")
                 return None
 
-        # Fallback for testing
-        if username == "admin" and password == "password":
-            return {
-                "id": 1,
-                "username": "admin",
-                "email": "admin@example.com",
-                "is_active": True,
-                "is_admin": True,
-                "created_at": datetime.now()
-            }
-
         return None
 
     @async_track_performance("user_creation") if async_track_performance else lambda f: f

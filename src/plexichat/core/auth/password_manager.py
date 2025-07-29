@@ -41,16 +41,27 @@ class PasswordManager:
     async def verify_password(
         self, username: str, password: str
     ) -> PasswordVerificationResult:
-        """Verify user password."""
-        # Mock implementation
-        if username == "admin" and password == "admin123":
+        """Verify admin password for management interface."""
+        try:
+            # Import and use the admin credentials manager
+            from .admin_credentials import admin_credentials_manager
+
+            if admin_credentials_manager.verify_admin_credentials(username, password):
+                return PasswordVerificationResult(
+                    success=True,
+                    user_id=username,
+                    password_expired=False
+                )
+
             return PasswordVerificationResult(
-                success=True, user_id="admin", password_expired=False
+                success=False, error_message="Invalid admin credentials"
             )
 
-        return PasswordVerificationResult(
-            success=False, error_message="Invalid credentials"
-        )
+        except Exception as e:
+            logger.error(f"Admin password verification error: {e}")
+            return PasswordVerificationResult(
+                success=False, error_message="Authentication error"
+            )
 
     def hash_password(self, password: str) -> str:
         """Hash password using bcrypt."""

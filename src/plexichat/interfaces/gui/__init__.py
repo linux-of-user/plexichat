@@ -74,5 +74,5 @@ def main():
     return run_gui(use_pyqt=True)
 
 
-if __name__ == "__main__":
-    sys.exit(main())
+# This module should not be run standalone.
+# Use 'python run.py gui' to launch the GUI interface.

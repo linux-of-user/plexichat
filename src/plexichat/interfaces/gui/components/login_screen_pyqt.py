@@ -62,20 +62,21 @@ class AnimatedBackground(QWidget):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
         
-        # Dark gradient background
+        # Professional dark gradient background
         gradient = QLinearGradient(0, 0, 0, self.height())
-        gradient.setColorAt(0, QColor("#1a1a2e"))
-        gradient.setColorAt(0.5, QColor("#16213e"))
-        gradient.setColorAt(1, QColor("#0f3460"))
+        gradient.setColorAt(0, QColor("#0d1117"))
+        gradient.setColorAt(0.3, QColor("#161b22"))
+        gradient.setColorAt(0.7, QColor("#21262d"))
+        gradient.setColorAt(1, QColor("#30363d"))
         painter.fillRect(self.rect(), QBrush(gradient))
-        
-        # Draw stars
+
+        # Draw subtle stars (fewer and more subtle)
         painter.setPen(Qt.PenStyle.NoPen)
-        for star in self.stars:
-            color = QColor(255, 255, 255, int(star['opacity'] * 255))
+        for star in self.stars[:20]:  # Only show first 20 stars
+            color = QColor(139, 148, 158, int(star['opacity'] * 60))  # Much more subtle
             painter.setBrush(QBrush(color))
-            painter.drawEllipse(int(star['x']), int(star['y']), 
-                              star['size'], star['size'])
+            painter.drawEllipse(int(star['x']), int(star['y']),
+                              max(1, star['size'] // 2), max(1, star['size'] // 2))
 
 
 class ModernButton(QPushButton):
@@ -94,25 +95,30 @@ class ModernButton(QPushButton):
         self.animation.setEasingCurve(QEasingCurve.Type.OutCubic)
     
     def setup_style(self):
-        """Setup button styling."""
+        """Setup professional button styling."""
         self.setStyleSheet("""
             ModernButton {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 #4A90E2, stop:1 #357ABD);
-                border: none;
-                border-radius: 25px;
-                color: white;
-                font-weight: bold;
-                padding: 15px 30px;
+                background: #238636;
+                border: 1px solid rgba(240, 246, 252, 0.1);
+                border-radius: 6px;
+                color: #ffffff;
+                font-weight: 500;
+                font-size: 14px;
+                padding: 12px 24px;
+                font-family: 'SF Pro Text', system-ui, sans-serif;
             }
             ModernButton:hover {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 #5BA0F2, stop:1 #4A90E2);
-                transform: translateY(-2px);
+                background: #2ea043;
+                border: 1px solid rgba(240, 246, 252, 0.15);
             }
             ModernButton:pressed {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 #357ABD, stop:1 #2E6BA8);
+                background: #1a7f37;
+                transform: translateY(1px);
+            }
+            ModernButton:disabled {
+                background: #21262d;
+                color: #7d8590;
+                border: 1px solid #30363d;
             }
         """)
         
@@ -135,22 +141,24 @@ class ModernLineEdit(QLineEdit):
         self.setup_style()
     
     def setup_style(self):
-        """Setup line edit styling."""
+        """Setup professional line edit styling."""
         self.setStyleSheet("""
             ModernLineEdit {
-                background: rgba(255, 255, 255, 0.1);
-                border: 2px solid rgba(255, 255, 255, 0.2);
-                border-radius: 25px;
-                padding: 15px 20px;
-                color: white;
+                background: #21262d;
+                border: 1px solid #30363d;
+                border-radius: 6px;
+                padding: 12px 16px;
+                color: #f0f6fc;
                 font-size: 14px;
+                font-family: 'SF Pro Text', system-ui, sans-serif;
             }
             ModernLineEdit:focus {
-                border: 2px solid #4A90E2;
-                background: rgba(255, 255, 255, 0.15);
+                border: 1px solid #58a6ff;
+                background: #0d1117;
+                outline: none;
             }
             ModernLineEdit::placeholder {
-                color: rgba(255, 255, 255, 0.6);
+                color: #7d8590;
             }
         """)
 
@@ -211,9 +219,6 @@ class LoginScreenPyQt(QWidget):
         overlay_layout = QVBoxLayout(self.background)
         overlay_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
-        # Theme toggle button (top right)
-        self.create_theme_toggle()
-        
         # Login panel
         self.create_login_panel()
         overlay_layout.addWidget(self.login_panel)
@@ -250,10 +255,9 @@ class LoginScreenPyQt(QWidget):
         self.login_panel.setFixedSize(400, 500)
         self.login_panel.setStyleSheet("""
             QFrame {
-                background: rgba(255, 255, 255, 0.1);
-                border: 1px solid rgba(255, 255, 255, 0.2);
-                border-radius: 20px;
-                backdrop-filter: blur(10px);
+                background: rgba(33, 38, 45, 0.95);
+                border: 1px solid rgba(139, 148, 158, 0.2);
+                border-radius: 12px;
             }
         """)
         
@@ -285,49 +289,60 @@ class LoginScreenPyQt(QWidget):
         self.create_progress_bar(panel_layout)
     
     def create_header(self, layout):
-        """Create header with logo and title."""
-        # Logo
-        logo_label = QLabel("🔷")
+        """Create professional header with logo and title."""
+        # Logo container
+        logo_container = QWidget()
+        logo_layout = QVBoxLayout(logo_container)
+        logo_layout.setContentsMargins(0, 0, 0, 0)
+        logo_layout.setSpacing(8)
+
+        # Modern logo
+        logo_label = QLabel("⬢")
         logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        logo_label.setFont(QFont("Arial", 48))
-        logo_label.setStyleSheet("color: #4A90E2; margin-bottom: 10px;")
-        layout.addWidget(logo_label)
-        
+        logo_label.setFont(QFont("SF Pro Display", 42, QFont.Weight.Light))
+        logo_label.setStyleSheet("color: #58a6ff; margin: 0;")
+        logo_layout.addWidget(logo_label)
+
         # Title
         title_label = QLabel("PlexiChat")
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        title_label.setFont(QFont("Inter", 24, QFont.Weight.Bold))
-        title_label.setStyleSheet("color: white; margin-bottom: 5px;")
-        layout.addWidget(title_label)
-        
+        title_label.setFont(QFont("SF Pro Display", 28, QFont.Weight.Medium))
+        title_label.setStyleSheet("color: #f0f6fc; margin: 0; letter-spacing: -0.5px;")
+        logo_layout.addWidget(title_label)
+
         # Subtitle
-        subtitle_label = QLabel("Management Interface")
+        subtitle_label = QLabel("Management Console")
         subtitle_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        subtitle_label.setFont(QFont("Inter", 12))
-        subtitle_label.setStyleSheet("color: rgba(255, 255, 255, 0.7); margin-bottom: 20px;")
-        layout.addWidget(subtitle_label)
+        subtitle_label.setFont(QFont("SF Pro Text", 14, QFont.Weight.Normal))
+        subtitle_label.setStyleSheet("color: #8b949e; margin: 0;")
+        logo_layout.addWidget(subtitle_label)
+
+        layout.addWidget(logo_container)
     
     def create_input_fields(self, layout):
-        """Create input fields."""
+        """Create professional input fields."""
         # Username field
-        username_label = QLabel("🔒 Username")
-        username_label.setFont(QFont("Inter", 12, QFont.Weight.Bold))
-        username_label.setStyleSheet("color: white; margin-bottom: 5px;")
+        username_label = QLabel("Username")
+        username_label.setFont(QFont("SF Pro Text", 13, QFont.Weight.Medium))
+        username_label.setStyleSheet("color: #f0f6fc; margin: 0 0 8px 0;")
         layout.addWidget(username_label)
-        
-        self.username_input = ModernLineEdit("Enter your username")
+
+        self.username_input = ModernLineEdit("admin")
         layout.addWidget(self.username_input)
-        
+
+        # Add spacing
+        layout.addSpacing(16)
+
         # Password field
-        password_label = QLabel("🔑 Password")
-        password_label.setFont(QFont("Inter", 12, QFont.Weight.Bold))
-        password_label.setStyleSheet("color: white; margin-bottom: 5px; margin-top: 10px;")
+        password_label = QLabel("Password")
+        password_label.setFont(QFont("SF Pro Text", 13, QFont.Weight.Medium))
+        password_label.setStyleSheet("color: #f0f6fc; margin: 0 0 8px 0;")
         layout.addWidget(password_label)
-        
-        self.password_input = ModernLineEdit("Enter your password")
+
+        self.password_input = ModernLineEdit("admin123")
         self.password_input.setEchoMode(QLineEdit.EchoMode.Password)
         layout.addWidget(self.password_input)
-        
+
         # Password visibility toggle
         self.create_password_toggle()
     
@@ -401,7 +416,7 @@ class LoginScreenPyQt(QWidget):
     
     def create_login_button(self, layout):
         """Create the main login button."""
-        self.login_button = ModernButton("Sign In →")
+        self.login_button = ModernButton("Sign in")
         self.login_button.clicked.connect(self.handle_login)
         layout.addWidget(self.login_button)
         
@@ -498,7 +513,7 @@ class LoginScreenPyQt(QWidget):
             'role': 'admin',
             'authenticated': True
         }
-        self.login_success(user_data)
+        self.handle_login_success(user_data)
     
     def start_login_process(self):
         """Start the login process with visual feedback."""

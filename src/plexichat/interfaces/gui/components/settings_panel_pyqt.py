@@ -10,7 +10,7 @@ from PyQt6.QtWidgets import (
     QPushButton, QFrame, QScrollArea, QTabWidget, QTextEdit,
     QLineEdit, QComboBox, QCheckBox, QSpinBox, QSlider,
     QGroupBox, QFormLayout, QColorDialog, QFontDialog,
-    QFileDialog, QMessageBox, QButtonGroup, QRadioButton
+    QFileDialog, QMessageBox, QButtonGroup, QRadioButton, QDialog
 )
 from PyQt6.QtCore import Qt, pyqtSignal, QSettings
 from PyQt6.QtGui import QFont, QColor, QPalette
@@ -18,7 +18,7 @@ from PyQt6.QtGui import QFont, QColor, QPalette
 logger = logging.getLogger(__name__)
 
 
-class SettingsPanelPyQt(QWidget):
+class SettingsPanelPyQt(QDialog):
     """
     Comprehensive settings management interface.
     Features:
@@ -29,18 +29,26 @@ class SettingsPanelPyQt(QWidget):
     - Plugin configuration
     - System settings
     """
-    
+
     # Signals
     settings_changed = pyqtSignal(str, object)  # setting_name, value
     theme_changed = pyqtSignal(str)
-    
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.parent_app = parent
         self.settings = QSettings('PlexiChat', 'GUI')
+
+        # Make window movable and resizable
+        self.setWindowTitle("Settings")
+        self.setWindowFlags(Qt.WindowType.Window | Qt.WindowType.WindowCloseButtonHint |
+                           Qt.WindowType.WindowMinMaxButtonsHint)
+        self.setModal(False)  # Allow interaction with other windows
+        self.resize(800, 600)
+
         self.setup_ui()
         self.load_settings()
-        
+
         logger.info("Settings panel initialized")
     
     def setup_ui(self):

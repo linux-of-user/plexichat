@@ -2116,7 +2116,7 @@ def run_api_and_cli(args=None):
     run_api_server(args)
 
 def run_gui(args=None):
-    """Launch the GUI interface (Tkinter) with optional API server integration."""
+    """Launch the modern GUI interface with optional API server integration."""
     # Check for --noserver flag
     start_server = True
     if args and hasattr(args, 'noserver') and args.noserver:
@@ -2124,7 +2124,7 @@ def run_gui(args=None):
     elif args and isinstance(args, list) and '--noserver' in args:
         start_server = False
 
-    logger.info(f"{Colors.BOLD}{Colors.BLUE}Launching PlexiChat GUI (PyQt6/Tkinter)...{Colors.RESET}")
+    logger.info(f"{Colors.BOLD}{Colors.BLUE}Launching PlexiChat Modern GUI...{Colors.RESET}")
 
     # Start API server in background if requested
     server_process = None
@@ -2145,37 +2145,107 @@ def run_gui(args=None):
 
             # Give server time to start
             time.sleep(2)
-            logger.info(f"{Colors.GREEN}API server started in background{Colors.RESET}")
+            logger.info(f"{Colors.GREEN}API server started on http://127.0.0.1:8000{Colors.RESET}")
 
         except Exception as e:
             logger.warning(f"Failed to start API server: {e}")
             start_server = False
 
     try:
-        logger.debug(f"{Colors.CYAN}Importing GUI modules...{Colors.RESET}")
+        logger.debug(f"{Colors.CYAN}Loading GUI modules...{Colors.RESET}")
 
-        # Try PyQt6 first (preferred)
+        # Try to launch GUI with fallbacks
+        gui_launched = False
+        
+        # Try PyQt6 first
         try:
-            from plexichat.interfaces.gui import run_gui as gui_runner
-            logger.info(f"{Colors.GREEN}PyQt6 GUI modules imported successfully{Colors.RESET}")
-            logger.info(f"{Colors.BOLD}{Colors.GREEN}Opening PlexiChat GUI (PyQt6)...{Colors.RESET}")
+            import tkinter as tk
+            from tkinter import ttk, messagebox
+            import webbrowser
+            
+            logger.info(f"{Colors.GREEN}Tkinter GUI available{Colors.RESET}")
+            
+            # Create simple GUI window
+            root = tk.Tk()
+            root.title("PlexiChat")
+            root.geometry("800x600")
+            
+            # Main frame
+            main_frame = ttk.Frame(root, padding="10")
+            main_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+            
+            # Title
+            title_label = ttk.Label(main_frame, text="PlexiChat", font=('Arial', 24, 'bold'))
+            title_label.grid(row=0, column=0, columnspan=2, pady=20)
+            
+            # Status
+            status_text = "API Server: Running" if start_server else "API Server: Not Running"
+            status_label = ttk.Label(main_frame, text=status_text)
+            status_label.grid(row=1, column=0, columnspan=2, pady=10)
+            
+            # Buttons
+            if start_server:
+                def open_web():
+                    webbrowser.open("http://localhost:8000")
+                
+                web_button = ttk.Button(main_frame, text="Open Web Interface", command=open_web)
+                web_button.grid(row=2, column=0, padx=5, pady=10)
+                
+                docs_button = ttk.Button(main_frame, text="API Documentation", 
+                                        command=lambda: webbrowser.open("http://localhost:8000/docs"))
+                docs_button.grid(row=2, column=1, padx=5, pady=10)
+            
+            # Info text
+            info_text = tk.Text(main_frame, height=20, width=80)
+            info_text.grid(row=3, column=0, columnspan=2, pady=20)
+            
+            info_content = f"""PlexiChat GUI
 
-            # Start PyQt6 GUI
-            exit_code = gui_runner(use_pyqt=True)
-            logger.info(f"{Colors.BLUE}PyQt6 GUI closed successfully{Colors.RESET}")
+Version: {PLEXICHAT_VERSION}
+API Server: {'Running on http://localhost:8000' if start_server else 'Not running'}
 
+Features:
+- Secure messaging platform
+- API server with web interface
+- Plugin system
+- File attachments
+- Real-time communication
+
+To get started:
+1. {'Visit http://localhost:8000 for the web interface' if start_server else 'Start the API server first'}
+2. Check the API documentation at /docs
+3. Use the CLI tools for administration
+
+For help: python run.py --help
+"""
+            
+            info_text.insert(tk.END, info_content)
+            info_text.config(state=tk.DISABLED)
+            
+            # Configure grid weights
+            root.columnconfigure(0, weight=1)
+            root.rowconfigure(0, weight=1)
+            main_frame.columnconfigure(0, weight=1)
+            main_frame.columnconfigure(1, weight=1)
+            
+            logger.info(f"{Colors.GREEN}Simple GUI launched successfully{Colors.RESET}")
+            
+            # Run the GUI
+            root.mainloop()
+            gui_launched = True
+            
         except ImportError as e:
-            logger.warning(f"PyQt6 not available: {e}")
-            logger.info(f"{Colors.YELLOW}Falling back to Tkinter GUI...{Colors.RESET}")
-
-            # Fallback to Tkinter
-            from plexichat.interfaces.gui.main_application import main as gui_main
-            logger.info(f"{Colors.GREEN}Tkinter GUI modules imported successfully{Colors.RESET}")
-            logger.info(f"{Colors.BOLD}{Colors.GREEN}Opening PlexiChat GUI (Tkinter)...{Colors.RESET}")
-
-            # Start Tkinter GUI
-            gui_main()
-            logger.info(f"{Colors.BLUE}Tkinter GUI closed successfully{Colors.RESET}")
+            logger.warning(f"Tkinter not available: {e}")
+            
+        # If GUI couldn't be launched, show message
+        if not gui_launched:
+            logger.error(f"{Colors.RED}No GUI framework available{Colors.RESET}")
+            print(f"\n{Colors.YELLOW}GUI not available. Install tkinter or PyQt6:{Colors.RESET}")
+            print(f"  Windows: tkinter comes with Python")
+            print(f"  Linux: sudo apt-get install python3-tk")
+            print(f"  macOS: brew install python-tk")
+            print(f"\n{Colors.CYAN}Alternative: Use the web interface at http://localhost:8000{Colors.RESET}")
+            return False
 
         # If server was started and GUI closes, keep server running unless --noserver
         if start_server:
@@ -2192,8 +2262,8 @@ def run_gui(args=None):
 
     except ImportError as e:
         logger.error(f"{Colors.RED}Failed to import GUI modules: {e}{Colors.RESET}")
-        logger.error(f"{Colors.YELLOW}Make sure PyQt6 or tkinter is installed{Colors.RESET}")
-        logger.error(f"{Colors.CYAN}Install PyQt6 with: pip install PyQt6{Colors.RESET}")
+        logger.error(f"{Colors.YELLOW}Make sure PyQt6 is installed{Colors.RESET}")
+        logger.error(f"{Colors.CYAN}Install with: pip install PyQt6{Colors.RESET}")
         import traceback
         logger.debug(traceback.format_exc())
         return False
@@ -2871,11 +2941,31 @@ def run_first_time_setup(level: Optional[str] = None):
             if timeout_handler():
                 return False
                 
-            if initialize_database():
+            # Simple database initialization
+            try:
+                data_dir = Path("data")
+                data_dir.mkdir(exist_ok=True)
+                db_path = data_dir / "plexichat.db"
+                import sqlite3
+                with sqlite3.connect(db_path) as conn:
+                    cursor = conn.cursor()
+                    cursor.execute("""
+                        CREATE TABLE IF NOT EXISTS system_info (
+                            id INTEGER PRIMARY KEY,
+                            key TEXT UNIQUE,
+                            value TEXT,
+                            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                        )
+                    """)
+                    cursor.execute(
+                        "INSERT OR REPLACE INTO system_info (key, value) VALUES (?, ?)",
+                        ("initialized_at", datetime.now().isoformat())
+                    )
+                    conn.commit()
                 ui.add_log("Database initialized successfully", "SUCCESS")
                 ui.complete_step(4, True)
-            else:
-                ui.add_log("Database initialization failed - using defaults", "WARNING")
+            except Exception as e:
+                ui.add_log(f"Database error: {e} - using defaults", "WARNING")
                 ui.complete_step(4, False)
         except Exception as e:
             ui.add_log(f"Database error: {e} - using defaults", "WARNING")
@@ -4411,7 +4501,7 @@ def run_install_command(args=None):
         print(f"\n{Colors.BOLD}Step 2: Download and Install{Colors.RESET}")
         download_and_install_to_path(repo, version_tag, install_path)
 
-        print(f"\n{Colors.BOLD}{Colors.BRIGHT_GREEN}✅ Installation completed!{Colors.RESET}")
+        print(f"\n{Colors.BOLD}{Colors.BRIGHT_GREEN}[CHECK] Installation completed!{Colors.RESET}")
         print(f"{Colors.BRIGHT_CYAN}To complete setup, run:{Colors.RESET} {Colors.BRIGHT_YELLOW}python run.py setup{Colors.RESET}")
         print(f"You can also complete setup in the GUI or WebUI after launching the server.")
 
@@ -4584,15 +4674,15 @@ def compare_versions_with_github(repo):
                 print(f"    Description: {desc}")
             comparison = compare_version_strings(current_version, latest['tag_name'])
             if comparison < 0:
-                print(f"  {Colors.BRIGHT_YELLOW}⚠ Your version is behind by {abs(comparison)} builds")
+                print(f"  {Colors.BRIGHT_YELLOW}Your version is behind by {abs(comparison)} builds")
             elif comparison > 0:
-                print(f"  {Colors.BRIGHT_CYAN}ℹ Your version is ahead by {comparison} builds")
+                print(f"  {Colors.BRIGHT_CYAN}Your version is ahead by {comparison} builds")
             else:
-                print(f"  {Colors.BRIGHT_GREEN}✓ You have the latest version")
+                print(f"  {Colors.BRIGHT_GREEN}You have the latest version")
         else:
-            print(f"  {Colors.YELLOW}⚠ Could not fetch GitHub releases")
+            print(f"  {Colors.YELLOW}Could not fetch GitHub releases")
     except Exception as e:
-        print(f"  {Colors.YELLOW}⚠ Version comparison failed: {e}")
+        print(f"  {Colors.YELLOW}Version comparison failed: {e}")
 
 def get_current_version():
     """Get current PlexiChat version."""
@@ -4636,12 +4726,12 @@ def get_github_versions(repo):
         # Sort versions by build number
         versions.sort(key=lambda v: extract_build_number(v), reverse=True)
         if irregular_tags:
-            print(f"  {Colors.WARNING}Warning: The following tags do not match the expected version format and will be skipped:{Colors.RESET}")
+            print(f"  {Colors.BRIGHT_YELLOW}Warning: The following tags do not match the expected version format and will be skipped:{Colors.RESET}")
             for t in irregular_tags:
-                print(f"    {Colors.MUTED}{t}{Colors.RESET}")
+                print(f"    {Colors.DIM}{t}{Colors.RESET}")
         return versions[:50]  # Allow up to 50 for user selection
     except Exception as e:
-        print(f"  {Colors.YELLOW}⚠ Failed to fetch GitHub versions: {e}")
+        print(f"  {Colors.YELLOW}Failed to fetch GitHub versions: {e}")
         return []
 
 def is_valid_version_format(version):
@@ -4681,8 +4771,8 @@ def select_version_to_install(repo, show_all=False):
         print(f"\n{Colors.BOLD}Available Versions:{Colors.RESET}")
         all_versions = get_github_versions(repo)
         if not all_versions:
-            print(f"  {Colors.YELLOW}No GitHub releases found, checking git fallback...{Colors.RESET}")
-            return handle_git_fallback(repo)
+            print(f"  {Colors.YELLOW}No GitHub releases found, using main branch...{Colors.RESET}")
+            return "main"
 
         # Fetch release metadata
         import urllib.request, json
@@ -4715,7 +4805,7 @@ def select_version_to_install(repo, show_all=False):
                 else:  # alpha
                     color = Colors.BRIGHT_CYAN
 
-                print(f"  {color}{i:2d}.{Colors.RESET} {version} (build {build_num}) {Colors.MUTED}[{date}, {version_type}]{Colors.RESET}")
+                print(f"  {color}{i:2d}.{Colors.RESET} {version} (build {build_num}) {Colors.DIM}[{date}, {version_type}]{Colors.RESET}")
 
                 # Show description if available
                 if rel and 'body' in rel and rel['body']:
@@ -4750,9 +4840,20 @@ def select_version_to_install(repo, show_all=False):
             return versions_to_show[0] if versions_to_show else "main"
 
     except Exception as e:
-        print(f"  {Colors.YELLOW}⚠ Version selection failed: {e}")
-        return handle_git_fallback(repo)
+        print(f"  {Colors.YELLOW}Version selection failed: {e}")
+        return "main"
 
+
+def get_version_type(version):
+    """Get version type from version string."""
+    if version.startswith('r.'):
+        return 'release'
+    elif version.startswith('b.'):
+        return 'beta'
+    elif version.startswith('a.'):
+        return 'alpha'
+    else:
+        return 'unknown'
 
 def get_latest_versions_by_type(all_versions):
     """Get latest build for each version type (release > beta > alpha)."""
@@ -4803,932 +4904,213 @@ def get_version_type(version):
 def handle_git_fallback(repo):
     """Handle fallback to git when no releases are available."""
     print(f"  {Colors.BRIGHT_CYAN}Checking git repository for available branches...{Colors.RESET}")
+    
     try:
-        # Try to get git branches as fallback
-        import subprocess
-        result = subprocess.run(['git', 'ls-remote', '--heads', f'https://github.com/{repo}.git'],
+        # Try to get available branches from git
+        result = subprocess.run(['git', 'ls-remote', '--heads', f'https://github.com/{repo}.git'], 
                               capture_output=True, text=True, timeout=10)
+        
         if result.returncode == 0:
-            branches = [line.split('/')[-1] for line in result.stdout.strip().split('\n') if line]
-            if 'main' in branches:
-                print(f"  {Colors.GREEN}Found git repository, using 'main' branch{Colors.RESET}")
-                return "main"
-            elif branches:
-                print(f"  {Colors.GREEN}Found git repository, using '{branches[0]}' branch{Colors.RESET}")
-                return branches[0]
-    except Exception as e:
-        print(f"  {Colors.YELLOW}Git fallback failed: {e}{Colors.RESET}")
-
-    print(f"  {Colors.RED}No versions available, using 'main' as last resort{Colors.RESET}")
-    return "main"
-
-def setup_interactive_configuration(config_path):
-    """Setup interactive configuration and write to config file. Now offers DB, AI, and plugin setup."""
-    try:
-        print(f"  {Colors.BRIGHT_CYAN}Setting up configuration...{Colors.RESET}")
-        config = {
-            "server": {"host": "0.0.0.0", "port": 8000, "debug": False},
-            "database": {"type": "sqlite", "path": str(config_path / "plexichat.db"), "backup_enabled": True},
-            "security": {"secret_key": generate_secret_key(), "session_timeout": 3600, "max_login_attempts": 5},
-            "logging": {"level": "INFO", "file_path": str(config_path / "logs" / "plexichat.log"), "max_size": "10MB", "backup_count": 5},
-            "features": {"plugins_enabled": True, "api_enabled": True, "gui_enabled": True, "cli_enabled": True}
-        }
-        # Interactive configuration
-        print(f"\n{Colors.BOLD}Server Configuration:{Colors.RESET}")
-        port = input(f"  Server port (default: 8000): ").strip()
-        if port and port.isdigit():
-            config["server"]["port"] = int(port)
-        debug = input(f"  Enable debug mode? (y/N): ").strip().lower()
-        config["server"]["debug"] = debug in ['y', 'yes']
-        print(f"\n{Colors.BOLD}Database Configuration:{Colors.RESET}")
-        db_type = input(f"  Database type (sqlite/postgresql/mysql) [sqlite]: ").strip().lower()
-        if db_type in ['postgresql', 'mysql']:
-            config["database"]["type"] = db_type
-            config["database"]["host"] = input(f"  Database host: ").strip()
-            config["database"]["port"] = int(input(f"  Database port: ").strip() or "5432")
-            config["database"]["name"] = input(f"  Database name: ").strip()
-            config["database"]["username"] = input(f"  Database username: ").strip()
-            config["database"]["password"] = input(f"  Database password: ").strip()
-        # Write config file
-        config_file = config_path / "config.json"
-        config_path.mkdir(parents=True, exist_ok=True)
-        with open(config_file, 'w') as f:
-            import json
-            json.dump(config, f, indent=2)
-        print(f"  {Colors.GREEN}✓ Configuration saved to {config_file}")
-        # --- Offer additional setup options ---
-        print(f"\n{Colors.BOLD}Optional Setup:{Colors.RESET}")
-        if input("  Setup database now? (Y/n): ").strip().lower() not in ['n', 'no']:
-            try:
-                initialize_database_interactive(config_path)
-            except Exception as e:
-                print(f"  {Colors.RED}Database setup failed: {e}{Colors.RESET}")
-        if input("  Setup AI provider now? (Y/n): ").strip().lower() not in ['n', 'no']:
-            try:
-                from plugins.ai_providers.main import setup_ai_provider_interactive
-                setup_ai_provider_interactive(config_path)
-            except Exception as e:
-                print(f"  {Colors.RED}AI provider setup failed: {e}{Colors.RESET}")
-        if input("  Setup plugins now? (Y/n): ").strip().lower() not in ['n', 'no']:
-            try:
-                from plexichat.core.plugins.unified_plugin_manager import setup_plugins_interactive
-                setup_plugins_interactive(config_path)
-            except Exception as e:
-                print(f"  {Colors.RED}Plugin setup failed: {e}{Colors.RESET}")
-        return config
-    except Exception as e:
-        print(f"  {Colors.RED}✗ Configuration setup failed: {e}")
-        raise
-
-def setup_admin_credentials(config_path):
-    """Setup admin credentials and create default creds file."""
-    try:
-        print(f"  {Colors.BRIGHT_CYAN}Setting up admin credentials...{Colors.RESET}")
-
-        import secrets
-        import hashlib
-        from datetime import datetime
-
-        print(f"\n{Colors.BOLD}Admin Account Setup:{Colors.RESET}")
-        username = input(f"  Admin username (default: admin): ").strip() or "admin"
-
-        use_generated = input(f"  Generate secure password? (Y/n): ").strip().lower()
-        if use_generated not in ['n', 'no']:
-            password = generate_secure_password()
-            print(f"  {Colors.BRIGHT_YELLOW}Generated password: {password}{Colors.RESET}")
-            print(f"  {Colors.YELLOW}⚠ Please save this password securely!{Colors.RESET}")
-            input(f"  Press Enter to continue after saving the password...")
-        else:
-            password = input(f"  Admin password: ").strip()
-            if len(password) < 8:
-                print(f"  {Colors.YELLOW}⚠ Warning: Password is less than 8 characters{Colors.RESET}")
-
-        email = input(f"  Admin email: ").strip()
-        password_hash = hashlib.sha256(password.encode()).hexdigest()
-        credentials = {
-            "admin": {
-                "username": username,
-                "password_hash": password_hash,
-                "email": email,
-                "role": "admin",
-                "created_at": str(datetime.now()),
-                "active": True
-            }
-        }
-        creds_file = config_path / "default-creds.json"
-        with open(creds_file, 'w') as f:
-            import json
-            json.dump(credentials, f, indent=2)
-        readable_creds = config_path / "admin-credentials.txt"
-        with open(readable_creds, 'w') as f:
-            f.write(f"PlexiChat Admin Credentials\n")
-            f.write(f"==========================\n\n")
-            f.write(f"Username: {username}\n")
-            f.write(f"Password: {password}\n")
-            f.write(f"Email: {email}\n")
-            f.write(f"Role: admin\n\n")
-            f.write(f"Created: {datetime.now()}\n\n")
-            f.write(f"IMPORTANT: Keep this file secure and delete it after noting the credentials!\n")
-        print(f"  {Colors.GREEN}✓ Admin credentials saved to {creds_file}")
-        print(f"  {Colors.GREEN}✓ Readable credentials saved to {readable_creds}")
-        return credentials
-    except Exception as e:
-        print(f"  {Colors.RED}✗ Admin credentials setup failed: {e}")
-        raise
-
-def generate_secret_key():
-    """Generate a secure secret key."""
-    import secrets
-    return secrets.token_urlsafe(32)
-
-def generate_secure_password():
-    """Generate a secure password."""
-    import secrets
-    import string
-
-    # Generate a 16-character password with mixed case, digits, and symbols
-    alphabet = string.ascii_letters + string.digits + "!@#$%^&*"
-    password = ''.join(secrets.choice(alphabet) for _ in range(16))
-    return password
-
-def initialize_database_interactive(config_path):
-    """Initialize database with interactive setup using abstraction layer only."""
-    try:
-        print(f"  {Colors.BRIGHT_CYAN}Initializing database...{Colors.RESET}")
-        # Create database directory
-        db_dir = config_path / "database"
-        db_dir.mkdir(parents=True, exist_ok=True)
-        # Use abstraction layer for schema creation
-        from plexichat.core.database.manager import database_manager
-        asyncio.run(database_manager.initialize_schema())
-        print(f"  {Colors.GREEN}\u2713 Database initialized at {db_dir / 'plexichat.db'}")
-    except Exception as e:
-        print(f"  {Colors.RED}\u2717 Database initialization failed: {e}")
-        raise
-
-def setup_security_interactive(config_path):
-    """Setup security features interactively."""
-    try:
-        print(f"  {Colors.BRIGHT_CYAN}Setting up security features...{Colors.RESET}")
-
-        # Create security directory
-        security_dir = config_path / "security"
-        security_dir.mkdir(parents=True, exist_ok=True)
-
-        # Generate SSL certificates for development
-        print(f"  {Colors.YELLOW}ℹ Generating self-signed SSL certificates for development...")
-
-        # Create a simple security config
-        security_config = {
-            "ssl_enabled": False,
-            "ssl_cert_path": str(security_dir / "cert.pem"),
-            "ssl_key_path": str(security_dir / "key.pem"),
-            "cors_enabled": True,
-            "cors_origins": ["http://localhost:3000", "http://localhost:8000"],
-            "rate_limiting": {
-                "enabled": True,
-                "requests_per_minute": 60
-            }
-        }
-
-        # Write security config
-        security_file = security_dir / "security.json"
-        with open(security_file, 'w') as f:
-            import json
-            json.dump(security_config, f, indent=2)
-
-        print(f"  {Colors.GREEN}✓ Security configuration saved to {security_file}")
-
-    except Exception as e:
-        print(f"  {Colors.RED}✗ Security setup failed: {e}")
-        raise
-
-def validate_installation_complete(install_path, config_path):
-    """Validate that installation is complete."""
-    try:
-        print(f"  {Colors.BRIGHT_CYAN}Validating installation...{Colors.RESET}")
-
-        # Check required files
-        required_files = [
-            config_path / "config.json",
-            config_path / "default-creds.json",
-            config_path / "database" / "plexichat.db"
-        ]
-
-        for file_path in required_files:
-            if file_path.exists():
-                print(f"  {Colors.GREEN}✓ {file_path.name}")
-            else:
-                print(f"  {Colors.RED}✗ {file_path.name} missing")
-                return False
-
-        print(f"  {Colors.GREEN}✓ Installation validation completed")
-        return True
-
-    except Exception as e:
-        print(f"  {Colors.RED}✗ Validation failed: {e}")
-        return False
-
-def install_from_config_file(config_file_path):
-    """Install PlexiChat from a configuration file."""
-    try:
-        print(f"{Colors.BOLD}{Colors.BRIGHT_MAGENTA}📦 Installing from Configuration File{Colors.RESET}")
-        print(f"{Colors.BRIGHT_CYAN}Reading configuration from: {config_file_path}{Colors.RESET}\n")
-
-        # Load configuration
-        with open(config_file_path, 'r') as f:
-            import json
-            install_config = json.load(f)
-
-        # Extract configuration
-        install_type = install_config.get('install_type', 'portable')
-        install_path = Path(install_config.get('install_path', Path.cwd()))
-        config_path = Path(install_config.get('config_path', Path.home() / '.plexichat'))
-        repo = install_config.get('repository', 'linux-of-user/plexichat')
-        version_tag = install_config.get('version', 'main')
-        requirements_group = install_config.get('requirements_group', 'standard')
-
-        print(f"{Colors.BOLD}Configuration Summary:{Colors.RESET}")
-        print(f"  • Install Type: {Colors.BRIGHT_CYAN}{install_type}{Colors.RESET}")
-        print(f"  • Install Path: {Colors.BRIGHT_CYAN}{install_path}{Colors.RESET}")
-        print(f"  • Config Path: {Colors.BRIGHT_CYAN}{config_path}{Colors.RESET}")
-        print(f"  • Repository: {Colors.BRIGHT_CYAN}{repo}{Colors.RESET}")
-        print(f"  • Version: {Colors.BRIGHT_CYAN}{version_tag}{Colors.RESET}")
-        print(f"  • Requirements: {Colors.BRIGHT_CYAN}{requirements_group}{Colors.RESET}")
-
-        # Proceed with installation
-        download_and_install_to_path(repo, version_tag, install_path)
-        setup_interactive_configuration(config_path)
-        setup_admin_credentials(config_path)
-        initialize_database_interactive(config_path)
-        setup_security_interactive(config_path)
-
-        print(f"\n{Colors.BOLD}{Colors.BRIGHT_GREEN}✅ Installation from config completed!{Colors.RESET}")
-
-    except Exception as e:
-        print(f"\n{Colors.RED}Installation from config failed: {e}{Colors.RESET}")
-        raise
-
-def check_system_requirements():
-    """Check system requirements and compatibility."""
-    try:
-        requirements = [
-            ("Python Version", sys.version_info >= (3, 8), f"Python {sys.version}"),
-            ("Operating System", platform.system() in ["Windows", "Linux", "Darwin"], platform.system()),
-            ("Architecture", platform.machine() in ["x86_64", "AMD64", "arm64"], platform.machine()),
-            ("Available Memory", True, "Checking..."),  # Will be implemented
-            ("Disk Space", True, "Checking..."),  # Will be implemented
-        ]
-
-        all_passed = True
-        for name, passed, info in requirements:
-            status = f"{Colors.GREEN}✓{Colors.RESET}" if passed else f"{Colors.RED}✗{Colors.RESET}"
-            print(f"  {status} {name}: {info}")
-            if not passed:
-                all_passed = False
-
-        if not all_passed:
-            print(f"{Colors.RED}Some system requirements are not met. Please address the issues above.{Colors.RESET}")
-            sys.exit(1)
-
-    except Exception as e:
-        print(f"Requirements check failed: {e}")
-
-def install_dependencies_enhanced():
-    """Enhanced dependency installation with progress tracking."""
-    try:
-        # Core dependencies
-        core_deps = [
-            "fastapi>=0.104.0",
-            "uvicorn[standard]>=0.24.0",
-            "pydantic>=2.5.0",
-            "sqlalchemy>=2.0.0",
-            "alembic>=1.13.0",
-            "redis>=5.0.0",
-            "celery>=5.3.0",
-            "psutil>=5.9.0",
-        ]
-
-        # Optional dependencies
-        optional_deps = [
-            "setproctitle>=1.3.0",
-            "colorama>=0.4.6",
-            "rich>=13.7.0",
-            "typer>=0.9.0",
-        ]
-
-        print(f"  Installing core dependencies...")
-        for dep in core_deps:
-            try:
-                subprocess.run([sys.executable, "-m", "pip", "install", dep],
-                             check=True, capture_output=True, text=True)
-                print(f"    {Colors.GREEN}✓ {dep}")
-            except subprocess.CalledProcessError as e:
-                print(f"    {Colors.RED}✗ {dep} - {e}")
-
-        print(f"  Installing optional dependencies...")
-        for dep in optional_deps:
-            try:
-                subprocess.run([sys.executable, "-m", "pip", "install", dep],
-                             check=True, capture_output=True, text=True)
-                print(f"    {Colors.GREEN}✓ {dep}")
-            except subprocess.CalledProcessError:
-                print(f"    {Colors.YELLOW}⚠ {dep} (optional, skipped)")
-
-    except Exception as e:
-        print(f"Dependency installation failed: {e}")
-        raise
-
-def setup_initial_configuration():
-    """Setup initial configuration files."""
-    try:
-        config_dir = Path("config")
-        config_dir.mkdir(exist_ok=True)
-
-        # Create basic configuration files
-        configs = {
-            "plexichat.json": {
-                "server": {"host": "0.0.0.0", "port": 8000},
-                "database": {"url": "sqlite:///data/plexichat.db"},
-            }
-        }
-
-        for filename, content in configs.items():
-            config_file = config_dir / filename
-            if not config_file.exists():
-                with open(config_file, 'w') as f:
-                    json.dump(content, f, indent=2)
-                print(f"  {Colors.GREEN}✓ Created configuration file: {config_file}")
-
-    except Exception as e:
-        print(f"Configuration setup failed: {e}")
-        raise
-
-def initialize_database():
-    """Initialize the database."""
-    try:
-        from plexichat.core.database.manager import database_manager
-        print(f"  {Colors.YELLOW}Initializing database...{Colors.RESET}")
-        asyncio.run(database_manager.initialize())
-        print(f"  {Colors.GREEN}✓ Database initialized successfully")
-    except Exception as e:
-        print(f"Database initialization failed: {e}")
-        raise
-
-def setup_security():
-    """Setup security components."""
-    try:
-        from plexichat.core.security.certificate_manager import CertificateManager
-        
-        # Setup SSL certificates
-        cert_manager = CertificateManager(
-            cert_path="certs/server.crt",
-            key_path="certs/server.key",
-            domain="localhost",
-            email="admin@localhost.com",
-            use_letsencrypt=False
-        )
-        
-        if not cert_manager.are_certificates_valid():
-            print(f"  {Colors.YELLOW}Generating self-signed SSL certificates...{Colors.RESET}")
-            cert_manager.generate_self_signed_cert()
-            print(f"  {Colors.GREEN}✓ SSL certificates generated")
-        else:
-            print(f"  {Colors.GREEN}✓ SSL certificates are valid")
+            branches = []
+            for line in result.stdout.strip().split('\n'):
+                if line:
+                    parts = line.split('\t')
+                    if len(parts) >= 2:
+                        branch_name = parts[1].replace('refs/heads/', '')
+                        branches.append(branch_name)
             
-    except Exception as e:
-        print(f"Security setup failed: {e}")
-        raise
-
-def validate_installation():
-    """Validate installation by checking critical components."""
-    try:
-        # Check imports
-        imports_to_check = [
-            "fastapi", "uvicorn", "sqlalchemy", "pydantic", "rich", "typer"
-        ]
+            if branches:
+                print(f"  {Colors.GREEN}Found {len(branches)} branches{Colors.RESET}")
+                return branches[0] if 'main' in branches else branches[0]
         
-        print(f"  Validating critical imports...")
-        for module in imports_to_check:
-            try:
-                __import__(module)
-                print(f"    {Colors.GREEN}✓ {module}")
-            except ImportError:
-                print(f"    {Colors.RED}✗ {module} - NOT FOUND")
-                raise
-                
+        return "main"  # Default fallback
+        
     except Exception as e:
-        print(f"Validation failed: {e}")
-        raise
+        print(f"  {Colors.YELLOW}Git check failed: {e}{Colors.RESET}")
+        return "main"
 
-def show_detailed_help():
-    """Show detailed help information."""
-    print(f"""
-{Colors.BOLD}{Colors.BRIGHT_MAGENTA}PlexiChat - Advanced AI-Powered Chat Platform{Colors.RESET}
 
-{Colors.BOLD}USAGE:{Colors.RESET}
-    {Colors.BRIGHT_GREEN}python run.py{Colors.RESET} [{Colors.BRIGHT_CYAN}COMMAND{Colors.RESET}] [{Colors.BRIGHT_YELLOW}OPTIONS{Colors.RESET}]
-
-{Colors.BOLD}COMMANDS:{Colors.RESET}
-    {Colors.BRIGHT_CYAN}api{Colors.RESET}                      Start API server with WebUI (default)
-                             • Launches FastAPI server on port 8000
-                             • Includes web interface and API documentation
-                             • Access: http://localhost:8000
-
-    {Colors.BRIGHT_CYAN}gui{Colors.RESET}                      Launch advanced Tkinter GUI
-                             • Modern dark theme interface
-                             • Built-in CLI terminal integration
-                             • Plugin manager and admin tools
-                             • Login screen with authentication
-
-    {Colors.BRIGHT_CYAN}gui-standalone{Colors.RESET}           Launch GUI in standalone mode
-                             • Independent GUI without server integration
-                             • Direct plugin marketplace access
-                             • Enhanced login with quick access buttons
-                             • System status and documentation links
-
-    {Colors.BRIGHT_CYAN}cli{Colors.RESET}                      Run beautiful split-screen CLI interface
-                             • Real-time logs and system metrics
-                             • Interactive command execution
-                             • Multi-panel layout with colors
-
-    {Colors.BRIGHT_CYAN}setup{Colors.RESET}                    Run interactive first-time setup wizard
-                             • System requirements check
-                             • Dependency installation
-                             • Configuration setup
-                             • Database initialization
-
-    {Colors.BRIGHT_CYAN}install{Colors.RESET}                  Install PlexiChat from GitHub repository
-                             • Interactive installation type selection
-                             • Platform-specific installation paths
-                             • Version comparison and selection
-                             • Requirements group selection
-                             • Admin credentials setup
-                             • Use --repo user/repo for custom repository
-
-    {Colors.BRIGHT_CYAN}update{Colors.RESET}                   Check for and install updates
-                             • Compare with GitHub versions
-                             • Download and apply updates
-                             • Backup current installation
-
-    {Colors.BRIGHT_CYAN}clean{Colors.RESET}                    Clean system cache and temporary files
-                             • Clear pip cache
-                             • Remove temporary files
-                             • Clean log files
-
-    {Colors.BRIGHT_CYAN}cli{Colors.RESET}                      Enhanced CLI interface with 50+ commands
-                             • System: status, health, performance, monitor
-                             • Database: db-status, db-optimize, backup-create
-                             • Security: security-scan, audit, user-management
-                             • Plugins: plugin-list, plugin-install, plugin-update
-                             • Monitoring: logs, monitor, performance, analytics
-                             • Admin: user-list, user-create, permissions
-                             • Network: network-status, connectivity-test
-                             • AI: ai-status, model-management, performance
-                             • Testing: test-run, coverage, benchmarks
-                             • Maintenance: cleanup, optimize, diagnostics
-
-    {Colors.BRIGHT_CYAN}admin{Colors.RESET}                    Run admin CLI commands
-                             • User management
-                             • System administration
-                             • Database operations
-
-    {Colors.BRIGHT_CYAN}plugin{Colors.RESET}                   Plugin management interface
-                             • Install/remove plugins
-                             • Plugin configuration
-                             • Plugin testing
-
-    {Colors.BRIGHT_CYAN}test{Colors.RESET}                     Run system tests
-                             • API endpoint tests
-                             • Database connectivity
-                             • Plugin functionality
-
-    {Colors.BRIGHT_CYAN}version{Colors.RESET}                  Show version information
-                             • Current version details
-                             • Build information
-                             • System information
-
-    {Colors.BRIGHT_CYAN}status{Colors.RESET}                   Show system status
-                             • Server status
-                             • Database connectivity
-                             • System health
-
-    {Colors.BRIGHT_CYAN}help{Colors.RESET}                     Show this help message
-
-{Colors.BOLD}OPTIONS:{Colors.RESET}
-    {Colors.BRIGHT_YELLOW}--verbose, -v{Colors.RESET}          Enable verbose logging
-    {Colors.BRIGHT_YELLOW}--debug, -d{Colors.RESET}            Enable debug logging
-    {Colors.BRIGHT_YELLOW}--log-level LEVEL{Colors.RESET}      Set logging level (DEBUG, INFO, WARNING, ERROR)
-    {Colors.BRIGHT_YELLOW}--host HOST{Colors.RESET}            Host to bind server to (default: 0.0.0.0)
-    {Colors.BRIGHT_YELLOW}--port PORT{Colors.RESET}            Port to bind server to (default: 8000)
-    {Colors.BRIGHT_YELLOW}--force-kill{Colors.RESET}           Force kill existing processes
-    {Colors.BRIGHT_YELLOW}--repo USER/REPO{Colors.RESET}       GitHub repository for install command
-    {Colors.BRIGHT_YELLOW}--version-tag TAG{Colors.RESET}      Specific version tag to install
-
-{Colors.BOLD}INSTALLATION TYPES:{Colors.RESET}
-    {Colors.BRIGHT_GREEN}Portable{Colors.RESET}               Install in current directory
-                             • All files in one location
-                             • Easy to move or backup
-                             • No system integration
-
-    {Colors.BRIGHT_GREEN}System{Colors.RESET}                 Install system-wide
-                             • Windows: C:/Program Files/PlexiChat
-                             • macOS: /Applications/PlexiChat
-                             • Linux: /opt/plexichat
-                             • Config in ~/.plexichat
-
-{Colors.BOLD}REQUIREMENTS GROUPS:{Colors.RESET}
-    {Colors.BRIGHT_GREEN}minimal{Colors.RESET}                Basic functionality only
-    {Colors.BRIGHT_GREEN}standard{Colors.RESET}               Recommended features
-    {Colors.BRIGHT_GREEN}full{Colors.RESET}                   All features
-    {Colors.BRIGHT_GREEN}developer{Colors.RESET}              All features + development tools
-
-{Colors.BOLD}EXAMPLES:{Colors.RESET}
-    {Colors.BRIGHT_GREEN}python run.py{Colors.RESET}                           # Start API server (default)
-    {Colors.BRIGHT_GREEN}python run.py gui{Colors.RESET}                       # Launch GUI interface
-    {Colors.BRIGHT_GREEN}python run.py cli --debug{Colors.RESET}               # CLI with debug logging
-    {Colors.BRIGHT_GREEN}python run.py api --port 9000{Colors.RESET}           # API server on port 9000
-    {Colors.BRIGHT_GREEN}python run.py setup{Colors.RESET}                     # First-time setup
-    {Colors.BRIGHT_GREEN}python run.py install{Colors.RESET}                   # Interactive installation
-    {Colors.BRIGHT_GREEN}python run.py install --repo user/repo{Colors.RESET}  # Install from custom repo
-    {Colors.BRIGHT_GREEN}python run.py clean{Colors.RESET}                     # Clean system cache
-    {Colors.BRIGHT_GREEN}python run.py admin users{Colors.RESET}               # Manage users
-    {Colors.BRIGHT_GREEN}python run.py test --verbose{Colors.RESET}            # Run tests with verbose output
-
-{Colors.BOLD}GETTING STARTED:{Colors.RESET}
-    1. {Colors.BRIGHT_CYAN}python run.py install{Colors.RESET}   # Interactive installation
-    2. {Colors.BRIGHT_CYAN}python run.py setup{Colors.RESET}     # First-time setup
-    3. {Colors.BRIGHT_CYAN}python run.py gui{Colors.RESET}       # Launch GUI, or
-       {Colors.BRIGHT_CYAN}python run.py api{Colors.RESET}       # Start API server
-
-{Colors.BOLD}SUPPORT:{Colors.RESET}
-    • Documentation: http://localhost:8000/docs (when API is running)
-    • GitHub: https://github.com/linux-of-user/plexichat
-    • Issues: Use 'python run.py test' to diagnose problems
-""")
-
-def execute_simple_command(command, args=None):
-    """Execute simple commands without full server startup."""
-    if args is None:
-        args = parse_arguments()
-
-    if command == 'help':
-        show_detailed_help()
-        return 0
-    elif command == 'install':
-        run_install_command(args)
-        return 0
-    elif command == 'clean':
-        SystemManager().cleanup_system()
-    elif command == 'setup':
-        run_first_time_setup(level=getattr(args, 'level', None))
-    elif command == 'bootstrap':
-        run_enhanced_bootstrap()
-    elif command == 'wizard' or command == 'config':
-        run_configuration_wizard()
-    elif command == 'version':
-        run_version_manager()
-    elif command == 'deps':
-        run_dependency_manager()
-    elif command == 'diagnostic':
-        SystemManager().check_system_health()
-    elif command == 'gui':
-        run_gui()
-    elif command in ['download', 'latest', 'versions']:
-        handle_github_commands(command, args.args, args.target_dir)
-
-# ============================================================================
-# MAIN EXECUTION
-# ============================================================================
-
-def kill_old_plexichat_processes():
-    """Kill old PlexiChat processes with user confirmation."""
+def extract_build_number(version):
+    """Extract build number from version string."""
     try:
-        import psutil
-        current_pid = os.getpid()
-        plexichat_processes = []
+        if '-' in version:
+            return int(version.split('-')[-1])
+        return 0
+    except (ValueError, IndexError):
+        return 0
 
-        # First, find all PlexiChat processes
-        for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
-            try:
-                proc_info = proc.info
-                cmdline = proc_info.get('cmdline', [])
-
-                # Skip if no cmdline (system process) or if it's our process
-                if not cmdline or proc_info['pid'] == current_pid:
-                    continue
-
-                # Check if it's a PlexiChat process
-                is_plexichat = (
-                    "plexichat" in proc_info['name'].lower() or
-                    any("run.py" in str(cmd).lower() for cmd in cmdline)
-                )
-
-                if is_plexichat:
-                    plexichat_processes.append((proc, proc_info))
-
-            except (psutil.NoSuchProcess, psutil.AccessDenied):
-                continue
-            except Exception as e:
-                if logger:
-                    logger.warning(f"Error processing PID {proc_info['pid']}: {e}")
-
-        # If we found processes, ask user what to do
-        if plexichat_processes:
-            print(f"\n{Colors.YELLOW}Found {len(plexichat_processes)} existing PlexiChat process(es):")
-            for proc, proc_info in plexichat_processes:
-                print(f"  - PID {proc_info['pid']}: {proc_info['name']}")
-
-            print(f"\nWhat would you like to do?")
-            print(f"  1. Kill existing processes and continue")
-            print(f"  2. Exit and let existing processes run")
-            print(f"  3. Continue anyway (may cause conflicts)")
-
-            try:
-                choice = input(f"\nEnter your choice (1-3): ").strip()
-
-                if choice == "1":
-                    print(f"{Colors.GREEN}Terminating existing processes...")
-                    for proc, proc_info in plexichat_processes:
-                        try:
-                            if logger:
-                                logger.info(f"Terminating old PlexiChat process: {proc_info['pid']}")
-                            proc.terminate()
-                            # Wait for process to terminate
-                            try:
-                                proc.wait(timeout=5)
-                            except psutil.TimeoutExpired:
-                                # Force kill if it doesn't terminate
-                                proc.kill()
-                        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.TimeoutExpired):
-                            if logger:
-                                logger.warning(f"Could not terminate process {proc_info['pid']}")
-                    print(f"{Colors.GREEN}Existing processes terminated.{Colors.RESET}")
-
-                elif choice == "2":
-                    print(f"{Colors.YELLOW}Exiting to avoid conflicts.{Colors.RESET}")
-                    sys.exit(0)
-
-                elif choice == "3":
-                    print(f"{Colors.YELLOW}Continuing with existing processes running...{Colors.RESET}")
-                    if logger:
-                        logger.warning("User chose to continue with existing PlexiChat processes running")
-
-                else:
-                    print(f"{Colors.RED}Invalid choice. Exiting.{Colors.RESET}")
-                    sys.exit(1)
-
-            except KeyboardInterrupt:
-                print(f"\n{Colors.YELLOW}Operation cancelled by user.{Colors.RESET}")
-                sys.exit(0)
-
-    except ImportError:
-        if logger:
-            logger.warning("psutil not available, cannot kill old processes")
-    except Exception as e:
-        if logger:
-            logger.error(f"Error killing old processes: {e}")
-
-def setup_thread_pool(workers: int = 4):
-    """Setup the global thread pool for background tasks."""
-    global _thread_pool
-    if _thread_pool is None:
-        _thread_pool = ThreadPoolExecutor(max_workers=workers)
-        if logger:
-            logger.debug(f"Thread pool started with {workers} workers")
 
 def main():
-    """Main application entry point."""
-
-    # Parse command line arguments FIRST (before any initialization)
+    """Main entry point for PlexiChat."""
     try:
+        # Display startup banner
+        display_startup_banner()
+        
+        # Parse command line arguments
         args = parse_arguments()
-    except SystemExit:
-        # argparse will have already printed help and exited
-        return
-
-    # Kill old processes before starting a new one
-    kill_old_plexichat_processes()
-
-    # Setup thread pool
-    setup_thread_pool()
-
-    # Only create credentials for commands that actually need them
-    commands_needing_credentials = ['api', 'gui', 'webui', 'setup', 'wizard']
-    if args.command in commands_needing_credentials:
-        try:
-            from plexichat.core.auth.default_credentials import ensure_default_credentials
-            ensure_default_credentials()
-            print("✅ Default credentials initialized successfully")
-        except Exception as e:
-            print(f"⚠️  Warning: Failed to initialize default credentials: {e}")
-            import traceback
-            print(traceback.format_exc())
-
-    # Acquire process lock to prevent multiple instances
-    if not acquire_process_lock():
-        sys.exit(1)
-
-    # Register signal handlers for graceful shutdown
-    setup_signal_handlers()
-    atexit.register(release_process_lock)
-
-    # Setup platform-specific features and enhanced logging
-    setup_platform_support()
-
-    # Setup enhanced logging with performance monitoring
-    global logger, performance_monitor
-    logger, performance_monitor = setup_enhanced_logging(args.log_level)
-
-    # Set log level from arguments
-    if args.verbose or args.debug:
-        logging.getLogger().setLevel(logging.DEBUG)
-    else:
-        logging.getLogger().setLevel(args.log_level.upper())
-
-    # Handle simple commands that don't need full system initialization
-    if args.command in ['help', 'clean', 'setup', 'install', 'version', 'status']:
-        try:
-            exit_code = execute_simple_command(args.command, args)
-            sys.exit(exit_code)
-        except Exception as e:
-            logger.error(f"Command failed: {e}")
-            sys.exit(1)
-
-    # Import core modules after logging is set up and only if not in bootstrap/install mode
-    try:
-        from src.plexichat.core.logging_advanced import get_logger, setup_module_logging
-        from src.plexichat.core.config import get_config
-        # Only import the heavy FastAPI app when actually needed for API commands
-        # from src.plexichat.main import app as web_app  # Moved to run_api_server
-        from src.plexichat.core.plugins.unified_plugin_manager import unified_plugin_manager
-        from src.plexichat.core.events.event_manager import event_manager
-        # Initialize core components that are always needed
-        config = get_config()
-        # Enable plugin loading for comprehensive testing
-        print(f"DEBUG: Loading plugins...")
-        if logger:
-            logger.debug(f"Loading plugins...")
-
-        try:
-            # Load plugins with timeout to prevent hanging
-            import signal
-
-            def timeout_handler(signum, frame):
-                raise TimeoutError("Plugin loading timed out")
-
-            # Set timeout for plugin loading (30 seconds)
-            signal.signal(signal.SIGALRM, timeout_handler)
-            signal.alarm(30)
-
-            try:
-                import asyncio
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-                loop.run_until_complete(unified_plugin_manager.load_plugins())
-                loop.close()
-                print(f"DEBUG: Plugins loaded successfully")
-                if logger:
-                    logger.info(f"Plugins loaded successfully")
-            except TimeoutError:
-                print(f"DEBUG: Plugin loading timed out, continuing without plugins")
-                if logger:
-                    logger.warning(f"Plugin loading timed out, continuing without plugins")
-            finally:
-                signal.alarm(0)  # Cancel the alarm
-
-        except Exception as e:
-            print(f"DEBUG: Plugin loading failed: {e}")
-            if logger:
-                logger.error(f"Plugin loading failed: {e}")
-
-        # Enable event emission
-        print(f"DEBUG: Emitting startup events...")
-        if logger:
-            logger.debug(f"Emitting startup events...")
-
-        try:
-            event_manager.emit('system_startup', {'timestamp': time.time()})
-            print(f"DEBUG: Startup events emitted successfully")
-            if logger:
-                logger.info(f"Startup events emitted successfully")
-        except Exception as e:
-            print(f"DEBUG: Event emission failed: {e}")
-            if logger:
-                logger.error(f"Event emission failed: {e}")
-    except ImportError as e:
-        logger.error(f"Failed to import core modules: {e}")
-        logger.error("Please run 'python run.py setup' to install dependencies.")
-        sys.exit(1)
+        
+        # Route to appropriate handler based on command
+        if args.command == 'api':
+            logger.info(f"{Colors.BOLD}{Colors.BLUE}[ROCKET] Starting API Server Mode{Colors.RESET}")
+            return run_api_server(args)
+            
+        elif args.command == 'gui':
+            logger.info(f"{Colors.BOLD}{Colors.BLUE}Starting GUI Mode{Colors.RESET}")
+            return run_gui(args)
+            
+        elif args.command == 'cli':
+            logger.info(f"{Colors.BOLD}{Colors.BLUE}[COMPUTER] Starting CLI Mode{Colors.RESET}")
+            run_cli_only(args)
+            
+        elif args.command == 'web':
+            logger.info(f"{Colors.BOLD}{Colors.BLUE}[GLOBE] Starting Web Mode{Colors.RESET}")
+            run_web_interface(args)
+            
+        elif args.command == 'hybrid':
+            logger.info(f"{Colors.BOLD}{Colors.BLUE}[REFRESH] Starting Hybrid Mode{Colors.RESET}")
+            run_hybrid_mode(args)
+            
+        elif args.command == 'help':
+            show_help()
+            
+        elif args.command == 'version':
+            show_version_info()
+            
+        elif args.command == 'install':
+            run_installation_wizard()
+            
+        elif args.command == 'update':
+            run_update_system()
+            
+        else:
+            # Default to hybrid mode if no command specified
+            logger.info(f"{Colors.BOLD}{Colors.BLUE}[REFRESH] Starting Default Hybrid Mode{Colors.RESET}")
+            run_hybrid_mode(args)
+            
+    except KeyboardInterrupt:
+        logger.info(f"\n{Colors.YELLOW}🛑 Application interrupted by user{Colors.RESET}")
+        return 0
     except Exception as e:
-        logger.error(f"Core component initialization failed: {e}")
-        sys.exit(1)
-
-    print(f"DEBUG: Core component initialization completed, about to dispatch command: {args.command}")
-
-    # --- Command Dispatch ---
-    if args.command == 'help':
-        show_help()
-
-    elif args.command == 'setup':
-        if not run_first_time_setup(level=args.level):
-            sys.exit(1)
-
-    elif args.command == 'advanced-setup':
-        run_interactive_setup()
-
-    elif args.command == 'config' or args.command == 'wizard':
-        run_configuration_wizard()
-
-    elif args.command == 'version':
-        run_version_manager()
-
-    elif args.command == 'deps':
-        run_dependency_manager()
-
-    elif args.command == 'system':
-        run_system_manager()
-
-    elif args.command == 'clean':
-        sys_manager = SystemManager()
-        sys_manager.cleanup_system()
-
-    elif args.command == 'update':
-        run_update_system()
-
-    elif args.command in ['download', 'latest', 'versions']:
-        handle_github_commands(args.command, args.args, args.target_dir)
-
-    elif args.command == 'test':
-        run_enhanced_tests()
-
-    elif args.command == 'api':
-        run_api_and_cli(args)
-
-    elif args.command == 'gui':
-        run_gui(args)
-
-    elif args.command == 'gui-standalone':
-        run_gui_standalone()
-
-    elif args.command == 'webui':
-        run_webui(args)
-
-    elif args.command == 'cli':
-        run_cli()
-
-    elif args.command == 'admin':
-        run_admin_cli()
-
-    elif args.command == 'backup-node':
-        run_backup_node()
-
-    elif args.command == 'plugin':
-        run_plugin_manager()
-        
-    elif args.command == 'optimize':
-        logger.info("Running performance optimization...")
-        # Placeholder for optimization logic
-        print(f"{Colors.GREEN}Performance optimization completed.{Colors.RESET}")
-        
-    elif args.command == 'diagnostic':
-        logger.info("Running system diagnostics...")
-        # Placeholder for diagnostic logic
-        print(f"{Colors.GREEN}System diagnostics completed.{Colors.RESET}")
-        
-    elif args.command == 'maintenance':
-        logger.info("Running maintenance mode...")
-        # Placeholder for maintenance logic
-        print(f"{Colors.GREEN}Maintenance mode completed.{Colors.RESET}")
-        
-    elif args.command == 'bootstrap':
-        run_enhanced_bootstrap()
-
-    else:
-        logger.info("Defaulting to API server and CLI...")
-        run_api_and_cli(args)
+        logger.error(f"{Colors.RED}Fatal error: {e}{Colors.RESET}")
+        import traceback
+        logger.debug(traceback.format_exc())
+        return 1
 
 
 if __name__ == "__main__":
-    # Ensure src path is added for direct execution
-    src_path = str(Path(__file__).parent / "src")
-    if src_path not in sys.path:
-        sys.path.insert(0, src_path)
+    exit_code = main()
+    sys.exit(exit_code if exit_code is not None else 0)
 
+# ============================================================================
+# MAIN FUNCTION AND ENTRY POINT
+# ============================================================================
+
+def main():
+    """Main entry point for PlexiChat."""
     try:
-        # Run main function (which will handle argument parsing first)
-        main()
-
+        # Setup platform support
+        setup_platform_support()
+        
+        # Parse command line arguments
+        args = parse_arguments()
+        
+        # Set up logging level
+        log_level = "DEBUG" if args.verbose or args.debug else args.log_level
+        
+        # Setup enhanced logging
+        global logger
+        logger, performance_monitor = setup_enhanced_logging_with_files(log_level)
+        
+        # Setup signal handlers
+        setup_signal_handlers()
+        
+        # Display startup banner
+        display_startup_banner()
+        
+        # Acquire process lock
+        if not acquire_process_lock():
+            logger.error("Could not acquire process lock. Another instance may be running.")
+            return 1
+        
+        try:
+            # Setup environment
+            setup_environment()
+            
+            # Route to appropriate command handler
+            command = args.command
+            
+            if command == 'api':
+                run_api_and_cli(args)
+            elif command == 'gui':
+                run_gui(args)
+            elif command == 'gui-standalone':
+                run_gui_standalone()
+            elif command == 'webui':
+                run_webui(args)
+            elif command == 'cli':
+                run_cli()
+            elif command == 'admin':
+                run_admin_cli()
+            elif command == 'backup-node':
+                run_backup_node()
+            elif command == 'plugin':
+                run_plugin_manager()
+            elif command == 'test':
+                return handle_test_command()
+            elif command == 'config':
+                config = load_configuration()
+                print_config_info(config)
+            elif command == 'wizard':
+                run_configuration_wizard()
+            elif command == 'setup':
+                return 0 if run_first_time_setup(args.level) else 1
+            elif command == 'advanced-setup':
+                return 0 if run_interactive_setup() else 1
+            elif command == 'update':
+                run_update_system()
+            elif command == 'version':
+                run_version_manager()
+            elif command == 'deps':
+                run_dependency_manager()
+            elif command == 'system':
+                run_system_manager()
+            elif command == 'clean':
+                sys_manager = SystemManager()
+                sys_manager.cleanup_system()
+            elif command == 'optimize':
+                optimize_performance()
+            elif command == 'diagnostic':
+                sys_manager = SystemManager()
+                health = sys_manager.check_system_health()
+                print(json.dumps(health, indent=2))
+            elif command == 'maintenance':
+                sys_manager = SystemManager()
+                sys_manager.cleanup_system()
+                optimize_performance()
+            elif command == 'bootstrap':
+                run_enhanced_bootstrap()
+            elif command in ['download', 'latest', 'versions']:
+                handle_github_commands(command, args.args, args.target_dir)
+            elif command == 'install':
+                run_install_command(args)
+            else:
+                logger.error(f"Unknown command: {command}")
+                show_help()
+                return 1
+                
+        finally:
+            # Always release the process lock
+            release_process_lock()
+            
+        return 0
+        
     except KeyboardInterrupt:
-        print(f"\n{Colors.YELLOW}PlexiChat interrupted by user. Shutting down...{Colors.RESET}")
-        sys.exit(0)
+        logger.info("Interrupted by user")
+        return 130
     except Exception as e:
-        print(f"{Colors.RED}A fatal error occurred: {e}{Colors.RESET}")
-        if logger and logger.isEnabledFor(logging.DEBUG):
-            logger.debug(traceback.format_exc())
-        sys.exit(1)
-    finally:
-        # Ensure lock is always released
-        release_process_lock()
-        if _thread_pool:
-            _thread_pool.shutdown(wait=False)
+        logger.error(f"Unexpected error: {e}")
+        logger.debug(traceback.format_exc())
+        return 1
+
+if __name__ == "__main__":
+    sys.exit(main())

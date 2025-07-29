@@ -114,11 +114,8 @@ class PlexiChatGUIPyQt(QMainWindow):
             
             # Initialize notification system
             self.notification_system = NotificationSystemPyQt(self)
-            
-            # Initialize plugin manager
-            self.plugin_manager = PluginManagerPyQt(self)
-            
-            # Setup UI components
+
+            # Setup UI components (plugin manager will be created after login)
             self.setup_ui_components()
             
             # Setup async event loop
@@ -174,11 +171,10 @@ class PlexiChatGUIPyQt(QMainWindow):
         self.login_screen = LoginScreenPyQt(self)
         self.stacked_widget.addWidget(self.login_screen)
 
-        # Create main dashboard (will be added after login)
-        self.main_dashboard = MainDashboardPyQt(self)
-
-        # Create settings panel
-        self.settings_panel = SettingsPanelPyQt(self)
+        # Initialize other components as None (will be created after login)
+        self.main_dashboard = None
+        self.plugin_manager = None
+        self.settings_panel = None
 
         # Connect all signals after components are created
         self.connect_signals()
@@ -229,6 +225,10 @@ class PlexiChatGUIPyQt(QMainWindow):
         about_action = QAction("&About", self)
         about_action.triggered.connect(self.show_about)
         help_menu.addAction(about_action)
+
+        docs_action = QAction("&Documentation", self)
+        docs_action.triggered.connect(self.show_documentation)
+        help_menu.addAction(docs_action)
 
     def setup_status_bar(self):
         """Setup the status bar."""
@@ -320,13 +320,8 @@ class PlexiChatGUIPyQt(QMainWindow):
                     self.login_screen.login_success.connect(lambda user_data: self.handle_user_login(user_data))
                     logger.info("Connected login screen signals")
 
-            # Connect settings panel signals
-            if hasattr(self, 'settings_panel') and self.settings_panel:
-                if hasattr(self.settings_panel, 'theme_changed'):
-                    self.settings_panel.theme_changed.connect(lambda theme: self.handle_theme_change(theme))
-                    logger.info("Connected settings panel theme signals")
-                else:
-                    logger.warning("Settings panel has no theme_changed signal")
+            # Settings panel signals will be connected after login when it's created
+            logger.info("Signal connections initialized")
         except Exception as e:
             logger.error(f"Error connecting signals: {e}")
             import traceback
@@ -340,23 +335,41 @@ class PlexiChatGUIPyQt(QMainWindow):
 
     def show_dashboard(self):
         """Show the main dashboard."""
-        if self.is_authenticated and self.main_dashboard:
-            if self.main_dashboard not in [self.stacked_widget.widget(i) 
+        if not self.is_authenticated:
+            self.show_login_screen()
+            return
+
+        if self.main_dashboard:
+            if self.main_dashboard not in [self.stacked_widget.widget(i)
                                          for i in range(self.stacked_widget.count())]:
                 self.stacked_widget.addWidget(self.main_dashboard)
             self.stacked_widget.setCurrentWidget(self.main_dashboard)
             self.status_bar.showMessage("Dashboard")
+        else:
+            self.status_bar.showMessage("Please log in first")
 
     def show_plugin_manager(self):
         """Show the plugin manager."""
-        if self.is_authenticated and self.plugin_manager:
+        if not self.is_authenticated:
+            self.show_login_screen()
+            return
+
+        if self.plugin_manager:
             # Create plugin manager window or tab
             self.plugin_manager.show()
+        else:
+            self.status_bar.showMessage("Please log in first")
 
     def show_settings(self):
         """Show the settings panel."""
+        if not self.is_authenticated:
+            self.show_login_screen()
+            return
+
         if self.settings_panel:
             self.settings_panel.show()
+        else:
+            self.status_bar.showMessage("Please log in first")
 
     def show_about(self):
         """Show about dialog."""
@@ -367,6 +380,23 @@ class PlexiChatGUIPyQt(QMainWindow):
 
     def handle_user_login(self, user_data: dict):
         """Handle user login from signal."""
+        # Create dashboard components after successful login
+        if not self.main_dashboard:
+            self.main_dashboard = MainDashboardPyQt(self)
+            self.stacked_widget.addWidget(self.main_dashboard)
+
+        if not self.plugin_manager:
+            self.plugin_manager = PluginManagerPyQt(self)
+            self.plugin_manager.hide()  # Hide initially
+
+        if not self.settings_panel:
+            self.settings_panel = SettingsPanelPyQt(self)
+            self.settings_panel.hide()  # Hide initially
+            # Connect settings panel signals now that it exists
+            if hasattr(self.settings_panel, 'theme_changed'):
+                self.settings_panel.theme_changed.connect(lambda theme: self.handle_theme_change(theme))
+                logger.info("Connected settings panel theme signals")
+
         self.on_user_authenticated(user_data)
 
     def handle_theme_change(self, theme_name: str):
@@ -401,16 +431,71 @@ class PlexiChatGUIPyQt(QMainWindow):
         """Logout the current user."""
         self.user_logged_out.emit()
 
+    def show_plugin_manager(self):
+        """Show plugin manager."""
+        try:
+            if self.plugin_manager:
+                self.plugin_manager.show()
+                self.plugin_manager.raise_()
+                self.plugin_manager.activateWindow()
+            else:
+                logger.warning("Plugin manager not initialized")
+        except Exception as e:
+            logger.error(f"Failed to show plugin manager: {e}")
+
+    def show_settings(self):
+        """Show settings panel."""
+        try:
+            if self.settings_panel:
+                self.settings_panel.show()
+                self.settings_panel.raise_()
+                self.settings_panel.activateWindow()
+            else:
+                logger.warning("Settings panel not initialized")
+        except Exception as e:
+            logger.error(f"Failed to show settings: {e}")
+
+    def show_about(self):
+        """Show about dialog."""
+        try:
+            from PyQt6.QtWidgets import QMessageBox
+            QMessageBox.about(self, "About PlexiChat",
+                            """<h2>PlexiChat Management Interface</h2>
+                            <p>Version 1.1.1</p>
+                            <p>Advanced chat and collaboration platform</p>
+                            <p>Built with PyQt6 and modern design principles</p>
+                            <p><b>Features:</b></p>
+                            <ul>
+                            <li>Real-time messaging</li>
+                            <li>Plugin system</li>
+                            <li>Advanced security</li>
+                            <li>Modern UI/UX</li>
+                            </ul>
+                            <p>© 2024 PlexiChat Team</p>""")
+        except Exception as e:
+            logger.error(f"Failed to show about dialog: {e}")
+
+    def show_documentation(self):
+        """Show documentation."""
+        try:
+            import webbrowser
+            webbrowser.open("http://localhost/docs")
+        except Exception as e:
+            logger.error(f"Failed to open documentation: {e}")
+            from PyQt6.QtWidgets import QMessageBox
+            QMessageBox.information(self, "Documentation",
+                                  "Documentation is available at: http://localhost/docs")
+
     def closeEvent(self, event):
         """Handle application close event."""
         # Save settings
         self.settings.setValue("geometry", self.saveGeometry())
         self.settings.setValue("windowState", self.saveState())
-        
+
         # Close async loop
         if self.async_loop:
             self.async_loop.call_soon_threadsafe(self.async_loop.stop)
-        
+
         event.accept()
 
     def run(self):

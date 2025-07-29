@@ -64,7 +64,8 @@ class FileUpload(BaseModel):
             raise ValueError('Filename contains invalid characters')
         return v.strip()
 
-    @validator('tags')
+    @field_validator('tags')
+    @classmethod
     def validate_tags(cls, v):
         if v is not None:
             # Limit number of tags and tag length

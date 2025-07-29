@@ -34,6 +34,16 @@ class AlertRule:
     cooldown: int = 300  # seconds
 
 
+@dataclass
+class AnalyticsEvent:
+    """Analytics event data structure."""
+    event_type: str
+    data: Dict[str, Any]
+    timestamp: datetime = field(default_factory=datetime.now)
+    user_id: Optional[str] = None
+    session_id: Optional[str] = None
+
+
 class UnifiedMonitoringSystem:
     """Unified monitoring system for PlexiChat."""
     
@@ -196,12 +206,32 @@ def get_system_status() -> Dict[str, Any]:
     return unified_monitoring_system.get_system_status()
 
 
+# Alias for backward compatibility
+UnifiedMonitoringManager = UnifiedMonitoringSystem
+AnalyticsCollector = UnifiedMonitoringSystem  # Another alias
+
+# Add EventType enum for compatibility
+class EventType:
+    """Event types for analytics."""
+    USER_ACTION = "user_action"
+    SYSTEM_EVENT = "system_event"
+    ERROR_EVENT = "error_event"
+    PERFORMANCE_EVENT = "performance_event"
+
+# Global instance alias
+unified_monitoring_manager = unified_monitoring_system
+
 # Export all
 __all__ = [
     "UnifiedMonitoringSystem",
+    "UnifiedMonitoringManager",  # Backward compatibility
+    "AnalyticsCollector",  # Backward compatibility
     "unified_monitoring_system",
+    "unified_monitoring_manager",  # Backward compatibility
     "MetricData",
     "AlertRule",
+    "AnalyticsEvent",
+    "EventType",
     "record_metric",
     "get_metrics",
     "get_latest_metric",
