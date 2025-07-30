@@ -17,7 +17,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-// Client represents the PlexiChat API client
+// Client represents the PlexiChat API client with 2FA/MFA support.
 type Client struct {
 	BaseURL    string
 	HTTPClient *http.Client
@@ -203,6 +203,42 @@ func (c *Client) ParseResponse(resp *http.Response, v interface{}) error {
 	return nil
 }
 
+// RootInfo gets server info from the root endpoint
+func (c *Client) RootInfo(ctx context.Context) (map[string]interface{}, error) {
+	resp, err := c.Get(ctx, "/")
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	var info map[string]interface{}
+	err = json.NewDecoder(resp.Body).Decode(&info)
+	return info, err
+}
+
+// PerformanceStats gets server performance stats
+func (c *Client) PerformanceStats(ctx context.Context) (map[string]interface{}, error) {
+	resp, err := c.Get(ctx, "/performance/stats")
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	var stats map[string]interface{}
+	err = json.NewDecoder(resp.Body).Decode(&stats)
+	return stats, err
+}
+
+// Metrics gets server metrics
+func (c *Client) Metrics(ctx context.Context) (map[string]interface{}, error) {
+	resp, err := c.Get(ctx, "/metrics")
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	var metrics map[string]interface{}
+	err = json.NewDecoder(resp.Body).Decode(&metrics)
+	return metrics, err
+}
+
 // Health checks the health of the PlexiChat server
 func (c *Client) Health(ctx context.Context) (*HealthResponse, error) {
 	resp, err := c.Get(ctx, "/health")
@@ -227,7 +263,7 @@ func (c *Client) Version(ctx context.Context) (*VersionResponse, error) {
 	return &version, err
 }
 
-// Login authenticates with username and password
+// Login authenticates with username and password (with 2FA support)
 func (c *Client) Login(ctx context.Context, username, password string) (*LoginResponse, error) {
 	loginReq := &LoginRequest{
 		Username: username,
@@ -245,9 +281,115 @@ func (c *Client) Login(ctx context.Context, username, password string) (*LoginRe
 		return nil, err
 	}
 
-	// Set token for future requests
-	c.SetToken(loginResp.Token)
+	// Set token for future requests if login was successful
+	if loginResp.Token != "" {
+		c.SetToken(loginResp.Token)
+	}
 	return &loginResp, nil
+}
+
+// LoginWith2FA authenticates with username, password and 2FA code
+func (c *Client) LoginWith2FA(ctx context.Context, username, password, method, code, challengeResponse string) (*TwoFALoginResponse, error) {
+	loginReq := &TwoFALoginRequest{
+		Username:         username,
+		Password:         password,
+		Method:           method,
+		Code:             code,
+		ChallengeResponse: challengeResponse,
+	}
+
+	resp, err := c.Post(ctx, "/api/v1/auth/login-2fa", loginReq)
+	if err != nil {
+		return nil, err
+	}
+
+	var loginResp TwoFALoginResponse
+	err = c.ParseResponse(resp, &loginResp)
+	if err != nil {
+		return nil, err
+	}
+
+	// Set token for future requests if 2FA was successful
+	if loginResp.Token != "" {
+		c.SetToken(loginResp.Token)
+	}
+	return &loginResp, nil
+}
+
+// Setup2FA initiates 2FA setup for a specific method (TOTP, SMS, Email, Hardware)
+func (c *Client) Setup2FA(ctx context.Context, method, destination string) (*TwoFASetupResponse, error) {
+	setupReq := &TwoFASetupRequest{
+		Method:      method,
+		Destination: destination,
+	}
+
+	resp, err := c.Post(ctx, "/api/v1/auth/2fa/setup", setupReq)
+	if err != nil {
+		return nil, err
+	}
+
+	var setupResp TwoFASetupResponse
+	err = c.ParseResponse(resp, &setupResp)
+	return &setupResp, err
+}
+
+// Verify2FASetup verifies a 2FA setup with the provided code/challenge response
+func (c *Client) Verify2FASetup(ctx context.Context, method, code, challengeResponse string) (*TwoFAVerifySetupResponse, error) {
+	verifyReq := &TwoFAVerifySetupRequest{
+		Method:           method,
+		Code:             code,
+		ChallengeResponse: challengeResponse,
+	}
+
+	resp, err := c.Post(ctx, "/api/v1/auth/2fa/verify-setup", verifyReq)
+	if err != nil {
+		return nil, err
+	}
+
+	var verifyResp TwoFAVerifySetupResponse
+	err = c.ParseResponse(resp, &verifyResp)
+	return &verifyResp, err
+}
+
+// Get2FAStatus gets the current 2FA status and configured methods for the authenticated user
+func (c *Client) Get2FAStatus(ctx context.Context) (*TwoFAStatusResponse, error) {
+	resp, err := c.Get(ctx, "/api/v1/auth/2fa/status")
+	if err != nil {
+		return nil, err
+	}
+
+	var status TwoFAStatusResponse
+	err = c.ParseResponse(resp, &status)
+	return &status, err
+}
+
+// GenerateBackupCodes generates new backup codes (invalidates old ones)
+func (c *Client) GenerateBackupCodes(ctx context.Context) (*TwoFABackupCodesResponse, error) {
+	resp, err := c.Post(ctx, "/api/v1/auth/2fa/backup-codes", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var codes TwoFABackupCodesResponse
+	err = c.ParseResponse(resp, &codes)
+	return &codes, err
+}
+
+// Disable2FA disables 2FA for a specific method
+func (c *Client) Disable2FA(ctx context.Context, method, code string) (*TwoFADisableResponse, error) {
+	disableReq := &TwoFADisableRequest{
+		Method: method,
+		Code:   code,
+	}
+
+	resp, err := c.Post(ctx, "/api/v1/auth/2fa/disable", disableReq)
+	if err != nil {
+		return nil, err
+	}
+
+	var disableResp TwoFADisableResponse
+	err = c.ParseResponse(resp, &disableResp)
+	return &disableResp, err
 }
 
 // Register creates a new user account

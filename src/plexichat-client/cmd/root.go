@@ -19,6 +19,14 @@ var (
 	verbose bool
 )
 
+// Version information
+var (
+	clientVersion   = "1.0.0"
+	clientCommit    = "unknown"
+	clientBuildTime = "unknown"
+	clientGoVersion = "unknown"
+)
+
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "plexichat-client",
@@ -103,12 +111,24 @@ func initConfig() {
 	viper.SetDefault("concurrent_requests", 10)
 }
 
+// SetVersionInfo sets version information from main
+func SetVersionInfo(version, commit, buildTime, goVersion string) {
+	clientVersion = version
+	clientCommit = commit
+	clientBuildTime = buildTime
+	clientGoVersion = goVersion
+}
+
 var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Show version information",
 	Long:  "Display version information for both client and server",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		fmt.Println("PlexiChat Go Client v1.0.0")
+		fmt.Printf("PlexiChat Go Client v%s\n", clientVersion)
+		fmt.Printf("Commit: %s\n", clientCommit)
+		fmt.Printf("Build Time: %s\n", clientBuildTime)
+		fmt.Printf("Go Version: %s\n", clientGoVersion)
+		fmt.Println()
 
 		// Try to get server version
 		c := client.NewClient(viper.GetString("url"))

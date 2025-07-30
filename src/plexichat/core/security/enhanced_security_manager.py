@@ -355,39 +355,10 @@ class EnhancedSecurityManager:
         self.block_suspicious_requests = True
         
         # Endpoint security levels
-        self.endpoint_security_levels = {
-            # Public endpoints
-            "/": SecurityLevel.PUBLIC,
-            "/health": SecurityLevel.PUBLIC,
-            "/docs": SecurityLevel.PUBLIC,
-            "/openapi.json": SecurityLevel.PUBLIC,
-            
-            # Authentication endpoints
-            "/api/v1/auth/login": SecurityLevel.BASIC,
-            "/api/v1/auth/register": SecurityLevel.BASIC,
-            "/api/v1/auth/refresh": SecurityLevel.BASIC,
-            
-            # User endpoints
-            "/api/v1/users/profile": SecurityLevel.AUTHENTICATED,
-            "/api/v1/messages": SecurityLevel.AUTHENTICATED,
-            "/api/v1/files": SecurityLevel.AUTHENTICATED,
-            
-            # Admin endpoints
-            "/api/v1/admin": SecurityLevel.ADMIN,
-            "/admin": SecurityLevel.ADMIN,
-            
-            # System endpoints
-            "/api/v1/system": SecurityLevel.SYSTEM,
-        }
+        self.endpoint_security_levels = {}
         
         # Rate limiting rules
-        self.rate_limit_rules = {
-            "default": RateLimitRule(60, 1000, 10),
-            "/api/v1/auth/login": RateLimitRule(10, 100, 3),
-            "/api/v1/auth/register": RateLimitRule(5, 50, 2),
-            "/api/v1/files/upload": RateLimitRule(20, 200, 5),
-            "/admin": RateLimitRule(30, 300, 5),
-        }
+        self.rate_limit_rules = {}
         
         # Security headers
         self.security_headers = {
@@ -546,7 +517,12 @@ class EnhancedSecurityManager:
     
     def _get_rate_limit_rule(self, endpoint: str) -> RateLimitRule:
         """Get rate limit rule for endpoint."""
-        return self.rate_limit_rules.get(endpoint, self.rate_limit_rules["default"])
+        from .config import settings
+        return RateLimitRule(
+            requests_per_minute=settings.rate_limit_default_requests_per_minute,
+            requests_per_hour=settings.rate_limit_default_requests_per_hour,
+            burst_limit=settings.rate_limit_default_burst_limit,
+        )
     
     async def _log_security_event(self, event_type: SecurityEventType, threat_level: ThreatLevel, 
                                  context: SecurityContext, details: Dict[str, Any]):

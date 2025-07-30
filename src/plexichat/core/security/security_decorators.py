@@ -108,22 +108,7 @@ def require_auth(
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         async def wrapper(*args, **kwargs):
-            # Get request object from args/kwargs
-            request = None
-            for arg in args:
-                if isinstance(arg, Request):
-                    request = arg
-                    break
-            
-            if not request:
-                # Try to find request in kwargs
-                request = kwargs.get('request')
-            
-            if not request:
-                raise HTTPException(
-                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    detail="Request object not found"
-                )
+            request = _get_request_from_args(*args, **kwargs)
             
             # Perform authentication check
             user_data = await _authenticate_request(request, required_level)
@@ -200,21 +185,7 @@ def rate_limit(
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         async def wrapper(*args, **kwargs):
-            # Get request object
-            request = None
-            for arg in args:
-                if isinstance(arg, Request):
-                    request = arg
-                    break
-            
-            if not request:
-                request = kwargs.get('request')
-            
-            if not request:
-                raise HTTPException(
-                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    detail="Request object not found"
-                )
+            request = _get_request_from_args(*args, **kwargs)
             
             # Generate rate limit key
             if key_func:
@@ -284,15 +255,7 @@ def audit_access(
         async def wrapper(*args, **kwargs):
             start_time = time.time()
             
-            # Get request object
-            request = None
-            for arg in args:
-                if isinstance(arg, Request):
-                    request = arg
-                    break
-            
-            if not request:
-                request = kwargs.get('request')
+            request = _get_request_from_args(*args, **kwargs)
             
             # Prepare audit data
             audit_data = {
@@ -399,15 +362,7 @@ def validate_input(
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         async def wrapper(*args, **kwargs):
-            # Get request object
-            request = None
-            for arg in args:
-                if isinstance(arg, Request):
-                    request = arg
-                    break
-            
-            if not request:
-                request = kwargs.get('request')
+            request = _get_request_from_args(*args, **kwargs)
             
             if request and request.method in ["POST", "PUT", "PATCH"]:
                 # Check content type
@@ -525,6 +480,24 @@ def security_headers(additional_headers: Optional[Dict[str, str]] = None):
 
 
 # Helper functions
+def _get_request_from_args(*args, **kwargs) -> Request:
+    """Get request object from args/kwargs."""
+    request = None
+    for arg in args:
+        if isinstance(arg, Request):
+            request = arg
+            break
+    
+    if not request:
+        request = kwargs.get('request')
+    
+    if not request:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Request object not found"
+        )
+    return request
+
 async def _authenticate_request(request: Request, required_level: SecurityLevel) -> Dict[str, Any]:
     """Authenticate request and return user data."""
     # Get authorization header

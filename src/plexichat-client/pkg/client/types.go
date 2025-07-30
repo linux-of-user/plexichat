@@ -2,6 +2,99 @@ package client
 
 import "time"
 
+// --- 2FA/MFA Types ---
+
+// 2FA method types
+const (
+	TwoFAMethodTOTP       = "totp"
+	TwoFAMethodSMS        = "sms"
+	TwoFAMethodEmail      = "email"
+	TwoFAMethodBackupCode = "backup_code"
+	TwoFAMethodHardware   = "hardware"
+)
+
+// 2FA Setup Request
+// Used to initiate 2FA setup for a method (TOTP, SMS, Email, Hardware)
+type TwoFASetupRequest struct {
+	Method string `json:"method"` // "totp", "sms", "email", "hardware"
+	Destination string `json:"destination,omitempty"` // For SMS/email: phone/email
+}
+
+// 2FA Setup Response
+// Backend returns details needed for setup (e.g., QR code for TOTP, challenge for hardware, etc.)
+type TwoFASetupResponse struct {
+	Method string `json:"method"`
+	Secret string `json:"secret,omitempty"`
+	QRCode string `json:"qrcode,omitempty"`
+	Challenge string `json:"challenge,omitempty"`
+	BackupCodes []string `json:"backup_codes,omitempty"`
+	Message string `json:"message,omitempty"`
+}
+
+// 2FA Verify Setup Request
+// Used to verify the setup of a 2FA method (e.g., enter TOTP code, respond to hardware challenge)
+type TwoFAVerifySetupRequest struct {
+	Method string `json:"method"`
+	Code   string `json:"code"`
+	ChallengeResponse string `json:"challenge_response,omitempty"`
+}
+
+// 2FA Verify Setup Response
+type TwoFAVerifySetupResponse struct {
+	Success bool   `json:"success"`
+	Message string `json:"message,omitempty"`
+	BackupCodes []string `json:"backup_codes,omitempty"`
+}
+
+// 2FA Login Request
+// Used when a user must provide a 2FA code after username/password
+type TwoFALoginRequest struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Method   string `json:"method"`
+	Code     string `json:"code"`
+	ChallengeResponse string `json:"challenge_response,omitempty"`
+}
+
+// 2FA Login Response (same as LoginResponse, but may include 2FA-required flag)
+type TwoFALoginResponse struct {
+	Token        string    `json:"token"`
+	RefreshToken string    `json:"refresh_token"`
+	ExpiresAt    time.Time `json:"expires_at"`
+	User         User      `json:"user"`
+	TwoFARequired bool     `json:"two_fa_required"`
+	Methods      []string  `json:"methods,omitempty"`
+	Message      string    `json:"message,omitempty"`
+}
+
+// 2FA Status Response
+type TwoFAStatusResponse struct {
+	Enabled  bool     `json:"enabled"`
+	Methods  []string `json:"methods"`
+	Primary  string   `json:"primary"`
+	BackupCodes []string `json:"backup_codes,omitempty"`
+}
+
+// 2FA Backup Codes Response
+type TwoFABackupCodesResponse struct {
+	BackupCodes []string `json:"backup_codes"`
+}
+
+// 2FA Disable Request
+type TwoFADisableRequest struct {
+	Method string `json:"method"`
+	Code   string `json:"code,omitempty"`
+}
+
+// 2FA Disable Response
+type TwoFADisableResponse struct {
+	Success bool   `json:"success"`
+	Message string `json:"message,omitempty"`
+}
+
+// --- End 2FA/MFA Types ---
+
+
 // HealthResponse represents the health check response
 type HealthResponse struct {
 	Status    string            `json:"status"`
@@ -26,12 +119,16 @@ type LoginRequest struct {
 	Password string `json:"password"`
 }
 
-// LoginResponse represents a login response
+// LoginResponse represents a login response. It may or may not include a token.
+// If TwoFARequired is true, the client must perform a second step using the /login-2fa endpoint.
 type LoginResponse struct {
-	Token        string    `json:"token"`
-	RefreshToken string    `json:"refresh_token"`
-	ExpiresAt    time.Time `json:"expires_at"`
-	User         User      `json:"user"`
+	Token         string    `json:"token,omitempty"`
+	RefreshToken  string    `json:"refresh_token,omitempty"`
+	ExpiresAt     time.Time `json:"expires_at,omitempty"`
+	User          *User     `json:"user,omitempty"`
+	TwoFARequired bool      `json:"two_fa_required"`
+	Methods       []string  `json:"methods,omitempty"` // Available 2FA methods if required
+	Message       string    `json:"message,omitempty"`
 }
 
 // RegisterRequest represents a registration request
