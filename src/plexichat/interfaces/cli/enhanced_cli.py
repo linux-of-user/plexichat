@@ -189,6 +189,288 @@ class EnhancedCLISystem:
             ]
         ))
         
+        self.register_command(CLICommand(
+            name="admin-gui",
+            description="Launch the administration GUI with integrated terminal",
+            category="admin",
+            handler=self._handle_admin_gui,
+            aliases=["gui", "admin"],
+            options=[
+                {"name": "--port", "type": int, "help": "GUI port (default: 8080)"},
+                {"name": "--theme", "help": "GUI theme (light/dark)"},
+                {"name": "--fullscreen", "help": "Start in fullscreen mode"}
+            ],
+            examples=[
+                "admin-gui",
+                "admin-gui --port 8081",
+                "admin-gui --theme dark --fullscreen"
+            ]
+        ))
+        
+        self.register_command(CLICommand(
+            name="webui",
+            description="Launch the web interface on a different port",
+            category="admin",
+            handler=self._handle_webui,
+            aliases=["web", "ui"],
+            options=[
+                {"name": "--port", "type": int, "help": "Web UI port (default: 3000)"},
+                {"name": "--host", "help": "Host to bind to (default: 0.0.0.0)"},
+                {"name": "--secure", "help": "Enable HTTPS"}
+            ],
+            examples=[
+                "webui",
+                "webui --port 3001",
+                "webui --host 127.0.0.1 --secure"
+            ]
+        ))
+        
+        self.register_command(CLICommand(
+            name="auth-setup",
+            description="Configure enhanced authentication system",
+            category="security",
+            handler=self._handle_auth_setup,
+            aliases=["auth", "security"],
+            options=[
+                {"name": "--enable-2fa", "help": "Enable two-factor authentication"},
+                {"name": "--setup-oauth", "help": "Configure OAuth providers"},
+                {"name": "--setup-ldap", "help": "Configure LDAP authentication"},
+                {"name": "--audit", "help": "Run security audit"}
+            ],
+            examples=[
+                "auth-setup",
+                "auth-setup --enable-2fa",
+                "auth-setup --setup-oauth --audit"
+            ]
+        ))
+        
+        self.register_command(CLICommand(
+            name="terminal",
+            description="Open integrated terminal window",
+            category="system",
+            handler=self._handle_terminal,
+            aliases=["term", "shell"],
+            options=[
+                {"name": "--split", "help": "Split terminal horizontally"},
+                {"name": "--vertical", "help": "Split terminal vertically"},
+                {"name": "--new-tab", "help": "Open in new tab"}
+            ],
+            examples=[
+                "terminal",
+                "terminal --split",
+                "terminal --new-tab"
+            ]
+        ))
+        
+        self.register_command(CLICommand(
+            name="plugin-manager",
+            description="Comprehensive plugin management interface",
+            category="plugins",
+            handler=self._handle_plugin_manager,
+            aliases=["pm", "plugins"],
+            options=[
+                {"name": "--install", "help": "Install new plugin"},
+                {"name": "--remove", "help": "Remove plugin"},
+                {"name": "--update", "help": "Update all plugins"},
+                {"name": "--search", "help": "Search for plugins"}
+            ],
+            examples=[
+                "plugin-manager",
+                "plugin-manager --install analytics",
+                "plugin-manager --update"
+            ]
+        ))
+        
+        self.register_command(CLICommand(
+            name="system-config",
+            description="Advanced system configuration management",
+            category="system",
+            handler=self._handle_system_config,
+            aliases=["config", "settings"],
+            options=[
+                {"name": "--edit", "help": "Edit configuration file"},
+                {"name": "--backup", "help": "Backup current configuration"},
+                {"name": "--restore", "help": "Restore configuration from backup"},
+                {"name": "--validate", "help": "Validate configuration"}
+            ],
+            examples=[
+                "system-config",
+                "system-config --edit",
+                "system-config --backup"
+            ]
+        ))
+        
+        self.register_command(CLICommand(
+            name="logs",
+            description="Advanced log management and analysis",
+            category="system",
+            handler=self._handle_logs,
+            aliases=["log", "logging"],
+            options=[
+                {"name": "--tail", "type": int, "help": "Show last N lines"},
+                {"name": "--follow", "help": "Follow log output"},
+                {"name": "--search", "help": "Search logs for pattern"},
+                {"name": "--level", "help": "Filter by log level"}
+            ],
+            examples=[
+                "logs --tail 100",
+                "logs --follow",
+                "logs --search error",
+                "logs --level warning"
+            ]
+        ))
+        
+        self.register_command(CLICommand(
+            name="backup",
+            description="Comprehensive backup and restore system",
+            category="backup",
+            handler=self._handle_backup,
+            aliases=["bk", "save"],
+            options=[
+                {"name": "--full", "help": "Full system backup"},
+                {"name": "--incremental", "help": "Incremental backup"},
+                {"name": "--restore", "help": "Restore from backup"},
+                {"name": "--schedule", "help": "Schedule automatic backups"}
+            ],
+            examples=[
+                "backup --full",
+                "backup --incremental",
+                "backup --restore 2024-01-01",
+                "backup --schedule daily"
+            ]
+        ))
+        
+        self.register_command(CLICommand(
+            name="network-scan",
+            description="Advanced network scanning and monitoring",
+            category="network",
+            handler=self._handle_network_scan,
+            aliases=["scan", "net"],
+            options=[
+                {"name": "--range", "help": "IP range to scan"},
+                {"name": "--ports", "help": "Port range to check"},
+                {"name": "--services", "help": "Detect running services"},
+                {"name": "--vulnerabilities", "help": "Check for vulnerabilities"}
+            ],
+            examples=[
+                "network-scan",
+                "network-scan --range 192.168.1.0/24",
+                "network-scan --ports 1-1000"
+            ]
+        ))
+        
+        self.register_command(CLICommand(
+            name="monitor",
+            description="Real-time system monitoring dashboard",
+            category="monitoring",
+            handler=self._handle_monitor,
+            aliases=["mon", "watch"],
+            options=[
+                {"name": "--dashboard", "help": "Show monitoring dashboard"},
+                {"name": "--alerts", "help": "Configure monitoring alerts"},
+                {"name": "--export", "help": "Export monitoring data"}
+            ],
+            examples=[
+                "monitor",
+                "monitor --dashboard",
+                "monitor --alerts"
+            ]
+        ))
+        
+        self.register_command(CLICommand(
+            name="ai-assistant",
+            description="AI-powered system assistant and optimization",
+            category="ai",
+            handler=self._handle_ai_assistant,
+            aliases=["ai", "assistant"],
+            options=[
+                {"name": "--analyze", "help": "Analyze system for optimizations"},
+                {"name": "--recommend", "help": "Get AI recommendations"},
+                {"name": "--auto-fix", "help": "Apply AI-suggested fixes"}
+            ],
+            examples=[
+                "ai-assistant",
+                "ai-assistant --analyze",
+                "ai-assistant --auto-fix"
+            ]
+        ))
+        
+        self.register_command(CLICommand(
+            name="user-management",
+            description="Comprehensive user and permission management",
+            category="admin",
+            handler=self._handle_user_management,
+            aliases=["users", "um"],
+            options=[
+                {"name": "--list", "help": "List all users"},
+                {"name": "--add", "help": "Add new user"},
+                {"name": "--remove", "help": "Remove user"},
+                {"name": "--modify", "help": "Modify user permissions"}
+            ],
+            examples=[
+                "user-management --list",
+                "user-management --add john",
+                "user-management --remove alice"
+            ]
+        ))
+        
+        self.register_command(CLICommand(
+            name="test-suite",
+            description="Comprehensive testing framework",
+            category="testing",
+            handler=self._handle_test_suite,
+            aliases=["test", "ts"],
+            options=[
+                {"name": "--unit", "help": "Run unit tests"},
+                {"name": "--integration", "help": "Run integration tests"},
+                {"name": "--load", "help": "Run load tests"},
+                {"name": "--coverage", "help": "Generate coverage report"}
+            ],
+            examples=[
+                "test-suite --unit",
+                "test-suite --integration",
+                "test-suite --coverage"
+            ]
+        ))
+        
+        self.register_command(CLICommand(
+            name="maintenance",
+            description="System maintenance and cleanup operations",
+            category="maintenance",
+            handler=self._handle_maintenance,
+            aliases=["maint", "cleanup"],
+            options=[
+                {"name": "--clean-cache", "help": "Clean system cache"},
+                {"name": "--optimize-db", "help": "Optimize database"},
+                {"name": "--cleanup-logs", "help": "Clean old log files"},
+                {"name": "--full-cleanup", "help": "Complete system cleanup"}
+            ],
+            examples=[
+                "maintenance --clean-cache",
+                "maintenance --optimize-db",
+                "maintenance --full-cleanup"
+            ]
+        ))
+        
+        self.register_command(CLICommand(
+            name="integration",
+            description="Third-party integration management",
+            category="integration",
+            handler=self._handle_integration,
+            aliases=["integrate", "ext"],
+            options=[
+                {"name": "--list", "help": "List available integrations"},
+                {"name": "--configure", "help": "Configure integration"},
+                {"name": "--test", "help": "Test integration"},
+                {"name": "--sync", "help": "Sync with external services"}
+            ],
+            examples=[
+                "integration --list",
+                "integration --configure slack",
+                "integration --test"
+            ]
+        ))
+        
         # Database Commands
         self.register_command(CLICommand(
             name="db-status",
@@ -344,6 +626,30 @@ class EnhancedCLISystem:
             ]
         ))
         
+        # GUI/WebUI Commands
+        self.register_command(CLICommand(
+            name="admin-gui",
+            description="Launch the administration GUI",
+            category="interface",
+            handler=self._handle_admin_gui,
+            aliases=["gui"],
+            examples=["admin-gui"]
+        ))
+
+        self.register_command(CLICommand(
+            name="webui",
+            description="Launch the web interface on specified port",
+            category="interface",
+            handler=self._handle_webui,
+            arguments=[
+                {"name": "port", "help": "Port number (default: 8080)"}
+            ],
+            examples=[
+                "webui",
+                "webui 9000"
+            ]
+        ))
+
         # Add more command categories...
         self._register_admin_commands()
         self._register_backup_commands()
@@ -353,6 +659,44 @@ class EnhancedCLISystem:
         self._register_development_commands()
         self._register_maintenance_commands()
     
+    async def _handle_admin_gui(self, args: List[str]) -> bool:
+        """Launch the administration GUI"""
+        print(f"{CLIColors.INFO}Launching administration GUI...{CLIColors.RESET}")
+        try:
+            from plexichat.interfaces.gui.main import start_gui
+            start_gui(integrated_terminal=True)
+            return True
+        except ImportError:
+            print(f"{CLIColors.ERROR}GUI module not found{CLIColors.RESET}")
+            return False
+        except Exception as e:
+            print(f"{CLIColors.ERROR}Failed to launch GUI: {e}{CLIColors.RESET}")
+            return False
+
+    async def _handle_webui(self, args: List[str]) -> bool:
+        """Launch the web UI on specified port"""
+        port = 8080
+        if args:
+            try:
+                port = int(args[0])
+                if not (1024 < port < 65535):
+                    raise ValueError
+            except ValueError:
+                print(f"{CLIColors.ERROR}Invalid port number: {args[0]}{CLIColors.RESET}")
+                return False
+
+        print(f"{CLIColors.INFO}Starting web interface on port {port}...{CLIColors.RESET}")
+        try:
+            from plexichat.interfaces.web.server import start_web_server
+            start_web_server(port=port)
+            return True
+        except ImportError:
+            print(f"{CLIColors.ERROR}Web UI module not found{CLIColors.RESET}")
+            return False
+        except Exception as e:
+            print(f"{CLIColors.ERROR}Failed to start web UI: {e}{CLIColors.RESET}")
+            return False
+
     def _register_admin_commands(self):
         """Register admin-specific commands."""
         self.register_command(CLICommand(
@@ -1447,6 +1791,37 @@ class EnhancedCLISystem:
 
         print(f"{CLIColors.INFO}Affected users will need to log in again{CLIColors.RESET}")
         return True
+
+
+    async def start_interactive_mode(self):
+        """Start interactive CLI mode for API server integration."""
+        print(f"\n{CLIColors.BRIGHT_GREEN}Starting interactive CLI mode...{CLIColors.RESET}")
+        
+        while True:
+            try:
+                # Get command input
+                cmd_input = input(f"{CLIColors.BRIGHT_GREEN}plexichat>{CLIColors.RESET} ").strip()
+                
+                if not cmd_input:
+                    continue
+                    
+                if cmd_input.lower() in ['exit', 'quit', 'q']:
+                    print(f"{CLIColors.YELLOW}Exiting CLI...{CLIColors.RESET}")
+                    break
+                    
+                # Parse command and arguments
+                parts = cmd_input.split()
+                command = parts[0]
+                args = parts[1:] if len(parts) > 1 else []
+                
+                # Execute command
+                success = await self.execute_command(command, args)
+                if not success:
+                    print(f"{CLIColors.RED}Command failed: {command}{CLIColors.RESET}")
+            except KeyboardInterrupt:
+                print(f"\n{CLIColors.YELLOW}Operation cancelled. Type 'exit' to quit.{CLIColors.RESET}")
+            except Exception as e:
+                print(f"{CLIColors.RED}Error: {e}{CLIColors.RESET}")
 
 
 # Global enhanced CLI instance

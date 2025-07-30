@@ -948,7 +948,7 @@ class ProcessLockManager:
                         if logger:
                             logger.warning(f"PlexiChat is already running (PID: {existing_pid})")
                         return False
-                    except (ProcessLookupError, PermissionError):
+                    except (ProcessLookupError, PermissionError, OSError):
                         # Process doesn't exist, remove stale lock
                         self._lock_file_path.unlink(missing_ok=True)
                         if logger:
@@ -1945,6 +1945,56 @@ def launch_setup_interface(interface_type: str) -> bool:
 
 
 from typing import Any, Optional
+def load_configuration() -> Dict[str, Any]:
+    """Load configuration from file or return defaults."""
+    try:
+        config_dir = Path("config")
+        config_file = config_dir / "plexichat.json"
+        
+        # Create config directory if it doesn't exist
+        config_dir.mkdir(exist_ok=True)
+        
+        # Default configuration
+        default_config = {
+            "server": {
+                "host": "0.0.0.0",
+                "port": 8000,
+                "debug": False,
+                "reload": True
+            },
+            "database": {
+                "type": "sqlite",
+                "url": "sqlite:///./data/plexichat.db"
+            },
+            "logging": {
+                "level": "INFO",
+                "file": "logs/plexichat.log",
+                "max_size_mb": 10,
+                "backup_count": 5
+            }
+        }
+        
+        # Load configuration if file exists
+        if config_file.exists():
+            try:
+                with open(config_file, 'r', encoding='utf-8') as f:
+                    config = json.load(f)
+                if logger:
+                    logger.info(f"Configuration loaded from {config_file}")
+                return config
+            except Exception as e:
+                if logger:
+                    logger.error(f"Error loading configuration: {e}")
+        
+        # Return default configuration
+        if logger:
+            logger.info("Using default configuration")
+        return default_config
+    except Exception as e:
+        if logger:
+            logger.error(f"Failed to load configuration: {e}")
+        return {}
+
 def run_api_server(args: Optional[Any] = None) -> bool:
     """Start the PlexiChat API server."""
     from typing import Any, Optional
@@ -1957,10 +2007,23 @@ def run_api_server(args: Optional[Any] = None) -> bool:
             pass
         import uvicorn
         if logger:
-            logger.info("About to import FastAPI app from src.plexichat.main...")
-        from src.plexichat.main import app
-        if logger:
-            logger.info("FastAPI app imported successfully!")
+            logger.info("About to import FastAPI app from plexichat.main...")
+        try:
+            # Try importing from plexichat.main first
+            from plexichat.main import app
+            if logger:
+                logger.info("FastAPI app imported successfully from plexichat.main!")
+        except ImportError:
+            # Fallback to src.plexichat.main
+            try:
+                from src.plexichat.main import app
+                if logger:
+                    logger.info("FastAPI app imported successfully from src.plexichat.main!")
+            except ImportError as e:
+                if logger:
+                    logger.error(f"Failed to import FastAPI app: {e}")
+                return False
+                
         config = load_configuration()
         host: str = "0.0.0.0"
         port: int = 8000
@@ -2005,26 +2068,59 @@ def run_cli() -> None:
     """Run the enhanced CLI interface."""
     try:
         # Import the enhanced CLI system
-        from plexichat.interfaces.cli.enhanced_cli import enhanced_cli
+        try:
+            from plexichat.interfaces.cli.enhanced_cli import enhanced_cli
+        except ImportError:
+            try:
+                from src.plexichat.interfaces.cli.enhanced_cli import enhanced_cli
+            except ImportError as e:
+                if logger:
+                    logger.error(f"Could not import enhanced CLI: {e}")
+                print(f"{Colors.RED}Enhanced CLI not available: {e}{Colors.RESET}")
+                print(f"{Colors.YELLOW}Showing basic help instead...{Colors.RESET}")
+                # Use the global show_help function defined in this file
+                show_help()
+                return
 
-        # If no additional arguments, show help
-        if len(sys.argv) <= 2:
-            enhanced_cli.show_help()
-            return
-
-        # Extract command and arguments
-        command = sys.argv[2] if len(sys.argv) > 2 else None
-        args = sys.argv[3:] if len(sys.argv) > 3 else []
-
-        if command:
-            # Run the command
-            import asyncio
-            success = asyncio.run(enhanced_cli.execute_command(command, args))
-            if not success:
-                print(f"{Colors.RED}Command failed: {command}{Colors.RESET}")
-                sys.exit(1)
-        else:
-            enhanced_cli.show_help()
+        # Show welcome message
+        print(f"{Colors.BRIGHT_CYAN}PlexiChat Enhanced CLI{Colors.RESET}")
+        print(f"{Colors.CYAN}Version: {PLEXICHAT_VERSION}{Colors.RESET}")
+        print(f"{Colors.CYAN}Type 'help' for available commands{Colors.RESET}")
+        
+        # Interactive CLI mode
+        enhanced_cli.show_help()
+        
+        # Start interactive loop
+        print(f"\n{Colors.BRIGHT_GREEN}Starting interactive CLI mode...{Colors.RESET}")
+        while True:
+            try:
+                # Get command input
+                cmd_input = input(f"{Colors.BRIGHT_GREEN}plexichat>{Colors.RESET} ").strip()
+                
+                if not cmd_input:
+                    continue
+                    
+                if cmd_input.lower() in ['exit', 'quit', 'q']:
+                    print(f"{Colors.YELLOW}Exiting CLI...{Colors.RESET}")
+                    break
+                    
+                # Parse command and arguments
+                parts = cmd_input.split()
+                command = parts[0]
+                args = parts[1:] if len(parts) > 1 else []
+                
+                # Execute command
+                import asyncio
+                success = asyncio.run(enhanced_cli.execute_command(command, args))
+                if not success:
+                    print(f"{Colors.RED}Command failed: {command}{Colors.RESET}")
+            except KeyboardInterrupt:
+                print(f"\n{Colors.YELLOW}Operation cancelled. Type 'exit' to quit.{Colors.RESET}")
+            except Exception as e:
+                print(f"{Colors.RED}Error: {e}{Colors.RESET}")
+                if logger:
+                    logger.error(f"CLI command error: {e}")
+                    logger.debug(f"CLI error details: {e}", exc_info=True)
 
     except Exception as e:
         if logger:
@@ -3416,8 +3512,25 @@ def select_version_to_install(repo: str) -> str:
         print("Invalid selection.")
 
 def run_api_and_cli(args):
-    print(f"STUB: Running API and CLI with args: {args}")
-    return 0
+    """Start the PlexiChat API server with CLI interface."""
+    try:
+        # Start the API server in a separate thread
+        import threading
+        logger.info("Starting PlexiChat API server in background thread...")
+        api_thread = threading.Thread(target=run_api_server, args=(args,), daemon=True)
+        api_thread.start()
+        
+        # Give the API server time to start
+        import time
+        time.sleep(2)
+        
+        # Run the CLI interface in the main thread
+        logger.info("API server started. Now starting CLI interface...")
+        run_cli()
+        return 0
+    except Exception as e:
+        logger.error(f"Error starting API and CLI: {e}")
+        return 1
 
 def run_gui(args):
     print(f"STUB: Running GUI with args: {args}")
@@ -3432,8 +3545,60 @@ def run_webui(args):
     return 0
 
 def run_cli():
-    print("STUB: Running CLI")
-    return 0
+    """Run the enhanced CLI interface with plugin integration."""
+    try:
+        # Import the main CLI system with plugin support
+        try:
+            from plexichat.interfaces.cli.main_cli import main as cli_main
+        except ImportError:
+            try:
+                from src.plexichat.interfaces.cli.main_cli import main as cli_main
+            except ImportError as e:
+                print(f"CLI system not available: {e}")
+                return 1
+        
+        # Check if we have arguments to pass to CLI
+        import sys
+        if len(sys.argv) > 2:
+            # CLI has arguments, use main CLI
+            original_argv = sys.argv.copy()
+            try:
+                # Remove 'run.py' and 'cli' from argv, pass remaining args to CLI
+                sys.argv = ['plexichat'] + sys.argv[2:]
+                cli_main()
+            finally:
+                sys.argv = original_argv
+        else:
+            # Interactive mode - use enhanced CLI
+            try:
+                from plexichat.interfaces.cli.enhanced_cli import enhanced_cli
+            except ImportError:
+                try:
+                    from src.plexichat.interfaces.cli.enhanced_cli import enhanced_cli
+                except ImportError:
+                    enhanced_cli = None
+            
+            if enhanced_cli:
+                print(f"{Colors.BRIGHT_CYAN}PlexiChat Enhanced CLI{Colors.RESET}")
+                print(f"{Colors.CYAN}Version: {PLEXICHAT_VERSION}{Colors.RESET}")
+                print(f"{Colors.CYAN}Type 'help' for available commands{Colors.RESET}")
+                
+                # Start interactive loop
+                import asyncio
+                asyncio.run(enhanced_cli.start_interactive_mode())
+            else:
+                # Fallback to main CLI without args
+                cli_main()
+                
+        return 0
+        
+    except KeyboardInterrupt:
+        print(f"\n{Colors.YELLOW}CLI interrupted by user{Colors.RESET}")
+        return 0
+    except Exception as e:
+        logger.error(f"Error running CLI: {e}")
+        print(f"Error: {e}")
+        return 1
 
 def run_admin_cli():
     print("STUB: Running admin CLI")
