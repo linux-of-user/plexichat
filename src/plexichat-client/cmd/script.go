@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"bufio"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -96,8 +95,8 @@ type ScriptCommand struct {
 }
 
 type Workflow struct {
-	Name        string          `json:"name"`
-	Description string          `json:"description"`
+	Name        string            `json:"name"`
+	Description string            `json:"description"`
 	Triggers    []WorkflowTrigger `json:"triggers"`
 	Steps       []WorkflowStep    `json:"steps"`
 	Variables   map[string]string `json:"variables"`
@@ -111,25 +110,25 @@ type WorkflowTrigger struct {
 }
 
 type WorkflowStep struct {
-	Name        string            `json:"name"`
-	Type        string            `json:"type"`
-	Command     string            `json:"command"`
-	Args        []string          `json:"args"`
-	Options     map[string]string `json:"options"`
-	Condition   string            `json:"condition,omitempty"`
-	OnSuccess   string            `json:"on_success,omitempty"`
-	OnFailure   string            `json:"on_failure,omitempty"`
+	Name      string            `json:"name"`
+	Type      string            `json:"type"`
+	Command   string            `json:"command"`
+	Args      []string          `json:"args"`
+	Options   map[string]string `json:"options"`
+	Condition string            `json:"condition,omitempty"`
+	OnSuccess string            `json:"on_success,omitempty"`
+	OnFailure string            `json:"on_failure,omitempty"`
 }
 
 func init() {
 	rootCmd.AddCommand(scriptCmd)
 	rootCmd.AddCommand(automateCmd)
-	
+
 	scriptCmd.AddCommand(scriptRunCmd)
 	scriptCmd.AddCommand(scriptCreateCmd)
 	scriptCmd.AddCommand(scriptListCmd)
 	scriptCmd.AddCommand(scriptValidateCmd)
-	
+
 	automateCmd.AddCommand(automateScheduleCmd)
 	automateCmd.AddCommand(automateWorkflowCmd)
 
@@ -137,7 +136,7 @@ func init() {
 	scriptRunCmd.Flags().StringSliceP("var", "v", []string{}, "Set script variables (key=value)")
 	scriptRunCmd.Flags().Bool("dry-run", false, "Show what would be executed without running")
 	scriptRunCmd.Flags().Bool("verbose", false, "Verbose output")
-	
+
 	scriptCreateCmd.Flags().String("template", "basic", "Script template (basic, chat-bot, monitoring, security)")
 	scriptCreateCmd.Flags().Bool("interactive", false, "Interactive script creation")
 
@@ -146,7 +145,7 @@ func init() {
 	automateScheduleCmd.Flags().String("interval", "", "Interval for recurring tasks")
 	automateScheduleCmd.Flags().String("script", "", "Script to schedule")
 	automateScheduleCmd.Flags().String("workflow", "", "Workflow to schedule")
-	
+
 	automateWorkflowCmd.Flags().StringSliceP("var", "v", []string{}, "Set workflow variables")
 	automateWorkflowCmd.Flags().Bool("dry-run", false, "Show workflow steps without executing")
 }
@@ -168,7 +167,7 @@ func runScript(cmd *cobra.Command, args []string) error {
 	for key, value := range script.Variables {
 		scriptVars[key] = value
 	}
-	
+
 	for _, variable := range variables {
 		parts := strings.SplitN(variable, "=", 2)
 		if len(parts) == 2 {
@@ -182,7 +181,7 @@ func runScript(cmd *cobra.Command, args []string) error {
 	}
 	fmt.Printf("Version: %s\n", script.Version)
 	fmt.Printf("Commands: %d\n", len(script.Commands))
-	
+
 	if dryRun {
 		color.Yellow("DRY RUN MODE - No commands will be executed")
 	}
@@ -218,7 +217,7 @@ func runScript(cmd *cobra.Command, args []string) error {
 		err := executeScriptCommand(c, command, scriptVars)
 		if err != nil {
 			color.Red("Error in step %d: %v", i+1, err)
-			
+
 			switch command.OnError {
 			case "continue":
 				color.Yellow("Continuing despite error...")
@@ -252,7 +251,7 @@ func runScriptCreate(cmd *cobra.Command, args []string) error {
 	}
 
 	script := createScriptFromTemplate(scriptName, template)
-	
+
 	// Save script
 	scriptPath := filepath.Join("scripts", scriptName+".json")
 	err := os.MkdirAll("scripts", 0755)
@@ -279,7 +278,7 @@ func runScriptCreate(cmd *cobra.Command, args []string) error {
 
 func runScriptList(cmd *cobra.Command, args []string) error {
 	scriptsDir := "scripts"
-	
+
 	if _, err := os.Stat(scriptsDir); os.IsNotExist(err) {
 		fmt.Println("No scripts directory found. Create scripts with 'script create' command.")
 		return nil
@@ -350,7 +349,7 @@ func runScriptValidate(cmd *cobra.Command, args []string) error {
 		if command.Command == "" {
 			errors = append(errors, fmt.Sprintf("command %d: command is required", i+1))
 		}
-		
+
 		// Validate command types
 		validTypes := []string{"api", "chat", "file", "admin", "security", "benchmark", "wait", "log"}
 		if !contains(validTypes, command.Type) {
@@ -385,7 +384,7 @@ func runAutomateSchedule(cmd *cobra.Command, args []string) error {
 	}
 
 	color.Cyan("📅 Scheduling Automation")
-	
+
 	if cronExpr != "" {
 		fmt.Printf("Cron expression: %s\n", cronExpr)
 	}
@@ -421,7 +420,7 @@ func runAutomateWorkflow(cmd *cobra.Command, args []string) error {
 	for key, value := range workflow.Variables {
 		workflowVars[key] = value
 	}
-	
+
 	for _, variable := range variables {
 		parts := strings.SplitN(variable, "=", 2)
 		if len(parts) == 2 {
@@ -432,7 +431,7 @@ func runAutomateWorkflow(cmd *cobra.Command, args []string) error {
 	color.Cyan("🔄 Executing Workflow: %s", workflow.Name)
 	fmt.Printf("Description: %s\n", workflow.Description)
 	fmt.Printf("Steps: %d\n", len(workflow.Steps))
-	
+
 	if dryRun {
 		color.Yellow("DRY RUN MODE - No steps will be executed")
 	}
@@ -447,7 +446,7 @@ func runAutomateWorkflow(cmd *cobra.Command, args []string) error {
 
 	for i, step := range workflow.Steps {
 		color.Blue("Step %d: %s", i+1, step.Name)
-		
+
 		if dryRun {
 			fmt.Printf("Would execute: %s %s\n", step.Command, strings.Join(step.Args, " "))
 			continue
@@ -465,12 +464,12 @@ func runAutomateWorkflow(cmd *cobra.Command, args []string) error {
 		err := executeWorkflowStep(c, step, workflowVars)
 		if err != nil {
 			color.Red("Error in step %d: %v", i+1, err)
-			
+
 			if step.OnFailure != "" {
 				color.Yellow("Executing failure handler: %s", step.OnFailure)
 				// Execute failure handler
 			}
-			
+
 			return fmt.Errorf("workflow failed at step %d: %w", i+1, err)
 		}
 
@@ -638,7 +637,7 @@ func executeChatCommand(c *client.Client, command string, args []string) error {
 		// Parse args for room and message
 		roomID := 1
 		message := "Hello from script"
-		
+
 		for i, arg := range args {
 			if arg == "--room" && i+1 < len(args) {
 				if id, err := strconv.Atoi(args[i+1]); err == nil {
@@ -649,7 +648,7 @@ func executeChatCommand(c *client.Client, command string, args []string) error {
 				message = args[i+1]
 			}
 		}
-		
+
 		_, err := c.SendMessage(ctx, message, roomID)
 		return err
 	default:

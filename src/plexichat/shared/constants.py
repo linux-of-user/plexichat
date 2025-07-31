@@ -81,6 +81,9 @@ LOG_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 # Fixed CLI Constants
 CLI_PROMPT = "plexichat> "
 
+# Plugin Timeout Constants (fixed system limits)
+PLUGIN_TIMEOUT = 30  # seconds
+
 # Fixed Error Messages (these are constants, not config)
 ERROR_PLUGIN_NOT_FOUND = "Plugin not found"
 ERROR_PLUGIN_LOAD_FAILED = "Failed to load plugin"

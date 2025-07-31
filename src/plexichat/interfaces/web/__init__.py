@@ -24,30 +24,46 @@ except ImportError:
 
 # Use EXISTING performance optimization engine
 try:
-    from plexichat.infrastructure.performance.optimization_engine import PerformanceOptimizationEngine
-    from plexichat.infrastructure.utils.performance import async_track_performance
-    from plexichat.core.logging_advanced.performance_logger import get_performance_logger
+    from ...infrastructure.performance.optimization_engine import PerformanceOptimizationEngine
+    from ...infrastructure.utils.performance import async_track_performance
+    from ...core.logging_advanced.performance_logger import get_performance_logger
 except ImportError:
-    PerformanceOptimizationEngine = None
-    async_track_performance = None
-    get_performance_logger = None
+    try:
+        from plexichat.infrastructure.performance.optimization_engine import PerformanceOptimizationEngine
+        from plexichat.infrastructure.utils.performance import async_track_performance
+        from plexichat.core.logging_advanced.performance_logger import get_performance_logger
+    except ImportError:
+        PerformanceOptimizationEngine = None
+        async_track_performance = None
+        get_performance_logger = None
 
 # Configuration imports
 try:
-    from plexichat.core.config_manager import ConfigurationManager
+    from ...core.config_manager import ConfigurationManager
     config_manager = ConfigurationManager()
-    
+
     class Settings:
         DEBUG = config_manager.get('system.debug', False)
         APP_NAME = config_manager.get('system.name', 'PlexiChat')
-        APP_VERSION = config_manager.get('system.version', 'b.1.1-86')
-    
+        APP_VERSION = config_manager.get('system.version', 'b.1.1-93')
+
     settings = Settings()
 except ImportError:
-    class MockSettings:
-        DEBUG = False
-        APP_NAME = "PlexiChat"
-        APP_VERSION = "b.1.1-86"
+    try:
+        from plexichat.core.config_manager import ConfigurationManager
+        config_manager = ConfigurationManager()
+
+        class Settings:
+            DEBUG = config_manager.get('system.debug', False)
+            APP_NAME = config_manager.get('system.name', 'PlexiChat')
+            APP_VERSION = config_manager.get('system.version', 'b.1.1-93')
+
+        settings = Settings()
+    except ImportError:
+        class MockSettings:
+            DEBUG = False
+            APP_NAME = "PlexiChat"
+            APP_VERSION = "b.1.1-93"
     settings = MockSettings()
 
 logger = logging.getLogger(__name__)
@@ -164,10 +180,33 @@ def _include_routers(app):
 
         for router_name, prefix in routers:
             try:
-                module = __import__(f"plexichat.interfaces.web.routers.{router_name}", fromlist=[router_name])
-                if hasattr(module, 'router'):
+                # Try multiple import paths
+                import_paths = [
+                    f"plexichat.interfaces.web.routers.{router_name}",
+                    f"src.plexichat.interfaces.web.routers.{router_name}",
+                    f".routers.{router_name}"
+                ]
+
+                module = None
+                for import_path in import_paths:
+                    try:
+                        if import_path.startswith('.'):
+                            # Relative import
+                            from . import routers
+                            module = getattr(routers, router_name, None)
+                        else:
+                            # Absolute import
+                            module = __import__(import_path, fromlist=[router_name])
+                        if module:
+                            break
+                    except (ImportError, AttributeError):
+                        continue
+
+                if module and hasattr(module, 'router'):
                     app.include_router(module.router, prefix=prefix)
                     logger.info(f"Included router: {router_name} at {prefix}")
+                else:
+                    logger.warning(f"Router {router_name} not found or has no 'router' attribute")
             except ImportError as e:
                 logger.warning(f"Could not import router {router_name}: {e}")
             except Exception as e:

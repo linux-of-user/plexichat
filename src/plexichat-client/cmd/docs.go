@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/fatih/color"
@@ -184,29 +183,29 @@ func generateMarkdownDocs(outputDir string, includeExamples, includeAPI bool) er
 func generateHTMLDocs(outputDir string, includeExamples, includeAPI bool) error {
 	// For HTML generation, we would typically use a template engine
 	// For now, we'll generate basic HTML
-	
+
 	htmlTemplate := `<!DOCTYPE html>
 <html>
 <head>
-    <title>PlexiChat Go Client Documentation</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 40px; }
-        h1, h2, h3 { color: #333; }
-        code { background: #f4f4f4; padding: 2px 4px; }
-        pre { background: #f4f4f4; padding: 10px; overflow-x: auto; }
-    </style>
+	<title>PlexiChat Go Client Documentation</title>
+	<style>
+		body { font-family: Arial, sans-serif; margin: 40px; }
+		h1, h2, h3 { color: #333; }
+		code { background: #f4f4f4; padding: 2px 4px; }
+		pre { background: #f4f4f4; padding: 10px; overflow-x: auto; }
+	</style>
 </head>
 <body>
-    <h1>PlexiChat Go Client Documentation</h1>
-    <p>Generated on: %s</p>
-    <p>This is a placeholder for HTML documentation.</p>
-    <p>In a full implementation, this would contain:</p>
-    <ul>
-        <li>Complete command reference</li>
-        <li>API documentation</li>
-        <li>Usage examples</li>
-        <li>Configuration guide</li>
-    </ul>
+	<h1>PlexiChat Go Client Documentation</h1>
+	<p>Generated on: %s</p>
+	<p>This is a placeholder for HTML documentation.</p>
+	<p>In a full implementation, this would contain:</p>
+	<ul>
+		<li>Complete command reference</li>
+		<li>API documentation</li>
+		<li>Usage examples</li>
+		<li>Configuration guide</li>
+	</ul>
 </body>
 </html>`
 
@@ -225,16 +224,16 @@ func generateManPages(outputDir string) error {
 
 func generateExamples(outputDir, format string) error {
 	examples := map[string]string{
-		"basic-usage": generateBasicUsageExample(),
-		"authentication": generateAuthExample(),
-		"chat-operations": generateChatExample(),
-		"file-management": generateFileExample(),
-		"admin-tasks": generateAdminExample(),
-		"security-testing": generateSecurityExample(),
+		"basic-usage":         generateBasicUsageExample(),
+		"authentication":      generateAuthExample(),
+		"chat-operations":     generateChatExample(),
+		"file-management":     generateFileExample(),
+		"admin-tasks":         generateAdminExample(),
+		"security-testing":    generateSecurityExample(),
 		"performance-testing": generatePerformanceExample(),
-		"automation": generateAutomationExample(),
-		"monitoring": generateMonitoringExample(),
-		"configuration": generateConfigExample(),
+		"automation":          generateAutomationExample(),
+		"monitoring":          generateMonitoringExample(),
+		"configuration":       generateConfigExample(),
 	}
 
 	for name, content := range examples {

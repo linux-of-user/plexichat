@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
 	"time"
@@ -175,7 +174,7 @@ func runSecurityScan(cmd *cobra.Command, args []string) error {
 	}
 
 	fmt.Println("Starting vulnerability scan...")
-	
+
 	resp, err := c.Post(ctx, "/api/v1/security/scan", scanReq)
 	if err != nil {
 		return fmt.Errorf("failed to start security scan: %w", err)
@@ -280,7 +279,7 @@ func runSecurityReport(cmd *cobra.Command, args []string) error {
 	}
 
 	// Get report content
-	reportContent, err := c.ParseResponse(resp, nil)
+	reportContent := c.ParseResponse(resp, nil)
 	if err != nil {
 		return fmt.Errorf("failed to get report content: %w", err)
 	}
@@ -301,7 +300,7 @@ func runSecurityReport(cmd *cobra.Command, args []string) error {
 
 func runFullSecurityScan(c *client.Client, ctx context.Context) error {
 	fmt.Println("Running comprehensive security scan...")
-	
+
 	// Common endpoints to test
 	endpoints := []string{
 		"/api/v1/auth/login",

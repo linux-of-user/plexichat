@@ -933,16 +933,39 @@ def handle_gui_command(args):
     # Start servers based on arguments
     if not args.noserver:
         print_colored("🚀 Starting API server...", Colors.GREEN)
-        # Start API server in background
+        api_thread = threading.Thread(target=lambda: start_server(
+            host=args.host,
+            port=args.port,
+            reload=not args.no_reload
+        ), daemon=True)
+        api_thread.start()
+        time.sleep(2)  # Give server time to start
 
     if not args.nowebui:
         print_colored("🌐 Starting WebUI server...", Colors.GREEN)
-        # Start WebUI server in background
+        webui_thread = threading.Thread(target=lambda: start_webui_server(
+            host=args.host,
+            port=args.webui_port
+        ), daemon=True)
+        webui_thread.start()
+        time.sleep(2)  # Give server time to start
 
     print_colored("🎨 Launching GUI...", Colors.CYAN)
-    # Launch GUI interface
+    try:
+        # Import and launch the GUI interface
+        sys.path.insert(0, str(Path(__file__).parent / "src"))
+        from plexichat.interfaces.gui import run_gui
 
-    print_colored("✅ GUI interface started successfully!", Colors.GREEN, bold=True)
+        print_colored("✅ GUI interface started successfully!", Colors.GREEN, bold=True)
+        exit_code = run_gui(use_pyqt=True)
+        return exit_code
+    except ImportError as e:
+        print_colored(f"⚠️  GUI system not available: {e}", Colors.YELLOW)
+        print_colored("💡 Install PyQt6 with: pip install PyQt6", Colors.CYAN)
+        return 1
+    except Exception as e:
+        print_colored(f"❌ GUI error: {e}", Colors.RED)
+        return 1
 
 def update_version_files(version: str):
     """Update version.json and changelog files."""

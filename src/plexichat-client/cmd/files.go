@@ -100,8 +100,6 @@ func runFilesUpload(cmd *cobra.Command, args []string) error {
 	}
 
 	filePath, _ := cmd.Flags().GetString("file")
-	description, _ := cmd.Flags().GetString("description")
-	public, _ := cmd.Flags().GetBool("public")
 
 	// Check if file exists
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
@@ -300,7 +298,7 @@ func runFilesList(cmd *cobra.Command, args []string) error {
 		if file.Size < 1024*1024 {
 			size = fmt.Sprintf("%.2f KB", float64(file.Size)/1024)
 		}
-		
+
 		table.Append([]string{
 			strconv.Itoa(file.ID),
 			file.Filename,

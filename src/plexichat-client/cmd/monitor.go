@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/fatih/color"
-	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
@@ -98,20 +97,20 @@ type UserActivity struct {
 }
 
 type Alert struct {
-	ID          string    `json:"id"`
-	Timestamp   time.Time `json:"timestamp"`
-	Level       string    `json:"level"`
-	Type        string    `json:"type"`
-	Message     string    `json:"message"`
-	Source      string    `json:"source"`
-	Acknowledged bool     `json:"acknowledged"`
+	ID           string    `json:"id"`
+	Timestamp    time.Time `json:"timestamp"`
+	Level        string    `json:"level"`
+	Type         string    `json:"type"`
+	Message      string    `json:"message"`
+	Source       string    `json:"source"`
+	Acknowledged bool      `json:"acknowledged"`
 }
 
 func init() {
 	rootCmd.AddCommand(monitorCmd)
 	rootCmd.AddCommand(analyticsCmd)
 	rootCmd.AddCommand(metricsCmd)
-	
+
 	monitorCmd.AddCommand(monitorSystemCmd)
 	monitorCmd.AddCommand(monitorChatCmd)
 	monitorCmd.AddCommand(monitorUsersCmd)
@@ -362,10 +361,10 @@ func runMonitorAlerts(cmd *cobra.Command, args []string) error {
 			}
 
 			timestamp := alert.Timestamp.Format("15:04:05")
-			
+
 			var levelColor func(format string, a ...interface{}) string
 			var icon string
-			
+
 			switch alert.Level {
 			case "critical":
 				levelColor = color.RedString
@@ -384,12 +383,12 @@ func runMonitorAlerts(cmd *cobra.Command, args []string) error {
 				icon = "📢"
 			}
 
-			fmt.Printf("[%s] %s %s [%s] %s - %s\n", 
-				timestamp, 
-				icon, 
-				levelColor(alert.Level), 
-				alert.Source, 
-				alert.Type, 
+			fmt.Printf("[%s] %s %s [%s] %s - %s\n",
+				timestamp,
+				icon,
+				levelColor(alert.Level),
+				alert.Source,
+				alert.Type,
 				alert.Message)
 		}
 	}()
@@ -504,7 +503,7 @@ func displaySystemMetrics(c *client.Client, jsonOutput bool) error {
 	} else {
 		// Clear screen and display metrics
 		fmt.Print("\033[2J\033[H")
-		
+
 		color.Cyan("=== System Metrics ===")
 		fmt.Printf("Timestamp: %s\n", time.Now().Format("2006-01-02 15:04:05"))
 		fmt.Printf("Memory Usage: %.2f MB\n", stats.MemoryUsage)
@@ -538,7 +537,7 @@ func displayAnalytics(analytics map[string]interface{}, format string) {
 func displayMetrics(metrics map[string]interface{}, detailed bool) {
 	color.Cyan("System Metrics:")
 	fmt.Println("===============")
-	
+
 	for category, data := range metrics {
 		color.Yellow("%s:", category)
 		if detailed {

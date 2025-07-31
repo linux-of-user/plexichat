@@ -1,20 +1,14 @@
 package cmd
 
 import (
-	"context"
-	"encoding/json"
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/fatih/color"
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-
-	"plexichat-client/pkg/client"
 )
 
 var pluginsCmd = &cobra.Command{
@@ -364,7 +358,7 @@ func runPluginsUpdate(cmd *cobra.Command, args []string) error {
 		color.Green("✓ Plugin '%s' updated successfully!", specificPlugin)
 	} else {
 		fmt.Println("Updating all installed plugins...")
-		
+
 		plugins, err := getInstalledPlugins()
 		if err != nil {
 			return fmt.Errorf("failed to get installed plugins: %w", err)
