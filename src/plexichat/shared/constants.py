@@ -98,6 +98,12 @@ SUCCESS_OPERATION_COMPLETED = "Operation completed successfully"
 
 # User validation constants (these are validation rules, not configurable)
 MAX_USERNAME_LENGTH = 50
+
+# Backup and Security Constants
+BACKUP_ENCRYPTION_ENABLED = True
+SECURITY_LOGGING_ENABLED = True
+MONITORING_ENABLED = True
+
 MIN_USERNAME_LENGTH = 3
 MAX_EMAIL_LENGTH = 255
 MAX_DISPLAY_NAME_LENGTH = 100

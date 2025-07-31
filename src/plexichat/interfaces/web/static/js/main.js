@@ -417,3 +417,27 @@ const plexichat = new PlexiChatApp();
 
 // Export for global access
 window.plexichat = plexichat;
+
+// Initialize Stagewise toolbar for development
+(function() {
+    // Simple development mode detection
+    const isDevMode = window.location.hostname === 'localhost' || 
+                     window.location.hostname === '127.0.0.1' ||
+                     window.location.port !== '' ||
+                     window.location.hostname.includes('dev');
+    
+    if (isDevMode) {
+        // Load stagewise toolbar script
+        const script = document.createElement('script');
+        script.src = 'https://unpkg.com/@stagewise/toolbar@latest/dist/stagewise-toolbar.min.js';
+        script.onload = function() {
+            if (window.initToolbar) {
+                window.initToolbar({
+                    plugins: [],
+                    apiEndpoint: '/api/v1'
+                });
+            }
+        };
+        document.head.appendChild(script);
+    }
+})();

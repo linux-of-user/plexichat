@@ -57,6 +57,7 @@ except ImportError as e:
     UnifiedAuthManager = None
 
 from plexichat.core.config import settings
+from plexichat.core.app_setup import setup_routers, setup_static_files
 
 config = settings
 
@@ -123,7 +124,40 @@ app = FastAPI(
     swagger_ui_parameters={"defaultModelsExpandDepth": -1}  # Reduce swagger overhead
 )
 
-# Add microsecond performance middleware first (highest priority)
+# Setup routers and static files
+setup_routers(app)
+setup_static_files(app)
+
+# Add security middleware first (highest priority)
+@app.middleware("http")
+async def security_middleware(request, call_next):
+    """Security middleware to block dangerous HTTP methods and add security headers."""
+    from fastapi import HTTPException
+    from fastapi.responses import JSONResponse
+    
+    # Block dangerous HTTP methods
+    dangerous_methods = ["TRACE", "CONNECT"]
+    if request.method in dangerous_methods:
+        return JSONResponse(
+            status_code=405,
+            content={"error": "Method Not Allowed", "message": f"HTTP method {request.method} is not allowed"},
+            headers={"Allow": "GET, POST, PUT, DELETE, OPTIONS, HEAD, PATCH"}
+        )
+    
+    response = await call_next(request)
+    
+    # Add security headers
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
+    
+    return response
+
+# Add microsecond performance middleware second
 try:
     @app.middleware("http")
     async def microsecond_performance_middleware(request, call_next):
@@ -145,12 +179,16 @@ try:
 except Exception as e:
     logger.warning(f"Microsecond performance middleware error: {e}")
 
+# Add rate limiting middleware
+from plexichat.core.middleware.rate_limiting import rate_limiter
+app.add_middleware(rate_limiter.__class__)
+
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.allowed_origins,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -162,7 +200,10 @@ async def root():
         from plexichat.shared.version_utils import get_version
         version = get_version()
     except ImportError:
-        version = config.get("system", {}).get("version", "b.1.1-86")
+        try:
+            version = config.get("system", {}).get("version", "b.1.1-91")
+        except:
+            version = "b.1.1-91"
 
     return {
         "message": "PlexiChat API",
@@ -178,10 +219,14 @@ async def health_check():
         from plexichat.shared.version_utils import get_health_info
         return get_health_info()
     except ImportError:
+        try:
+            version = config.get("system", {}).get("version", "b.1.1-91")
+        except:
+            version = "b.1.1-91"
         return {
             "status": "healthy",
             "timestamp": datetime.now().isoformat(),
-            "version": config.get("system", {}).get("version", "b.1.1-88")
+            "version": version
         }
 
 @app.get("/performance/stats")
