@@ -27,47 +27,39 @@ from .cluster_update_manager import ClusterUpdateManager
 from .failover_manager import AutomaticFailoverManager
 from .load_balancer import SmartLoadBalancer
 from .node_manager import IntelligentNodeManager
-from .performance_monitor import RealTimePerformanceMonitor
+try:
+    from .performance_monitor import RealTimePerformanceMonitor
+except ImportError:
+    # Fallback performance monitor
+    class RealTimePerformanceMonitor:
+        def __init__(self, *args, **kwargs):
+            pass
+        def start_monitoring(self):
+            pass
+        def stop_monitoring(self):
+            pass
+        def get_metrics(self):
+            return {}
 from .task_manager import AdvancedTaskManager
 from plexichat.infrastructure.modules.interfaces import ModulePriority
 import psutil
 import time
-    Cluster,
-    False,
-    ImportError:,
-    Manager,
-    MetricDataPoint,
-    ResourceType,
-    Sophisticated,
-    True,
-    """,
-    ..predictive_scaling.ml_scaler,
-    =,
-    __name__,
-    allocation,
-    and,
-    clustering,
-    distribution,
-    except,
-    from,
-    gains,
-    hybrid_cloud_orchestrator,
-    import,
-    intelligent,
-    load,
-    logger,
-    logging.getLogger,
-    optimization.,
-    performance,
-    provides,
-    psutil,
-    resource,
-    system,
-    tangible,
-    that,
-    through,
-    try:,
-)
+
+# Logger setup
+logger = logging.getLogger(__name__)
+
+# Try to import optional dependencies
+try:
+    from ..hybrid_cloud.cloud_orchestrator import hybrid_cloud_orchestrator
+except ImportError:
+    hybrid_cloud_orchestrator = None
+
+try:
+    from ..predictive_scaling.ml_scaler import predictive_scaler
+except ImportError:
+    predictive_scaler = None
+
+
 class ClusterState(Enum):
     """Cluster operational states."""
     INITIALIZING = "initializing"
@@ -155,8 +147,7 @@ class AdvancedClusterManager:
     def __init__(self, plexichat_app):
         """Initialize the advanced cluster manager."""
         self.plexichat_app = plexichat_app
-        from pathlib import Path
-self.cluster_dir = Path("clustering")
+        self.cluster_dir = Path("clustering")
         self.databases_dir = self.cluster_dir / "databases"
         self.logs_dir = self.cluster_dir / "logs"
         self.config_dir = self.cluster_dir / "config"

@@ -18,12 +18,12 @@ except ImportError:
     redis = None
 
 try:
-    from plexichat.core.database.engines import db_cluster
+    from plexichat.core.database.unified_engines import db_cluster
     from plexichat.core.logging import get_logger
     from plexichat.features.channels.models import Channel
-    from plexichat.features.files.models import FileRecord
-    from plexichat.features.guilds.models import Guild, GuildMember
-    from plexichat.features.messaging.models import Message
+    from plexichat.shared.models import FileRecord
+    from plexichat.features.users.models import Guild, GuildMember
+    from plexichat.shared.models import Message
     from plexichat.features.users.models import User
     from sqlmodel import Session, and_, func, select
 except ImportError:

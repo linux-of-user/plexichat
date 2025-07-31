@@ -76,6 +76,18 @@ func init() {
 	// Add subcommands
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(healthCmd)
+	rootCmd.AddCommand(authCmd)
+	rootCmd.AddCommand(chatCmd)
+	rootCmd.AddCommand(filesCmd)
+	rootCmd.AddCommand(adminCmd)
+	rootCmd.AddCommand(configCmd)
+	rootCmd.AddCommand(benchmarkCmd)
+	rootCmd.AddCommand(securityCmd)
+	rootCmd.AddCommand(monitorCmd)
+	rootCmd.AddCommand(scriptCmd)
+	rootCmd.AddCommand(interactiveCmd)
+	rootCmd.AddCommand(testCmd)
+	rootCmd.AddCommand(docsCmd)
 }
 
 // initConfig reads in config file and ENV variables if set.

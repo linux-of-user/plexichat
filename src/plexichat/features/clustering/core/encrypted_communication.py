@@ -22,9 +22,9 @@ from cryptography.hazmat.primitives.ciphers.aead import AESGCM, ChaCha20Poly1305
 from cryptography.x509.oid import NameOID
 
 try:
-    from ....core_system.security.certificate_manager import get_certificate_manager
-    from ....core_system.security.hardware_security import get_hsm_manager
-    from ....core_system.security.unified_audit_system import get_unified_audit_system
+    from plexichat.core.security.certificate_manager import get_certificate_manager
+    from plexichat.core.security.unified_hsm_manager import get_hsm_manager
+    from plexichat.core.security.unified_audit_system import get_unified_audit_system
 except ImportError:
     # Fallback definitions
     get_certificate_manager = lambda: None
