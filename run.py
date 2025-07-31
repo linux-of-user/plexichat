@@ -29,7 +29,7 @@ sys.path.insert(0, str(Path(__file__).parent / "src"))
 
 # Version information
 VERSION = "b.1.1-91"  # beta api v1 minor 1 build 91
-GITHUB_REPO = "dennis/plexichat"  # Update with actual repo
+GITHUB_REPO = "linux-of-user/plexichat"  # Actual GitHub repository
 GITHUB_API_BASE = "https://api.github.com/repos"
 GITHUB_RAW_BASE = "https://raw.githubusercontent.com"
 
@@ -58,9 +58,21 @@ class GitHubManager:
         """Get latest releases from GitHub."""
         try:
             url = f"{self.api_base}/releases?per_page={limit}"
-            with urllib.request.urlopen(url) as response:
+
+            # Create request with proper headers
+            req = urllib.request.Request(url)
+            req.add_header('User-Agent', 'PlexiChat-Installer/1.0')
+            req.add_header('Accept', 'application/vnd.github.v3+json')
+
+            with urllib.request.urlopen(req, timeout=10) as response:
                 data = json.loads(response.read().decode())
                 return data
+        except urllib.error.HTTPError as e:
+            print_colored(f"❌ HTTP Error {e.code}: {e.reason}", Colors.RED)
+            return []
+        except urllib.error.URLError as e:
+            print_colored(f"❌ URL Error: {e.reason}", Colors.RED)
+            return []
         except Exception as e:
             print_colored(f"❌ Failed to fetch releases: {e}", Colors.RED)
             return []
@@ -75,7 +87,11 @@ class GitHubManager:
 
             print_colored(f"📥 Downloading {file_path} from GitHub...", Colors.BLUE)
 
-            with urllib.request.urlopen(url) as response:
+            # Create request with proper headers
+            req = urllib.request.Request(url)
+            req.add_header('User-Agent', 'PlexiChat-Installer/1.0')
+
+            with urllib.request.urlopen(req, timeout=30) as response:
                 content = response.read()
 
             with open(save_path, 'wb') as f:
@@ -84,6 +100,12 @@ class GitHubManager:
             print_colored(f"✅ Downloaded to {save_path}", Colors.GREEN)
             return Path(save_path)
 
+        except urllib.error.HTTPError as e:
+            print_colored(f"❌ HTTP Error {e.code}: {e.reason} for {file_path}", Colors.RED)
+            return None
+        except urllib.error.URLError as e:
+            print_colored(f"❌ URL Error: {e.reason} for {file_path}", Colors.RED)
+            return None
         except Exception as e:
             print_colored(f"❌ Failed to download {file_path}: {e}", Colors.RED)
             return None
@@ -92,8 +114,20 @@ class GitHubManager:
         """Get specific release by tag."""
         try:
             url = f"{self.api_base}/releases/tags/{tag}"
-            with urllib.request.urlopen(url) as response:
+
+            # Create request with proper headers
+            req = urllib.request.Request(url)
+            req.add_header('User-Agent', 'PlexiChat-Installer/1.0')
+            req.add_header('Accept', 'application/vnd.github.v3+json')
+
+            with urllib.request.urlopen(req, timeout=10) as response:
                 return json.loads(response.read().decode())
+        except urllib.error.HTTPError as e:
+            print_colored(f"❌ HTTP Error {e.code}: {e.reason} for release {tag}", Colors.RED)
+            return None
+        except urllib.error.URLError as e:
+            print_colored(f"❌ URL Error: {e.reason} for release {tag}", Colors.RED)
+            return None
         except Exception as e:
             print_colored(f"❌ Failed to fetch release {tag}: {e}", Colors.RED)
             return None
