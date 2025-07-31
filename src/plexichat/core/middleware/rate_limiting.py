@@ -151,17 +151,25 @@ class RateLimitMiddleware:
         self.sliding_limiter = SlidingWindowRateLimiter(self.config)
         self.token_limiter = TokenBucketRateLimiter()
         
-    async def __call__(self, request: Request, call_next):
+    async def __call__(self, scope, receive, send):
         """Rate limiting middleware handler."""
-        # Get client identifier
-        client_ip = request.client.host if request.client else "unknown"
-        user_agent = request.headers.get("user-agent", "")
+        if scope["type"] != "http":
+            # Skip non-HTTP requests
+            from starlette.applications import Starlette
+            app = Starlette()
+            await app(scope, receive, send)
+            return
+
+        # Get client identifier from scope
+        client_ip = scope.get("client", ["unknown", None])[0]
+        headers = dict(scope.get("headers", []))
+        user_agent = headers.get(b"user-agent", b"").decode("utf-8", errors="ignore")
         client_id = f"{client_ip}:{user_agent[:50]}"  # Limit user agent length
-        
+
         # Check rate limits
         if self.sliding_limiter.is_rate_limited(client_id):
             logger.warning(f"Rate limit exceeded for IP: {client_ip}")
-            return JSONResponse(
+            response = JSONResponse(
                 status_code=429,
                 content={
                     "error": "Rate limit exceeded",
@@ -170,10 +178,12 @@ class RateLimitMiddleware:
                 },
                 headers={"Retry-After": "60"}
             )
-        
+            await response(scope, receive, send)
+            return
+
         if not self.token_limiter.consume_token(client_id):
             logger.warning(f"Token bucket limit exceeded for IP: {client_ip}")
-            return JSONResponse(
+            response = JSONResponse(
                 status_code=429,
                 content={
                     "error": "Rate limit exceeded",
@@ -182,26 +192,16 @@ class RateLimitMiddleware:
                 },
                 headers={"Retry-After": "30"}
             )
-        
-        # Add rate limit info to headers
-        sliding_info = self.sliding_limiter.get_rate_limit_info(client_id)
-        token_info = self.token_limiter.get_token_info(client_id)
-        
-        # Process request
-        response = await call_next(request)
-        
-        # Add rate limit headers
-        response.headers.update({
-            "X-RateLimit-Limit": str(sliding_info["limit"]),
-            "X-RateLimit-Remaining": str(sliding_info["remaining"]),
-            "X-RateLimit-Reset": str(sliding_info["reset"]),
-            "X-RateLimit-Token-Remaining": str(int(token_info["remaining"]))
-        })
-        
+            await response(scope, receive, send)
+            return
+
         # Log the request
         self.sliding_limiter.add_request(client_id)
-        
-        return response
+
+        # Continue to next middleware/app
+        from starlette.applications import Starlette
+        app = Starlette()
+        await app(scope, receive, send)
 
 # Global rate limiter instance
 rate_limiter = RateLimitMiddleware()

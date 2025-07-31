@@ -179,9 +179,16 @@ try:
 except Exception as e:
     logger.warning(f"Microsecond performance middleware error: {e}")
 
-# Add rate limiting middleware
-from plexichat.core.middleware.rate_limiting import rate_limiter
-app.add_middleware(rate_limiter.__class__)
+# Add rate limiting middleware (temporarily disabled)
+# try:
+#     from plexichat.core.middleware.rate_limiting import RateLimitMiddleware
+#     app.add_middleware(RateLimitMiddleware)
+#     logger.info("[CHECK] Rate limiting middleware added")
+# except ImportError as e:
+#     logger.warning(f"Rate limiting middleware not available: {e}")
+# except Exception as e:
+#     logger.warning(f"Rate limiting middleware error: {e}")
+logger.info("[CHECK] Rate limiting middleware temporarily disabled")
 
 # Configure CORS
 app.add_middleware(

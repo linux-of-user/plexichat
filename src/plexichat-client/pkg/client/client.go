@@ -50,7 +50,7 @@ func (c *Client) SetToken(token string) {
 // Request makes an HTTP request to the PlexiChat API
 func (c *Client) Request(ctx context.Context, method, endpoint string, body interface{}) (*http.Response, error) {
 	var reqBody io.Reader
-	
+
 	if body != nil {
 		jsonBody, err := json.Marshal(body)
 		if err != nil {
@@ -163,7 +163,7 @@ func (c *Client) ConnectWebSocket(ctx context.Context, endpoint string) (*websoc
 	// Set up headers
 	headers := http.Header{}
 	headers.Set("User-Agent", c.UserAgent)
-	
+
 	if c.Token != "" {
 		headers.Set("Authorization", "Bearer "+c.Token)
 	} else if c.APIKey != "" {
@@ -253,14 +253,20 @@ func (c *Client) Health(ctx context.Context) (*HealthResponse, error) {
 
 // Version gets the version information
 func (c *Client) Version(ctx context.Context) (*VersionResponse, error) {
-	resp, err := c.Get(ctx, "/api/v1/version")
+	// Try the health endpoint first since /api/v1/version doesn't exist
+	health, err := c.Health(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	var version VersionResponse
-	err = c.ParseResponse(resp, &version)
-	return &version, err
+	// Convert health response to version response
+	version := &VersionResponse{
+		Version:     health.Version,
+		APIVersion:  "v1",
+		BuildNumber: 0, // Not available in health response
+	}
+
+	return version, nil
 }
 
 // Login authenticates with username and password (with 2FA support)
@@ -291,10 +297,10 @@ func (c *Client) Login(ctx context.Context, username, password string) (*LoginRe
 // LoginWith2FA authenticates with username, password and 2FA code
 func (c *Client) LoginWith2FA(ctx context.Context, username, password, method, code, challengeResponse string) (*TwoFALoginResponse, error) {
 	loginReq := &TwoFALoginRequest{
-		Username:         username,
-		Password:         password,
-		Method:           method,
-		Code:             code,
+		Username:          username,
+		Password:          password,
+		Method:            method,
+		Code:              code,
 		ChallengeResponse: challengeResponse,
 	}
 
@@ -336,8 +342,8 @@ func (c *Client) Setup2FA(ctx context.Context, method, destination string) (*Two
 // Verify2FASetup verifies a 2FA setup with the provided code/challenge response
 func (c *Client) Verify2FASetup(ctx context.Context, method, code, challengeResponse string) (*TwoFAVerifySetupResponse, error) {
 	verifyReq := &TwoFAVerifySetupRequest{
-		Method:           method,
-		Code:             code,
+		Method:            method,
+		Code:              code,
 		ChallengeResponse: challengeResponse,
 	}
 
