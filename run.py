@@ -1114,6 +1114,24 @@ def start_webui_server(host="0.0.0.0", port=8080):
         print_colored(f"❌ Error starting WebUI server: {e}", Colors.RED, bold=True)
         sys.exit(1)
 
+def start_cli():
+    """Start the PlexiChat CLI system."""
+    print_colored("🖥️  Starting Interactive CLI...", Colors.GREEN)
+    print_colored("💡 Type 'help' for available commands, 'exit' to quit", Colors.CYAN)
+    print()
+
+    try:
+        # Import and start the CLI system
+        sys.path.insert(0, str(Path(__file__).parent / "src"))
+        from plexichat.interfaces.cli.main_cli import main as cli_main
+        cli_main()
+    except ImportError as e:
+        print_colored(f"⚠️  CLI system not available: {e}", Colors.YELLOW)
+        print_colored("📋 Use 'python run.py --help' for other options.", Colors.CYAN)
+    except Exception as e:
+        print_colored(f"❌ CLI error: {e}", Colors.RED)
+        print_colored("📋 Use 'python run.py --help' for other options.", Colors.CYAN)
+
 def start_servers(host="0.0.0.0", port=8000, webui_port=8080, reload=True):
     """Start both API server and WebUI server."""
     print_colored("🚀 Starting PlexiChat with API Server and WebUI", Colors.BLUE, bold=True)
@@ -1485,7 +1503,9 @@ Examples:
                 port=args.webui_port
             )
         else:
-            print_colored("⚠️  All services disabled. Use --help for options.", Colors.YELLOW)
+            # Both --noserver and --nowebui specified, start CLI only
+            print_colored("💬 Starting PlexiChat CLI only", Colors.BLUE, bold=True)
+            start_cli()
 
 if __name__ == "__main__":
     main()
