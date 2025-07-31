@@ -112,16 +112,12 @@ func runTestAll(cmd *cobra.Command, args []string) error {
 	totalTests := 0
 
 	for _, suite := range allSuites {
-		fmt.Printf("%s: %d/%d passed
-", suite.Name, suite.Passed, suite.Total)
+		fmt.Printf("%s: %d/%d passed\n", suite.Name, suite.Passed, suite.Total)
 		totalPassed += suite.Passed
 		totalFailed += suite.Failed
 		totalTests += suite.Total
 	}
-
-	fmt.Printf("
-Overall: %d/%d tests passed
-", totalPassed, totalTests)
+	fmt.Printf("\nOverall: %d/%d tests passed\n", totalPassed, totalTests)
 
 	if totalFailed > 0 {
 		color.Red("❌ %d tests failed", totalFailed)
@@ -143,10 +139,8 @@ func runTestStress(cmd *cobra.Command, args []string) error {
 	}
 
 	color.Cyan("⚡ Running Stress Tests")
-	fmt.Printf("Concurrent connections: %d
-", concurrent)
-	fmt.Printf("Duration: %s
-", duration)
+	fmt.Printf("Concurrent connections: %d\n", concurrent)
+	fmt.Printf("Duration: %s\n", duration)
 	fmt.Println("======================")
 
 	var wg sync.WaitGroup
@@ -237,24 +231,16 @@ func runTestStress(cmd *cobra.Command, args []string) error {
 	// Print results
 	color.Cyan("Stress Test Results")
 	fmt.Println("==================")
-	fmt.Printf("Total Requests: %d
-", totalRequests)
-	fmt.Printf("Successful: %d
-", successfulRequests)
-	fmt.Printf("Failed: %d
-", totalRequests-successfulRequests)
-	fmt.Printf("Success Rate: %.2f%%
-", successRate)
-	fmt.Printf("Requests/sec: %.2f
-", requestsPerSecond)
-	fmt.Printf("Avg Response Time: %s
-", avgDuration)
-	fmt.Printf("Min Response Time: %s
-", minDuration)
-	fmt.Printf("Max Response Time: %s
-", maxDuration)
-	fmt.Printf("Test Duration: %s
-", actualDuration)
+	fmt.Printf("Total Requests: %d\n", totalRequests)
+	fmt.Printf("Successful: %d\n", successfulRequests)
+	fmt.Printf("Failed: %d\n", totalRequests-successfulRequests)
+	fmt.Printf("Success Rate: %.2f%%\n", successRate)
+	fmt.Printf("Requests/sec: %.2f\n", requestsPerSecond)
+	fmt.Printf("Avg Response Time: %s\n", avgDuration)
+	fmt.Printf("Min Response Time: %s\n", minDuration)
+	fmt.Printf("Max Response Time: %s\n", maxDuration)
+	fmt.Printf("Test Duration: %s\n", actualDuration)
+	fmt.Printf("Test Duration: %s\n", actualDuration)
 
 	if successRate < 95 {
 		color.Red("⚠️  Low success rate detected!")
@@ -290,8 +276,7 @@ func (suite *TestSuite) runTest(name string, testFunc func() error) {
 }
 
 func (suite *TestSuite) printResults() {
-	color.Cyan("
-%s Results", suite.Name)
+	color.Cyan("%s Results", suite.Name)
 	fmt.Println(strings.Repeat("=", len(suite.Name)+8))
 
 	for _, test := range suite.Tests {
@@ -302,9 +287,7 @@ func (suite *TestSuite) printResults() {
 		}
 	}
 
-	fmt.Printf("
-Summary: %d/%d tests passed
-", suite.Passed, suite.Total)
+	fmt.Printf("\nSummary: %d/%d tests passed\n", suite.Passed, suite.Total)
 
 	if suite.Failed > 0 {
 		color.Red("❌ %d tests failed", suite.Failed)

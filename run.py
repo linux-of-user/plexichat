@@ -27,11 +27,143 @@ from urllib.parse import urlparse
 # Add the src directory to Python path
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
-# Version information
-VERSION = "b.1.1-91"  # beta api v1 minor 1 build 91
-GITHUB_REPO = "linux-of-user/plexichat"  # Actual GitHub repository
-GITHUB_API_BASE = "https://api.github.com/repos"
-GITHUB_RAW_BASE = "https://raw.githubusercontent.com"
+# Configuration system
+class ConfigManager:
+    """Centralized configuration management."""
+
+    def __init__(self):
+        self.project_root = Path(__file__).parent
+        self.config_file = self.project_root / "config" / "run_config.json"
+        self.version_file = self.project_root / "version.json"
+        self.config = self._load_config()
+
+    def _load_config(self) -> Dict:
+        """Load configuration from files."""
+        # Default configuration
+        defaults = {
+            "version": {
+                "current": "b.1.1-93",
+                "type": "beta",
+                "major": 1,
+                "minor": 1,
+                "build": 93
+            },
+            "github": {
+                "repo": "linux-of-user/plexichat",
+                "api_base": "https://api.github.com/repos",
+                "raw_base": "https://raw.githubusercontent.com",
+                "default_branch": "main"
+            },
+            "server": {
+                "host": "0.0.0.0",
+                "api_port": 8000,
+                "webui_port": 8080,
+                "admin_port": 8002,
+                "websocket_port": 8001,
+                "reload": True
+            },
+            "installation": {
+                "default_level": "minimal",
+                "venv_name": "venv",
+                "requirements_file": "requirements.txt"
+            },
+            "cli": {
+                "enabled": True,
+                "interactive": True,
+                "colors": True,
+                "history_size": 1000
+            },
+            "gui": {
+                "enabled": True,
+                "auto_open": True
+            },
+            "logging": {
+                "level": "INFO",
+                "file": "logs/run.log",
+                "max_size": "10MB",
+                "backup_count": 5
+            }
+        }
+
+        # Load from version.json if available
+        if self.version_file.exists():
+            try:
+                with open(self.version_file, 'r') as f:
+                    version_data = json.load(f)
+                    defaults["version"]["current"] = version_data.get("version", defaults["version"]["current"])
+                    defaults["version"]["build"] = version_data.get("build_number", defaults["version"]["build"])
+            except Exception as e:
+                print_colored(f"⚠️  Warning: Could not load version.json: {e}", Colors.YELLOW)
+
+        # Load from config file if available
+        if self.config_file.exists():
+            try:
+                with open(self.config_file, 'r') as f:
+                    file_config = json.load(f)
+                    self._deep_update(defaults, file_config)
+            except Exception as e:
+                print_colored(f"⚠️  Warning: Could not load config file: {e}", Colors.YELLOW)
+        else:
+            # Create config directory and file
+            self.config_file.parent.mkdir(parents=True, exist_ok=True)
+            self.save_config(defaults)
+
+        return defaults
+
+    def _deep_update(self, base_dict: Dict, update_dict: Dict):
+        """Deep update dictionary."""
+        for key, value in update_dict.items():
+            if key in base_dict and isinstance(base_dict[key], dict) and isinstance(value, dict):
+                self._deep_update(base_dict[key], value)
+            else:
+                base_dict[key] = value
+
+    def get(self, key_path: str, default=None):
+        """Get configuration value using dot notation."""
+        keys = key_path.split('.')
+        value = self.config
+
+        for key in keys:
+            if isinstance(value, dict) and key in value:
+                value = value[key]
+            else:
+                return default
+
+        return value
+
+    def set(self, key_path: str, value):
+        """Set configuration value using dot notation."""
+        keys = key_path.split('.')
+        config = self.config
+
+        for key in keys[:-1]:
+            if key not in config:
+                config[key] = {}
+            config = config[key]
+
+        config[keys[-1]] = value
+        self.save_config()
+
+    def save_config(self, config_data: Optional[Dict] = None):
+        """Save configuration to file."""
+        if config_data is None:
+            config_data = self.config
+
+        try:
+            self.config_file.parent.mkdir(parents=True, exist_ok=True)
+            with open(self.config_file, 'w') as f:
+                json.dump(config_data, f, indent=2)
+        except Exception as e:
+            print_colored(f"⚠️  Warning: Could not save config: {e}", Colors.YELLOW)
+
+# Initialize configuration manager
+config_manager = ConfigManager()
+
+# Configuration-based constants
+VERSION = config_manager.get("version.current")
+GITHUB_REPO = config_manager.get("github.repo")
+GITHUB_API_BASE = config_manager.get("github.api_base")
+GITHUB_RAW_BASE = config_manager.get("github.raw_base")
 
 class Colors:
     """ANSI color codes for terminal output."""
@@ -1044,6 +1176,103 @@ def start_servers(host="0.0.0.0", port=8000, webui_port=8080, reload=True):
         print_colored(f"❌ Error starting servers: {e}", Colors.RED, bold=True)
         sys.exit(1)
 
+def start_full_system(host="0.0.0.0", port=8000, webui_port=8080, reload=True, enable_cli=True):
+    """Start API server, WebUI server, and interactive CLI."""
+    print_colored("🚀 Starting PlexiChat Full System", Colors.BLUE, bold=True)
+    print_colored(f"   API Host: {host}:{port}", Colors.CYAN)
+    print_colored(f"   WebUI Host: {host}:{webui_port}", Colors.CYAN)
+    print_colored(f"   Interactive CLI: {'Enabled' if enable_cli else 'Disabled'}", Colors.CYAN)
+    print_colored(f"   Reload: {reload}", Colors.CYAN)
+    print()
+
+    import threading
+    import time
+
+    try:
+        # Change to the directory containing the src folder
+        os.chdir(Path(__file__).parent)
+
+        # Start API server in background thread
+        def start_api():
+            cmd = [
+                sys.executable, "-m", "uvicorn",
+                "src.plexichat.main:app",
+                "--host", host,
+                "--port", str(port),
+            ]
+            if reload:
+                cmd.append("--reload")
+            subprocess.run(cmd)
+
+        # Start WebUI server in background thread
+        def start_webui():
+            time.sleep(2)  # Give API server time to start
+            cmd = [
+                sys.executable, "-m", "uvicorn",
+                "src.plexichat.interfaces.web.main:app",
+                "--host", host,
+                "--port", str(webui_port),
+            ]
+            subprocess.run(cmd)
+
+        # Start CLI in main thread
+        def start_cli():
+            time.sleep(3)  # Give servers time to start
+            try:
+                # Import and start the CLI system
+                sys.path.insert(0, str(Path(__file__).parent / "src"))
+                from plexichat.interfaces.cli.main_cli import main as cli_main
+                print_colored("🖥️  Starting Interactive CLI...", Colors.GREEN)
+                print_colored("💡 Type 'help' for available commands, 'exit' to quit", Colors.CYAN)
+                print()
+                cli_main()
+            except ImportError as e:
+                print_colored(f"⚠️  CLI system not available: {e}", Colors.YELLOW)
+                print_colored("📋 Servers are running. Press Ctrl+C to stop.", Colors.CYAN)
+                try:
+                    while True:
+                        time.sleep(1)
+                except KeyboardInterrupt:
+                    pass
+            except Exception as e:
+                print_colored(f"❌ CLI error: {e}", Colors.RED)
+                print_colored("📋 Servers are running. Press Ctrl+C to stop.", Colors.CYAN)
+                try:
+                    while True:
+                        time.sleep(1)
+                except KeyboardInterrupt:
+                    pass
+
+        print_colored("📡 Starting API Server...", Colors.GREEN)
+        api_thread = threading.Thread(target=start_api, daemon=True)
+        api_thread.start()
+
+        print_colored("🌐 Starting WebUI Server...", Colors.GREEN)
+        webui_thread = threading.Thread(target=start_webui, daemon=True)
+        webui_thread.start()
+
+        print_colored(f"🔗 API Server: http://{host}:{port}", Colors.CYAN)
+        print_colored(f"📚 API Documentation: http://{host}:{port}/docs", Colors.CYAN)
+        print_colored(f"🌐 WebUI: http://{host}:{webui_port}", Colors.CYAN)
+        print()
+
+        if enable_cli:
+            # Start CLI in main thread
+            start_cli()
+        else:
+            # Keep main thread alive
+            try:
+                while True:
+                    time.sleep(1)
+            except KeyboardInterrupt:
+                print_colored("\n🛑 System stopped by user", Colors.YELLOW, bold=True)
+
+    except KeyboardInterrupt:
+        print_colored("\n🛑 System stopped by user", Colors.YELLOW, bold=True)
+    except Exception as e:
+        print_colored(f"❌ Error starting system: {e}", Colors.RED, bold=True)
+        sys.exit(1)
+
 def main():
     """Main entry point."""
     parser = argparse.ArgumentParser(
@@ -1072,14 +1301,16 @@ Examples:
     install_parser = subparsers.add_parser('install', help='Interactive installation from GitHub')
     install_parser.add_argument('--version', help='Specific version to install')
     install_parser.add_argument('--path', help='Installation path')
-    install_parser.add_argument('--repo', default=GITHUB_REPO, help='GitHub repository (default: linux-of-user/plexichat)')
-    install_parser.add_argument('--branch', default='main', help='Git branch to use (default: main)')
+    install_parser.add_argument('--repo', default=config_manager.get("github.repo"),
+                               help=f'GitHub repository (default: {config_manager.get("github.repo")})')
+    install_parser.add_argument('--branch', default=config_manager.get("github.default_branch"),
+                               help=f'Git branch to use (default: {config_manager.get("github.default_branch")})')
     install_parser.add_argument('--force', action='store_true', help='Force installation')
 
     # Setup command
     setup_parser = subparsers.add_parser('setup', help='Setup Python environment and dependencies')
     setup_parser.add_argument('--level', choices=['minimal', 'full', 'developer'],
-                             default='minimal', help='Installation level')
+                             default=config_manager.get("installation.default_level"), help='Installation level')
     setup_parser.add_argument('--force', action='store_true',
                              help='Force reinstall all packages')
     setup_parser.add_argument('--no-venv', action='store_true',
@@ -1098,8 +1329,8 @@ Examples:
     # Update command
     update_parser = subparsers.add_parser('update', help='Update PlexiChat to latest version')
     update_parser.add_argument('--version', help='Specific version to update to')
-    update_parser.add_argument('--repo', default=GITHUB_REPO, help='GitHub repository')
-    update_parser.add_argument('--branch', default='main', help='Git branch to use')
+    update_parser.add_argument('--repo', default=config_manager.get("github.repo"), help='GitHub repository')
+    update_parser.add_argument('--branch', default=config_manager.get("github.default_branch"), help='Git branch to use')
     update_parser.add_argument('--force', action='store_true', help='Force update even if same version')
 
     # GUI command (replaces doctor)
@@ -1114,12 +1345,13 @@ Examples:
     test_parser.add_argument('--coverage', action='store_true', help='Generate coverage report')
 
     # Server arguments (for default command)
-    parser.add_argument("--host", default="0.0.0.0", help="Host to bind to")
-    parser.add_argument("--port", type=int, default=8000, help="Port to bind to")
-    parser.add_argument("--webui-port", type=int, default=8080, help="WebUI port to bind to")
+    parser.add_argument("--host", default=config_manager.get("server.host"), help="Host to bind to")
+    parser.add_argument("--port", type=int, default=config_manager.get("server.api_port"), help="Port to bind to")
+    parser.add_argument("--webui-port", type=int, default=config_manager.get("server.webui_port"), help="WebUI port to bind to")
     parser.add_argument("--no-reload", action="store_true", help="Disable auto-reload")
     parser.add_argument("--noserver", action="store_true", help="Don't start API server")
     parser.add_argument("--nowebui", action="store_true", help="Don't start WebUI server")
+    parser.add_argument("--nocli", action="store_true", help="Don't start interactive CLI")
     parser.add_argument("--verbose", "-v", action="store_true", help="Verbose output")
     parser.add_argument("--version", action="version", version=f"PlexiChat {VERSION}")
 
@@ -1221,8 +1453,17 @@ Examples:
             print_colored("💡 Run 'python run.py setup' to install dependencies", Colors.CYAN)
             sys.exit(1)
 
-        # Start servers based on flags
-        if not args.noserver and not args.nowebui:
+        # Start servers and CLI based on flags
+        if not args.noserver and not args.nowebui and not args.nocli:
+            print_colored("🚀 Starting PlexiChat with API server, WebUI, and CLI", Colors.BLUE, bold=True)
+            start_full_system(
+                host=args.host,
+                port=args.port,
+                webui_port=args.webui_port,
+                reload=not args.no_reload,
+                enable_cli=True
+            )
+        elif not args.noserver and not args.nowebui:
             print_colored("🚀 Starting PlexiChat with API server and WebUI", Colors.BLUE, bold=True)
             start_servers(
                 host=args.host,
@@ -1244,7 +1485,7 @@ Examples:
                 port=args.webui_port
             )
         else:
-            print_colored("⚠️  Both --noserver and --nowebui specified. Nothing to start.", Colors.YELLOW)
+            print_colored("⚠️  All services disabled. Use --help for options.", Colors.YELLOW)
 
 if __name__ == "__main__":
     main()
