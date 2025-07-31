@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"plexichat-client/cmd"
-	"plexichat-client/internal/apiclient"
+	"plexichat-client/pkg/client"
 )
 
 // Version information (set by build flags)
@@ -17,7 +17,7 @@ var (
 	BuildTime = "unknown"
 	GoVersion = runtime.Version()
 
-	apiClient = apiclient.NewClient("http://localhost:8080")
+apiClient = client.NewClient("http://localhost:8080")
 )
 
 func main() {

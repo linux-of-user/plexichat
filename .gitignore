@@ -40,7 +40,7 @@ venv.bak/
 .DS_Store
 Thumbs.db
 
-# NetLink Runtime Directories
+# PlexiChat Runtime Directories
 /data/
 /logs/
 /runtime/
@@ -48,6 +48,23 @@ Thumbs.db
 /backup_data/
 /databases/
 /temp/
+/.cache/
+
+# PlexiChat Testing
+/tmp/plexichat-test/
+plexichat-test/
+test-install/
+
+# PlexiChat Logs and Reports
+pentest_log.txt
+pentest_report.json
+coverage.xml
+htmlcov/
+.coverage
+
+# PlexiChat Build Artifacts
+changelog.json
+version_backup.json
 /temp_clone/
 /cache/
 

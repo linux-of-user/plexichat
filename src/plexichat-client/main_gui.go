@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"errors"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -31,17 +32,33 @@ func main() {
 	win.SetMaster()
 	win.CenterOnScreen()
 
-	// Server IP entry UI
+	// Logo (optional, replace with your own image if available)
+	logo := canvas.NewText("💬", theme.PrimaryColor())
+	logo.TextSize = 64
+	logo.Alignment = fyne.TextAlignCenter
+
+	// App title and subtitle
+	title := widget.NewLabelWithStyle("PlexiChat", fyne.TextAlignCenter, fyne.TextStyle{Bold: true, Italic: true})
+	title.TextStyle.Monospace = true
+	subtitle := widget.NewLabelWithStyle("Secure Messaging Platform", fyne.TextAlignCenter, fyne.TextStyle{})
+
+	// Server address entry
 	serverEntry := widget.NewEntry()
 	serverEntry.SetPlaceHolder("https://plexichat.example.com")
+	serverEntry.Validator = func(s string) error {
+		if !strings.HasPrefix(s, "http://") && !strings.HasPrefix(s, "https://") {
+			return errors.New("Server address must start with http:// or https://")
+		}
+		return nil
+	}
 	if addr := loadLastServer(); addr != "" {
 		serverEntry.SetText(addr)
 	}
 
-	connectBtn := widget.NewButton("Connect", func() {
+	connectBtn := widget.NewButtonWithIcon("Connect", theme.ConfirmIcon(), func() {
 		addr := strings.TrimSpace(serverEntry.Text)
-		if !strings.HasPrefix(addr, "http://") && !strings.HasPrefix(addr, "https://") {
-			dialog.ShowError(fyne.NewError("Invalid address", "Server address must start with http:// or https://"), win)
+		if err := serverEntry.Validator(addr); err != nil {
+			dialog.ShowError(err, win)
 			return
 		}
 		saveLastServer(addr)
@@ -49,16 +66,14 @@ func main() {
 		win.SetContent(loginScreen.GetContent())
 	})
 
-	title := widget.NewLabelWithStyle("PlexiChat", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
-	subtitle := widget.NewLabelWithStyle("Secure Messaging Platform", fyne.TextAlignCenter, fyne.TextStyle{})
+	serverCard := widget.NewCard("Server Address", "Choose the PlexiChat server to connect to.", container.NewVBox(serverEntry, connectBtn))
 
 	welcome := container.NewVBox(
+		logo,
 		title,
 		subtitle,
 		widget.NewSeparator(),
-		widget.NewLabel("Enter Server Address:"),
-		serverEntry,
-		connectBtn,
+		serverCard,
 	)
 
 	centeredWelcome := container.New(layout.NewPaddedLayout(), welcome)
@@ -303,7 +318,6 @@ func (s *LoginScreen) show2FASetupWizard() {
 	verifyEntry.Hide()
 
 	// --- Step 3: Backup Codes ---
-	backupCodesLabel := widget.NewLabel("Save these backup codes securely:")
 	backupCodesContainer := container.NewVBox()
 	backupCodesCard := widget.NewCard("Backup Codes", "", container.NewScroll(backupCodesContainer))
 	backupCodesCard.Hide()
