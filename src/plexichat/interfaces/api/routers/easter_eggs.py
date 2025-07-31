@@ -48,7 +48,7 @@ class FortuneResponse(BaseModel):
 async def easter_egg_index():
     """List available Easter eggs."""
     return {
-        "message": "🥚 Welcome to PlexiChat Easter Eggs! 🥚",
+        "message": "? Welcome to PlexiChat Easter Eggs! ?",
         "available_eggs": [
             {
                 "endpoint": "/fortune",
@@ -77,7 +77,7 @@ async def easter_egg_index():
             }
         ],
         "note": "These endpoints are for fun and don't affect normal PlexiChat operations",
-        "secret_hint": "Try brewing coffee with special headers... ☕"
+        "secret_hint": "Try brewing coffee with special headers... ?"
     }
 
 @router.get("/fortune", response_model=FortuneResponse)
@@ -136,10 +136,10 @@ async def brew_beverage(
             status_code=418,
             detail={
                 "error": "I'm a teapot",
-                "message": "I'm a teapot - The server refuses to brew coffee because it is, permanently, a teapot ☕",
+                "message": "I'm a teapot - The server refuses to brew coffee because it is, permanently, a teapot ?",
                 "suggestions": [
                     "This is an Easter egg error from RFC 2324 (April 1, 1998)",
-                    "Try requesting tea instead of coffee 🍵",
+                    "Try requesting tea instead of coffee ?",
                     "The server is having a bit of fun with you!",
                     "Congratulations on finding this Easter egg!",
                     "To trigger this: POST to /brew with beverage='coffee', X-Brew-Coffee: true header, and 'please brew coffee' in special_instructions"
@@ -153,7 +153,7 @@ async def brew_beverage(
     if brew_request.beverage.lower() in ["tea", "herbal tea", "green tea", "black tea"]:
         return {
             "success": True,
-            "message": f"Successfully brewed {brew_request.size} {brew_request.temperature} {brew_request.beverage} 🍵",
+            "message": f"Successfully brewed {brew_request.size} {brew_request.temperature} {brew_request.beverage} ?",
             "brewing_time": "3-5 minutes",
             "temperature": f"{brew_request.temperature} (optimal for tea)",
             "note": "Perfect choice! Tea is always a good idea."
@@ -161,8 +161,8 @@ async def brew_beverage(
     elif brew_request.beverage.lower() == "coffee":
         return {
             "success": False,
-            "message": "Sorry, this server is a teapot and cannot brew coffee ☕",
-            "suggestion": "Try requesting tea instead! 🍵",
+            "message": "Sorry, this server is a teapot and cannot brew coffee ?",
+            "suggestion": "Try requesting tea instead! ?",
             "hint": "Add the X-Brew-Coffee header and special instructions for a surprise...",
             "alternative": "We can brew excellent tea though!"
         }
@@ -215,7 +215,7 @@ async def magic_8_ball(question: Dict[str, str]):
     return {
         "question": user_question,
         "answer": response,
-        "magic_8_ball": "🎱",
+        "magic_8_ball": "?",
         "timestamp": datetime.now().isoformat(),
         "confidence": random.randint(1, 100)
     }
@@ -333,8 +333,8 @@ async def get_system_haiku():
 async def konami_code():
     """Secret Konami code endpoint."""
     return {
-        "message": "🎮 KONAMI CODE ACTIVATED! 🎮",
-        "code": "↑ ↑ ↓ ↓ ← → ← → B A",
+        "message": "[GAME] KONAMI CODE ACTIVATED! [GAME]",
+        "code": "^ ^ v v < > < > B A",
         "reward": "You found the secret developer endpoint!",
         "easter_egg": True,
         "developer_message": "Thanks for exploring PlexiChat's Easter eggs!",

@@ -97,12 +97,12 @@ async def rate_limiting_dashboard(request: Request):
             <body>
                 <div class="container">
                     <div class="header">
-                        <h1>🚦 Rate Limiting Administration</h1>
+                        <h1>? Rate Limiting Administration</h1>
                         <p>Configure and monitor rate limiting settings for PlexiChat</p>
                     </div>
                     
                     <div class="section">
-                        <h2>📊 Current Status</h2>
+                        <h2>[STATS] Current Status</h2>
                         <div class="status {'enabled' if config_summary['global_enabled'] else 'disabled'}">
                             <strong>Global Rate Limiting:</strong> {'Enabled' if config_summary['global_enabled'] else 'Disabled'}
                         </div>
@@ -116,7 +116,7 @@ async def rate_limiting_dashboard(request: Request):
                     </div>
                     
                     <div class="section">
-                        <h2>👥 Account Type Limits</h2>
+                        <h2>? Account Type Limits</h2>
                         <table class="table">
                             <thead>
                                 <tr>
@@ -155,7 +155,7 @@ async def rate_limiting_dashboard(request: Request):
                     </div>
                     
                     <div class="section">
-                        <h2>🌐 IP Blacklist Status</h2>
+                        <h2>[WEB] IP Blacklist Status</h2>
                         <div class="metric">
                             <div class="metric-value">{config_summary['ip_blacklist']['permanent_entries']}</div>
                             <div class="metric-label">Permanent Blocks</div>
@@ -171,7 +171,7 @@ async def rate_limiting_dashboard(request: Request):
                     </div>
                     
                     <div class="section">
-                        <h2>⚙️ Global Settings</h2>
+                        <h2>?? Global Settings</h2>
                         <form id="globalSettingsForm" onsubmit="updateGlobalSettings(event)">
                             <div class="form-group">
                                 <label>
@@ -196,7 +196,7 @@ async def rate_limiting_dashboard(request: Request):
                     </div>
                     
                     <div class="section">
-                        <h2>🔧 Quick Actions</h2>
+                        <h2>[SETUP] Quick Actions</h2>
                         <button class="btn btn-primary" onclick="refreshConfig()">Refresh Configuration</button>
                         <button class="btn btn-success" onclick="exportConfig()">Export Configuration</button>
                         <button class="btn btn-danger" onclick="resetToDefaults()">Reset to Defaults</button>

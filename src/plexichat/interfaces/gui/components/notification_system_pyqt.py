@@ -91,7 +91,7 @@ class NotificationWidget(QFrame):
         layout.addLayout(content_layout)
         
         # Close button
-        close_btn = QPushButton("×")
+        close_btn = QPushButton("?")
         close_btn.setFixedSize(20, 20)
         close_btn.setStyleSheet("""
             QPushButton {
@@ -151,12 +151,12 @@ class NotificationWidget(QFrame):
     def get_icon(self) -> str:
         """Get icon for notification type."""
         icons = {
-            NotificationType.INFO: "ℹ️",
-            NotificationType.SUCCESS: "✅",
-            NotificationType.WARNING: "⚠️",
-            NotificationType.ERROR: "❌"
+            NotificationType.INFO: "??",
+            NotificationType.SUCCESS: "[OK]",
+            NotificationType.WARNING: "[WARNING]",
+            NotificationType.ERROR: "[ERROR]"
         }
-        return icons.get(self.notification_type, "ℹ️")
+        return icons.get(self.notification_type, "??")
     
     def setup_animations(self):
         """Setup entrance and exit animations."""

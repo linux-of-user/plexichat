@@ -127,12 +127,12 @@ class QuickActionsWidget(QFrame):
         
         # Action buttons
         actions = [
-            ("🔌 Manage Plugins", "plugins"),
-            ("⚙️ Settings", "settings"),
-            ("👥 User Management", "users"),
-            ("📊 Analytics", "analytics"),
-            ("🔧 System Tools", "tools"),
-            ("📝 Logs", "logs")
+            ("? Manage Plugins", "plugins"),
+            ("?? Settings", "settings"),
+            ("? User Management", "users"),
+            ("[STATS] Analytics", "analytics"),
+            ("[SETUP] System Tools", "tools"),
+            ("? Logs", "logs")
         ]
         
         for text, action in actions:
@@ -168,14 +168,14 @@ class RecentActivityWidget(QFrame):
     def populate_activity(self):
         """Populate with sample activity data."""
         activities = [
-            "🔐 User 'admin' logged in",
-            "🔌 Plugin 'TestPlugin' loaded",
-            "📝 System configuration updated",
-            "👤 New user 'john_doe' registered",
-            "🔄 Database backup completed",
-            "⚠️ High memory usage detected",
-            "📊 Analytics report generated",
-            "🔧 System maintenance completed"
+            "? User 'admin' logged in",
+            "? Plugin 'TestPlugin' loaded",
+            "? System configuration updated",
+            "? New user 'john_doe' registered",
+            "[UPDATE] Database backup completed",
+            "[WARNING] High memory usage detected",
+            "[STATS] Analytics report generated",
+            "[SETUP] System maintenance completed"
         ]
         
         for activity in activities:
@@ -246,7 +246,7 @@ class MainDashboardPyQt(QWidget):
         header_layout.addStretch()
         
         # Status indicator
-        status_label = QLabel("🟢 System Online")
+        status_label = QLabel("? System Online")
         status_label.setFont(QFont("Inter", 12))
         header_layout.addWidget(status_label)
         
@@ -277,19 +277,19 @@ class MainDashboardPyQt(QWidget):
         
         # Overview tab
         overview_tab = self.create_overview_tab()
-        self.tab_widget.addTab(overview_tab, "📊 Overview")
+        self.tab_widget.addTab(overview_tab, "[STATS] Overview")
         
         # Plugins tab
         plugins_tab = self.create_plugins_tab()
-        self.tab_widget.addTab(plugins_tab, "🔌 Plugins")
+        self.tab_widget.addTab(plugins_tab, "? Plugins")
         
         # Users tab
         users_tab = self.create_users_tab()
-        self.tab_widget.addTab(users_tab, "👥 Users")
+        self.tab_widget.addTab(users_tab, "? Users")
         
         # Logs tab
         logs_tab = self.create_logs_tab()
-        self.tab_widget.addTab(logs_tab, "📝 Logs")
+        self.tab_widget.addTab(logs_tab, "? Logs")
         
         layout.addWidget(self.tab_widget)
         
@@ -317,10 +317,10 @@ class MainDashboardPyQt(QWidget):
         
         # Add overview widgets
         overview_layout.addWidget(QLabel("Server Status:"), 0, 0)
-        overview_layout.addWidget(QLabel("🟢 Running"), 0, 1)
+        overview_layout.addWidget(QLabel("? Running"), 0, 1)
         
         overview_layout.addWidget(QLabel("Database:"), 1, 0)
-        overview_layout.addWidget(QLabel("🟢 Connected"), 1, 1)
+        overview_layout.addWidget(QLabel("? Connected"), 1, 1)
         
         overview_layout.addWidget(QLabel("Plugins:"), 2, 0)
         overview_layout.addWidget(QLabel("5 Active"), 2, 1)
@@ -355,11 +355,11 @@ class MainDashboardPyQt(QWidget):
         # Plugin actions
         actions_layout = QHBoxLayout()
         
-        install_btn = QPushButton("📦 Install Plugin")
+        install_btn = QPushButton("[PACKAGE] Install Plugin")
         install_btn.clicked.connect(lambda: self.plugin_action.emit("install", ""))
         actions_layout.addWidget(install_btn)
         
-        refresh_btn = QPushButton("🔄 Refresh")
+        refresh_btn = QPushButton("[UPDATE] Refresh")
         refresh_btn.clicked.connect(self.refresh_plugins)
         actions_layout.addWidget(refresh_btn)
         
@@ -425,11 +425,11 @@ class MainDashboardPyQt(QWidget):
     def populate_plugins_table(self):
         """Populate plugins table with sample data."""
         plugins = [
-            ("TestPlugin", "1.0.0", "🟢 Active", "Disable"),
-            ("ChatBot", "2.1.0", "🟢 Active", "Disable"),
-            ("FileManager", "1.5.0", "🔴 Inactive", "Enable"),
-            ("Analytics", "3.0.0", "🟢 Active", "Disable"),
-            ("Backup", "1.2.0", "🟡 Loading", "Stop")
+            ("TestPlugin", "1.0.0", "? Active", "Disable"),
+            ("ChatBot", "2.1.0", "? Active", "Disable"),
+            ("FileManager", "1.5.0", "? Inactive", "Enable"),
+            ("Analytics", "3.0.0", "? Active", "Disable"),
+            ("Backup", "1.2.0", "? Loading", "Stop")
         ]
         
         self.plugins_table.setRowCount(len(plugins))
@@ -445,10 +445,10 @@ class MainDashboardPyQt(QWidget):
     def populate_users_table(self):
         """Populate users table with sample data."""
         users = [
-            ("admin", "Administrator", "2025-01-27 20:58", "🟢 Online"),
-            ("john_doe", "User", "2025-01-27 18:30", "🔴 Offline"),
-            ("jane_smith", "Moderator", "2025-01-27 19:45", "🟢 Online"),
-            ("bob_wilson", "User", "2025-01-26 15:20", "🔴 Offline")
+            ("admin", "Administrator", "2025-01-27 20:58", "? Online"),
+            ("john_doe", "User", "2025-01-27 18:30", "? Offline"),
+            ("jane_smith", "Moderator", "2025-01-27 19:45", "? Online"),
+            ("bob_wilson", "User", "2025-01-26 15:20", "? Offline")
         ]
         
         self.users_table.setRowCount(len(users))

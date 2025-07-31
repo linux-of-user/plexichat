@@ -228,7 +228,7 @@ class LoginScreenPyQt(QWidget):
     
     def create_theme_toggle(self):
         """Create theme toggle button."""
-        self.theme_toggle = QPushButton("🌙 Dark Mode")
+        self.theme_toggle = QPushButton("? Dark Mode")
         self.theme_toggle.setFixedSize(120, 40)
         self.theme_toggle.clicked.connect(self.toggle_theme)
         self.theme_toggle.setStyleSheet("""
@@ -297,7 +297,7 @@ class LoginScreenPyQt(QWidget):
         logo_layout.setSpacing(8)
 
         # Modern logo
-        logo_label = QLabel("⬢")
+        logo_label = QLabel("?")
         logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         logo_label.setFont(QFont("SF Pro Display", 42, QFont.Weight.Light))
         logo_label.setStyleSheet("color: #58a6ff; margin: 0;")
@@ -348,7 +348,7 @@ class LoginScreenPyQt(QWidget):
     
     def create_password_toggle(self):
         """Create password visibility toggle."""
-        toggle_btn = QPushButton("👁")
+        toggle_btn = QPushButton("?")
         toggle_btn.setFixedSize(30, 30)
         toggle_btn.clicked.connect(self.toggle_password_visibility)
         toggle_btn.setStyleSheet("""
@@ -478,7 +478,7 @@ class LoginScreenPyQt(QWidget):
     def toggle_theme(self):
         """Toggle between dark and light themes."""
         self.dark_mode = not self.dark_mode
-        self.theme_toggle.setText("☀️ Light Mode" if self.dark_mode else "🌙 Dark Mode")
+        self.theme_toggle.setText("?? Light Mode" if self.dark_mode else "? Dark Mode")
         self.theme_toggle_requested.emit()
     
     def toggle_password_visibility(self):
@@ -526,7 +526,7 @@ class LoginScreenPyQt(QWidget):
     def handle_login_success(self, user_data: dict):
         """Handle successful login."""
         self.is_authenticating = False
-        self.login_button.setText("Success! ✓")
+        self.login_button.setText("Success! OK")
         self.progress_bar.setVisible(False)
 
         # Save credentials if remember me is checked
@@ -543,7 +543,7 @@ class LoginScreenPyQt(QWidget):
     def login_failed(self, error_message: str):
         """Handle failed login."""
         self.is_authenticating = False
-        self.login_button.setText("Sign In →")
+        self.login_button.setText("Sign In >")
         self.login_button.setEnabled(True)
         self.progress_bar.setVisible(False)
         

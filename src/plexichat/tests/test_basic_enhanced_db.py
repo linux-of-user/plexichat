@@ -37,7 +37,7 @@ async def test_basic_enhanced_db():
     try:
         # Initialize
         await db_manager.initialize()
-        print("✓ Enhanced database manager initialized")
+        print("OK Enhanced database manager initialized")
         
         # Add SQLite database
         sqlite_config = DatabaseConfig(
@@ -50,9 +50,9 @@ async def test_basic_enhanced_db():
         
         success = await db_manager.add_database("test_basic", sqlite_config, is_default=True)
         if success:
-            print("✓ SQLite database added successfully")
+            print("OK SQLite database added successfully")
         else:
-            print("✗ Failed to add SQLite database")
+            print("ERROR Failed to add SQLite database")
             return False
         
         # Test basic query
@@ -62,10 +62,10 @@ async def test_basic_enhanced_db():
         )
         
         if result.get("success"):
-            print("✓ Basic query executed successfully")
+            print("OK Basic query executed successfully")
             print(f"  Result: {result.get('result', {})}")
         else:
-            print(f"✗ Basic query failed: {result.get('error')}")
+            print(f"ERROR Basic query failed: {result.get('error')}")
             return False
         
         # Test cached query
@@ -84,7 +84,7 @@ async def test_basic_enhanced_db():
         second_time = time.time() - start_time
         
         if result2.get("cached"):
-            print("✓ Query caching working")
+            print("OK Query caching working")
             print(f"  First execution: {first_time*1000:.2f}ms")
             print(f"  Cached execution: {second_time*1000:.2f}ms")
         else:
@@ -92,7 +92,7 @@ async def test_basic_enhanced_db():
         
         # Test performance stats
         stats = await db_manager.get_performance_stats()
-        print("✓ Performance stats retrieved")
+        print("OK Performance stats retrieved")
         print(f"  Connection pools: {len(stats.get('connection_pools', {}))}")
         print(f"  Redis status: {stats.get('redis_status', 'unknown')}")
         
@@ -103,17 +103,17 @@ async def test_basic_enhanced_db():
         )
         
         if result.get("success"):
-            print("✓ Query optimization test completed")
+            print("OK Query optimization test completed")
             if result.get("optimized"):
                 print("  Query was optimized")
             else:
                 print("  Query was not optimized (normal for simple queries)")
         
-        print("\n✓ All basic enhanced database tests passed!")
+        print("\nOK All basic enhanced database tests passed!")
         return True
         
     except Exception as e:
-        print(f"✗ Test failed: {e}")
+        print(f"ERROR Test failed: {e}")
         return False
         
     finally:

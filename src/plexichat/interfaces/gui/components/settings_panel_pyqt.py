@@ -67,19 +67,19 @@ class SettingsPanelPyQt(QDialog):
         
         # General settings tab
         general_tab = self.create_general_tab()
-        self.tab_widget.addTab(general_tab, "⚙️ General")
+        self.tab_widget.addTab(general_tab, "?? General")
         
         # Appearance tab
         appearance_tab = self.create_appearance_tab()
-        self.tab_widget.addTab(appearance_tab, "🎨 Appearance")
+        self.tab_widget.addTab(appearance_tab, "[LAUNCH] Appearance")
         
         # Privacy tab
         privacy_tab = self.create_privacy_tab()
-        self.tab_widget.addTab(privacy_tab, "🔒 Privacy")
+        self.tab_widget.addTab(privacy_tab, "? Privacy")
         
         # Advanced tab
         advanced_tab = self.create_advanced_tab()
-        self.tab_widget.addTab(advanced_tab, "🔧 Advanced")
+        self.tab_widget.addTab(advanced_tab, "[SETUP] Advanced")
         
         main_layout.addWidget(self.tab_widget)
         
@@ -98,7 +98,7 @@ class SettingsPanelPyQt(QDialog):
         header_layout.addStretch()
         
         # Reset button
-        reset_btn = QPushButton("🔄 Reset to Defaults")
+        reset_btn = QPushButton("[UPDATE] Reset to Defaults")
         reset_btn.clicked.connect(self.reset_to_defaults)
         header_layout.addWidget(reset_btn)
         

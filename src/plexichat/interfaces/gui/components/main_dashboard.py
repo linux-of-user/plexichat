@@ -108,7 +108,7 @@ class MainDashboard(ttk.Frame):
         try:
             # Create a fun popup window
             easter_window = tk.Toplevel(self)
-            easter_window.title("🎮 KONAMI CODE ACTIVATED! 🎮")
+            easter_window.title("[GAME] KONAMI CODE ACTIVATED! [GAME]")
             easter_window.geometry("500x400")
             easter_window.configure(bg='#1a1a1a')
 
@@ -123,7 +123,7 @@ class MainDashboard(ttk.Frame):
             # Title
             title_label = ttk.Label(
                 main_frame,
-                text="🎮 KONAMI CODE ACTIVATED! 🎮",
+                text="[GAME] KONAMI CODE ACTIVATED! [GAME]",
                 font=("Arial", 16, "bold"),
                 style="Modern.TLabel"
             )
@@ -132,7 +132,7 @@ class MainDashboard(ttk.Frame):
             # Code display
             code_label = ttk.Label(
                 main_frame,
-                text="↑ ↑ ↓ ↓ ← → ← → B A",
+                text="^ ^ v v < > < > B A",
                 font=("Courier", 14),
                 style="Modern.TLabel"
             )
@@ -153,19 +153,19 @@ class MainDashboard(ttk.Frame):
 
             # Insert Easter egg message
             message_text.config(state=tk.NORMAL)
-            message_text.insert(tk.END, "🎉 Congratulations! You found the secret Konami code!\n\n")
-            message_text.insert(tk.END, "🎮 This classic cheat code has been a gaming tradition since 1986.\n\n")
-            message_text.insert(tk.END, "🚀 PlexiChat Developer Mode Unlocked!\n")
-            message_text.insert(tk.END, "• Enhanced logging enabled\n")
-            message_text.insert(tk.END, "• Debug tools accessible\n")
-            message_text.insert(tk.END, "• Easter egg counter: +1\n\n")
-            message_text.insert(tk.END, "Thanks for exploring PlexiChat! 🎊")
+            message_text.insert(tk.END, "[SUCCESS] Congratulations! You found the secret Konami code!\n\n")
+            message_text.insert(tk.END, "[GAME] This classic cheat code has been a gaming tradition since 1986.\n\n")
+            message_text.insert(tk.END, "[START] PlexiChat Developer Mode Unlocked!\n")
+            message_text.insert(tk.END, "* Enhanced logging enabled\n")
+            message_text.insert(tk.END, "* Debug tools accessible\n")
+            message_text.insert(tk.END, "* Easter egg counter: +1\n\n")
+            message_text.insert(tk.END, "Thanks for exploring PlexiChat! ?")
             message_text.config(state=tk.DISABLED)
 
             # Close button
             close_btn = ttk.Button(
                 main_frame,
-                text="Awesome! 🎉",
+                text="Awesome! [SUCCESS]",
                 command=easter_window.destroy,
                 style="Modern.TButton"
             )
@@ -175,7 +175,7 @@ class MainDashboard(ttk.Frame):
             if hasattr(self.app, 'notification_system'):
                 self.app.notification_system.show_notification(
                     "Easter Egg Found!",
-                    "Konami code activated! 🎮",
+                    "Konami code activated! [GAME]",
                     "success"
                 )
 
@@ -187,7 +187,7 @@ class MainDashboard(ttk.Frame):
         try:
             # Create developer info window
             dev_window = tk.Toplevel(self)
-            dev_window.title("🔧 Developer Information")
+            dev_window.title("[SETUP] Developer Information")
             dev_window.geometry("600x500")
             dev_window.configure(bg='#1a1a1a')
 
@@ -202,7 +202,7 @@ class MainDashboard(ttk.Frame):
             # Title
             title_label = ttk.Label(
                 main_frame,
-                text="🔧 PlexiChat Developer Information",
+                text="[SETUP] PlexiChat Developer Information",
                 font=("Arial", 16, "bold"),
                 style="Modern.TLabel"
             )
@@ -223,31 +223,31 @@ class MainDashboard(ttk.Frame):
 
             # Insert developer information
             info_text.config(state=tk.NORMAL)
-            info_text.insert(tk.END, "🚀 PlexiChat - Enterprise Communication Platform\n")
+            info_text.insert(tk.END, "[START] PlexiChat - Enterprise Communication Platform\n")
             info_text.insert(tk.END, "=" * 50 + "\n\n")
-            info_text.insert(tk.END, "📊 System Information:\n")
-            info_text.insert(tk.END, f"• Version: {getattr(self.app, 'version', 'Unknown')}\n")
-            info_text.insert(tk.END, f"• GUI Framework: Tkinter\n")
-            info_text.insert(tk.END, f"• Python Version: {sys.version.split()[0]}\n")
-            info_text.insert(tk.END, f"• Platform: {sys.platform}\n\n")
-            info_text.insert(tk.END, "🎨 Features:\n")
-            info_text.insert(tk.END, "• Modern dark theme\n")
-            info_text.insert(tk.END, "• Real-time messaging\n")
-            info_text.insert(tk.END, "• Plugin system\n")
-            info_text.insert(tk.END, "• Advanced security\n")
-            info_text.insert(tk.END, "• WebUI integration\n")
-            info_text.insert(tk.END, "• Easter eggs! 🥚\n\n")
-            info_text.insert(tk.END, "🎮 Easter Egg Hints:\n")
-            info_text.insert(tk.END, "• Try the classic Konami code\n")
-            info_text.insert(tk.END, "• Type '42' for a surprise\n")
-            info_text.insert(tk.END, "• Triple-click the logo\n")
-            info_text.insert(tk.END, "• Check the API for /easter-eggs\n")
+            info_text.insert(tk.END, "[STATS] System Information:\n")
+            info_text.insert(tk.END, f"* Version: {getattr(self.app, 'version', 'Unknown')}\n")
+            info_text.insert(tk.END, f"* GUI Framework: Tkinter\n")
+            info_text.insert(tk.END, f"* Python Version: {sys.version.split()[0]}\n")
+            info_text.insert(tk.END, f"* Platform: {sys.platform}\n\n")
+            info_text.insert(tk.END, "[LAUNCH] Features:\n")
+            info_text.insert(tk.END, "* Modern dark theme\n")
+            info_text.insert(tk.END, "* Real-time messaging\n")
+            info_text.insert(tk.END, "* Plugin system\n")
+            info_text.insert(tk.END, "* Advanced security\n")
+            info_text.insert(tk.END, "* WebUI integration\n")
+            info_text.insert(tk.END, "* Easter eggs! ?\n\n")
+            info_text.insert(tk.END, "[GAME] Easter Egg Hints:\n")
+            info_text.insert(tk.END, "* Try the classic Konami code\n")
+            info_text.insert(tk.END, "* Type '42' for a surprise\n")
+            info_text.insert(tk.END, "* Triple-click the logo\n")
+            info_text.insert(tk.END, "* Check the API for /easter-eggs\n")
             info_text.config(state=tk.DISABLED)
 
             # Close button
             close_btn = ttk.Button(
                 main_frame,
-                text="Cool! 😎",
+                text="Cool! ?",
                 command=dev_window.destroy,
                 style="Modern.TButton"
             )
@@ -261,7 +261,7 @@ class MainDashboard(ttk.Frame):
         try:
             # Create reference window
             ref_window = tk.Toplevel(self)
-            ref_window.title("🌌 The Answer")
+            ref_window.title("? The Answer")
             ref_window.geometry("400x300")
             ref_window.configure(bg='#1a1a1a')
 
@@ -276,7 +276,7 @@ class MainDashboard(ttk.Frame):
             # Title
             title_label = ttk.Label(
                 main_frame,
-                text="🌌 The Answer to Everything",
+                text="? The Answer to Everything",
                 font=("Arial", 16, "bold"),
                 style="Modern.TLabel"
             )
@@ -309,13 +309,13 @@ class MainDashboard(ttk.Frame):
             quote_text.insert(tk.END, 'the Universe, and Everything is 42."\n\n')
             quote_text.insert(tk.END, "- The Hitchhiker's Guide to the Galaxy\n")
             quote_text.insert(tk.END, "by Douglas Adams\n\n")
-            quote_text.insert(tk.END, "Don't Panic! 🚀")
+            quote_text.insert(tk.END, "Don't Panic! [START]")
             quote_text.config(state=tk.DISABLED)
 
             # Close button
             close_btn = ttk.Button(
                 main_frame,
-                text="Don't Panic! 🚀",
+                text="Don't Panic! [START]",
                 command=ref_window.destroy,
                 style="Modern.TButton"
             )

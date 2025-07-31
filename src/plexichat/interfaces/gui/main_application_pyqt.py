@@ -471,7 +471,7 @@ class PlexiChatGUIPyQt(QMainWindow):
                             <li>Advanced security</li>
                             <li>Modern UI/UX</li>
                             </ul>
-                            <p>© 2024 PlexiChat Team</p>""")
+                            <p>? 2024 PlexiChat Team</p>""")
         except Exception as e:
             logger.error(f"Failed to show about dialog: {e}")
 

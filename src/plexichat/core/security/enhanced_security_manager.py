@@ -563,33 +563,33 @@ class EnhancedSecurityManager:
 
     def configure_comprehensive_security(self, app):
         """Configure all security middleware for the FastAPI app."""
-        logger.info("🔒 Configuring comprehensive security middleware...")
+        logger.info("? Configuring comprehensive security middleware...")
 
         try:
             # 1. Setup enhanced exception handlers
             setup_exception_handlers(app)
-            logger.info("✅ Enhanced exception handlers configured")
+            logger.info("[OK] Enhanced exception handlers configured")
 
             # 2. Add account-based rate limiting
             add_account_rate_limiting_middleware(app)
-            logger.info("✅ Account-based rate limiting middleware added")
+            logger.info("[OK] Account-based rate limiting middleware added")
 
             # 3. Add dynamic rate limiting based on system load
             add_dynamic_rate_limiting_middleware(app)
-            logger.info("✅ Dynamic rate limiting middleware added")
+            logger.info("[OK] Dynamic rate limiting middleware added")
 
             # 4. Add IP blacklist middleware
             add_ip_blacklist_middleware(app)
-            logger.info("✅ IP blacklist middleware added")
+            logger.info("[OK] IP blacklist middleware added")
 
             # 5. Add the existing security middleware
             app.add_middleware(SecurityMiddleware)
-            logger.info("✅ Core security middleware added")
+            logger.info("[OK] Core security middleware added")
 
-            logger.info("🛡️ Comprehensive security configuration completed successfully!")
+            logger.info("?? Comprehensive security configuration completed successfully!")
 
         except Exception as e:
-            logger.error(f"❌ Error configuring security middleware: {e}")
+            logger.error(f"[ERROR] Error configuring security middleware: {e}")
             raise
 
     def get_security_status(self) -> Dict[str, Any]:

@@ -59,7 +59,7 @@ class PluginCard(QFrame):
         
         # Status
         status = self.plugin_data.get('status', 'inactive')
-        status_label = QLabel(f"Status: {'🟢 Active' if status == 'active' else '🔴 Inactive'}")
+        status_label = QLabel(f"Status: {'? Active' if status == 'active' else '? Inactive'}")
         layout.addWidget(status_label)
         
         layout.addStretch()
@@ -204,15 +204,15 @@ class PluginManagerPyQt(QDialog):
         
         # Installed plugins tab
         installed_tab = self.create_installed_tab()
-        self.tab_widget.addTab(installed_tab, "📦 Installed")
+        self.tab_widget.addTab(installed_tab, "[PACKAGE] Installed")
         
         # Marketplace tab
         marketplace_tab = self.create_marketplace_tab()
-        self.tab_widget.addTab(marketplace_tab, "🛒 Marketplace")
+        self.tab_widget.addTab(marketplace_tab, "? Marketplace")
         
         # Development tab
         dev_tab = self.create_development_tab()
-        self.tab_widget.addTab(dev_tab, "🔧 Development")
+        self.tab_widget.addTab(dev_tab, "[SETUP] Development")
         
         main_layout.addWidget(self.tab_widget)
     
@@ -234,12 +234,12 @@ class PluginManagerPyQt(QDialog):
         header_layout.addWidget(self.search_input)
         
         # Install button
-        install_btn = QPushButton("📥 Install Plugin")
+        install_btn = QPushButton("[DOWNLOAD] Install Plugin")
         install_btn.clicked.connect(self.show_install_dialog)
         header_layout.addWidget(install_btn)
         
         # Refresh button
-        refresh_btn = QPushButton("🔄 Refresh")
+        refresh_btn = QPushButton("[UPDATE] Refresh")
         refresh_btn.clicked.connect(self.refresh_plugins)
         header_layout.addWidget(refresh_btn)
         
@@ -285,7 +285,7 @@ class PluginManagerPyQt(QDialog):
         layout = QVBoxLayout(tab)
         
         # Marketplace info
-        info_label = QLabel("🛒 Plugin Marketplace")
+        info_label = QLabel("? Plugin Marketplace")
         info_label.setFont(QFont("Inter", 16, QFont.Weight.Bold))
         layout.addWidget(info_label)
         
@@ -326,22 +326,22 @@ class PluginManagerPyQt(QDialog):
         dev_layout = QVBoxLayout(dev_group)
         
         # Create new plugin
-        create_btn = QPushButton("🆕 Create New Plugin")
+        create_btn = QPushButton("[NEW] Create New Plugin")
         create_btn.clicked.connect(self.create_new_plugin)
         dev_layout.addWidget(create_btn)
         
         # Plugin template
-        template_btn = QPushButton("📋 Generate Template")
+        template_btn = QPushButton("[LIST] Generate Template")
         template_btn.clicked.connect(self.generate_template)
         dev_layout.addWidget(template_btn)
         
         # Test plugin
-        test_btn = QPushButton("🧪 Test Plugin")
+        test_btn = QPushButton("[TEST] Test Plugin")
         test_btn.clicked.connect(self.test_plugin)
         dev_layout.addWidget(test_btn)
         
         # Package plugin
-        package_btn = QPushButton("📦 Package Plugin")
+        package_btn = QPushButton("[PACKAGE] Package Plugin")
         package_btn.clicked.connect(self.package_plugin)
         dev_layout.addWidget(package_btn)
         

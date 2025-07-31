@@ -80,33 +80,33 @@ async def webui_home(request: Request):
         </head>
         <body>
             <div class="container">
-                <div class="status">🟢 PlexiChat is running successfully</div>
+                <div class="status">? PlexiChat is running successfully</div>
                 <h1>PlexiChat WebUI</h1>
                 <div class="version">Version: {PLEXICHAT_VERSION}</div>
                 
                 <div class="features">
                     <div class="feature">
-                        <h3>🔐 Authentication</h3>
+                        <h3>? Authentication</h3>
                         <p>Secure user authentication and session management</p>
                     </div>
                     <div class="feature">
-                        <h3>💬 Messaging</h3>
+                        <h3>[CLI] Messaging</h3>
                         <p>Real-time messaging with WebSocket support</p>
                     </div>
                     <div class="feature">
-                        <h3>📁 File Management</h3>
+                        <h3>[FOLDER] File Management</h3>
                         <p>Upload, download, and manage files securely</p>
                     </div>
                     <div class="feature">
-                        <h3>⚙️ Administration</h3>
+                        <h3>?? Administration</h3>
                         <p>System administration and user management</p>
                     </div>
                     <div class="feature">
-                        <h3>📊 Monitoring</h3>
+                        <h3>[STATS] Monitoring</h3>
                         <p>System health and performance monitoring</p>
                     </div>
                     <div class="feature">
-                        <h3>🔌 Plugins</h3>
+                        <h3>? Plugins</h3>
                         <p>Extensible plugin system for custom features</p>
                     </div>
                 </div>
@@ -191,7 +191,7 @@ async def webui_login(request: Request):
                 <button type="submit">Login</button>
             </form>
             <div class="links">
-                <a href="/ui">← Back to WebUI</a>
+                <a href="/ui">< Back to WebUI</a>
             </div>
             <div class="version">PlexiChat {PLEXICHAT_VERSION}</div>
         </div>
@@ -246,31 +246,31 @@ async def webui_dashboard(request: Request):
         
         <div class="dashboard-grid">
             <div class="widget">
-                <h3>💬 Messages</h3>
+                <h3>[CLI] Messages</h3>
                 <p>Send and receive messages in real-time.</p>
                 <a href="/messages">View Messages</a>
             </div>
             
             <div class="widget">
-                <h3>📁 Files</h3>
+                <h3>[FOLDER] Files</h3>
                 <p>Upload and manage your files securely.</p>
                 <a href="/files">Manage Files</a>
             </div>
             
             <div class="widget">
-                <h3>👥 Users</h3>
+                <h3>? Users</h3>
                 <p>View and manage user accounts.</p>
                 <a href="/users">User Management</a>
             </div>
             
             <div class="widget">
-                <h3>📊 System Status</h3>
+                <h3>[STATS] System Status</h3>
                 <p>Monitor system health and performance.</p>
                 <a href="/system/status">View Status</a>
             </div>
 
             <div class="widget" style="background: linear-gradient(45deg, #ff6b6b, #4ecdc4); cursor: pointer;" onclick="easterEggClick()" id="easterEggWidget">
-                <h3>🥚 Easter Eggs</h3>
+                <h3>? Easter Eggs</h3>
                 <p>Discover hidden features and fun surprises!</p>
                 <a href="/api/v1/easter-eggs/">Explore Easter Eggs</a>
             </div>
@@ -279,7 +279,7 @@ async def webui_dashboard(request: Request):
         <div style="text-align: center; margin-top: 40px; color: #666;">
             PlexiChat {PLEXICHAT_VERSION}
             <div id="secretMessage" style="display: none; margin-top: 10px; color: #4ecdc4;">
-                🎉 You found the secret! Try the Konami code: ↑↑↓↓←→←→BA
+                [SUCCESS] You found the secret! Try the Konami code: ^^vv<><>BA
             </div>
         </div>
 
@@ -303,13 +303,13 @@ async def webui_dashboard(request: Request):
             }}
 
             function showDeveloperInfo() {{
-                alert('🔧 PlexiChat Developer Mode\\n\\n' +
-                      '🚀 Version: {PLEXICHAT_VERSION}\\n' +
-                      '🎨 Framework: FastAPI + HTML/CSS/JS\\n' +
-                      '🔒 Security: Enterprise-grade\\n' +
-                      '⚡ Performance: Sub-millisecond API\\n\\n' +
-                      '🎮 Easter Eggs Found: ' + (clickCount >= 7 ? 'Developer Mode!' : clickCount) + '\\n\\n' +
-                      'Thanks for exploring PlexiChat! 🎊');
+                alert('[SETUP] PlexiChat Developer Mode\\n\\n' +
+                      '[START] Version: {PLEXICHAT_VERSION}\\n' +
+                      '[LAUNCH] Framework: FastAPI + HTML/CSS/JS\\n' +
+                      '? Security: Enterprise-grade\\n' +
+                      '? Performance: Sub-millisecond API\\n\\n' +
+                      '[GAME] Easter Eggs Found: ' + (clickCount >= 7 ? 'Developer Mode!' : clickCount) + '\\n\\n' +
+                      'Thanks for exploring PlexiChat! ?');
             }}
 
             // Konami code listener
@@ -346,17 +346,17 @@ async def webui_dashboard(request: Request):
 
                 overlay.innerHTML = `
                     <div>
-                        <h1 style="font-size: 3em; margin-bottom: 20px;">🎮 KONAMI CODE ACTIVATED! 🎮</h1>
-                        <p style="font-size: 1.5em; margin-bottom: 20px;">↑ ↑ ↓ ↓ ← → ← → B A</p>
+                        <h1 style="font-size: 3em; margin-bottom: 20px;">[GAME] KONAMI CODE ACTIVATED! [GAME]</h1>
+                        <p style="font-size: 1.5em; margin-bottom: 20px;">^ ^ v v < > < > B A</p>
                         <p style="font-size: 1.2em; margin-bottom: 30px;">
-                            🎉 Congratulations! You found the secret Konami code!<br>
-                            🚀 PlexiChat WebUI Developer Mode Unlocked!<br>
-                            🎊 Thanks for exploring our Easter eggs!
+                            [SUCCESS] Congratulations! You found the secret Konami code!<br>
+                            [START] PlexiChat WebUI Developer Mode Unlocked!<br>
+                            ? Thanks for exploring our Easter eggs!
                         </p>
                         <button onclick="this.parentElement.parentElement.remove()"
                                 style="padding: 15px 30px; font-size: 1.2em; background: #4ecdc4;
                                        color: white; border: none; border-radius: 5px; cursor: pointer;">
-                            Awesome! 🎉
+                            Awesome! [SUCCESS]
                         </button>
                     </div>
                 `;
@@ -386,12 +386,12 @@ async def webui_dashboard(request: Request):
             }});
 
             function show42Reference() {{
-                alert('🌌 The Answer to Everything: 42\\n\\n' +
+                alert('? The Answer to Everything: 42\\n\\n' +
                       '"The Answer to the Ultimate Question of Life, ' +
                       'the Universe, and Everything is 42."\\n\\n' +
                       '- The Hitchhiker\\'s Guide to the Galaxy\\n' +
                       'by Douglas Adams\\n\\n' +
-                      'Don\\'t Panic! 🚀');
+                      'Don\\'t Panic! [START]');
             }}
         </script>
     </body>

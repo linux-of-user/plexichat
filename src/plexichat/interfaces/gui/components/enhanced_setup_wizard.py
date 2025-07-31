@@ -181,13 +181,13 @@ class EnhancedSetupWizard:
         self.navigation_frame = tk.Frame(self.main_frame, bg='#34495e')
         self.navigation_frame.pack(fill='x')
         
-        self.back_btn = tk.Button(self.navigation_frame, text="← Back",
+        self.back_btn = tk.Button(self.navigation_frame, text="< Back",
                                 font=("Arial", 12), bg='#95a5a6', fg='white',
                                 relief='flat', bd=0, command=self.go_back,
                                 cursor='hand2', state='disabled')
         self.back_btn.pack(side='left', padx=(0, 10), ipadx=20, ipady=8)
         
-        self.next_btn = tk.Button(self.navigation_frame, text="Next →",
+        self.next_btn = tk.Button(self.navigation_frame, text="Next >",
                                 font=("Arial", 12), bg='#3498db', fg='white',
                                 relief='flat', bd=0, command=self.go_next,
                                 cursor='hand2')
@@ -224,7 +224,7 @@ class EnhancedSetupWizard:
             if step_index == len(self.steps) - 1:
                 self.next_btn.config(text="Complete Setup", bg='#27ae60')
             else:
-                self.next_btn.config(text="Next →", bg='#3498db')
+                self.next_btn.config(text="Next >", bg='#3498db')
                 
     def create_welcome_step(self):
         """Create the welcome step."""
@@ -237,11 +237,11 @@ class EnhancedSetupWizard:
 This wizard will guide you through configuring PlexiChat for your environment.
 
 What you'll configure:
-• Database connection and settings
-• Server configuration and performance
-• Security and authentication settings
-• Feature enablement and optimization
-• File paths and storage locations
+* Database connection and settings
+* Server configuration and performance
+* Security and authentication settings
+* Feature enablement and optimization
+* File paths and storage locations
 
 The setup process typically takes 5-10 minutes and can be modified later
 through the configuration files or this wizard.
@@ -259,10 +259,10 @@ Click 'Next' to begin the configuration process."""
         req_frame.pack(fill='x', pady=20)
         
         requirements = [
-            "✓ Python 3.8+ detected",
-            "✓ Required packages installed",
-            "✓ Write permissions available",
-            "✓ Network connectivity verified"
+            "OK Python 3.8+ detected",
+            "OK Required packages installed",
+            "OK Write permissions available",
+            "OK Network connectivity verified"
         ]
         
         for req in requirements:
@@ -359,9 +359,9 @@ Click 'Next' to begin the configuration process."""
             import time
             time.sleep(1)  # Simulate test delay
 
-            self.connection_status.config(text="✓ Connection successful!", fg='#2ecc71')
+            self.connection_status.config(text="OK Connection successful!", fg='#2ecc71')
         except Exception as e:
-            self.connection_status.config(text=f"✗ Connection failed: {str(e)}", fg='#e74c3c')
+            self.connection_status.config(text=f"ERROR Connection failed: {str(e)}", fg='#e74c3c')
 
     def create_server_step(self):
         """Create the server configuration step."""
@@ -686,10 +686,10 @@ Click 'Next' to begin the configuration process."""
                         'settings': config['database']
                     }, f, indent=2)
 
-            self.save_status.config(text="✓ Configuration saved successfully!", fg='#2ecc71')
+            self.save_status.config(text="OK Configuration saved successfully!", fg='#2ecc71')
 
         except Exception as e:
-            self.save_status.config(text=f"✗ Save failed: {str(e)}", fg='#e74c3c')
+            self.save_status.config(text=f"ERROR Save failed: {str(e)}", fg='#e74c3c')
             logger.error(f"Failed to save configuration: {e}")
 
     def go_next(self):

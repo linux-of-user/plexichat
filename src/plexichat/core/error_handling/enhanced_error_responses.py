@@ -332,7 +332,7 @@ class EnhancedErrorHandler:
                 "default_message": "I'm a teapot - The server refuses to brew coffee because it is, permanently, a teapot",
                 "suggestions": [
                     "This is an Easter egg error from RFC 2324",
-                    "Try requesting tea instead of coffee ☕",
+                    "Try requesting tea instead of coffee ?",
                     "Check if you're using the correct endpoint",
                     "This error indicates a playful server response"
                 ]
@@ -811,10 +811,10 @@ def create_teapot_error(request_content: str = "") -> HTTPException:
         error_response = error_handler.create_error_response(
             status_code=418,
             error="I'm a teapot",
-            message="I'm a teapot - The server refuses to brew coffee because it is, permanently, a teapot ☕",
+            message="I'm a teapot - The server refuses to brew coffee because it is, permanently, a teapot ?",
             custom_suggestions=[
                 "This is an Easter egg error from RFC 2324 (April 1, 1998)",
-                "Try requesting tea instead of coffee 🍵",
+                "Try requesting tea instead of coffee ?",
                 "The server is having a bit of fun with you!",
                 "This error only appears under very specific conditions",
                 "Don't worry, your request wasn't actually processed incorrectly"

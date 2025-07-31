@@ -93,7 +93,7 @@ class ConfigManager:
                     defaults["version"]["current"] = version_data.get("version", defaults["version"]["current"])
                     defaults["version"]["build"] = version_data.get("build_number", defaults["version"]["build"])
             except Exception as e:
-                print_colored(f"⚠️  Warning: Could not load version.json: {e}", Colors.YELLOW)
+                print_colored(f"WARNING: Could not load version.json: {e}", Colors.YELLOW)
 
         # Load from config file if available
         if self.config_file.exists():
@@ -102,7 +102,7 @@ class ConfigManager:
                     file_config = json.load(f)
                     self._deep_update(defaults, file_config)
             except Exception as e:
-                print_colored(f"⚠️  Warning: Could not load config file: {e}", Colors.YELLOW)
+                print_colored(f"[WARNING]  Warning: Could not load config file: {e}", Colors.YELLOW)
         else:
             # Create config directory and file
             self.config_file.parent.mkdir(parents=True, exist_ok=True)
@@ -154,7 +154,7 @@ class ConfigManager:
             with open(self.config_file, 'w') as f:
                 json.dump(config_data, f, indent=2)
         except Exception as e:
-            print_colored(f"⚠️  Warning: Could not save config: {e}", Colors.YELLOW)
+            print_colored(f"[WARNING]  Warning: Could not save config: {e}", Colors.YELLOW)
 
 # Initialize configuration manager
 config_manager = ConfigManager()
@@ -200,13 +200,13 @@ class GitHubManager:
                 data = json.loads(response.read().decode())
                 return data
         except urllib.error.HTTPError as e:
-            print_colored(f"❌ HTTP Error {e.code}: {e.reason}", Colors.RED)
+            print_colored(f"[ERROR] HTTP Error {e.code}: {e.reason}", Colors.RED)
             return []
         except urllib.error.URLError as e:
-            print_colored(f"❌ URL Error: {e.reason}", Colors.RED)
+            print_colored(f"[ERROR] URL Error: {e.reason}", Colors.RED)
             return []
         except Exception as e:
-            print_colored(f"❌ Failed to fetch releases: {e}", Colors.RED)
+            print_colored(f"[ERROR] Failed to fetch releases: {e}", Colors.RED)
             return []
 
     def download_file(self, file_path: str, branch: str = "main", save_path: Optional[Path] = None) -> Optional[Path]:
@@ -217,7 +217,7 @@ class GitHubManager:
             if save_path is None:
                 save_path = Path(file_path).name
 
-            print_colored(f"📥 Downloading {file_path} from GitHub...", Colors.BLUE)
+            print_colored(f"[DOWNLOAD] Downloading {file_path} from GitHub...", Colors.BLUE)
 
             # Create request with proper headers
             req = urllib.request.Request(url)
@@ -229,17 +229,17 @@ class GitHubManager:
             with open(save_path, 'wb') as f:
                 f.write(content)
 
-            print_colored(f"✅ Downloaded to {save_path}", Colors.GREEN)
+            print_colored(f"[OK] Downloaded to {save_path}", Colors.GREEN)
             return Path(save_path)
 
         except urllib.error.HTTPError as e:
-            print_colored(f"❌ HTTP Error {e.code}: {e.reason} for {file_path}", Colors.RED)
+            print_colored(f"[ERROR] HTTP Error {e.code}: {e.reason} for {file_path}", Colors.RED)
             return None
         except urllib.error.URLError as e:
-            print_colored(f"❌ URL Error: {e.reason} for {file_path}", Colors.RED)
+            print_colored(f"[ERROR] URL Error: {e.reason} for {file_path}", Colors.RED)
             return None
         except Exception as e:
-            print_colored(f"❌ Failed to download {file_path}: {e}", Colors.RED)
+            print_colored(f"[ERROR] Failed to download {file_path}: {e}", Colors.RED)
             return None
 
     def get_release_by_tag(self, tag: str) -> Optional[Dict]:
@@ -255,13 +255,13 @@ class GitHubManager:
             with urllib.request.urlopen(req, timeout=10) as response:
                 return json.loads(response.read().decode())
         except urllib.error.HTTPError as e:
-            print_colored(f"❌ HTTP Error {e.code}: {e.reason} for release {tag}", Colors.RED)
+            print_colored(f"[ERROR] HTTP Error {e.code}: {e.reason} for release {tag}", Colors.RED)
             return None
         except urllib.error.URLError as e:
-            print_colored(f"❌ URL Error: {e.reason} for release {tag}", Colors.RED)
+            print_colored(f"[ERROR] URL Error: {e.reason} for release {tag}", Colors.RED)
             return None
         except Exception as e:
-            print_colored(f"❌ Failed to fetch release {tag}: {e}", Colors.RED)
+            print_colored(f"[ERROR] Failed to fetch release {tag}: {e}", Colors.RED)
             return None
 
 class VersionManager:
@@ -329,20 +329,20 @@ class InstallManager:
     def interactive_install(self, version: Optional[str] = None, path: Optional[str] = None,
                            branch: str = "main", force: bool = False) -> bool:
         """Interactive installation process."""
-        print_colored("🚀 PlexiChat Interactive Installer", Colors.BLUE, bold=True)
+        print_colored("[START] PlexiChat Interactive Installer", Colors.BLUE, bold=True)
         print_colored("=" * 50, Colors.CYAN)
-        print_colored(f"📦 Repository: {self.repo}", Colors.CYAN)
-        print_colored(f"🌿 Branch: {branch}", Colors.CYAN)
+        print_colored(f"[PACKAGE] Repository: {self.repo}", Colors.CYAN)
+        print_colored(f"[BRANCH] Branch: {branch}", Colors.CYAN)
 
         # Get available releases
-        print_colored("📡 Fetching available versions from GitHub...", Colors.BLUE)
+        print_colored("[FETCH] Fetching available versions from GitHub...", Colors.BLUE)
         releases = self.github.get_latest_releases(10)
 
         if not releases:
-            print_colored("❌ No releases found. Using current version.", Colors.YELLOW)
+            print_colored("[ERROR] No releases found. Using current version.", Colors.YELLOW)
             selected_version = VERSION
         else:
-            print_colored("\n📋 Available versions:", Colors.GREEN, bold=True)
+            print_colored("\n[LIST] Available versions:", Colors.GREEN, bold=True)
             for i, release in enumerate(releases):
                 tag = release['tag_name']
                 name = release['name']
@@ -363,17 +363,17 @@ class InstallManager:
                         selected_version = VERSION
                         break
                     else:
-                        print_colored("❌ Invalid choice. Please try again.", Colors.RED)
+                        print_colored("[ERROR] Invalid choice. Please try again.", Colors.RED)
                 except ValueError:
-                    print_colored("❌ Please enter a valid number.", Colors.RED)
+                    print_colored("[ERROR] Please enter a valid number.", Colors.RED)
 
         # Get installation path
         paths = self.get_install_paths()
-        print_colored(f"\n📁 Installation options:", Colors.GREEN, bold=True)
+        print_colored(f"\n[FOLDER] Installation options:", Colors.GREEN, bold=True)
         path_options = list(paths.keys())
 
         for i, (key, path) in enumerate(paths.items()):
-            status = "✅" if path.exists() or key == 'local' else "📁"
+            status = "[OK]" if path.exists() or key == 'local' else "[FOLDER]"
             print_colored(f"  {i+1}. {key.title()} - {path} {status}", Colors.CYAN)
 
         while True:
@@ -386,18 +386,18 @@ class InstallManager:
                     selected_path = paths[selected_path_key]
                     break
                 else:
-                    print_colored("❌ Invalid choice. Please try again.", Colors.RED)
+                    print_colored("[ERROR] Invalid choice. Please try again.", Colors.RED)
             except ValueError:
-                print_colored("❌ Please enter a valid number.", Colors.RED)
+                print_colored("[ERROR] Please enter a valid number.", Colors.RED)
 
         # Confirm installation
-        print_colored(f"\n📋 Installation Summary:", Colors.BLUE, bold=True)
+        print_colored(f"\n[LIST] Installation Summary:", Colors.BLUE, bold=True)
         print_colored(f"  Version: {selected_version}", Colors.CYAN)
         print_colored(f"  Location: {selected_path}", Colors.CYAN)
 
         confirm = input(f"\n{Colors.YELLOW}Proceed with installation? (y/N): {Colors.END}")
         if confirm.lower() not in ['y', 'yes']:
-            print_colored("❌ Installation cancelled.", Colors.YELLOW)
+            print_colored("[ERROR] Installation cancelled.", Colors.YELLOW)
             return False
 
         # Perform installation
@@ -417,7 +417,7 @@ class InstallManager:
                 import shutil
                 current_run_py = Path(__file__)
                 shutil.copy2(current_run_py, run_py_path)
-                print_colored(f"✅ Copied current run.py to {run_py_path}", Colors.GREEN)
+                print_colored(f"[OK] Copied current run.py to {run_py_path}", Colors.GREEN)
             else:
                 # Download from GitHub
                 downloaded = self.github.download_file("run.py", version, run_py_path)
@@ -433,14 +433,14 @@ class InstallManager:
             if not req_path.exists():
                 self.github.download_file("requirements.txt", version, req_path)
 
-            print_colored(f"🎉 Installation completed successfully!", Colors.GREEN, bold=True)
-            print_colored(f"📁 Installed to: {install_path}", Colors.CYAN)
-            print_colored(f"🚀 Run with: python {run_py_path}", Colors.CYAN)
+            print_colored(f"[SUCCESS] Installation completed successfully!", Colors.GREEN, bold=True)
+            print_colored(f"[FOLDER] Installed to: {install_path}", Colors.CYAN)
+            print_colored(f"[START] Run with: python {run_py_path}", Colors.CYAN)
 
             return True
 
         except Exception as e:
-            print_colored(f"❌ Installation failed: {e}", Colors.RED)
+            print_colored(f"[ERROR] Installation failed: {e}", Colors.RED)
             return False
 
 class PackageManager:
@@ -515,28 +515,81 @@ class PackageManager:
         return managers
 
 def setup_logging(verbose: bool = False):
-    """Setup comprehensive logging."""
-    level = logging.DEBUG if verbose else logging.INFO
-    logging.basicConfig(
-        level=level,
-        format=f'{Colors.CYAN}%(asctime)s{Colors.END} - {Colors.BOLD}%(name)s{Colors.END} - %(levelname)s - %(message)s',
-        datefmt='%H:%M:%S'
-    )
-    return logging.getLogger("PlexiChat")
+    """Setup comprehensive logging with colorization."""
+    try:
+        # Try to import the unified logging system
+        sys.path.insert(0, str(Path(__file__).parent / "src"))
+        from plexichat.core.logging import get_logger, initialize_logging
+
+        # Initialize the unified logging system
+        config = {
+            "level": "DEBUG" if verbose else "INFO",
+            "console_colors": True,
+            "console_enabled": True,
+            "file_enabled": True
+        }
+        initialize_logging(config)
+
+        return get_logger("PlexiChat.run")
+
+    except ImportError:
+        # Fallback to basic logging with colors
+        level = logging.DEBUG if verbose else logging.INFO
+
+        # Create a custom formatter with colors
+        class ColoredFormatter(logging.Formatter):
+            COLORS = {
+                'DEBUG': Colors.CYAN,
+                'INFO': Colors.GREEN,
+                'WARNING': Colors.YELLOW,
+                'ERROR': Colors.RED,
+                'CRITICAL': Colors.MAGENTA
+            }
+
+            def format(self, record):
+                color = self.COLORS.get(record.levelname, Colors.WHITE)
+                record.levelname = f"{color}{record.levelname}{Colors.END}"
+                record.name = f"{Colors.BOLD}{record.name}{Colors.END}"
+                return super().format(record)
+
+        # Setup basic logging with colors
+        handler = logging.StreamHandler()
+        handler.setFormatter(ColoredFormatter(
+            fmt=f'{Colors.CYAN}%(asctime)s{Colors.END} - %(name)s - %(levelname)s - %(message)s',
+            datefmt='%H:%M:%S'
+        ))
+
+        logger = logging.getLogger("PlexiChat")
+        logger.setLevel(level)
+        logger.addHandler(handler)
+
+        return logger
 
 def print_colored(message: str, color: str = Colors.WHITE, bold: bool = False):
-    """Print colored message to terminal."""
-    style = Colors.BOLD if bold else ""
-    print(f"{style}{color}{message}{Colors.END}")
+    """Print colored message to terminal using logging system."""
+    # Get the logger
+    logger = logging.getLogger("PlexiChat.run")
+
+    # Map colors to log levels
+    if color == Colors.RED:
+        logger.error(message)
+    elif color == Colors.YELLOW:
+        logger.warning(message)
+    elif color == Colors.GREEN:
+        logger.info(message)
+    elif color == Colors.BLUE or color == Colors.CYAN:
+        logger.info(message)
+    else:
+        logger.info(message)
 
 def check_python_version():
     """Check if Python version is compatible."""
     if sys.version_info < (3, 8):
-        print_colored("❌ Error: Python 3.8 or higher is required", Colors.RED, bold=True)
+        print_colored("[ERROR] Error: Python 3.8 or higher is required", Colors.RED, bold=True)
         print_colored(f"   Current version: {sys.version}", Colors.YELLOW)
         sys.exit(1)
 
-    print_colored(f"✅ Python {sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro} detected", Colors.GREEN)
+    print_colored(f"[OK] Python {sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro} detected", Colors.GREEN)
 
 class RequirementsParser:
     """Parse requirements.txt with section markers and OS-specific fallbacks."""
@@ -550,7 +603,7 @@ class RequirementsParser:
     def _parse_requirements(self):
         """Parse requirements file into sections."""
         if not self.requirements_file.exists():
-            print_colored(f"❌ Requirements file not found: {self.requirements_file}", Colors.RED)
+            print_colored(f"[ERROR] Requirements file not found: {self.requirements_file}", Colors.RED)
             return
 
         current_section = "default"
@@ -652,17 +705,17 @@ class EnvironmentManager:
     def create_virtual_environment(self) -> bool:
         """Create virtual environment if it doesn't exist."""
         if self.venv_path.exists():
-            print_colored("✅ Virtual environment already exists", Colors.GREEN)
+            print_colored("[OK] Virtual environment already exists", Colors.GREEN)
             return True
 
-        print_colored("🔧 Creating virtual environment...", Colors.BLUE, bold=True)
+        print_colored("[SETUP] Creating virtual environment...", Colors.BLUE, bold=True)
 
         try:
             venv.create(self.venv_path, with_pip=True)
-            print_colored("✅ Virtual environment created successfully", Colors.GREEN)
+            print_colored("[OK] Virtual environment created successfully", Colors.GREEN)
             return True
         except Exception as e:
-            print_colored(f"❌ Failed to create virtual environment: {e}", Colors.RED)
+            print_colored(f"[ERROR] Failed to create virtual environment: {e}", Colors.RED)
             return False
 
     def activate_virtual_environment(self):
@@ -683,7 +736,7 @@ class EnvironmentManager:
             self.package_manager.python_executable = str(python_exe)
             self.package_manager.pip_commands = [f"{python_exe} -m pip", str(pip_exe)]
 
-            print_colored("✅ Virtual environment activated", Colors.GREEN)
+            print_colored("[OK] Virtual environment activated", Colors.GREEN)
             return True
 
         return False
@@ -699,12 +752,12 @@ class DependencyInstaller:
 
     def install_dependencies(self, level: str = "minimal", force: bool = False) -> bool:
         """Install dependencies for specified level."""
-        print_colored(f"📦 Installing {level} dependencies...", Colors.BLUE, bold=True)
+        print_colored(f"[PACKAGE] Installing {level} dependencies...", Colors.BLUE, bold=True)
 
         packages = self.requirements_parser.get_packages_for_level(level)
 
         if not packages:
-            print_colored("⚠️  No packages found to install", Colors.YELLOW)
+            print_colored("[WARNING]  No packages found to install", Colors.YELLOW)
             return True
 
         print_colored(f"Found {len(packages)} packages to install", Colors.CYAN)
@@ -716,7 +769,7 @@ class DependencyInstaller:
 
         # Try to install failed packages using system package manager
         if self.failed_packages:
-            print_colored(f"🔄 Attempting to install {len(self.failed_packages)} failed packages using system package manager...", Colors.YELLOW)
+            print_colored(f"[UPDATE] Attempting to install {len(self.failed_packages)} failed packages using system package manager...", Colors.YELLOW)
             self._install_system_fallbacks()
 
         # Final summary
@@ -746,15 +799,15 @@ class DependencyInstaller:
 
                 if result.returncode == 0:
                     self.installed_packages.append(package_name)
-                    print_colored(f"    ✅ {package_name} installed successfully", Colors.GREEN)
+                    print_colored(f"    [OK] {package_name} installed successfully", Colors.GREEN)
                     return True
                 else:
-                    print_colored(f"    ❌ Failed with {pip_cmd}: {result.stderr.strip()}", Colors.RED)
+                    print_colored(f"    [ERROR] Failed with {pip_cmd}: {result.stderr.strip()}", Colors.RED)
 
             except subprocess.TimeoutExpired:
-                print_colored(f"    ⏰ Timeout installing {package_name} with {pip_cmd}", Colors.YELLOW)
+                print_colored(f"    [TIMEOUT] Timeout installing {package_name} with {pip_cmd}", Colors.YELLOW)
             except Exception as e:
-                print_colored(f"    ❌ Error with {pip_cmd}: {e}", Colors.RED)
+                print_colored(f"    [ERROR] Error with {pip_cmd}: {e}", Colors.RED)
 
         self.failed_packages.append(package_name)
         return False
@@ -762,7 +815,7 @@ class DependencyInstaller:
     def _install_system_fallbacks(self):
         """Install packages using system package managers."""
         if not self.package_manager.system_package_managers:
-            print_colored("⚠️  No system package managers available", Colors.YELLOW)
+            print_colored("[WARNING]  No system package managers available", Colors.YELLOW)
             return
 
         # Try to map failed packages to system packages
@@ -770,7 +823,7 @@ class DependencyInstaller:
             if manager in self.requirements_parser.os_fallbacks:
                 system_packages = self.requirements_parser.os_fallbacks[manager]
 
-                print_colored(f"🔧 Trying {manager} package manager...", Colors.BLUE)
+                print_colored(f"[SETUP] Trying {manager} package manager...", Colors.BLUE)
 
                 for package in system_packages:
                     try:
@@ -784,18 +837,18 @@ class DependencyInstaller:
                         )
 
                         if result.returncode == 0:
-                            print_colored(f"    ✅ {package} installed via {manager}", Colors.GREEN)
+                            print_colored(f"    [OK] {package} installed via {manager}", Colors.GREEN)
                         else:
-                            print_colored(f"    ❌ Failed to install {package} via {manager}", Colors.RED)
+                            print_colored(f"    [ERROR] Failed to install {package} via {manager}", Colors.RED)
 
                     except Exception as e:
-                        print_colored(f"    ❌ Error installing {package} via {manager}: {e}", Colors.RED)
+                        print_colored(f"    [ERROR] Error installing {package} via {manager}: {e}", Colors.RED)
 
     def _print_installation_summary(self):
         """Print installation summary."""
-        print_colored("\n📊 Installation Summary:", Colors.BLUE, bold=True)
-        print_colored(f"  ✅ Successfully installed: {len(self.installed_packages)}", Colors.GREEN)
-        print_colored(f"  ❌ Failed to install: {len(self.failed_packages)}", Colors.RED)
+        print_colored("\n[STATS] Installation Summary:", Colors.BLUE, bold=True)
+        print_colored(f"  [OK] Successfully installed: {len(self.installed_packages)}", Colors.GREEN)
+        print_colored(f"  [ERROR] Failed to install: {len(self.failed_packages)}", Colors.RED)
 
         if self.failed_packages:
             print_colored("  Failed packages:", Colors.YELLOW)
@@ -803,7 +856,7 @@ class DependencyInstaller:
                 print_colored(f"    - {package}", Colors.RED)
 def check_dependencies(env_manager: EnvironmentManager) -> bool:
     """Check if required dependencies are installed."""
-    print_colored("🔍 Checking core dependencies...", Colors.BLUE)
+    print_colored("[CHECK] Checking core dependencies...", Colors.BLUE)
 
     # Activate virtual environment for checking
     env_manager.activate_virtual_environment()
@@ -814,21 +867,21 @@ def check_dependencies(env_manager: EnvironmentManager) -> bool:
     for package in required_packages:
         try:
             __import__(package)
-            print_colored(f"  ✅ {package} is available", Colors.GREEN)
+            print_colored(f"  [OK] {package} is available", Colors.GREEN)
         except ImportError:
             missing_packages.append(package)
-            print_colored(f"  ❌ {package} is missing", Colors.RED)
+            print_colored(f"  [ERROR] {package} is missing", Colors.RED)
 
     if missing_packages:
-        print_colored(f"⚠️  Missing {len(missing_packages)} required packages", Colors.YELLOW)
+        print_colored(f"[WARNING]  Missing {len(missing_packages)} required packages", Colors.YELLOW)
         return False
 
-    print_colored("✅ All core dependencies are available", Colors.GREEN)
+    print_colored("[OK] All core dependencies are available", Colors.GREEN)
     return True
 
 def handle_clean_command(args):
     """Handle clean command."""
-    print_colored("🧹 PlexiChat Cleanup", Colors.BLUE, bold=True)
+    print_colored("[CLEAN] PlexiChat Cleanup", Colors.BLUE, bold=True)
 
     cache_dirs = [
         Path.home() / ".cache" / "plexichat",
@@ -837,7 +890,7 @@ def handle_clean_command(args):
         Path(__file__).parent / "src" / "__pycache__"
     ]
 
-    print_colored("🗂️  Clearing caches and temporary files...", Colors.YELLOW)
+    print_colored("[CLEAR]  Clearing caches and temporary files...", Colors.YELLOW)
     total_cleared = 0
 
     for cache_dir in cache_dirs:
@@ -850,9 +903,9 @@ def handle_clean_command(args):
                     import shutil
                     shutil.rmtree(cache_dir)
                     total_cleared += 1
-                print_colored(f"  ✅ Cleared {cache_dir}", Colors.GREEN)
+                print_colored(f"  [OK] Cleared {cache_dir}", Colors.GREEN)
             except Exception as e:
-                print_colored(f"  ❌ Failed to clear {cache_dir}: {e}", Colors.RED)
+                print_colored(f"  [ERROR] Failed to clear {cache_dir}: {e}", Colors.RED)
 
     # Clear Python bytecode
     for root, dirs, files in os.walk(Path(__file__).parent):
@@ -865,34 +918,34 @@ def handle_clean_command(args):
                     pass
 
     if args.all:
-        print_colored("🔥 Performing complete cleanup (including virtual environment)...", Colors.RED)
+        print_colored("[REMOVE] Performing complete cleanup (including virtual environment)...", Colors.RED)
         venv_path = Path(__file__).parent / "venv"
         if venv_path.exists():
             try:
                 import shutil
                 shutil.rmtree(venv_path)
-                print_colored("  ✅ Removed virtual environment", Colors.GREEN)
-                print_colored("  ⚠️  You'll need to run 'python run.py setup' again", Colors.YELLOW)
+                print_colored("  [OK] Removed virtual environment", Colors.GREEN)
+                print_colored("  [WARNING]  You'll need to run 'python run.py setup' again", Colors.YELLOW)
                 total_cleared += 1
             except Exception as e:
-                print_colored(f"  ❌ Failed to remove virtual environment: {e}", Colors.RED)
+                print_colored(f"  [ERROR] Failed to remove virtual environment: {e}", Colors.RED)
 
-    print_colored(f"🎉 Cleanup completed! Cleared {total_cleared} items", Colors.GREEN, bold=True)
+    print_colored(f"[SUCCESS] Cleanup completed! Cleared {total_cleared} items", Colors.GREEN, bold=True)
 
 def handle_update_command(args):
     """Handle update command."""
-    print_colored("🔄 PlexiChat Update Manager", Colors.BLUE, bold=True)
+    print_colored("[UPDATE] PlexiChat Update Manager", Colors.BLUE, bold=True)
 
     # Check if we're in a full installation or just run.py
     project_root = Path(__file__).parent
     is_full_install = (project_root / "src").exists() and (project_root / ".git").exists()
 
     if not is_full_install:
-        print_colored("⚠️  Update command is designed for full installations.", Colors.YELLOW)
-        print_colored("💡 Use 'python run.py install' to get the latest version instead.", Colors.CYAN)
+        print_colored("[WARNING]  Update command is designed for full installations.", Colors.YELLOW)
+        print_colored("[TIP] Use 'python run.py install' to get the latest version instead.", Colors.CYAN)
         return
 
-    print_colored("🔍 Checking for updates...", Colors.BLUE)
+    print_colored("[CHECK] Checking for updates...", Colors.BLUE)
 
     # Get current and latest versions
     current_version = VERSION
@@ -900,19 +953,19 @@ def handle_update_command(args):
     releases = github.get_latest_releases(1)
 
     if not releases:
-        print_colored("❌ Failed to check for updates", Colors.RED)
+        print_colored("[ERROR] Failed to check for updates", Colors.RED)
         return
 
     latest_version = releases[0]['tag_name']
 
-    print_colored(f"📋 Current version: {current_version}", Colors.CYAN)
-    print_colored(f"📋 Latest version: {latest_version}", Colors.CYAN)
+    print_colored(f"[LIST] Current version: {current_version}", Colors.CYAN)
+    print_colored(f"[LIST] Latest version: {latest_version}", Colors.CYAN)
 
     if not args.force and VersionManager.compare_versions(current_version, latest_version) >= 0:
-        print_colored("✅ You're already up to date!", Colors.GREEN)
+        print_colored("[OK] You're already up to date!", Colors.GREEN)
         return
 
-    print_colored(f"🚀 Updating to {latest_version}...", Colors.GREEN)
+    print_colored(f"[START] Updating to {latest_version}...", Colors.GREEN)
 
     # Update version.json and changelog
     update_version_files(latest_version)
@@ -922,17 +975,17 @@ def handle_update_command(args):
         subprocess.run(["git", "fetch", "origin"], check=True, cwd=project_root)
         subprocess.run(["git", "checkout", args.branch], check=True, cwd=project_root)
         subprocess.run(["git", "pull", "origin", args.branch], check=True, cwd=project_root)
-        print_colored("✅ Update completed successfully!", Colors.GREEN, bold=True)
+        print_colored("[OK] Update completed successfully!", Colors.GREEN, bold=True)
     except subprocess.CalledProcessError as e:
-        print_colored(f"❌ Update failed: {e}", Colors.RED)
+        print_colored(f"[ERROR] Update failed: {e}", Colors.RED)
 
 def handle_gui_command(args):
     """Handle GUI command."""
-    print_colored("🖥️  Starting PlexiChat GUI Interface", Colors.BLUE, bold=True)
+    print_colored("[GUI]  Starting PlexiChat GUI Interface", Colors.BLUE, bold=True)
 
     # Start servers based on arguments
     if not args.noserver:
-        print_colored("🚀 Starting API server...", Colors.GREEN)
+        print_colored("[START] Starting API server...", Colors.GREEN)
         api_thread = threading.Thread(target=lambda: start_server(
             host=args.host,
             port=args.port,
@@ -942,7 +995,7 @@ def handle_gui_command(args):
         time.sleep(2)  # Give server time to start
 
     if not args.nowebui:
-        print_colored("🌐 Starting WebUI server...", Colors.GREEN)
+        print_colored("[WEB] Starting WebUI server...", Colors.GREEN)
         webui_thread = threading.Thread(target=lambda: start_webui_server(
             host=args.host,
             port=args.webui_port
@@ -950,21 +1003,21 @@ def handle_gui_command(args):
         webui_thread.start()
         time.sleep(2)  # Give server time to start
 
-    print_colored("🎨 Launching GUI...", Colors.CYAN)
+    print_colored("[LAUNCH] Launching GUI...", Colors.CYAN)
     try:
         # Import and launch the GUI interface
         sys.path.insert(0, str(Path(__file__).parent / "src"))
         from plexichat.interfaces.gui import run_gui
 
-        print_colored("✅ GUI interface started successfully!", Colors.GREEN, bold=True)
+        print_colored("[OK] GUI interface started successfully!", Colors.GREEN, bold=True)
         exit_code = run_gui(use_pyqt=True)
         return exit_code
     except ImportError as e:
-        print_colored(f"⚠️  GUI system not available: {e}", Colors.YELLOW)
-        print_colored("💡 Install PyQt6 with: pip install PyQt6", Colors.CYAN)
+        print_colored(f"[WARNING]  GUI system not available: {e}", Colors.YELLOW)
+        print_colored("[TIP] Install PyQt6 with: pip install PyQt6", Colors.CYAN)
         return 1
     except Exception as e:
-        print_colored(f"❌ GUI error: {e}", Colors.RED)
+        print_colored(f"[ERROR] GUI error: {e}", Colors.RED)
         return 1
 
 def update_version_files(version: str):
@@ -980,9 +1033,9 @@ def update_version_files(version: str):
             version_data['version'] = version
             with open(version_file, 'w') as f:
                 json.dump(version_data, f, indent=2)
-            print_colored(f"✅ Updated version.json to {version}", Colors.GREEN)
+            print_colored(f"[OK] Updated version.json to {version}", Colors.GREEN)
         except Exception as e:
-            print_colored(f"⚠️  Failed to update version.json: {e}", Colors.YELLOW)
+            print_colored(f"[WARNING]  Failed to update version.json: {e}", Colors.YELLOW)
 
     # Update changelog
     changelog_file = project_root / "changelog.json"
@@ -1005,9 +1058,9 @@ def update_version_files(version: str):
 
             with open(changelog_file, 'w') as f:
                 json.dump(changelog_data, f, indent=2)
-            print_colored(f"✅ Updated changelog.json", Colors.GREEN)
+            print_colored(f"[OK] Updated changelog.json", Colors.GREEN)
         except Exception as e:
-            print_colored(f"⚠️  Failed to update changelog.json: {e}", Colors.YELLOW)
+            print_colored(f"[WARNING]  Failed to update changelog.json: {e}", Colors.YELLOW)
 
 def get_directory_size(path: Path) -> int:
     """Get total size of directory in bytes."""
@@ -1030,7 +1083,7 @@ def format_size(bytes_size: int) -> str:
 
 def handle_test_command(args, env_manager):
     """Handle test execution."""
-    print_colored("🧪 Running PlexiChat Tests", Colors.BLUE, bold=True)
+    print_colored("[TEST] Running PlexiChat Tests", Colors.BLUE, bold=True)
 
     # Activate virtual environment
     env_manager.activate_virtual_environment()
@@ -1048,29 +1101,29 @@ def handle_test_command(args, env_manager):
 
     cmd = test_commands.get(args.type, test_commands['all'])
 
-    print_colored(f"🚀 Running {args.type} tests...", Colors.CYAN)
+    print_colored(f"[START] Running {args.type} tests...", Colors.CYAN)
     print_colored(f"Command: {' '.join(cmd)}", Colors.YELLOW)
 
     try:
         result = subprocess.run(cmd, cwd=Path(__file__).parent)
         if result.returncode == 0:
-            print_colored("✅ All tests passed!", Colors.GREEN, bold=True)
+            print_colored("[OK] All tests passed!", Colors.GREEN, bold=True)
         else:
-            print_colored("❌ Some tests failed", Colors.RED, bold=True)
+            print_colored("[ERROR] Some tests failed", Colors.RED, bold=True)
 
         if args.coverage and args.type != 'security':
             coverage_dir = Path(__file__).parent / "htmlcov"
             if coverage_dir.exists():
-                print_colored(f"📊 Coverage report: {coverage_dir / 'index.html'}", Colors.CYAN)
+                print_colored(f"[STATS] Coverage report: {coverage_dir / 'index.html'}", Colors.CYAN)
 
     except FileNotFoundError:
-        print_colored("❌ Test runner not found. Install with: pip install pytest pytest-cov", Colors.RED)
+        print_colored("[ERROR] Test runner not found. Install with: pip install pytest pytest-cov", Colors.RED)
     except Exception as e:
-        print_colored(f"❌ Test execution failed: {e}", Colors.RED)
+        print_colored(f"[ERROR] Test execution failed: {e}", Colors.RED)
 
 def start_server(host="0.0.0.0", port=8000, reload=True):
     """Start the PlexiChat API server."""
-    print_colored("🚀 Starting PlexiChat API Server...", Colors.BLUE, bold=True)
+    print_colored("[START] Starting PlexiChat API Server...", Colors.BLUE, bold=True)
     print_colored(f"   Host: {host}", Colors.CYAN)
     print_colored(f"   Port: {port}", Colors.CYAN)
     print_colored(f"   Reload: {reload}", Colors.CYAN)
@@ -1091,23 +1144,23 @@ def start_server(host="0.0.0.0", port=8000, reload=True):
         if reload:
             cmd.append("--reload")
 
-        print_colored("📡 API Server starting...", Colors.GREEN, bold=True)
-        print_colored(f"🔗 Access the API at: http://{host}:{port}", Colors.CYAN)
-        print_colored(f"📚 API Documentation: http://{host}:{port}/docs", Colors.CYAN)
+        print_colored("[FETCH] API Server starting...", Colors.GREEN, bold=True)
+        print_colored(f"[LINK] Access the API at: http://{host}:{port}", Colors.CYAN)
+        print_colored(f"[DOCS] API Documentation: http://{host}:{port}/docs", Colors.CYAN)
         print()
 
         # Run the command
         subprocess.run(cmd)
 
     except KeyboardInterrupt:
-        print_colored("\n🛑 Server stopped by user", Colors.YELLOW, bold=True)
+        print_colored("\n[STOP] Server stopped by user", Colors.YELLOW, bold=True)
     except Exception as e:
-        print_colored(f"❌ Error starting server: {e}", Colors.RED, bold=True)
+        print_colored(f"[ERROR] Error starting server: {e}", Colors.RED, bold=True)
         sys.exit(1)
 
 def start_webui_server(host="0.0.0.0", port=8080):
     """Start the PlexiChat WebUI server."""
-    print_colored("🌐 Starting PlexiChat WebUI Server...", Colors.BLUE, bold=True)
+    print_colored("[WEB] Starting PlexiChat WebUI Server...", Colors.BLUE, bold=True)
     print_colored(f"   Host: {host}", Colors.CYAN)
     print_colored(f"   Port: {port}", Colors.CYAN)
     print()
@@ -1124,23 +1177,23 @@ def start_webui_server(host="0.0.0.0", port=8080):
             "--port", str(port),
         ]
 
-        print_colored("🌐 WebUI Server starting...", Colors.GREEN, bold=True)
-        print_colored(f"🔗 Access the WebUI at: http://{host}:{port}", Colors.CYAN)
+        print_colored("[WEB] WebUI Server starting...", Colors.GREEN, bold=True)
+        print_colored(f"[LINK] Access the WebUI at: http://{host}:{port}", Colors.CYAN)
         print()
 
         # Run the command
         subprocess.run(cmd)
 
     except KeyboardInterrupt:
-        print_colored("\n🛑 WebUI Server stopped by user", Colors.YELLOW, bold=True)
+        print_colored("\n[STOP] WebUI Server stopped by user", Colors.YELLOW, bold=True)
     except Exception as e:
-        print_colored(f"❌ Error starting WebUI server: {e}", Colors.RED, bold=True)
+        print_colored(f"[ERROR] Error starting WebUI server: {e}", Colors.RED, bold=True)
         sys.exit(1)
 
 def start_cli():
     """Start the PlexiChat CLI system."""
-    print_colored("🖥️  Starting Interactive CLI...", Colors.GREEN)
-    print_colored("💡 Type 'help' for available commands, 'exit' to quit", Colors.CYAN)
+    print_colored("[GUI]  Starting Interactive CLI...", Colors.GREEN)
+    print_colored("[TIP] Type 'help' for available commands, 'exit' to quit", Colors.CYAN)
     print()
 
     try:
@@ -1149,15 +1202,15 @@ def start_cli():
         from plexichat.interfaces.cli.main_cli import main as cli_main
         cli_main()
     except ImportError as e:
-        print_colored(f"⚠️  CLI system not available: {e}", Colors.YELLOW)
-        print_colored("📋 Use 'python run.py --help' for other options.", Colors.CYAN)
+        print_colored(f"[WARNING]  CLI system not available: {e}", Colors.YELLOW)
+        print_colored("[LIST] Use 'python run.py --help' for other options.", Colors.CYAN)
     except Exception as e:
-        print_colored(f"❌ CLI error: {e}", Colors.RED)
-        print_colored("📋 Use 'python run.py --help' for other options.", Colors.CYAN)
+        print_colored(f"[ERROR] CLI error: {e}", Colors.RED)
+        print_colored("[LIST] Use 'python run.py --help' for other options.", Colors.CYAN)
 
 def start_servers(host="0.0.0.0", port=8000, webui_port=8080, reload=True):
     """Start both API server and WebUI server."""
-    print_colored("🚀 Starting PlexiChat with API Server and WebUI", Colors.BLUE, bold=True)
+    print_colored("[START] Starting PlexiChat with API Server and WebUI", Colors.BLUE, bold=True)
     print_colored(f"   API Host: {host}:{port}", Colors.CYAN)
     print_colored(f"   WebUI Host: {host}:{webui_port}", Colors.CYAN)
     print_colored(f"   Reload: {reload}", Colors.CYAN)
@@ -1193,17 +1246,17 @@ def start_servers(host="0.0.0.0", port=8000, webui_port=8080, reload=True):
             ]
             subprocess.run(cmd)
 
-        print_colored("📡 Starting API Server...", Colors.GREEN)
+        print_colored("[FETCH] Starting API Server...", Colors.GREEN)
         api_thread = threading.Thread(target=start_api, daemon=True)
         api_thread.start()
 
-        print_colored("🌐 Starting WebUI Server...", Colors.GREEN)
+        print_colored("[WEB] Starting WebUI Server...", Colors.GREEN)
         webui_thread = threading.Thread(target=start_webui, daemon=True)
         webui_thread.start()
 
-        print_colored(f"🔗 API Server: http://{host}:{port}", Colors.CYAN)
-        print_colored(f"📚 API Documentation: http://{host}:{port}/docs", Colors.CYAN)
-        print_colored(f"🌐 WebUI: http://{host}:{webui_port}", Colors.CYAN)
+        print_colored(f"[LINK] API Server: http://{host}:{port}", Colors.CYAN)
+        print_colored(f"[DOCS] API Documentation: http://{host}:{port}/docs", Colors.CYAN)
+        print_colored(f"[WEB] WebUI: http://{host}:{webui_port}", Colors.CYAN)
         print()
 
         # Keep main thread alive
@@ -1211,15 +1264,15 @@ def start_servers(host="0.0.0.0", port=8000, webui_port=8080, reload=True):
             while True:
                 time.sleep(1)
         except KeyboardInterrupt:
-            print_colored("\n🛑 Servers stopped by user", Colors.YELLOW, bold=True)
+            print_colored("\n[STOP] Servers stopped by user", Colors.YELLOW, bold=True)
 
     except Exception as e:
-        print_colored(f"❌ Error starting servers: {e}", Colors.RED, bold=True)
+        print_colored(f"[ERROR] Error starting servers: {e}", Colors.RED, bold=True)
         sys.exit(1)
 
 def start_full_system(host="0.0.0.0", port=8000, webui_port=8080, reload=True, enable_cli=True):
     """Start API server, WebUI server, and interactive CLI."""
-    print_colored("🚀 Starting PlexiChat Full System", Colors.BLUE, bold=True)
+    print_colored("[START] Starting PlexiChat Full System", Colors.BLUE, bold=True)
     print_colored(f"   API Host: {host}:{port}", Colors.CYAN)
     print_colored(f"   WebUI Host: {host}:{webui_port}", Colors.CYAN)
     print_colored(f"   Interactive CLI: {'Enabled' if enable_cli else 'Disabled'}", Colors.CYAN)
@@ -1263,38 +1316,38 @@ def start_full_system(host="0.0.0.0", port=8000, webui_port=8080, reload=True, e
                 # Import and start the CLI system
                 sys.path.insert(0, str(Path(__file__).parent / "src"))
                 from plexichat.interfaces.cli.main_cli import main as cli_main
-                print_colored("🖥️  Starting Interactive CLI...", Colors.GREEN)
-                print_colored("💡 Type 'help' for available commands, 'exit' to quit", Colors.CYAN)
+                print_colored("[GUI]  Starting Interactive CLI...", Colors.GREEN)
+                print_colored("[TIP] Type 'help' for available commands, 'exit' to quit", Colors.CYAN)
                 print()
                 cli_main()
             except ImportError as e:
-                print_colored(f"⚠️  CLI system not available: {e}", Colors.YELLOW)
-                print_colored("📋 Servers are running. Press Ctrl+C to stop.", Colors.CYAN)
+                print_colored(f"[WARNING]  CLI system not available: {e}", Colors.YELLOW)
+                print_colored("[LIST] Servers are running. Press Ctrl+C to stop.", Colors.CYAN)
                 try:
                     while True:
                         time.sleep(1)
                 except KeyboardInterrupt:
                     pass
             except Exception as e:
-                print_colored(f"❌ CLI error: {e}", Colors.RED)
-                print_colored("📋 Servers are running. Press Ctrl+C to stop.", Colors.CYAN)
+                print_colored(f"[ERROR] CLI error: {e}", Colors.RED)
+                print_colored("[LIST] Servers are running. Press Ctrl+C to stop.", Colors.CYAN)
                 try:
                     while True:
                         time.sleep(1)
                 except KeyboardInterrupt:
                     pass
 
-        print_colored("📡 Starting API Server...", Colors.GREEN)
+        print_colored("[FETCH] Starting API Server...", Colors.GREEN)
         api_thread = threading.Thread(target=start_api, daemon=True)
         api_thread.start()
 
-        print_colored("🌐 Starting WebUI Server...", Colors.GREEN)
+        print_colored("[WEB] Starting WebUI Server...", Colors.GREEN)
         webui_thread = threading.Thread(target=start_webui, daemon=True)
         webui_thread.start()
 
-        print_colored(f"🔗 API Server: http://{host}:{port}", Colors.CYAN)
-        print_colored(f"📚 API Documentation: http://{host}:{port}/docs", Colors.CYAN)
-        print_colored(f"🌐 WebUI: http://{host}:{webui_port}", Colors.CYAN)
+        print_colored(f"[LINK] API Server: http://{host}:{port}", Colors.CYAN)
+        print_colored(f"[DOCS] API Documentation: http://{host}:{port}/docs", Colors.CYAN)
+        print_colored(f"[WEB] WebUI: http://{host}:{webui_port}", Colors.CYAN)
         print()
 
         if enable_cli:
@@ -1306,12 +1359,12 @@ def start_full_system(host="0.0.0.0", port=8000, webui_port=8080, reload=True, e
                 while True:
                     time.sleep(1)
             except KeyboardInterrupt:
-                print_colored("\n🛑 System stopped by user", Colors.YELLOW, bold=True)
+                print_colored("\n[STOP] System stopped by user", Colors.YELLOW, bold=True)
 
     except KeyboardInterrupt:
-        print_colored("\n🛑 System stopped by user", Colors.YELLOW, bold=True)
+        print_colored("\n[STOP] System stopped by user", Colors.YELLOW, bold=True)
     except Exception as e:
-        print_colored(f"❌ Error starting system: {e}", Colors.RED, bold=True)
+        print_colored(f"[ERROR] Error starting system: {e}", Colors.RED, bold=True)
         sys.exit(1)
 
 def main():
@@ -1421,11 +1474,11 @@ Examples:
                 latest = releases[0]['tag_name']
                 comparison = VersionManager.compare_versions(VERSION, latest)
                 if comparison < 0:
-                    print_colored(f"🆕 Update available: {latest}", Colors.GREEN)
+                    print_colored(f"[NEW] Update available: {latest}", Colors.GREEN)
                 elif comparison > 0:
-                    print_colored(f"🚀 You're ahead: {latest} is the latest release", Colors.YELLOW)
+                    print_colored(f"[START] You're ahead: {latest} is the latest release", Colors.YELLOW)
                 else:
-                    print_colored(f"✅ You're up to date!", Colors.GREEN)
+                    print_colored(f"[OK] You're up to date!", Colors.GREEN)
         sys.exit(0)
 
     elif args.command == 'clean':
@@ -1451,33 +1504,33 @@ Examples:
     requirements_parser = RequirementsParser(requirements_file)
 
     if args.command == 'setup':
-        print_colored("🔧 Setting up PlexiChat environment...", Colors.BLUE, bold=True)
+        print_colored("[SETUP] Setting up PlexiChat environment...", Colors.BLUE, bold=True)
 
         # Clean install if requested
         if hasattr(args, 'clean') and args.clean:
-            print_colored("🧹 Performing clean install...", Colors.YELLOW)
+            print_colored("[CLEAN] Performing clean install...", Colors.YELLOW)
             venv_path = env_manager.venv_path
             if venv_path.exists():
                 import shutil
                 shutil.rmtree(venv_path)
-                print_colored("  ✅ Removed existing virtual environment", Colors.GREEN)
+                print_colored("  [OK] Removed existing virtual environment", Colors.GREEN)
 
         # Create virtual environment
         if not args.no_venv:
             if not env_manager.create_virtual_environment():
-                print_colored("❌ Failed to create virtual environment", Colors.RED)
+                print_colored("[ERROR] Failed to create virtual environment", Colors.RED)
                 sys.exit(1)
 
             if not env_manager.activate_virtual_environment():
-                print_colored("❌ Failed to activate virtual environment", Colors.RED)
+                print_colored("[ERROR] Failed to activate virtual environment", Colors.RED)
                 sys.exit(1)
 
         # Install dependencies
         installer = DependencyInstaller(env_manager, requirements_parser)
         if not installer.install_dependencies(args.level, args.force):
-            print_colored("⚠️  Some packages failed to install, but continuing...", Colors.YELLOW)
+            print_colored("[WARNING]  Some packages failed to install, but continuing...", Colors.YELLOW)
 
-        print_colored("🎉 Environment setup completed!", Colors.GREEN, bold=True)
+        print_colored("[SUCCESS] Environment setup completed!", Colors.GREEN, bold=True)
         print_colored("Run 'python run.py' to start the server", Colors.CYAN)
 
     elif args.command == 'test':
@@ -1491,12 +1544,12 @@ Examples:
 
         # Check dependencies
         if not check_dependencies(env_manager):
-            print_colored("💡 Run 'python run.py setup' to install dependencies", Colors.CYAN)
+            print_colored("[TIP] Run 'python run.py setup' to install dependencies", Colors.CYAN)
             sys.exit(1)
 
         # Start servers and CLI based on flags
         if not args.noserver and not args.nowebui and not args.nocli:
-            print_colored("🚀 Starting PlexiChat with API server, WebUI, and CLI", Colors.BLUE, bold=True)
+            print_colored("[START] Starting PlexiChat with API server, WebUI, and CLI", Colors.BLUE, bold=True)
             start_full_system(
                 host=args.host,
                 port=args.port,
@@ -1505,7 +1558,7 @@ Examples:
                 enable_cli=True
             )
         elif not args.noserver and not args.nowebui:
-            print_colored("🚀 Starting PlexiChat with API server and WebUI", Colors.BLUE, bold=True)
+            print_colored("[START] Starting PlexiChat with API server and WebUI", Colors.BLUE, bold=True)
             start_servers(
                 host=args.host,
                 port=args.port,
@@ -1513,21 +1566,21 @@ Examples:
                 reload=not args.no_reload
             )
         elif not args.noserver:
-            print_colored("🚀 Starting PlexiChat API server only", Colors.BLUE, bold=True)
+            print_colored("[START] Starting PlexiChat API server only", Colors.BLUE, bold=True)
             start_server(
                 host=args.host,
                 port=args.port,
                 reload=not args.no_reload
             )
         elif not args.nowebui:
-            print_colored("🌐 Starting PlexiChat WebUI only", Colors.BLUE, bold=True)
+            print_colored("[WEB] Starting PlexiChat WebUI only", Colors.BLUE, bold=True)
             start_webui_server(
                 host=args.host,
                 port=args.webui_port
             )
         else:
             # Both --noserver and --nowebui specified, start CLI only
-            print_colored("💬 Starting PlexiChat CLI only", Colors.BLUE, bold=True)
+            print_colored("[CLI] Starting PlexiChat CLI only", Colors.BLUE, bold=True)
             start_cli()
 
 if __name__ == "__main__":

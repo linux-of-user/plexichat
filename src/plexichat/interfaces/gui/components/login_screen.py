@@ -345,7 +345,7 @@ class LoginScreen(tk.Frame):
             )
 
             # Add theme icon on thumb
-            icon = '🌙' if self.dark_mode.get() else '☀️'
+            icon = '?' if self.dark_mode.get() else '??'
             self.toggle_canvas.create_text(
                 thumb_x + thumb_size//2, track_y + track_height//2 + 1,
                 text=icon, font=('Arial', 10)
@@ -719,13 +719,13 @@ class LoginScreen(tk.Frame):
             # Username field
             self.create_animated_input(
                 input_frame, "Username", self.username_var,
-                "👤", "Enter your username", row=0
+                "?", "Enter your username", row=0
             )
 
             # Password field  
             self.create_animated_password_input(
                 input_frame, "Password", self.password_var,
-                "🔒", "Enter your password", row=1
+                "?", "Enter your password", row=1
             )
 
         except Exception as e:
@@ -857,7 +857,7 @@ class LoginScreen(tk.Frame):
             # Eye toggle button
             eye_btn = tk.Button(
                 input_canvas,
-                text="👁",
+                text="?",
                 font=('Inter', 14),
                 bg=entry_bg,
                 fg=entry_fg,
@@ -1091,7 +1091,7 @@ class LoginScreen(tk.Frame):
             if not self.is_authenticating:
                 self.login_canvas.create_text(
                     (width - shadow_offset) // 2 + 50, height // 2,
-                    text="→",
+                    text=">",
                     fill=text_color,
                     font=('Inter', 18, 'bold')
                 )
@@ -1218,7 +1218,7 @@ class LoginScreen(tk.Frame):
                 metrics = "System metrics unavailable"
 
             # Network status
-            network_icon = "🟢" if self.check_network_status() else "🔴"
+            network_icon = "?" if self.check_network_status() else "?"
 
             # Format status
             status_text = f"{network_icon} Online | {metrics} | Uptime: {uptime_str}"
@@ -1229,7 +1229,7 @@ class LoginScreen(tk.Frame):
 
         except Exception as e:
             logger.error(f"Failed to update system status: {e}")
-            self.system_status_text.set("🟡 Status unavailable")
+            self.system_status_text.set("? Status unavailable")
 
     def check_network_status(self):
         """Check network connectivity."""
