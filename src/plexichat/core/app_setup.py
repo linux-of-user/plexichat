@@ -26,9 +26,8 @@ def setup_routers(app: FastAPI):
     
     try:
         # API v1 routes
-        from plexichat.interfaces.api.v1 import v1_router as api_v1_router, root_router as root_api_router
+        from plexichat.interfaces.api.v1 import v1_router as api_v1_router
         app.include_router(api_v1_router, tags=["api-v1"])
-        app.include_router(root_api_router, tags=["root-api"])
         logger.info("[CHECK] API v1 router loaded")
     except ImportError as e:
         logger.warning(f"API v1 router not available: {e}")
