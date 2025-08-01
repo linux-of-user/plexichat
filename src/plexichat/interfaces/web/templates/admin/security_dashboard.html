@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Dashboard - PlexiChat Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .security-card {
+            border-left: 4px solid #007bff;
+            transition: all 0.3s ease;
+        }
+        .security-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .threat-high { border-left-color: #dc3545; }
+        .threat-medium { border-left-color: #ffc107; }
+        .threat-low { border-left-color: #28a745; }
+        .metric-value {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        .status-healthy { background-color: #28a745; }
+        .status-warning { background-color: #ffc107; }
+        .status-critical { background-color: #dc3545; }
+        .chart-container {
+            height: 300px;
+            position: relative;
+        }
+        .log-entry {
+            border-bottom: 1px solid #eee;
+            padding: 8px 0;
+        }
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+        .severity-critical { color: #dc3545; }
+        .severity-warning { color: #ffc107; }
+        .severity-info { color: #17a2b8; }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-2 d-none d-md-block bg-light sidebar">
+                <div class="sidebar-sticky">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="#overview">
+                                <i class="fas fa-shield-alt"></i> Overview
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#threats">
+                                <i class="fas fa-exclamation-triangle"></i> Threats
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#sessions">
+                                <i class="fas fa-users"></i> Sessions
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#audit">
+                                <i class="fas fa-clipboard-list"></i> Audit Logs
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#settings">
+                                <i class="fas fa-cog"></i> Settings
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- Main content -->
+            <main class="col-md-10 ml-sm-auto px-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">Security Dashboard</h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <div class="btn-group mr-2">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="refreshDashboard()">
+                                <i class="fas fa-sync-alt"></i> Refresh
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="performSecurityScan()">
+                                <i class="fas fa-search"></i> Security Scan
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="emergencyLockdown()">
+                                <i class="fas fa-lock"></i> Emergency Lockdown
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Security Metrics Overview -->
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="card security-card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h6 class="card-title text-muted">Security Level</h6>
+                                        <div class="metric-value text-primary" id="security-level">GOVERNMENT</div>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="fas fa-shield-alt fa-2x text-primary"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card security-card threat-high">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h6 class="card-title text-muted">Threats Blocked</h6>
+                                        <div class="metric-value text-danger" id="threats-blocked">0</div>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="fas fa-exclamation-triangle fa-2x text-danger"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card security-card threat-medium">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h6 class="card-title text-muted">Active Sessions</h6>
+                                        <div class="metric-value text-warning" id="active-sessions">0</div>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="fas fa-users fa-2x text-warning"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card security-card threat-low">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h6 class="card-title text-muted">Blocked IPs</h6>
+                                        <div class="metric-value text-success" id="blocked-ips">0</div>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="fas fa-ban fa-2x text-success"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System Status -->
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">System Security Status</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <span class="status-indicator status-healthy"></span>
+                                            <span>Intrusion Detection: Active</span>
+                                        </div>
+                                        <div class="d-flex align-items-center mb-2">
+                                            <span class="status-indicator status-healthy"></span>
+                                            <span>Rate Limiting: Active</span>
+                                        </div>
+                                        <div class="d-flex align-items-center mb-2">
+                                            <span class="status-indicator status-healthy"></span>
+                                            <span>Input Sanitization: Active</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <span class="status-indicator status-healthy"></span>
+                                            <span>Encryption: Active</span>
+                                        </div>
+                                        <div class="d-flex align-items-center mb-2">
+                                            <span class="status-indicator status-healthy"></span>
+                                            <span>Audit Logging: Active</span>
+                                        </div>
+                                        <div class="d-flex align-items-center mb-2">
+                                            <span class="status-indicator status-healthy"></span>
+                                            <span>Session Management: Active</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <span class="status-indicator status-healthy"></span>
+                                            <span>Threat Detection: Active</span>
+                                        </div>
+                                        <div class="d-flex align-items-center mb-2">
+                                            <span class="status-indicator status-healthy"></span>
+                                            <span>Vulnerability Scanner: Active</span>
+                                        </div>
+                                        <div class="d-flex align-items-center mb-2">
+                                            <span class="status-indicator status-healthy"></span>
+                                            <span>Security Monitoring: Active</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Security Events -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Recent Security Events</h5>
+                            </div>
+                            <div class="card-body">
+                                <div id="security-events" style="max-height: 300px; overflow-y: auto;">
+                                    <!-- Events will be loaded here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Threat Analysis</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="threat-input" class="form-label">Analyze Input for Threats:</label>
+                                    <textarea class="form-control" id="threat-input" rows="3" placeholder="Enter text to analyze..."></textarea>
+                                </div>
+                                <button type="button" class="btn btn-primary" onclick="analyzeThreat()">
+                                    <i class="fas fa-search"></i> Analyze
+                                </button>
+                                <div id="threat-results" class="mt-3"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- IP Management -->
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">IP Address Management</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h6>Block IP Address</h6>
+                                        <div class="input-group mb-3">
+                                            <input type="text" class="form-control" id="ip-to-block" placeholder="Enter IP address">
+                                            <input type="text" class="form-control" id="block-reason" placeholder="Reason for blocking">
+                                            <button class="btn btn-danger" type="button" onclick="blockIP()">
+                                                <i class="fas fa-ban"></i> Block
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6>Blocked IP Addresses</h6>
+                                        <div id="blocked-ips-list" style="max-height: 200px; overflow-y: auto;">
+                                            <!-- Blocked IPs will be loaded here -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/js/security-dashboard.js"></script>
+</body>
+</html>

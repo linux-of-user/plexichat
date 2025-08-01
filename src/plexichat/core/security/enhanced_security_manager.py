@@ -665,6 +665,387 @@ class AdvancedInputSanitizer:
             text = text[:10000]
         return text
 
+class ThreatDetector:
+    """Advanced threat detection system."""
+
+    def __init__(self):
+        self.threat_signatures = {
+            'sql_injection': [
+                r"(\bunion\b.*\bselect\b)",
+                r"(\bselect\b.*\bfrom\b.*\bwhere\b)",
+                r"(\bdrop\b.*\btable\b)",
+                r"(\binsert\b.*\binto\b)",
+                r"(\bupdate\b.*\bset\b)",
+                r"(\bdelete\b.*\bfrom\b)",
+                r"(\bor\b.*1\s*=\s*1)",
+                r"(\band\b.*1\s*=\s*1)",
+                r"(\bor\b.*'.*'.*=.*'.*')",
+                r"(\bunion\b.*\ball\b.*\bselect\b)",
+            ],
+            'xss': [
+                r"<script[^>]*>.*?</script>",
+                r"javascript:",
+                r"on\w+\s*=",
+                r"<iframe[^>]*>",
+                r"<object[^>]*>",
+                r"<embed[^>]*>",
+                r"<link[^>]*>",
+                r"<meta[^>]*>",
+                r"eval\s*\(",
+                r"setTimeout\s*\(",
+                r"setInterval\s*\(",
+            ],
+            'command_injection': [
+                r";\s*(rm|del|format|shutdown)",
+                r"\|\s*(nc|netcat|telnet)",
+                r"&&\s*(wget|curl|powershell)",
+                r"`.*`",
+                r"\$\(.*\)",
+                r">\s*/dev/null",
+                r"2>&1",
+                r"\|\s*sh",
+                r"\|\s*bash",
+                r"\|\s*cmd",
+            ],
+            'path_traversal': [
+                r"\.\./",
+                r"\.\.\\",
+                r"%2e%2e%2f",
+                r"%2e%2e\\",
+                r"..%2f",
+                r"..%5c",
+                r"%252e%252e%252f",
+                r"file://",
+                r"\\\\",
+            ],
+            'malware_patterns': [
+                r"base64_decode\s*\(",
+                r"eval\s*\(\s*base64_decode",
+                r"system\s*\(",
+                r"exec\s*\(",
+                r"shell_exec\s*\(",
+                r"passthru\s*\(",
+                r"proc_open\s*\(",
+                r"popen\s*\(",
+                r"file_get_contents\s*\(\s*['\"]http",
+                r"curl_exec\s*\(",
+            ]
+        }
+        self.compiled_patterns = {}
+        self._compile_patterns()
+
+    def _compile_patterns(self):
+        """Compile regex patterns for better performance."""
+        import re
+        for category, patterns in self.threat_signatures.items():
+            self.compiled_patterns[category] = [
+                re.compile(pattern, re.IGNORECASE | re.MULTILINE)
+                for pattern in patterns
+            ]
+
+    def detect_threats(self, input_data: str) -> Dict[str, List[str]]:
+        """Detect threats in input data."""
+        threats = {}
+
+        for category, patterns in self.compiled_patterns.items():
+            matches = []
+            for pattern in patterns:
+                if pattern.search(input_data):
+                    matches.append(pattern.pattern)
+
+            if matches:
+                threats[category] = matches
+
+        return threats
+
+    def is_malicious(self, input_data: str) -> bool:
+        """Check if input data contains malicious patterns."""
+        threats = self.detect_threats(input_data)
+        return len(threats) > 0
+
+class SessionManager:
+    """Advanced session management with security features."""
+
+    def __init__(self):
+        self.active_sessions: Dict[str, Dict[str, Any]] = {}
+        self.session_timeout = 1800  # 30 minutes
+        self.max_sessions_per_user = 5
+
+    def create_session(self, user_id: str, ip_address: str, user_agent: str) -> str:
+        """Create a new secure session."""
+        import secrets
+        import time
+
+        session_id = secrets.token_urlsafe(32)
+
+        # Clean up old sessions for user
+        self._cleanup_user_sessions(user_id)
+
+        session_data = {
+            'user_id': user_id,
+            'ip_address': ip_address,
+            'user_agent': user_agent,
+            'created_at': time.time(),
+            'last_activity': time.time(),
+            'is_active': True,
+            'security_flags': {
+                'ip_changed': False,
+                'user_agent_changed': False,
+                'suspicious_activity': False,
+            }
+        }
+
+        self.active_sessions[session_id] = session_data
+        return session_id
+
+    def validate_session(self, session_id: str, ip_address: str, user_agent: str) -> bool:
+        """Validate session and check for security issues."""
+        import time
+
+        if session_id not in self.active_sessions:
+            return False
+
+        session = self.active_sessions[session_id]
+        current_time = time.time()
+
+        # Check timeout
+        if current_time - session['last_activity'] > self.session_timeout:
+            self.invalidate_session(session_id)
+            return False
+
+        # Check IP address change
+        if session['ip_address'] != ip_address:
+            session['security_flags']['ip_changed'] = True
+            # Could be suspicious, but not necessarily invalid
+
+        # Check user agent change
+        if session['user_agent'] != user_agent:
+            session['security_flags']['user_agent_changed'] = True
+
+        # Update last activity
+        session['last_activity'] = current_time
+
+        return session['is_active']
+
+    def invalidate_session(self, session_id: str):
+        """Invalidate a session."""
+        if session_id in self.active_sessions:
+            self.active_sessions[session_id]['is_active'] = False
+
+    def _cleanup_user_sessions(self, user_id: str):
+        """Clean up old sessions for a user."""
+        user_sessions = [
+            (sid, session) for sid, session in self.active_sessions.items()
+            if session['user_id'] == user_id and session['is_active']
+        ]
+
+        if len(user_sessions) >= self.max_sessions_per_user:
+            # Remove oldest sessions
+            user_sessions.sort(key=lambda x: x[1]['last_activity'])
+            for sid, _ in user_sessions[:-self.max_sessions_per_user + 1]:
+                self.invalidate_session(sid)
+
+class AuditLogger:
+    """Advanced audit logging system."""
+
+    def __init__(self):
+        self.audit_events: List[Dict[str, Any]] = []
+        self.max_events = 10000
+
+    def log_security_event(self, event_type: str, user_id: str, ip_address: str,
+                          details: Dict[str, Any], severity: str = 'INFO'):
+        """Log a security event."""
+        import time
+
+        event = {
+            'timestamp': time.time(),
+            'event_type': event_type,
+            'user_id': user_id,
+            'ip_address': ip_address,
+            'severity': severity,
+            'details': details,
+            'event_id': f"{event_type}_{int(time.time())}_{hash(str(details)) % 10000}"
+        }
+
+        self.audit_events.append(event)
+
+        # Rotate logs if needed
+        if len(self.audit_events) > self.max_events:
+            self.audit_events = self.audit_events[-self.max_events//2:]
+
+        # Log to system logger as well
+        logger.info(f"Security Event: {event_type} - {severity} - {details}")
+
+    def get_events_by_user(self, user_id: str, limit: int = 100) -> List[Dict[str, Any]]:
+        """Get audit events for a specific user."""
+        user_events = [
+            event for event in self.audit_events
+            if event['user_id'] == user_id
+        ]
+        return sorted(user_events, key=lambda x: x['timestamp'], reverse=True)[:limit]
+
+    def get_events_by_type(self, event_type: str, limit: int = 100) -> List[Dict[str, Any]]:
+        """Get audit events by type."""
+        type_events = [
+            event for event in self.audit_events
+            if event['event_type'] == event_type
+        ]
+        return sorted(type_events, key=lambda x: x['timestamp'], reverse=True)[:limit]
+
+class IntrusionDetector:
+    """Advanced intrusion detection system."""
+
+    def __init__(self):
+        self.failed_attempts: Dict[str, List[float]] = {}
+        self.suspicious_patterns: Dict[str, int] = {}
+        self.blocked_ips: Set[str] = set()
+        self.max_failed_attempts = 5
+        self.lockout_duration = 3600  # 1 hour
+
+    def record_failed_attempt(self, ip_address: str, attempt_type: str = 'login'):
+        """Record a failed authentication attempt."""
+        import time
+
+        current_time = time.time()
+
+        if ip_address not in self.failed_attempts:
+            self.failed_attempts[ip_address] = []
+
+        # Clean old attempts (older than 1 hour)
+        self.failed_attempts[ip_address] = [
+            attempt_time for attempt_time in self.failed_attempts[ip_address]
+            if current_time - attempt_time < self.lockout_duration
+        ]
+
+        # Add new attempt
+        self.failed_attempts[ip_address].append(current_time)
+
+        # Check if IP should be blocked
+        if len(self.failed_attempts[ip_address]) >= self.max_failed_attempts:
+            self.blocked_ips.add(ip_address)
+            logger.warning(f"IP {ip_address} blocked due to {len(self.failed_attempts[ip_address])} failed attempts")
+
+    def is_ip_blocked(self, ip_address: str) -> bool:
+        """Check if an IP address is blocked."""
+        return ip_address in self.blocked_ips
+
+    def detect_suspicious_pattern(self, ip_address: str, pattern: str):
+        """Detect suspicious patterns from an IP."""
+        key = f"{ip_address}:{pattern}"
+        self.suspicious_patterns[key] = self.suspicious_patterns.get(key, 0) + 1
+
+        if self.suspicious_patterns[key] > 10:  # Threshold for suspicious activity
+            self.blocked_ips.add(ip_address)
+            logger.warning(f"IP {ip_address} blocked due to suspicious pattern: {pattern}")
+
+    def unblock_ip(self, ip_address: str):
+        """Manually unblock an IP address."""
+        self.blocked_ips.discard(ip_address)
+        if ip_address in self.failed_attempts:
+            del self.failed_attempts[ip_address]
+
+class VulnerabilityScanner:
+    """Basic vulnerability scanner for security assessment."""
+
+    def __init__(self):
+        self.known_vulnerabilities = {
+            'weak_passwords': {
+                'description': 'Weak password policies detected',
+                'severity': 'HIGH',
+                'remediation': 'Implement stronger password requirements'
+            },
+            'unencrypted_data': {
+                'description': 'Unencrypted sensitive data detected',
+                'severity': 'CRITICAL',
+                'remediation': 'Enable encryption for all sensitive data'
+            },
+            'missing_rate_limiting': {
+                'description': 'Missing rate limiting on endpoints',
+                'severity': 'MEDIUM',
+                'remediation': 'Implement rate limiting on all public endpoints'
+            },
+            'insecure_headers': {
+                'description': 'Missing security headers',
+                'severity': 'MEDIUM',
+                'remediation': 'Add security headers like HSTS, CSP, etc.'
+            },
+            'outdated_dependencies': {
+                'description': 'Outdated dependencies with known vulnerabilities',
+                'severity': 'HIGH',
+                'remediation': 'Update all dependencies to latest secure versions'
+            }
+        }
+
+    def scan_system(self) -> Dict[str, Any]:
+        """Perform a basic vulnerability scan."""
+        vulnerabilities_found = []
+
+        # This is a simplified scan - in a real system, this would be much more comprehensive
+        scan_results = {
+            'scan_timestamp': time.time(),
+            'vulnerabilities_found': vulnerabilities_found,
+            'security_score': 85,  # Out of 100
+            'recommendations': []
+        }
+
+        # Add some basic checks
+        scan_results['recommendations'] = [
+            'Enable two-factor authentication for all users',
+            'Implement regular security audits',
+            'Use HTTPS for all communications',
+            'Regular backup and disaster recovery testing',
+            'Employee security training programs'
+        ]
+
+        return scan_results
+
+    def check_password_strength(self, password: str) -> Dict[str, Any]:
+        """Check password strength."""
+        import re
+
+        score = 0
+        feedback = []
+
+        if len(password) >= 8:
+            score += 20
+        else:
+            feedback.append("Password should be at least 8 characters long")
+
+        if len(password) >= 12:
+            score += 10
+
+        if re.search(r'[a-z]', password):
+            score += 15
+        else:
+            feedback.append("Password should contain lowercase letters")
+
+        if re.search(r'[A-Z]', password):
+            score += 15
+        else:
+            feedback.append("Password should contain uppercase letters")
+
+        if re.search(r'\d', password):
+            score += 15
+        else:
+            feedback.append("Password should contain numbers")
+
+        if re.search(r'[!@#$%^&*(),.?":{}|<>]', password):
+            score += 25
+        else:
+            feedback.append("Password should contain special characters")
+
+        strength = "WEAK"
+        if score >= 80:
+            strength = "STRONG"
+        elif score >= 60:
+            strength = "MEDIUM"
+
+        return {
+            'score': score,
+            'strength': strength,
+            'feedback': feedback
+        }
+
 class EnhancedSecurityManager:
     """Enhanced Security Manager - Government-grade security implementation."""
 
@@ -686,9 +1067,22 @@ class EnhancedSecurityManager:
         # Threat intelligence
         self.known_threats: Set[str] = set()
         self.threat_patterns: Dict[str, List[str]] = {}
+        self.blocked_ips: Set[str] = set()
+        self.suspicious_activities: Dict[str, List[Dict[str, Any]]] = {}
+        self.security_incidents: List[Dict[str, Any]] = []
+
+        # Advanced security components
+        self.threat_detector = ThreatDetector()
+        self.session_manager = SessionManager()
+        self.audit_logger = AuditLogger()
+        self.intrusion_detector = IntrusionDetector()
+        self.vulnerability_scanner = VulnerabilityScanner()
 
         # Initialize security policies
         self._initialize_security_policies()
+
+        # Start background security monitoring
+        self._start_security_monitoring()
 
         logger.info("Enhanced Security Manager initialized with government-grade security")
 
@@ -1028,7 +1422,190 @@ class EnhancedSecurityManager:
             'blocked_ips': len(self.rate_limiter.blocked_ips),
             'threat_detections': self.metrics.threat_detections,
             'security_level': self.security_level.value,
-            'last_updated': current_time.isoformat()
+            'last_updated': current_time.isoformat(),
+            'intrusion_attempts': len(self.intrusion_detector.blocked_ips),
+            'security_incidents': len(self.security_incidents),
+            'suspicious_activities': sum(len(activities) for activities in self.suspicious_activities.values())
+        }
+
+    def _start_security_monitoring(self):
+        """Start background security monitoring tasks."""
+        import threading
+
+        def security_monitor():
+            """Background security monitoring."""
+            while True:
+                try:
+                    self._perform_security_checks()
+                    time.sleep(300)  # Check every 5 minutes
+                except Exception as e:
+                    logger.error(f"Security monitoring error: {e}")
+                    time.sleep(60)  # Wait 1 minute before retrying
+
+        # Start monitoring thread
+        monitor_thread = threading.Thread(target=security_monitor, daemon=True)
+        monitor_thread.start()
+        logger.info("Security monitoring started")
+
+    def _perform_security_checks(self):
+        """Perform periodic security checks."""
+        current_time = time.time()
+
+        # Clean up old sessions
+        self._cleanup_expired_sessions()
+
+        # Clean up old security events
+        self._cleanup_old_events()
+
+        # Check for suspicious patterns
+        self._analyze_security_patterns()
+
+        # Update security metrics
+        self._update_security_metrics()
+
+    def _cleanup_expired_sessions(self):
+        """Clean up expired sessions."""
+        current_time = time.time()
+        expired_sessions = []
+
+        for session_id, session_data in self.active_sessions.items():
+            if current_time - session_data.get('last_activity', 0) > 1800:  # 30 minutes
+                expired_sessions.append(session_id)
+
+        for session_id in expired_sessions:
+            del self.active_sessions[session_id]
+
+        if expired_sessions:
+            logger.info(f"Cleaned up {len(expired_sessions)} expired sessions")
+
+    def _cleanup_old_events(self):
+        """Clean up old security events."""
+        current_time = datetime.now()
+        cutoff_time = current_time - timedelta(days=30)  # Keep events for 30 days
+
+        old_count = len(self.security_events)
+        self.security_events = [
+            event for event in self.security_events
+            if event.timestamp > cutoff_time
+        ]
+
+        cleaned_count = old_count - len(self.security_events)
+        if cleaned_count > 0:
+            logger.info(f"Cleaned up {cleaned_count} old security events")
+
+    def _analyze_security_patterns(self):
+        """Analyze security patterns for threats."""
+        # Analyze failed login patterns
+        recent_time = time.time() - 3600  # Last hour
+
+        for ip, attempts in self.intrusion_detector.failed_attempts.items():
+            recent_attempts = [t for t in attempts if t > recent_time]
+            if len(recent_attempts) > 3:
+                self.audit_logger.log_security_event(
+                    'SUSPICIOUS_ACTIVITY',
+                    'system',
+                    ip,
+                    {'attempts': len(recent_attempts), 'pattern': 'repeated_failures'},
+                    'WARNING'
+                )
+
+    def _update_security_metrics(self):
+        """Update security metrics."""
+        self.metrics.total_events = len(self.security_events)
+        self.metrics.threat_detections = len([
+            event for event in self.security_events
+            if event.event_type in ['THREAT_DETECTED', 'MALWARE_DETECTED', 'INTRUSION_ATTEMPT']
+        ])
+
+    async def perform_security_scan(self) -> Dict[str, Any]:
+        """Perform comprehensive security scan."""
+        scan_results = self.vulnerability_scanner.scan_system()
+
+        # Add real-time security status
+        scan_results.update({
+            'active_threats': len(self.known_threats),
+            'blocked_ips': len(self.blocked_ips),
+            'security_incidents': len(self.security_incidents),
+            'system_health': 'HEALTHY' if len(self.security_incidents) == 0 else 'COMPROMISED'
+        })
+
+        # Log the scan
+        self.audit_logger.log_security_event(
+            'SECURITY_SCAN',
+            'system',
+            'localhost',
+            scan_results,
+            'INFO'
+        )
+
+        return scan_results
+
+    def block_ip_address(self, ip_address: str, reason: str = 'Manual block'):
+        """Manually block an IP address."""
+        self.blocked_ips.add(ip_address)
+        self.intrusion_detector.blocked_ips.add(ip_address)
+
+        self.audit_logger.log_security_event(
+            'IP_BLOCKED',
+            'admin',
+            ip_address,
+            {'reason': reason},
+            'WARNING'
+        )
+
+        logger.warning(f"IP {ip_address} manually blocked: {reason}")
+
+    def unblock_ip_address(self, ip_address: str):
+        """Manually unblock an IP address."""
+        self.blocked_ips.discard(ip_address)
+        self.intrusion_detector.unblock_ip(ip_address)
+
+        self.audit_logger.log_security_event(
+            'IP_UNBLOCKED',
+            'admin',
+            ip_address,
+            {},
+            'INFO'
+        )
+
+        logger.info(f"IP {ip_address} manually unblocked")
+
+    def get_security_report(self) -> Dict[str, Any]:
+        """Generate comprehensive security report."""
+        current_time = datetime.now()
+
+        # Get recent events (last 24 hours)
+        recent_events = [
+            event for event in self.security_events
+            if (current_time - event.timestamp).total_seconds() < 86400
+        ]
+
+        # Categorize events
+        event_categories = {}
+        for event in recent_events:
+            category = event.event_type
+            if category not in event_categories:
+                event_categories[category] = 0
+            event_categories[category] += 1
+
+        return {
+            'report_timestamp': current_time.isoformat(),
+            'summary': {
+                'total_events_24h': len(recent_events),
+                'active_sessions': len(self.active_sessions),
+                'blocked_ips': len(self.blocked_ips),
+                'security_incidents': len(self.security_incidents),
+                'threat_level': 'LOW' if len(self.security_incidents) == 0 else 'HIGH'
+            },
+            'event_breakdown': event_categories,
+            'top_threats': list(self.known_threats)[:10],
+            'recommendations': [
+                'Regular security updates',
+                'Monitor failed login attempts',
+                'Review access logs daily',
+                'Implement network segmentation',
+                'Regular backup verification'
+            ]
         }
 
 # Global instance

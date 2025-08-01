@@ -23,6 +23,8 @@ from enum import Enum
 import hashlib
 import secrets
 from pathlib import Path
+import base64
+from ..security.time_based_encryption import db_time_encryption, performant_encryption
 
 # Database imports with fallbacks
 try:
@@ -153,6 +155,201 @@ class QueryMetrics:
     cache_misses: int = 0
     cache_hit_ratio: float = 0.0
 
+class DataAccessController:
+    """Severe data access controls for database operations."""
+
+    def __init__(self):
+        self.access_rules: Dict[str, Dict[str, Any]] = {}
+        self.blocked_operations: set = set()
+        self.audit_log: List[Dict[str, Any]] = []
+        self.access_tokens: Dict[str, Dict[str, Any]] = {}
+        self.max_audit_entries = 10000
+
+        # Initialize default security rules
+        self._initialize_security_rules()
+
+    def _initialize_security_rules(self):
+        """Initialize default security rules."""
+        # Block dangerous operations by default
+        self.blocked_operations.update([
+            'DROP TABLE',
+            'DROP DATABASE',
+            'TRUNCATE',
+            'DELETE FROM users',
+            'UPDATE users SET password',
+            'GRANT',
+            'REVOKE',
+            'CREATE USER',
+            'DROP USER',
+            'ALTER USER'
+        ])
+
+        # Define access rules for sensitive tables
+        self.access_rules.update({
+            'users': {
+                'read_fields': ['id', 'username', 'email', 'created_at'],
+                'protected_fields': ['password_hash', 'api_key', 'private_key'],
+                'max_records': 100,
+                'require_auth': True
+            },
+            'sessions': {
+                'read_fields': ['id', 'user_id', 'created_at', 'last_activity'],
+                'protected_fields': ['session_token', 'refresh_token'],
+                'max_records': 50,
+                'require_auth': True
+            },
+            'messages': {
+                'read_fields': ['id', 'sender_id', 'created_at'],
+                'protected_fields': ['content', 'encrypted_content'],
+                'max_records': 200,
+                'require_auth': True
+            }
+        })
+
+    def validate_query(self, query: str, table: str = None, user_token: str = None) -> Dict[str, Any]:
+        """Validate query against access controls."""
+        query_upper = query.upper().strip()
+
+        # Check for blocked operations
+        for blocked_op in self.blocked_operations:
+            if blocked_op in query_upper:
+                self._log_access_violation(query, 'BLOCKED_OPERATION', user_token)
+                return {
+                    'allowed': False,
+                    'reason': f'Operation blocked: {blocked_op}',
+                    'severity': 'CRITICAL'
+                }
+
+        # Check table-specific rules
+        if table and table in self.access_rules:
+            rules = self.access_rules[table]
+
+            # Check authentication requirement
+            if rules.get('require_auth', False) and not user_token:
+                self._log_access_violation(query, 'NO_AUTH_TOKEN', user_token)
+                return {
+                    'allowed': False,
+                    'reason': 'Authentication required for this table',
+                    'severity': 'HIGH'
+                }
+
+            # Check for protected fields in SELECT
+            if 'SELECT' in query_upper and 'protected_fields' in rules:
+                for protected_field in rules['protected_fields']:
+                    if protected_field.upper() in query_upper:
+                        self._log_access_violation(query, 'PROTECTED_FIELD_ACCESS', user_token)
+                        return {
+                            'allowed': False,
+                            'reason': f'Access to protected field: {protected_field}',
+                            'severity': 'HIGH'
+                        }
+
+        # Log successful validation
+        self._log_access_attempt(query, 'ALLOWED', user_token)
+        return {'allowed': True}
+
+    def _log_access_violation(self, query: str, violation_type: str, user_token: str = None):
+        """Log access violation."""
+        violation = {
+            'timestamp': datetime.now().isoformat(),
+            'query': query[:200],  # Truncate long queries
+            'violation_type': violation_type,
+            'user_token': user_token[:10] + '...' if user_token else None,
+            'severity': 'VIOLATION'
+        }
+
+        self.audit_log.append(violation)
+        self._cleanup_audit_log()
+
+        logger.warning(f"Database access violation: {violation_type} - {query[:100]}")
+
+    def _log_access_attempt(self, query: str, result: str, user_token: str = None):
+        """Log access attempt."""
+        attempt = {
+            'timestamp': datetime.now().isoformat(),
+            'query': query[:100],
+            'result': result,
+            'user_token': user_token[:10] + '...' if user_token else None,
+            'severity': 'INFO'
+        }
+
+        self.audit_log.append(attempt)
+        self._cleanup_audit_log()
+
+    def _cleanup_audit_log(self):
+        """Clean up old audit log entries."""
+        if len(self.audit_log) > self.max_audit_entries:
+            self.audit_log = self.audit_log[-self.max_audit_entries//2:]
+
+class EncryptedDataHandler:
+    """Handle encrypted data operations with time-based encryption."""
+
+    def __init__(self):
+        self.encrypted_fields: Dict[str, set] = {}
+        self.encryption_cache: Dict[str, str] = {}
+        self.decryption_cache: Dict[str, str] = {}
+
+        # Register default encrypted fields
+        self._register_default_encrypted_fields()
+
+    def _register_default_encrypted_fields(self):
+        """Register fields that should be encrypted."""
+        self.encrypted_fields.update({
+            'users': {'password_hash', 'api_key', 'private_key', 'email'},
+            'sessions': {'session_token', 'refresh_token'},
+            'messages': {'content', 'encrypted_content'},
+            'bot_accounts': {'bot_token', 'bot_secret', 'webhook_secret'},
+            'user_settings': {'private_settings', 'api_keys'}
+        })
+
+    def should_encrypt_field(self, table: str, field: str) -> bool:
+        """Check if field should be encrypted."""
+        return field in self.encrypted_fields.get(table, set())
+
+    def encrypt_data_for_storage(self, table: str, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Encrypt sensitive fields before storage."""
+        encrypted_data = data.copy()
+
+        for field, value in data.items():
+            if self.should_encrypt_field(table, field) and value is not None:
+                try:
+                    # Use time-based encryption
+                    encrypted_value = performant_encryption.encrypt_with_cache(str(value))
+                    encrypted_data[field] = encrypted_value
+
+                    # Mark as encrypted
+                    encrypted_data[f"{field}_encrypted"] = True
+
+                except Exception as e:
+                    logger.error(f"Failed to encrypt {table}.{field}: {e}")
+                    # Don't store unencrypted sensitive data
+                    encrypted_data[field] = "[ENCRYPTION_FAILED]"
+
+        return encrypted_data
+
+    def decrypt_data_from_storage(self, table: str, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Decrypt sensitive fields after retrieval."""
+        decrypted_data = data.copy()
+
+        for field, value in data.items():
+            if (self.should_encrypt_field(table, field) and
+                value is not None and
+                data.get(f"{field}_encrypted", False)):
+
+                try:
+                    # Use time-based decryption
+                    decrypted_value = performant_encryption.decrypt_with_cache(value)
+                    decrypted_data[field] = decrypted_value
+
+                    # Remove encryption marker
+                    decrypted_data.pop(f"{field}_encrypted", None)
+
+                except Exception as e:
+                    logger.error(f"Failed to decrypt {table}.{field}: {e}")
+                    decrypted_data[field] = "[DECRYPTION_FAILED]"
+
+        return decrypted_data
+
 class EnhancedDatabaseConnection:
     """Enhanced database connection with security and monitoring."""
     
@@ -170,7 +367,9 @@ class EnhancedDatabaseConnection:
         # Security
         self.encryption_key = None
         self.connection_hash = None
-        
+        self.access_controller = DataAccessController()
+        self.encrypted_handler = EncryptedDataHandler()
+
         # Performance monitoring
         self.query_cache = {}
         self.performance_history = []
@@ -469,6 +668,167 @@ class EnhancedDatabaseConnection:
             self.performance_level = PerformanceLevel.DEGRADED
         else:
             self.performance_level = PerformanceLevel.CRITICAL
+
+    async def execute_secure_query(self, query: str, params: Dict[str, Any] = None,
+                                 table: str = None, user_token: str = None) -> Dict[str, Any]:
+        """Execute query with severe access controls and encryption."""
+        start_time = time.time()
+
+        try:
+            # Validate query against access controls
+            validation = self.access_controller.validate_query(query, table, user_token)
+            if not validation['allowed']:
+                logger.warning(f"Query blocked: {validation['reason']}")
+                return {
+                    'success': False,
+                    'error': validation['reason'],
+                    'severity': validation.get('severity', 'HIGH')
+                }
+
+            # Execute query based on database type
+            if self.config.type == DatabaseType.SQLITE:
+                result = await self._execute_sqlite_secure(query, params)
+            elif self.config.type == DatabaseType.POSTGRESQL:
+                result = await self._execute_postgresql_secure(query, params)
+            else:
+                return {'success': False, 'error': 'Database type not supported for secure queries'}
+
+            # Decrypt sensitive data if this is a SELECT query
+            if result.get('success') and 'SELECT' in query.upper() and table:
+                if 'data' in result and isinstance(result['data'], list):
+                    decrypted_data = []
+                    for row in result['data']:
+                        if isinstance(row, dict):
+                            decrypted_row = self.encrypted_handler.decrypt_data_from_storage(table, row)
+                            decrypted_data.append(decrypted_row)
+                        else:
+                            decrypted_data.append(row)
+                    result['data'] = decrypted_data
+
+            # Update metrics
+            execution_time = time.time() - start_time
+            self.query_metrics.total_queries += 1
+            if result.get('success'):
+                self.query_metrics.successful_queries += 1
+            else:
+                self.query_metrics.failed_queries += 1
+
+            self.query_metrics.average_query_time = (
+                (self.query_metrics.average_query_time * 0.9) + (execution_time * 0.1)
+            )
+
+            return result
+
+        except Exception as e:
+            logger.error(f"Secure query execution failed: {e}")
+            self.query_metrics.failed_queries += 1
+            return {
+                'success': False,
+                'error': f'Query execution failed: {str(e)}',
+                'severity': 'HIGH'
+            }
+
+    async def insert_secure_data(self, table: str, data: Dict[str, Any],
+                               user_token: str = None) -> Dict[str, Any]:
+        """Insert data with automatic encryption of sensitive fields."""
+        try:
+            # Validate insert operation
+            insert_query = f"INSERT INTO {table}"
+            validation = self.access_controller.validate_query(insert_query, table, user_token)
+            if not validation['allowed']:
+                return {
+                    'success': False,
+                    'error': validation['reason'],
+                    'severity': validation.get('severity', 'HIGH')
+                }
+
+            # Encrypt sensitive fields
+            encrypted_data = self.encrypted_handler.encrypt_data_for_storage(table, data)
+
+            # Build parameterized insert query
+            fields = list(encrypted_data.keys())
+            placeholders = ', '.join([f':{field}' for field in fields])
+            query = f"INSERT INTO {table} ({', '.join(fields)}) VALUES ({placeholders})"
+
+            # Execute insert
+            result = await self.execute_secure_query(query, encrypted_data, table, user_token)
+
+            if result.get('success'):
+                logger.info(f"Secure data inserted into {table}")
+
+            return result
+
+        except Exception as e:
+            logger.error(f"Secure data insert failed: {e}")
+            return {
+                'success': False,
+                'error': f'Insert failed: {str(e)}',
+                'severity': 'HIGH'
+            }
+
+    async def _execute_sqlite_secure(self, query: str, params: Dict[str, Any] = None) -> Dict[str, Any]:
+        """Execute SQLite query with security measures."""
+        try:
+            if self.engine:
+                async with self.engine.begin() as conn:
+                    if params:
+                        result = await conn.execute(text(query), params)
+                    else:
+                        result = await conn.execute(text(query))
+
+                    if result.returns_rows:
+                        rows = result.fetchall()
+                        # Convert to list of dicts
+                        data = [dict(row._mapping) for row in rows]
+                        return {'success': True, 'data': data, 'row_count': len(data)}
+                    else:
+                        return {'success': True, 'affected_rows': result.rowcount}
+            else:
+                return {'success': False, 'error': 'No database connection'}
+
+        except Exception as e:
+            logger.error(f"SQLite secure execution failed: {e}")
+            return {'success': False, 'error': str(e)}
+
+    async def _execute_postgresql_secure(self, query: str, params: Dict[str, Any] = None) -> Dict[str, Any]:
+        """Execute PostgreSQL query with security measures."""
+        try:
+            if self.engine:
+                async with self.engine.begin() as conn:
+                    if params:
+                        result = await conn.execute(text(query), params)
+                    else:
+                        result = await conn.execute(text(query))
+
+                    if result.returns_rows:
+                        rows = result.fetchall()
+                        data = [dict(row._mapping) for row in rows]
+                        return {'success': True, 'data': data, 'row_count': len(data)}
+                    else:
+                        return {'success': True, 'affected_rows': result.rowcount}
+            else:
+                return {'success': False, 'error': 'No database connection'}
+
+        except Exception as e:
+            logger.error(f"PostgreSQL secure execution failed: {e}")
+            return {'success': False, 'error': str(e)}
+
+    def get_security_metrics(self) -> Dict[str, Any]:
+        """Get security and access control metrics."""
+        return {
+            'access_violations': len([log for log in self.access_controller.audit_log
+                                    if log.get('severity') == 'VIOLATION']),
+            'total_access_attempts': len(self.access_controller.audit_log),
+            'blocked_operations': len(self.access_controller.blocked_operations),
+            'encrypted_tables': len(self.encrypted_handler.encrypted_fields),
+            'query_metrics': {
+                'total_queries': self.query_metrics.total_queries,
+                'successful_queries': self.query_metrics.successful_queries,
+                'failed_queries': self.query_metrics.failed_queries,
+                'average_query_time': self.query_metrics.average_query_time
+            },
+            'encryption_performance': performant_encryption.get_performance_stats()
+        }
 
 class EnhancedDatabaseManager:
     """Enhanced Database Manager with enterprise-grade features."""
