@@ -185,9 +185,24 @@ class ChangelogManager:
             if self.changelog_data_file.exists() if self.changelog_data_file else False:
                 with open(self.changelog_data_file, 'r', encoding='utf-8') as f:
                     data = json.load(f)
+
+                    # Validate data structure
+                    if not isinstance(data, dict):
+                        logger.warning("Changelog data is not a dictionary, skipping")
+                        return
+
                     for version_str, changelog_data in data.items():
-                        changelog = VersionChangelog.from_dict(changelog_data)
-                        self.version_changelogs[version_str] = changelog
+                        try:
+                            # Validate changelog_data structure
+                            if not isinstance(changelog_data, dict):
+                                logger.warning(f"Changelog data for version {version_str} is not a dictionary, skipping")
+                                continue
+
+                            changelog = VersionChangelog.from_dict(changelog_data)
+                            self.version_changelogs[version_str] = changelog
+                        except Exception as e:
+                            logger.warning(f"Failed to load changelog for version {version_str}: {e}")
+                            continue
 
             # Parse markdown file if JSON doesn't exist
             elif self.changelog_file.exists() if self.changelog_file else False:

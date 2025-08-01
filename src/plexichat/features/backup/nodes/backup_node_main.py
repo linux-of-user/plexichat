@@ -100,7 +100,7 @@ class BackupNodeMain:
     async def start(self) -> bool:
         """Start the backup node."""
         try:
-            logger.info("🚀 Starting PlexiChat Backup Node")
+            logger.info("[START] Starting PlexiChat Backup Node")
             logger.info(f"Node ID: {self.config['node_id']}")
             logger.info(f"Storage Path: {self.config['storage_path']}")
             logger.info(f"Max Storage: {self.config['max_storage_gb']} GB")
@@ -136,7 +136,7 @@ class BackupNodeMain:
     async def stop(self) -> bool:
         """Stop the backup node."""
         try:
-            logger.info("🛑 Stopping PlexiChat Backup Node")
+            logger.info("[STOP] Stopping PlexiChat Backup Node")
 
             self.running = False
 
@@ -146,7 +146,7 @@ class BackupNodeMain:
             if self.manager:
                 await self.manager.close_all()
 
-            logger.info("✅ Backup node stopped successfully")
+            logger.info("[SUCCESS] Backup node stopped successfully")
             return True
 
         except Exception as e:

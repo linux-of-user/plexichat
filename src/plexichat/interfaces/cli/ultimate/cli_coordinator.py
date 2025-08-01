@@ -165,7 +165,7 @@ class UltimateCLICoordinator:
         results = []
 
         for command in self.commands.values():
-            if (query in command.name.lower() or)
+            if (query in command.name.lower() or
                 query in command.description.lower() or
                 query in command.category.value.lower()):
                 results.append(command)
@@ -243,7 +243,7 @@ class UltimateCLICoordinator:
             help_content.append("")
             help_content.append(f"[bold]Related:[/bold] {', '.join(command.related_commands)}")
 
-        panel = Panel()
+        panel = Panel(
             "\n".join(help_content),
             title=f" Help: {command.name}",
             border_style="blue"
@@ -271,7 +271,7 @@ class UltimateCLICoordinator:
             if command.aliases:
                 status_icons.append(f"({len(command.aliases)})")
 
-            table.add_row()
+            table.add_row(
                 command.name,
                 command.description[:60] + "..." if len(command.description) > 60 else command.description,
                 " ".join(status_icons)
@@ -374,7 +374,7 @@ class UltimateCLICoordinator:
 
         for cmd_name in self.commands.keys():
             # Simple similarity check
-            if (command_name in cmd_name or)
+            if (command_name in cmd_name or
                 cmd_name in command_name or
                 abs(len(command_name) - len(cmd_name)) <= 2):
                 suggestions.append(cmd_name)
@@ -472,14 +472,14 @@ class UltimateCLICoordinator:
         writer = csv.writer(output)
 
         # Header
-        writer.writerow([)
+        writer.writerow([
             "Name", "Description", "Category", "Aliases",
             "Requires Auth", "Admin Only", "Dangerous", "Version Added"
         ])
 
         # Commands
         for command in sorted(self.commands.values(), key=lambda x: (x.category.value, x.name)):
-            writer.writerow([)
+            writer.writerow([
                 command.name,
                 command.description,
                 command.category.value,

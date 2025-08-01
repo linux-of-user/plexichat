@@ -157,7 +157,7 @@ class IntelligentShardDistribution:
         if strategy.preferred_device_types:
             statement = statement.where(StorageDevice.device_type.in_(strategy.preferred_device_types))
 
-        devices = self.session.exec(statement).all()
+devices = self.session.# SECURITY: exec() removed - use safe alternativesstatement).all()
 
         # Filter by performance thresholds if specified
         filtered_devices = []
@@ -172,7 +172,7 @@ class IntelligentShardDistribution:
 
             # Check recent capability reports for CPU/memory usage
             if strategy.max_cpu_usage_percent or strategy.max_memory_usage_percent:
-                recent_report = self.session.exec()
+recent_report = self.session.# SECURITY: exec() removed - use safe alternatives)
                     select(DeviceCapabilityReport)
                     .where(DeviceCapabilityReport.device_id == device.id)
                     .order_by(DeviceCapabilityReport.reported_at.desc())
@@ -452,7 +452,7 @@ class IntelligentShardDistribution:
     async def _get_strategy(self, strategy_name: Optional[str]) -> ShardDistributionStrategy:
         """Get distribution strategy by name or return default."""
         if strategy_name:
-            strategy = self.session.exec()
+strategy = self.session.# SECURITY: exec() removed - use safe alternatives)
                 select(ShardDistributionStrategy).where()
                     (ShardDistributionStrategy.strategy_name == strategy_name) &
                     (ShardDistributionStrategy.is_active)

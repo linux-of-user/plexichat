@@ -80,52 +80,57 @@ class Message(SQLModel, table=True):
     __tablename__ = "messages"
 
     # Primary identification
-    message_id: str = Field()
+    message_id: str = Field(
         default_factory=lambda: str(message_snowflake.generate_id()),
         primary_key=True,
         index=True,
-        description="Unique snowflake ID for the message",
+        description="Unique snowflake ID for the message"
     )
 
     # Channel and author relationships
-    channel_id: str = Field()
+    channel_id: str = Field(
         foreign_key="channels.channel_id",
         index=True,
-        description="Channel this message was sent in",
+        description="Channel this message was sent in"
     )
 
-    author_id: str = Field()
-        foreign_key="users.id", index=True, description="User who sent this message"
+    author_id: str = Field(
+        foreign_key="users.id",
+        index=True,
+        description="User who sent this message"
     )
 
     # Message content
-    content: str = Field()
-        sa_column=Column(Text), description="Message content (up to 2000 characters)"
+    content: str = Field(
+        sa_column=Column(Text),
+        description="Message content (up to 2000 characters)"
     )
 
     # Rich content
-    embeds: Optional[List[Dict[str, Any]]] = Field()
+    embeds: Optional[List[Dict[str, Any]]] = Field(
         default=None,
         sa_column=Column(JSON),
-        description="Rich embeds attached to the message",
+        description="Rich embeds attached to the message"
     )
 
-    attachments: Optional[List[str]] = Field()
-        default=None, sa_column=Column(JSON), description="File attachment IDs"
-    )
-
-    sticker_ids: Optional[List[str]] = Field()
+    attachments: Optional[List[str]] = Field(
         default=None,
         sa_column=Column(JSON),
-        description="Sticker IDs used in the message",
+        description="File attachment IDs"
+    )
+
+    sticker_ids: Optional[List[str]] = Field(
+        default=None,
+        sa_column=Column(JSON),
+        description="Sticker IDs used in the message"
     )
 
     # Message threading and replies
-    reply_to_message_id: Optional[str] = Field()
+    reply_to_message_id: Optional[str] = Field(
         default=None,
         foreign_key="messages.message_id",
         index=True,
-        description="Message this is replying to",
+        description="Message this is replying to"
     )
 
     thread_id: Optional[str] = Field()
@@ -200,10 +205,11 @@ class Message(SQLModel, table=True):
         """SQLModel configuration."""
 
         arbitrary_types_allowed = True
-        json_encoders = {datetime: lambda v: v.isoformat() if v else None}
+        # Note: json_encoders is deprecated in Pydantic v2
+        # Use model_serializer or field serializers instead if needed
 
     def __repr__(self) -> str:
-        content_preview = ()
+        content_preview = (
             self.content[:50] + "..." if len(self.content) > 50 else self.content
         )
         return f"<Message(message_id='{self.message_id}', author_id='{self.author_id}', content='{content_preview}')>"

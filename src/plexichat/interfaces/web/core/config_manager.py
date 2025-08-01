@@ -248,7 +248,7 @@ class WebUIConfigManager:
             encrypted_data = self.cipher.encrypt(json.dumps(auth_data).encode())
 
             with open(self.auth_config_file, 'w') as f:
-                yaml.dump({)
+                yaml.dump({
                     'encrypted_data': encrypted_data.decode(),
                     'encryption_version': '1.0.0'
                 }, f)

@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 
 """
@@ -20,6 +20,26 @@ class ThreatLevel(Enum):
     HIGH_RISK = 4
     CRITICAL = 5
 
+    def __lt__(self, other):
+        if self.__class__ is other.__class__:
+            return self.value < other.value
+        return NotImplemented
+
+    def __le__(self, other):
+        if self.__class__ is other.__class__:
+            return self.value <= other.value
+        return NotImplemented
+
+    def __gt__(self, other):
+        if self.__class__ is other.__class__:
+            return self.value > other.value
+        return NotImplemented
+
+    def __ge__(self, other):
+        if self.__class__ is other.__class__:
+            return self.value >= other.value
+        return NotImplemented
+
 
 class ScanType(Enum):
     """Types of scans performed."""
@@ -33,6 +53,7 @@ class ScanType(Enum):
 
 class ThreatType(Enum):
     """Types of threats detected."""
+    CLEAN = "clean"
     VIRUS = "virus"
     MALWARE = "malware"
     TROJAN = "trojan"
@@ -71,13 +92,17 @@ class ThreatSignature:
     threat_name: str
     threat_type: ThreatType
     threat_level: ThreatLevel
-    hash_value: Optional[str] = None  # Combined hash field
+    hash_md5: Optional[str] = None
+    hash_sha256: Optional[str] = None
+    hash_sha512: Optional[str] = None
+    pattern: Optional[str] = None
     url_pattern: Optional[str] = None
     file_pattern: Optional[str] = None
     confidence_score: float = 0.5
     source: str = "unknown"
     description: str = ""
     created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
 
 # Antivirus configuration constants
@@ -115,3 +140,29 @@ SUSPICIOUS_FILENAME_PATTERNS = [
 # Hash database update intervals
 HASH_DB_UPDATE_INTERVAL = 3600  # 1 hour
 THREAT_INTEL_UPDATE_INTERVAL = 1800  # 30 minutes
+
+
+@dataclass
+class ScanRequest:
+    """Request for file scanning."""
+    request_id: str
+    file_path: str
+    scan_types: List[ScanType]
+    priority: int
+    requester: str
+    created_at: datetime
+    status: str = "pending"
+
+
+@dataclass
+class QuarantineEntry:
+    """Entry for quarantined files."""
+    entry_id: str
+    original_path: str
+    quarantine_path: str
+    threat_name: str
+    threat_type: ThreatType
+    threat_level: ThreatLevel
+    scan_results: List[ScanResult]
+    quarantined_at: datetime
+    can_restore: bool = True

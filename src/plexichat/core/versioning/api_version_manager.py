@@ -38,9 +38,16 @@ class APIVersionManager:
 
     def __init__(self):
         """Initialize the API version manager."""
+        # Get current version from centralized version manager
+        try:
+            from plexichat.shared.version_utils import get_version
+            current_version = get_version()
+        except ImportError:
+            current_version = "b.1.1-86"
+
         self.versions = {
             "stable": {
-                "version": "r.1.0-1",
+                "version": current_version,
                 "path": "/api",
                 "description": "Stable production API",
                 "deprecated": False,
@@ -48,7 +55,7 @@ class APIVersionManager:
                 "features": ["core", "messaging", "files", "users", "auth"],
             },
             "current": {
-                "version": "a.1.1-1",
+                "version": current_version,
                 "path": "/api/v1",
                 "description": "Current development API with latest features",
                 "deprecated": False,

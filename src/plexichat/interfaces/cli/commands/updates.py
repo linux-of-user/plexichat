@@ -10,49 +10,15 @@ import sys
 
 from ..core.versioning.canary_deployment_manager import CanaryStrategy, canary_deployment_manager
 from ..core.versioning.changelog_manager import changelog_manager
-from ..core.versioning.update_system import ()
-from pathlib import Path
-
-from pathlib import Path
-from typing import Optional
-
-    CLI,
-    Command-line,
-    Commands,
-    Path,
-    PlexiChat,
-    Supports,
-    Update,
+from ..core.versioning.update_system import (
     UpdateDeploymentStrategy,
     UpdateDistributionMethod,
     UpdateType,
-    Version,
-    """,
-    ..core.versioning.version_manager,
-    advanced,
-    and,
-    changelog,
-    dependency,
-    downgrades,
-    for,
-    from,
-    import,
-    interface,
-    management.,
-    new,
-    pathlib,
-    rollbacks,
-    scheme.,
-    system,
-    the,
-    update,
-    update_system,
-    upgrades,
-    version_manager,
-    versioning,
-    viewing,
-    with,
+    update_system
 )
+from ..core.versioning.version_manager import Version, version_manager
+from pathlib import Path
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -69,7 +35,7 @@ class UpdateCLI:
 
     def create_parser(self) -> argparse.ArgumentParser:
         """Create argument parser for update commands."""
-        parser = argparse.ArgumentParser()
+        parser = argparse.ArgumentParser(
             description="PlexiChat Update System CLI",
             formatter_class=argparse.RawDescriptionHelpFormatter,
             epilog="""
@@ -112,88 +78,88 @@ Examples:
 
         # Check command
         check_parser = subparsers.add_parser('check', help='Check for available updates')
-        check_parser.add_argument('--security-only', action='store_true',)
+        check_parser.add_argument('--security-only', action='store_true',
                                 help='Only check for security updates')
 
         # Version command
         version_parser = subparsers.add_parser('version', help='Show current version information')
-        version_parser.add_argument('--detailed', action='store_true',)
+        version_parser.add_argument('--detailed', action='store_true',
                                   help='Show detailed version information')
 
         # Upgrade command
         upgrade_parser = subparsers.add_parser('upgrade', help='Upgrade to newer version')
         upgrade_parser.add_argument('--to', type=str, help='Target version (e.g., 0b1, 1r1)')
-        upgrade_parser.add_argument('--latest', action='store_true',)
+        upgrade_parser.add_argument('--latest', action='store_true',
                                   help='Upgrade to latest available version')
-        upgrade_parser.add_argument('--stable', action='store_true',)
+        upgrade_parser.add_argument('--stable', action='store_true',
                                   help='Upgrade to latest stable version')
-        upgrade_parser.add_argument('--force', action='store_true',)
+        upgrade_parser.add_argument('--force', action='store_true',
                                   help='Force upgrade even with warnings')
-        upgrade_parser.add_argument('--dry-run', action='store_true',)
+        upgrade_parser.add_argument('--dry-run', action='store_true',
                                   help='Show what would be done without executing')
 
         # Downgrade command
         downgrade_parser = subparsers.add_parser('downgrade', help='Downgrade to older version')
-        downgrade_parser.add_argument('--to', type=str, required=True,)
+        downgrade_parser.add_argument('--to', type=str, required=True,
                                     help='Target version (e.g., 0a1)')
-        downgrade_parser.add_argument('--force', action='store_true',)
+        downgrade_parser.add_argument('--force', action='store_true',
                                     help='Force downgrade even with warnings')
-        downgrade_parser.add_argument('--dry-run', action='store_true',)
+        downgrade_parser.add_argument('--dry-run', action='store_true',
                                     help='Show what would be done without executing')
 
         # Changelog command
         changelog_parser = subparsers.add_parser('changelog', help='Show changelog')
-        changelog_parser.add_argument('--version', type=str,)
+        changelog_parser.add_argument('--version', type=str,
                                     help='Show changelog for specific version')
-        changelog_parser.add_argument('--since', type=str,)
+        changelog_parser.add_argument('--since', type=str,
                                     help='Show changes since version')
-        changelog_parser.add_argument('--format', choices=['markdown', 'text', 'json'],)
+        changelog_parser.add_argument('--format', choices=['markdown', 'text', 'json'],
                                     default='text', help='Output format')
 
         # Reinstall dependencies command
-        subparsers.add_parser('reinstall-deps',)
+        subparsers.add_parser('reinstall-deps',
                                                help='Reinstall all dependencies')
 
         # Upgrade database command
-        upgrade_db_parser = subparsers.add_parser('upgrade-db',)
+        upgrade_db_parser = subparsers.add_parser('upgrade-db',
                                                 help='Upgrade database schema only')
-        upgrade_db_parser.add_argument('--to', type=str,)
+        upgrade_db_parser.add_argument('--to', type=str,
                                      help='Target database version')
 
         # History command
         history_parser = subparsers.add_parser('history', help='Show update history')
-        history_parser.add_argument('--limit', type=int, default=10,)
+        history_parser.add_argument('--limit', type=int, default=10,
                                   help='Limit number of entries shown')
 
         # Rollback command
         rollback_parser = subparsers.add_parser('rollback', help='Rollback last update')
-        rollback_parser.add_argument('--update-id', type=str,)
+        rollback_parser.add_argument('--update-id', type=str,
                                    help='Specific update ID to rollback')
-        rollback_parser.add_argument('--force', action='store_true',)
+        rollback_parser.add_argument('--force', action='store_true',
                                    help='Force rollback without confirmation')
 
         # Status command
         subparsers.add_parser('status', help='Show update system status')
 
         # Enhanced atomic upgrade command
-        atomic_upgrade_parser = subparsers.add_parser('atomic-upgrade',)
+        atomic_upgrade_parser = subparsers.add_parser('atomic-upgrade',
                                                     help='Atomic upgrade with P2P distribution and canary deployment')
         atomic_upgrade_parser.add_argument('--to', type=str, help='Target version')
-        atomic_upgrade_parser.add_argument('--distribution',)
+        atomic_upgrade_parser.add_argument('--distribution',
                                          choices=['centralized', 'p2p-hybrid', 'p2p-only'],
                                          default='p2p-hybrid',
                                          help='Update distribution method')
-        atomic_upgrade_parser.add_argument('--deployment',)
+        atomic_upgrade_parser.add_argument('--deployment',
                                          choices=['immediate', 'canary', 'blue-green', 'rolling'],
                                          default='canary',
                                          help='Deployment strategy')
-        atomic_upgrade_parser.add_argument('--canary-percentage', type=float, default=10.0,)
+        atomic_upgrade_parser.add_argument('--canary-percentage', type=float, default=10.0,
                                          help='Percentage of nodes for canary deployment')
-        atomic_upgrade_parser.add_argument('--verification-level',)
+        atomic_upgrade_parser.add_argument('--verification-level',
                                          choices=['basic', 'standard', 'government', 'military'],
                                          default='government',
                                          help='Update verification level')
-        atomic_upgrade_parser.add_argument('--live-patch', action='store_true',)
+        atomic_upgrade_parser.add_argument('--live-patch', action='store_true',
                                          help='Enable live patching if possible')
 
         # Canary deployment command
@@ -202,18 +168,18 @@ Examples:
 
         # Canary deploy
         canary_deploy_parser = canary_subparsers.add_parser('deploy', help='Start canary deployment')
-        canary_deploy_parser.add_argument('--update-id', type=str, required=True,)
+        canary_deploy_parser.add_argument('--update-id', type=str, required=True,
                                         help='Update ID for canary deployment')
-        canary_deploy_parser.add_argument('--strategy',)
+        canary_deploy_parser.add_argument('--strategy',
                                         choices=['percentage', 'node-count', 'geographic', 'load'],
                                         default='percentage',
                                         help='Canary deployment strategy')
-        canary_deploy_parser.add_argument('--percentage', type=float, default=10.0,)
+        canary_deploy_parser.add_argument('--percentage', type=float, default=10.0,
                                         help='Percentage for percentage-based strategy')
 
         # Canary status
         canary_status_parser = canary_subparsers.add_parser('status', help='Show canary deployment status')
-        canary_status_parser.add_argument('--deployment-id', type=str,)
+        canary_status_parser.add_argument('--deployment-id', type=str,
                                         help='Specific deployment ID to check')
 
         # P2P management command
@@ -232,12 +198,12 @@ Examples:
 
         # Signature verify
         signature_verify_parser = signature_subparsers.add_parser('verify', help='Verify update signatures')
-        signature_verify_parser.add_argument('--update-file', type=str, required=True,)
+        signature_verify_parser.add_argument('--update-file', type=str, required=True,
                                            help='Update file to verify')
 
         # Signature keys
         signature_keys_parser = signature_subparsers.add_parser('keys', help='Manage verification keys')
-        signature_keys_parser.add_argument('--list', action='store_true',)
+        signature_keys_parser.add_argument('--list', action='store_true',
                                          help='List loaded verification keys')
 
         return parser
@@ -645,7 +611,7 @@ Examples:
 
 
             # Create enhanced update plan
-            plan = await self.update_system.create_atomic_update_plan()
+            plan = await self.update_system.create_atomic_update_plan(
                 target_version,
                 distribution_method=distribution_map[args.distribution],
                 deployment_strategy=deployment_map[args.deployment]
@@ -713,7 +679,8 @@ Examples:
 
         try:
             # Initialize canary deployment manager
-            await if canary_deployment_manager and hasattr(canary_deployment_manager, "initialize"): canary_deployment_manager.initialize()
+            if canary_deployment_manager and hasattr(canary_deployment_manager, "initialize"):
+                await canary_deployment_manager.initialize()
 
             # Map strategy
             strategy_map = {
@@ -730,7 +697,7 @@ Examples:
             if args.strategy == 'percentage':
                 config['percentage'] = args.percentage
 
-            plan = await canary_deployment_manager.create_deployment_plan()
+            plan = await canary_deployment_manager.create_deployment_plan(
                 args.update_id, strategy, config
             )
 
@@ -807,7 +774,8 @@ Examples:
 
         try:
             # Initialize P2P distributor
-            await self.update_system.if p2p_distributor and hasattr(p2p_distributor, "initialize"): p2p_distributor.initialize()
+            if hasattr(self.update_system, 'p2p_distributor') and self.update_system.p2p_distributor:
+                await self.update_system.p2p_distributor.initialize()
 
             # Discover nodes
             nodes = await self.update_system.p2p_distributor.discover_nodes()
@@ -864,16 +832,14 @@ Examples:
         logger.info(f" Verifying signatures for: {args.update_file}")
 
         try:
-            from pathlib import Path
-update_file = Path
-Path(args.update_file)
+            update_file = Path(args.update_file)
             if not update_file.exists():
                 logger.info(f" Update file not found: {args.update_file}")
                 return False
 
             # Read update data
             with open(update_file, 'rb') as f:
-                f.read()
+                update_data = f.read()
 
             # For demonstration, we'll simulate signature verification
             # In a real implementation, this would load signatures from a .sig file

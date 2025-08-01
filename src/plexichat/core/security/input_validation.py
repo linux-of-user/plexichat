@@ -137,56 +137,11 @@ class UnifiedInputValidator:
         self.initialized = False
 
         # Security patterns
-        self.sql_injection_patterns = [
-            r"(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|UNION|TRUNCATE)\b)",
-            r"(--|#|/\*|\*/)",
-            r"(\b(OR|AND)\s+\d+\s*=\s*\d+)",
-            r"(\bUNION\s+SELECT\b)",
-            r"(\b(EXEC|EXECUTE)\s*\()",
-            r"(\bxp_cmdshell\b)",
-            r"(\bsp_executesql\b)",
-            r"(\bINTO\s+OUTFILE\b)",
-            r"(\bLOAD_FILE\b)"
-        ]
-
-        self.xss_patterns = [
-            r"<script[^>]*>.*?</script>",
-            r"javascript:",
-            r"vbscript:",
-            r"on\w+\s*=",
-            r"<iframe[^>]*>",
-            r"<object[^>]*>",
-            r"<embed[^>]*>",
-            r"<applet[^>]*>",
-            r"<meta[^>]*>",
-            r"<link[^>]*>",
-            r"<style[^>]*>.*?</style>",
-            r"expression\s*\(",
-            r"url\s*\(",
-            r"@import"
-        ]
-
-        self.command_injection_patterns = [
-            r"[;&|`$(){}[\]\\]",
-            r"\b(rm|del|format|fdisk|kill|shutdown|reboot|halt)\b",
-            r"(>|>>|<|\|)",
-            r"\$\{.*\}",
-            r"`.*`",
-            r"\$\(.*\)",
-            r"\b(wget|curl|nc|netcat|telnet|ssh)\b",
-            r"\b(chmod|chown|sudo|su)\b"
-        ]
-
-        self.path_traversal_patterns = [
-            r"\.\./",
-            r"\.\.\\",
-            r"%2e%2e%2f",
-            r"%2e%2e%5c",
-            r"\.\.%2f",
-            r"\.\.%5c",
-            r"\.\.%252f",
-            r"\.\.%255c"
-        ]
+        from . import validation_rules
+        self.sql_injection_patterns = validation_rules.SQL_INJECTION_PATTERNS
+        self.xss_patterns = validation_rules.XSS_PATTERNS
+        self.command_injection_patterns = validation_rules.COMMAND_INJECTION_PATTERNS
+        self.path_traversal_patterns = validation_rules.PATH_TRAVERSAL_PATTERNS
 
         # Input type configurations
         self.max_lengths = {
@@ -231,8 +186,8 @@ class UnifiedInputValidator:
         }
 
         # Compiled regex patterns for performance
-        self._compiled_patterns = {}
-        self._compile_patterns()
+        from .validation_rules import COMPILED_PATTERNS
+        self._compiled_patterns = COMPILED_PATTERNS
 
         logger.info("Unified Input Validator initialized")
 

@@ -1,0 +1,188 @@
+# PlexiChat Go Client Configuration Example
+# Copy this file to ~/.plexichat-client.yaml and customize as needed
+
+# Server Configuration
+url: "http://localhost:8000"  # PlexiChat server URL
+# url: "https://plexichat.example.com"  # Production server example
+
+# Authentication (automatically populated after login)
+token: ""           # JWT token (set automatically after login)
+refresh_token: ""   # Refresh token (set automatically after login)
+api_key: ""         # API key (alternative to token-based auth)
+username: ""        # Current username (set automatically after login)
+user_id: 0          # Current user ID (set automatically after login)
+
+# Client Configuration
+timeout: "30s"              # Default request timeout
+retries: 3                  # Number of retry attempts for failed requests
+concurrent_requests: 10     # Maximum concurrent requests for bulk operations
+
+# Output Configuration
+verbose: false              # Enable verbose output
+color: true                 # Enable colored output
+format: "table"             # Default output format (table, json, yaml)
+
+# File Operations
+upload:
+  chunk_size: 1048576       # Upload chunk size (1MB)
+  max_file_size: 52428800   # Maximum file size (50MB)
+  allowed_types:            # Allowed file types for upload
+    - "image/jpeg"
+    - "image/png"
+    - "image/gif"
+    - "text/plain"
+    - "application/pdf"
+    - "application/json"
+
+download:
+  default_directory: "./downloads"  # Default download directory
+  overwrite: false                  # Overwrite existing files
+  verify_checksum: true            # Verify file integrity after download
+
+# Chat Configuration
+chat:
+  default_room: 1             # Default room ID for chat operations
+  message_history_limit: 50   # Default number of messages to retrieve
+  auto_reconnect: true        # Auto-reconnect WebSocket on disconnect
+  ping_interval: "30s"        # WebSocket ping interval
+
+# Security Testing Configuration
+security:
+  test_timeout: "60s"         # Timeout for individual security tests
+  scan_timeout: "300s"        # Timeout for full security scans
+  max_concurrent_tests: 5     # Maximum concurrent security tests
+  report_format: "json"       # Default security report format
+  
+  # Vulnerability test configuration
+  payloads:
+    sql_injection:
+      - "' OR '1'='1"
+      - "'; DROP TABLE users; --"
+      - "' UNION SELECT * FROM users --"
+    
+    xss:
+      - "<script>alert('XSS')</script>"
+      - "<img src=x onerror=alert('XSS')>"
+      - "javascript:alert('XSS')"
+    
+    directory_traversal:
+      - "../../../etc/passwd"
+      - "..\\..\\..\\windows\\system32\\drivers\\etc\\hosts"
+      - "....//....//....//etc/passwd"
+
+# Performance Testing Configuration
+benchmark:
+  default_duration: "30s"     # Default benchmark duration
+  default_concurrent: 10      # Default concurrent users
+  response_time_target: "1ms" # Target response time
+  microsecond_samples: 1000   # Number of samples for microsecond tests
+  
+  # Load testing configuration
+  load_test:
+    ramp_up_time: "10s"       # Time to ramp up to full load
+    cool_down_time: "5s"      # Time to cool down after test
+    max_requests_per_sec: 1000 # Maximum requests per second
+    
+  # Endpoints to test
+  endpoints:
+    - "/api/v1/health"
+    - "/api/v1/status"
+    - "/api/v1/version"
+    - "/api/v1/messages"
+
+# Admin Configuration
+admin:
+  confirm_destructive: true   # Require confirmation for destructive operations
+  backup_before_changes: true # Backup configuration before changes
+  
+  # Default pagination
+  pagination:
+    default_limit: 50
+    max_limit: 1000
+
+# Logging Configuration
+logging:
+  level: "info"               # Log level (debug, info, warn, error)
+  file: ""                    # Log file path (empty = stdout only)
+  format: "text"              # Log format (text, json)
+  
+# Cache Configuration
+cache:
+  enabled: true               # Enable client-side caching
+  ttl: "300s"                 # Cache TTL for API responses
+  max_size: 100               # Maximum number of cached items
+
+# Proxy Configuration (optional)
+proxy:
+  enabled: false              # Enable proxy
+  url: ""                     # Proxy URL (e.g., "http://proxy.example.com:8080")
+  username: ""                # Proxy username
+  password: ""                # Proxy password
+
+# TLS Configuration
+tls:
+  verify: true                # Verify TLS certificates
+  ca_cert: ""                 # Custom CA certificate file
+  client_cert: ""             # Client certificate file
+  client_key: ""              # Client private key file
+
+# WebSocket Configuration
+websocket:
+  compression: true           # Enable WebSocket compression
+  buffer_size: 4096          # WebSocket buffer size
+  read_timeout: "60s"        # WebSocket read timeout
+  write_timeout: "10s"       # WebSocket write timeout
+  ping_period: "54s"         # WebSocket ping period
+
+# Development Configuration
+development:
+  debug: false                # Enable debug mode
+  profile: false              # Enable profiling
+  trace_requests: false       # Trace HTTP requests
+  mock_responses: false       # Use mock responses for testing
+
+# Feature Flags
+features:
+  experimental_commands: false # Enable experimental commands
+  beta_features: false         # Enable beta features
+  advanced_security: true     # Enable advanced security features
+  performance_monitoring: true # Enable performance monitoring
+
+# Aliases (command shortcuts)
+aliases:
+  h: "health"
+  v: "version"
+  l: "auth login"
+  s: "chat send"
+  ls: "chat listen"
+  ul: "files upload"
+  dl: "files download"
+  sec: "security test"
+  bench: "benchmark load"
+
+# Custom Headers (added to all requests)
+headers:
+  User-Agent: "PlexiChat-Go-Client/1.0"
+  # X-Custom-Header: "custom-value"
+
+# Environment-specific configurations
+environments:
+  development:
+    url: "http://localhost:8000"
+    verbose: true
+    tls:
+      verify: false
+  
+  staging:
+    url: "https://staging.plexichat.example.com"
+    verbose: false
+    tls:
+      verify: true
+  
+  production:
+    url: "https://plexichat.example.com"
+    verbose: false
+    tls:
+      verify: true
+    security:
+      test_timeout: "30s"  # Shorter timeouts in production

@@ -11,7 +11,7 @@ Enhanced with comprehensive validation and security.
 
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 
 
 class LoginRequest(BaseModel):
@@ -19,7 +19,8 @@ class LoginRequest(BaseModel):
     username: str = Field(..., min_length=3, max_length=50, description="Username")
     password: str = Field(..., min_length=6, max_length=100, description="Password")
 
-    @validator('username')
+    @field_validator('username')
+    @classmethod
     def validate_username(cls, v):
         if not v.strip():
             raise ValueError('Username cannot be empty')
@@ -56,9 +57,10 @@ class PasswordChangeRequest(BaseModel):
     new_password: str = Field(..., min_length=6, max_length=100, description="New password")
     confirm_password: str = Field(..., description="Password confirmation")
 
-    @validator('confirm_password')
-    def passwords_match(cls, v, values):
-        if 'new_password' in values and v != values['new_password']:
+    @field_validator('confirm_password')
+    @classmethod
+    def passwords_match(cls, v, info):
+        if 'new_password' in info.data and v != info.data['new_password']:
             raise ValueError('Passwords do not match')
         return v
 

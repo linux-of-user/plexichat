@@ -413,13 +413,13 @@ class EnhancedDatabaseWizard:
         recommendations = []
 
         if health_info.get("status") == "healthy":
-            recommendations.append("✅ Database connection is healthy")
+            recommendations.append("[SUCCESS] Database connection is healthy")
 
         # Add database-specific recommendations
         if self.progress.database_type == DatabaseType.REDIS:
             memory_used = health_info.get("memory_used", "")
             if "MB" in memory_used and int(memory_used.split("MB")[0]) > 1000:
-                recommendations.append("⚠️ Consider monitoring Redis memory usage")
+                recommendations.append("[WARNING] Consider monitoring Redis memory usage")
 
         return recommendations
 

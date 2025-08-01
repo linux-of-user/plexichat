@@ -108,37 +108,37 @@ class ScalabilityCoordinator:
             if self.config["enable_microservices"]:
                 if service_registry and hasattr(service_registry, "start"):
                     await service_registry.start()
-                    logger.info("✓ Service Registry initialized")
+                    logger.info("[OK] Service Registry initialized")
 
             # Initialize microservices orchestrator
             if self.config["enable_microservices"]:
                 await self.microservices_orchestrator.start_all_services()
-                logger.info("✓ Microservices Orchestrator initialized")
+                logger.info("[OK] Microservices Orchestrator initialized")
 
             # Initialize distributed cache
             if self.config["enable_distributed_cache"]:
                 if distributed_cache and hasattr(distributed_cache, "start"):
                     await distributed_cache.start()
-                    logger.info("✓ Distributed Cache initialized")
+                    logger.info("[OK] Distributed Cache initialized")
 
             # Initialize task queue manager
             if self.config["enable_task_queues"]:
                 if task_queue_manager and hasattr(task_queue_manager, "start"):
                     await task_queue_manager.start()
                     self._register_default_task_handlers()
-                    logger.info("✓ Task Queue Manager initialized")
+                    logger.info("[OK] Task Queue Manager initialized")
 
             # Initialize service mesh
             if self.config["enable_service_mesh"]:
                 if service_mesh_manager and hasattr(service_mesh_manager, "start"):
                     await service_mesh_manager.start()
-                    logger.info("✓ Service Mesh initialized")
+                    logger.info("[OK] Service Mesh initialized")
 
             # Initialize container orchestrator
             if self.config["enable_containerization"]:
                 if container_orchestrator and hasattr(container_orchestrator, "start"):
                     await container_orchestrator.start()
-                    logger.info("✓ Container Orchestrator initialized")
+                    logger.info("[OK] Container Orchestrator initialized")
 
             self.initialized = True
             self.running = True

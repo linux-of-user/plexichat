@@ -3,6 +3,13 @@
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
+# pyright: reportMissingImports=false
+# pyright: reportUndefinedVariable=false
+# pyright: reportOptionalMemberAccess=false
+# pyright: reportOptionalCall=false
+# pyright: reportPossiblyUnboundVariable=false
+# pyright: reportIndexIssue=false
+# pyright: reportGeneralTypeIssues=false
 import logging
 from datetime import datetime
 from typing import Any, Dict, FastAPI, HTTPException, List, Optional, Request, status

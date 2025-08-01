@@ -70,6 +70,48 @@ router = APIRouter(prefix="/system", tags=["system"])
 
 # Initialize EXISTING performance systems
 performance_logger = get_performance_logger() if get_performance_logger else None
+
+# Import enhanced security decorators
+try:
+    from plexichat.core.security.security_decorators import (
+        secure_endpoint, require_auth, rate_limit, audit_access, validate_input,
+        SecurityLevel, RequiredPermission, admin_endpoint
+    )
+    from plexichat.core.logging_advanced.enhanced_logging_system import (
+        get_enhanced_logging_system, LogCategory, LogLevel, PerformanceTracker, SecurityMetrics
+    )
+    ENHANCED_SECURITY_AVAILABLE = True
+    
+    # Get enhanced logging system
+    logging_system = get_enhanced_logging_system()
+    if logging_system:
+        enhanced_logger = logging_system.get_logger(__name__)
+        logger.info("Enhanced security and logging initialized for system")
+    else:
+        enhanced_logger = None
+        
+except ImportError as e:
+    logger.warning(f"Enhanced security not available for system: {e}")
+    ENHANCED_SECURITY_AVAILABLE = False
+    enhanced_logger = None
+    logging_system = None
+    
+    # Fallback decorators
+    def secure_endpoint(*args, **kwargs):
+        def decorator(func): return func
+        return decorator
+    
+    def admin_endpoint(*args, **kwargs):
+        def decorator(func): return func
+        return decorator
+    
+    class SecurityLevel:
+        ADMIN = 4
+        SYSTEM = 5
+    
+    class RequiredPermission:
+        ADMIN = "admin"
+        SYSTEM = "system"
 optimization_engine = PerformanceOptimizationEngine() if PerformanceOptimizationEngine else None
 
 # Pydantic models
@@ -252,6 +294,12 @@ system_service = SystemService()
     response_model=SystemStatus,
     summary="Get system status"
 )
+@secure_endpoint(
+    auth_level=SecurityLevel.AUTHENTICATED,
+    permissions=[RequiredPermission.READ],
+    rate_limit_rpm=60,
+    audit_action="view_system_status"
+)
 async def get_system_status(
     request: Request,
     current_user: Dict[str, Any] = Depends(get_current_user)
@@ -270,6 +318,11 @@ async def get_system_status(
     "/analytics",
     response_model=AnalyticsReport,
     summary="Get analytics report"
+)
+@admin_endpoint(
+    permissions=[RequiredPermission.ADMIN],
+    rate_limit_rpm=30,
+    audit_action="view_analytics"
 )
 async def get_analytics_report(
     request: Request,

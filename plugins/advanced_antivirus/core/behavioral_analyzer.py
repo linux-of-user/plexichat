@@ -1,6 +1,7 @@
 import hashlib
 import json
 import logging
+import math
 import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
@@ -65,6 +66,16 @@ class BehavioralAnalyzer:
             '.vmp0', '.vmp1',           # VMProtect
             '.enigma1', '.enigma2'      # Enigma Protector
         ]
+
+        # Packer signatures
+        self.packer_signatures = {
+            'upx': [b'UPX!', b'UPX0', b'UPX1'],
+            'aspack': [b'aPLib', b'ASPack'],
+            'petite': [b'PEtite'],
+            'themida': [b'Themida', b'WinLicense'],
+            'vmprotect': [b'VMProtect'],
+            'enigma': [b'Enigma']
+        }
 
         # File entropy thresholds
         self.entropy_thresholds = {
@@ -306,7 +317,7 @@ class BehavioralAnalyzer:
         for count in byte_counts:
             if count > 0:
                 probability = count / data_len
-                entropy -= probability * (probability.bit_length() - 1)
+                entropy -= probability * math.log2(probability)
 
         return entropy
 
@@ -614,3 +625,24 @@ class BehavioralAnalyzer:
                 self.analysis_stats['suspicious_found'] / max(1, self.analysis_stats['total_analyzed'])
             ) * 100
         }
+
+    def get_statistics(self) -> Dict[str, Any]:
+        """Get behavioral analyzer statistics."""
+        return self.get_analysis_statistics()
+
+    async def update_patterns(self, new_patterns: Dict[str, Any]):
+        """Update behavioral analysis patterns."""
+        try:
+            if 'suspicious_apis' in new_patterns:
+                self.suspicious_apis.update(new_patterns['suspicious_apis'])
+
+            if 'packer_signatures' in new_patterns:
+                self.packer_signatures.update(new_patterns['packer_signatures'])
+
+            if 'entropy_thresholds' in new_patterns:
+                self.entropy_threshold = new_patterns['entropy_thresholds'].get('high', self.entropy_threshold)
+
+            logger.info("Updated behavioral analysis patterns")
+
+        except Exception as e:
+            logger.error(f"Failed to update patterns: {e}")

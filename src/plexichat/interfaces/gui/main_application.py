@@ -88,7 +88,7 @@ class PlexiChatGUI:
             
             # Create main window
             self.root = tk.Tk()
-            self.root.title("PlexiChat - Advanced Communication Platform")
+            self.root.title("PlexiChat Management Interface")
             self.root.geometry("1400x900")
             self.root.minsize(1200, 800)
             
@@ -495,9 +495,9 @@ class PlexiChatGUI:
                 result = messagebox.askyesnocancel(
                     "PlexiChat Server Manager",
                     "What would you like to do?\n\n"
-                    "• Yes: Minimize to system tray (keep server running)\n"
-                    "• No: Close GUI only (keep server running)\n"
-                    "• Cancel: Stay open\n\n"
+                    "* Yes: Minimize to system tray (keep server running)\n"
+                    "* No: Close GUI only (keep server running)\n"
+                    "* Cancel: Stay open\n\n"
                     "Note: The PlexiChat server will continue running."
                 )
 

@@ -63,7 +63,7 @@ class DocumentationGenerator:
     async def generate_api_documentation(self) -> bool:
         """Generate API documentation."""
         try:
-            logger.info("📚 Generating API documentation...")
+            logger.info("[BOOKS] Generating API documentation...")
 
             # Create docs directory
             os.makedirs(self.output_dir, exist_ok=True)
@@ -77,7 +77,7 @@ class DocumentationGenerator:
             # Generate SDK documentation
             await self._generate_sdk_docs()
 
-            logger.info("✅ API documentation generated successfully")
+            logger.info("[SUCCESS] API documentation generated successfully")
             return True
 
         except Exception as e:
@@ -253,7 +253,7 @@ pip install plexichat-sdk
 from plexichat import PlexiChatClient
 
 # Initialize client
-client = PlexiChatClient(api_key="your-api-key")
+client = PlexiChatClient(api_key=os.getenv("API_KEY", ""))
 
 # Authenticate
 await client.authenticate("username", "password")
@@ -295,7 +295,7 @@ except PlexiChatError as e:
     async def generate_deployment_docs(self) -> bool:
         """Generate deployment documentation."""
         try:
-            logger.info("📖 Generating deployment documentation...")
+            logger.info("[BOOK] Generating deployment documentation...")
 
             deployment_docs = """# PlexiChat Deployment Guide
 
@@ -419,7 +419,7 @@ kubectl cp app-pod:/app/uploads ./uploads-backup
             with open(deployment_path, "w") as f:
                 f.write(deployment_docs)
 
-            logger.info("✅ Deployment documentation generated successfully")
+            logger.info("[SUCCESS] Deployment documentation generated successfully")
             return True
 
         except Exception as e:
@@ -449,7 +449,7 @@ class ContainerManager:
             return False
 
         try:
-            logger.info(f"🐳 Building Docker image: {image_name}:{tag}")
+            logger.info(f"[DOCKER] Building Docker image: {image_name}:{tag}")
 
             build_cmd = [
                 "docker", "build",
@@ -461,7 +461,7 @@ class ContainerManager:
             result = subprocess.run(build_cmd, capture_output=True, text=True)
 
             if result.returncode == 0:
-                logger.info(f"✅ Docker image built successfully: {image_name}:{tag}")
+                logger.info(f"[SUCCESS] Docker image built successfully: {image_name}:{tag}")
                 return True
             else:
                 logger.error(f"Docker build failed: {result.stderr}")
@@ -480,7 +480,7 @@ class ContainerManager:
 
         try:
             full_image_name = f"{registry}/{image_name}:{tag}"
-            logger.info(f"📤 Pushing Docker image: {full_image_name}")
+            logger.info(f"[SEND] Pushing Docker image: {full_image_name}")
 
             # Tag image for registry
             tag_cmd = ["docker", "tag", f"{image_name}:{tag}", full_image_name]
@@ -495,7 +495,7 @@ class ContainerManager:
             push_result = subprocess.run(push_cmd, capture_output=True, text=True)
 
             if push_result.returncode == 0:
-                logger.info(f"✅ Docker image pushed successfully: {full_image_name}")
+                logger.info(f"[SUCCESS] Docker image pushed successfully: {full_image_name}")
                 return True
             else:
                 logger.error(f"Docker push failed: {push_result.stderr}")
@@ -538,7 +538,7 @@ class KubernetesDeployer:
             return result
 
         try:
-            logger.info(f"🚀 Starting deployment: {deployment_id}")
+            logger.info(f"[START] Starting deployment: {deployment_id}")
 
             # Generate Kubernetes manifests
             manifests = await self._generate_k8s_manifests(config)
@@ -566,7 +566,7 @@ class KubernetesDeployer:
             result.end_time = datetime.now()
             result.duration = (result.end_time - result.start_time).total_seconds()
 
-            logger.info(f"✅ Deployment {deployment_id} completed: {result.status}")
+            logger.info(f"[SUCCESS] Deployment {deployment_id} completed: {result.status}")
             return result
 
         except Exception as e:
@@ -721,7 +721,7 @@ class KubernetesDeployer:
             ]
 
             # This is simplified - in reality you'd test the actual health endpoint
-            logger.info("🏥 Running health checks...")
+            logger.info("[HOSPITAL] Running health checks...")
             await asyncio.sleep(5)  # Simulate health check
 
             return True
@@ -742,7 +742,7 @@ class DeploymentManager:
 
     async def full_deployment_pipeline(self, config: DeploymentConfig) -> DeploymentResult:
         """Run complete deployment pipeline."""
-        logger.info(f"🚀 Starting full deployment pipeline for {config.environment}")
+        logger.info(f"[START] Starting full deployment pipeline for {config.environment}")
 
         try:
             # Step 1: Generate documentation
@@ -770,7 +770,7 @@ class DeploymentManager:
             # Step 4: Record deployment
             self.deployment_history.append(deployment_result)
 
-            logger.info(f"✅ Full deployment pipeline completed: {deployment_result.status}")
+            logger.info(f"[SUCCESS] Full deployment pipeline completed: {deployment_result.status}")
             return deployment_result
 
         except Exception as e:

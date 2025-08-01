@@ -24,22 +24,46 @@ except ImportError:
 
 # Use EXISTING performance optimization engine
 try:
-    from plexichat.infrastructure.performance.optimization_engine import PerformanceOptimizationEngine
-    from plexichat.infrastructure.utils.performance import async_track_performance
-    from plexichat.core.logging_advanced.performance_logger import get_performance_logger
+    from ...infrastructure.performance.optimization_engine import PerformanceOptimizationEngine
+    from ...infrastructure.utils.performance import async_track_performance
+    from ...core.logging_advanced.performance_logger import get_performance_logger
 except ImportError:
-    PerformanceOptimizationEngine = None
-    async_track_performance = None
-    get_performance_logger = None
+    try:
+        from plexichat.infrastructure.performance.optimization_engine import PerformanceOptimizationEngine
+        from plexichat.infrastructure.utils.performance import async_track_performance
+        from plexichat.core.logging_advanced.performance_logger import get_performance_logger
+    except ImportError:
+        PerformanceOptimizationEngine = None
+        async_track_performance = None
+        get_performance_logger = None
 
 # Configuration imports
 try:
-    from plexichat.core.config import settings
+    from ...core.config_manager import ConfigurationManager
+    config_manager = ConfigurationManager()
+
+    class Settings:
+        DEBUG = config_manager.get('system.debug', False)
+        APP_NAME = config_manager.get('system.name', 'PlexiChat')
+        APP_VERSION = config_manager.get('system.version', 'b.1.1-93')
+
+    settings = Settings()
 except ImportError:
-    class MockSettings:
-        DEBUG = False
-        APP_NAME = "PlexiChat"
-        APP_VERSION = "1.0.0"
+    try:
+        from plexichat.core.config_manager import ConfigurationManager
+        config_manager = ConfigurationManager()
+
+        class Settings:
+            DEBUG = config_manager.get('system.debug', False)
+            APP_NAME = config_manager.get('system.name', 'PlexiChat')
+            APP_VERSION = config_manager.get('system.version', 'b.1.1-93')
+
+        settings = Settings()
+    except ImportError:
+        class MockSettings:
+            DEBUG = False
+            APP_NAME = "PlexiChat"
+            APP_VERSION = "b.1.1-93"
     settings = MockSettings()
 
 logger = logging.getLogger(__name__)
@@ -57,7 +81,7 @@ def create_app() -> Optional[Any]:
         # Create FastAPI app
         app = FastAPI(
             title=getattr(settings, 'APP_NAME', 'PlexiChat'),
-            version=getattr(settings, 'APP_VERSION', '1.0.0'),
+            version=getattr(settings, 'APP_VERSION', 'b.1.1-86'),
             description="Enhanced PlexiChat API with comprehensive functionality",
             debug=getattr(settings, 'DEBUG', False)
         )
@@ -94,7 +118,13 @@ def create_app() -> Optional[Any]:
         # Add static files
         if StaticFiles:
             try:
-                app.mount("/static", StaticFiles(directory="static"), name="static")
+                from pathlib import Path
+                static_path = Path(__file__).parent / "static"
+                if static_path.exists():
+                    app.mount("/static", StaticFiles(directory=str(static_path)), name="static")
+                    logger.info(f"Static files mounted from {static_path}")
+                else:
+                    logger.warning(f"Static directory not found at {static_path}")
             except Exception as e:
                 logger.warning(f"Could not mount static files: {e}")
 
@@ -117,7 +147,7 @@ def create_app() -> Optional[Any]:
             return {
                 "status": "healthy",
                 "timestamp": "2024-01-01T00:00:00Z",
-                "version": getattr(settings, 'APP_VERSION', '1.0.0')
+                "version": getattr(settings, 'APP_VERSION', 'b.1.1-86')
             }
 
         return app
@@ -139,6 +169,7 @@ def _include_routers(app):
             ("system", "/system"),
             ("status", "/status"),
             ("webhooks", "/webhooks"),
+            ("webui", "/ui"),
             ("login", "/login"),
             ("updates", "/updates"),
             ("cluster", "/cluster"),
@@ -149,10 +180,33 @@ def _include_routers(app):
 
         for router_name, prefix in routers:
             try:
-                module = __import__(f"plexichat.interfaces.web.routers.{router_name}", fromlist=[router_name])
-                if hasattr(module, 'router'):
+                # Try multiple import paths
+                import_paths = [
+                    f"plexichat.interfaces.web.routers.{router_name}",
+                    f"src.plexichat.interfaces.web.routers.{router_name}",
+                    f".routers.{router_name}"
+                ]
+
+                module = None
+                for import_path in import_paths:
+                    try:
+                        if import_path.startswith('.'):
+                            # Relative import
+                            from . import routers
+                            module = getattr(routers, router_name, None)
+                        else:
+                            # Absolute import
+                            module = __import__(import_path, fromlist=[router_name])
+                        if module:
+                            break
+                    except (ImportError, AttributeError):
+                        continue
+
+                if module and hasattr(module, 'router'):
                     app.include_router(module.router, prefix=prefix)
                     logger.info(f"Included router: {router_name} at {prefix}")
+                else:
+                    logger.warning(f"Router {router_name} not found or has no 'router' attribute")
             except ImportError as e:
                 logger.warning(f"Could not import router {router_name}: {e}")
             except Exception as e:
@@ -170,5 +224,8 @@ __all__ = [
     "create_app",
 ]
 
-# Version info
-__version__ = "1.0.0"
+# Version info - load from config
+try:
+    __version__ = settings.APP_VERSION
+except:
+    __version__ = "b.1.1-86"

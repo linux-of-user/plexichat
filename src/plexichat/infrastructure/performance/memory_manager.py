@@ -130,7 +130,7 @@ class MemoryLeakDetector:
         self.running = True
         tracemalloc.start()
         self._task = asyncio.create_task(self._monitoring_loop())
-        logger.info("🔍 Memory leak detection started")
+        logger.info("[DEBUG] Memory leak detection started")
 
     def stop_monitoring(self):
         """Stop leak detection monitoring."""
@@ -138,7 +138,7 @@ class MemoryLeakDetector:
         if self._task:
             self._task.cancel()
         tracemalloc.stop()
-        logger.info("🛑 Memory leak detection stopped")
+        logger.info("[STOP] Memory leak detection stopped")
 
     async def _monitoring_loop(self):
         """Background monitoring loop."""
@@ -173,7 +173,7 @@ class MemoryLeakDetector:
 
                     if avg_old > 0 and current_count / avg_old > self.leak_threshold:
                         logger.warning(
-                            f"🚨 Potential memory leak detected: {obj_type} "
+                            f"[ALERT] Potential memory leak detected: {obj_type} "
                             f"count increased from {avg_old:.0f} to {current_count}"
                         )
 
@@ -215,7 +215,7 @@ class MemoryManager:
         self._gc_task = None
         self._running = False
 
-        logger.info("🧠 Memory Manager initialized")
+        logger.info("[BRAIN] Memory Manager initialized")
 
     async def initialize(self) -> bool:
         """Initialize memory management system."""
@@ -230,7 +230,7 @@ class MemoryManager:
             # Configure garbage collection
             self._configure_gc()
 
-            logger.info("🚀 Memory management system initialized")
+            logger.info("[START] Memory management system initialized")
             return True
 
         except Exception as e:
@@ -254,7 +254,7 @@ class MemoryManager:
             # Clear object pools
             self.object_pools.clear()
 
-            logger.info("🛑 Memory management shutdown complete")
+            logger.info("[STOP] Memory management shutdown complete")
 
         except Exception as e:
             logger.error(f"Error during memory management shutdown: {e}")
@@ -264,7 +264,7 @@ class MemoryManager:
         """Create a new object pool."""
         pool = ObjectPool(object_class, max_size, factory_func)
         self.object_pools[name] = pool
-        logger.info(f"📦 Created object pool: {name} (max_size: {max_size})")
+        logger.info(f"[PACKAGE] Created object pool: {name} (max_size: {max_size})")
         return pool
 
     def get_object_pool(self, name: str) -> Optional[ObjectPool]:
@@ -282,7 +282,7 @@ class MemoryManager:
         if self.auto_gc_enabled:
             self._gc_task = asyncio.create_task(self._gc_loop())
 
-        logger.info("📊 Memory monitoring started")
+        logger.info("[METRICS] Memory monitoring started")
 
     async def _monitoring_loop(self):
         """Background monitoring loop."""
@@ -322,7 +322,7 @@ class MemoryManager:
 
             # Check for high memory usage
             if self.metrics.memory_percent > 90:
-                logger.warning(f"🚨 High memory usage: {self.metrics.memory_percent:.1f}%")
+                logger.warning(f"[ALERT] High memory usage: {self.metrics.memory_percent:.1f}%")
 
         except Exception as e:
             logger.error(f"Error collecting memory metrics: {e}")
@@ -351,7 +351,7 @@ class MemoryManager:
         # Enable automatic garbage collection
         gc.enable()
 
-        logger.info("🗑️ Garbage collection configured")
+        logger.info("[DELETE] Garbage collection configured")
 
     async def force_garbage_collection(self) -> Dict[str, int]:
         """Force garbage collection and return statistics."""
@@ -375,7 +375,7 @@ class MemoryManager:
                 'gc_collected': collected
             }
 
-            logger.info(f"🗑️ GC completed: freed {stats['memory_freed_mb']:.1f}MB, ")
+            logger.info(f"[DELETE] GC completed: freed {stats['memory_freed_mb']:.1f}MB, ")
                        f"collected {stats['objects_collected']} objects")
 
             return stats
@@ -448,7 +448,7 @@ class MemoryManager:
 
             results['suggestions'] = suggestions
 
-            logger.info(f"🔧 Memory optimization completed: {len(suggestions)} suggestions")
+            logger.info(f"[CONFIG] Memory optimization completed: {len(suggestions)} suggestions")
             return results
 
         except Exception as e:

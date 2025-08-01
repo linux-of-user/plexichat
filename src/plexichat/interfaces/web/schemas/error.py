@@ -12,9 +12,9 @@ from pydantic import BaseModel, Field  # type: ignore
 
 class ErrorDetail(BaseModel):
     """Individual error detail with enhanced information."""
-    code: str = Field(..., description="Error code", example="VALIDATION_ERROR")
-    message: str = Field(..., description="Human-readable error message", example="Invalid input provided")
-    field: Optional[str] = Field(None, description="Field that caused the error", example="username")
+    code: str = Field(..., description="Error code")
+    message: str = Field(..., description="Human-readable error message")
+    field: Optional[str] = Field(None, description="Field that caused the error")
     value: Optional[Any] = Field(None, description="Invalid value that caused the error")
 
 
@@ -25,7 +25,7 @@ class FieldError(BaseModel):
 
 class ValidationErrorResponse(BaseModel):
     """Validation error response with detailed field information."""
-    detail: str = Field(..., description="Error description", example="Validation failed")
+    detail: str = Field(..., description="Error description")
     code: int = Field(default=400, description="HTTP status code")
     errors: Optional[Dict[str, FieldError]] = Field(None, description="Field-specific errors")
     timestamp: str = Field(default_factory=lambda: datetime.now().isoformat(), description="Error timestamp")
@@ -33,8 +33,8 @@ class ValidationErrorResponse(BaseModel):
 
 class ErrorResponse(BaseModel):
     """Generic error response with comprehensive details."""
-    error: str = Field(..., description="Error type", example="INTERNAL_ERROR")
-    message: str = Field(..., description="Error message", example="An unexpected error occurred")
+    error: str = Field(..., description="Error type")
+    message: str = Field(..., description="Error message")
     details: Optional[Dict[str, Any]] = Field(None, description="Additional error details")
     timestamp: str = Field(default_factory=lambda: datetime.now().isoformat(), description="Error timestamp")
     request_id: Optional[str] = Field(None, description="Request ID for tracking")

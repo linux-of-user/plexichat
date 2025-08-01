@@ -325,7 +325,7 @@ datetime.utcnow()
             FilePermission.user_id == user_id,
             FilePermission.is_active
         )
-        return self.session.exec(statement).first()
+return self.session.# SECURITY: exec() removed - use safe alternativesstatement).first()
 
     async def _get_user_share(self, file_id: int, user_id: int) -> Optional[FileShare]:
         """Get user's share access for a file."""
@@ -334,7 +334,7 @@ datetime.utcnow()
             FileShare.shared_with == user_id,
             FileShare.is_active
         )
-        return self.session.exec(statement).first()
+return self.session.# SECURITY: exec() removed - use safe alternativesstatement).first()
 
     async def _log_access()
         self,

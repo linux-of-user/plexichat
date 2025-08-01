@@ -71,6 +71,48 @@ router = APIRouter(prefix="/admin", tags=["admin"])
 # Initialize templates
 templates = Jinja2Templates(directory="src/plexichat/interfaces/web/templates")
 
+# Import enhanced security decorators
+try:
+    from plexichat.core.security.security_decorators import (
+        secure_endpoint, require_auth, rate_limit, audit_access, validate_input,
+        SecurityLevel, RequiredPermission, admin_endpoint
+    )
+    from plexichat.core.logging_advanced.enhanced_logging_system import (
+        get_enhanced_logging_system, LogCategory, LogLevel, PerformanceTracker, SecurityMetrics
+    )
+    ENHANCED_SECURITY_AVAILABLE = True
+    
+    # Get enhanced logging system
+    logging_system = get_enhanced_logging_system()
+    if logging_system:
+        enhanced_logger = logging_system.get_logger(__name__)
+        logger.info("Enhanced security and logging initialized for admin")
+    else:
+        enhanced_logger = None
+        
+except ImportError as e:
+    logger.warning(f"Enhanced security not available for admin: {e}")
+    # Fallback decorators
+    def secure_endpoint(*args, **kwargs):
+        def decorator(func): return func
+        return decorator
+    
+    def admin_endpoint(*args, **kwargs):
+        def decorator(func): return func
+        return decorator
+    
+    class SecurityLevel:
+        ADMIN = 4
+        SYSTEM = 5
+    
+    class RequiredPermission:
+        ADMIN = "admin"
+        SYSTEM = "system"
+    
+    ENHANCED_SECURITY_AVAILABLE = False
+    enhanced_logger = None
+    logging_system = None
+
 class AdminLoginRequest(BaseModel):
     """Admin login request model."""
     username: str
@@ -109,7 +151,7 @@ async def get_current_admin(request: Request) -> Optional[Dict[str, Any]]:
         logger.error(f"Error getting current admin: {e}")
         return None
 
-async def require_admin(request: Request = Depends()) -> Dict[str, Any]:
+async def require_admin(request: Request) -> Dict[str, Any]:
     """Require admin authentication."""
     admin = await get_current_admin(request)
     if not admin:
@@ -125,7 +167,8 @@ def get_client_ip(request: Request) -> str:
     return 'unknown'
 
 @router.get("/", response_class=HTMLResponse)
-async def admin_dashboard(request: Request, admin: dict = Depends(require_admin)):
+async def admin_dashboard(request: Request):
+    admin = await require_admin(request)
     """Admin dashboard page."""
     if not admin:
         return RedirectResponse(url="/admin/login", status_code=302)
@@ -152,7 +195,11 @@ async def admin_login_page(request: Request):
         return HTMLResponse("<h1>Admin Login</h1><form method='post'><input name='username' placeholder='Username'><input name='password' type='password' placeholder='Password'><button>Login</button></form>")
 
 @router.post("/login")
-@rate_limit(max_attempts=10, window_minutes=1, key_func=lambda request, **kwargs: f"admin_login:{get_client_ip(request)}")
+@admin_endpoint(
+    permissions=[RequiredPermission.ADMIN],
+    rate_limit_rpm=10,
+    audit_action="admin_login"
+)
 async def admin_login(
     request: Request,
     username: str = Form(...),
@@ -163,11 +210,59 @@ async def admin_login(
     try:
         ip_address = get_client_ip(request)
         user_agent = request.headers.get("User-Agent")
+        
+        # Enhanced logging for admin authentication
+        if enhanced_logger and logging_system:
+            logging_system.set_context(
+                username=username,
+                endpoint="/admin/login",
+                method="POST",
+                ip_address=ip_address
+            )
+            
+            enhanced_logger.info(
+                f"Admin authentication attempt for {username}",
+                extra={
+                    "category": LogCategory.AUTH,
+                    "metadata": {
+                        "username": username,
+                        "client_ip": ip_address,
+                        "user_agent": user_agent,
+                        "auth_type": "admin_login"
+                    },
+                    "tags": ["admin", "authentication", "security_critical"]
+                }
+            )
+        
         token = await admin_manager.authenticate(username, password, ip_address, user_agent)
         if not token:
-            logger.warning(f"Admin login failed for {username} from {ip_address}")
+            # Enhanced failed login logging
+            if enhanced_logger:
+                enhanced_logger.warning(
+                    f"Admin login failed for {username}",
+                    extra={
+                        "category": LogCategory.SECURITY,
+                        "security": {"failed_authentications": 1, "threat_score": 0.5},
+                        "metadata": {"username": username, "client_ip": ip_address, "failure_reason": "invalid_credentials"},
+                        "tags": ["admin", "login_failed", "security_event"]
+                    }
+                )
+            else:
+                logger.warning(f"Admin login failed for {username} from {ip_address}")
             raise HTTPException(status_code=401, detail="Invalid credentials")
-        logger.info(f"Admin login: {username} from {ip_address}")
+            
+        # Enhanced successful login logging
+        if enhanced_logger:
+            enhanced_logger.info(
+                f"Admin login successful for {username}",
+                extra={
+                    "category": LogCategory.AUTH,
+                    "metadata": {"username": username, "client_ip": ip_address, "auth_success": True},
+                    "tags": ["admin", "login_success", "security_event"]
+                }
+            )
+        else:
+            logger.info(f"Admin login: {username} from {ip_address}")
         response = RedirectResponse(url="/admin/", status_code=302)
         response.set_cookie(
             key="admin_session",
@@ -185,8 +280,9 @@ async def admin_login(
         raise HTTPException(status_code=500, detail="Login failed")
 
 @router.post("/logout")
-@rate_limit(max_attempts=30, window_minutes=1, key_func=lambda request, **kwargs: f"admin_logout:{get_client_ip(request)}")
-async def admin_logout(request: Request, admin: dict = Depends(require_admin)):
+@rate_limit(requests_per_minute=30, key_func=lambda request: f"admin_logout:{get_client_ip(request)}")
+async def admin_logout(request: Request):
+    admin = await require_admin(request)
     if not admin_manager:
         raise HTTPException(status_code=500, detail="Admin manager not available")
     try:
@@ -201,8 +297,9 @@ async def admin_logout(request: Request, admin: dict = Depends(require_admin)):
         raise HTTPException(status_code=500, detail="Logout failed")
 
 @router.get("/users")
-@rate_limit(max_attempts=30, window_minutes=1, key_func=lambda request, **kwargs: f"admin_users:{get_client_ip(request)}")
-async def admin_users(request: Request, admin: dict = Depends(require_admin)):
+@rate_limit(requests_per_minute=30, key_func=lambda request: f"admin_users:{get_client_ip(request)}")
+async def admin_users(request: Request):
+    admin = await require_admin(request)
     if not admin_manager:
         raise HTTPException(status_code=500, detail="Admin manager not available")
     try:
@@ -219,7 +316,7 @@ async def admin_users(request: Request, admin: dict = Depends(require_admin)):
         raise HTTPException(status_code=500, detail="Failed to load users")
 
 @router.post("/users")
-@rate_limit(max_attempts=20, window_minutes=1, key_func=lambda request, **kwargs: f"admin_create_user:{get_client_ip(request)}")
+@rate_limit(requests_per_minute=20, key_func=lambda request: f"admin_create_user:{get_client_ip(request)}")
 async def create_admin_user(
     request: Request,
     admin_create: AdminCreateRequest = Body(...),
@@ -264,7 +361,7 @@ class PasswordResetRequest(BaseModel):
     current_password: Optional[str] = None  # Only for self-service
 
 @router.post("/users/reset-password")
-@rate_limit(max_attempts=10, window_minutes=5, key_func=lambda request, **kwargs: f"admin_reset_password:{get_client_ip(request)}")
+@rate_limit(requests_per_minute=10, key_func=lambda request: f"admin_reset_password:{get_client_ip(request)}")
 async def admin_reset_password(
     request: Request,
     reset_request: PasswordResetRequest = Body(...),
@@ -287,7 +384,7 @@ async def admin_reset_password(
         raise HTTPException(status_code=400, detail="Failed to reset password")
 
 @router.post("/reset-password")
-@rate_limit(max_attempts=5, window_minutes=5, key_func=lambda request, **kwargs: f"self_reset_password:{get_client_ip(request)}")
+@rate_limit(requests_per_minute=5, key_func=lambda request: f"self_reset_password:{get_client_ip(request)}")
 async def self_reset_password(
     request: Request,
     reset_request: PasswordResetRequest = Body(...),
@@ -310,7 +407,8 @@ async def self_reset_password(
         raise HTTPException(status_code=400, detail="Failed to reset password")
 
 @router.get("/system")
-async def admin_system(request: Request, admin: dict = Depends(require_admin)):
+async def admin_system(request: Request):
+    admin = await require_admin(request)
     """Admin system status page."""
     try:
         system_info = {
@@ -358,7 +456,8 @@ async def api_list_admins(_admin: dict = Depends(require_admin)):
     ])
 
 @router.get("/plugin-module-requests", response_class=JSONResponse)
-async def list_plugin_module_requests(_admin: dict = Depends(require_admin)):
+async def list_plugin_module_requests(request: Request):
+    _admin = await require_admin(request)
     """List all plugin module import requests from plugins."""
     isolation_manager = unified_plugin_manager.isolation_manager
     return {"requests": isolation_manager.get_plugin_module_requests()}

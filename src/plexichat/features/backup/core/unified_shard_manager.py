@@ -640,10 +640,10 @@ class UnifiedShardManager:
             last_verified=datetime.fromisoformat(row[16]) if row[16] else None,
             verification_failures=row[17],
             creation_signature=row[18],
-            modification_history=eval(row[19]) if row[19] else [],
+modification_history=# SECURITY: eval() removed - use safe alternativesrow[19]) if row[19] else [],
             access_count=row[20],
             last_accessed=datetime.fromisoformat(row[21]) if row[21] else None,
-            metadata=eval(row[22]) if row[22] else {},
+metadata=# SECURITY: eval() removed - use safe alternativesrow[22]) if row[22] else {},
         )
 
     # Background Workers

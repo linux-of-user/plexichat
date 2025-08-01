@@ -6,7 +6,7 @@ Enhanced with comprehensive validation and security.
 
 from datetime import datetime
 from typing import Optional, List, Dict, Any
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 from enum import Enum
 
 
@@ -34,7 +34,8 @@ class FileBase(BaseModel):
     filename: str = Field(..., min_length=1, max_length=255, description="Original filename")
     content_type: str = Field(..., description="MIME content type")
 
-    @validator('filename')
+    @field_validator('filename')
+    @classmethod
     def validate_filename(cls, v):
         if not v.strip():
             raise ValueError('Filename cannot be empty')
@@ -53,7 +54,8 @@ class FileUpload(BaseModel):
     tags: Optional[List[str]] = Field(None, description="File tags")
     is_public: bool = Field(default=False, description="Public access flag")
 
-    @validator('filename')
+    @field_validator('filename')
+    @classmethod
     def validate_filename(cls, v):
         if not v.strip():
             raise ValueError('Filename cannot be empty')
@@ -62,7 +64,8 @@ class FileUpload(BaseModel):
             raise ValueError('Filename contains invalid characters')
         return v.strip()
 
-    @validator('tags')
+    @field_validator('tags')
+    @classmethod
     def validate_tags(cls, v):
         if v is not None:
             # Limit number of tags and tag length
@@ -112,7 +115,8 @@ class FileUpdate(BaseModel):
     tags: Optional[List[str]] = Field(None, description="Updated tags")
     is_public: Optional[bool] = Field(None, description="Updated public access flag")
 
-    @validator('filename')
+    @field_validator('filename')
+    @classmethod
     def validate_filename(cls, v):
         if v is not None:
             if not v.strip():
@@ -123,7 +127,8 @@ class FileUpdate(BaseModel):
             return v.strip()
         return v
 
-    @validator('tags')
+    @field_validator('tags')
+    @classmethod
     def validate_tags(cls, v):
         if v is not None:
             if len(v) > 10:
@@ -146,7 +151,8 @@ class FileSearch(BaseModel):
     end_date: Optional[datetime] = Field(None, description="End date filter")
     is_public: Optional[bool] = Field(None, description="Filter by public status")
 
-    @validator('query')
+    @field_validator('query')
+    @classmethod
     def validate_query(cls, v):
         if v is not None and not v.strip():
             raise ValueError('Search query cannot be empty')

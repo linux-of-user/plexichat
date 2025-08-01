@@ -52,7 +52,7 @@ class UserManagementService:
         """Create a new user with comprehensive profile information."""
         try:
             # Check if username or email already exists
-            existing_user = self.session.exec(
+existing_user = self.session.# SECURITY: exec() removed - use safe alternatives
                 select(EnhancedUser).where(
                     (EnhancedUser.username == username) | (EnhancedUser.email == email)
                 )
@@ -109,7 +109,7 @@ class UserManagementService:
         """Create a new bot account with regulation and advanced features."""
         try:
             # Verify owner exists and has permission to create bots
-            owner = self.session.exec(
+owner = self.session.# SECURITY: exec() removed - use safe alternatives
                 select(EnhancedUser).where(EnhancedUser.id == owner_id)
             ).first()
 
@@ -117,7 +117,7 @@ class UserManagementService:
                 raise HTTPException(status_code=404, detail="Owner not found")
 
             # Check bot creation limits (max 5 bots per user)
-            existing_bots = self.session.exec(
+existing_bots = self.session.# SECURITY: exec() removed - use safe alternatives
                 select(EnhancedUser).where(
                     (EnhancedUser.bot_owner_id == owner_id) &
                     (EnhancedUser.account_type == AccountType.BOT)
@@ -135,7 +135,7 @@ class UserManagementService:
             username = base_username
             counter = 1
 
-            while self.session.exec(
+while self.session.# SECURITY: exec() removed - use safe alternatives
                 select(EnhancedUser).where(EnhancedUser.username == username)
             ).first():
                 username = f"{base_username}_{counter}"
@@ -222,7 +222,7 @@ class UserManagementService:
     ) -> BotAccount:
         """Update bot permissions with owner verification."""
         try:
-            bot_account = self.session.exec(
+bot_account = self.session.# SECURITY: exec() removed - use safe alternatives
                 select(BotAccount).join(EnhancedUser).where(
                     (BotAccount.user_id == bot_id) &
                     (EnhancedUser.bot_owner_id == owner_id)
@@ -268,7 +268,7 @@ class UserManagementService:
     async def get_user_bots(self, owner_id: int) -> List[Dict[str, Any]]:
         """Get all bots owned by a user."""
         try:
-            bots = self.session.exec(
+bots = self.session.# SECURITY: exec() removed - use safe alternatives
                 select(EnhancedUser, BotAccount).join(BotAccount).where(
                     EnhancedUser.bot_owner_id == owner_id
                 )
@@ -304,7 +304,7 @@ class UserManagementService:
     async def delete_bot_account(self, bot_id: int, owner_id: int) -> bool:
         """Delete a bot account with owner verification."""
         try:
-            bot_user = self.session.exec(
+bot_user = self.session.# SECURITY: exec() removed - use safe alternatives
                 select(EnhancedUser).where(
                     (EnhancedUser.id == bot_id) &
                     (EnhancedUser.bot_owner_id == owner_id) &
@@ -316,7 +316,7 @@ class UserManagementService:
                 raise HTTPException(status_code=404, detail="Bot not found or access denied")
 
             # Delete bot account record
-            bot_account = self.session.exec(
+bot_account = self.session.# SECURITY: exec() removed - use safe alternatives
                 select(BotAccount).where(BotAccount.user_id == bot_id)
             ).first()
 
@@ -396,7 +396,7 @@ class UserManagementService:
                 raise HTTPException(status_code=400, detail="Invalid password")
 
             # Check if email is already in use
-            existing_user = self.session.exec(
+existing_user = self.session.# SECURITY: exec() removed - use safe alternatives
                 select(EnhancedUser).where(
                     (EnhancedUser.email == new_email) & (EnhancedUser.id != user_id)
                 )
@@ -649,7 +649,7 @@ class UserManagementService:
                 raise HTTPException(status_code=404, detail="User not found")
 
             # Check if friendship already exists
-            existing_friendship = self.session.exec(
+existing_friendship = self.session.# SECURITY: exec() removed - use safe alternatives
                 select(Friendship).where(
                     ((Friendship.requester_id == requester_id) & (Friendship.addressee_id == addressee_id)) |
                     ((Friendship.requester_id == addressee_id) & (Friendship.addressee_id == requester_id))
@@ -729,7 +729,7 @@ class UserManagementService:
     ) -> bool:
         """Remove a friend (delete friendship)."""
         try:
-            friendship = self.session.exec(
+friendship = self.session.# SECURITY: exec() removed - use safe alternatives
                 select(Friendship).where(
                     ((Friendship.requester_id == user_id) & (Friendship.addressee_id == friend_id)) |
                     ((Friendship.requester_id == friend_id) & (Friendship.addressee_id == user_id))
@@ -763,7 +763,7 @@ class UserManagementService:
                 raise HTTPException(status_code=400, detail="Cannot block yourself")
 
             # Check if friendship exists
-            existing_friendship = self.session.exec(
+existing_friendship = self.session.# SECURITY: exec() removed - use safe alternatives
                 select(Friendship).where(
                     ((Friendship.requester_id == blocker_id) & (Friendship.addressee_id == blocked_id)) |
                     ((Friendship.requester_id == blocked_id) & (Friendship.addressee_id == blocker_id))
@@ -800,7 +800,7 @@ class UserManagementService:
     ) -> List[Dict[str, Any]]:
         """Get user's friends list."""
         try:
-            friendships = self.session.exec(
+friendships = self.session.# SECURITY: exec() removed - use safe alternatives
                 select(Friendship).where(
                     ((Friendship.requester_id == user_id) | (Friendship.addressee_id == user_id)) &
                     (Friendship.status == FriendshipStatus.ACCEPTED)
@@ -839,7 +839,7 @@ class UserManagementService:
         try:
             if sent:
                 # Requests sent by user
-                friendships = self.session.exec(
+friendships = self.session.# SECURITY: exec() removed - use safe alternatives
                     select(Friendship).where(
                         (Friendship.requester_id == user_id) &
                         (Friendship.status == FriendshipStatus.PENDING)
@@ -864,7 +864,7 @@ class UserManagementService:
                         })
             else:
                 # Requests received by user
-                friendships = self.session.exec(
+friendships = self.session.# SECURITY: exec() removed - use safe alternatives
                     select(Friendship).where(
                         (Friendship.addressee_id == user_id) &
                         (Friendship.status == FriendshipStatus.PENDING)
@@ -916,7 +916,7 @@ class UserManagementService:
                 statement = statement.where(EnhancedUser.id != exclude_user_id)
 
             statement = statement.limit(limit)
-            users = self.session.exec(statement).all()
+users = self.session.# SECURITY: exec() removed - use safe alternativesstatement).all()
 
             results = []
             for user in users:

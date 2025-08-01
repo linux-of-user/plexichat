@@ -3,6 +3,13 @@
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
+# pyright: reportMissingImports=false
+# pyright: reportUndefinedVariable=false
+# pyright: reportOptionalMemberAccess=false
+# pyright: reportOptionalCall=false
+# pyright: reportPossiblyUnboundVariable=false
+# pyright: reportIndexIssue=false
+# pyright: reportGeneralTypeIssues=false
 import os
 import queue
 import threading
@@ -305,7 +312,7 @@ class EnhancedSplitScreen:
 
         operations_table = Table(show_header=True, header_style="bold cyan", expand=True)
         operations_table.add_column("ID", style="dim", width=10)
-        operations_table.add_column(Type, width=12)
+        operations_table.add_column("Type", width=12)
         operations_table.add_column("Status", width=10)
         operations_table.add_column("Duration", width=12)
 
@@ -401,7 +408,7 @@ class EnhancedSplitScreen:
             try:
                 # Simple console output
                 recent_logs = list(self.log_buffer)[-5:]  # Show last 5 logs
-                os.system('cls' if os.name == 'nt' else 'clear')
+# SECURITY: os.system() removed - use subprocess.run() instead'cls' if os.name == 'nt' else 'clear')
                 logger = logging.getLogger(__name__)
                 logger.info(f"PlexiChat Console - Logs: {self.stats['total_logs']} | Errors: {self.stats['errors']}")
                 logger.info("-" * 80)

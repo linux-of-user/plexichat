@@ -26,11 +26,15 @@ logger = get_logger(__name__)
 
 ai_features_bp = Blueprint('ai_features_admin', __name__, url_prefix='/admin/ai-features')
 
+# Global service instance
+_ai_features_service: Optional[AIPoweredFeaturesService] = None
+
 def get_ai_features_service() -> AIPoweredFeaturesService:
     """Get or create AI features service instance."""
-    if not hasattr(get_ai_features_service, "_service"):
-        get_ai_features_service._service = AIPoweredFeaturesService()
-    return get_ai_features_service._service
+    global _ai_features_service
+    if _ai_features_service is None:
+        _ai_features_service = AIPoweredFeaturesService()
+    return _ai_features_service
 
 
 def route_wrapper(bp, *args, **kwargs):

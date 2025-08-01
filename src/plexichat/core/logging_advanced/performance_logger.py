@@ -232,9 +232,15 @@ class SystemMonitor:
 class PerformanceLogger:
     """Comprehensive performance logging and monitoring."""
 
-    def __init__(self, log_dir: Path):
+    def __init__(self, log_dir: Path, config: Optional[Dict[str, Any]] = None):
         self.log_dir = log_dir
         self.log_dir.mkdir(parents=True, exist_ok=True)
+
+        # Configuration
+        self.config = config or {}
+        self.config.setdefault("compact_logging", True)  # Enable compact logging by default
+        self.config.setdefault("batch_logging", True)    # Enable batch logging by default
+        self.config.setdefault("log_level", "INFO")      # Default log level
 
         # Initialize components
         self.metric_buffer = MetricBuffer()
@@ -326,8 +332,14 @@ class PerformanceLogger:
         # Check alerts
         self._check_alerts(metric)
 
-        # Log metric
-        self.logger.info(f"Metric: {name}={value}{unit} {tags or ''}")
+        # Log metric in compact format
+        if self.config.get("compact_logging", True):
+            # Compact format: name=value unit [tags]
+            tag_str = f" [{','.join(f'{k}:{v}' for k, v in (tags or {}).items())}]" if tags else ""
+            self.logger.info(f"{name}={value:.2f}{unit}{tag_str}")
+        else:
+            # Original verbose format
+            self.logger.info(f"Metric: {name}={value}{unit} {tags or ''}")
 
     @contextmanager
     def timer(self, operation_name: str, tags: Optional[Dict[str, str]] = None):
@@ -373,32 +385,54 @@ class PerformanceLogger:
         """Background system monitoring."""
         while self.monitoring_active:
             try:
-                # Record system metrics
-                self.record_metric("cpu_usage_percent", self.system_monitor.get_cpu_usage(), "%")
+                # Batch metrics for more efficient logging
+                metrics_batch = []
 
+                # CPU metrics
+                cpu_usage = self.system_monitor.get_cpu_usage()
+                metrics_batch.append(("cpu_usage_percent", cpu_usage, "%"))
+
+                # Memory metrics
                 memory_info = self.system_monitor.get_memory_usage()
                 for key, value in memory_info.items():
                     unit = "%" if "percent" in key else ("GB" if "gb" in key else "MB")
-                    self.record_metric(f"memory_{key}", value, unit)
+                    metrics_batch.append((f"memory_{key}", value, unit))
 
+                # Disk metrics
                 disk_info = self.system_monitor.get_disk_usage()
                 for key, value in disk_info.items():
                     unit = "bytes" if "bytes" in key else "count"
-                    self.record_metric(f"disk_{key}", value, unit)
+                    metrics_batch.append((f"disk_{key}", value, unit))
 
+                # Network metrics
                 network_info = self.system_monitor.get_network_usage()
                 for key, value in network_info.items():
                     unit = "bytes" if "bytes" in key else "packets"
-                    self.record_metric(f"network_{key}", value, unit)
+                    metrics_batch.append((f"network_{key}", value, unit))
 
-                self.record_metric("thread_count", self.system_monitor.get_thread_count(), "count")
-                self.record_metric("open_files_count", self.system_monitor.get_open_files_count(), "count")
+                # System metrics
+                metrics_batch.append(("thread_count", self.system_monitor.get_thread_count(), "count"))
+                metrics_batch.append(("open_files_count", self.system_monitor.get_open_files_count(), "count"))
+
+                # Log all metrics in a much more compact format
+                if self.config.get("batch_logging", True):
+                    # Only log the most important metrics in a very compact format
+                    cpu = f"CPU:{cpu_usage:.1f}%"
+                    mem_rss = f"MEM:{memory_info.get('rss_mb', 0):.0f}MB"
+                    mem_sys = f"SYS:{memory_info.get('system_percent', 0):.0f}%"
+                    threads = f"THR:{self.system_monitor.get_thread_count()}"
+
+                    self.logger.info(f"[PERF] {cpu} {mem_rss} {mem_sys} {threads}")
+                else:
+                    # Log individually
+                    for name, value, unit in metrics_batch:
+                        self.record_metric(name, value, unit)
 
                 # Clean old metrics (older than 24 hours)
                 cutoff_time = datetime.now(timezone.utc) - timedelta(hours=24)
                 self.metric_buffer.clear_old_metrics(cutoff_time)
 
-                time.sleep(30)  # Monitor every 30 seconds
+                time.sleep(120)  # Monitor every 2 minutes (much less frequent)
 
             except Exception as e:
                 self.logger.error(f"Background monitoring error: {e}")
@@ -482,7 +516,16 @@ def get_performance_logger() -> PerformanceLogger:
         config = get_config()
         from pathlib import Path
         log_dir = Path(getattr(config.logging, "directory", "logs")) / "performance"
-        _performance_logger = PerformanceLogger(log_dir)
+
+        # Performance logging configuration
+        perf_config = {
+            "compact_logging": True,
+            "batch_logging": True,
+            "log_level": "INFO",
+            "monitoring_interval": 60,  # Increased from 30 to reduce frequency
+        }
+
+        _performance_logger = PerformanceLogger(log_dir, perf_config)
     return _performance_logger
 
 # Convenience functions

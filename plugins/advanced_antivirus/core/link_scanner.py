@@ -538,7 +538,7 @@ class LinkSafetyScanner:
             details={"error": error_message}
         )
 
-    async def add_malicious_domain(self, domain: str, threat_type: str = "malware",)
+    async def add_malicious_domain(self, domain: str, threat_type: str = "malware",
                                  source: str = "manual", confidence: int = 90):
         """Add a domain to the malicious domains list."""
         try:
@@ -561,7 +561,7 @@ class LinkSafetyScanner:
         except Exception as e:
             logger.error(f"Failed to add malicious domain {domain}: {e}")
 
-    async def update_domain_reputation(self, domain: str, reputation_score: int,)
+    async def update_domain_reputation(self, domain: str, reputation_score: int,
                                      category: str = "unknown", threat_indicators: Optional[List[str]] = None):
         """Update domain reputation information."""
         try:
@@ -608,3 +608,7 @@ class LinkSafetyScanner:
                 max(1, self.scan_stats['total_urls_scanned'])
             ) * 100
         }
+
+    def get_statistics(self) -> Dict[str, Any]:
+        """Get link scanner statistics."""
+        return self.get_scan_statistics()

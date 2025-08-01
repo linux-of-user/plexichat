@@ -174,25 +174,41 @@ class PlexiChatManager:
             "performance_monitoring": self.performance_logger is not None
         }
 
-# Global PlexiChat manager
-plexichat_manager = PlexiChatManager()
+# Global PlexiChat manager (lazy initialization)
+_plexichat_manager = None
+
+def get_plexichat_manager():
+    """Get the global PlexiChat manager (lazy initialization)."""
+    global _plexichat_manager
+    if _plexichat_manager is None:
+        _plexichat_manager = PlexiChatManager()
+    return _plexichat_manager
+
+# For backward compatibility - create a module-level attribute
+import sys
+class LazyManagerModule(sys.modules[__name__].__class__):
+    @property
+    def plexichat_manager(self):
+        return get_plexichat_manager()
+
+sys.modules[__name__].__class__ = LazyManagerModule
 
 # Module availability checks
 def core_available() -> bool:
     """Check if core module is available."""
-    return plexichat_manager.is_available("core")
+    return get_plexichat_manager().is_available("core")
 
 def infrastructure_available() -> bool:
     """Check if infrastructure module is available."""
-    return plexichat_manager.is_available("infrastructure")
+    return get_plexichat_manager().is_available("infrastructure")
 
 def features_available() -> bool:
     """Check if features module is available."""
-    return plexichat_manager.is_available("features")
+    return get_plexichat_manager().is_available("features")
 
 def interfaces_available() -> bool:
     """Check if interfaces module is available."""
-    return plexichat_manager.is_available("interfaces")
+    return get_plexichat_manager().is_available("interfaces")
 
 # Safe imports with error handling
 def import_plexichat_modules():
@@ -237,13 +253,34 @@ def import_plexichat_modules():
 async def initialize_plexichat():
     """Initialize PlexiChat system."""
     try:
-        await plexichat_manager.initialize()
+        await get_plexichat_manager().initialize()
         import_plexichat_modules()
     except Exception as e:
         logger.error(f"Error during PlexiChat initialization: {e}")
 
-# Auto-initialize on import
-initialize_plexichat()
+# Auto-initialize on import (sync version)
+def sync_initialize_plexichat():
+    """Synchronous initialization wrapper."""
+    try:
+        import asyncio
+        # Try to get existing event loop
+        try:
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                # If loop is running, schedule the initialization
+                asyncio.create_task(initialize_plexichat())
+            else:
+                # If loop is not running, run it
+                loop.run_until_complete(initialize_plexichat())
+        except RuntimeError:
+            # No event loop, create one
+            asyncio.run(initialize_plexichat())
+    except Exception as e:
+        logger.error(f"Error during sync initialization: {e}")
+        # Continue without async initialization
+        import_plexichat_modules()
+
+# Auto-initialization removed - call initialize_plexichat() manually when needed
 
 # Export commonly used items
 __all__ = [

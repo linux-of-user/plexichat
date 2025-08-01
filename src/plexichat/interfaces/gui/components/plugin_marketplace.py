@@ -59,7 +59,7 @@ class PluginMarketplace(tk.Frame):
             title_frame = tk.Frame(main_frame, bg='#2c3e50')
             title_frame.pack(fill='x', pady=(0, 20))
             
-            title_label = tk.Label(title_frame, text="🔌 Plugin Marketplace", 
+            title_label = tk.Label(title_frame, text="[PLUGIN] Plugin Marketplace", 
                                  font=("Arial", 24, "bold"), bg='#2c3e50', fg='#ecf0f1')
             title_label.pack(side='left')
             
@@ -68,7 +68,7 @@ class PluginMarketplace(tk.Frame):
             subtitle_label.pack(side='left', padx=(20, 0))
             
             # Refresh button
-            refresh_btn = tk.Button(title_frame, text="🔄 Refresh", font=("Arial", 10),
+            refresh_btn = tk.Button(title_frame, text="[REFRESH] Refresh", font=("Arial", 10),
                                   bg='#3498db', fg='white', relief='flat', bd=0,
                                   command=self.refresh_data, cursor='hand2')
             refresh_btn.pack(side='right', padx=(0, 10), ipady=5, ipadx=10)
@@ -441,7 +441,7 @@ class PluginMarketplace(tk.Frame):
             # Update listbox
             self.repo_listbox.delete(0, tk.END)
             for repo in self.repositories:
-                status = "✓" if repo.get('enabled', True) else "✗"
+                status = "[OK]" if repo.get('enabled', True) else "[FAIL]"
                 self.repo_listbox.insert(tk.END, f"{status} {repo['name']} - {repo['description']}")
                 
         except Exception as e:

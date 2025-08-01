@@ -6,6 +6,7 @@ Command-line interface with threading and performance optimization.
 
 import asyncio
 import logging
+import os
 import sys
 import threading
 import time
@@ -59,10 +60,8 @@ except ImportError:
 analytics_manager = None
 track_event = None
 
-try:
-    from plexichat.interfaces.cli.commands.tests import handle_test_command
-except ImportError:
-    handle_test_command = None
+# Test command handler is not available yet
+handle_test_command = None
 
 # Import CLI command groups
 # Import CLI commands with fallbacks
@@ -500,7 +499,7 @@ def main():
         if click:
             cli()
         else:
-            cli()
+            cli_fallback()
     except KeyboardInterrupt:
         print_message("\nOperation cancelled by user", "warning")
         # Ensure proper shutdown

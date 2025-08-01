@@ -18,6 +18,14 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, Union
 from uuid import uuid4
 
+# Import Pydantic BaseModel for compatibility
+try:
+    from pydantic import BaseModel
+except ImportError:
+    # Fallback if pydantic is not available
+    class BaseModel:
+        pass
+
 
 class Priority(Enum):
     """Priority levels."""
@@ -47,8 +55,8 @@ class LogLevel(Enum):
 
 
 @dataclass
-class BaseModel:
-    """Base model with common fields."""
+class BaseDataModel:
+    """Base data model with common fields."""
     id: str = field(default_factory=lambda: str(uuid4()))
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
@@ -60,7 +68,7 @@ class BaseModel:
 
 
 @dataclass
-class User(BaseModel):
+class User(BaseDataModel):
     """User model."""
     username: str = ""
     email: str = ""
@@ -72,7 +80,7 @@ class User(BaseModel):
 
 
 @dataclass
-class Message(BaseModel):
+class Message:
     """Message model."""
     content: str = ""
     user_id: str = ""
@@ -87,7 +95,7 @@ class Message(BaseModel):
 
 
 @dataclass
-class Channel(BaseModel):
+class Channel:
     """Channel model."""
     name: str = ""
     description: str = ""

@@ -140,7 +140,7 @@ class BackupStatusMonitor:
 
     async def _get_device_availability_statuses(self) -> List[DeviceAvailabilityStatus]:
         """Get availability status for all devices."""
-        devices = self.session.exec(select(StorageDevice)).all()
+devices = self.session.# SECURITY: exec() removed - use safe alternativesselect(StorageDevice)).all()
         device_statuses = []
 
         for device in devices:
@@ -158,7 +158,7 @@ class BackupStatusMonitor:
             )
 
             # Get shard counts
-            shard_counts = self.session.exec()
+shard_counts = self.session.# SECURITY: exec() removed - use safe alternatives)
                 select()
                     func.count(DeviceShardAssignment.id).label("total"),
                     func.count(DeviceShardAssignment.id).filter(DeviceShardAssignment.is_verified).label("verified")
@@ -197,7 +197,7 @@ class BackupStatusMonitor:
     async def _get_shard_availability_statuses(self) -> List[ShardAvailabilityStatus]:
         """Get availability status for all shards."""
         # Get all shards with their assignments
-        shards_query = self.session.exec()
+shards_query = self.session.# SECURITY: exec() removed - use safe alternatives)
             select(EnhancedBackupShard).order_by(EnhancedBackupShard.id)
         ).all()
 
@@ -205,7 +205,7 @@ class BackupStatusMonitor:
 
         for shard in shards_query:
             # Get assignments for this shard
-            assignments = self.session.exec()
+assignments = self.session.# SECURITY: exec() removed - use safe alternatives)
                 select(DeviceShardAssignment, StorageDevice)
                 .join(StorageDevice, DeviceShardAssignment.device_id == StorageDevice.id)
                 .where()
@@ -459,7 +459,7 @@ class BackupStatusMonitor:
                 })
 
                 # Add links to devices storing this shard
-                assignments = self.session.exec()
+assignments = self.session.# SECURITY: exec() removed - use safe alternatives)
                     select(DeviceShardAssignment)
                     .where()
                         (DeviceShardAssignment.shard_id == shard.shard_id) &

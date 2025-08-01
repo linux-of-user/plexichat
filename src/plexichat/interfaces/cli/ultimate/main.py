@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 console = Console()
 
 # Create main Typer app
-app = Typer()
+app = Typer(
     name="plexichat",
     help=" PlexiChat Ultimate CLI - 200+ commands for complete system control",
     rich_markup_mode="rich",
@@ -35,7 +35,7 @@ app = Typer()
 
 
 @app.command("help")
-def show_help():
+def show_help(
     command: Optional[str] = Argument(None, help="Show help for specific command"),
     category: Optional[str] = Option(None, "--category", "-c", help="Show commands in category")
 ):
@@ -54,7 +54,7 @@ def show_help():
 
 
 @app.command("list")
-def list_commands():
+def list_commands(
     category: Optional[str] = Option(None, "--category", "-c", help="Filter by category"),
     search: Optional[str] = Option(None, "--search", "-s", help="Search commands")
 ):
@@ -91,7 +91,7 @@ def show_statistics():
 
 
 @app.command("export")
-def export_commands():
+def export_commands(
     format: str = Option("markdown", "--format", "-f", help="Export format (markdown, json, csv)"),
     output: Optional[str] = Option(None, "--output", "-o", help="Output file path")
 ):
@@ -108,7 +108,7 @@ def export_commands():
 
 
 @app.command("run")
-def run_command():
+def run_command(
     command: str = Argument(..., help="Command to execute"),
     args: List[str] = Argument(None, help="Command arguments")
 ):
@@ -121,7 +121,7 @@ def run_command():
 
 def show_main_help():
     """Show main help screen."""
-    console.logger.info(Panel())
+    console.logger.info(Panel(
         " [bold]PlexiChat Ultimate CLI[/bold]\n"
         "Complete system control with 200+ commands across 25+ categories",
         style="bold blue"

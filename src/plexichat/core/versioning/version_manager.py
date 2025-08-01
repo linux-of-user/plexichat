@@ -218,16 +218,120 @@ class VersionManager:
     """Manages version information and auto-generates version files."""
 
     def __init__(self):
-        self.current_version = "a.1.1-16"
-        self.version_type = "alpha"
+        # Get current build number from GitHub releases
+        self.build_number = self._get_github_release_count()
+        self.current_version = f"b.1.1-{self.build_number}"
+        self.version_type = "beta"
         self.major_version = 1
         self.minor_version = 1
-        self.build_number = 16
         self.api_version = "v1"
         self.release_date = datetime.now().strftime("%Y-%m-%d")
 
         # Parse version components
         self._parse_version()
+
+        # Load additional version info
+        self._load_version_info()
+
+        # Auto-generate version files if they don't exist
+        self._ensure_version_files_exist()
+
+    def _get_github_release_count(self) -> int:
+        """Get current build number from GitHub releases."""
+        try:
+            import requests
+
+            # Try to get GitHub repo info from git remote
+            repo_url = self._get_github_repo_url()
+            if repo_url:
+                api_url = f"https://api.github.com/repos/{repo_url}/releases"
+                response = requests.get(api_url, timeout=10)
+                if response.status_code == 200:
+                    releases = response.json()
+                    if releases:
+                        # Get the latest release build number
+                        latest_release = releases[0]
+                        tag_name = latest_release.get('tag_name', '')
+                        if '-' in tag_name:
+                            try:
+                                build_num = int(tag_name.split('-')[-1])
+                                logger.info(f"Found latest GitHub release build: {build_num}")
+                                return build_num
+                            except ValueError:
+                                pass
+
+                        # If no build number in tag, count releases
+                        build_num = len(releases) + 81  # Start from 82
+                        logger.info(f"Calculated build number from release count: {build_num}")
+                        return build_num
+
+        except Exception as e:
+            logger.warning(f"Could not get GitHub release count: {e}")
+
+        # Fallback to current build number
+        return 82
+
+    def _get_github_repo_url(self) -> str:
+        """Get GitHub repository URL from git remote."""
+        try:
+            import subprocess
+            result = subprocess.run(
+                ['git', 'remote', 'get-url', 'origin'],
+                capture_output=True,
+                text=True,
+                cwd=os.path.dirname(__file__)
+            )
+            if result.returncode == 0:
+                url = result.stdout.strip()
+                # Convert git URL to repo path
+                if 'github.com' in url:
+                    if url.startswith('git@'):
+                        # git@github.com:user/repo.git -> user/repo
+                        repo_path = url.split(':')[1].replace('.git', '')
+                    elif url.startswith('https://'):
+                        # https://github.com/user/repo.git -> user/repo
+                        repo_path = '/'.join(url.split('/')[-2:]).replace('.git', '')
+                    else:
+                        return ""
+                    return repo_path
+        except Exception as e:
+            logger.warning(f"Could not get GitHub repo URL: {e}")
+        return ""
+
+    def _load_version_info(self):
+        """Load additional version information."""
+        try:
+            # Load from version.json if it exists
+            version_file = os.path.join(os.path.dirname(__file__), "..", "..", "..", "version.json")
+            if os.path.exists(version_file):
+                with open(version_file, 'r') as f:
+                    import json
+                    version_data = json.load(f)
+                    self.release_date = version_data.get('release_date', self.release_date)
+                    self.api_version = version_data.get('api_version', self.api_version)
+                    logger.info(f"Loaded version info from {version_file}")
+        except Exception as e:
+            logger.warning(f"Could not load version info: {e}")
+
+    def _ensure_version_files_exist(self):
+        """Ensure version.json and changelog.json exist, create if missing."""
+        try:
+            root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../.."))
+            version_file = os.path.join(root_dir, "version.json")
+            changelog_file = os.path.join(root_dir, "changelog.json")
+
+            # Create version.json if it doesn't exist
+            if not os.path.exists(version_file):
+                logger.info("Creating missing version.json file")
+                self.auto_generate_files()
+
+            # Create changelog.json if it doesn't exist
+            if not os.path.exists(changelog_file):
+                logger.info("Creating missing changelog.json file")
+                self.auto_generate_files()
+
+        except Exception as e:
+            logger.error(f"Error ensuring version files exist: {e}")
 
     def _parse_version(self):
         """Parse version string into components."""
@@ -458,21 +562,25 @@ class VersionManager:
     def auto_generate_files(self):
         """Auto-generate version.json and changelog.json files atomically."""
         try:
+            root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../.."))
+
             # Generate version.json
             version_data = self.generate_version_json()
+            version_file = os.path.join(root_dir, "version.json")
             with tempfile.NamedTemporaryFile("w", delete=False, suffix=".json", prefix="version-") as tf:
                 json.dump(version_data, tf, indent=2)
                 temp_version_path = tf.name
-            shutil.move(temp_version_path, "version.json")
-            logger.info("Auto-generated version.json")
+            shutil.move(temp_version_path, version_file)
+            logger.info(f"Auto-generated version.json at {version_file}")
 
             # Generate changelog.json
             changelog_data = self.generate_changelog_json()
+            changelog_file = os.path.join(root_dir, "changelog.json")
             with tempfile.NamedTemporaryFile("w", delete=False, suffix=".json", prefix="changelog-") as tf:
                 json.dump(changelog_data, tf, indent=2)
                 temp_changelog_path = tf.name
-            shutil.move(temp_changelog_path, "changelog.json")
-            logger.info("Auto-generated changelog.json")
+            shutil.move(temp_changelog_path, changelog_file)
+            logger.info(f"Auto-generated changelog.json at {changelog_file}")
 
         except Exception as e:
             logger.error(f"Failed to auto-generate version files: {e}")

@@ -9,6 +9,9 @@ from typing import Dict, Any, Optional, List
 import logging
 import time
 import platform
+import sys
+from datetime import datetime
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
@@ -43,80 +46,352 @@ class MainDashboard(ttk.Frame):
             # Create notebook for tabs
             self.notebook = ttk.Notebook(self, style="Modern.TNotebook")
             self.notebook.pack(fill=tk.BOTH, expand=True)
-            
+
             # Create default tabs
             self.create_default_tabs()
-            
+
+            # Setup Easter egg handlers
+            self.setup_easter_eggs()
+
             logger.info("Main dashboard created")
-            
+
         except Exception as e:
             logger.error(f"Failed to create dashboard: {e}")
+
+    def setup_easter_eggs(self):
+        """Setup Easter egg functionality."""
+        try:
+            # Konami code sequence
+            self.konami_sequence = []
+            self.konami_code = ['Up', 'Up', 'Down', 'Down', 'Left', 'Right', 'Left', 'Right', 'b', 'a']
+
+            # Bind key events to the main window
+            self.bind_all('<KeyPress>', self.handle_keypress)
+
+            # Secret click counter for hidden features
+            self.secret_clicks = 0
+            self.last_click_time = 0
+
+        except Exception as e:
+            logger.error(f"Failed to setup Easter eggs: {e}")
+
+    def handle_keypress(self, event):
+        """Handle key press events for Easter eggs."""
+        try:
+            # Add to Konami sequence
+            self.konami_sequence.append(event.keysym)
+
+            # Keep only the last 10 keys
+            if len(self.konami_sequence) > 10:
+                self.konami_sequence.pop(0)
+
+            # Check for Konami code
+            if self.konami_sequence == self.konami_code:
+                self.activate_konami_easter_egg()
+                self.konami_sequence = []  # Reset
+
+            # Check for other Easter egg sequences
+            sequence_str = ''.join(self.konami_sequence[-6:])  # Last 6 keys
+
+            if sequence_str.endswith('plexichat'):
+                self.show_developer_info()
+                self.konami_sequence = []
+            elif sequence_str.endswith('42'):
+                self.show_hitchhikers_reference()
+                self.konami_sequence = []
+
+        except Exception as e:
+            logger.debug(f"Easter egg keypress error: {e}")
+
+    def activate_konami_easter_egg(self):
+        """Activate the Konami code Easter egg."""
+        try:
+            # Create a fun popup window
+            easter_window = tk.Toplevel(self)
+            easter_window.title("[GAME] KONAMI CODE ACTIVATED! [GAME]")
+            easter_window.geometry("500x400")
+            easter_window.configure(bg='#1a1a1a')
+
+            # Center the window
+            easter_window.transient(self)
+            easter_window.grab_set()
+
+            # Create content
+            main_frame = ttk.Frame(easter_window, style="Modern.TFrame")
+            main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
+
+            # Title
+            title_label = ttk.Label(
+                main_frame,
+                text="[GAME] KONAMI CODE ACTIVATED! [GAME]",
+                font=("Arial", 16, "bold"),
+                style="Modern.TLabel"
+            )
+            title_label.pack(pady=(0, 20))
+
+            # Code display
+            code_label = ttk.Label(
+                main_frame,
+                text="^ ^ v v < > < > B A",
+                font=("Courier", 14),
+                style="Modern.TLabel"
+            )
+            code_label.pack(pady=(0, 20))
+
+            # Message
+            message_text = tk.Text(
+                main_frame,
+                height=8,
+                width=50,
+                bg='#2a2a2a',
+                fg='#ffffff',
+                font=("Arial", 10),
+                wrap=tk.WORD,
+                state=tk.DISABLED
+            )
+            message_text.pack(pady=(0, 20))
+
+            # Insert Easter egg message
+            message_text.config(state=tk.NORMAL)
+            message_text.insert(tk.END, "[SUCCESS] Congratulations! You found the secret Konami code!\n\n")
+            message_text.insert(tk.END, "[GAME] This classic cheat code has been a gaming tradition since 1986.\n\n")
+            message_text.insert(tk.END, "[START] PlexiChat Developer Mode Unlocked!\n")
+            message_text.insert(tk.END, "* Enhanced logging enabled\n")
+            message_text.insert(tk.END, "* Debug tools accessible\n")
+            message_text.insert(tk.END, "* Easter egg counter: +1\n\n")
+            message_text.insert(tk.END, "Thanks for exploring PlexiChat! ?")
+            message_text.config(state=tk.DISABLED)
+
+            # Close button
+            close_btn = ttk.Button(
+                main_frame,
+                text="Awesome! [SUCCESS]",
+                command=easter_window.destroy,
+                style="Modern.TButton"
+            )
+            close_btn.pack()
+
+            # Show notification
+            if hasattr(self.app, 'notification_system'):
+                self.app.notification_system.show_notification(
+                    "Easter Egg Found!",
+                    "Konami code activated! [GAME]",
+                    "success"
+                )
+
+        except Exception as e:
+            logger.error(f"Error showing Konami Easter egg: {e}")
+
+    def show_developer_info(self):
+        """Show developer information Easter egg."""
+        try:
+            # Create developer info window
+            dev_window = tk.Toplevel(self)
+            dev_window.title("[SETUP] Developer Information")
+            dev_window.geometry("600x500")
+            dev_window.configure(bg='#1a1a1a')
+
+            # Center the window
+            dev_window.transient(self)
+            dev_window.grab_set()
+
+            # Create content
+            main_frame = ttk.Frame(dev_window, style="Modern.TFrame")
+            main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
+
+            # Title
+            title_label = ttk.Label(
+                main_frame,
+                text="[SETUP] PlexiChat Developer Information",
+                font=("Arial", 16, "bold"),
+                style="Modern.TLabel"
+            )
+            title_label.pack(pady=(0, 20))
+
+            # Developer info
+            info_text = tk.Text(
+                main_frame,
+                height=15,
+                width=70,
+                bg='#2a2a2a',
+                fg='#ffffff',
+                font=("Courier", 9),
+                wrap=tk.WORD,
+                state=tk.DISABLED
+            )
+            info_text.pack(pady=(0, 20))
+
+            # Insert developer information
+            info_text.config(state=tk.NORMAL)
+            info_text.insert(tk.END, "[START] PlexiChat - Enterprise Communication Platform\n")
+            info_text.insert(tk.END, "=" * 50 + "\n\n")
+            info_text.insert(tk.END, "[STATS] System Information:\n")
+            info_text.insert(tk.END, f"* Version: {getattr(self.app, 'version', 'Unknown')}\n")
+            info_text.insert(tk.END, f"* GUI Framework: Tkinter\n")
+            info_text.insert(tk.END, f"* Python Version: {sys.version.split()[0]}\n")
+            info_text.insert(tk.END, f"* Platform: {sys.platform}\n\n")
+            info_text.insert(tk.END, "[LAUNCH] Features:\n")
+            info_text.insert(tk.END, "* Modern dark theme\n")
+            info_text.insert(tk.END, "* Real-time messaging\n")
+            info_text.insert(tk.END, "* Plugin system\n")
+            info_text.insert(tk.END, "* Advanced security\n")
+            info_text.insert(tk.END, "* WebUI integration\n")
+            info_text.insert(tk.END, "* Easter eggs! ?\n\n")
+            info_text.insert(tk.END, "[GAME] Easter Egg Hints:\n")
+            info_text.insert(tk.END, "* Try the classic Konami code\n")
+            info_text.insert(tk.END, "* Type '42' for a surprise\n")
+            info_text.insert(tk.END, "* Triple-click the logo\n")
+            info_text.insert(tk.END, "* Check the API for /easter-eggs\n")
+            info_text.config(state=tk.DISABLED)
+
+            # Close button
+            close_btn = ttk.Button(
+                main_frame,
+                text="Cool! ?",
+                command=dev_window.destroy,
+                style="Modern.TButton"
+            )
+            close_btn.pack()
+
+        except Exception as e:
+            logger.error(f"Error showing developer info: {e}")
+
+    def show_hitchhikers_reference(self):
+        """Show Hitchhiker's Guide to the Galaxy reference."""
+        try:
+            # Create reference window
+            ref_window = tk.Toplevel(self)
+            ref_window.title("? The Answer")
+            ref_window.geometry("400x300")
+            ref_window.configure(bg='#1a1a1a')
+
+            # Center the window
+            ref_window.transient(self)
+            ref_window.grab_set()
+
+            # Create content
+            main_frame = ttk.Frame(ref_window, style="Modern.TFrame")
+            main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
+
+            # Title
+            title_label = ttk.Label(
+                main_frame,
+                text="? The Answer to Everything",
+                font=("Arial", 16, "bold"),
+                style="Modern.TLabel"
+            )
+            title_label.pack(pady=(0, 20))
+
+            # The answer
+            answer_label = ttk.Label(
+                main_frame,
+                text="42",
+                font=("Arial", 48, "bold"),
+                style="Modern.TLabel"
+            )
+            answer_label.pack(pady=(0, 20))
+
+            # Quote
+            quote_text = tk.Text(
+                main_frame,
+                height=6,
+                width=45,
+                bg='#2a2a2a',
+                fg='#ffffff',
+                font=("Arial", 10),
+                wrap=tk.WORD,
+                state=tk.DISABLED
+            )
+            quote_text.pack(pady=(0, 20))
+
+            quote_text.config(state=tk.NORMAL)
+            quote_text.insert(tk.END, '"The Answer to the Ultimate Question of Life, ')
+            quote_text.insert(tk.END, 'the Universe, and Everything is 42."\n\n')
+            quote_text.insert(tk.END, "- The Hitchhiker's Guide to the Galaxy\n")
+            quote_text.insert(tk.END, "by Douglas Adams\n\n")
+            quote_text.insert(tk.END, "Don't Panic! [START]")
+            quote_text.config(state=tk.DISABLED)
+
+            # Close button
+            close_btn = ttk.Button(
+                main_frame,
+                text="Don't Panic! [START]",
+                command=ref_window.destroy,
+                style="Modern.TButton"
+            )
+            close_btn.pack()
+
+        except Exception as e:
+            logger.error(f"Error showing Hitchhiker's reference: {e}")
 
     def create_default_tabs(self):
         """Create default server management tabs."""
         try:
             # Server Overview - Main dashboard
-            self.add_tab("🖥️ Server Overview", self.create_server_overview_tab)
+            self.add_tab("[DESKTOP] Server Overview", self.create_server_overview_tab)
 
             # System Monitor - Real-time monitoring
-            self.add_tab("📊 System Monitor", self.create_system_monitor_tab)
+            self.add_tab("[METRICS] System Monitor", self.create_system_monitor_tab)
 
             # Core Module Management
-            self.add_tab("🏗️ Core Modules", self.create_core_modules_tab)
+            self.add_tab("[CONSTRUCTION] Core Modules", self.create_core_modules_tab)
 
             # Infrastructure Management
-            self.add_tab("🔧 Infrastructure", self.create_infrastructure_tab)
+            self.add_tab("[CONFIG] Infrastructure", self.create_infrastructure_tab)
 
             # Features Management
-            self.add_tab("✨ Features", self.create_features_tab)
+            self.add_tab("[SPARKLE] Features", self.create_features_tab)
 
             # User Management - User accounts and permissions
-            self.add_tab("👥 User Management", self.create_user_management_tab)
+            self.add_tab("[USERS] User Management", self.create_user_management_tab)
 
             # Database Manager - Database administration
-            self.add_tab("🗄️ Database Manager", self.create_database_manager_tab)
+            self.add_tab("[DATABASE] Database Manager", self.create_database_manager_tab)
 
             # Authentication & Security
-            self.add_tab("🔐 Auth & Security", self.create_auth_security_tab)
+            self.add_tab("[SECURE] Auth & Security", self.create_auth_security_tab)
 
             # Messaging System
-            self.add_tab("💬 Messaging", self.create_messaging_tab)
+            self.add_tab("[CHAT] Messaging", self.create_messaging_tab)
 
             # AI & ML Management
-            self.add_tab("🤖 AI & ML", self.create_ai_ml_tab)
+            self.add_tab("[BOT] AI & ML", self.create_ai_ml_tab)
 
             # File Management
-            self.add_tab("📁 File Manager", self.create_file_manager_tab)
+            self.add_tab("[FOLDER] File Manager", self.create_file_manager_tab)
 
             # Plugin Manager - Advanced plugin management
-            self.add_tab("🔌 Plugin Manager", self.create_advanced_plugin_manager_tab)
+            self.add_tab("[PLUGIN] Plugin Manager", self.create_advanced_plugin_manager_tab)
 
             # Configuration - Server configuration
-            self.add_tab("⚙️ Configuration", self.create_configuration_tab)
+            self.add_tab("[SETTINGS] Configuration", self.create_configuration_tab)
 
             # Security Center - Security monitoring and management
-            self.add_tab("🔒 Security Center", self.create_security_center_tab)
+            self.add_tab("[SECURE] Security Center", self.create_security_center_tab)
 
             # Logs & Analytics - Log viewer and analytics
-            self.add_tab("📋 Logs & Analytics", self.create_logs_analytics_tab)
+            self.add_tab("[CLIPBOARD] Logs & Analytics", self.create_logs_analytics_tab)
 
             # Backup & Recovery - Backup management
-            self.add_tab("💾 Backup & Recovery", self.create_backup_recovery_tab)
+            self.add_tab("[SAVE] Backup & Recovery", self.create_backup_recovery_tab)
 
             # API Management - API endpoints and documentation
-            self.add_tab("🌐 API Management", self.create_api_management_tab)
+            self.add_tab("[WEB] API Management", self.create_api_management_tab)
+
+            # CLI Terminal - Integrated command-line interface
+            self.add_tab("[COMPUTER] CLI Terminal", self.create_cli_terminal_tab)
 
             # WebUI Integration - WebUI management
-            self.add_tab("🌍 WebUI Manager", self.create_webui_manager_tab)
+            self.add_tab("[WORLD] WebUI Manager", self.create_webui_manager_tab)
 
             # Server Updates - Update management
-            self.add_tab("🔄 Updates", self.create_updates_tab)
+            self.add_tab("[REFRESH] Updates", self.create_updates_tab)
 
             # Setup Wizard - Advanced setup and configuration
-            self.add_tab("🧙‍♂️ Setup Wizard", self.create_setup_wizard_tab)
+            self.add_tab("[WIZARD][MALE] Setup Wizard", self.create_setup_wizard_tab)
 
             # Documentation - Built-in docs
-            self.add_tab("📚 Documentation", self.create_documentation_tab)
+            self.add_tab("[BOOKS] Documentation", self.create_documentation_tab)
 
         except Exception as e:
             logger.error(f"Failed to create default tabs: {e}")
@@ -150,22 +425,22 @@ class MainDashboard(ttk.Frame):
 
             # System Resources tab
             resources_frame = ttk.Frame(monitor_notebook, style="Modern.TFrame")
-            monitor_notebook.add(resources_frame, text="📊 System Resources")
+            monitor_notebook.add(resources_frame, text="[METRICS] System Resources")
             self.create_system_resources_view(resources_frame)
 
             # Process Monitor tab
             processes_frame = ttk.Frame(monitor_notebook, style="Modern.TFrame")
-            monitor_notebook.add(processes_frame, text="⚙️ Processes")
+            monitor_notebook.add(processes_frame, text="[SETTINGS] Processes")
             self.create_process_monitor_view(processes_frame)
 
             # Network Monitor tab
             network_frame = ttk.Frame(monitor_notebook, style="Modern.TFrame")
-            monitor_notebook.add(network_frame, text="🌐 Network")
+            monitor_notebook.add(network_frame, text="[WEB] Network")
             self.create_network_monitor_view(network_frame)
 
             # Performance History tab
             history_frame = ttk.Frame(monitor_notebook, style="Modern.TFrame")
-            monitor_notebook.add(history_frame, text="📈 Performance History")
+            monitor_notebook.add(history_frame, text="[UP] Performance History")
             self.create_performance_history_view(history_frame)
 
             return monitor_frame
@@ -180,7 +455,7 @@ class MainDashboard(ttk.Frame):
             import psutil
 
             # CPU section
-            cpu_frame = ttk.LabelFrame(parent, text="🖥️ CPU Information", style="Modern.TLabelframe")
+            cpu_frame = ttk.LabelFrame(parent, text="[DESKTOP] CPU Information", style="Modern.TLabelframe")
             cpu_frame.pack(fill=tk.X, padx=10, pady=5)
 
             cpu_info = f"CPU: {platform.processor()}\nCores: {psutil.cpu_count()} physical, {psutil.cpu_count(logical=True)} logical"
@@ -197,7 +472,7 @@ class MainDashboard(ttk.Frame):
             self.cpu_label.pack(side=tk.LEFT)
 
             # Memory section
-            memory_frame = ttk.LabelFrame(parent, text="🧠 Memory Information", style="Modern.TLabelframe")
+            memory_frame = ttk.LabelFrame(parent, text="[BRAIN] Memory Information", style="Modern.TLabelframe")
             memory_frame.pack(fill=tk.X, padx=10, pady=5)
 
             memory = psutil.virtual_memory()
@@ -215,7 +490,7 @@ class MainDashboard(ttk.Frame):
             self.memory_label.pack(side=tk.LEFT)
 
             # Disk section
-            disk_frame = ttk.LabelFrame(parent, text="💾 Disk Information", style="Modern.TLabelframe")
+            disk_frame = ttk.LabelFrame(parent, text="[SAVE] Disk Information", style="Modern.TLabelframe")
             disk_frame.pack(fill=tk.X, padx=10, pady=5)
 
             # Get disk usage for all mounted drives
@@ -311,19 +586,19 @@ class MainDashboard(ttk.Frame):
         """Create network monitoring view."""
         try:
             # Network interfaces
-            interfaces_frame = ttk.LabelFrame(parent, text="🌐 Network Interfaces", style="Modern.TLabelframe")
+            interfaces_frame = ttk.LabelFrame(parent, text="[WEB] Network Interfaces", style="Modern.TLabelframe")
             interfaces_frame.pack(fill=tk.X, padx=10, pady=10)
 
             self.create_network_interfaces_display(interfaces_frame)
 
             # Network statistics
-            stats_frame = ttk.LabelFrame(parent, text="📊 Network Statistics", style="Modern.TLabelframe")
+            stats_frame = ttk.LabelFrame(parent, text="[METRICS] Network Statistics", style="Modern.TLabelframe")
             stats_frame.pack(fill=tk.X, padx=10, pady=10)
 
             self.create_network_stats_display(stats_frame)
 
             # Active connections
-            connections_frame = ttk.LabelFrame(parent, text="🔗 Active Connections", style="Modern.TLabelframe")
+            connections_frame = ttk.LabelFrame(parent, text="[LINK] Active Connections", style="Modern.TLabelframe")
             connections_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
             self.create_network_connections_display(connections_frame)
@@ -338,7 +613,7 @@ class MainDashboard(ttk.Frame):
             # For now, show a placeholder
             history_label = ttk.Label(
                 parent,
-                text="📈 Performance History Charts\n\nThis would show historical performance data including:\n• CPU usage over time\n• Memory usage trends\n• Network I/O patterns\n• Disk I/O statistics\n• Server response times",
+                text="[UP] Performance History Charts\n\nThis would show historical performance data including:\n* CPU usage over time\n* Memory usage trends\n* Network I/O patterns\n* Disk I/O statistics\n* Server response times",
                 style="Modern.TLabel",
                 justify=tk.CENTER
             )
@@ -572,31 +847,31 @@ Drops Out: {stats.dropout}"""
             status_label.pack(side=tk.LEFT)
 
             # Critical server stats row
-            critical_stats_frame = ttk.LabelFrame(scrollable_frame, text="🚨 Critical Server Status", style="Modern.TLabelframe")
+            critical_stats_frame = ttk.LabelFrame(scrollable_frame, text="[ALERT] Critical Server Status", style="Modern.TLabelframe")
             critical_stats_frame.pack(fill=tk.X, padx=20, pady=10)
 
             self.create_critical_stats(critical_stats_frame)
 
             # Server control panel
-            control_panel_frame = ttk.LabelFrame(scrollable_frame, text="🎛️ Server Control Panel", style="Modern.TLabelframe")
+            control_panel_frame = ttk.LabelFrame(scrollable_frame, text="[CONTROL] Server Control Panel", style="Modern.TLabelframe")
             control_panel_frame.pack(fill=tk.X, padx=20, pady=10)
 
             self.create_server_controls(control_panel_frame)
 
             # Real-time metrics
-            metrics_frame = ttk.LabelFrame(scrollable_frame, text="📈 Real-time Metrics", style="Modern.TLabelframe")
+            metrics_frame = ttk.LabelFrame(scrollable_frame, text="[UP] Real-time Metrics", style="Modern.TLabelframe")
             metrics_frame.pack(fill=tk.X, padx=20, pady=10)
 
             self.create_realtime_metrics(metrics_frame)
 
             # Service status
-            services_frame = ttk.LabelFrame(scrollable_frame, text="🔧 Service Status", style="Modern.TLabelframe")
+            services_frame = ttk.LabelFrame(scrollable_frame, text="[CONFIG] Service Status", style="Modern.TLabelframe")
             services_frame.pack(fill=tk.X, padx=20, pady=10)
 
             self.create_service_status(services_frame)
 
             # Quick actions
-            actions_frame = ttk.LabelFrame(scrollable_frame, text="⚡ Quick Actions", style="Modern.TLabelframe")
+            actions_frame = ttk.LabelFrame(scrollable_frame, text="[FAST] Quick Actions", style="Modern.TLabelframe")
             actions_frame.pack(fill=tk.X, padx=20, pady=10)
 
             self.create_server_quick_actions(actions_frame)
@@ -620,14 +895,14 @@ Drops Out: {stats.dropout}"""
 
             # Create grid of critical stats
             stats = [
-                ("🖥️ CPU Usage", f"{cpu_percent:.1f}%", self.get_status_color(cpu_percent, 80, 90)),
-                ("🧠 Memory Usage", f"{memory.percent:.1f}%", self.get_status_color(memory.percent, 80, 90)),
-                ("💾 Disk Usage", f"{disk.percent:.1f}%", self.get_status_color(disk.percent, 85, 95)),
-                ("🌐 Server Uptime", self.get_server_uptime(), "#27ae60"),
-                ("👥 Active Users", str(self.get_active_users_count()), "#3498db"),
-                ("🔗 API Requests/min", str(self.get_api_requests_per_minute()), "#9b59b6"),
-                ("📊 Database Status", self.get_database_status(), "#27ae60"),
-                ("🔒 Security Level", "GOVERNMENT", "#e74c3c")
+                ("[DESKTOP] CPU Usage", f"{cpu_percent:.1f}%", self.get_status_color(cpu_percent, 80, 90)),
+                ("[BRAIN] Memory Usage", f"{memory.percent:.1f}%", self.get_status_color(memory.percent, 80, 90)),
+                ("[SAVE] Disk Usage", f"{disk.percent:.1f}%", self.get_status_color(disk.percent, 85, 95)),
+                ("[WEB] Server Uptime", self.get_server_uptime(), "#27ae60"),
+                ("[USERS] Active Users", str(self.get_active_users_count()), "#3498db"),
+                ("[LINK] API Requests/min", str(self.get_api_requests_per_minute()), "#9b59b6"),
+                ("[METRICS] Database Status", self.get_database_status(), "#27ae60"),
+                ("[SECURE] Security Level", "GOVERNMENT", "#e74c3c")
             ]
 
             for i, (label, value, color) in enumerate(stats):
@@ -674,14 +949,14 @@ Drops Out: {stats.dropout}"""
         try:
             # Control buttons grid
             controls = [
-                ("🔄 Restart Server", self.restart_server, "#e74c3c"),
-                ("⏹️ Stop Server", self.stop_server, "#c0392b"),
-                ("🔧 Reload Config", self.reload_config, "#f39c12"),
-                ("🧹 Clear Cache", self.clear_cache, "#3498db"),
-                ("📊 Generate Report", self.generate_report, "#9b59b6"),
-                ("🔍 Run Diagnostics", self.run_diagnostics, "#27ae60"),
-                ("🔒 Security Scan", self.security_scan, "#e67e22"),
-                ("💾 Backup Now", self.backup_now, "#34495e")
+                ("[REFRESH] Restart Server", self.restart_server, "#e74c3c"),
+                ("[STOP] Stop Server", self.stop_server, "#c0392b"),
+                ("[CONFIG] Reload Config", self.reload_config, "#f39c12"),
+                ("[CLEAN] Clear Cache", self.clear_cache, "#3498db"),
+                ("[METRICS] Generate Report", self.generate_report, "#9b59b6"),
+                ("[DEBUG] Run Diagnostics", self.run_diagnostics, "#27ae60"),
+                ("[SECURE] Security Scan", self.security_scan, "#e67e22"),
+                ("[SAVE] Backup Now", self.backup_now, "#34495e")
             ]
 
             for i, (text, command, color) in enumerate(controls):
@@ -799,14 +1074,14 @@ Drops Out: {stats.dropout}"""
         try:
             # Quick action buttons
             actions = [
-                ("🔧 Open WebUI", self.open_webui),
-                ("📊 View API Docs", self.view_api_docs),
-                ("🔍 Check Health", self.check_health),
-                ("📋 Export Logs", self.export_logs),
-                ("⚙️ Edit Config", self.edit_config),
-                ("🔄 Update Server", self.update_server),
-                ("🛡️ Security Report", self.security_report),
-                ("📞 Support", self.contact_support)
+                ("[CONFIG] Open WebUI", self.open_webui),
+                ("[METRICS] View API Docs", self.view_api_docs),
+                ("[DEBUG] Check Health", self.check_health),
+                ("[CLIPBOARD] Export Logs", self.export_logs),
+                ("[SETTINGS] Edit Config", self.edit_config),
+                ("[REFRESH] Update Server", self.update_server),
+                ("[SHIELD] Security Report", self.security_report),
+                ("[CALL] Support", self.contact_support)
             ]
 
             for i, (text, command) in enumerate(actions):
@@ -880,27 +1155,27 @@ Drops Out: {stats.dropout}"""
 
             # Installed Plugins tab
             installed_frame = ttk.Frame(plugin_notebook, style="Modern.TFrame")
-            plugin_notebook.add(installed_frame, text="📦 Installed Plugins")
+            plugin_notebook.add(installed_frame, text="[PACKAGE] Installed Plugins")
             self.create_installed_plugins_view(installed_frame)
 
             # Plugin Marketplace tab
             marketplace_frame = ttk.Frame(plugin_notebook, style="Modern.TFrame")
-            plugin_notebook.add(marketplace_frame, text="🛒 Plugin Marketplace")
+            plugin_notebook.add(marketplace_frame, text="[CART] Plugin Marketplace")
             self.create_plugin_marketplace_view(marketplace_frame)
 
             # Plugin Development tab
             development_frame = ttk.Frame(plugin_notebook, style="Modern.TFrame")
-            plugin_notebook.add(development_frame, text="🔧 Plugin Development")
+            plugin_notebook.add(development_frame, text="[CONFIG] Plugin Development")
             self.create_plugin_development_view(development_frame)
 
             # Plugin Settings tab
             settings_frame = ttk.Frame(plugin_notebook, style="Modern.TFrame")
-            plugin_notebook.add(settings_frame, text="⚙️ Plugin Settings")
+            plugin_notebook.add(settings_frame, text="[SETTINGS] Plugin Settings")
             self.create_plugin_settings_view(settings_frame)
 
             # Plugin Module Permissions tab
             permissions_frame = ttk.Frame(plugin_notebook, style="Modern.TFrame")
-            plugin_notebook.add(permissions_frame, text="🔑 Module Permissions")
+            plugin_notebook.add(permissions_frame, text="[KEY] Module Permissions")
             self.create_plugin_module_permissions_view(permissions_frame)
 
             return plugin_frame
@@ -916,10 +1191,10 @@ Drops Out: {stats.dropout}"""
             header_frame = ttk.Frame(parent, style="Modern.TFrame")
             header_frame.pack(fill=tk.X, padx=10, pady=10)
 
-            ttk.Label(header_frame, text="📦 Installed Plugins", font=("Segoe UI", 14, "bold"), style="Modern.TLabel").pack(side=tk.LEFT)
+            ttk.Label(header_frame, text="[PACKAGE] Installed Plugins", font=("Segoe UI", 14, "bold"), style="Modern.TLabel").pack(side=tk.LEFT)
 
             # Refresh button
-            ttk.Button(header_frame, text="🔄 Refresh", command=self.refresh_installed_plugins, style="Modern.TButton").pack(side=tk.RIGHT)
+            ttk.Button(header_frame, text="[REFRESH] Refresh", command=self.refresh_installed_plugins, style="Modern.TButton").pack(side=tk.RIGHT)
 
             # Plugin list with detailed information
             list_frame = ttk.Frame(parent, style="Modern.TFrame")
@@ -968,14 +1243,14 @@ Drops Out: {stats.dropout}"""
 
             # Action buttons
             action_buttons = [
-                ("▶️ Enable", self.enable_selected_plugin),
-                ("⏸️ Disable", self.disable_selected_plugin),
-                ("🔧 Configure", self.configure_selected_plugin),
-                ("📊 Details", self.view_plugin_details),
-                ("🔄 Update", self.update_selected_plugin),
-                ("🗑️ Uninstall", self.uninstall_selected_plugin),
-                ("📋 Export Config", self.export_plugin_config),
-                ("📁 Open Folder", self.open_plugin_folder)
+                ("[PLAY] Enable", self.enable_selected_plugin),
+                ("[PAUSE] Disable", self.disable_selected_plugin),
+                ("[CONFIG] Configure", self.configure_selected_plugin),
+                ("[METRICS] Details", self.view_plugin_details),
+                ("[REFRESH] Update", self.update_selected_plugin),
+                ("[DELETE] Uninstall", self.uninstall_selected_plugin),
+                ("[CLIPBOARD] Export Config", self.export_plugin_config),
+                ("[FOLDER] Open Folder", self.open_plugin_folder)
             ]
 
             for text, command in action_buttons:
@@ -991,7 +1266,7 @@ Drops Out: {stats.dropout}"""
             header_frame = ttk.Frame(parent, style="Modern.TFrame")
             header_frame.pack(fill=tk.X, padx=10, pady=10)
 
-            ttk.Label(header_frame, text="🛒 Plugin Marketplace", font=("Segoe UI", 14, "bold"), style="Modern.TLabel").pack(side=tk.LEFT)
+            ttk.Label(header_frame, text="[CART] Plugin Marketplace", font=("Segoe UI", 14, "bold"), style="Modern.TLabel").pack(side=tk.LEFT)
 
             # Search frame
             search_frame = ttk.Frame(header_frame, style="Modern.TFrame")
@@ -1001,7 +1276,7 @@ Drops Out: {stats.dropout}"""
             search_entry = ttk.Entry(search_frame, textvariable=self.marketplace_search_var, width=30, style="Modern.TEntry")
             search_entry.pack(side=tk.LEFT, padx=(0, 5))
 
-            ttk.Button(search_frame, text="🔍 Search", command=self.search_marketplace, style="Modern.TButton").pack(side=tk.LEFT)
+            ttk.Button(search_frame, text="[DEBUG] Search", command=self.search_marketplace, style="Modern.TButton").pack(side=tk.LEFT)
 
             # Categories frame
             categories_frame = ttk.Frame(parent, style="Modern.TFrame")
@@ -1077,14 +1352,14 @@ Drops Out: {stats.dropout}"""
             marketplace_actions_frame.pack(fill=tk.X, padx=10, pady=(0, 10))
 
             marketplace_buttons = [
-                ("🔄 Refresh", self.refresh_marketplace_plugins),
-                ("📥 Install", self.install_marketplace_plugin),
-                ("👁️ Preview", self.preview_marketplace_plugin),
-                ("📊 Details", self.view_marketplace_plugin_details),
-                ("⭐ Rate", self.rate_marketplace_plugin),
-                ("🐛 Report Issue", self.report_plugin_issue),
-                ("📁 View Source", self.view_plugin_source),
-                ("🔗 GitHub", self.open_plugin_github)
+                ("[REFRESH] Refresh", self.refresh_marketplace_plugins),
+                ("[RECEIVE] Install", self.install_marketplace_plugin),
+                ("[EYE] Preview", self.preview_marketplace_plugin),
+                ("[METRICS] Details", self.view_marketplace_plugin_details),
+                ("[STAR] Rate", self.rate_marketplace_plugin),
+                ("[BUG] Report Issue", self.report_plugin_issue),
+                ("[FOLDER] View Source", self.view_plugin_source),
+                ("[LINK] GitHub", self.open_plugin_github)
             ]
 
             for text, command in marketplace_buttons:
@@ -1100,21 +1375,21 @@ Drops Out: {stats.dropout}"""
             dev_header_frame = ttk.Frame(parent, style="Modern.TFrame")
             dev_header_frame.pack(fill=tk.X, padx=10, pady=10)
 
-            ttk.Label(dev_header_frame, text="🔧 Plugin Development Tools", font=("Segoe UI", 14, "bold"), style="Modern.TLabel").pack(side=tk.LEFT)
+            ttk.Label(dev_header_frame, text="[CONFIG] Plugin Development Tools", font=("Segoe UI", 14, "bold"), style="Modern.TLabel").pack(side=tk.LEFT)
 
             # Development tools
             tools_frame = ttk.LabelFrame(parent, text="Development Tools", style="Modern.TLabelframe")
             tools_frame.pack(fill=tk.X, padx=10, pady=(0, 10))
 
             dev_tools = [
-                ("🆕 Create New Plugin", self.create_new_plugin),
-                ("📝 Plugin Template Generator", self.generate_plugin_template),
-                ("🔍 Plugin Validator", self.validate_plugin),
-                ("📦 Package Plugin", self.package_plugin),
-                ("🧪 Test Plugin", self.test_plugin),
-                ("📚 API Documentation", self.view_plugin_api_docs),
-                ("🎨 UI Designer", self.open_plugin_ui_designer),
-                ("🔧 Debug Console", self.open_plugin_debug_console)
+                ("[NEW] Create New Plugin", self.create_new_plugin),
+                ("[NOTE] Plugin Template Generator", self.generate_plugin_template),
+                ("[DEBUG] Plugin Validator", self.validate_plugin),
+                ("[PACKAGE] Package Plugin", self.package_plugin),
+                ("[TEST] Test Plugin", self.test_plugin),
+                ("[BOOKS] API Documentation", self.view_plugin_api_docs),
+                ("[STYLE] UI Designer", self.open_plugin_ui_designer),
+                ("[CONFIG] Debug Console", self.open_plugin_debug_console)
             ]
 
             for i, (text, command) in enumerate(dev_tools):
@@ -1171,9 +1446,9 @@ Drops Out: {stats.dropout}"""
             template_actions_frame = ttk.Frame(templates_frame, style="Modern.TFrame")
             template_actions_frame.pack(fill=tk.X, padx=10, pady=(0, 10))
 
-            ttk.Button(template_actions_frame, text="📋 Use Template", command=self.use_plugin_template, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
-            ttk.Button(template_actions_frame, text="👁️ Preview", command=self.preview_plugin_template, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
-            ttk.Button(template_actions_frame, text="📥 Download", command=self.download_plugin_template, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
+            ttk.Button(template_actions_frame, text="[CLIPBOARD] Use Template", command=self.use_plugin_template, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
+            ttk.Button(template_actions_frame, text="[EYE] Preview", command=self.preview_plugin_template, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
+            ttk.Button(template_actions_frame, text="[RECEIVE] Download", command=self.download_plugin_template, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
 
         except Exception as e:
             logger.error(f"Failed to create plugin development view: {e}")
@@ -1185,7 +1460,7 @@ Drops Out: {stats.dropout}"""
             settings_header_frame = ttk.Frame(parent, style="Modern.TFrame")
             settings_header_frame.pack(fill=tk.X, padx=10, pady=10)
 
-            ttk.Label(settings_header_frame, text="⚙️ Plugin System Settings", font=("Segoe UI", 14, "bold"), style="Modern.TLabel").pack(side=tk.LEFT)
+            ttk.Label(settings_header_frame, text="[SETTINGS] Plugin System Settings", font=("Segoe UI", 14, "bold"), style="Modern.TLabel").pack(side=tk.LEFT)
 
             # Global plugin settings
             global_frame = ttk.LabelFrame(parent, text="Global Plugin Settings", style="Modern.TLabelframe")
@@ -1194,14 +1469,14 @@ Drops Out: {stats.dropout}"""
             self.plugin_settings_vars = {}
 
             global_settings = [
-                ("🔄 Auto-update plugins", "auto_update", True),
-                ("🔒 Sandbox plugins", "sandbox_mode", True),
-                ("📊 Collect usage statistics", "usage_stats", False),
-                ("🚨 Enable plugin monitoring", "monitoring", True),
-                ("🔍 Validate plugin signatures", "signature_validation", True),
-                ("⚡ Load plugins on startup", "auto_load", True),
-                ("🧹 Auto-cleanup unused plugins", "auto_cleanup", False),
-                ("📝 Enable plugin logging", "plugin_logging", True)
+                ("[REFRESH] Auto-update plugins", "auto_update", True),
+                ("[SECURE] Sandbox plugins", "sandbox_mode", True),
+                ("[METRICS] Collect usage statistics", "usage_stats", False),
+                ("[ALERT] Enable plugin monitoring", "monitoring", True),
+                ("[DEBUG] Validate plugin signatures", "signature_validation", True),
+                ("[FAST] Load plugins on startup", "auto_load", True),
+                ("[CLEAN] Auto-cleanup unused plugins", "auto_cleanup", False),
+                ("[NOTE] Enable plugin logging", "plugin_logging", True)
             ]
 
             for text, key, default in global_settings:
@@ -1240,21 +1515,21 @@ Drops Out: {stats.dropout}"""
             dir_controls_frame = ttk.Frame(dir_list_frame, style="Modern.TFrame")
             dir_controls_frame.pack(fill=tk.X)
 
-            ttk.Button(dir_controls_frame, text="➕ Add Directory", command=self.add_plugin_directory, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
-            ttk.Button(dir_controls_frame, text="➖ Remove Directory", command=self.remove_plugin_directory, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
-            ttk.Button(dir_controls_frame, text="📁 Browse", command=self.browse_plugin_directory, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
+            ttk.Button(dir_controls_frame, text="+ Add Directory", command=self.add_plugin_directory, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
+            ttk.Button(dir_controls_frame, text="- Remove Directory", command=self.remove_plugin_directory, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
+            ttk.Button(dir_controls_frame, text="[FOLDER] Browse", command=self.browse_plugin_directory, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
 
             # Plugin security settings
             security_frame = ttk.LabelFrame(parent, text="Plugin Security", style="Modern.TLabelframe")
             security_frame.pack(fill=tk.X, padx=10, pady=(0, 10))
 
             security_settings = [
-                ("🛡️ Require signed plugins", "require_signatures"),
-                ("🔒 Restrict file system access", "restrict_filesystem"),
-                ("🌐 Restrict network access", "restrict_network"),
-                ("💾 Restrict database access", "restrict_database"),
-                ("⚙️ Restrict system calls", "restrict_syscalls"),
-                ("🔐 Encrypt plugin data", "encrypt_data")
+                ("[SHIELD] Require signed plugins", "require_signatures"),
+                ("[SECURE] Restrict file system access", "restrict_filesystem"),
+                ("[WEB] Restrict network access", "restrict_network"),
+                ("[SAVE] Restrict database access", "restrict_database"),
+                ("[SETTINGS] Restrict system calls", "restrict_syscalls"),
+                ("[SECURE] Encrypt plugin data", "encrypt_data")
             ]
 
             for text, key in security_settings:
@@ -1271,10 +1546,10 @@ Drops Out: {stats.dropout}"""
             settings_actions_frame = ttk.Frame(parent, style="Modern.TFrame")
             settings_actions_frame.pack(fill=tk.X, padx=10, pady=10)
 
-            ttk.Button(settings_actions_frame, text="💾 Save Settings", command=self.save_plugin_settings, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
-            ttk.Button(settings_actions_frame, text="🔄 Reset to Defaults", command=self.reset_plugin_settings, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
-            ttk.Button(settings_actions_frame, text="📤 Export Settings", command=self.export_plugin_settings, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
-            ttk.Button(settings_actions_frame, text="📥 Import Settings", command=self.import_plugin_settings, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
+            ttk.Button(settings_actions_frame, text="[SAVE] Save Settings", command=self.save_plugin_settings, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
+            ttk.Button(settings_actions_frame, text="[REFRESH] Reset to Defaults", command=self.reset_plugin_settings, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
+            ttk.Button(settings_actions_frame, text="[SEND] Export Settings", command=self.export_plugin_settings, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
+            ttk.Button(settings_actions_frame, text="[RECEIVE] Import Settings", command=self.import_plugin_settings, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
 
         except Exception as e:
             logger.error(f"Failed to create plugin settings view: {e}")
@@ -1658,7 +1933,7 @@ Drops Out: {stats.dropout}"""
         """Edit server configuration."""
         try:
             # Switch to configuration tab
-            self.switch_to_tab("⚙️ Configuration")
+            self.switch_to_tab("[SETTINGS] Configuration")
 
         except Exception as e:
             logger.error(f"Failed to edit config: {e}")
@@ -1667,7 +1942,7 @@ Drops Out: {stats.dropout}"""
         """Update server."""
         try:
             # Switch to updates tab
-            self.switch_to_tab("🔄 Updates")
+            self.switch_to_tab("[REFRESH] Updates")
 
         except Exception as e:
             logger.error(f"Failed to update server: {e}")
@@ -1676,7 +1951,7 @@ Drops Out: {stats.dropout}"""
         """Generate security report."""
         try:
             # Switch to security center tab
-            self.switch_to_tab("🔒 Security Center")
+            self.switch_to_tab("[SECURE] Security Center")
 
         except Exception as e:
             logger.error(f"Failed to generate security report: {e}")
@@ -1721,7 +1996,7 @@ Drops Out: {stats.dropout}"""
 
             title_label = ttk.Label(
                 header_frame,
-                text="🏗️ Core Modules Management",
+                text="[CONSTRUCTION] Core Modules Management",
                 font=("Segoe UI", 18, "bold"),
                 style="Modern.TLabel"
             )
@@ -1730,7 +2005,7 @@ Drops Out: {stats.dropout}"""
             # Refresh button
             refresh_btn = ttk.Button(
                 header_frame,
-                text="🔄 Refresh Status",
+                text="[REFRESH] Refresh Status",
                 command=self.refresh_core_modules,
                 style="Modern.TButton"
             )
@@ -1754,7 +2029,7 @@ Drops Out: {stats.dropout}"""
     def create_config_management_section(self, parent):
         """Create configuration management section."""
         try:
-            config_frame = ttk.LabelFrame(parent, text="⚙️ Configuration Management", style="Modern.TLabelframe")
+            config_frame = ttk.LabelFrame(parent, text="[SETTINGS] Configuration Management", style="Modern.TLabelframe")
             config_frame.pack(fill=tk.X, padx=20, pady=10)
 
             # Configuration status
@@ -1788,10 +2063,10 @@ Last Modified: {config_status['last_modified']}"""
             controls_frame = ttk.Frame(config_frame, style="Modern.TFrame")
             controls_frame.pack(fill=tk.X, padx=10, pady=10)
 
-            ttk.Button(controls_frame, text="📝 Edit Config", command=self.edit_config_files, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
-            ttk.Button(controls_frame, text="🔄 Reload Config", command=self.reload_config_system, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
-            ttk.Button(controls_frame, text="💾 Backup Config", command=self.backup_config, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
-            ttk.Button(controls_frame, text="📋 View Config", command=self.view_config_details, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
+            ttk.Button(controls_frame, text="[NOTE] Edit Config", command=self.edit_config_files, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
+            ttk.Button(controls_frame, text="[REFRESH] Reload Config", command=self.reload_config_system, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
+            ttk.Button(controls_frame, text="[SAVE] Backup Config", command=self.backup_config, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
+            ttk.Button(controls_frame, text="[CLIPBOARD] View Config", command=self.view_config_details, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
 
         except Exception as e:
             logger.error(f"Failed to create config management section: {e}")
@@ -1799,7 +2074,7 @@ Last Modified: {config_status['last_modified']}"""
     def create_database_core_section(self, parent):
         """Create database core management section."""
         try:
-            db_frame = ttk.LabelFrame(parent, text="🗄️ Database Core Management", style="Modern.TLabelframe")
+            db_frame = ttk.LabelFrame(parent, text="[DATABASE] Database Core Management", style="Modern.TLabelframe")
             db_frame.pack(fill=tk.X, padx=20, pady=10)
 
             # Database status
@@ -1832,10 +2107,10 @@ Performance: {db_status['performance']}"""
             controls_frame = ttk.Frame(db_frame, style="Modern.TFrame")
             controls_frame.pack(fill=tk.X, padx=10, pady=10)
 
-            ttk.Button(controls_frame, text="🔗 Test Connection", command=self.test_db_connection, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
-            ttk.Button(controls_frame, text="📊 Performance", command=self.view_db_performance, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
-            ttk.Button(controls_frame, text="🔧 Optimize", command=self.optimize_database, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
-            ttk.Button(controls_frame, text="📋 Schema", command=self.view_db_schema, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
+            ttk.Button(controls_frame, text="[LINK] Test Connection", command=self.test_db_connection, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
+            ttk.Button(controls_frame, text="[METRICS] Performance", command=self.view_db_performance, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
+            ttk.Button(controls_frame, text="[CONFIG] Optimize", command=self.optimize_database, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
+            ttk.Button(controls_frame, text="[CLIPBOARD] Schema", command=self.view_db_schema, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
 
         except Exception as e:
             logger.error(f"Failed to create database core section: {e}")
@@ -1843,7 +2118,7 @@ Performance: {db_status['performance']}"""
     def create_auth_core_section(self, parent):
         """Create authentication core management section."""
         try:
-            auth_frame = ttk.LabelFrame(parent, text="🔐 Authentication Core", style="Modern.TLabelframe")
+            auth_frame = ttk.LabelFrame(parent, text="[SECURE] Authentication Core", style="Modern.TLabelframe")
             auth_frame.pack(fill=tk.X, padx=20, pady=10)
 
             # Auth status
@@ -1876,10 +2151,10 @@ Token Expiry: {auth_status['token_expiry']}"""
             controls_frame = ttk.Frame(auth_frame, style="Modern.TFrame")
             controls_frame.pack(fill=tk.X, padx=10, pady=10)
 
-            ttk.Button(controls_frame, text="👥 Sessions", command=self.manage_auth_sessions, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
-            ttk.Button(controls_frame, text="🔑 Tokens", command=self.manage_auth_tokens, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
-            ttk.Button(controls_frame, text="🛡️ Security", command=self.configure_auth_security, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
-            ttk.Button(controls_frame, text="📊 Audit", command=self.view_auth_audit, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
+            ttk.Button(controls_frame, text="[USERS] Sessions", command=self.manage_auth_sessions, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
+            ttk.Button(controls_frame, text="[KEY] Tokens", command=self.manage_auth_tokens, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
+            ttk.Button(controls_frame, text="[SHIELD] Security", command=self.configure_auth_security, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
+            ttk.Button(controls_frame, text="[METRICS] Audit", command=self.view_auth_audit, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
 
         except Exception as e:
             logger.error(f"Failed to create auth core section: {e}")
@@ -1887,7 +2162,7 @@ Token Expiry: {auth_status['token_expiry']}"""
     def create_logging_core_section(self, parent):
         """Create logging core management section."""
         try:
-            logging_frame = ttk.LabelFrame(parent, text="📋 Logging Core", style="Modern.TLabelframe")
+            logging_frame = ttk.LabelFrame(parent, text="[CLIPBOARD] Logging Core", style="Modern.TLabelframe")
             logging_frame.pack(fill=tk.X, padx=20, pady=10)
 
             # Logging status
@@ -1920,10 +2195,10 @@ Handlers: {logging_status['handlers']}"""
             controls_frame = ttk.Frame(logging_frame, style="Modern.TFrame")
             controls_frame.pack(fill=tk.X, padx=10, pady=10)
 
-            ttk.Button(controls_frame, text="📄 View Logs", command=self.view_system_logs, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
-            ttk.Button(controls_frame, text="⚙️ Configure", command=self.configure_logging, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
-            ttk.Button(controls_frame, text="🧹 Clear Logs", command=self.clear_system_logs, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
-            ttk.Button(controls_frame, text="📦 Archive", command=self.archive_logs, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
+            ttk.Button(controls_frame, text="[DOCUMENT] View Logs", command=self.view_system_logs, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
+            ttk.Button(controls_frame, text="[SETTINGS] Configure", command=self.configure_logging, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
+            ttk.Button(controls_frame, text="[CLEAN] Clear Logs", command=self.clear_system_logs, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
+            ttk.Button(controls_frame, text="[PACKAGE] Archive", command=self.archive_logs, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
 
         except Exception as e:
             logger.error(f"Failed to create logging core section: {e}")
@@ -1931,7 +2206,7 @@ Handlers: {logging_status['handlers']}"""
     def create_exceptions_core_section(self, parent):
         """Create exceptions core management section."""
         try:
-            exceptions_frame = ttk.LabelFrame(parent, text="⚠️ Exception Handling", style="Modern.TLabelframe")
+            exceptions_frame = ttk.LabelFrame(parent, text="[WARNING] Exception Handling", style="Modern.TLabelframe")
             exceptions_frame.pack(fill=tk.X, padx=20, pady=10)
 
             # Exception status
@@ -1964,10 +2239,10 @@ Last Error: {exception_status['last_error']}"""
             controls_frame = ttk.Frame(exceptions_frame, style="Modern.TFrame")
             controls_frame.pack(fill=tk.X, padx=10, pady=10)
 
-            ttk.Button(controls_frame, text="📊 Error Report", command=self.view_error_report, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
-            ttk.Button(controls_frame, text="🔍 Debug", command=self.debug_exceptions, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
-            ttk.Button(controls_frame, text="⚙️ Configure", command=self.configure_exception_handling, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
-            ttk.Button(controls_frame, text="🧹 Clear", command=self.clear_exception_logs, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
+            ttk.Button(controls_frame, text="[METRICS] Error Report", command=self.view_error_report, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
+            ttk.Button(controls_frame, text="[DEBUG] Debug", command=self.debug_exceptions, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
+            ttk.Button(controls_frame, text="[SETTINGS] Configure", command=self.configure_exception_handling, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
+            ttk.Button(controls_frame, text="[CLEAN] Clear", command=self.clear_exception_logs, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
 
         except Exception as e:
             logger.error(f"Failed to create exceptions core section: {e}")
@@ -1975,7 +2250,7 @@ Last Error: {exception_status['last_error']}"""
     def create_messaging_core_section(self, parent):
         """Create messaging core management section."""
         try:
-            messaging_frame = ttk.LabelFrame(parent, text="💬 Messaging Core", style="Modern.TLabelframe")
+            messaging_frame = ttk.LabelFrame(parent, text="[CHAT] Messaging Core", style="Modern.TLabelframe")
             messaging_frame.pack(fill=tk.X, padx=20, pady=10)
 
             # Messaging status
@@ -2008,10 +2283,10 @@ WebSocket Connections: {messaging_status['websocket_connections']}"""
             controls_frame = ttk.Frame(messaging_frame, style="Modern.TFrame")
             controls_frame.pack(fill=tk.X, padx=10, pady=10)
 
-            ttk.Button(controls_frame, text="💬 Channels", command=self.manage_message_channels, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
-            ttk.Button(controls_frame, text="📊 Statistics", command=self.view_messaging_stats, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
-            ttk.Button(controls_frame, text="🔧 Configure", command=self.configure_messaging, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
-            ttk.Button(controls_frame, text="🧹 Clear Queue", command=self.clear_message_queue, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
+            ttk.Button(controls_frame, text="[CHAT] Channels", command=self.manage_message_channels, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
+            ttk.Button(controls_frame, text="[METRICS] Statistics", command=self.view_messaging_stats, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
+            ttk.Button(controls_frame, text="[CONFIG] Configure", command=self.configure_messaging, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
+            ttk.Button(controls_frame, text="[CLEAN] Clear Queue", command=self.clear_message_queue, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
 
         except Exception as e:
             logger.error(f"Failed to create messaging core section: {e}")
@@ -2019,7 +2294,7 @@ WebSocket Connections: {messaging_status['websocket_connections']}"""
     def create_integration_core_section(self, parent):
         """Create integration core management section."""
         try:
-            integration_frame = ttk.LabelFrame(parent, text="🔗 Integration Core", style="Modern.TLabelframe")
+            integration_frame = ttk.LabelFrame(parent, text="[LINK] Integration Core", style="Modern.TLabelframe")
             integration_frame.pack(fill=tk.X, padx=20, pady=10)
 
             # Integration status
@@ -2052,10 +2327,10 @@ External Services: {integration_status['external_services']}"""
             controls_frame = ttk.Frame(integration_frame, style="Modern.TFrame")
             controls_frame.pack(fill=tk.X, padx=10, pady=10)
 
-            ttk.Button(controls_frame, text="🔗 Manage", command=self.manage_integrations, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
-            ttk.Button(controls_frame, text="📊 Monitor", command=self.monitor_integrations, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
-            ttk.Button(controls_frame, text="🔧 Configure", command=self.configure_integrations, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
-            ttk.Button(controls_frame, text="🧪 Test", command=self.test_integrations, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
+            ttk.Button(controls_frame, text="[LINK] Manage", command=self.manage_integrations, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
+            ttk.Button(controls_frame, text="[METRICS] Monitor", command=self.monitor_integrations, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
+            ttk.Button(controls_frame, text="[CONFIG] Configure", command=self.configure_integrations, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
+            ttk.Button(controls_frame, text="[TEST] Test", command=self.test_integrations, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
 
         except Exception as e:
             logger.error(f"Failed to create integration core section: {e}")
@@ -2338,9 +2613,9 @@ Recent Activity:
 - Deadlocks: 0
 
 Optimization Recommendations:
-✓ All indexes are optimized
-✓ Query cache is effective
-✓ No performance issues detected
+[OK] All indexes are optimized
+[OK] Query cache is effective
+[OK] No performance issues detected
 """
 
             text_widget.insert(tk.END, perf_details)
@@ -2381,18 +2656,18 @@ Optimization Recommendations:
             schema_tree.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
             # Add schema items
-            tables_node = schema_tree.insert("", "end", text="📊 Tables")
-            schema_tree.insert(tables_node, "end", text="👥 users")
-            schema_tree.insert(tables_node, "end", text="💬 messages")
-            schema_tree.insert(tables_node, "end", text="📁 files")
-            schema_tree.insert(tables_node, "end", text="🔐 sessions")
-            schema_tree.insert(tables_node, "end", text="🔌 plugins")
+            tables_node = schema_tree.insert("", "end", text="[METRICS] Tables")
+            schema_tree.insert(tables_node, "end", text="[USERS] users")
+            schema_tree.insert(tables_node, "end", text="[CHAT] messages")
+            schema_tree.insert(tables_node, "end", text="[FOLDER] files")
+            schema_tree.insert(tables_node, "end", text="[SECURE] sessions")
+            schema_tree.insert(tables_node, "end", text="[PLUGIN] plugins")
 
-            views_node = schema_tree.insert("", "end", text="👁️ Views")
-            schema_tree.insert(views_node, "end", text="📊 user_stats")
-            schema_tree.insert(views_node, "end", text="📈 message_analytics")
+            views_node = schema_tree.insert("", "end", text="[EYE] Views")
+            schema_tree.insert(views_node, "end", text="[METRICS] user_stats")
+            schema_tree.insert(views_node, "end", text="[UP] message_analytics")
 
-            indexes_node = schema_tree.insert("", "end", text="🗂️ Indexes")
+            indexes_node = schema_tree.insert("", "end", text="[TABS] Indexes")
             schema_tree.insert(indexes_node, "end", text="idx_users_email")
             schema_tree.insert(indexes_node, "end", text="idx_messages_timestamp")
             schema_tree.insert(indexes_node, "end", text="idx_files_user_id")
@@ -2432,9 +2707,9 @@ Optimization Recommendations:
             controls_frame = ttk.Frame(sessions_window)
             controls_frame.pack(fill=tk.X, padx=10, pady=(0, 10))
 
-            ttk.Button(controls_frame, text="🔄 Refresh", style="Modern.TButton").pack(side=tk.LEFT, padx=5)
-            ttk.Button(controls_frame, text="❌ Terminate Session", style="Modern.TButton").pack(side=tk.LEFT, padx=5)
-            ttk.Button(controls_frame, text="🚫 Block IP", style="Modern.TButton").pack(side=tk.LEFT, padx=5)
+            ttk.Button(controls_frame, text="[REFRESH] Refresh", style="Modern.TButton").pack(side=tk.LEFT, padx=5)
+            ttk.Button(controls_frame, text="[ERROR] Terminate Session", style="Modern.TButton").pack(side=tk.LEFT, padx=5)
+            ttk.Button(controls_frame, text="[BLOCKED] Block IP", style="Modern.TButton").pack(side=tk.LEFT, padx=5)
 
         except Exception as e:
             logger.error(f"Failed to manage auth sessions: {e}")
@@ -2454,7 +2729,7 @@ Optimization Recommendations:
 
             title_label = ttk.Label(
                 header_frame,
-                text="🧙‍♂️ PlexiChat Advanced Setup Wizard",
+                text="[WIZARD][MALE] PlexiChat Advanced Setup Wizard",
                 font=("Segoe UI", 20, "bold"),
                 style="Modern.TLabel"
             )
@@ -2488,7 +2763,7 @@ Optimization Recommendations:
 
             self.wizard_prev_btn = ttk.Button(
                 nav_frame,
-                text="⬅️ Previous",
+                text="<- Previous",
                 command=self.wizard_previous_step,
                 style="Modern.TButton",
                 state="disabled"
@@ -2497,7 +2772,7 @@ Optimization Recommendations:
 
             self.wizard_next_btn = ttk.Button(
                 nav_frame,
-                text="Next ➡️",
+                text="Next ->",
                 command=self.wizard_next_step,
                 style="Modern.TButton"
             )
@@ -2522,7 +2797,7 @@ Optimization Recommendations:
         """Create welcome step of setup wizard."""
         try:
             welcome_frame = ttk.Frame(self.wizard_notebook, style="Modern.TFrame")
-            self.wizard_notebook.add(welcome_frame, text="🏠 Welcome")
+            self.wizard_notebook.add(welcome_frame, text="[HOME] Welcome")
 
             # Welcome content
             content_frame = ttk.Frame(welcome_frame, style="Modern.TFrame")
@@ -2534,13 +2809,13 @@ Optimization Recommendations:
 This wizard will guide you through the complete configuration of your PlexiChat server.
 
 What we'll configure:
-• Database connections and optimization
-• Security settings and encryption
-• SSL/TLS certificates
-• Feature modules and capabilities
-• Plugin management and marketplace
-• User accounts and permissions
-• Final system validation
+* Database connections and optimization
+* Security settings and encryption
+* SSL/TLS certificates
+* Feature modules and capabilities
+* Plugin management and marketplace
+* User accounts and permissions
+* Final system validation
 
 The setup process typically takes 10-15 minutes and will ensure your PlexiChat server is properly configured for production use.
 
@@ -2556,7 +2831,7 @@ Click 'Next' to begin the setup process."""
             welcome_label.pack(expand=True)
 
             # System requirements check
-            req_frame = ttk.LabelFrame(content_frame, text="📋 System Requirements Check", style="Modern.TLabelframe")
+            req_frame = ttk.LabelFrame(content_frame, text="[CLIPBOARD] System Requirements Check", style="Modern.TLabelframe")
             req_frame.pack(fill=tk.X, pady=(20, 0))
 
             self.create_system_requirements_check(req_frame)
@@ -2571,12 +2846,12 @@ Click 'Next' to begin the setup process."""
 
             # Check system requirements
             requirements = [
-                ("Python Version", f"{sys.version.split()[0]}", "✅" if sys.version_info >= (3, 8) else "❌"),
-                ("Available Memory", f"{psutil.virtual_memory().available // (1024**3)} GB", "✅" if psutil.virtual_memory().available >= 2*(1024**3) else "❌"),
-                ("Disk Space", f"{psutil.disk_usage('/').free // (1024**3)} GB", "✅" if psutil.disk_usage('/').free >= 10*(1024**3) else "❌"),
-                ("Network Access", "Available", "✅"),
-                ("Database Support", "PostgreSQL/MySQL", "✅"),
-                ("SSL Support", "OpenSSL", "✅")
+                ("Python Version", f"{sys.version.split()[0]}", "[SUCCESS]" if sys.version_info >= (3, 8) else "[ERROR]"),
+                ("Available Memory", f"{psutil.virtual_memory().available // (1024**3)} GB", "[SUCCESS]" if psutil.virtual_memory().available >= 2*(1024**3) else "[ERROR]"),
+                ("Disk Space", f"{psutil.disk_usage('/').free // (1024**3)} GB", "[SUCCESS]" if psutil.disk_usage('/').free >= 10*(1024**3) else "[ERROR]"),
+                ("Network Access", "Available", "[SUCCESS]"),
+                ("Database Support", "PostgreSQL/MySQL", "[SUCCESS]"),
+                ("SSL Support", "OpenSSL", "[SUCCESS]")
             ]
 
             for i, (requirement, value, status) in enumerate(requirements):
@@ -2593,7 +2868,7 @@ Click 'Next' to begin the setup process."""
         """Create database configuration step."""
         try:
             db_frame = ttk.Frame(self.wizard_notebook, style="Modern.TFrame")
-            self.wizard_notebook.add(db_frame, text="🗄️ Database")
+            self.wizard_notebook.add(db_frame, text="[DATABASE] Database")
 
             # Database configuration content
             content_frame = ttk.Frame(db_frame, style="Modern.TFrame")
@@ -2657,9 +2932,9 @@ Click 'Next' to begin the setup process."""
             actions_frame = ttk.Frame(content_frame, style="Modern.TFrame")
             actions_frame.pack(fill=tk.X)
 
-            ttk.Button(actions_frame, text="🔍 Test Connection", command=self.test_wizard_db_connection, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
-            ttk.Button(actions_frame, text="🏗️ Create Database", command=self.create_wizard_database, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
-            ttk.Button(actions_frame, text="📊 Import Schema", command=self.import_wizard_schema, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
+            ttk.Button(actions_frame, text="[DEBUG] Test Connection", command=self.test_wizard_db_connection, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
+            ttk.Button(actions_frame, text="[CONSTRUCTION] Create Database", command=self.create_wizard_database, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
+            ttk.Button(actions_frame, text="[METRICS] Import Schema", command=self.import_wizard_schema, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
 
         except Exception as e:
             logger.error(f"Failed to create wizard database step: {e}")
@@ -2668,7 +2943,7 @@ Click 'Next' to begin the setup process."""
         """Create security configuration step."""
         try:
             security_frame = ttk.Frame(self.wizard_notebook, style="Modern.TFrame")
-            self.wizard_notebook.add(security_frame, text="🔒 Security")
+            self.wizard_notebook.add(security_frame, text="[SECURE] Security")
 
             # Security content
             content_frame = ttk.Frame(security_frame, style="Modern.TFrame")
@@ -2681,10 +2956,10 @@ Click 'Next' to begin the setup process."""
             self.security_level_var = tk.StringVar(value="government")
 
             security_levels = [
-                ("🔒 Basic - Standard security features", "basic"),
-                ("🛡️ Enhanced - Advanced security with monitoring", "enhanced"),
-                ("🏛️ Government - Maximum security with compliance", "government"),
-                ("🔐 Custom - Configure individual settings", "custom")
+                ("[SECURE] Basic - Standard security features", "basic"),
+                ("[SHIELD] Enhanced - Advanced security with monitoring", "enhanced"),
+                ("[BUILDING] Government - Maximum security with compliance", "government"),
+                ("[SECURE] Custom - Configure individual settings", "custom")
             ]
 
             for text, value in security_levels:
@@ -2702,12 +2977,12 @@ Click 'Next' to begin the setup process."""
 
             self.encryption_vars = {}
             encryption_options = [
-                ("🔐 Database Encryption (AES-256)", "database_encryption"),
-                ("🌐 API Encryption (TLS 1.3)", "api_encryption"),
-                ("💬 Message Encryption (End-to-End)", "message_encryption"),
-                ("📁 File Encryption (AES-256)", "file_encryption"),
-                ("🔑 Key Rotation (Weekly)", "key_rotation"),
-                ("🛡️ Quantum-Safe Algorithms", "quantum_safe")
+                ("[SECURE] Database Encryption (AES-256)", "database_encryption"),
+                ("[WEB] API Encryption (TLS 1.3)", "api_encryption"),
+                ("[CHAT] Message Encryption (End-to-End)", "message_encryption"),
+                ("[FOLDER] File Encryption (AES-256)", "file_encryption"),
+                ("[KEY] Key Rotation (Weekly)", "key_rotation"),
+                ("[SHIELD] Quantum-Safe Algorithms", "quantum_safe")
             ]
 
             for text, key in encryption_options:
@@ -2726,12 +3001,12 @@ Click 'Next' to begin the setup process."""
 
             self.auth_vars = {}
             auth_options = [
-                ("🔑 Multi-Factor Authentication (MFA)", "mfa"),
-                ("👤 Biometric Authentication", "biometric"),
-                ("🌐 OAuth Integration", "oauth"),
-                ("🔐 LDAP/Active Directory", "ldap"),
-                ("⏰ Session Timeout (30 min)", "session_timeout"),
-                ("🚫 Account Lockout Protection", "account_lockout")
+                ("[KEY] Multi-Factor Authentication (MFA)", "mfa"),
+                ("[USER] Biometric Authentication", "biometric"),
+                ("[WEB] OAuth Integration", "oauth"),
+                ("[SECURE] LDAP/Active Directory", "ldap"),
+                ("[TIME] Session Timeout (30 min)", "session_timeout"),
+                ("[BLOCKED] Account Lockout Protection", "account_lockout")
             ]
 
             for text, key in auth_options:
@@ -2751,7 +3026,7 @@ Click 'Next' to begin the setup process."""
         """Create SSL/TLS configuration step."""
         try:
             ssl_frame = ttk.Frame(self.wizard_notebook, style="Modern.TFrame")
-            self.wizard_notebook.add(ssl_frame, text="🔐 SSL/TLS")
+            self.wizard_notebook.add(ssl_frame, text="[SECURE] SSL/TLS")
 
             # SSL content
             content_frame = ttk.Frame(ssl_frame, style="Modern.TFrame")
@@ -2764,10 +3039,10 @@ Click 'Next' to begin the setup process."""
             self.ssl_type_var = tk.StringVar(value="letsencrypt")
 
             ssl_types = [
-                ("🆓 Let's Encrypt (Automatic)", "letsencrypt"),
-                ("📜 Custom Certificate", "custom"),
-                ("🏢 Corporate CA", "corporate"),
-                ("🔧 Self-Signed (Development)", "selfsigned")
+                ("[FREE] Let's Encrypt (Automatic)", "letsencrypt"),
+                ("[SCROLL] Custom Certificate", "custom"),
+                ("[OFFICE] Corporate CA", "corporate"),
+                ("[CONFIG] Self-Signed (Development)", "selfsigned")
             ]
 
             for text, value in ssl_types:
@@ -2802,9 +3077,9 @@ Click 'Next' to begin the setup process."""
             actions_frame = ttk.Frame(content_frame, style="Modern.TFrame")
             actions_frame.pack(fill=tk.X)
 
-            ttk.Button(actions_frame, text="🔍 Validate Domain", command=self.validate_ssl_domain, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
-            ttk.Button(actions_frame, text="📜 Generate Certificate", command=self.generate_ssl_certificate, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
-            ttk.Button(actions_frame, text="🔧 Test SSL", command=self.test_ssl_configuration, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
+            ttk.Button(actions_frame, text="[DEBUG] Validate Domain", command=self.validate_ssl_domain, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
+            ttk.Button(actions_frame, text="[SCROLL] Generate Certificate", command=self.generate_ssl_certificate, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
+            ttk.Button(actions_frame, text="[CONFIG] Test SSL", command=self.test_ssl_configuration, style="Modern.TButton").pack(side=tk.LEFT, padx=5)
 
         except Exception as e:
             logger.error(f"Failed to create wizard SSL step: {e}")
@@ -2852,14 +3127,14 @@ Click 'Next' to begin the setup process."""
 
                 # Sample marketplace data (would come from GitHub API)
                 marketplace_plugins = [
-                    ("Advanced Chat Bot", "2.1.0", "15.2k", "⭐⭐⭐⭐⭐", "BotMaster", "2024-01-19", "MIT"),
-                    ("File Encryption", "1.5.3", "8.7k", "⭐⭐⭐⭐", "CryptoSec", "2024-01-17", "GPL-3.0"),
-                    ("Analytics Dashboard", "3.0.2", "12.1k", "⭐⭐⭐⭐⭐", "DataViz", "2024-01-20", "Apache-2.0"),
-                    ("Voice Commands", "1.8.1", "6.3k", "⭐⭐⭐", "VoiceTech", "2024-01-16", "MIT"),
-                    ("Custom Themes Pack", "2.2.0", "22.5k", "⭐⭐⭐⭐⭐", "ThemeStudio", "2024-01-18", "CC-BY-4.0"),
-                    ("API Gateway", "1.4.7", "9.8k", "⭐⭐⭐⭐", "APITools", "2024-01-15", "MIT"),
-                    ("Backup Manager", "2.0.5", "11.2k", "⭐⭐⭐⭐", "BackupPro", "2024-01-19", "GPL-2.0"),
-                    ("Notification Center", "1.7.2", "7.9k", "⭐⭐⭐⭐", "NotifyTeam", "2024-01-14", "MIT")
+                    ("Advanced Chat Bot", "2.1.0", "15.2k", "[STAR][STAR][STAR][STAR][STAR]", "BotMaster", "2024-01-19", "MIT"),
+                    ("File Encryption", "1.5.3", "8.7k", "[STAR][STAR][STAR][STAR]", "CryptoSec", "2024-01-17", "GPL-3.0"),
+                    ("Analytics Dashboard", "3.0.2", "12.1k", "[STAR][STAR][STAR][STAR][STAR]", "DataViz", "2024-01-20", "Apache-2.0"),
+                    ("Voice Commands", "1.8.1", "6.3k", "[STAR][STAR][STAR]", "VoiceTech", "2024-01-16", "MIT"),
+                    ("Custom Themes Pack", "2.2.0", "22.5k", "[STAR][STAR][STAR][STAR][STAR]", "ThemeStudio", "2024-01-18", "CC-BY-4.0"),
+                    ("API Gateway", "1.4.7", "9.8k", "[STAR][STAR][STAR][STAR]", "APITools", "2024-01-15", "MIT"),
+                    ("Backup Manager", "2.0.5", "11.2k", "[STAR][STAR][STAR][STAR]", "BackupPro", "2024-01-19", "GPL-2.0"),
+                    ("Notification Center", "1.7.2", "7.9k", "[STAR][STAR][STAR][STAR]", "NotifyTeam", "2024-01-14", "MIT")
                 ]
 
                 for name, version, downloads, rating, author, updated, license_type in marketplace_plugins:
@@ -3043,31 +3318,31 @@ Description:
 This is a comprehensive plugin that enhances PlexiChat functionality with advanced features and capabilities.
 
 Features:
-• Advanced message processing
-• Real-time notifications
-• Custom UI components
-• API integrations
-• Security enhancements
+* Advanced message processing
+* Real-time notifications
+* Custom UI components
+* API integrations
+* Security enhancements
 
 Dependencies:
-• Python 3.8+
-• requests >= 2.25.0
-• asyncio
-• tkinter
+* Python 3.8+
+* requests >= 2.25.0
+* asyncio
+* tkinter
 
 Installation Path:
 /opt/plexichat/plugins/{plugin_name.lower().replace(' ', '_')}
 
 Configuration Files:
-• config.yaml
-• settings.json
-• permissions.xml
+* config.yaml
+* settings.json
+* permissions.xml
 
 Permissions:
-• Read/Write file system
-• Network access
-• Database access
-• UI modification
+* Read/Write file system
+* Network access
+* Database access
+* UI modification
 
 License: MIT License
 Support: https://github.com/plexichat/{plugin_name.lower().replace(' ', '-')}
@@ -3233,8 +3508,8 @@ Documentation: https://docs.plexichat.com/plugins/{plugin_name.lower().replace('
         # Header
         header_frame = ttk.Frame(parent, style="Modern.TFrame")
         header_frame.pack(fill=tk.X, padx=10, pady=10)
-        ttk.Label(header_frame, text="🔑 Plugin Module Permission Requests", font=("Segoe UI", 14, "bold"), style="Modern.TLabel").pack(side=tk.LEFT)
-        ttk.Button(header_frame, text="🔄 Refresh", command=lambda: self.refresh_plugin_module_requests(table), style="Modern.TButton").pack(side=tk.RIGHT)
+        ttk.Label(header_frame, text="[KEY] Plugin Module Permission Requests", font=("Segoe UI", 14, "bold"), style="Modern.TLabel").pack(side=tk.LEFT)
+        ttk.Button(header_frame, text="[REFRESH] Refresh", command=lambda: self.refresh_plugin_module_requests(table), style="Modern.TButton").pack(side=tk.RIGHT)
 
         # Table
         table_frame = ttk.Frame(parent, style="Modern.TFrame")
@@ -3274,3 +3549,436 @@ Documentation: https://docs.plexichat.com/plugins/{plugin_name.lower().replace('
         isolation_manager = unified_plugin_manager.isolation_manager
         isolation_manager.revoke_plugin_module_permission(plugin, module)
         self.refresh_plugin_module_requests(table)
+
+    # ==================== CLI TERMINAL TAB ====================
+
+    def create_cli_terminal_tab(self, parent):
+        """Create integrated CLI terminal tab."""
+        try:
+            # Import CLI terminal component
+            from .cli_terminal import CLITerminal
+
+            # Create CLI terminal widget
+            cli_terminal = CLITerminal(parent)
+            cli_terminal.pack(fill=tk.BOTH, expand=True)
+
+            logger.info("CLI terminal tab created successfully")
+            return cli_terminal
+
+        except ImportError as e:
+            logger.error(f"Failed to import CLI terminal component: {e}")
+            # Create fallback interface
+            fallback_frame = ttk.Frame(parent, style="Modern.TFrame")
+            fallback_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
+
+            ttk.Label(fallback_frame,
+                     text="CLI Terminal Not Available",
+                     style="Modern.TLabel",
+                     font=('Arial', 16, 'bold')).pack(pady=20)
+
+            ttk.Label(fallback_frame,
+                     text="The CLI terminal component could not be loaded.\nPlease check the installation and try again.",
+                     style="Modern.TLabel",
+                     justify=tk.CENTER).pack(pady=10)
+
+            # Add manual CLI execution option
+            manual_frame = ttk.LabelFrame(fallback_frame, text="Manual CLI Execution", style="Modern.TLabelframe")
+            manual_frame.pack(fill=tk.X, pady=20)
+
+            command_frame = ttk.Frame(manual_frame)
+            command_frame.pack(fill=tk.X, padx=10, pady=10)
+
+            ttk.Label(command_frame, text="Command:", style="Modern.TLabel").pack(side=tk.LEFT)
+
+            command_entry = ttk.Entry(command_frame, style="Modern.TEntry")
+            command_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(10, 0))
+
+            def execute_manual_command():
+                command = command_entry.get().strip()
+                if command:
+                    try:
+                        import subprocess
+                        import os
+
+                        # Get the project root directory
+                        project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+
+                        # Execute command
+                        result = subprocess.run(
+                            f"python run.py cli {command}".split(),
+                            cwd=project_root,
+                            capture_output=True,
+                            text=True,
+                            timeout=30
+                        )
+
+                        # Show result
+                        result_text = ""
+                        if result.stdout:
+                            result_text += f"Output:\n{result.stdout}\n"
+                        if result.stderr:
+                            result_text += f"Error:\n{result.stderr}\n"
+                        if result.returncode != 0:
+                            result_text += f"Exit code: {result.returncode}\n"
+
+                        if not result_text:
+                            result_text = "Command executed successfully (no output)"
+
+                        messagebox.showinfo("Command Result", result_text)
+
+                    except subprocess.TimeoutExpired:
+                        messagebox.showerror("Error", "Command timed out")
+                    except Exception as e:
+                        messagebox.showerror("Error", f"Failed to execute command: {e}")
+
+            ttk.Button(command_frame, text="Execute",
+                      command=execute_manual_command,
+                      style="Modern.TButton").pack(side=tk.RIGHT, padx=(10, 0))
+
+            # Add common commands
+            common_frame = ttk.LabelFrame(fallback_frame, text="Common Commands", style="Modern.TLabelframe")
+            common_frame.pack(fill=tk.X, pady=10)
+
+            commands_grid = ttk.Frame(common_frame)
+            commands_grid.pack(fill=tk.X, padx=10, pady=10)
+
+            common_commands = [
+                ("Status", "status"),
+                ("Health Check", "health"),
+                ("Test Run", "test-run"),
+                ("Plugin List", "plugin-list"),
+                ("Version", "version"),
+                ("Help", "help")
+            ]
+
+            for i, (label, cmd) in enumerate(common_commands):
+                row = i // 3
+                col = i % 3
+
+                def make_command_handler(command):
+                    return lambda: (command_entry.delete(0, tk.END),
+                                  command_entry.insert(0, command),
+                                  execute_manual_command())
+
+                ttk.Button(commands_grid, text=label,
+                          command=make_command_handler(cmd),
+                          style="Modern.TButton").grid(row=row, column=col, padx=5, pady=5, sticky="ew")
+
+            # Configure grid weights
+            for i in range(3):
+                commands_grid.columnconfigure(i, weight=1)
+
+            return fallback_frame
+
+        except Exception as e:
+            logger.error(f"Failed to create CLI terminal tab: {e}")
+            # Create error interface
+            error_frame = ttk.Frame(parent, style="Modern.TFrame")
+            error_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
+
+            ttk.Label(error_frame,
+                     text="Error Creating CLI Terminal",
+                     style="Modern.TLabel",
+                     font=('Arial', 16, 'bold')).pack(pady=20)
+
+            ttk.Label(error_frame,
+                     text=f"An error occurred while creating the CLI terminal:\n{str(e)}",
+                     style="Modern.TLabel",
+                     justify=tk.CENTER).pack(pady=10)
+
+            return error_frame
+
+    # ==================== LOGS & ANALYTICS TAB ====================
+
+    def create_logs_analytics_tab(self, parent):
+        """Create logs and analytics tab with real-time log viewing."""
+        try:
+            # Main container
+            main_frame = ttk.Frame(parent, style="Modern.TFrame")
+            main_frame.pack(fill=tk.BOTH, expand=True)
+
+            # Header
+            header_frame = ttk.Frame(main_frame, style="Modern.TFrame")
+            header_frame.pack(fill=tk.X, padx=10, pady=10)
+
+            ttk.Label(header_frame, text="[CLIPBOARD] Logs & Analytics",
+                     font=("Segoe UI", 16, "bold"), style="Modern.TLabel").pack(side=tk.LEFT)
+
+            # Controls
+            controls_frame = ttk.Frame(header_frame)
+            controls_frame.pack(side=tk.RIGHT)
+
+            ttk.Button(controls_frame, text="[REFRESH] Refresh",
+                      command=self.refresh_logs, style="Modern.TButton").pack(side=tk.LEFT, padx=2)
+            ttk.Button(controls_frame, text="[CLEAN] Clear",
+                      command=self.clear_log_display, style="Modern.TButton").pack(side=tk.LEFT, padx=2)
+            ttk.Button(controls_frame, text="[SAVE] Export",
+                      command=self.export_logs, style="Modern.TButton").pack(side=tk.LEFT, padx=2)
+
+            # Log level filter
+            filter_frame = ttk.Frame(main_frame, style="Modern.TFrame")
+            filter_frame.pack(fill=tk.X, padx=10, pady=(0, 10))
+
+            ttk.Label(filter_frame, text="Filter Level:", style="Modern.TLabel").pack(side=tk.LEFT)
+
+            self.log_level_var = tk.StringVar(value="ALL")
+            log_levels = ["ALL", "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
+            log_level_combo = ttk.Combobox(filter_frame, textvariable=self.log_level_var,
+                                         values=log_levels, state="readonly", width=10)
+            log_level_combo.pack(side=tk.LEFT, padx=(5, 10))
+            log_level_combo.bind("<<ComboboxSelected>>", lambda e: self.filter_logs())
+
+            # Auto-refresh checkbox
+            self.auto_refresh_var = tk.BooleanVar(value=True)
+            ttk.Checkbutton(filter_frame, text="Auto-refresh",
+                           variable=self.auto_refresh_var, style="Modern.TCheckbutton").pack(side=tk.LEFT, padx=10)
+
+            # Log display area
+            log_frame = ttk.Frame(main_frame, style="Modern.TFrame")
+            log_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=(0, 10))
+
+            # Create text widget with scrollbar
+            text_frame = ttk.Frame(log_frame)
+            text_frame.pack(fill=tk.BOTH, expand=True)
+
+            self.log_text = tk.Text(text_frame, wrap=tk.WORD, font=("Consolas", 10),
+                                   bg="#1a1a2e", fg="#ffffff", insertbackground="#ffffff")
+
+            scrollbar = ttk.Scrollbar(text_frame, orient=tk.VERTICAL, command=self.log_text.yview)
+            self.log_text.configure(yscrollcommand=scrollbar.set)
+
+            self.log_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+            scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+            # Configure text tags for different log levels
+            self.log_text.tag_configure("DEBUG", foreground="#B8C5D6")
+            self.log_text.tag_configure("INFO", foreground="#00D4AA")
+            self.log_text.tag_configure("WARNING", foreground="#FFB800")
+            self.log_text.tag_configure("ERROR", foreground="#FF6B6B")
+            self.log_text.tag_configure("CRITICAL", foreground="#FF0000", background="#330000")
+
+            # Statistics frame
+            stats_frame = ttk.LabelFrame(main_frame, text="Log Statistics", style="Modern.TLabelframe")
+            stats_frame.pack(fill=tk.X, padx=10, pady=(0, 10))
+
+            stats_grid = ttk.Frame(stats_frame)
+            stats_grid.pack(fill=tk.X, padx=10, pady=10)
+
+            # Create statistics labels
+            self.stats_labels = {}
+            stats_items = [("Total Logs", "total"), ("Errors", "error"), ("Warnings", "warning"),
+                          ("Info", "info"), ("Debug", "debug")]
+
+            for i, (label, key) in enumerate(stats_items):
+                ttk.Label(stats_grid, text=f"{label}:", style="Modern.TLabel").grid(row=0, column=i*2, sticky="w", padx=(0, 5))
+                self.stats_labels[key] = ttk.Label(stats_grid, text="0", style="Modern.TLabel", foreground="#4A90E2")
+                self.stats_labels[key].grid(row=0, column=i*2+1, sticky="w", padx=(0, 20))
+
+            # Configure grid weights
+            for i in range(10):
+                stats_grid.columnconfigure(i, weight=1)
+
+            # Initialize logs
+            self.log_entries = []
+            self.load_logs()
+
+            # Start auto-refresh timer
+            self.schedule_log_refresh()
+
+            logger.info("Logs & Analytics tab created successfully")
+            return main_frame
+
+        except Exception as e:
+            logger.error(f"Failed to create logs analytics tab: {e}")
+            # Create error interface
+            error_frame = ttk.Frame(parent, style="Modern.TFrame")
+            error_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
+
+            ttk.Label(error_frame, text="Error Creating Logs & Analytics",
+                     style="Modern.TLabel", font=('Arial', 16, 'bold')).pack(pady=20)
+
+            ttk.Label(error_frame, text=f"An error occurred:\n{str(e)}",
+                     style="Modern.TLabel", justify=tk.CENTER).pack(pady=10)
+
+            return error_frame
+
+    def load_logs(self):
+        """Load logs from various sources."""
+        try:
+            self.log_entries = []
+
+            # Load from log files
+            log_dir = Path("logs")
+            if log_dir.exists():
+                for log_file in log_dir.glob("*.log"):
+                    try:
+                        with open(log_file, 'r', encoding='utf-8') as f:
+                            for line_num, line in enumerate(f, 1):
+                                line = line.strip()
+                                if line:
+                                    # Parse log entry
+                                    level = self.extract_log_level(line)
+                                    timestamp = self.extract_timestamp(line)
+                                    message = line
+
+                                    self.log_entries.append({
+                                        'timestamp': timestamp,
+                                        'level': level,
+                                        'message': message,
+                                        'source': log_file.name
+                                    })
+                    except Exception as e:
+                        logger.error(f"Failed to read log file {log_file}: {e}")
+
+            # Sort by timestamp (most recent first)
+            self.log_entries.sort(key=lambda x: x['timestamp'], reverse=True)
+
+            # Limit to last 1000 entries for performance
+            self.log_entries = self.log_entries[:1000]
+
+            self.update_log_display()
+            self.update_log_statistics()
+
+        except Exception as e:
+            logger.error(f"Failed to load logs: {e}")
+
+    def extract_log_level(self, line):
+        """Extract log level from log line."""
+        levels = ['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG']
+        for level in levels:
+            if level in line.upper():
+                return level
+        return 'INFO'
+
+    def extract_timestamp(self, line):
+        """Extract timestamp from log line."""
+        import re
+        from datetime import datetime
+
+        # Try to find timestamp patterns
+        patterns = [
+            r'(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})',
+            r'(\d{2}/\d{2}/\d{4} \d{2}:\d{2}:\d{2})',
+            r'(\d{2}:\d{2}:\d{2})'
+        ]
+
+        for pattern in patterns:
+            match = re.search(pattern, line)
+            if match:
+                try:
+                    timestamp_str = match.group(1)
+                    if len(timestamp_str) == 8:  # HH:MM:SS format
+                        timestamp_str = f"{datetime.now().strftime('%Y-%m-%d')} {timestamp_str}"
+                    return datetime.strptime(timestamp_str, '%Y-%m-%d %H:%M:%S')
+                except:
+                    continue
+
+        return datetime.now()
+
+    def update_log_display(self):
+        """Update the log display with filtered entries."""
+        try:
+            if not hasattr(self, 'log_text'):
+                return
+
+            # Clear current display
+            self.log_text.configure(state=tk.NORMAL)
+            self.log_text.delete(1.0, tk.END)
+
+            # Filter logs based on selected level
+            level_filter = self.log_level_var.get()
+            filtered_entries = self.log_entries
+
+            if level_filter != "ALL":
+                filtered_entries = [entry for entry in self.log_entries
+                                  if entry['level'] == level_filter]
+
+            # Display filtered entries
+            for entry in filtered_entries[:500]:  # Limit display for performance
+                timestamp_str = entry['timestamp'].strftime('%Y-%m-%d %H:%M:%S')
+                log_line = f"[{timestamp_str}] [{entry['level']}] {entry['message']}\n"
+
+                # Insert with appropriate tag for coloring
+                self.log_text.insert(tk.END, log_line, entry['level'])
+
+            # Auto-scroll to bottom
+            self.log_text.see(tk.END)
+            self.log_text.configure(state=tk.DISABLED)
+
+        except Exception as e:
+            logger.error(f"Failed to update log display: {e}")
+
+    def update_log_statistics(self):
+        """Update log statistics display."""
+        try:
+            if not hasattr(self, 'stats_labels'):
+                return
+
+            stats = {
+                'total': len(self.log_entries),
+                'error': len([e for e in self.log_entries if e['level'] in ['ERROR', 'CRITICAL']]),
+                'warning': len([e for e in self.log_entries if e['level'] == 'WARNING']),
+                'info': len([e for e in self.log_entries if e['level'] == 'INFO']),
+                'debug': len([e for e in self.log_entries if e['level'] == 'DEBUG'])
+            }
+
+            for key, value in stats.items():
+                if key in self.stats_labels:
+                    self.stats_labels[key].configure(text=str(value))
+
+        except Exception as e:
+            logger.error(f"Failed to update log statistics: {e}")
+
+    def refresh_logs(self):
+        """Refresh log display."""
+        self.load_logs()
+
+    def clear_log_display(self):
+        """Clear the log display."""
+        try:
+            if hasattr(self, 'log_text'):
+                self.log_text.configure(state=tk.NORMAL)
+                self.log_text.delete(1.0, tk.END)
+                self.log_text.configure(state=tk.DISABLED)
+        except Exception as e:
+            logger.error(f"Failed to clear log display: {e}")
+
+    def filter_logs(self):
+        """Filter logs based on selected level."""
+        self.update_log_display()
+
+    def export_logs(self):
+        """Export logs to file."""
+        try:
+            from tkinter import filedialog
+
+            filename = filedialog.asksaveasfilename(
+                defaultextension=".txt",
+                filetypes=[("Text files", "*.txt"), ("All files", "*.*")],
+                title="Export Logs"
+            )
+
+            if filename:
+                with open(filename, 'w', encoding='utf-8') as f:
+                    for entry in self.log_entries:
+                        timestamp_str = entry['timestamp'].strftime('%Y-%m-%d %H:%M:%S')
+                        f.write(f"[{timestamp_str}] [{entry['level']}] {entry['message']}\n")
+
+                messagebox.showinfo("Export Complete", f"Logs exported to {filename}")
+
+        except Exception as e:
+            logger.error(f"Failed to export logs: {e}")
+            messagebox.showerror("Export Error", f"Failed to export logs: {e}")
+
+    def schedule_log_refresh(self):
+        """Schedule automatic log refresh."""
+        try:
+            if hasattr(self, 'auto_refresh_var') and self.auto_refresh_var.get():
+                self.load_logs()
+
+            # Schedule next refresh in 5 seconds
+            if hasattr(self, 'log_text'):
+                self.log_text.after(5000, self.schedule_log_refresh)
+
+        except Exception as e:
+            logger.error(f"Failed to schedule log refresh: {e}")

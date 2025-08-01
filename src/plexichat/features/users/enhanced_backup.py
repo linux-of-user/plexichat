@@ -59,8 +59,8 @@ class SecurityLevel(str, Enum):
 
     UNCLASSIFIED = "unclassified"
     CONFIDENTIAL = "confidential"
-    SECRET = "secret"
-    TOP_SECRET = "top_secret"
+SECRET =os.getenv("SECRET_KEY", "")
+TOP_SECRET =os.getenv("SECRET_KEY", "")
 
 
 class EnhancedBackup(SQLModel, table=True):

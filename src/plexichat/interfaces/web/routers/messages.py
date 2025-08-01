@@ -53,36 +53,124 @@ except ImportError:
     def get_current_user():
         return {"id": 1, "username": "admin"}
 
-# Model imports
+# Model imports - Updated for Pydantic v2 compatibility
 class Message(BaseModel):
-    id: int
-    content: str
-    sender_id: int
-    recipient_id: int
-    timestamp: datetime
+    """Message model with Pydantic v2 compatibility."""
+    id: int = Field(..., description="Message ID")
+    content: str = Field(..., description="Message content")
+    sender_id: int = Field(..., description="Sender user ID")
+    recipient_id: int = Field(..., description="Recipient user ID")
+    timestamp: datetime = Field(..., description="Message timestamp")
+
+    class Config:
+        from_attributes = True
 
 class User(BaseModel):
-    id: int
-    username: str
+    """User model with Pydantic v2 compatibility."""
+    id: int = Field(..., description="User ID")
+    username: str = Field(..., description="Username")
+
+    class Config:
+        from_attributes = True
 
 # Schema imports
 class ValidationErrorResponse(BaseModel):
-    detail: str
+    """Validation error response model."""
+    detail: str = Field(..., description="Error detail")
 class MessageCreate(BaseModel):
-    content: str = Field(..., min_length=1, max_length=2000)
-    recipient_id: int
+    """Message creation model with Pydantic v2 compatibility."""
+    content: str = Field(..., min_length=1, max_length=2000, description="Message content")
+    recipient_id: int = Field(..., description="Recipient user ID")
+
+    class Config:
+        from_attributes = True
+
 class MessageRead(BaseModel):
-    id: int
-    content: str
-    sender_id: int
-    recipient_id: int
-    timestamp: datetime
+    """Message read model with Pydantic v2 compatibility."""
+    id: int = Field(..., description="Message ID")
+    content: str = Field(..., description="Message content")
+    sender_id: int = Field(..., description="Sender user ID")
+    recipient_id: int = Field(..., description="Recipient user ID")
+    timestamp: datetime = Field(..., description="Message timestamp")
+
+    class Config:
+        from_attributes = True
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/messages", tags=["messages"])
 
 performance_logger = get_performance_logger() if get_performance_logger else None
 optimization_engine = PerformanceOptimizationEngine() if PerformanceOptimizationEngine else None
+
+# Import enhanced security decorators
+try:
+    from plexichat.core.security.security_decorators import (
+        secure_endpoint, require_auth, rate_limit, audit_access, validate_input,
+        SecurityLevel, RequiredPermission
+    )
+    from plexichat.core.logging_advanced.enhanced_logging_system import (
+        get_enhanced_logging_system, LogCategory, LogLevel, PerformanceTracker, SecurityMetrics
+    )
+    ENHANCED_SECURITY_AVAILABLE = True
+    
+    # Get enhanced logging system
+    logging_system = get_enhanced_logging_system()
+    if logging_system:
+        enhanced_logger = logging_system.get_logger(__name__)
+        logger.info("Enhanced security and logging initialized for messages")
+    else:
+        enhanced_logger = None
+        
+except ImportError as e:
+    logger.warning(f"Enhanced security not available for messages: {e}")
+    # Fallback decorators
+    def secure_endpoint(*args, **kwargs):
+        def decorator(func): return func
+        return decorator
+    
+    def require_auth(*args, **kwargs):
+        def decorator(func): return func
+        return decorator
+    
+    def rate_limit(*args, **kwargs):
+        def decorator(func): return func
+        return decorator
+    
+    def audit_access(*args, **kwargs):
+        def decorator(func): return func
+        return decorator
+    
+    def validate_input(*args, **kwargs):
+        def decorator(func): return func
+        return decorator
+    
+    class SecurityLevel:
+        AUTHENTICATED = 2
+        ADMIN = 4
+    
+    class RequiredPermission:
+        READ = "read"
+        WRITE = "write"
+        DELETE = "delete"
+    
+    class PerformanceTracker:
+        def __init__(self, name, logger):
+            self.name = name
+            self.logger = logger
+        def __enter__(self):
+            return self
+        def __exit__(self, *args):
+            pass
+        def add_metadata(self, **kwargs):
+            pass
+    
+    class SecurityMetrics:
+        def __init__(self, **kwargs):
+            pass
+    
+    ENHANCED_SECURITY_AVAILABLE = False
+    enhanced_logger = None
+    logging_system = None
 
 executor = ThreadPoolExecutor(max_workers=8)
 
@@ -220,14 +308,47 @@ class MessageService:
 message_service = MessageService()
 
 @router.post("/send", response_model=MessageRead, status_code=status.HTTP_201_CREATED, responses={400: {"model": ValidationErrorResponse}, 429: {"description": "Rate limit exceeded"}})
+@secure_endpoint(
+    auth_level=SecurityLevel.AUTHENTICATED,
+    permissions=[RequiredPermission.WRITE],
+    rate_limit_rpm=30,
+    audit_action="send_message"
+)
 async def send_message(request: Request, data: MessageCreate, background_tasks: BackgroundTasks, current_user: Dict[str, Any] = Depends(get_current_user)):
     client_ip = request.client.host if request.client else "unknown"
-    logger.info(Fore.CYAN + f"[MSG] User {current_user.get('id', 'unknown')} from {client_ip} sending message" + Style.RESET_ALL)
+    
+    # Enhanced logging with security context
+    if enhanced_logger and logging_system:
+        logging_system.set_context(
+            user_id=str(current_user.get("id", "")),
+            endpoint="/messages/send",
+            method="POST",
+            ip_address=client_ip
+        )
+        
+        enhanced_logger.info(
+            f"User {current_user.get('id')} sending message",
+            extra={
+                "category": LogCategory.API,
+                "metadata": {
+                    "sender_id": current_user.get("id"),
+                    "recipient_id": data.recipient_id,
+                    "message_length": len(data.content),
+                    "client_ip": client_ip
+                },
+                "tags": ["messaging", "send_message", "user_action"]
+            }
+        )
+    else:
+        logger.info(Fore.CYAN + f"[MSG] User {current_user.get('id', 'unknown')} from {client_ip} sending message" + Style.RESET_ALL)
+    
+    # Performance tracking setup
     operation_id = None
     if optimization_engine:
         operation_id = f"send_message_{current_user.get('id')}_{datetime.now().timestamp()}"
         optimization_engine.start_performance_tracking(operation_id)
         logger.debug(Fore.GREEN + f"[MSG] Performance tracking started for operation {operation_id}" + Style.RESET_ALL)
+    
     try:
         if not await message_service.validate_recipient(data.recipient_id):
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Recipient not found")

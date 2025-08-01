@@ -22,6 +22,17 @@ try:
 except ImportError:
     pass
 
+# Import enhanced database components (NEW PERFORMANCE OPTIMIZED)
+try:
+    from .enhanced_db_manager import (
+        EnhancedDatabaseManager,
+        EnhancedConnectionPool,
+        EnhancedQueryCache,
+        get_enhanced_db_manager
+    )
+except ImportError:
+    pass
+
 # Import unified database components (NEW CONSOLIDATED MODULES)
 try:
     from .unified_engines import UnifiedEngineManager, unified_engine_manager, DatabaseEngine, SQLiteEngine, PostgreSQLEngine, MongoDBEngine, EngineConfig
@@ -86,6 +97,12 @@ __all__ = [
     "ConsolidatedDatabaseManager",
     "database_manager",
     "DatabaseManager",  # Backward compatibility alias
+
+    # Enhanced database management (NEW PERFORMANCE OPTIMIZED)
+    "EnhancedDatabaseManager",
+    "EnhancedConnectionPool",
+    "EnhancedQueryCache",
+    "get_enhanced_db_manager",
 
     # Database configuration and types
     "DatabaseConfig",

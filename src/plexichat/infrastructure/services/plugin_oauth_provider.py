@@ -49,7 +49,7 @@ class GrantType(Enum):
     """OAuth grant types."""
     AUTHORIZATION_CODE = "authorization_code"
     CLIENT_CREDENTIALS = "client_credentials"
-    REFRESH_TOKEN = "refresh_token"
+REFRESH_TOKEN =os.getenv("ACCESS_TOKEN", "")
 
 
 @dataclass

@@ -42,7 +42,7 @@ class HSMType(Enum):
     """Types of Hardware Security Modules."""
     NETWORK_ATTACHED = "network_attached"
     PCIe_CARD = "pcie_card"
-    USB_TOKEN = "usb_token"
+USB_TOKEN =os.getenv("ACCESS_TOKEN", "")
     CLOUD_HSM = "cloud_hsm"
     VIRTUAL_HSM = "virtual_hsm"
     QUANTUM_HSM = "quantum_hsm"

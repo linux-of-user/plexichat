@@ -1,5 +1,6 @@
 import asyncio
 import json
+import os
 import random
 import secrets
 import string
@@ -64,7 +65,10 @@ class AuthenticationMethod(Enum):
     OAUTH2 = "oauth2"
     HARDWARE_KEY = "hardware_key"
     ZERO_KNOWLEDGE = "zero_knowledge"
-    API_KEY = "api_key"
+
+# Configuration constants
+PASSWORD = os.getenv("PASSWORD", "")
+API_KEY = os.getenv("API_KEY", "")
 
 
 class SecurityLevel(Enum):
@@ -217,11 +221,8 @@ class UnifiedAuthManager:
         # Core components
         self.input_validator = get_input_validator()
 
-        # Storage
-        self.sessions: Dict[str, SessionData] = {}
-        self.tokens: Dict[str, TokenData] = {}
-        self.users: Dict[str, Dict[str, Any]] = {}
-        self.devices: Dict[str, Dict[str, Any]] = {}
+        from .in_memory_storage import InMemoryStorage
+        self.storage = InMemoryStorage()
 
         # Security tracking
         self.failed_attempts: Dict[str, List[datetime]] = {}
@@ -229,14 +230,16 @@ class UnifiedAuthManager:
         self.trusted_devices: Dict[str, Dict[str, Any]] = {}
 
         # Configuration
-        self.session_timeout = timedelta(minutes=self.config.get("session_timeout_minutes", 30))
-        self.token_lifetime = timedelta(hours=self.config.get("token_lifetime_hours", 24))
-        self.max_failed_attempts = self.config.get("max_failed_attempts", 5)
-        self.lockout_duration = timedelta(minutes=self.config.get("lockout_duration_minutes", 15))
+
+        from .auth_config import auth_settings
+        self.session_timeout = timedelta(minutes=auth_settings.session_timeout_minutes)
+        self.token_lifetime = timedelta(hours=auth_settings.token_lifetime_hours)
+        self.max_failed_attempts = auth_settings.max_failed_attempts
+        self.lockout_duration = timedelta(minutes=auth_settings.lockout_duration_minutes)
 
         # Admin account management
         from pathlib import Path
-        self.admin_file = Path(self.config.get("admin_file", "data/admin.json"))
+        self.admin_file = Path(auth_settings.admin_file)
         self.admin_file.parent.mkdir(parents=True, exist_ok=True)
 
         # MFA configuration
@@ -425,49 +428,49 @@ class UnifiedAuthManager:
 
     async def validate_session(self, session_id: str) -> Dict[str, Any]:
         """Validate an active session."""
-        if session_id not in self.sessions:
+        session = await self.storage.get_session(session_id)
+        if not session:
             return {"valid": False, "error": "Session not found"}
 
-        session = self.sessions[session_id]
-
-        if not session.is_active:
+        if not session.get("is_active"):
             return {"valid": False, "error": "Session inactive"}
 
-        if session.expires_at <= datetime.now(timezone.utc):
-            session.is_active = False
+        if session.get("expires_at") <= datetime.now(timezone.utc):
+            session["is_active"] = False
+            await self.storage.save_session(session_id, session)
             return {"valid": False, "error": "Session expired"}
 
         # Update last activity
-        session.last_activity = datetime.now(timezone.utc)
+        session["last_activity"] = datetime.now(timezone.utc)
+        await self.storage.save_session(session_id, session)
 
         return {
             "valid": True,
             "session": session,
-            "user_id": session.user_id,
-            "security_level": session.security_level.value,
-            "device_trusted": session.device_trusted
+            "user_id": session.get("user_id"),
+            "security_level": session.get("security_level").value,
+            "device_trusted": session.get("device_trusted")
         }
 
     async def validate_token(self, token: str) -> Dict[str, Any]:
         """Validate an access token."""
-        if token not in self.tokens:
+        token_data = await self.storage.get_token(token)
+        if not token_data:
             return {"valid": False, "error": "Token not found"}
 
-        token_data = self.tokens[token]
-
-        if token_data.is_revoked:
+        if token_data.get("is_revoked"):
             return {"valid": False, "error": "Token revoked"}
 
-        if token_data.expires_at and token_data.expires_at <= datetime.now(timezone.utc):
+        if token_data.get("expires_at") and token_data.get("expires_at") <= datetime.now(timezone.utc):
             return {"valid": False, "error": "Token expired"}
 
         return {
             "valid": True,
             "token": token_data,
-            "user_id": token_data.user_id,
-            "session_id": token_data.session_id,
-            "security_level": token_data.security_level.value,
-            "permissions": token_data.permissions
+            "user_id": token_data.get("user_id"),
+            "session_id": token_data.get("session_id"),
+            "security_level": token_data.get("security_level").value,
+            "permissions": token_data.get("permissions")
         }
 
     async def refresh_token(self, refresh_token: str) -> AuthenticationResponse:
@@ -533,13 +536,19 @@ class UnifiedAuthManager:
         try:
             success = True
 
-            if session_id and session_id in self.sessions:
-                self.sessions[session_id].is_active = False
-                logger.info(f"Session {session_id} invalidated")
+            if session_id:
+                session = await self.storage.get_session(session_id)
+                if session:
+                    session["is_active"] = False
+                    await self.storage.save_session(session_id, session)
+                    logger.info(f"Session {session_id} invalidated")
 
-            if token and token in self.tokens:
-                self.tokens[token].is_revoked = True
-                logger.info("Token revoked")
+            if token:
+                token_data = await self.storage.get_token(token)
+                if token_data:
+                    token_data["is_revoked"] = True
+                    await self.storage.save_token(token, token_data)
+                    logger.info("Token revoked")
 
             return success
 
@@ -676,16 +685,16 @@ class UnifiedAuthManager:
 
     async def get_status(self) -> Dict[str, Any]:
         """Get comprehensive authentication system status."""
-        active_sessions = sum(1 for s in self.sessions.values() if s.is_active)
-        valid_tokens = sum(1 for t in self.tokens.values() if not t.is_revoked)
+        active_sessions = len([s for s in (await self.storage.get_all_sessions()) if s.get("is_active")])
+        valid_tokens = len([t for t in (await self.storage.get_all_tokens()) if not t.get("is_revoked")])
 
         return {
             "initialized": self.initialized,
-            "total_users": len(self.users),
+            "total_users": len(await self.storage.get_all_users()),
             "active_sessions": active_sessions,
-            "total_sessions": len(self.sessions),
+            "total_sessions": len(await self.storage.get_all_sessions()),
             "valid_tokens": valid_tokens,
-            "total_tokens": len(self.tokens),
+            "total_tokens": len(await self.storage.get_all_tokens()),
             "locked_accounts": len(self.locked_accounts),
             "trusted_devices": len(self.trusted_devices),
             "session_timeout_minutes": self.session_timeout.total_seconds() / 60,

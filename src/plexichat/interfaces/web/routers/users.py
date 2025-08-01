@@ -64,6 +64,72 @@ router = APIRouter(prefix="/users", tags=["users"])
 performance_logger = get_performance_logger() if get_performance_logger else None
 optimization_engine = PerformanceOptimizationEngine() if PerformanceOptimizationEngine else None
 
+# Import enhanced security decorators
+try:
+    from plexichat.core.security.security_decorators import (
+        secure_endpoint, admin_endpoint, require_auth, rate_limit, audit_access,
+        SecurityLevel, RequiredPermission
+    )
+    from plexichat.core.logging_advanced.enhanced_logging_system import (
+        get_enhanced_logging_system, LogCategory, LogLevel, PerformanceTracker
+    )
+    ENHANCED_SECURITY_AVAILABLE = True
+    
+    # Get enhanced logging system
+    logging_system = get_enhanced_logging_system()
+    if logging_system:
+        enhanced_logger = logging_system.get_logger(__name__)
+        logger.info("Enhanced security and logging initialized for users")
+    else:
+        enhanced_logger = None
+        
+except ImportError as e:
+    logger.warning(f"Enhanced security not available for users: {e}")
+    # Fallback decorators
+    def secure_endpoint(*args, **kwargs):
+        def decorator(func): return func
+        return decorator
+    
+    def admin_endpoint(*args, **kwargs):
+        def decorator(func): return func
+        return decorator
+    
+    def require_auth(*args, **kwargs):
+        def decorator(func): return func
+        return decorator
+    
+    def rate_limit(*args, **kwargs):
+        def decorator(func): return func
+        return decorator
+    
+    def audit_access(*args, **kwargs):
+        def decorator(func): return func
+        return decorator
+    
+    class SecurityLevel:
+        AUTHENTICATED = 2
+        ADMIN = 4
+    
+    class RequiredPermission:
+        READ = "read"
+        WRITE = "write"
+        DELETE = "delete"
+    
+    class PerformanceTracker:
+        def __init__(self, name, logger):
+            self.name = name
+            self.logger = logger
+        def __enter__(self):
+            return self
+        def __exit__(self, *args):
+            pass
+        def add_metadata(self, **kwargs):
+            pass
+    
+    ENHANCED_SECURITY_AVAILABLE = False
+    enhanced_logger = None
+    logging_system = None
+
 # Pydantic models
 class UserCreate(BaseModel):
     username: str = Field(..., min_length=3, max_length=50)
@@ -317,20 +383,76 @@ user_service = UserService()
     status_code=status.HTTP_201_CREATED,
     summary="Create user"
 )
+@admin_endpoint(
+    audit_action="create_user",
+    rate_limit_rpm=10
+)
 async def create_user(
     request: Request,
     user_data: UserCreate,
     current_user: Dict[str, Any] = Depends(require_admin)
 ):
-    """Create a new user (admin only)."""
+    """Create a new user with enhanced security and auditing (admin only)."""
     client_ip = request.client.host if request.client else "unknown"
-    logger.info(f"User creation requested by admin {current_user.get('username')} from {client_ip}")
+    
+    # Enhanced logging
+    if enhanced_logger and logging_system:
+        logging_system.set_context(
+            user_id=str(current_user.get("id", "")),
+            endpoint="/users/",
+            method="POST",
+            ip_address=client_ip
+        )
+        
+        enhanced_logger.audit(
+            f"User creation requested by admin {current_user.get('username')}",
+            extra={
+                "category": LogCategory.AUDIT,
+                "metadata": {
+                    "admin_id": current_user.get("id"),
+                    "admin_username": current_user.get("username"),
+                    "new_username": user_data.username,
+                    "new_email": user_data.email,
+                    "new_user_is_admin": user_data.is_admin
+                },
+                "tags": ["user_management", "create_user", "admin_action"]
+            }
+        )
+    else:
+        logger.info(f"User creation requested by admin {current_user.get('username')} from {client_ip}")
 
-    # Performance tracking
-    if performance_logger:
-        performance_logger.record_metric("user_creation_requests", 1, "count")
+    # Performance tracking with enhanced system
+    if ENHANCED_SECURITY_AVAILABLE and enhanced_logger:
+        with PerformanceTracker("create_user", enhanced_logger) as tracker:
+            tracker.add_metadata(
+                admin_id=current_user.get("id"),
+                new_username=user_data.username
+            )
+            
+            result = await user_service.create_user(user_data)
+            
+            # Log successful creation
+            if enhanced_logger:
+                enhanced_logger.info(
+                    f"User created successfully: {result.username} (ID: {result.id})",
+                    extra={
+                        "category": LogCategory.AUDIT,
+                        "metadata": {
+                            "new_user_id": result.id,
+                            "new_username": result.username,
+                            "created_by": current_user.get("username")
+                        },
+                        "tags": ["user_created", "success"]
+                    }
+                )
+            
+            return result
+    else:
+        # Fallback to original performance tracking
+        if performance_logger:
+            performance_logger.record_metric("user_creation_requests", 1, "count")
 
-    return await user_service.create_user(user_data)
+        return await user_service.create_user(user_data)
 
 @router.get(
     "/",

@@ -173,20 +173,20 @@ class EnhancedTerminal:
         """Draw a single pane."""
         # Draw border
         if pane.border:
-            border_char = "═" if pane.active else "─"
-            corner_char = "╔" if pane.active else "┌"
+            border_char = "=" if pane.active else "-"
+            corner_char = "+" if pane.active else "+"
 
             # Top border
-            print(f"\033[{pane.y};{pane.x}H{corner_char}{border_char * (pane.width - 2)}╗")
+            print(f"\033[{pane.y};{pane.x}H{corner_char}{border_char * (pane.width - 2)}+")
 
             # Side borders
             for i in range(1, pane.height - 1):
-                side_char = "║" if pane.active else "│"
+                side_char = "|" if pane.active else "|"
                 print(f"\033[{pane.y + i};{pane.x}H{side_char}")
                 print(f"\033[{pane.y + i};{pane.x + pane.width - 1}H{side_char}")
 
             # Bottom border
-            print(f"\033[{pane.y + pane.height - 1};{pane.x}H╚{border_char * (pane.width - 2)}╝")
+            print(f"\033[{pane.y + pane.height - 1};{pane.x}H+{border_char * (pane.width - 2)}+")
 
         # Draw title
         if pane.title:
@@ -226,7 +226,7 @@ class EnhancedTerminal:
             try:
                 cpu_percent = psutil.cpu_percent()
                 memory = psutil.virtual_memory()
-                status_info.extend([)
+                status_info.extend([
                     f"CPU: {cpu_percent:.1f}%",
                     f"RAM: {memory.percent:.1f}%"
                 ])

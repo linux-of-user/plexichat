@@ -91,7 +91,7 @@ def analyze(ctx, database: str, format: str, detailed: bool):
                 }, indent=2))
 
             elif format == 'yaml':
-                click.echo(yaml.dump({))
+                click.echo(yaml.dump({
                     "database_performance_report": {
                         "database": report.database_name,
                         "analysis_timestamp": report.analysis_timestamp.isoformat(),
@@ -202,7 +202,7 @@ def optimize(ctx, database: str, auto_apply: bool, max_tasks: int, dry_run: bool
                 auto_apply_local = False
 
             # Run optimization
-            tasks = await performance_optimizer.optimize_database_performance()
+            tasks = await performance_optimizer.optimize_database_performance(
                 database_name, auto_apply=auto_apply_local
             )
 
@@ -215,14 +215,14 @@ def optimize(ctx, database: str, auto_apply: bool, max_tasks: int, dry_run: bool
             task_data = []
             for task in tasks:
                 status_color = "green" if task.success else "red" if task.status.value == "failed" else "yellow"
-                task_data.append([)
+                task_data.append([
                     task.optimization_type.replace("_", " ").title(),
                     task.description,
                     click.style(task.status.value.title(), fg=status_color),
                     f"Priority {task.priority}"
                 ])
 
-            click.echo(tabulate(task_data, headers=[Type, "Description", "Status", "Priority"], tablefmt="grid"))
+            click.echo(tabulate(task_data, headers=["Type", "Description", "Status", "Priority"], tablefmt="grid"))
 
             if auto_apply_local:
                 successful_tasks = [t for t in tasks if t.success]
@@ -435,7 +435,7 @@ def status(ctx):
             for db_name, report in reports.items():
                 score = report.get('performance_score', 0)
                 priority = report.get('optimization_priority', 'unknown')
-                score_data.append([)
+                score_data.append([
                     db_name,
                     f"{score:.1f}/100",
                     priority.title(),

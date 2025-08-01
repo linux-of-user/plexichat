@@ -1,5 +1,4 @@
 """
-import time
 PlexiChat Unified Authentication System - SINGLE SOURCE OF TRUTH
 
 This module consolidates ALL authentication systems from:
@@ -9,6 +8,9 @@ This module consolidates ALL authentication systems from:
 
 Provides a single, unified interface for all authentication operations.
 """
+
+import os
+import time
 
 import logging
 from datetime import datetime, timedelta
@@ -33,7 +35,9 @@ class AuthenticationMethod(Enum):
     OAUTH2 = "oauth2"
     HARDWARE_KEY = "hardware_key"
     ZERO_KNOWLEDGE = "zero_knowledge"
-    API_KEY = "api_key"
+
+# Configuration constants
+API_KEY = os.getenv("API_KEY", "")
 
 
 class SecurityLevel(Enum):
@@ -93,7 +97,7 @@ class UnifiedAuthManager:
         self.max_failed_attempts = 5
         self.lockout_duration = timedelta(minutes=30)
         self.session_timeout = timedelta(hours=8)
-        self.token_secret = "your-secret-key"  # Should be from config
+        self.token_secret = "default_secret"  # Should be from config
 
     async def authenticate(
         self,
@@ -228,16 +232,24 @@ class UnifiedAuthManager:
 
     async def _validate_password(self, username: str, password: str) -> Optional[Dict[str, Any]]:
         """Validate username/password credentials."""
-        # TODO: Implement actual password validation with database
-        # This is a placeholder implementation
-        if username == "admin" and password == "admin123":
-            return {
-                'user_id': '1',
-                'username': username,
-                'requires_mfa': False,
-                'must_change_password': False
-            }
-        return None
+        try:
+            # Import and use the admin credentials manager
+            from .admin_credentials import admin_credentials_manager
+
+            if admin_credentials_manager.verify_admin_credentials(username, password):
+                return {
+                    'user_id': '1',
+                    'username': username,
+                    'requires_mfa': False,
+                    'must_change_password': False
+                }
+
+            logger.warning(f"Invalid credentials for user: {username}")
+            return None
+
+        except Exception as e:
+            logger.error(f"Password validation error: {e}")
+            return None
 
     async def _validate_api_key(self, api_key: str) -> Optional[Dict[str, Any]]:
         """Validate API key."""
@@ -333,8 +345,8 @@ AuthManager = UnifiedAuthManager
 __all__ = [
     'UnifiedAuthManager',
     'unified_auth_manager',
-    'auth_manager',  # Backward compatibility
-    'AuthManager',   # Backward compatibility
+    'auth_manager',
+    'AuthManager',
     'AuthenticationMethod',
     'SecurityLevel',
     'AuthSession',

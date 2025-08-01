@@ -4,21 +4,11 @@
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
 import json
+import logging
 from pathlib import Path
 from typing import List, Optional
 
-
-from pathlib import Path
-from pathlib import Path
-
-
-from pathlib import Path
-from pathlib import Path
-
 from plexichat.core.logging import logger
-from plexichat.features.antivirus.core import ScanType, ThreatLevel
-from plexichat.features.antivirus.enhanced_antivirus_manager import EnhancedAntivirusManager
-import logging
 
 
 """
@@ -51,7 +41,8 @@ class AntivirusCLI:
         """Ensure antivirus manager is initialized."""
         if not self.manager:
             self.manager = EnhancedAntivirusManager()
-            await self.if manager and hasattr(manager, "initialize"): manager.initialize()
+            if hasattr(self.manager, "initialize"):
+                await self.manager.initialize()
         return self.manager
 
     async def show_status(self) -> None:
@@ -126,8 +117,7 @@ class AntivirusCLI:
         try:
             manager = await self._ensure_manager()
 
-            if not from pathlib import Path
-Path(file_path).exists():
+            if not Path(file_path).exists():
                 self.print_colored(f" File not found: {file_path}", "red")
                 return
 
@@ -208,8 +198,7 @@ Path(file_path).exists():
         try:
             manager = await self._ensure_manager()
 
-            if not from pathlib import Path
-Path(plugin_path).exists():
+            if not Path(plugin_path).exists():
                 self.print_colored(f" Plugin file not found: {plugin_path}", "red")
                 return
 

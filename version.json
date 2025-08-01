@@ -1,0 +1,57 @@
+{
+  "version": "b.1.1-93",
+  "version_type": "beta",
+  "major_version": 1,
+  "minor_version": 1,
+  "build_number": 93,
+  "release_date": "2025-07-31",
+  "api_version": "v1",
+  "compatibility": {
+    "min_client_version": "a.1.0-0",
+    "max_client_version": "a.2.0-999"
+  },
+  "features": {
+    "file_attachments": true,
+    "ai_integration": true,
+    "security_scanning": true,
+    "backup_system": true,
+    "real_time_messaging": true,
+    "plugin_system": true
+  },
+  "changelog": [
+    {
+      "version": "b.1.1-93",
+      "date": "2025-07-31",
+      "changes": [
+        "Implemented comprehensive configuration system with ConfigManager",
+        "Added version management from version.json file",
+        "Integrated interactive CLI system with plugin support",
+        "Added --nocli option for server-only mode",
+        "Enhanced server startup with full system mode (API + WebUI + CLI)",
+        "Made all configuration values configurable (no hardcoded values)",
+        "Added config file support with automatic generation",
+        "Improved GitHub integration with configurable repositories",
+        "Enhanced installation system with configuration-based defaults"
+      ],
+      "breaking_changes": [],
+      "deprecations": []
+    },
+    {
+      "version": "b.1.1-90",
+      "date": "2025-07-30",
+      "changes": [
+        "Implemented new versioning system (letter.majorversion.minorversion-buildnumber)",
+        "Added comprehensive file attachment support",
+        "Enhanced message endpoints with file uploads",
+        "Improved API error handling and validation",
+        "Added security scanning for uploaded files",
+        "Implemented auto-generated version.json and changelog.json",
+        "Enhanced backup system integration",
+        "Added real-time messaging capabilities",
+        "Improved plugin system architecture"
+      ],
+      "breaking_changes": [],
+      "deprecations": []
+    }
+  ]
+}

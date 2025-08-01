@@ -99,15 +99,15 @@ class MessageAntivirusScanner:
             # Union-based injection
             r"(\bUNION\s+(ALL\s+)?SELECT\b)",
             # Stored procedure execution
-            r"(\b(EXEC|EXECUTE)\s*\()",)
+            r"(\b(EXEC|EXECUTE)\s*\()",
             # SQL comments
             r"(--|\#|\/\*|\*\/)",
             # SQL functions commonly used in injection
-            r"(\b(CHAR|ASCII|SUBSTRING|LENGTH|USER|DATABASE|VERSION)\s*\()",)
+            r"(\b(CHAR|ASCII|SUBSTRING|LENGTH|USER|DATABASE|VERSION)\s*\()",
             # Time-based injection
             r"(\b(WAITFOR|DELAY)\s+)",
             # Type conversion functions
-            r"(\b(CAST|CONVERT)\s*\()",)
+            r"(\b(CAST|CONVERT)\s*\()"
             # Information schema access
             r"(\b(INFORMATION_SCHEMA|SYSOBJECTS|SYSCOLUMNS)\b)",
         ]
@@ -124,7 +124,7 @@ class MessageAntivirusScanner:
             r"<iframe[^>]*>",
             r"<object[^>]*>",
             r"<embed[^>]*>",
-            r"eval\s*\(",)
+            r"eval\s*\(",
             r"document\.cookie",
             r"document\.write",
         ]

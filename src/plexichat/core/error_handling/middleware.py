@@ -12,7 +12,9 @@ from starlette.types import ASGIApp
 from .beautiful_error_handler import BeautifulErrorHandler
 from .error_manager import error_manager
 from .exceptions import BaseAPIException, ErrorCategory, ErrorSeverity
-
+from .enhanced_error_system import enhanced_error_handler, ErrorType
+from ..logging.correlation_tracker import correlation_tracker, CorrelationType, set_current_correlation_id
+from ..logging.unified_logging import get_logger
 
 from fastapi import HTTPException, Request, Response
 from fastapi.responses import JSONResponse
@@ -24,7 +26,7 @@ FastAPI middleware for comprehensive error handling, logging,
 and response formatting across the entire application.
 """
 
-logger = logging.getLogger(__name__, Optional)
+logger = get_logger(__name__)
 
 
 class ErrorHandlingMiddleware(BaseHTTPMiddleware):
@@ -55,12 +57,27 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
         self.max_response_times = 1000  # Keep last 1000 response times
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
-        """Process request with comprehensive error handling."""
+        """Process request with comprehensive error handling and correlation tracking."""
         start_time = time.time()
-        request_id = str(uuid.uuid4())[:8]
 
-        # Add request ID to request state
-        request.state.request_id = request_id
+        # Start correlation tracking for this request
+        correlation_id = correlation_tracker.start_correlation(
+            correlation_type=CorrelationType.REQUEST,
+            component="http_middleware",
+            operation=f"{request.method} {request.url.path}",
+            user_id=getattr(request.state, 'user_id', None),
+            session_id=getattr(request.state, 'session_id', None),
+            request_method=request.method,
+            request_path=str(request.url.path),
+            request_params=dict(request.query_params),
+            client_ip=request.client.host if request.client else "unknown",
+            user_agent=request.headers.get("user-agent", "unknown")
+        )
+
+        # Set correlation ID in context and request state
+        set_current_correlation_id(correlation_id)
+        request.state.correlation_id = correlation_id
+        request.state.request_id = correlation_id[:8]  # Short ID for backwards compatibility
 
         self.request_count += 1
 
@@ -72,15 +89,60 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
             response_time = time.time() - start_time
             self._track_response_time(response_time)
 
-            # Add request ID to response headers
-            response.headers["X-Request-ID"] = request_id
+            # Add comprehensive headers
+            response.headers["X-Request-ID"] = request.state.request_id
+            response.headers["X-Correlation-ID"] = correlation_id
             response.headers["X-Response-Time"] = f"{response_time:.3f}s"
+
+            # Finish correlation tracking
+            correlation_tracker.finish_correlation(
+                correlation_id,
+                response_status=response.status_code
+            )
 
             return response
 
         except Exception as e:
-            # Handle the error
-            return await self._handle_error(request, e, request_id, start_time)
+            # Handle the error with enhanced system
+            return await self._handle_error_enhanced(request, e, correlation_id, start_time)
+
+    async def _handle_error_enhanced(self, request: Request, exception: Exception,
+                                   correlation_id: str, start_time: float) -> Response:
+        """Handle errors using the enhanced error system."""
+        response_time = time.time() - start_time
+        self.error_count += 1
+
+        # Use enhanced error handler
+        error_details = await enhanced_error_handler.handle_error(
+            exception=exception,
+            request=request,
+            correlation_id=correlation_id,
+            context={
+                'component': 'http_middleware',
+                'operation': f"{request.method} {request.url.path}",
+                'response_time': response_time
+            }
+        )
+
+        # Finish correlation tracking with error information
+        correlation_tracker.finish_correlation(
+            correlation_id,
+            response_status=error_details._get_http_status_code(error_details.error_type),
+            error_count=1,
+            error_types=[error_details.exception_type]
+        )
+
+        # Update error statistics
+        self._update_error_stats_enhanced(error_details)
+
+        # Create appropriate response
+        if self._is_api_request(request):
+            return enhanced_error_handler.create_error_response(
+                error_details,
+                include_debug=self.debug
+            )
+        else:
+            return await self._create_web_error_response_enhanced(error_details, request)
 
     async def _handle_error(self, request: Request, exception: Exception,)
                            request_id: str, start_time: float) -> Response:
@@ -348,3 +410,35 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
             'error_breakdown': self.error_stats,
             'recent_response_times': self.response_times[-10:] if self.response_times else []
         }
+
+    def _update_error_stats_enhanced(self, error_details):
+        """Update error statistics with enhanced error details."""
+        error_key = f"{error_details.error_type.value}:{error_details.exception_type}"
+        self.error_stats[error_key] = self.error_stats.get(error_key, 0) + 1
+
+        # Also track by severity
+        severity_key = f"severity:{error_details.severity.value}"
+        self.error_stats[severity_key] = self.error_stats.get(severity_key, 0) + 1
+
+    async def _create_web_error_response_enhanced(self, error_details, request: Request) -> Response:
+        """Create enhanced web error response."""
+        if self.enable_beautiful_errors:
+            status_code = enhanced_error_handler._get_http_status_code(error_details.error_type)
+            return await self.beautiful_handler.handle_error(
+                request=request,
+                status_code=status_code,
+                exception=Exception(error_details.technical_details)
+            )
+        else:
+            # Simple text response with enhanced information
+            status_code = enhanced_error_handler._get_http_status_code(error_details.error_type)
+            return Response(
+                content=f"Error {status_code}: {error_details.user_message}",
+                status_code=status_code,
+                media_type="text/plain",
+                headers={
+                    'X-Request-ID': error_details.correlation_id[:8],
+                    'X-Correlation-ID': error_details.correlation_id,
+                    'X-Error-ID': error_details.error_id
+                }
+            )

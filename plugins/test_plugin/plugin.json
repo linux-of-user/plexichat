@@ -4,6 +4,9 @@
   "version": "1.0.0",
   "description": "Unified test suite plugin for PlexiChat. Runs all core, integration, and performance tests.",
   "entry_point": "main.py",
+  "security_level": "trusted",
+  "enabled": true,
+  "auto_load": true,
   "commands": [
     {
       "name": "run_tests",
@@ -14,4 +17,4 @@
   "dependencies": [],
   "author": "PlexiChat Team",
   "license": "CC0"
-} 
+}

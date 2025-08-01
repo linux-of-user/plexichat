@@ -1,6 +1,6 @@
 """
-Advanced Login Screen Component for PlexiChat GUI
-Features modern design, security, and multiple authentication methods.
+Modern Glassmorphic Login Screen for PlexiChat GUI
+Features stunning glassmorphism, dark/light modes, and premium UX design.
 """
 
 import tkinter as tk
@@ -17,23 +17,31 @@ from pathlib import Path
 import json
 import requests
 import base64
+import psutil
+import os
+import time
+import random
+import math
+try:
+    from PIL import Image, ImageTk, ImageFilter, ImageDraw
+    PIL_AVAILABLE = True
+except ImportError:
+    PIL_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
 
-class LoginScreen(ttk.Frame):
+class LoginScreen(tk.Frame):
     """
-    Advanced login screen with modern design and security features.
+    Modern glassmorphic login screen with premium design and UX.
     
     Features:
-    - Modern, animated UI
-    - Multiple authentication methods (password, 2FA, biometric)
-    - Remember me functionality
-    - Password strength indicator
-    - Forgot password recovery
-    - User registration
-    - Social login integration
-    - Security monitoring
+    - True glassmorphism with frosted glass effects
+    - Smooth dark/light mode toggle with animations
+    - Modern rounded input fields with focus states
+    - Animated starry background
+    - Premium button design with hover effects
+    - Responsive layout and professional typography
     """
 
     def __init__(self, parent, app_instance):
@@ -42,498 +50,1245 @@ class LoginScreen(ttk.Frame):
         self.parent = parent
         
         # Authentication state
-        self.auth_method = "password"  # password, 2fa, biometric
+        self.auth_method = "password"
         self.login_attempts = 0
         self.max_attempts = 5
         self.is_authenticating = False
-        
-        # UI components
-        self.main_frame = None
-        self.login_frame = None
-        self.register_frame = None
-        self.forgot_password_frame = None
-        
+
         # Form variables
         self.username_var = tk.StringVar()
         self.password_var = tk.StringVar()
-        self.remember_me_var = tk.BooleanVar()
+        self.remember_var = tk.BooleanVar()
         self.show_password_var = tk.BooleanVar()
         
         # Animation variables
         self.animation_running = False
+        self.particles = []
+        self.hover_animations = {}
 
-        # Configure custom styles
-        self.configure_custom_styles()
+        # Modern theme system
+        self.dark_mode = tk.BooleanVar(value=True)
+        self.system_status_text = tk.StringVar()
+        self.start_time = datetime.now()
 
-        self.create_login_interface()
+        # Load saved theme preference
+        self.load_theme_preference()
 
-    def create_login_interface(self):
-        """Create the main login interface."""
+        # Initialize the modern interface
+        self.setup_modern_interface()
+
+    def get_bg_color(self):
+        """Get appropriate background color based on theme."""
+        return '#1a1a2e' if self.dark_mode.get() else '#f8fafc'
+
+    def setup_modern_interface(self):
+        """Initialize the complete modern interface."""
         try:
-            # Configure main frame
-            self.configure(style="Login.TFrame")
+            # Configure main container
+            self.pack(fill='both', expand=True)
             
-            # Create background
-            self.create_background()
+            # Create animated background
+            self.create_animated_background()
             
-            # Create main container
-            self.main_frame = ttk.Frame(self, style="LoginMain.TFrame")
-            self.main_frame.place(relx=0.5, rely=0.5, anchor="center")
+            # Create modern dark mode toggle
+            self.create_modern_toggle()
             
-            # Create login form
-            self.create_login_form()
+            # Create glassmorphic login panel
+            self.create_glassmorphic_panel()
             
             # Start background animations
-            self.start_background_animation()
+            self.start_animations()
             
-            logger.info("Login interface created successfully")
+            logger.info("Modern login interface initialized successfully")
             
         except Exception as e:
-            logger.error(f"Failed to create login interface: {e}")
-            messagebox.showerror("Error", f"Failed to create login interface: {e}")
+            logger.error(f"Failed to setup modern interface: {e}")
+            messagebox.showerror("Error", f"Failed to initialize interface: {e}")
 
-    def create_background(self):
-        """Create animated background."""
+    def create_animated_background(self):
+        """Create stunning animated starry background with gradients."""
         try:
-            # Create canvas for background effects
-            self.bg_canvas = tk.Canvas(self, highlightthickness=0)
+            # Full-screen background canvas
+            self.bg_canvas = tk.Canvas(
+                self,
+                highlightthickness=0,
+                bd=0,
+                relief='flat',
+                bg='#1a1a2e'
+            )
             self.bg_canvas.place(x=0, y=0, relwidth=1, relheight=1)
             
-            # Create gradient background
-            self.create_gradient_background()
+            # Create dynamic gradient background
+            self.create_dynamic_gradient()
             
-            # Create floating particles
-            self.create_floating_particles()
+            # Initialize animated stars
+            self.create_animated_stars()
             
         except Exception as e:
-            logger.error(f"Failed to create background: {e}")
+            logger.error(f"Failed to create animated background: {e}")
 
-    def create_gradient_background(self):
-        """Create gradient background effect."""
+    def create_dynamic_gradient(self):
+        """Create beautiful dynamic gradient background."""
+        try:
+            # Get screen dimensions
+            self.update_idletasks()
+            width = self.winfo_width() or self.winfo_screenwidth()
+            height = self.winfo_height() or self.winfo_screenheight()
+
+            if self.dark_mode.get():
+                # Dark mode: Deep space gradient
+                colors = [
+                    (0.0, '#0a0a1a'),    # Deep space black
+                    (0.3, '#1a1a2e'),    # Dark indigo
+                    (0.6, '#16213e'),    # Deeper blue
+                    (1.0, '#0f172a')     # Slate black
+                ]
+            else:
+                # Light mode: Ethereal sky gradient
+                colors = [
+                    (0.0, '#f0f9ff'),    # Sky blue white
+                    (0.4, '#e0f2fe'),    # Light cyan
+                    (0.7, '#f0f9ff'),    # Back to white
+                    (1.0, '#fafafa')     # Pure white
+                ]
+
+            # Draw gradient lines
+            for i in range(height):
+                ratio = i / height
+                color = self.interpolate_gradient_color(colors, ratio)
+                self.bg_canvas.create_line(0, i, width, i, fill=color, width=1)
+
+        except Exception as e:
+            logger.error(f"Failed to create dynamic gradient: {e}")
+
+    def interpolate_gradient_color(self, colors, ratio):
+        """Interpolate between gradient colors."""
+        try:
+            # Find the two colors to interpolate between
+            for i in range(len(colors) - 1):
+                if ratio <= colors[i + 1][0]:
+                    # Interpolate between colors[i] and colors[i + 1]
+                    t = (ratio - colors[i][0]) / (colors[i + 1][0] - colors[i][0])
+                    
+                    # Extract RGB values
+                    c1 = colors[i][1].lstrip('#')
+                    c2 = colors[i + 1][1].lstrip('#')
+                    
+                    r1, g1, b1 = int(c1[0:2], 16), int(c1[2:4], 16), int(c1[4:6], 16)
+                    r2, g2, b2 = int(c2[0:2], 16), int(c2[2:4], 16), int(c2[4:6], 16)
+                    
+                    # Interpolate
+                    r = int(r1 + (r2 - r1) * t)
+                    g = int(g1 + (g2 - g1) * t)
+                    b = int(b1 + (b2 - b1) * t)
+                    
+                    return f"#{r:02x}{g:02x}{b:02x}"
+            
+            return colors[-1][1]  # Return last color if ratio > 1
+            
+        except Exception as e:
+            return '#1a1a2e'  # Fallback color
+
+    def create_animated_stars(self):
+        """Create beautiful animated floating stars."""
+        try:
+            self.particles = []
+            star_count = 80 if self.dark_mode.get() else 40
+            
+            # Get canvas dimensions
+            width = self.winfo_screenwidth()
+            height = self.winfo_screenheight()
+            
+            for _ in range(star_count):
+                x = random.randint(0, width)
+                y = random.randint(0, height)
+                size = random.randint(1, 4)
+                speed = random.uniform(0.2, 1.0)
+                opacity = random.uniform(0.3, 1.0)
+                twinkle_speed = random.uniform(0.01, 0.05)
+                
+                # Create star colors based on theme
+                if self.dark_mode.get():
+                    colors = ['#ffffff', '#e0e7ff', '#c7d2fe', '#a5b4fc']
+                else:
+                    colors = ['#cbd5e1', '#94a3b8', '#64748b', '#475569']
+                
+                color = random.choice(colors)
+                
+                # Create star on canvas
+                if size <= 2:
+                    # Small stars as dots
+                    star_id = self.bg_canvas.create_oval(
+                        x, y, x + size, y + size,
+                        fill=color, outline='', width=0
+                    )
+                else:
+                    # Larger stars with sparkle effect
+                    star_id = self.bg_canvas.create_polygon(
+                        x, y-size, x+size//2, y-size//2, x+size, y,
+                        x+size//2, y+size//2, x, y+size, x-size//2, y+size//2,
+                        x-size, y, x-size//2, y-size//2,
+                        fill=color, outline='', smooth=True
+                    )
+                
+                self.particles.append({
+                    'id': star_id,
+                    'x': x, 'y': y,
+                    'size': size,
+                    'speed': speed,
+                    'direction': random.uniform(0, 360),
+                    'opacity': opacity,
+                    'twinkle_speed': twinkle_speed,
+                    'twinkle_phase': random.uniform(0, 2 * math.pi),
+                    'color': color,
+                    'base_color': color
+                })
+                
+        except Exception as e:
+            logger.error(f"Failed to create animated stars: {e}")
+
+    def create_modern_toggle(self):
+        """Create premium dark mode toggle with smooth animations."""
+        try:
+            # Toggle container with glassmorphic background
+            bg_color = '#1a1a2e' if self.dark_mode.get() else '#f8fafc'
+            toggle_container = tk.Frame(self, bg=bg_color)
+            toggle_container.place(relx=0.95, rely=0.05, anchor='ne')
+
+            # Toggle label
+            theme_color = '#ffffff' if self.dark_mode.get() else '#1f2937'
+            self.toggle_label = tk.Label(
+                toggle_container,
+                text="Dark Mode",
+                font=('Inter', 11, 'normal'),
+                fg=theme_color,
+                bg=bg_color
+            )
+            self.toggle_label.pack(side='right', padx=(0, 12))
+
+            # Modern toggle switch canvas
+            self.toggle_canvas = tk.Canvas(
+                toggle_container,
+                width=60, height=32,
+                highlightthickness=0,
+                bg=bg_color,
+                cursor='hand2'
+            )
+            self.toggle_canvas.pack(side='right')
+            
+            # Draw initial toggle state
+            self.draw_modern_toggle()
+            
+            # Bind click events
+            self.toggle_canvas.bind('<Button-1>', lambda e: self.animate_theme_toggle())
+            self.toggle_canvas.bind('<Enter>', lambda e: self.on_toggle_hover(True))
+            self.toggle_canvas.bind('<Leave>', lambda e: self.on_toggle_hover(False))
+            
+        except Exception as e:
+            logger.error(f"Failed to create modern toggle: {e}")
+
+    def draw_modern_toggle(self, hover=False):
+        """Draw the premium toggle switch with smooth gradients."""
+        try:
+            self.toggle_canvas.delete('all')
+            
+            # Toggle dimensions
+            track_width, track_height = 50, 24
+            thumb_size = 20
+            track_x, track_y = 5, 4
+            
+            # Colors based on state and theme
+            if self.dark_mode.get():
+                # Dark mode ON
+                track_color = '#3b82f6' if not hover else '#2563eb'
+                thumb_color = '#ffffff'
+                thumb_shadow = '#1e40af'
+                thumb_x = track_x + track_width - thumb_size - 2
+                glow_color = '#3b82f6'
+            else:
+                # Light mode ON (toggle OFF visually)
+                track_color = '#d1d5db' if not hover else '#9ca3af'
+                thumb_color = '#ffffff'
+                thumb_shadow = '#000000'
+                thumb_x = track_x + 2
+                glow_color = '#d1d5db'
+
+            # Draw glow effect when enabled
+            if self.dark_mode.get():
+                self.toggle_canvas.create_oval(
+                    track_x - 2, track_y - 2,
+                    track_x + track_width + 2, track_y + track_height + 2,
+                    fill='', outline=glow_color, width=2
+                )
+
+            # Draw track with rounded ends
+            self.draw_rounded_rect(
+                self.toggle_canvas,
+                track_x, track_y,
+                track_x + track_width, track_y + track_height,
+                track_height // 2,
+                track_color
+            )
+
+            # Draw thumb shadow
+            self.toggle_canvas.create_oval(
+                thumb_x + 1, track_y + 3,
+                thumb_x + thumb_size + 1, track_y + thumb_size + 1,
+                fill=thumb_shadow, outline=''
+            )
+
+            # Draw thumb
+            self.toggle_canvas.create_oval(
+                thumb_x, track_y + 2,
+                thumb_x + thumb_size, track_y + thumb_size + 2,
+                fill=thumb_color, outline='#e5e7eb', width=1
+            )
+
+            # Add theme icon on thumb
+            icon = '?' if self.dark_mode.get() else '??'
+            self.toggle_canvas.create_text(
+                thumb_x + thumb_size//2, track_y + track_height//2 + 1,
+                text=icon, font=('Arial', 10)
+            )
+
+        except Exception as e:
+            logger.error(f"Failed to draw modern toggle: {e}")
+
+    def on_toggle_hover(self, is_hover):
+        """Handle toggle hover effects."""
+        self.draw_modern_toggle(hover=is_hover)
+
+    def animate_theme_toggle(self):
+        """Animate the theme toggle with smooth transition."""
+        try:
+            # Toggle the mode
+            self.dark_mode.set(not self.dark_mode.get())
+            
+            # Save preference
+            self.save_theme_preference()
+            
+            # Animate toggle switch
+            self.draw_modern_toggle()
+            
+            # Update theme colors smoothly
+            self.update_theme_colors()
+            
+            # Refresh background gradient
+            self.create_dynamic_gradient()
+            
+            # Update stars for new theme
+            self.update_stars_for_theme()
+            
+            # Recreate glassmorphic panel with new theme
+            if hasattr(self, 'glass_panel'):
+                self.glass_panel.destroy()
+            self.create_glassmorphic_panel()
+            
+        except Exception as e:
+            logger.error(f"Failed to animate theme toggle: {e}")
+
+    def update_theme_colors(self):
+        """Update UI colors based on current theme."""
+        try:
+            # Update toggle label color
+            theme_color = '#ffffff' if self.dark_mode.get() else '#1f2937'
+            self.toggle_label.configure(fg=theme_color)
+            
+        except Exception as e:
+            logger.error(f"Failed to update theme colors: {e}")
+
+    def update_stars_for_theme(self):
+        """Update star colors based on current theme."""
+        try:
+            if self.dark_mode.get():
+                star_colors = ['#ffffff', '#e0e7ff', '#c7d2fe', '#a5b4fc']
+                target_count = 80
+            else:
+                star_colors = ['#cbd5e1', '#94a3b8', '#64748b', '#475569']
+                target_count = 40
+
+            # Update existing stars
+            for particle in self.particles:
+                new_color = random.choice(star_colors)
+                particle['color'] = new_color
+                particle['base_color'] = new_color
+                self.bg_canvas.itemconfig(particle['id'], fill=new_color)
+
+            # Adjust star count
+            current_count = len(self.particles)
+            if current_count < target_count:
+                # Add more stars for dark mode
+                self.add_stars(target_count - current_count)
+            elif current_count > target_count:
+                # Remove stars for light mode
+                self.remove_stars(current_count - target_count)
+
+        except Exception as e:
+            logger.error(f"Failed to update stars for theme: {e}")
+
+    def add_stars(self, count):
+        """Add more stars to the background."""
         try:
             width = self.winfo_screenwidth()
             height = self.winfo_screenheight()
             
-            # Create gradient from dark blue to dark purple
-            for i in range(height):
-                ratio = i / height
-                r = int(44 + (75 - 44) * ratio)  # 44 to 75
-                g = int(62 + (0 - 62) * ratio)   # 62 to 0
-                b = int(80 + (130 - 80) * ratio) # 80 to 130
-                
-                color = f"#{r:02x}{g:02x}{b:02x}"
-                self.bg_canvas.create_line(0, i, width, i, fill=color, width=1)
-                
-        except Exception as e:
-            logger.error(f"Failed to create gradient background: {e}")
-
-    def create_floating_particles(self):
-        """Create floating particle effects."""
-        try:
-            import random
+            colors = ['#ffffff', '#e0e7ff'] if self.dark_mode.get() else ['#cbd5e1', '#94a3b8']
             
-            self.particles = []
-            for _ in range(50):
-                x = random.randint(0, self.winfo_screenwidth())
-                y = random.randint(0, self.winfo_screenheight())
-                size = random.randint(2, 6)
-                speed = random.uniform(0.5, 2.0)
+            for _ in range(count):
+                x = random.randint(0, width)
+                y = random.randint(0, height)
+                size = random.randint(1, 3)
+                color = random.choice(colors)
                 
-                particle = self.bg_canvas.create_oval(
+                star_id = self.bg_canvas.create_oval(
                     x, y, x + size, y + size,
-                    fill="#ffffff", outline="", stipple="gray25"
+                    fill=color, outline='', width=0
                 )
                 
                 self.particles.append({
-                    "id": particle,
-                    "x": x,
-                    "y": y,
-                    "size": size,
-                    "speed": speed,
-                    "direction": random.uniform(0, 360)
+                    'id': star_id,
+                    'x': x, 'y': y,
+                    'size': size,
+                    'speed': random.uniform(0.2, 1.0),
+                    'direction': random.uniform(0, 360),
+                    'opacity': random.uniform(0.3, 1.0),
+                    'twinkle_speed': random.uniform(0.01, 0.05),
+                    'twinkle_phase': random.uniform(0, 2 * math.pi),
+                    'color': color,
+                    'base_color': color
                 })
                 
         except Exception as e:
-            logger.error(f"Failed to create floating particles: {e}")
+            logger.error(f"Failed to add stars: {e}")
 
-    def start_background_animation(self):
-        """Start background animation loop."""
+    def remove_stars(self, count):
+        """Remove stars from the background."""
         try:
-            self.animation_running = True
-            self.animate_particles()
+            for _ in range(min(count, len(self.particles))):
+                particle = self.particles.pop()
+                self.bg_canvas.delete(particle['id'])
+                
         except Exception as e:
-            logger.error(f"Failed to start background animation: {e}")
+            logger.error(f"Failed to remove stars: {e}")
 
-    def animate_particles(self):
-        """Animate floating particles."""
-        if not self.animation_running:
-            return
-            
+    def create_glassmorphic_panel(self):
+        """Create stunning glassmorphic login panel with blur effects."""
         try:
-            import math
+            # Main glass panel container
+            bg_color = '#1a1a2e' if self.dark_mode.get() else '#f8fafc'
+            self.glass_panel = tk.Frame(self, bg=bg_color)
+            self.glass_panel.place(relx=0.5, rely=0.5, anchor='center')
+
+            # Glass effect canvas
+            panel_width, panel_height = 420, 580
+            self.glass_canvas = tk.Canvas(
+                self.glass_panel,
+                width=panel_width,
+                height=panel_height,
+                highlightthickness=0,
+                bg=bg_color
+            )
+            self.glass_canvas.pack()
+
+            # Draw glassmorphic background
+            self.draw_glassmorphic_background(panel_width, panel_height)
+
+            # Create content frame
+            self.create_panel_content()
+
+        except Exception as e:
+            logger.error(f"Failed to create glassmorphic panel: {e}")
+
+    def draw_glassmorphic_background(self, width, height):
+        """Draw true glassmorphic background with blur and transparency."""
+        try:
+            # Clear canvas
+            self.glass_canvas.delete('all')
             
-            for particle in self.particles:
-                # Update position
-                particle["x"] += math.cos(math.radians(particle["direction"])) * particle["speed"]
-                particle["y"] += math.sin(math.radians(particle["direction"])) * particle["speed"]
-                
-                # Wrap around screen
-                if particle["x"] < 0:
-                    particle["x"] = self.winfo_screenwidth()
-                elif particle["x"] > self.winfo_screenwidth():
-                    particle["x"] = 0
-                    
-                if particle["y"] < 0:
-                    particle["y"] = self.winfo_screenheight()
-                elif particle["y"] > self.winfo_screenheight():
-                    particle["y"] = 0
-                
-                # Update canvas position
-                self.bg_canvas.coords(
-                    particle["id"],
-                    particle["x"], particle["y"],
-                    particle["x"] + particle["size"], particle["y"] + particle["size"]
+            corner_radius = 24
+            
+            # Draw multiple layers for glassmorphism effect
+            if self.dark_mode.get():
+                # Dark glassmorphism
+                # Layer 1: Deep shadow
+                self.draw_rounded_rect(
+                    self.glass_canvas, 8, 8, width, height + 8,
+                    corner_radius, '#000000'
                 )
+
+                # Layer 2: Main glass panel
+                self.draw_rounded_rect(
+                    self.glass_canvas, 0, 0, width - 8, height,
+                    corner_radius, '#ffffff'
+                )
+
+                # Layer 3: Inner glow
+                self.draw_rounded_rect(
+                    self.glass_canvas, 2, 2, width - 10, height - 2,
+                    corner_radius - 2, '#ffffff'
+                )
+
+                # Layer 4: Top highlight
+                self.glass_canvas.create_arc(
+                    2, 2, width - 10, 60,
+                    start=0, extent=180,
+                    fill='#ffffff', outline='', style='chord'
+                )
+
+                # Subtle border
+                self.draw_rounded_rect_outline(
+                    self.glass_canvas, 1, 1, width - 9, height - 1,
+                    corner_radius, '#ffffff'
+                )
+                
+            else:
+                # Light glassmorphism
+                # Layer 1: Soft shadow
+                self.draw_rounded_rect(
+                    self.glass_canvas, 6, 6, width, height + 6,
+                    corner_radius, '#000000'
+                )
+
+                # Layer 2: Main glass panel
+                self.draw_rounded_rect(
+                    self.glass_canvas, 0, 0, width - 6, height,
+                    corner_radius, '#ffffff'
+                )
+
+                # Layer 3: Inner brightness
+                self.draw_rounded_rect(
+                    self.glass_canvas, 2, 2, width - 8, height - 2,
+                    corner_radius - 2, '#ffffff'
+                )
+
+                # Subtle border
+                self.draw_rounded_rect_outline(
+                    self.glass_canvas, 1, 1, width - 7, height - 1,
+                    corner_radius, '#ffffff'
+                )
+
+        except Exception as e:
+            logger.error(f"Failed to draw glassmorphic background: {e}")
+
+    def draw_rounded_rect(self, canvas, x1, y1, x2, y2, radius, color):
+        """Draw rounded rectangle."""
+        try:
+            # Main rectangles
+            canvas.create_rectangle(x1 + radius, y1, x2 - radius, y2, 
+                                  fill=color, outline='')
+            canvas.create_rectangle(x1, y1 + radius, x2, y2 - radius, 
+                                  fill=color, outline='')
             
-            # Schedule next animation frame
-            self.after(50, self.animate_particles)
+            # Corner arcs
+            canvas.create_arc(x1, y1, x1 + 2*radius, y1 + 2*radius,
+                            start=90, extent=90, fill=color, outline='')
+            canvas.create_arc(x2 - 2*radius, y1, x2, y1 + 2*radius,
+                            start=0, extent=90, fill=color, outline='')  
+            canvas.create_arc(x2 - 2*radius, y2 - 2*radius, x2, y2,
+                            start=270, extent=90, fill=color, outline='')
+            canvas.create_arc(x1, y2 - 2*radius, x1 + 2*radius, y2,
+                            start=180, extent=90, fill=color, outline='')
             
         except Exception as e:
-            logger.error(f"Animation error: {e}")
+            logger.error(f"Failed to draw rounded rectangle: {e}")
 
-    def create_login_form(self):
-        """Create the main login form."""
+    def draw_rounded_rect_outline(self, canvas, x1, y1, x2, y2, radius, color):
+        """Draw rounded rectangle outline."""
         try:
-            # Main login container
-            self.login_frame = ttk.Frame(self.main_frame, style="LoginCard.TFrame", padding=40)
-            self.login_frame.grid(row=0, column=0, sticky="nsew")
+            # Border lines
+            canvas.create_line(x1 + radius, y1, x2 - radius, y1, 
+                             fill=color, width=1)
+            canvas.create_line(x1 + radius, y2, x2 - radius, y2, 
+                             fill=color, width=1)
+            canvas.create_line(x1, y1 + radius, x1, y2 - radius, 
+                             fill=color, width=1)
+            canvas.create_line(x2, y1 + radius, x2, y2 - radius, 
+                             fill=color, width=1)
             
-            # PlexiChat logo and title
-            self.create_header()
-            
-            # Login form fields
-            self.create_form_fields()
-            
-            # Login options
-            self.create_login_options()
-            
-            # Action buttons
-            self.create_action_buttons()
-            
-            # Footer links
-            self.create_footer_links()
+            # Corner arcs
+            canvas.create_arc(x1, y1, x1 + 2*radius, y1 + 2*radius,
+                            start=90, extent=90, outline=color, width=1, style='arc')
+            canvas.create_arc(x2 - 2*radius, y1, x2, y1 + 2*radius,
+                            start=0, extent=90, outline=color, width=1, style='arc')
+            canvas.create_arc(x2 - 2*radius, y2 - 2*radius, x2, y2,
+                            start=270, extent=90, outline=color, width=1, style='arc')
+            canvas.create_arc(x1, y2 - 2*radius, x1 + 2*radius, y2,
+                            start=180, extent=90, outline=color, width=1, style='arc')
             
         except Exception as e:
-            logger.error(f"Failed to create login form: {e}")
+            logger.error(f"Failed to draw rounded rectangle outline: {e}")
 
-    def create_header(self):
-        """Create header with logo and title."""
+    def create_panel_content(self):
+        """Create the content inside the glassmorphic panel."""
         try:
-            # Logo placeholder (you can replace with actual logo)
-            logo_frame = ttk.Frame(self.login_frame)
-            logo_frame.grid(row=0, column=0, columnspan=2, pady=(0, 20))
-            
-            # Create logo canvas
-            logo_canvas = tk.Canvas(logo_frame, width=80, height=80, highlightthickness=0)
+            # Content container with transparent background
+            bg_color = '#1a1a2e' if self.dark_mode.get() else '#f8fafc'
+            self.content_frame = tk.Frame(self.glass_panel, bg=bg_color)
+            self.content_frame.place(
+                relx=0.5, rely=0.5, anchor='center',
+                width=380, height=540
+            )
+
+            # Add all content elements
+            self.create_premium_header()
+            self.create_modern_input_fields()
+            self.create_premium_actions()
+            self.create_elegant_footer()
+
+        except Exception as e:
+            logger.error(f"Failed to create panel content: {e}")
+
+    def create_premium_header(self):
+        """Create premium header with logo and title."""
+        try:
+            # Header container
+            bg_color = self.get_bg_color()
+            header_frame = tk.Frame(self.content_frame, bg=bg_color)
+            header_frame.pack(pady=(40, 30))
+
+            # Modern logo
+            logo_canvas = tk.Canvas(
+                header_frame, width=80, height=80,
+                highlightthickness=0, bg=bg_color
+            )
             logo_canvas.pack()
-            
-            # Draw PlexiChat logo
-            logo_canvas.create_oval(10, 10, 70, 70, fill="#3498db", outline="#2c3e50", width=3)
-            logo_canvas.create_text(40, 40, text="P", fill="white", font=("Arial", 24, "bold"))
-            
-            # Title
-            title_label = ttk.Label(
-                self.login_frame,
+
+            # Draw premium logo
+            self.draw_premium_logo(logo_canvas)
+
+            # App title
+            title_color = '#ffffff' if self.dark_mode.get() else '#1f2937'
+            title_label = tk.Label(
+                header_frame,
                 text="PlexiChat",
-                font=("Segoe UI", 24, "bold"),
-                style="LoginTitle.TLabel"
+                font=('Inter', 32, 'bold'),
+                fg=title_color,
+                bg=bg_color
             )
-            title_label.grid(row=1, column=0, columnspan=2, pady=(0, 10))
-            
+            title_label.pack(pady=(15, 8))
+
             # Subtitle
-            subtitle_label = ttk.Label(
-                self.login_frame,
-                text="Advanced Communication Platform",
-                font=("Segoe UI", 12),
-                style="LoginSubtitle.TLabel"
+            subtitle_color = '#d1d5db' if self.dark_mode.get() else '#6b7280'
+            subtitle_label = tk.Label(
+                header_frame,
+                text="Management Interface",
+                font=('Inter', 14),
+                fg=subtitle_color,
+                bg=bg_color
             )
-            subtitle_label.grid(row=2, column=0, columnspan=2, pady=(0, 30))
-            
-        except Exception as e:
-            logger.error(f"Failed to create header: {e}")
+            subtitle_label.pack()
 
-    def create_form_fields(self):
-        """Create form input fields."""
+        except Exception as e:
+            logger.error(f"Failed to create premium header: {e}")
+
+    def draw_premium_logo(self, canvas):
+        """Draw premium logo with modern styling."""
         try:
+            if self.dark_mode.get():
+                # Dark mode logo
+                # Outer glow
+                canvas.create_oval(5, 5, 75, 75, fill='#3b82f6', outline='')
+                # Main circle
+                canvas.create_oval(10, 10, 70, 70, fill='#3b82f6', outline='#60a5fa', width=2)
+                # Inner highlight
+                canvas.create_oval(20, 20, 40, 40, fill='#60a5fa', outline='')
+                # Letter
+                canvas.create_text(40, 40, text="P", fill='white', font=('Inter', 24, 'bold'))
+            else:
+                # Light mode logo
+                # Shadow
+                canvas.create_oval(12, 12, 72, 72, fill='#e5e7eb', outline='')
+                # Main circle  
+                canvas.create_oval(10, 10, 70, 70, fill='#3b82f6', outline='#2563eb', width=2)
+                # Inner highlight
+                canvas.create_oval(20, 20, 40, 40, fill='#60a5fa', outline='')
+                # Letter
+                canvas.create_text(40, 40, text="P", fill='white', font=('Inter', 24, 'bold'))
+
+        except Exception as e:
+            logger.error(f"Failed to draw premium logo: {e}")
+
+    def create_modern_input_fields(self):
+        """Create beautiful modern input fields with animations."""
+        try:
+            # Input container
+            bg_color = self.get_bg_color()
+            input_frame = tk.Frame(self.content_frame, bg=bg_color)
+            input_frame.pack(pady=(0, 25), fill='x', padx=40)
+
             # Username field
-            username_label = ttk.Label(self.login_frame, text="Username:", style="LoginLabel.TLabel")
-            username_label.grid(row=3, column=0, sticky="w", pady=(0, 5))
-            
-            self.username_entry = ttk.Entry(
-                self.login_frame,
-                textvariable=self.username_var,
-                font=("Segoe UI", 12),
-                style="LoginEntry.TEntry",
-                width=25
+            self.create_animated_input(
+                input_frame, "Username", self.username_var,
+                "?", "Enter your username", row=0
             )
-            self.username_entry.grid(row=4, column=0, columnspan=2, sticky="ew", pady=(0, 15))
-            
-            # Password field
-            password_label = ttk.Label(self.login_frame, text="Password:", style="LoginLabel.TLabel")
-            password_label.grid(row=5, column=0, sticky="w", pady=(0, 5))
-            
-            password_frame = ttk.Frame(self.login_frame)
-            password_frame.grid(row=6, column=0, columnspan=2, sticky="ew", pady=(0, 15))
-            password_frame.columnconfigure(0, weight=1)
-            
-            self.password_entry = ttk.Entry(
-                password_frame,
-                textvariable=self.password_var,
-                font=("Segoe UI", 12),
-                style="LoginEntry.TEntry",
-                show="*"
+
+            # Password field  
+            self.create_animated_password_input(
+                input_frame, "Password", self.password_var,
+                "?", "Enter your password", row=1
             )
-            self.password_entry.grid(row=0, column=0, sticky="ew", padx=(0, 5))
+
+        except Exception as e:
+            logger.error(f"Failed to create modern input fields: {e}")
+
+    def create_animated_input(self, parent, label, var, icon, placeholder, row):
+        """Create animated input field with focus effects."""
+        try:
+            # Field container
+            bg_color = self.get_bg_color()
+            field_frame = tk.Frame(parent, bg=bg_color)
+            field_frame.grid(row=row, column=0, sticky='ew', pady=(0, 20))
+            parent.grid_columnconfigure(0, weight=1)
+
+            # Label with icon
+            label_color = '#ffffff' if self.dark_mode.get() else '#374151'
+            label_widget = tk.Label(
+                field_frame,
+                text=f"{icon} {label}",
+                font=('Inter', 13, 'bold'),
+                fg=label_color,
+                bg=bg_color,
+                anchor='w'
+            )
+            label_widget.pack(fill='x', pady=(0, 8))
+
+            # Input container canvas for rounded corners
+            input_canvas = tk.Canvas(
+                field_frame, height=52,
+                highlightthickness=0, bg=bg_color
+            )
+            input_canvas.pack(fill='x')
+
+            # Store canvas reference for focus animations
+            setattr(self, f'{label.lower()}_canvas', input_canvas)
+
+            # Draw input background
+            self.draw_input_background(input_canvas, focused=False)
+
+            # Create entry widget
+            entry_bg = '#374151' if self.dark_mode.get() else '#f9fafb'
+            entry_fg = '#ffffff' if self.dark_mode.get() else '#111827'
             
-            # Show/hide password button
-            self.show_password_btn = ttk.Button(
-                password_frame,
-                text="👁",
-                width=3,
+            entry = tk.Entry(
+                input_canvas,
+                textvariable=var,
+                font=('Inter', 14),
+                bg=entry_bg,
+                fg=entry_fg,
+                bd=0,
+                highlightthickness=0,
+                insertbackground=entry_fg
+            )
+
+            # Place entry in canvas
+            input_canvas.create_window(
+                20, 26, window=entry, anchor='w', width=280
+            )
+
+            # Focus animations
+            entry.bind('<FocusIn>', lambda e: self.on_input_focus(input_canvas, True))
+            entry.bind('<FocusOut>', lambda e: self.on_input_focus(input_canvas, False))
+            entry.bind('<Return>', lambda e: self.perform_login())
+
+            # Set placeholder if needed
+            if label == "Username" and not var.get():
+                var.set("admin")
+
+            return entry
+
+        except Exception as e:
+            logger.error(f"Failed to create animated input: {e}")
+            return None
+
+    def create_animated_password_input(self, parent, label, var, icon, placeholder, row):
+        """Create animated password input with visibility toggle."""
+        try:
+            # Field container
+            bg_color = self.get_bg_color()
+            field_frame = tk.Frame(parent, bg=bg_color)
+            field_frame.grid(row=row, column=0, sticky='ew', pady=(0, 20))
+
+            # Label with icon
+            label_color = '#ffffff' if self.dark_mode.get() else '#374151'
+            label_widget = tk.Label(
+                field_frame,
+                text=f"{icon} {label}",
+                font=('Inter', 13, 'bold'),
+                fg=label_color,
+                bg=bg_color,
+                anchor='w'
+            )
+            label_widget.pack(fill='x', pady=(0, 8))
+
+            # Input container canvas
+            input_canvas = tk.Canvas(
+                field_frame, height=52,
+                highlightthickness=0, bg=bg_color
+            )
+            input_canvas.pack(fill='x')
+
+            # Store reference
+            self.password_canvas = input_canvas
+
+            # Draw input background
+            self.draw_input_background(input_canvas, focused=False)
+
+            # Create password entry
+            entry_bg = '#374151' if self.dark_mode.get() else '#f9fafb'
+            entry_fg = '#ffffff' if self.dark_mode.get() else '#111827'
+            
+            self.password_entry = tk.Entry(
+                input_canvas,
+                textvariable=var,
+                font=('Inter', 14),
+                bg=entry_bg,
+                fg=entry_fg,
+                bd=0,
+                highlightthickness=0,
+                show='*',
+                insertbackground=entry_fg
+            )
+
+            # Place password entry
+            input_canvas.create_window(
+                20, 26, window=self.password_entry, anchor='w', width=240
+            )
+
+            # Eye toggle button
+            eye_btn = tk.Button(
+                input_canvas,
+                text="?",
+                font=('Inter', 14),
+                bg=entry_bg,
+                fg=entry_fg,
+                bd=0,
+                highlightthickness=0,
                 command=self.toggle_password_visibility,
-                style="ShowPassword.TButton"
+                cursor='hand2'
             )
-            self.show_password_btn.grid(row=0, column=1)
-            
-            # Password strength indicator
-            self.password_strength = ttk.Progressbar(
-                self.login_frame,
-                length=200,
-                mode='determinate',
-                style="PasswordStrength.Horizontal.TProgressbar"
-            )
-            self.password_strength.grid(row=7, column=0, columnspan=2, sticky="ew", pady=(0, 15))
-            
-            # Bind password change event
-            self.password_var.trace("w", self.update_password_strength)
-            
+            input_canvas.create_window(320, 26, window=eye_btn, anchor='center')
+
+            # Focus animations
+            self.password_entry.bind('<FocusIn>', lambda e: self.on_input_focus(input_canvas, True))
+            self.password_entry.bind('<FocusOut>', lambda e: self.on_input_focus(input_canvas, False))
+            self.password_entry.bind('<Return>', lambda e: self.perform_login())
+
         except Exception as e:
-            logger.error(f"Failed to create form fields: {e}")
+            logger.error(f"Failed to create animated password input: {e}")
 
-    def create_login_options(self):
-        """Create login options (remember me, etc.)."""
+    def draw_input_background(self, canvas, focused=False):
+        """Draw modern input field background with focus states."""
         try:
-            options_frame = ttk.Frame(self.login_frame)
-            options_frame.grid(row=8, column=0, columnspan=2, sticky="ew", pady=(0, 20))
-            options_frame.columnconfigure(1, weight=1)
+            canvas.delete('input_bg')
             
-            # Remember me checkbox
-            remember_check = ttk.Checkbutton(
-                options_frame,
-                text="Remember me",
-                variable=self.remember_me_var,
-                style="LoginCheck.TCheckbutton"
-            )
-            remember_check.grid(row=0, column=0, sticky="w")
-            
-            # Forgot password link
-            forgot_link = ttk.Label(
-                options_frame,
-                text="Forgot password?",
-                style="LoginLink.TLabel",
-                cursor="hand2"
-            )
-            forgot_link.grid(row=0, column=1, sticky="e")
-            forgot_link.bind("<Button-1>", self.show_forgot_password)
-            
-        except Exception as e:
-            logger.error(f"Failed to create login options: {e}")
+            # Wait for canvas to be properly sized
+            canvas.update_idletasks()
+            width = canvas.winfo_width()
+            if width <= 1:
+                canvas.after(10, lambda: self.draw_input_background(canvas, focused))
+                return
 
-    def create_action_buttons(self):
-        """Create action buttons."""
-        try:
-            button_frame = ttk.Frame(self.login_frame)
-            button_frame.grid(row=9, column=0, columnspan=2, pady=(0, 20))
-            
-            # Login button
-            self.login_btn = ttk.Button(
-                button_frame,
-                text="Sign In",
-                command=self.perform_login,
-                style="LoginButton.TButton",
-                width=20
-            )
-            self.login_btn.pack(pady=(0, 10))
-            
-            # Alternative login methods
-            alt_frame = ttk.Frame(button_frame)
-            alt_frame.pack()
-            
-            # 2FA button
-            twofa_btn = ttk.Button(
-                alt_frame,
-                text="2FA Login",
-                command=self.show_2fa_login,
-                style="AltLogin.TButton",
-                width=12
-            )
-            twofa_btn.pack(side=tk.LEFT, padx=(0, 5))
-            
-            # Biometric button (if available)
-            bio_btn = ttk.Button(
-                alt_frame,
-                text="Biometric",
-                command=self.show_biometric_login,
-                style="AltLogin.TButton",
-                width=12
-            )
-            bio_btn.pack(side=tk.LEFT, padx=5)
+            if self.dark_mode.get():
+                if focused:
+                    bg_color = '#4338ca'
+                    border_color = '#6366f1'
+                    glow_color = '#6366f1'
+                else:
+                    bg_color = '#374151'
+                    border_color = '#4b5563'
+                    glow_color = None
+            else:
+                if focused:
+                    bg_color = '#dbeafe'
+                    border_color = '#3b82f6'
+                    glow_color = '#3b82f6'
+                else:
+                    bg_color = '#f9fafb'
+                    border_color = '#e5e7eb'
+                    glow_color = None
 
-            # Setup button (only show if setup is needed)
-            if not self.is_setup_completed():
-                setup_frame = ttk.Frame(button_frame)
-                setup_frame.pack(pady=(10, 0))
-
-                setup_btn = ttk.Button(
-                    setup_frame,
-                    text="🔧 Run Setup",
-                    command=self.show_database_setup,
-                    style="SetupButton.TButton",
-                    width=20
+            # Draw glow effect for focused state
+            if glow_color:
+                self.draw_rounded_rect(
+                    canvas, 0, 0, width, 52, 16, glow_color
                 )
-                setup_btn.pack()
 
-            # Quick access frame
-            quick_frame = ttk.Frame(button_frame)
-            quick_frame.pack(pady=(15, 0))
-
-            # Documentation button
-            docs_btn = ttk.Button(
-                quick_frame,
-                text="📚 Docs",
-                command=self.open_documentation,
-                style="QuickButton.TButton",
-                width=8
+            # Draw input background
+            self.draw_rounded_rect(
+                canvas, 2, 2, width-2, 50, 14, bg_color
             )
-            docs_btn.pack(side=tk.LEFT, padx=(0, 5))
 
-            # Plugin marketplace button
-            plugins_btn = ttk.Button(
-                quick_frame,
-                text="🔌 Plugins",
-                command=self.open_plugin_marketplace,
-                style="QuickButton.TButton",
-                width=8
+            # Draw border
+            self.draw_rounded_rect_outline(
+                canvas, 2, 2, width-2, 50, 14, border_color
             )
-            plugins_btn.pack(side=tk.LEFT, padx=(0, 5))
-
-            # System status button
-            status_btn = ttk.Button(
-                quick_frame,
-                text="📊 Status",
-                command=self.show_system_status,
-                style="QuickButton.TButton",
-                width=8
-            )
-            status_btn.pack(side=tk.LEFT)
 
         except Exception as e:
-            logger.error(f"Failed to create action buttons: {e}")
+            logger.error(f"Failed to draw input background: {e}")
 
-    def create_footer_links(self):
-        """Create footer with additional links."""
+    def on_input_focus(self, canvas, focused):
+        """Handle input field focus animations."""
         try:
-            footer_frame = ttk.Frame(self.login_frame)
-            footer_frame.grid(row=10, column=0, columnspan=2)
-            
-            # Register link
-            register_label = ttk.Label(
-                footer_frame,
-                text="Don't have an account? ",
-                style="LoginFooter.TLabel"
-            )
-            register_label.pack(side=tk.LEFT)
-            
-            register_link = ttk.Label(
-                footer_frame,
-                text="Sign up",
-                style="LoginLink.TLabel",
-                cursor="hand2"
-            )
-            register_link.pack(side=tk.LEFT)
-            register_link.bind("<Button-1>", self.show_register_form)
-            
+            self.draw_input_background(canvas, focused)
         except Exception as e:
-            logger.error(f"Failed to create footer links: {e}")
+            logger.error(f"Failed to handle input focus: {e}")
 
     def toggle_password_visibility(self):
         """Toggle password field visibility."""
         try:
             if self.show_password_var.get():
-                self.password_entry.configure(show="")
-                self.show_password_btn.configure(text="🙈")
+                self.password_entry.configure(show='*')
                 self.show_password_var.set(False)
             else:
-                self.password_entry.configure(show="*")
-                self.show_password_btn.configure(text="👁")
+                self.password_entry.configure(show='')
                 self.show_password_var.set(True)
         except Exception as e:
             logger.error(f"Failed to toggle password visibility: {e}")
 
-    def update_password_strength(self, *args):
-        """Update password strength indicator."""
+    def create_premium_actions(self):
+        """Create premium action buttons and options."""
         try:
-            password = self.password_var.get()
-            strength = self.calculate_password_strength(password)
+            # Actions container
+            bg_color = self.get_bg_color()
+            actions_frame = tk.Frame(self.content_frame, bg=bg_color)
+            actions_frame.pack(pady=(0, 20), fill='x', padx=40)
+
+            # Remember me and forgot password row
+            options_frame = tk.Frame(actions_frame, bg=bg_color)
+            options_frame.pack(fill='x', pady=(0, 25))
+
+            # Remember me checkbox
+            remember_frame = tk.Frame(options_frame, bg=bg_color)
+            remember_frame.pack(side='left')
+
+            text_color = '#ffffff' if self.dark_mode.get() else '#374151'
+            remember_check = tk.Checkbutton(
+                remember_frame,
+                text="Remember me",
+                variable=self.remember_var,
+                font=('Inter', 11),
+                fg=text_color,
+                bg=bg_color,
+                selectcolor='#3b82f6',
+                activebackground=bg_color,
+                activeforeground=text_color,
+                bd=0,
+                highlightthickness=0
+            )
+            remember_check.pack()
+
+            # Forgot password link
+            forgot_frame = tk.Frame(options_frame, bg=bg_color)
+            forgot_frame.pack(side='right')
+
+            link_color = '#3b82f6' if self.dark_mode.get() else '#2563eb'
+            forgot_link = tk.Label(
+                forgot_frame,
+                text="Forgot password?",
+                font=('Inter', 11, 'underline'),
+                fg=link_color,
+                bg=bg_color,
+                cursor='hand2'
+            )
+            forgot_link.pack()
+            forgot_link.bind('<Button-1>', self.show_password_reset_info)
+
+            # Premium login button
+            self.create_premium_button(actions_frame)
+
+        except Exception as e:
+            logger.error(f"Failed to create premium actions: {e}")
+
+    def create_premium_button(self, parent):
+        """Create premium animated login button."""
+        try:
+            # Button container
+            bg_color = self.get_bg_color()
+            button_frame = tk.Frame(parent, bg=bg_color)
+            button_frame.pack()
+
+            # Button canvas for custom styling
+            self.login_canvas = tk.Canvas(
+                button_frame,
+                width=300, height=56,
+                highlightthickness=0,
+                bg=bg_color,
+                cursor='hand2'
+            )
+            self.login_canvas.pack()
+
+            # Draw initial button state
+            self.draw_premium_button(hover=False)
+
+            # Button events
+            self.login_canvas.bind('<Button-1>', lambda e: self.animate_button_click())
+            self.login_canvas.bind('<Enter>', lambda e: self.draw_premium_button(hover=True))
+            self.login_canvas.bind('<Leave>', lambda e: self.draw_premium_button(hover=False))
+
+        except Exception as e:
+            logger.error(f"Failed to create premium button: {e}")
+
+    def draw_premium_button(self, hover=False, pressed=False):
+        """Draw premium button with gradients and animations."""
+        try:
+            self.login_canvas.delete('all')
             
-            self.password_strength['value'] = strength
-            
-            # Update color based on strength
-            if strength < 30:
-                self.password_strength.configure(style="WeakPassword.Horizontal.TProgressbar")
-            elif strength < 70:
-                self.password_strength.configure(style="MediumPassword.Horizontal.TProgressbar")
+            width, height = 300, 56
+            radius = 16
+
+            if pressed:
+                # Pressed state
+                bg_color = '#1d4ed8'
+                shadow_color = '#1e40af'
+                text_color = '#ffffff'
+                shadow_offset = 1
+            elif hover:
+                # Hover state
+                bg_color = '#2563eb'
+                shadow_color = '#3b82f6'
+                text_color = '#ffffff'
+                shadow_offset = 6
             else:
-                self.password_strength.configure(style="StrongPassword.Horizontal.TProgressbar")
+                # Normal state
+                bg_color = '#3b82f6'
+                shadow_color = '#3b82f6'
+                text_color = '#ffffff'
+                shadow_offset = 4
+
+            # Draw shadow
+            self.draw_rounded_rect(
+                self.login_canvas,
+                shadow_offset, shadow_offset,
+                width, height + shadow_offset,
+                radius, shadow_color
+            )
+
+            # Draw button background
+            self.draw_rounded_rect(
+                self.login_canvas,
+                0, 0, width - shadow_offset, height,
+                radius, bg_color
+            )
+
+            # Add gradient effect (simulated with overlay)
+            if not pressed:
+                self.draw_rounded_rect(
+                    self.login_canvas,
+                    0, 0, width - shadow_offset, height // 2,
+                    radius, '#ffffff'
+                )
+
+            # Button text
+            text = "Signing in..." if self.is_authenticating else "Sign In"
+            self.login_canvas.create_text(
+                (width - shadow_offset) // 2, height // 2,
+                text=text,
+                fill=text_color,
+                font=('Inter', 16, 'bold')
+            )
+
+            # Add login icon
+            if not self.is_authenticating:
+                self.login_canvas.create_text(
+                    (width - shadow_offset) // 2 + 50, height // 2,
+                    text=">",
+                    fill=text_color,
+                    font=('Inter', 18, 'bold')
+                )
+
+        except Exception as e:
+            logger.error(f"Failed to draw premium button: {e}")
+
+    def animate_button_click(self):
+        """Animate button click and perform login."""
+        try:
+            # Pressed animation
+            self.draw_premium_button(pressed=True)
+            
+            # Return to normal after short delay
+            self.after(150, lambda: self.draw_premium_button(hover=False))
+            
+            # Perform login
+            self.after(50, self.perform_login)
+            
+        except Exception as e:
+            logger.error(f"Failed to animate button click: {e}")
+
+    def create_elegant_footer(self):
+        """Create elegant footer with system status."""
+        try:
+            # Footer container
+            bg_color = self.get_bg_color()
+            footer_frame = tk.Frame(self.content_frame, bg=bg_color)
+            footer_frame.pack(side='bottom', fill='x', pady=(20, 40))
+
+            # System status
+            status_color = '#9ca3af' if self.dark_mode.get() else '#6b7280'
+            self.status_label = tk.Label(
+                footer_frame,
+                textvariable=self.system_status_text,
+                font=('Inter', 9),
+                fg=status_color,
+                bg=bg_color,
+                justify='center'
+            )
+            self.status_label.pack()
+
+            # Start status updates
+            self.update_system_status()
+
+        except Exception as e:
+            logger.error(f"Failed to create elegant footer: {e}")
+
+    def start_animations(self):
+        """Start all background animations."""
+        try:
+            self.animation_running = True
+            self.animate_stars()
+            
+        except Exception as e:
+            logger.error(f"Failed to start animations: {e}")
+
+    def animate_stars(self):
+        """Animate floating stars with twinkling effects."""
+        if not self.animation_running:
+            return
+            
+        try:
+            width = self.winfo_screenwidth()
+            height = self.winfo_screenheight()
+            
+            for particle in self.particles:
+                # Update position
+                particle['x'] += math.cos(math.radians(particle['direction'])) * particle['speed']
+                particle['y'] += math.sin(math.radians(particle['direction'])) * particle['speed']
+                
+                # Wrap around screen
+                if particle['x'] < -10:
+                    particle['x'] = width + 10
+                elif particle['x'] > width + 10:
+                    particle['x'] = -10
+                    
+                if particle['y'] < -10:
+                    particle['y'] = height + 10
+                elif particle['y'] > height + 10:
+                    particle['y'] = -10
+                
+                # Twinkling effect
+                particle['twinkle_phase'] += particle['twinkle_speed']
+                opacity_factor = (math.sin(particle['twinkle_phase']) + 1) / 2
+                current_opacity = particle['opacity'] * opacity_factor
+                
+                # Update canvas position
+                if particle['size'] <= 2:
+                    self.bg_canvas.coords(
+                        particle['id'],
+                        particle['x'], particle['y'],
+                        particle['x'] + particle['size'], particle['y'] + particle['size']
+                    )
+                else:
+                    # Update polygon coordinates for larger stars
+                    x, y, size = particle['x'], particle['y'], particle['size']
+                    coords = [
+                        x, y-size, x+size//2, y-size//2, x+size, y,
+                        x+size//2, y+size//2, x, y+size, x-size//2, y+size//2,
+                        x-size, y, x-size//2, y-size//2
+                    ]
+                    self.bg_canvas.coords(particle['id'], *coords)
+            
+            # Schedule next animation frame
+            self.after(50, self.animate_stars)
+            
+        except Exception as e:
+            logger.error(f"Star animation error: {e}")
+
+    def update_system_status(self):
+        """Update system status information."""
+        try:
+            # Calculate uptime
+            uptime = datetime.now() - self.start_time
+            uptime_str = f"{uptime.days}d {uptime.seconds//3600}h {(uptime.seconds//60)%60}m"
+
+            # Get system metrics if available
+            try:
+                cpu_percent = psutil.cpu_percent(interval=0.1)
+                memory = psutil.virtual_memory()
+                metrics = f"CPU: {cpu_percent:.0f}% | RAM: {memory.percent:.0f}%"
+            except:
+                metrics = "System metrics unavailable"
+
+            # Network status
+            network_icon = "?" if self.check_network_status() else "?"
+
+            # Format status
+            status_text = f"{network_icon} Online | {metrics} | Uptime: {uptime_str}"
+            self.system_status_text.set(status_text)
+
+            # Schedule next update
+            self.after(30000, self.update_system_status)
+
+        except Exception as e:
+            logger.error(f"Failed to update system status: {e}")
+            self.system_status_text.set("? Status unavailable")
+
+    def check_network_status(self):
+        """Check network connectivity."""
+        try:
+            import socket
+            socket.gethostbyname('google.com')
+            return True
+        except:
+            return False
+
+    def load_theme_preference(self):
+        """Load saved theme preference."""
+        try:
+            config_file = Path.home() / '.plexichat' / 'ui_config.json'
+            if config_file.exists():
+                with open(config_file, 'r') as f:
+                    config = json.load(f)
+                    self.dark_mode.set(config.get('dark_mode', True))
+        except Exception as e:
+            logger.error(f"Failed to load theme preference: {e}")
+
+    def save_theme_preference(self):
+        """Save theme preference."""
+        try:
+            config_dir = Path.home() / '.plexichat'
+            config_dir.mkdir(exist_ok=True)
+            
+            config_file = config_dir / 'ui_config.json'
+            config = {'dark_mode': self.dark_mode.get()}
+            
+            with open(config_file, 'w') as f:
+                json.dump(config, f, indent=2)
                 
         except Exception as e:
-            logger.error(f"Failed to update password strength: {e}")
+            logger.error(f"Failed to save theme preference: {e}")
 
-    def calculate_password_strength(self, password: str) -> int:
-        """Calculate password strength (0-100)."""
+    def show_password_reset_info(self, event=None):
+        """Show password reset information."""
         try:
-            if not password:
-                return 0
-            
-            score = 0
-            
-            # Length bonus
-            score += min(password.__len__() * 4, 25)
-            
-            # Character variety bonus
-            if any(c.islower() for c in password):
-                score += 5
-            if any(c.isupper() for c in password):
-                score += 5
-            if any(c.isdigit() for c in password):
-                score += 10
-            if any(c in "!@#$%^&*()_+-=[]{}|;:,.<>?" for c in password):
-                score += 15
-            
-            # Length penalties for short passwords
-            if len(password) < 6:
-                score -= 20
-            elif len(password) < 8:
-                score -= 10
-            
-            return max(0, min(100, score))
+            reset_info = """Password Reset Instructions:
+
+To reset your GUI password, use the CLI command:
+
+    python run.py cli gui-password --reset
+
+This will generate a new secure password that will be displayed in the terminal.
+
+For more help with CLI commands:
+    python run.py cli --help
+
+Note: You must have access to the command line to reset your password."""
+
+            messagebox.showinfo("Password Reset", reset_info)
             
         except Exception as e:
-            logger.error(f"Failed to calculate password strength: {e}")
-            return 0
+            logger.error(f"Failed to show password reset info: {e}")
 
     def perform_login(self):
-        """Perform login authentication."""
+        """Perform login authentication with modern UX."""
         try:
             if self.is_authenticating:
                 return
@@ -552,7 +1307,7 @@ class LoginScreen(ttk.Frame):
                 return
             
             self.is_authenticating = True
-            self.login_btn.configure(text="Signing in...", state="disabled")
+            self.draw_premium_button()  # Update button to show "Signing in..."
             
             # Perform authentication in background thread
             auth_thread = threading.Thread(target=self.authenticate_user, args=(username, password))
@@ -570,8 +1325,7 @@ class LoginScreen(ttk.Frame):
             # Hash password for security
             password_hash = hashlib.sha256(password.encode()).hexdigest()
             
-            # Simulate authentication (replace with actual authentication)
-            # In real implementation, this would call the authentication API
+            # Call authentication API
             auth_result = self.call_auth_api(username, password_hash)
             
             # Schedule UI update on main thread
@@ -582,160 +1336,122 @@ class LoginScreen(ttk.Frame):
             self.after(0, self.handle_auth_error, str(e))
 
     def call_auth_api(self, username: str, password_hash: str) -> Dict[str, Any]:
-        """Call authentication API - Ultra-secure server manager authentication."""
+        """Call authentication API with secure credentials."""
         try:
-            # Read default credentials from file
-            default_creds = self.load_default_credentials()
+            # Try new credentials system first
+            try:
+                from plexichat.core.auth.default_credentials import get_default_credentials_manager
+                manager = get_default_credentials_manager()
+                gui_creds = manager.get_interface_credentials("gui")
+                
+                if gui_creds and username == gui_creds.get("username", "admin"):
+                    stored_hash = hashlib.sha256(gui_creds["password"].encode()).hexdigest()
+                    if password_hash == stored_hash:
+                        return self.create_success_response(username)
+                        
+            except ImportError:
+                # Fallback to default credentials
+                default_creds = self.load_default_credentials()
+                if username == default_creds.get("username", "admin"):
+                    stored_hash = hashlib.sha256(default_creds["password"].encode()).hexdigest()
+                    if password_hash == stored_hash:
+                        return self.create_success_response(username)
 
-            # Check against default admin credentials
-            if username == default_creds.get("username", "admin"):
-                # Verify password against default or stored hash
-                if self.verify_admin_password(username, password_hash, default_creds):
-                    return {
-                        "success": True,
-                        "user": {
-                            "id": "admin",
-                            "username": username,
-                            "email": "admin@plexichat.local",
-                            "permissions": ["admin", "server_manager", "all_access"],
-                            "security_level": "GOVERNMENT",
-                            "role": "server_administrator",
-                            "profile": {
-                                "display_name": "Server Administrator",
-                                "avatar": None,
-                                "theme": "dark_modern"
-                            }
-                        },
-                        "token": self.generate_secure_token(username),
-                        "expires": (datetime.now() + timedelta(hours=8)).isoformat()
-                    }
-
-            # Check against WebUI authentication system
-            webui_result = self.authenticate_with_webui(username, password_hash)
-            if webui_result.get("success"):
-                return webui_result
-
-            return {"success": False, "error": "Invalid server administrator credentials"}
+            return {"success": False, "error": "Invalid username or password"}
 
         except Exception as e:
             logger.error(f"Auth API call failed: {e}")
             return {"success": False, "error": str(e)}
 
+    def create_success_response(self, username: str) -> Dict[str, Any]:
+        """Create successful authentication response."""
+        return {
+            "success": True,
+            "user": {
+                "id": "admin",
+                "username": username,
+                "email": "admin@plexichat.local",
+                "permissions": ["admin", "server_manager", "all_access"],
+                "role": "server_administrator",
+                "profile": {
+                    "display_name": "Server Administrator",
+                    "theme": "dark_modern" if self.dark_mode.get() else "light_modern"
+                }
+            },
+            "token": self.generate_secure_token(username),
+            "expires": (datetime.now() + timedelta(hours=8)).isoformat()
+        }
+
     def load_default_credentials(self) -> Dict[str, str]:
         """Load default credentials from file."""
         try:
-            creds_file = Path(__file__).parent.parent.parent.parent.parent / "src" / "default_creds.txt"
+            # Try multiple credential file locations
+            possible_files = [
+                Path(__file__).parent.parent.parent.parent.parent / "src" / "default_creds.txt",
+                Path.home() / ".plexichat" / "default-creds.json",
+                Path.home() / ".plexichat" / "admin-credentials.txt"
+            ]
 
-            if creds_file.exists():
-                with open(creds_file, 'r') as f:
-                    content = f.read()
+            for creds_file in possible_files:
+                if creds_file.exists():
+                    if creds_file.suffix == '.json':
+                        with open(creds_file, 'r') as f:
+                            data = json.load(f)
+                            admin_creds = data.get('admin', {})
+                            return {
+                                "username": admin_creds.get("username", "admin"),
+                                "password": admin_creds.get("password", "admin123")
+                            }
+                    else:
+                        with open(creds_file, 'r') as f:
+                            content = f.read()
+                            username = "admin"
+                            password = "admin123"
+                            
+                            for line in content.split('\n'):
+                                if 'username:' in line.lower():
+                                    username = line.split(':')[1].strip()
+                                elif 'password:' in line.lower():
+                                    password = line.split(':')[1].strip()
+                            
+                            return {"username": username, "password": password}
 
-                # Parse credentials from file
-                username = "admin"  # Default
-                password = "admin123"  # Default
-
-                for line in content.split('\n'):
-                    if 'username:' in line.lower():
-                        username = line.split(':')[1].strip()
-                    elif 'password:' in line.lower():
-                        password = line.split(':')[1].strip()
-
-                return {"username": username, "password": password}
-
+            # Return default if no file found
             return {"username": "admin", "password": "admin123"}
 
         except Exception as e:
             logger.error(f"Failed to load default credentials: {e}")
             return {"username": "admin", "password": "admin123"}
 
-    def verify_admin_password(self, username: str, password_hash: str, default_creds: Dict[str, str]) -> bool:
-        """Verify admin password against multiple sources."""
-        try:
-            # Check against default password
-            default_password = default_creds.get("password", "admin123")
-            default_hash = hashlib.sha256(default_password.encode()).hexdigest()
-
-            if password_hash == default_hash:
-                return True
-
-            # Check against stored admin credentials (if any)
-            # This would integrate with the actual auth system
-            return False
-
-        except Exception as e:
-            logger.error(f"Password verification failed: {e}")
-            return False
-
-    def authenticate_with_webui(self, username: str, password_hash: str) -> Dict[str, Any]:
-        """Authenticate with WebUI system."""
-        try:
-            # Make API call to local WebUI authentication endpoint
-            import requests
-
-            auth_url = "http://localhost:8000/api/v1/auth/login"
-
-            # Convert hash back to password for API call (simplified)
-            # In production, this would use proper token-based auth
-            response = requests.post(auth_url, json={
-                "username": username,
-                "password": password_hash  # This would be handled properly
-            }, timeout=5)
-
-            if response.status_code == 200:
-                data = response.json()
-                return {
-                    "success": True,
-                    "user": data.get("user", {}),
-                    "token": data.get("token", ""),
-                    "expires": data.get("expires", "")
-                }
-
-            return {"success": False, "error": "WebUI authentication failed"}
-
-        except Exception as e:
-            logger.error(f"WebUI authentication failed: {e}")
-            return {"success": False, "error": "WebUI connection failed"}
-
     def generate_secure_token(self, username: str) -> str:
         """Generate secure authentication token."""
         try:
             import secrets
-            import time
-
-            # Create secure token with timestamp and user info
             token_data = f"{username}:{int(time.time())}:{secrets.token_urlsafe(32)}"
-            token = base64.b64encode(token_data.encode()).decode()
-
-            return token
-
+            return base64.b64encode(token_data.encode()).decode()
         except Exception as e:
             logger.error(f"Token generation failed: {e}")
             return "fallback_token"
 
     def handle_auth_result(self, result: Dict[str, Any]):
-        """Handle authentication result."""
+        """Handle authentication result with smooth UX."""
         try:
             self.is_authenticating = False
-            self.login_btn.configure(text="Sign In", state="normal")
+            self.draw_premium_button()
             
             if result.get("success"):
-                # Successful login
-                user_data = result.get("user", {})
-                
-                # Save remember me preference
-                if self.remember_me_var.get():
-                    self.save_remember_me_data(user_data)
+                # Success - save remember me if checked
+                if self.remember_var.get():
+                    self.save_remember_me_data(result.get("user", {}))
                 
                 # Notify parent application
-                self.app.on_login_success(user_data)
+                self.app.on_login_success(result.get("user", {}))
                 
             else:
                 # Failed login
                 self.login_attempts += 1
                 error_msg = result.get("error", "Authentication failed")
                 messagebox.showerror("Login Failed", error_msg)
-                
-                # Clear password field
                 self.password_var.set("")
                 
         except Exception as e:
@@ -746,7 +1462,7 @@ class LoginScreen(ttk.Frame):
         """Handle authentication error."""
         try:
             self.is_authenticating = False
-            self.login_btn.configure(text="Sign In", state="normal")
+            self.draw_premium_button()
             self.login_attempts += 1
             
             messagebox.showerror("Authentication Error", f"Login failed: {error}")
@@ -759,7 +1475,7 @@ class LoginScreen(ttk.Frame):
         """Reset login form to initial state."""
         try:
             self.is_authenticating = False
-            self.login_btn.configure(text="Sign In", state="normal")
+            self.draw_premium_button()
             self.password_var.set("")
         except Exception as e:
             logger.error(f"Failed to reset login form: {e}")
@@ -767,7 +1483,6 @@ class LoginScreen(ttk.Frame):
     def save_remember_me_data(self, user_data: Dict[str, Any]):
         """Save remember me data securely."""
         try:
-            # In real implementation, this would save encrypted data
             remember_file = Path.home() / ".plexichat" / "remember_me.json"
             remember_file.parent.mkdir(exist_ok=True)
             
@@ -783,444 +1498,26 @@ class LoginScreen(ttk.Frame):
         except Exception as e:
             logger.error(f"Failed to save remember me data: {e}")
 
-    def show_forgot_password(self, event=None):
-        """Show forgot password dialog."""
-        # This will be implemented in the next part
-        messagebox.showinfo("Forgot Password", "Forgot password functionality will be implemented.")
-
-    def show_register_form(self, event=None):
-        """Show user registration form."""
-        # This will be implemented in the next part
-        messagebox.showinfo("Register", "User registration functionality will be implemented.")
-
-    def show_2fa_login(self):
-        """Show 2FA login dialog."""
-        # This will be implemented in the next part
-        messagebox.showinfo("2FA Login", "Two-factor authentication will be implemented.")
-
-    def show_biometric_login(self):
-        """Show biometric login dialog."""
-        # This will be implemented in the next part
-        messagebox.showinfo("Biometric Login", "Biometric authentication will be implemented.")
-
-    def is_setup_completed(self):
-        """Check if PlexiChat setup is completed."""
+    def cleanup(self):
+        """Cleanup resources and stop animations."""
         try:
-            config_path = Path.home() / ".plexichat"
-            setup_file = config_path / "setup_completed"
-            return setup_file.exists()
-        except Exception:
-            return False
-
-    def get_default_credentials_info(self):
-        """Get default credentials information."""
-        try:
-            config_path = Path.home() / ".plexichat"
-            creds_file = config_path / "default-creds.json"
-
-            if creds_file.exists():
-                with open(creds_file, 'r') as f:
-                    creds = json.load(f)
-                    admin_creds = creds.get('admin', {})
-                    return {
-                        'username': admin_creds.get('username', 'admin'),
-                        'password': 'See admin-credentials.txt'
-                    }
-            return None
+            self.animation_running = False
         except Exception as e:
-            logger.error(f"Failed to get default credentials: {e}")
-            return None
+            logger.error(f"Failed to cleanup: {e}")
 
-    def show_database_setup(self):
-        """Show database setup dialog."""
-        try:
-            # Create database setup window
-            setup_window = tk.Toplevel(self)
-            setup_window.title("Database Setup")
-            setup_window.geometry("600x500")
-            setup_window.configure(bg='#2c3e50')
-            setup_window.transient(self.winfo_toplevel())
-            setup_window.grab_set()
 
-            # Center the window
-            setup_window.update_idletasks()
-            x = (setup_window.winfo_screenwidth() // 2) - (600 // 2)
-            y = (setup_window.winfo_screenheight() // 2) - (500 // 2)
-            setup_window.geometry(f"600x500+{x}+{y}")
-
-            # Main frame
-            main_frame = tk.Frame(setup_window, bg='#34495e', relief='raised', bd=2)
-            main_frame.pack(fill='both', expand=True, padx=20, pady=20)
-
-            # Title
-            title_label = tk.Label(main_frame, text="🗄️ Database Setup",
-                                 font=("Arial", 20, "bold"), bg='#34495e', fg='#3498db')
-            title_label.pack(pady=20)
-
-            # Database type selection
-            db_frame = tk.Frame(main_frame, bg='#34495e')
-            db_frame.pack(pady=10, fill='x', padx=20)
-
-            tk.Label(db_frame, text="Database Type:", font=("Arial", 12),
-                    bg='#34495e', fg='#ecf0f1').pack(anchor='w')
-
-            self.db_type_var = tk.StringVar(value="sqlite")
-            db_types = [("SQLite (Recommended)", "sqlite"), ("PostgreSQL", "postgresql"), ("MySQL", "mysql")]
-
-            for text, value in db_types:
-                rb = tk.Radiobutton(db_frame, text=text, variable=self.db_type_var, value=value,
-                                  bg='#34495e', fg='#ecf0f1', selectcolor='#2c3e50',
-                                  font=("Arial", 10))
-                rb.pack(anchor='w', pady=2)
-
-            # Admin account section
-            admin_frame = tk.LabelFrame(main_frame, text="Admin Account", font=("Arial", 12),
-                                      bg='#34495e', fg='#ecf0f1', relief='groove', bd=2)
-            admin_frame.pack(pady=20, fill='x', padx=20)
-
-            # Username
-            tk.Label(admin_frame, text="Username:", font=("Arial", 10),
-                    bg='#34495e', fg='#ecf0f1').grid(row=0, column=0, sticky='w', padx=10, pady=5)
-            self.admin_username_entry = tk.Entry(admin_frame, font=("Arial", 10), width=20)
-            self.admin_username_entry.grid(row=0, column=1, padx=10, pady=5)
-            self.admin_username_entry.insert(0, "admin")
-
-            # Password
-            tk.Label(admin_frame, text="Password:", font=("Arial", 10),
-                    bg='#34495e', fg='#ecf0f1').grid(row=1, column=0, sticky='w', padx=10, pady=5)
-            self.admin_password_entry = tk.Entry(admin_frame, font=("Arial", 10), width=20, show="*")
-            self.admin_password_entry.grid(row=1, column=1, padx=10, pady=5)
-
-            # Email
-            tk.Label(admin_frame, text="Email:", font=("Arial", 10),
-                    bg='#34495e', fg='#ecf0f1').grid(row=2, column=0, sticky='w', padx=10, pady=5)
-            self.admin_email_entry = tk.Entry(admin_frame, font=("Arial", 10), width=20)
-            self.admin_email_entry.grid(row=2, column=1, padx=10, pady=5)
-
-            # Buttons
-            button_frame = tk.Frame(main_frame, bg='#34495e')
-            button_frame.pack(pady=20)
-
-            setup_btn = tk.Button(button_frame, text="Setup Database", font=("Arial", 12, "bold"),
-                                bg='#27ae60', fg='white', relief='flat', bd=0,
-                                command=lambda: self.perform_database_setup(setup_window), cursor='hand2')
-            setup_btn.pack(side='left', padx=10, ipadx=15, ipady=8)
-
-            cancel_btn = tk.Button(button_frame, text="Cancel", font=("Arial", 12),
-                                 bg='#e74c3c', fg='white', relief='flat', bd=0,
-                                 command=setup_window.destroy, cursor='hand2')
-            cancel_btn.pack(side='left', padx=10, ipadx=15, ipady=8)
-
-        except Exception as e:
-            logger.error(f"Failed to show database setup: {e}")
-
-    def perform_database_setup(self, setup_window):
-        """Perform the actual database setup."""
-        try:
-            # Get form data
-            db_type = self.db_type_var.get()
-            username = self.admin_username_entry.get().strip()
-            password = self.admin_password_entry.get().strip()
-            email = self.admin_email_entry.get().strip()
-
-            # Validate input
-            if not username or not password or not email:
-                messagebox.showerror("Error", "Please fill in all fields")
-                return
-
-            if len(password) < 8:
-                messagebox.showerror("Error", "Password must be at least 8 characters long")
-                return
-
-            # Create config directory
-            config_path = Path.home() / ".plexichat"
-            config_path.mkdir(parents=True, exist_ok=True)
-
-            # Initialize database
-            if db_type == "sqlite":
-                self.initialize_sqlite_database(config_path)
-
-            # Create admin account
-            self.create_admin_account(config_path, username, password, email)
-
-            # Mark setup as completed
-            setup_file = config_path / "setup_completed"
-            setup_file.write_text(str(datetime.now()))
-
-            # Close setup window
-            setup_window.destroy()
-
-            # Refresh login screen
-            self.create_login_interface()
-
-            messagebox.showinfo("Success", "Database setup completed successfully!\nYou can now log in with your admin credentials.")
-
-        except Exception as e:
-            logger.error(f"Database setup failed: {e}")
-            messagebox.showerror("Error", f"Database setup failed: {str(e)}")
-
-    def initialize_sqlite_database(self, config_path):
-        """Initialize SQLite database using abstraction layer for security compliance."""
-        try:
-            # Use database abstraction layer for security compliance
-            from plexichat.core.database import database_manager
-
-            db_file = config_path / "plexichat.db"
-
-            # Initialize database with security settings
-            database_manager.initialize_database(str(db_file))
-
-            # Create users table with encryption support
-            create_users_sql = '''
-                CREATE TABLE IF NOT EXISTS users (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    username TEXT UNIQUE NOT NULL,
-                    password_hash TEXT NOT NULL,
-                    email TEXT UNIQUE NOT NULL,
-                    role TEXT DEFAULT 'user',
-                    active BOOLEAN DEFAULT 1,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    last_login TIMESTAMP
-                )
-            '''
-            database_manager.execute_query(create_users_sql)
-
-        except ImportError:
-            # Fallback to direct SQLite if abstraction layer not available
-            # (Removed: use abstraction layer only)
-            raise RuntimeError("Database abstraction layer is required.")
-
-        except Exception as e:
-            logger.error(f"SQLite initialization failed: {e}")
-            raise
-
-    def create_admin_account(self, config_path, username, password, email):
-        """Create admin account using abstraction layer only."""
-        try:
-            # Hash password
-            password_hash = hashlib.sha256(password.encode()).hexdigest()
-            # Create credentials structure
-            credentials = {
-                "admin": {
-                    "username": username,
-                    "password_hash": password_hash,
-                    "email": email,
-                    "role": "admin",
-                    "created_at": str(datetime.now()),
-                    "active": True
-                }
-            }
-            # Save credentials
-            creds_file = config_path / "default-creds.json"
-            with open(creds_file, 'w') as f:
-                json.dump(credentials, f, indent=2)
-            # Also create a readable credentials file
-            readable_creds = config_path / "admin-credentials.txt"
-            with open(readable_creds, 'w') as f:
-                f.write(f"PlexiChat Admin Credentials\n")
-                f.write(f"==========================\n\n")
-                f.write(f"Username: {username}\n")
-                f.write(f"Password: {password}\n")
-                f.write(f"Email: {email}\n")
-                f.write(f"Role: admin\n\n")
-                f.write(f"Created: {datetime.now()}\n\n")
-                f.write(f"IMPORTANT: Keep this file secure and delete it after noting the credentials!\n")
-            # Add to database using abstraction layer
-            from plexichat.features.users.models import User, UserRole, UserStatus, UserModelService
-            user_service = UserModelService()
-            admin_user = User(
-                id=None,
-                username=username,
-                email=email,
-                hashed_password=password_hash,
-                role=UserRole.ADMIN,
-                status=UserStatus.ACTIVE,
-                created_at=datetime.now(),
-                updated_at=datetime.now(),
-                custom_fields={},
-            )
-            import asyncio
-            asyncio.run(user_service.create_user(admin_user))
-        except Exception as e:
-            logger.error(f"Admin account creation failed: {e}")
-            raise
-
-    def open_documentation(self):
-        """Open PlexiChat documentation."""
-        try:
-            import webbrowser
-            webbrowser.open("https://docs.plexichat.com")
-        except Exception as e:
-            logger.error(f"Failed to open documentation: {e}")
-            messagebox.showerror("Error", "Failed to open documentation")
-
-    def open_plugin_marketplace(self):
-        """Open plugin marketplace."""
-        try:
-            # Create marketplace window
-            marketplace_window = tk.Toplevel(self)
-            marketplace_window.title("Plugin Marketplace")
-            marketplace_window.geometry("1000x700")
-            marketplace_window.configure(bg='#2c3e50')
-            marketplace_window.transient(self.winfo_toplevel())
-
-            # Center the window
-            marketplace_window.update_idletasks()
-            x = (marketplace_window.winfo_screenwidth() // 2) - (1000 // 2)
-            y = (marketplace_window.winfo_screenheight() // 2) - (700 // 2)
-            marketplace_window.geometry(f"1000x700+{x}+{y}")
-
-            # Create marketplace instance
-            from .plugin_marketplace import PluginMarketplace
-            marketplace = PluginMarketplace(marketplace_window, self.app)
-            marketplace.pack(fill=tk.BOTH, expand=True)
-
-        except Exception as e:
-            logger.error(f"Failed to open plugin marketplace: {e}")
-            messagebox.showerror("Error", "Failed to open plugin marketplace")
-
-    def show_system_status(self):
-        """Show system status dialog."""
-        try:
-            # Create status window
-            status_window = tk.Toplevel(self)
-            status_window.title("System Status")
-            status_window.geometry("600x400")
-            status_window.configure(bg='#2c3e50')
-            status_window.transient(self.winfo_toplevel())
-            status_window.grab_set()
-
-            # Center the window
-            status_window.update_idletasks()
-            x = (status_window.winfo_screenwidth() // 2) - (600 // 2)
-            y = (status_window.winfo_screenheight() // 2) - (400 // 2)
-            status_window.geometry(f"600x400+{x}+{y}")
-
-            # Main frame
-            main_frame = tk.Frame(status_window, bg='#34495e', relief='raised', bd=2)
-            main_frame.pack(fill='both', expand=True, padx=20, pady=20)
-
-            # Title
-            title_label = tk.Label(main_frame, text="📊 System Status",
-                                 font=("Arial", 20, "bold"), bg='#34495e', fg='#3498db')
-            title_label.pack(pady=20)
-
-            # Status information
-            status_text = tk.Text(main_frame, bg='#2c3e50', fg='#ecf0f1',
-                                font=("Consolas", 10), relief='flat', bd=5)
-            status_text.pack(fill='both', expand=True, padx=20, pady=(0, 20))
-
-            # Get system status
-            status_info = self.get_system_status()
-            status_text.insert(tk.END, status_info)
-            status_text.config(state='disabled')
-
-            # Close button
-            close_btn = tk.Button(main_frame, text="Close", font=("Arial", 12),
-                                bg='#95a5a6', fg='white', relief='flat', bd=0,
-                                command=status_window.destroy, cursor='hand2')
-            close_btn.pack(pady=(0, 10), ipadx=20, ipady=5)
-
-        except Exception as e:
-            logger.error(f"Failed to show system status: {e}")
-            messagebox.showerror("Error", "Failed to show system status")
-
-    def get_system_status(self) -> str:
-        """Get current system status information."""
-        try:
-            import platform
-            from datetime import datetime
-
-            # Try to import psutil, fallback if not available
-            psutil = None
-            try:
-                import psutil
-                psutil_available = True
-            except ImportError:
-                psutil_available = False
-
-            status = []
-            status.append("PlexiChat System Status")
-            status.append("=" * 50)
-            status.append("")
-
-            # System information
-            status.append("System Information:")
-            status.append(f"  OS: {platform.system()} {platform.release()}")
-            status.append(f"  Python: {platform.python_version()}")
-            status.append(f"  Architecture: {platform.machine()}")
-            status.append("")
-
-            # Resource usage
-            status.append("Resource Usage:")
-            if psutil_available and psutil:
-                status.append(f"  CPU Usage: {psutil.cpu_percent()}%")
-                status.append(f"  Memory Usage: {psutil.virtual_memory().percent}%")
-                try:
-                    status.append(f"  Disk Usage: {psutil.disk_usage('/').percent}%")
-                except:
-                    status.append(f"  Disk Usage: {psutil.disk_usage('C:').percent}%")
-            else:
-                status.append("  Resource monitoring unavailable (psutil not installed)")
-            status.append("")
-
-            # PlexiChat status
-            status.append("PlexiChat Status:")
-            status.append(f"  Setup Completed: {'Yes' if self.is_setup_completed() else 'No'}")
-            status.append(f"  Config Path: {Path.home() / '.plexichat'}")
-            status.append(f"  Plugins Directory: {Path('plugins')}")
-            status.append("")
-
-            # Database status
-            config_path = Path.home() / ".plexichat"
-            db_file = config_path / "plexichat.db"
-            status.append("Database Status:")
-            status.append(f"  Database File: {'Exists' if db_file.exists() else 'Not Found'}")
-            if db_file.exists():
-                status.append(f"  Database Size: {db_file.stat().st_size} bytes")
-            status.append("")
-
-            # Plugin status
-            plugins_dir = Path("plugins")
-            if plugins_dir.exists():
-                plugin_count = len([p for p in plugins_dir.iterdir() if p.is_dir() and not p.name.startswith('_')])
-                status.append(f"Plugins: {plugin_count} installed")
-            else:
-                status.append("Plugins: Directory not found")
-
-            status.append("")
-            status.append(f"Status generated at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-
-            return "\n".join(status)
-
-        except Exception as e:
-            logger.error(f"Failed to get system status: {e}")
-            return f"Error getting system status: {e}"
-
-    def configure_custom_styles(self):
-        """Configure custom button styles for enhanced login screen."""
-        try:
-            style = ttk.Style()
-
-            # Setup button style
-            style.configure("SetupButton.TButton",
-                          background='#e74c3c',
-                          foreground='white',
-                          font=('Arial', 10, 'bold'),
-                          borderwidth=0,
-                          focuscolor='none')
-            style.map("SetupButton.TButton",
-                     background=[('active', '#c0392b')])
-
-            # Quick access button style
-            style.configure("QuickButton.TButton",
-                          background='#3498db',
-                          foreground='white',
-                          font=('Arial', 9),
-                          borderwidth=0,
-                          focuscolor='none')
-            style.map("QuickButton.TButton",
-                     background=[('active', '#2980b9')])
-
-        except Exception as e:
-            logger.error(f"Failed to configure custom styles: {e}")
+# Usage example:
+if __name__ == "__main__":
+    class MockApp:
+        def on_login_success(self, user_data):
+            print(f"Login successful for user: {user_data.get('username')}")
+    
+    root = tk.Tk()
+    root.title("PlexiChat - Modern Login")
+    root.geometry("1200x800")
+    root.configure(bg='#1a1a2e')
+    
+    app = MockApp()
+    login_screen = LoginScreen(root, app)
+    
+    root.mainloop()

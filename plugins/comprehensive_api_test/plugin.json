@@ -1,0 +1,26 @@
+{
+  "name": "comprehensive_api_test",
+  "version": "1.0.0",
+  "description": "Comprehensive API testing plugin that tests EVERY SINGLE ENDPOINT",
+  "author": "PlexiChat System",
+  "main": "main.py",
+  "dependencies": {
+    "requests": ">=2.25.0"
+  },
+  "permissions": [
+    "network_access",
+    "file_write",
+    "system_info"
+  ],
+  "commands": [
+    {
+      "name": "test_all",
+      "description": "Run comprehensive test of ALL API endpoints",
+      "usage": "test_all"
+    }
+  ],
+  "category": "testing",
+  "tags": ["api", "testing", "comprehensive", "endpoints"],
+  "enabled": true,
+  "auto_load": false
+}

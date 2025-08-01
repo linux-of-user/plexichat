@@ -6,7 +6,7 @@ Enhanced with comprehensive validation and security.
 
 from datetime import datetime
 from typing import Optional, List
-from pydantic import BaseModel, Field, validator, EmailStr
+from pydantic import BaseModel, Field, field_validator, EmailStr
 
 
 class UserBase(BaseModel):
@@ -14,7 +14,8 @@ class UserBase(BaseModel):
     username: str = Field(..., min_length=3, max_length=50, description="Username")
     email: EmailStr = Field(..., description="Email address")
 
-    @validator('username')
+    @field_validator('username')
+    @classmethod
     def validate_username(cls, v):
         if not v.strip():
             raise ValueError('Username cannot be empty')
@@ -30,7 +31,8 @@ class UserCreate(UserBase):
     password: str = Field(..., min_length=6, max_length=100, description="Password")
     is_admin: bool = Field(default=False, description="Admin status")
 
-    @validator('password')
+    @field_validator('password')
+    @classmethod
     def validate_password(cls, v):
         # Basic password validation
         if len(v) < 6:
@@ -45,7 +47,8 @@ class UserUpdate(BaseModel):
     is_active: Optional[bool] = Field(None, description="Active status")
     is_admin: Optional[bool] = Field(None, description="Admin status")
 
-    @validator('username')
+    @field_validator('username')
+    @classmethod
     def validate_username(cls, v):
         if v is not None:
             if not v.strip():

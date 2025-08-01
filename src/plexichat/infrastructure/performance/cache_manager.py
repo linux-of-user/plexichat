@@ -90,7 +90,7 @@ class QuantumSecureCache:
     - Threat-aware cache management
     """
 
-    def __init__(self,):
+    def __init__(self,
                  max_size: int = 1024 * 1024 * 100,  # 100MB default
                  default_ttl: int = 3600,  # 1 hour
                  security_level: CacheLevel = CacheLevel.RESTRICTED):
@@ -131,7 +131,7 @@ class QuantumSecureCache:
         if cache_key:
             # Derive keys for different security levels
             for level in CacheLevel:
-                level_key = hashlib.blake2b()
+                level_key = hashlib.blake2b(
                     cache_key + f"cache_level_{level.value}".encode(),
                     digest_size=32
                 ).digest()
@@ -157,7 +157,7 @@ class QuantumSecureCache:
 
         asyncio.create_task(maintenance_loop())
 
-    async def set(self,)
+    async def set(self,
                   key: str,
                   value: Any,
                   ttl: Optional[int] = None,
@@ -176,7 +176,7 @@ class QuantumSecureCache:
 
             # Encrypt data based on security level
             start_time = datetime.now(timezone.utc)
-            encrypted_data, encryption_metadata = await self._encrypt_cache_data()
+            encrypted_data, encryption_metadata = await self._encrypt_cache_data(
                 serialized_data, security_level
             )
             encryption_time = (datetime.now(timezone.utc) - start_time).total_seconds()

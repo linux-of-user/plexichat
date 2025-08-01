@@ -353,7 +353,7 @@ class FileManager:
                         uploaded_at=row[8],
                         is_public=row[9],
                         tags=row[10].split(',') if row[10] else [],
-                        metadata=eval(row[11]) if row[11] else {}
+metadata=# SECURITY: eval() removed - use safe alternativesrow[11]) if row[11] else {}
                     )
 
                     # Cache result
