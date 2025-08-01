@@ -22,13 +22,39 @@ from typing import Any, Dict, List, Optional, Set, Callable, Union
 from enum import Enum
 from dataclasses import dataclass, field
 
-# Import shared components (NEW ARCHITECTURE)
-from ...shared.models import User, Event, Alert, Priority, Status
-from ...shared.types import UserId, Token, HashedPassword, Salt, SecurityContext
-from ...shared.exceptions import (
-    SecurityError, AuthenticationError, AuthorizationError,
-    ValidationError, RateLimitError
-)
+# Import shared components (NEW ARCHITECTURE) - with fallbacks
+try:
+    from ...shared.models import User, Event, Alert, Priority, Status
+except ImportError:
+    # Fallback definitions
+    User = dict
+    Event = dict
+    Alert = dict
+    Priority = str
+    Status = str
+
+try:
+    from ...shared.types import UserId, Token, HashedPassword, Salt, SecurityContext
+except ImportError:
+    # Fallback type definitions
+    UserId = str
+    Token = str
+    HashedPassword = str
+    Salt = str
+    SecurityContext = dict
+
+try:
+    from ...shared.exceptions import (
+        SecurityError, AuthenticationError, AuthorizationError,
+        ValidationError, RateLimitError
+    )
+except ImportError:
+    # Fallback exception definitions
+    class SecurityError(Exception): pass
+    class AuthenticationError(SecurityError): pass
+    class AuthorizationError(SecurityError): pass
+    class ValidationError(SecurityError): pass
+    class RateLimitError(SecurityError): pass
 from ...shared.constants import (
     DEFAULT_SECRET_KEY, PASSWORD_MIN_LENGTH, MAX_LOGIN_ATTEMPTS,
     LOCKOUT_DURATION_MINUTES
@@ -205,6 +231,13 @@ class PasswordManager:
     """Password management with advanced security."""
 
     def __init__(self):
+        # Import the improved auth core
+        try:
+            from ..auth.auth_core import AuthenticationCore
+            self.auth_core = AuthenticationCore()
+        except ImportError:
+            self.auth_core = None
+
         self.min_length = 12
         self.require_uppercase = True
         self.require_lowercase = True
@@ -219,7 +252,11 @@ class PasswordManager:
         self.locked_accounts: Dict[str, datetime] = {}
 
     def hash_password(self, password: str) -> str:
-        """Hash password with bcrypt."""
+        """Hash password using improved auth core."""
+        if self.auth_core:
+            return self.auth_core.hash_password(password)
+
+        # Fallback implementation
         try:
             if bcrypt:
                 salt = bcrypt.gensalt(rounds=12)
@@ -233,7 +270,11 @@ class PasswordManager:
             raise SecurityError("Password hashing failed")
 
     def verify_password(self, password: str, hashed: str) -> bool:
-        """Verify password against hash."""
+        """Verify password using improved auth core."""
+        if self.auth_core:
+            return self.auth_core.verify_password(password, hashed)
+
+        # Fallback implementation
         try:
             if bcrypt and not hashed.startswith('sha256$'):
                 return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
@@ -344,6 +385,13 @@ class TokenManager:
     """JWT token management with advanced security."""
 
     def __init__(self, secret_key: str):
+        # Import the improved auth core
+        try:
+            from ..auth.auth_core import AuthenticationCore
+            self.auth_core = AuthenticationCore()
+        except ImportError:
+            self.auth_core = None
+
         self.secret_key = secret_key
         self.access_token_expiry = timedelta(hours=1)
         self.refresh_token_expiry = timedelta(days=30)
@@ -378,7 +426,23 @@ class TokenManager:
 
     def generate_token(self, user_id: str, token_type: str = "access",
                        metadata: Optional[Dict[str, Any]] = None) -> str:
-        """Generate a secure token."""
+        """Generate a secure token using improved auth core."""
+        if self.auth_core:
+            # Use the improved auth core
+            data = {
+                "user_id": user_id,
+                "type": token_type,
+                **(metadata or {})
+            }
+
+            if token_type == "access":
+                return self.auth_core.create_access_token(data)
+            elif token_type == "refresh":
+                return self.auth_core.create_refresh_token(data)
+            else:
+                return self.auth_core.create_access_token(data)
+
+        # Fallback implementation
         try:
             now = datetime.now(timezone.utc)
 
@@ -423,7 +487,12 @@ class TokenManager:
             raise SecurityError("Token generation failed")
 
     def verify_token(self, token: str) -> Optional[Dict[str, Any]]:
-        """Verify and decode token."""
+        """Verify and decode token using improved auth core."""
+        if self.auth_core:
+            # Use the improved auth core
+            return self.auth_core.verify_token(token)
+
+        # Fallback implementation
         try:
             import json
 

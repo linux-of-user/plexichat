@@ -7,13 +7,34 @@ Uses EXISTING database abstraction and optimization systems.
 
 import hashlib
 import hmac
+import json
 import logging
 import secrets
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Union
 
-from jose import JWTError, jwt
-from passlib.context import CryptContext
+# JWT and password hashing with fallbacks
+try:
+    from jose import JWTError, jwt
+    JWT_AVAILABLE = True
+except ImportError:
+    JWT_AVAILABLE = False
+    jwt = None
+    JWTError = Exception
+
+try:
+    from passlib.context import CryptContext
+    PASSLIB_AVAILABLE = True
+except ImportError:
+    PASSLIB_AVAILABLE = False
+    CryptContext = None
+
+try:
+    import bcrypt
+    BCRYPT_AVAILABLE = True
+except ImportError:
+    BCRYPT_AVAILABLE = False
+    bcrypt = None
 
 # Use EXISTING database abstraction layer
 try:
@@ -48,8 +69,11 @@ logger = logging.getLogger(__name__)
 # Initialize EXISTING performance systems
 performance_logger = get_performance_logger() if get_performance_logger else None
 
-# Password hashing
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# Password hashing with fallbacks
+if PASSLIB_AVAILABLE:
+    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+else:
+    pwd_context = None
 
 class AuthenticationCore:
     """Core authentication system using EXISTING database abstraction."""
@@ -63,41 +87,143 @@ class AuthenticationCore:
         self.refresh_token_expire = getattr(settings, 'REFRESH_TOKEN_EXPIRE_DAYS', 7)
 
     def hash_password(self, password: str) -> str:
-        """Hash password using bcrypt."""
-        return pwd_context.hash(password)
+        """Hash password using available method."""
+        if pwd_context:
+            return pwd_context.hash(password)
+        elif BCRYPT_AVAILABLE:
+            salt = bcrypt.gensalt()
+            return bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
+        else:
+            # Fallback to SHA-256 with salt (not recommended for production)
+            salt = secrets.token_hex(16)
+            hashed = hashlib.sha256((password + salt).encode()).hexdigest()
+            return f"sha256${salt}${hashed}"
 
     def verify_password(self, plain_password: str, hashed_password: str) -> bool:
         """Verify password against hash."""
-        return pwd_context.verify(plain_password, hashed_password)
+        if pwd_context:
+            return pwd_context.verify(plain_password, hashed_password)
+        elif BCRYPT_AVAILABLE and not hashed_password.startswith('sha256$'):
+            try:
+                return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
+            except:
+                return False
+        else:
+            # Handle SHA-256 fallback
+            if hashed_password.startswith('sha256$'):
+                parts = hashed_password.split('$')
+                if len(parts) == 3:
+                    _, salt, stored_hash = parts
+                    test_hash = hashlib.sha256((plain_password + salt).encode()).hexdigest()
+                    return hmac.compare_digest(stored_hash, test_hash)
+            return False
 
     def create_access_token(self, data: Dict[str, Any], expires_delta: Optional[timedelta] = None) -> str:
-        """Create JWT access token."""
+        """Create JWT access token with fallback."""
         to_encode = data.copy()
         if expires_delta:
             expire = datetime.utcnow() + expires_delta
         else:
             expire = datetime.utcnow() + timedelta(minutes=self.access_token_expire)
 
-        to_encode.update({"exp": expire, "type": "access"})
-        encoded_jwt = jwt.encode(to_encode, self.jwt_secret, algorithm=self.jwt_algorithm)
-        return encoded_jwt
+        to_encode.update({"exp": expire})
+
+        if JWT_AVAILABLE:
+            try:
+                return jwt.encode(to_encode, self.jwt_secret, algorithm=self.jwt_algorithm)
+            except Exception as e:
+                logger.error(f"JWT encoding failed: {e}")
+                # Fall through to simple token
+
+        # Fallback: create a simple signed token
+        token_data = {
+            'data': to_encode,
+            'exp': expire.timestamp()
+        }
+        token_str = json.dumps(token_data, separators=(',', ':'))
+        signature = hmac.new(
+            self.jwt_secret.encode(),
+            token_str.encode(),
+            hashlib.sha256
+        ).hexdigest()
+
+        import base64
+        encoded_token = base64.b64encode(token_str.encode()).decode()
+        return f"{encoded_token}.{signature}"
 
     def create_refresh_token(self, data: Dict[str, Any]) -> str:
-        """Create JWT refresh token."""
+        """Create JWT refresh token with fallback."""
         to_encode = data.copy()
         expire = datetime.utcnow() + timedelta(days=self.refresh_token_expire)
         to_encode.update({"exp": expire, "type": "refresh"})
-        encoded_jwt = jwt.encode(to_encode, self.jwt_secret, algorithm=self.jwt_algorithm)
-        return encoded_jwt
+
+        if JWT_AVAILABLE:
+            try:
+                return jwt.encode(to_encode, self.jwt_secret, algorithm=self.jwt_algorithm)
+            except Exception as e:
+                logger.error(f"JWT encoding failed: {e}")
+
+        # Fallback: create a simple signed token
+        token_data = {
+            'data': to_encode,
+            'exp': expire.timestamp()
+        }
+        token_str = json.dumps(token_data, separators=(',', ':'))
+        signature = hmac.new(
+            self.jwt_secret.encode(),
+            token_str.encode(),
+            hashlib.sha256
+        ).hexdigest()
+
+        import base64
+        encoded_token = base64.b64encode(token_str.encode()).decode()
+        return f"{encoded_token}.{signature}"
 
     def verify_token(self, token: str, token_type: str = "access") -> Optional[Dict[str, Any]]:
-        """Verify JWT token."""
+        """Verify JWT token with fallback."""
+        if JWT_AVAILABLE:
+            try:
+                payload = jwt.decode(token, self.jwt_secret, algorithms=[self.jwt_algorithm])
+                if payload.get("type") != token_type:
+                    return None
+                return payload
+            except JWTError:
+                pass  # Fall through to fallback verification
+
+        # Fallback verification for simple tokens
         try:
-            payload = jwt.decode(token, self.jwt_secret, algorithms=[self.jwt_algorithm])
+            if '.' not in token:
+                return None
+
+            encoded_data, signature = token.rsplit('.', 1)
+
+            # Verify signature
+            import base64
+            token_str = base64.b64decode(encoded_data.encode()).decode()
+            expected_signature = hmac.new(
+                self.jwt_secret.encode(),
+                token_str.encode(),
+                hashlib.sha256
+            ).hexdigest()
+
+            if not hmac.compare_digest(signature, expected_signature):
+                return None
+
+            # Parse token data
+            token_data = json.loads(token_str)
+
+            # Check expiration
+            if token_data.get('exp', 0) < datetime.utcnow().timestamp():
+                return None
+
+            payload = token_data.get('data', {})
             if payload.get("type") != token_type:
                 return None
+
             return payload
-        except JWTError:
+
+        except Exception as e:
+            logger.error(f"Token verification failed: {e}")
             return None
 
     @async_track_performance("user_authentication") if async_track_performance else lambda f: f

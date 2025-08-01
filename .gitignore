@@ -56,12 +56,7 @@ Thumbs.db
 !/config/*.example
 !/config/*.template
 
-# SSL Certificates
-*.pem
-*.key
-*.crt
-*.p12
-*.pfx
+# SSL Certificates (moved to PlexiChat specific section)
 
 # Database Files
 *.db
@@ -182,6 +177,37 @@ default_creds.txt
 changelog.json
 CHANGELOG.md
 
+# Process and runtime files
+plexichat.lock
+*.pid
+*.lock
+
+# Setup and installation files
+setup_debug.log
+install_*.log
+bootstrap_*.log
+
+# User data and sessions
+/user_data/
+/sessions/
+/uploads/
+/downloads/
+
+# Security and certificates
+/certs/
+/keys/
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+*.keystore
+
+# API and service files
+/api_cache/
+/service_cache/
+/webhooks/
+
 # Development and testing artifacts
 *_test.py
 *_standalone_test.py
@@ -193,8 +219,14 @@ format_and_lint.py
 remove_dead_code.py
 replace_prints.py
 test_*.py
+simple_*.py
 !src/plexichat/tests/test_*.py
 pyright_*.txt
+
+# Security configuration files
+.config_key
+security.log
+audit.log
 
 # Development backups and reports
 dev/backups/
@@ -245,3 +277,61 @@ src/config/
 
 plexichat.lock
 test-install-config.json
+
+# Modern development tools
+.ruff_cache/
+.black/
+.isort.cfg
+.flake8
+.pylintrc
+pyrightconfig.json
+
+# AI/ML model files
+*.model
+*.pkl
+*.joblib
+/models/
+/checkpoints/
+
+# Performance and profiling
+*.prof
+*.pstats
+profile_*.txt
+memory_profile_*.txt
+
+# Documentation builds
+/docs/_build/
+/docs/build/
+/sphinx_build/
+
+# Package managers
+poetry.toml
+Pipfile
+requirements-dev.txt
+requirements-test.txt
+
+# IDE specific (additional)
+.fleet/
+.cursor/
+*.code-workspace
+
+# System specific (additional)
+*.lnk
+.fuse_hidden*
+.nfs*
+
+# Backup and recovery
+*.backup
+*.bak
+*.old
+*.orig
+*.rej
+*.swp
+*.swo
+*~
+
+# Temporary and cache (additional)
+.cache/
+.tmp/
+tmp/
+temp/

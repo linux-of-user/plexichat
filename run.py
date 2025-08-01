@@ -62,6 +62,12 @@ GITHUB_RELEASES_URL = f"{GITHUB_API_URL}/releases"
 GITHUB_LATEST_URL = f"{GITHUB_RELEASES_URL}/latest"
 GITHUB_DOWNLOAD_URL = f"https://github.com/{GITHUB_REPO}/archive"
 
+# Process lock file path
+PROCESS_LOCK_FILE = "plexichat.lock"
+
+# Installation path
+INSTALL_PATH = Path(__file__).parent
+
 # Terminal UI Constants
 TERMINAL_WIDTH = 120
 TERMINAL_HEIGHT = 40
@@ -1705,14 +1711,21 @@ def run_gui():
     logger.info(f"{Colors.BOLD}{Colors.BLUE}Launching PlexiChat GUI (Tkinter)...{Colors.RESET}")
     try:
         logger.debug(f"{Colors.CYAN}Importing GUI modules...{Colors.RESET}")
-        from plexichat.interfaces.gui.main_application import main as gui_main
 
-        logger.info(f"{Colors.GREEN}GUI modules imported successfully{Colors.RESET}")
-        logger.info(f"{Colors.BOLD}{Colors.GREEN}Opening PlexiChat Server Manager GUI...{Colors.RESET}")
+        # Try the advanced GUI first
+        try:
+            from plexichat.interfaces.gui.main_application import main as gui_main
+            logger.info(f"{Colors.GREEN}Advanced GUI modules imported successfully{Colors.RESET}")
+            logger.info(f"{Colors.BOLD}{Colors.GREEN}Opening PlexiChat Advanced GUI...{Colors.RESET}")
+            gui_main()  # This will run the GUI
+            logger.info(f"{Colors.BLUE}GUI closed successfully{Colors.RESET}")
+            return True
+        except Exception as advanced_error:
+            logger.warning(f"{Colors.YELLOW}Advanced GUI failed: {advanced_error}{Colors.RESET}")
+            logger.info(f"{Colors.CYAN}Falling back to simple GUI...{Colors.RESET}")
 
-        # Start GUI
-        gui_main()  # This will run the GUI
-        logger.info(f"{Colors.BLUE}GUI closed successfully{Colors.RESET}")
+            # Fallback to simple GUI
+            return run_simple_gui()
 
     except ImportError as e:
         logger.error(f"{Colors.RED}Failed to import GUI modules: {e}{Colors.RESET}")
@@ -1726,7 +1739,145 @@ def run_gui():
         logger.debug(traceback.format_exc())
         return False
 
-    return True
+def run_simple_gui():
+    """Launch a simple fallback GUI interface."""
+    try:
+        import tkinter as tk
+        from tkinter import ttk, messagebox, scrolledtext
+        import subprocess
+        import threading
+
+        logger.info(f"{Colors.GREEN}Starting simple PlexiChat GUI...{Colors.RESET}")
+
+        class SimpleGUI:
+            def __init__(self):
+                self.root = tk.Tk()
+                self.root.title("PlexiChat - Simple Management Interface")
+                self.root.geometry("800x600")
+                self.root.minsize(600, 400)
+
+                # Configure style
+                style = ttk.Style()
+                style.theme_use('clam')
+
+                self.setup_ui()
+
+            def setup_ui(self):
+                # Main frame
+                main_frame = ttk.Frame(self.root, padding="10")
+                main_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+
+                # Configure grid weights
+                self.root.columnconfigure(0, weight=1)
+                self.root.rowconfigure(0, weight=1)
+                main_frame.columnconfigure(1, weight=1)
+                main_frame.rowconfigure(2, weight=1)
+
+                # Title
+                title_label = ttk.Label(main_frame, text="PlexiChat Management Interface",
+                                      font=('Arial', 16, 'bold'))
+                title_label.grid(row=0, column=0, columnspan=2, pady=(0, 20))
+
+                # Buttons frame
+                buttons_frame = ttk.Frame(main_frame)
+                buttons_frame.grid(row=1, column=0, columnspan=2, pady=(0, 10), sticky=(tk.W, tk.E))
+
+                # Buttons
+                ttk.Button(buttons_frame, text="Start API Server",
+                          command=self.start_api_server).pack(side=tk.LEFT, padx=(0, 5))
+                ttk.Button(buttons_frame, text="Run Setup",
+                          command=self.run_setup).pack(side=tk.LEFT, padx=5)
+                ttk.Button(buttons_frame, text="Run Tests",
+                          command=self.run_tests).pack(side=tk.LEFT, padx=5)
+                ttk.Button(buttons_frame, text="Clean System",
+                          command=self.clean_system).pack(side=tk.LEFT, padx=5)
+                ttk.Button(buttons_frame, text="Open Web UI",
+                          command=self.open_webui).pack(side=tk.LEFT, padx=5)
+
+                # Log area
+                log_label = ttk.Label(main_frame, text="System Log:")
+                log_label.grid(row=2, column=0, sticky=tk.W, pady=(10, 5))
+
+                self.log_text = scrolledtext.ScrolledText(main_frame, height=20, width=80)
+                self.log_text.grid(row=3, column=0, columnspan=2, sticky=(tk.W, tk.E, tk.N, tk.S))
+
+                # Status bar
+                self.status_var = tk.StringVar()
+                self.status_var.set("Ready")
+                status_bar = ttk.Label(main_frame, textvariable=self.status_var, relief=tk.SUNKEN)
+                status_bar.grid(row=4, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=(10, 0))
+
+                self.log("PlexiChat Simple GUI initialized successfully")
+
+            def log(self, message):
+                """Add a message to the log."""
+                timestamp = datetime.now().strftime("%H:%M:%S")
+                self.log_text.insert(tk.END, f"[{timestamp}] {message}\n")
+                self.log_text.see(tk.END)
+
+            def run_command(self, command, description):
+                """Run a command in a separate thread."""
+                def run():
+                    try:
+                        self.status_var.set(f"Running {description}...")
+                        self.log(f"Starting {description}...")
+
+                        result = subprocess.run(
+                            [sys.executable, "run.py"] + command.split(),
+                            capture_output=True,
+                            text=True,
+                            cwd=os.getcwd()
+                        )
+
+                        if result.returncode == 0:
+                            self.log(f"{description} completed successfully")
+                            if result.stdout:
+                                self.log(f"Output: {result.stdout.strip()}")
+                        else:
+                            self.log(f"{description} failed with return code {result.returncode}")
+                            if result.stderr:
+                                self.log(f"Error: {result.stderr.strip()}")
+
+                    except Exception as e:
+                        self.log(f"Error running {description}: {e}")
+                    finally:
+                        self.status_var.set("Ready")
+
+                threading.Thread(target=run, daemon=True).start()
+
+            def start_api_server(self):
+                self.run_command("api", "API Server")
+
+            def run_setup(self):
+                self.run_command("setup", "Setup")
+
+            def run_tests(self):
+                self.run_command("test", "Tests")
+
+            def clean_system(self):
+                self.run_command("clean", "System Cleanup")
+
+            def open_webui(self):
+                try:
+                    import webbrowser
+                    webbrowser.open("http://localhost:8000")
+                    self.log("Opened web UI in browser")
+                except Exception as e:
+                    self.log(f"Failed to open web UI: {e}")
+
+            def run(self):
+                self.root.mainloop()
+
+        # Create and run the simple GUI
+        gui = SimpleGUI()
+        gui.run()
+
+        logger.info(f"{Colors.BLUE}Simple GUI closed successfully{Colors.RESET}")
+        return True
+
+    except Exception as e:
+        logger.error(f"{Colors.RED}Simple GUI error: {e}{Colors.RESET}")
+        return False
 
 def run_gui_standalone():
     """Launch the GUI interface in standalone mode (without server integration)."""
@@ -1766,6 +1917,176 @@ def run_webui():
     logger.info("Web interface available at: http://localhost:8000")
     logger.info("API documentation at: http://localhost:8000/docs")
     run_api_and_cli()  # Use same CLI system as GUI
+
+def run_update_system():
+    """Run system update check and installation."""
+    try:
+        logger.info("Checking for system updates...")
+        github_manager = GitHubVersionManager()
+        latest = github_manager.get_latest_version()
+
+        if latest:
+            print(f"{Colors.GREEN}Latest version available: {latest['tag']}{Colors.RESET}")
+            print(f"Current version: {PLEXICHAT_VERSION}")
+
+            if latest['tag'] != PLEXICHAT_VERSION:
+                choice = input(f"{Colors.CYAN}Update available. Download? (y/N): {Colors.RESET}").strip().lower()
+                if choice in ['y', 'yes']:
+                    if github_manager.download_version(latest['tag'], './downloads'):
+                        print(f"{Colors.GREEN}Update downloaded successfully{Colors.RESET}")
+                    else:
+                        print(f"{Colors.RED}Update download failed{Colors.RESET}")
+                else:
+                    print("Update cancelled")
+            else:
+                print(f"{Colors.GREEN}You are running the latest version{Colors.RESET}")
+        else:
+            print(f"{Colors.RED}Could not check for updates{Colors.RESET}")
+
+    except Exception as e:
+        logger.error(f"Update system error: {e}")
+        print(f"{Colors.RED}Update check failed: {e}{Colors.RESET}")
+
+def run_enhanced_bootstrap():
+    """Run enhanced bootstrap process."""
+    try:
+        logger.info("Running enhanced bootstrap...")
+        print(f"{Colors.BOLD}{Colors.GREEN}PlexiChat Enhanced Bootstrap{Colors.RESET}")
+
+        # Run setup with full level
+        if run_first_time_setup(level='full'):
+            print(f"{Colors.GREEN}Bootstrap completed successfully{Colors.RESET}")
+            return True
+        else:
+            print(f"{Colors.RED}Bootstrap failed{Colors.RESET}")
+            return False
+
+    except Exception as e:
+        logger.error(f"Bootstrap error: {e}")
+        return False
+
+def run_configuration_wizard():
+    """Run interactive configuration wizard."""
+    try:
+        logger.info("Starting configuration wizard...")
+        config_manager = ConfigurationManager()
+
+        print(f"\n{Colors.BOLD}{Colors.BLUE}PlexiChat Configuration Wizard{Colors.RESET}")
+        print(f"{Colors.DIM}{'=' * 50}{Colors.RESET}")
+
+        # Load current config
+        config = config_manager.load_configuration()
+
+        # Interactive configuration
+        print(f"\n{Colors.CYAN}Current configuration loaded{Colors.RESET}")
+        print("Configuration wizard completed - using default settings")
+
+        return True
+
+    except Exception as e:
+        logger.error(f"Configuration wizard error: {e}")
+        return False
+
+def handle_github_commands(command, args, target_dir):
+    """Handle GitHub-related commands."""
+    try:
+        github_manager = GitHubVersionManager()
+
+        if command == 'versions':
+            versions = github_manager.get_available_versions()
+            if versions:
+                print(f"\n{Colors.GREEN}Available versions:{Colors.RESET}")
+                for version in versions[:10]:
+                    print(f"  {version['tag']} - {version['name']}")
+            else:
+                print(f"{Colors.RED}Could not fetch versions{Colors.RESET}")
+
+        elif command == 'latest':
+            latest = github_manager.get_latest_version()
+            if latest:
+                print(f"\n{Colors.GREEN}Latest version: {latest['tag']}{Colors.RESET}")
+                print(f"Name: {latest['name']}")
+                print(f"Published: {latest['published_at']}")
+            else:
+                print(f"{Colors.RED}Could not fetch latest version{Colors.RESET}")
+
+        elif command == 'download':
+            if args:
+                version = args[0]
+                Path(target_dir).mkdir(exist_ok=True)
+                if github_manager.download_version(version, target_dir):
+                    print(f"{Colors.GREEN}Downloaded {version} successfully{Colors.RESET}")
+                else:
+                    print(f"{Colors.RED}Download failed{Colors.RESET}")
+            else:
+                print(f"{Colors.RED}Please specify a version to download{Colors.RESET}")
+
+    except Exception as e:
+        logger.error(f"GitHub command error: {e}")
+
+def run_install_command(args):
+    """Run the install command."""
+    try:
+        logger.info("Running install command...")
+        print(f"{Colors.BOLD}{Colors.GREEN}PlexiChat Installation{Colors.RESET}")
+        print("Installation feature not yet implemented")
+        print("Please use 'python run.py setup' for now")
+
+    except Exception as e:
+        logger.error(f"Install command error: {e}")
+
+def run_plugin_manager():
+    """Run the plugin manager interface."""
+    try:
+        logger.info("Starting plugin manager...")
+        print(f"{Colors.BOLD}{Colors.BLUE}PlexiChat Plugin Manager{Colors.RESET}")
+        print("Plugin manager interface not yet implemented")
+
+    except Exception as e:
+        logger.error(f"Plugin manager error: {e}")
+
+def run_backup_node():
+    """Run backup node functionality."""
+    try:
+        logger.info("Starting backup node...")
+        print(f"{Colors.BOLD}{Colors.BLUE}PlexiChat Backup Node{Colors.RESET}")
+        print("Backup node functionality not yet implemented")
+
+    except Exception as e:
+        logger.error(f"Backup node error: {e}")
+
+def show_help():
+    """Show basic help information."""
+    help_text = f"""
+{Colors.BOLD}{Colors.BRIGHT_MAGENTA}PlexiChat - Advanced AI-Powered Chat Platform{Colors.RESET}
+
+{Colors.BOLD}USAGE:{Colors.RESET}
+    {Colors.BRIGHT_GREEN}python run.py{Colors.RESET} [{Colors.BRIGHT_CYAN}COMMAND{Colors.RESET}] [{Colors.BRIGHT_YELLOW}OPTIONS{Colors.RESET}]
+
+{Colors.BOLD}COMMON COMMANDS:{Colors.RESET}
+    {Colors.BRIGHT_CYAN}setup{Colors.RESET}                    Run first-time setup wizard
+    {Colors.BRIGHT_CYAN}api{Colors.RESET}                      Start API server (default)
+    {Colors.BRIGHT_CYAN}gui{Colors.RESET}                      Launch GUI interface
+    {Colors.BRIGHT_CYAN}cli{Colors.RESET}                      Run CLI interface
+    {Colors.BRIGHT_CYAN}test{Colors.RESET}                     Run system tests
+    {Colors.BRIGHT_CYAN}clean{Colors.RESET}                    Clean system cache
+    {Colors.BRIGHT_CYAN}help{Colors.RESET}                     Show detailed help
+
+{Colors.BOLD}SETUP OPTIONS:{Colors.RESET}
+    {Colors.BRIGHT_YELLOW}--level minimal{Colors.RESET}        Install minimal dependencies
+    {Colors.BRIGHT_YELLOW}--level standard{Colors.RESET}       Install standard dependencies (default)
+    {Colors.BRIGHT_YELLOW}--level full{Colors.RESET}           Install all dependencies
+    {Colors.BRIGHT_YELLOW}--level developer{Colors.RESET}      Install all + development tools
+
+{Colors.BOLD}EXAMPLES:{Colors.RESET}
+    {Colors.BRIGHT_GREEN}python run.py setup{Colors.RESET}                     # Interactive setup
+    {Colors.BRIGHT_GREEN}python run.py setup --level minimal{Colors.RESET}     # Minimal setup
+    {Colors.BRIGHT_GREEN}python run.py gui{Colors.RESET}                       # Launch GUI
+    {Colors.BRIGHT_GREEN}python run.py help{Colors.RESET}                      # Detailed help
+
+{Colors.DIM}For detailed help, run: python run.py help{Colors.RESET}
+"""
+    print(help_text)
 
 def run_configuration_wizard():
     """Run the configuration wizard."""
@@ -2259,59 +2580,40 @@ def run_first_time_setup(level: Optional[str] = None):
         # Interactive level selection with fallback
         if level is None:
             try:
-                if RICH_AVAILABLE:
-                    # Temporarily stop the UI to ask for input
-                    ui.show_cursor()
-                    ui.clear_screen()
-                    
-                    console = RichConsole()
-                    console.print(Panel.fit(
-                        "Choose your installation type:",
-                        title="[bold cyan]📦 Dependency Setup[/bold cyan]",
-                        border_style="green"
-                    ))
-                    
-                    choices = ["minimal", "standard", "full", "developer"]
-                    descriptions = [
-                        "🔷 Core dependencies only (fastest)",
-                        "🔹 Standard features (recommended)", 
-                        "🔸 All features (most complete)",
-                        "🔶 All features + developer tools"
-                    ]
-                    
-                    choice_text = "\n".join([
-                        f"[bold yellow]{i+1}[/bold yellow]. {choice.capitalize()}: {desc}" 
-                        for i, (choice, desc) in enumerate(zip(choices, descriptions))
-                    ])
-                    console.print(choice_text)
-                    
-                    level_choice_str = Prompt.ask(
-                        "\n💡 Enter your choice (1-4)",
-                        choices=[str(i+1) for i in range(4)],
-                        default="2"
-                    )
-                    level = choices[int(level_choice_str) - 1]
+                # Show cursor and clear screen for interactive input
+                ui.show_cursor()
+                ui.clear_screen()
 
-                    ui.hide_cursor()
-                else:
-                    print("⚠️ Rich library not found. Using fallback selection.")
-                    print("\nChoose installation level:")
-                    print("1. Minimal (fastest)")
-                    print("2. Standard (recommended)")
-                    print("3. Full (most complete)")
-                    print("4. Developer (with dev tools)")
-                    
-                    while True:
-                        try:
-                            choice = input("\nEnter choice (1-4, default=2): ").strip() or "2"
-                            if choice in ["1", "2", "3", "4"]:
-                                level = ["minimal", "standard", "full", "developer"][int(choice)-1]
-                                break
-                            else:
-                                print("❌ Invalid choice. Please enter 1-4.")
-                        except (KeyboardInterrupt, EOFError):
-                            print(f"\n{Colors.YELLOW}Setup cancelled{Colors.RESET}")
-                            return False
+                print(f"\n{Colors.BOLD}{Colors.CYAN}📦 PlexiChat Dependency Setup{Colors.RESET}")
+                print(f"{Colors.DIM}{'=' * 50}{Colors.RESET}")
+                print("\nChoose your installation level:")
+                print(f"  {Colors.BRIGHT_YELLOW}1.{Colors.RESET} {Colors.BRIGHT_BLUE}Minimal{Colors.RESET}   - Core dependencies only (fastest)")
+                print(f"  {Colors.BRIGHT_YELLOW}2.{Colors.RESET} {Colors.BRIGHT_GREEN}Standard{Colors.RESET}  - Standard features (recommended)")
+                print(f"  {Colors.BRIGHT_YELLOW}3.{Colors.RESET} {Colors.BRIGHT_MAGENTA}Full{Colors.RESET}      - All features (most complete)")
+                print(f"  {Colors.BRIGHT_YELLOW}4.{Colors.RESET} {Colors.BRIGHT_CYAN}Developer{Colors.RESET} - All features + developer tools")
+
+                while True:
+                    try:
+                        choice = input(f"\n{Colors.CYAN}Enter your choice (1-4, default=2): {Colors.RESET}").strip()
+                        if not choice:
+                            choice = "2"  # Default to standard
+
+                        if choice in ["1", "2", "3", "4"]:
+                            level = ["minimal", "standard", "full", "developer"][int(choice)-1]
+                            print(f"{Colors.GREEN}✓ Selected: {level.capitalize()}{Colors.RESET}")
+                            break
+                        else:
+                            print(f"{Colors.RED}❌ Invalid choice. Please enter 1-4.{Colors.RESET}")
+                    except (KeyboardInterrupt, EOFError):
+                        print(f"\n{Colors.YELLOW}Setup cancelled by user{Colors.RESET}")
+                        return False
+                    except ValueError:
+                        print(f"{Colors.RED}❌ Invalid input. Please enter a number 1-4.{Colors.RESET}")
+
+                # Hide cursor and clear screen after selection
+                ui.hide_cursor()
+                ui.clear_screen()
+
             except Exception as e:
                 ui.add_log(f"⚠️ Level selection failed: {e} - using 'standard'", "WARNING")
                 level = 'standard'
@@ -4148,7 +4450,9 @@ def execute_simple_command(command, args=None):
     elif command == 'clean':
         SystemManager().cleanup_system()
     elif command == 'setup':
-        run_first_time_setup()
+        # For simple command execution, we need to check if level was provided
+        level = getattr(args, 'level', None) if args else None
+        return 0 if run_first_time_setup(level=level) else 1
     elif command == 'bootstrap':
         run_enhanced_bootstrap()
     elif command == 'wizard' or command == 'config':
@@ -4159,10 +4463,28 @@ def execute_simple_command(command, args=None):
         run_dependency_manager()
     elif command == 'diagnostic':
         SystemManager().check_system_health()
+    elif command == 'status':
+        # Show system status
+        sys_manager = SystemManager()
+        health = sys_manager.check_system_health()
+        print(f"\n{Colors.BOLD}{Colors.GREEN}PlexiChat System Status{Colors.RESET}")
+        print(f"{Colors.DIM}{'=' * 50}{Colors.RESET}")
+        for key, value in health.items():
+            if isinstance(value, dict):
+                print(f"{Colors.CYAN}{key}:{Colors.RESET}")
+                for sub_key, sub_value in value.items():
+                    print(f"  {sub_key}: {sub_value}")
+            else:
+                print(f"{Colors.CYAN}{key}:{Colors.RESET} {value}")
+        return 0
     elif command == 'gui':
         run_gui()
     elif command in ['download', 'latest', 'versions']:
-        handle_github_commands(command, args.args, args.target_dir)
+        handle_github_commands(command, getattr(args, 'args', []), getattr(args, 'target_dir', './downloads'))
+        return 0
+
+    # Default return for unhandled commands
+    return 0
 
 # ============================================================================
 # MAIN EXECUTION
@@ -4290,21 +4612,12 @@ def main():
         sys.exit(1)
 
     # --- Command Dispatch ---
-    if args.command == 'help':
-        show_help()
-
-    elif args.command == 'setup':
-        if not run_first_time_setup(level=args.level):
-            sys.exit(1)
-
-    elif args.command == 'advanced-setup':
+    # Note: Simple commands are handled earlier, so we only handle complex commands here
+    if args.command == 'advanced-setup':
         run_interactive_setup()
 
     elif args.command == 'config' or args.command == 'wizard':
         run_configuration_wizard()
-
-    elif args.command == 'version':
-        run_version_manager()
 
     elif args.command == 'deps':
         run_dependency_manager()
@@ -4312,15 +4625,11 @@ def main():
     elif args.command == 'system':
         run_system_manager()
 
-    elif args.command == 'clean':
-        sys_manager = SystemManager()
-        sys_manager.cleanup_system()
-
     elif args.command == 'update':
         run_update_system()
 
     elif args.command in ['download', 'latest', 'versions']:
-        handle_github_commands(args.command, args.args, args.target_dir)
+        handle_github_commands(args.command, getattr(args, 'args', []), getattr(args, 'target_dir', './downloads'))
 
     elif args.command == 'test':
         run_enhanced_tests()
