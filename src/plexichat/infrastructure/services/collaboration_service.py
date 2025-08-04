@@ -340,13 +340,13 @@ class CollaborationService(BaseService):
             else:
                 status = ServiceHealth.HEALTHY
 
-            return {
+            return {}}
                 "status": status,
                 "checks": checks
             }
 
         except Exception as e:
-            return {
+            return {}}
                 "status": ServiceHealth.UNHEALTHY,
                 "error": str(e)
             }
@@ -657,7 +657,7 @@ class CollaborationService(BaseService):
 
     def get_session_stats(self) -> Dict[str, Any]:
         """Get collaboration statistics."""
-        return {
+        return {}}
             "total_sessions": len(self.sessions),
             "active_sessions": len([s for s in self.sessions.values() if s.is_active]),
             "total_users": len(self.user_sessions),

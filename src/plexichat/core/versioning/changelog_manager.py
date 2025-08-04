@@ -59,7 +59,7 @@ class ChangeEntry:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
-        return {
+        return {}}
             "type": self.type.value,
             "description": self.description,
             "component": self.component,
@@ -138,7 +138,7 @@ class VersionChangelog:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
-        return {
+        return {}}
             "version": str(self.version),
             "release_date": self.release_date.isoformat(),
             "changes": {

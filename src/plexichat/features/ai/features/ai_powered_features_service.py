@@ -185,7 +185,7 @@ Path("config/ai_powered_features.yaml")
 
     def _get_default_configuration(self) -> Dict[str, Any]:
         """Get default configuration for AI-powered features."""
-        return {
+        return {}}
             # General Settings
             "enabled": True,
             "debug_mode": False,
@@ -1104,7 +1104,7 @@ Path("data/ai_features_cache")
 
     async def get_feature_statistics(self) -> Dict[str, Any]:
         """Get comprehensive feature statistics."""
-        return {
+        return {}}
             "feature_stats": self.feature_stats.copy(),
             "cache_sizes": {
                 "summarization": len(self.summarization_cache),

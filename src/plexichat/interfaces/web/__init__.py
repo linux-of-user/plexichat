@@ -144,7 +144,7 @@ def create_app() -> Optional[Any]:
         # Add health check endpoint
         @app.get("/health")
         async def health_check():
-            return {
+            return {}}
                 "status": "healthy",
                 "timestamp": "2024-01-01T00:00:00Z",
                 "version": getattr(settings, 'APP_VERSION', 'b.1.1-86')
@@ -170,12 +170,16 @@ def _include_routers(app):
             ("status", "/status"),
             ("webhooks", "/webhooks"),
             ("webui", "/ui"),
+            ("ultimate_webui", "/ultimate"),
             ("login", "/login"),
             ("updates", "/updates"),
             ("cluster", "/cluster"),
             ("database_setup", "/database"),
             ("file_management", "/file-management"),
             ("messaging_websocket_router", "/ws"),
+            ("config_management", "/config"),
+            ("backup_management", "/backup"),
+
         ]
 
         for router_name, prefix in routers:
@@ -192,7 +196,7 @@ def _include_routers(app):
                     try:
                         if import_path.startswith('.'):
                             # Relative import
-                            from . import routers
+                            # # from . import routers
                             module = getattr(routers, router_name, None)
                         else:
                             # Absolute import

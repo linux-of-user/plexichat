@@ -118,7 +118,7 @@ class CorrelationChain:
         for c in self.correlations.values():
             error_types.update(c.error_types)
         
-        return {
+        return {}}
             'total_errors': total_errors,
             'error_types': list(error_types),
             'has_errors': total_errors > 0
@@ -353,7 +353,7 @@ class CorrelationTracker:
             if not chain:
                 return None
             
-            return {
+            return {}}
                 'root_id': chain.root_id,
                 'created_at': chain.created_at.isoformat(),
                 'last_activity': chain.last_activity.isoformat(),

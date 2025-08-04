@@ -271,7 +271,7 @@ class EncryptedDatabaseManager:
 
     def get_encryption_status(self) -> Dict[str, Any]:
         """Get encryption system status."""
-        return {
+        return {}}
             "field_encryption_enabled": True,
             "connection_encryption_enabled": True,
             "at_rest_encryption_enabled": True,

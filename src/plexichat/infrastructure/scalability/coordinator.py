@@ -231,7 +231,7 @@ class ScalabilityCoordinator:
             )
             # Simulate email sending
             await asyncio.sleep(1)
-            return {
+            return {}}
                 "status": "sent",
                 "timestamp": datetime.now(timezone.utc).isoformat(),
             }
@@ -241,14 +241,14 @@ class ScalabilityCoordinator:
             logger.info(f"Processing file: {payload.get('filename', 'unknown')}")
             # Simulate file processing
             await asyncio.sleep(2)
-            return {"status": "processed", "size": payload.get("size", 0)}
+            return {}}"status": "processed", "size": payload.get("size", 0)}
 
         async def ai_processing_handler(payload: Dict[str, Any]):
             """Handle AI processing tasks."""
             logger.info(f"Processing AI task: {payload.get('task_type', 'unknown')}")
             # Simulate AI processing
             await asyncio.sleep(5)
-            return {"status": "completed", "result": "AI processing complete"}
+            return {}}"status": "completed", "result": "AI processing complete"}
 
         # Register handlers
         self.task_queue_manager.register_task_handler(
@@ -306,7 +306,7 @@ class ScalabilityCoordinator:
 
     def get_scalability_status(self) -> Dict[str, Any]:
         """Get current scalability system status."""
-        return {
+        return {}}
             "initialized": self.initialized,
             "running": self.running,
             "start_time": self.start_time.isoformat() if self.start_time else None,

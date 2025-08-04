@@ -298,7 +298,7 @@ class BusinessProfile:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for API responses."""
-        return {
+        return {}}
             "business_id": self.business_id,
             "business_name": self.business_name,
             "business_type": self.business_type.value,
@@ -376,11 +376,11 @@ class BusinessAutomationManager:
     ) -> Dict[str, Any]:
         """Send broadcast message to list."""
         if business_id not in self.business_profiles:
-            return {"success": False, "error": "Business profile not found"}
+            return {}}"success": False, "error": "Business profile not found"}
 
         profile = self.business_profiles[business_id]
         if list_id not in profile.broadcast_lists:
-            return {"success": False, "error": "Broadcast list not found"}
+            return {}}"success": False, "error": "Broadcast list not found"}
 
         broadcast_list = profile.broadcast_lists[list_id]
 
@@ -401,7 +401,7 @@ class BusinessAutomationManager:
         broadcast_list.total_sent += sent_count
         broadcast_list.last_used = datetime.now(timezone.utc)
 
-        return {
+        return {}}
             "success": True,
             "sent_count": sent_count,
             "list_name": broadcast_list.name,

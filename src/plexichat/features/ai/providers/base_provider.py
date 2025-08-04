@@ -87,7 +87,7 @@ class AIResponse:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
-        return {
+        return {}}
             "request_id": self.request_id,
             "model_id": self.model_id,
             "content": self.content,
@@ -188,7 +188,7 @@ class BaseAIProvider(ABC):
 
     def get_status(self) -> Dict[str, Any]:
         """Get provider status information."""
-        return {
+        return {}}
             "name": self.config.name,
             "provider_type": self.config.provider_type,
             "status": self.status.value,

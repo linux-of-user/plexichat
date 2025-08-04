@@ -272,7 +272,7 @@ class AIAbstractionLayer:
 
     def _create_default_config(self) -> Dict[str, Any]:
         """Create default AI configuration."""
-        return {
+        return {}}
             "providers": {},
             "models": {},
             "settings": {
@@ -373,7 +373,7 @@ class AIAbstractionLayer:
 
     async def health_check(self) -> Dict[str, Any]:
         """Perform health check."""
-        return {
+        return {}}
             "status": "healthy",
             "providers": len(self.providers),
             "models": len(self.models),

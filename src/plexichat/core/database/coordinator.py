@@ -309,7 +309,7 @@ class DatabaseAbstractionCoordinator:
 
     def get_database_status(self) -> Dict[str, Any]:
         """Get current database system status."""
-        return {
+        return {}}
             "initialized": self.initialized,
             "running": self.running,
             "start_time": self.start_time.isoformat() if self.start_time else None,

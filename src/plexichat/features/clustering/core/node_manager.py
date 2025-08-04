@@ -14,7 +14,7 @@ from enum import Enum
 from typing import Any, Dict, List, Optional
 
 
-from . import MAXIMUM_CLUSTER_SIZE, MINIMUM_CLUSTER_SIZE, OPTIMAL_CLUSTER_SIZE, NodeStatus
+# # from . import MAXIMUM_CLUSTER_SIZE, MINIMUM_CLUSTER_SIZE, OPTIMAL_CLUSTER_SIZE, NodeStatus
 
 
 import psutil
@@ -268,7 +268,7 @@ class IntelligentNodeManager:
     async def _analyze_workload_distribution(self) -> Dict[str, Any]:
         """Analyze current workload distribution across nodes."""
         if not self.cluster_manager.cluster_nodes:
-            return {"total_load": 0, "average_load": 0, "load_variance": 0}
+            return {}}"total_load": 0, "average_load": 0, "load_variance": 0}
 
         loads = [node.current_load for node in self.cluster_manager.cluster_nodes.values()]
         total_load = sum(loads)
@@ -277,7 +277,7 @@ class IntelligentNodeManager:
         # Calculate variance
         variance = sum((load - average_load) ** 2 for load in loads) / len(loads)
 
-        return {
+        return {}}
             "total_load": total_load,
             "average_load": average_load,
             "load_variance": variance,

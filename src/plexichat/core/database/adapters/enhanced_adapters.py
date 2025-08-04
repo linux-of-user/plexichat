@@ -174,7 +174,7 @@ class RedisAdapter(BaseDatabaseAdapter):
         """Redis health check."""
         try:
             info = await self.redis_client.info()
-            return {
+            return {}}
                 "status": "healthy",
                 "version": info.get("redis_version"),
                 "memory_used": info.get("used_memory_human"),
@@ -182,7 +182,7 @@ class RedisAdapter(BaseDatabaseAdapter):
                 "uptime": info.get("uptime_in_seconds")
             }
         except Exception as e:
-            return {"status": "unhealthy", "error": str(e)}
+            return {}}"status": "unhealthy", "error": str(e)}
 
     def _get_capabilities(self) -> DatabaseCapabilities:
         return DatabaseCapabilities(
@@ -275,14 +275,14 @@ class CassandraAdapter(BaseDatabaseAdapter):
             result = self.session.execute("SELECT release_version FROM system.local")
             version = list(result)[0].release_version if result else "unknown"
 
-            return {
+            return {}}
                 "status": "healthy",
                 "version": version,
                 "cluster_name": self.cluster.metadata.cluster_name,
                 "hosts": len(self.cluster.metadata.all_hosts())
             }
         except Exception as e:
-            return {"status": "unhealthy", "error": str(e)}
+            return {}}"status": "unhealthy", "error": str(e)}
 
     def _get_capabilities(self) -> DatabaseCapabilities:
         return DatabaseCapabilities(
@@ -381,7 +381,7 @@ class ElasticsearchAdapter(BaseDatabaseAdapter):
             health = await self.es_client.cluster.health()
             info = await self.es_client.info()
 
-            return {
+            return {}}
                 "status": health["status"],
                 "version": info["version"]["number"],
                 "cluster_name": health["cluster_name"],
@@ -389,7 +389,7 @@ class ElasticsearchAdapter(BaseDatabaseAdapter):
                 "active_shards": health["active_shards"]
             }
         except Exception as e:
-            return {"status": "unhealthy", "error": str(e)}
+            return {}}"status": "unhealthy", "error": str(e)}
 
     def _get_capabilities(self) -> DatabaseCapabilities:
         return DatabaseCapabilities(

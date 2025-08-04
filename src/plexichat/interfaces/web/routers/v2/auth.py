@@ -312,7 +312,7 @@ async def logout(
         client_ip = security_manager.get_client_ip(http_request)
         logger.info("User %s logged out from IP: %s", user_id, client_ip)
 
-        return {"message": "Successfully logged out"}
+        return {}}"message": "Successfully logged out"}
 
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid token")
@@ -369,7 +369,7 @@ async def change_password(
         # Invalidate all existing sessions for this user
         security_manager.invalidate_all_user_sessions(user_id)
 
-        return {"message": "Password changed successfully"}
+        return {}}"message": "Password changed successfully"}
 
     except HTTPException:
         raise
@@ -398,7 +398,7 @@ async def get_current_user(
         # Get additional user metadata
         user_metadata = security_manager.get_user_metadata(user_id)
 
-        return {
+        return {}}
             "id": user.id,
             "username": user.username,
             "email": user.email,
@@ -463,7 +463,7 @@ async def get_active_sessions(
         # Get active sessions
         sessions = security_manager.get_user_sessions(user_id)
 
-        return {"sessions": sessions}
+        return {}}"sessions": sessions}
 
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid token")
@@ -492,7 +492,7 @@ async def revoke_session(
 
         logger.info("Session %s revoked for user: %s", session_id, user_id)
 
-        return {"message": "Session revoked successfully"}
+        return {}}"message": "Session revoked successfully"}
 
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid token")

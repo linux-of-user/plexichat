@@ -169,7 +169,7 @@ class WebRTCManager:
 
     def get_ice_configuration(self) -> Dict[str, Any]:
         """Get ICE server configuration for WebRTC."""
-        return {
+        return {}}
             "iceServers": self.ice_servers + self.turn_servers,
             "iceCandidatePoolSize": 10
         }

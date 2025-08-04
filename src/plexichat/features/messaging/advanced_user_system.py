@@ -262,7 +262,7 @@ class RichUserProfile:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for API responses."""
-        return {
+        return {}}
             "user_id": self.user_id,
             "username": self.username,
             "display_name": self.display_name,
@@ -474,7 +474,7 @@ class AdvancedUserManager:
             tier = user.tier.value
             tier_breakdown[tier] = tier_breakdown.get(tier, 0) + 1
 
-        return {
+        return {}}
             "total_users": total_users,
             "online_users": online_users,
             "tier_breakdown": tier_breakdown,

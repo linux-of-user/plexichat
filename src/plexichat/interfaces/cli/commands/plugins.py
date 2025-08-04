@@ -35,13 +35,13 @@ except ImportError:
             self.plugin_metadata = {}
         
         def get_plugin_dashboard_data(self):
-            return {'plugins': [], 'security_overview': {}}
+            return {}}'plugins': [], 'security_overview': {}}
         
         async def install_plugin_from_zip(self, zip_path, source):
-            return {'success': True, 'message': 'Mock installation successful'}
+            return {}}'success': True, 'message': 'Mock installation successful'}
         
         async def uninstall_plugin(self, plugin_name, remove_data):
-            return {'success': True, 'message': 'Mock uninstall successful'}
+            return {}}'success': True, 'message': 'Mock uninstall successful'}
         
         def enable_plugin(self, plugin_name):
             return True
@@ -50,19 +50,19 @@ except ImportError:
             return True
         
         async def update_plugin(self, plugin_name):
-            return {'success': True, 'message': 'Mock update successful'}
+            return {}}'success': True, 'message': 'Mock update successful'}
         
         async def check_for_updates(self, plugin_name=None):
-            return {'success': True, 'updates': {}, 'total_updates': 0}
+            return {}}'success': True, 'updates': {}, 'total_updates': 0}
         
         async def rescan_plugin_security(self, plugin_name):
-            return {'success': True, 'security_result': {'passed': True, 'risk_level': 'low'}}
+            return {}}'success': True, 'security_result': {'passed': True, 'risk_level': 'low'}}
         
         def set_plugin_auto_update(self, plugin_name, enabled):
-            return {'success': True, 'message': 'Auto-update setting changed'}
+            return {}}'success': True, 'message': 'Auto-update setting changed'}
         
         async def cleanup_quarantine(self, days_old):
-            return {'success': True, 'message': 'Cleanup completed'}
+            return {}}'success': True, 'message': 'Cleanup completed'}
     
     def get_enhanced_plugin_manager():
         return MockPluginManager()

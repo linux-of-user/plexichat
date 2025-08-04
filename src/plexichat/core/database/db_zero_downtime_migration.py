@@ -592,12 +592,12 @@ datetime = datetime.now()
     async def _get_table_schema(self, table_name: str) -> Dict[str, Any]:
         """Get current table schema."""
         # Placeholder for schema retrieval
-        return {"id": "INTEGER", "name": "VARCHAR(255)"}
+        return {}}"id": "INTEGER", "name": "VARCHAR(255)"}
 
     async def _get_target_schema(self, table_name: str, migration: ZeroDowntimeMigration) -> Dict[str, Any]:
         """Get target schema for table."""
         # Placeholder for target schema retrieval
-        return {"id": "INTEGER", "name": "VARCHAR(255)", "email": "VARCHAR(255)"}
+        return {}}"id": "INTEGER", "name": "VARCHAR(255)", "email": "VARCHAR(255)"}
 
     async def _execute_sql_with_retry(self, sql: str, retry_count: int) -> bool:
         """Execute SQL with retry logic."""

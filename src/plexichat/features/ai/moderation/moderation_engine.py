@@ -82,7 +82,7 @@ class ModerationResult:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
-        return {
+        return {}}
             "content_id": self.content_id,
             "confidence_score": self.confidence_score,
             "recommended_action": self.recommended_action.value,
@@ -433,7 +433,7 @@ class ModerationEngine:
 
         except Exception as e:
             logger.error(f"Failed to get moderation stats: {e}")
-            return {"error": str(e)}
+            return {}}"error": str(e)}
 
     async def cleanup(self):
         """Cleanup resources."""

@@ -207,7 +207,7 @@ class ServiceManager:
     
     def get_service_status(self) -> Dict[str, Dict[str, Any]]:
         """Get status of all services."""
-        return {
+        return {}}
             name: {
                 "status": service.status.value,
                 "dependencies": list(service.dependencies),

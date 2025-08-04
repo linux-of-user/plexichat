@@ -146,7 +146,7 @@ class DatabaseShardManager:
         ]
 
         if not recent_metrics:
-            return {"total_queries": 0}
+            return {}}"total_queries": 0}
 
         total_queries = len(recent_metrics)
         successful_queries = [m for m in recent_metrics if m.error is None]
@@ -397,11 +397,11 @@ class PerformanceMonitor:
     def get_performance_summary(self) -> Dict[str, Any]:
         """Get performance summary."""
         if not self.slow_queries:
-            return {"slow_queries": 0}
+            return {}}"slow_queries": 0}
 
         execution_times = [q.execution_time for q in self.slow_queries]
 
-        return {
+        return {}}
             "slow_queries": len(self.slow_queries),
             "avg_slow_query_time": sum(execution_times) / len(execution_times),
             "max_slow_query_time": max(execution_times),
@@ -441,7 +441,7 @@ class AdvancedDatabaseManager:
         async def query_func():
             # Placeholder for actual query execution
             await asyncio.sleep(0.01)  # Simulate query execution
-            return {"rowcount": 1, "result": "success"}
+            return {}}"rowcount": 1, "result": "success"}
 
         return await self.performance_monitor.monitor_query()
             query_func, query, shard_id
@@ -464,7 +464,7 @@ class AdvancedDatabaseManager:
 
     def get_database_stats(self) -> Dict[str, Any]:
         """Get comprehensive database statistics."""
-        return {
+        return {}}
             "sharding": {
                 "total_shards": len(self.shard_manager.shards),
                 "active_shards": len(self.shard_manager.get_read_shards()),

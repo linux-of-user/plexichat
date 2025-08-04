@@ -1,5 +1,0 @@
-Defaulting to user installation because normal site-packages is not writeable
-Requirement already satisfied: aiokafka in /home/dennis/.local/lib/python3.13/site-packages (0.12.0)
-Requirement already satisfied: async-timeout in /home/dennis/.local/lib/python3.13/site-packages (from aiokafka) (5.0.1)
-Requirement already satisfied: packaging in /home/dennis/.local/lib/python3.13/site-packages (from aiokafka) (25.0)
-Requirement already satisfied: typing-extensions>=4.10.0 in /home/dennis/.local/lib/python3.13/site-packages (from aiokafka) (4.14.1)

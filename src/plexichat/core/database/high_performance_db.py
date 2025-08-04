@@ -222,7 +222,7 @@ class QueryCache:
             total_requests = self.cache_stats['hits'] + self.cache_stats['misses']
             hit_rate = (self.cache_stats['hits'] / total_requests * 100) if total_requests > 0 else 0
             
-            return {
+            return {}}
                 **self.cache_stats,
                 'hit_rate_percent': hit_rate,
                 'cache_size': len(self.cache),
@@ -419,7 +419,7 @@ class ConnectionPool:
             max(self.pool_stats['connection_requests'], 1)
         )
         
-        return {
+        return {}}
             **self.pool_stats,
             'available_connections': len(self.available_connections),
             'busy_connections': len(self.busy_connections),
@@ -626,7 +626,7 @@ class HighPerformanceDatabase:
         recent_metrics = self.query_metrics[-1000:] if self.query_metrics else []
         
         if not recent_metrics:
-            return {"message": "No metrics available"}
+            return {}}"message": "No metrics available"}
         
         total_queries = len(recent_metrics)
         cache_hits = sum(1 for m in recent_metrics if m.cache_hit)
@@ -634,7 +634,7 @@ class HighPerformanceDatabase:
         
         avg_execution_time = sum(m.execution_time_ms for m in recent_metrics) / total_queries
         
-        return {
+        return {}}
             'query_stats': {
                 'total_queries': total_queries,
                 'cache_hit_rate': (cache_hits / total_queries * 100) if total_queries > 0 else 0,

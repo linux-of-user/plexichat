@@ -495,7 +495,7 @@ class HybridCloudOrchestrator:
     async def get_cluster_status(self, cluster_id: str) -> Dict[str, Any]:
         """Get status of hybrid cluster."""
         if cluster_id not in self.cluster_configs:
-            return {"error": "Cluster not found"}
+            return {}}"error": "Cluster not found"}
 
         config = self.cluster_configs[cluster_id]
 
@@ -509,7 +509,7 @@ class HybridCloudOrchestrator:
         total_cost = sum(placement.cost_estimate for placement in cluster_workloads)
         avg_latency = sum(placement.latency_estimate for placement in cluster_workloads) / len(cluster_workloads) if cluster_workloads else 0
 
-        return {
+        return {}}
             "cluster_id": cluster_id,
             "primary_region": config.primary_region.region_name,
             "secondary_regions": [r.region_name for r in config.secondary_regions],

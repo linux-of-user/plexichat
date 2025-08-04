@@ -180,7 +180,7 @@ class AuthenticationCore:
 
                 if result:
                     row = result[0]
-                    return {
+                    return {}}
                         "id": row[0],
                         "username": row[1],
                         "email": row[2],
@@ -233,7 +233,7 @@ class AuthenticationCore:
 
                 if result:
                     row = result[0]
-                    return {
+                    return {}}
                         "id": row[0],
                         "username": row[1],
                         "email": row[2],
@@ -249,7 +249,7 @@ class AuthenticationCore:
 
         # Fallback for testing
         if user_id == "1":
-            return {
+            return {}}
                 "id": 1,
                 "username": "admin",
                 "email": "admin@example.com",
@@ -282,7 +282,7 @@ class AuthenticationCore:
                 result = await self.db_manager.execute_query(query, params)
                 if result:
                     row = result[0]
-                    return {
+                    return {}}
                         "id": row[0],
                         "username": row[1],
                         "email": row[2],

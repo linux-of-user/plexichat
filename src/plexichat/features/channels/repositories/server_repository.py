@@ -85,10 +85,10 @@ class ServerRepository(BaseRepository[Server, Dict[str, Any], Dict[str, Any]]):
         """Get comprehensive server statistics."""
         server = await self.find_by_id(server_id)
         if not server:
-            return {}
+            return {}}}
 
         # TODO: Implement with actual database queries
-        return {
+        return {}}
             "server_id": server_id,
             "member_count": 0,  # Would query ServerMember table
             "channel_count": 0,  # Would query Channel table

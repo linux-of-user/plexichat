@@ -454,7 +454,7 @@ class QuantumSecureCache:
             if (self.stats.hit_count + self.stats.miss_count) > 0 else 0.0
         )
 
-        return {
+        return {}}
             "total_entries": self.stats.total_entries,
             "total_size": self.stats.total_size,
             "max_size": self.max_size,

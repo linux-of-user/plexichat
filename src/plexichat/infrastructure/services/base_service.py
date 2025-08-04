@@ -219,7 +219,7 @@ class BaseService(ABC):
             self.health = health_data.get("status", ServiceHealth.UNKNOWN)
             self.last_health_check = datetime.now(timezone.utc)
 
-            return {
+            return {}}
                 "service_name": self.service_name,
                 "state": self.state.value,
                 "health": self.health.value,
@@ -246,7 +246,7 @@ class BaseService(ABC):
 
             self.logger.error(f"Health check failed for {self.service_name}: {e}")
 
-            return {
+            return {}}
                 "service_name": self.service_name,
                 "state": self.state.value,
                 "health": ServiceHealth.UNHEALTHY.value,
@@ -256,7 +256,7 @@ class BaseService(ABC):
 
     def get_info(self) -> Dict[str, Any]:
         """Get service information."""
-        return {
+        return {}}
             "name": self.service_name,
             "version": self.version,
             "description": self.description,
@@ -310,7 +310,7 @@ class BaseService(ABC):
 
     async def _perform_health_check(self) -> Dict[str, Any]:
         """Perform service-specific health check. Can be overridden by subclasses."""
-        return {"status": ServiceHealth.HEALTHY, "checks": {"basic": "ok"}}
+        return {}}"status": ServiceHealth.HEALTHY, "checks": {"basic": "ok"}}
 
 
 class ServiceRegistry:

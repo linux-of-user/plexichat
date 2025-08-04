@@ -68,7 +68,7 @@ class UserContext:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
-        return {
+        return {}}
             "user_id": self.user_id,
             "ip_address": self.ip_address,
             "user_agent": self.user_agent,
@@ -480,7 +480,7 @@ class ZeroTrustEngine:
             if (datetime.now() - incident.timestamp).days < 7
         ]
 
-        return {
+        return {}}
             "active_sessions": len(self.active_sessions),
             "recent_incidents": len(recent_incidents),
             "critical_incidents": len([i for i in recent_incidents if i.severity == IncidentSeverity.CRITICAL]),

@@ -217,7 +217,7 @@ def import_plexichat_modules():
         # Core
         if core_available():
             try:
-                from . import core
+                # # from . import core
                 logger.info("Core module imported successfully")
             except ImportError as e:
                 logger.warning(f"Could not import core module: {e}")
@@ -225,7 +225,7 @@ def import_plexichat_modules():
         # Infrastructure
         if infrastructure_available():
             try:
-                from . import infrastructure
+                # # from . import infrastructure
                 logger.info("Infrastructure module imported successfully")
             except ImportError as e:
                 logger.warning(f"Could not import infrastructure module: {e}")
@@ -233,7 +233,7 @@ def import_plexichat_modules():
         # Features
         if features_available():
             try:
-                from . import features
+                # # from . import features
                 logger.info("Features module imported successfully")
             except ImportError as e:
                 logger.warning(f"Could not import features module: {e}")
@@ -241,7 +241,7 @@ def import_plexichat_modules():
         # Interfaces
         if interfaces_available():
             try:
-                from . import interfaces
+                # # from . import interfaces
                 logger.info("Interfaces module imported successfully")
             except ImportError as e:
                 logger.warning(f"Could not import interfaces module: {e}")

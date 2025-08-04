@@ -1,0 +1,508 @@
+{% extends "base.html" %}
+
+{% block title %}Configuration Management - PlexiChat Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+    .config-sidebar {
+        background: #f8f9fa;
+        border-radius: 0.375rem;
+        padding: 1rem;
+        height: calc(100vh - 200px);
+        overflow-y: auto;
+    }
+    
+    .config-content {
+        height: calc(100vh - 200px);
+        overflow-y: auto;
+    }
+    
+    .config-section {
+        margin-bottom: 2rem;
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+        padding: 1.5rem;
+    }
+    
+    .config-field {
+        margin-bottom: 1.5rem;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 0.375rem;
+    }
+    
+    .field-label {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .field-description {
+        font-size: 0.875rem;
+        color: #6c757d;
+        margin-bottom: 0.75rem;
+    }
+    
+    .field-input {
+        width: 100%;
+    }
+    
+    .restart-required {
+        color: #dc3545;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+    
+    .sensitive-field {
+        border-left: 4px solid #ffc107;
+    }
+    
+    .validation-errors {
+        background: #f8d7da;
+        color: #721c24;
+        padding: 1rem;
+        border-radius: 0.375rem;
+        margin-bottom: 1rem;
+    }
+    
+    .validation-warnings {
+        background: #fff3cd;
+        color: #856404;
+        padding: 1rem;
+        border-radius: 0.375rem;
+        margin-bottom: 1rem;
+    }
+    
+    .category-nav {
+        cursor: pointer;
+        padding: 0.75rem 1rem;
+        border-radius: 0.375rem;
+        margin-bottom: 0.5rem;
+        transition: all 0.2s;
+    }
+    
+    .category-nav:hover {
+        background: #e9ecef;
+    }
+    
+    .category-nav.active {
+        background: #0d6efd;
+        color: white;
+    }
+    
+    .save-indicator {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1050;
+    }
+    
+    .config-search {
+        margin-bottom: 1rem;
+    }
+    
+    .field-meta {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+    }
+    
+    .field-badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2><i class="fas fa-cogs"></i> Configuration Management</h2>
+                    <p class="text-muted">Manage all PlexiChat configuration settings</p>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-outline-primary" onclick="validateConfig()">
+                        <i class="fas fa-check-circle"></i> Validate
+                    </button>
+                    <button class="btn btn-outline-secondary" onclick="exportConfig()">
+                        <i class="fas fa-download"></i> Export
+                    </button>
+                    <button class="btn btn-outline-warning" onclick="reloadConfig()">
+                        <i class="fas fa-sync"></i> Reload
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Validation Results -->
+    {% if validation.errors %}
+    <div class="validation-errors">
+        <h6><i class="fas fa-exclamation-triangle"></i> Configuration Errors</h6>
+        <ul class="mb-0">
+            {% for error in validation.errors %}
+            <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    {% if validation.warnings %}
+    <div class="validation-warnings">
+        <h6><i class="fas fa-exclamation-circle"></i> Configuration Warnings</h6>
+        <ul class="mb-0">
+            {% for warning in validation.warnings %}
+            <li>{{ warning }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <!-- Main Content -->
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3">
+            <div class="config-sidebar">
+                <div class="config-search">
+                    <input type="text" class="form-control" placeholder="Search settings..." 
+                           id="configSearch" oninput="filterSettings()">
+                </div>
+                
+                <h6>Categories</h6>
+                {% for category in categories %}
+                <div class="category-nav" data-category="{{ category }}" onclick="loadCategory('{{ category }}')">
+                    <i class="fas fa-{% if category == 'system' %}server{% elif category == 'network' %}network-wired{% elif category == 'database' %}database{% elif category == 'security' %}shield-alt{% elif category == 'caching' %}memory{% elif category == 'ai' %}robot{% elif category == 'webui' %}desktop{% elif category == 'logging' %}file-alt{% elif category == 'messaging' %}comments{% elif category == 'files' %}folder{% elif category == 'performance' %}tachometer-alt{% else %}cog{% endif %}"></i>
+                    {{ category.title() }}
+                </div>
+                {% endfor %}
+                
+                <hr>
+                
+                <h6>Sections</h6>
+                <div id="sectionNav">
+                    {% for section_name in config_sections.keys() %}
+                    <div class="category-nav" data-section="{{ section_name }}" onclick="scrollToSection('{{ section_name }}')">
+                        {{ section_name }}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="col-md-9">
+            <div class="config-content">
+                <div id="configContent">
+                    {% for section_name, fields in config_sections.items() %}
+                    <div class="config-section" id="section-{{ section_name }}">
+                        <h4>{{ section_name }}</h4>
+                        
+                        {% for field in fields %}
+                        <div class="config-field {% if field.sensitive %}sensitive-field{% endif %}" 
+                             data-field="{{ field.name }}">
+                            <div class="field-label">
+                                {{ field.name.split('.')[-1].replace('_', ' ').title() }}
+                                {% if field.required %}
+                                <span class="text-danger">*</span>
+                                {% endif %}
+                                {% if field.restart_required %}
+                                <span class="restart-required">
+                                    <i class="fas fa-exclamation-triangle"></i> Restart Required
+                                </span>
+                                {% endif %}
+                            </div>
+                            
+                            {% if field.description %}
+                            <div class="field-description">{{ field.description }}</div>
+                            {% endif %}
+                            
+                            <div class="field-input-container">
+                                {% if field.data_type == "boolean" %}
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input field-input" type="checkbox" 
+                                           id="{{ field.name }}" data-field="{{ field.name }}"
+                                           {% if field.value %}checked{% endif %}
+                                           onchange="updateConfigValue('{{ field.name }}', this.checked, {{ field.restart_required|lower }})">
+                                    <label class="form-check-label" for="{{ field.name }}">
+                                        {{ "Enabled" if field.value else "Disabled" }}
+                                    </label>
+                                </div>
+                                {% elif field.data_type == "select" and field.options %}
+                                <select class="form-select field-input" id="{{ field.name }}" 
+                                        data-field="{{ field.name }}"
+                                        onchange="updateConfigValue('{{ field.name }}', this.value, {{ field.restart_required|lower }})">
+                                    {% for option in field.options %}
+                                    <option value="{{ option }}" {% if option == field.value %}selected{% endif %}>
+                                        {{ option }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                {% elif field.data_type == "integer" %}
+                                <input type="number" class="form-control field-input" 
+                                       id="{{ field.name }}" data-field="{{ field.name }}"
+                                       value="{{ field.value }}"
+                                       {% if field.min_value is not none %}min="{{ field.min_value }}"{% endif %}
+                                       {% if field.max_value is not none %}max="{{ field.max_value }}"{% endif %}
+                                       onchange="updateConfigValue('{{ field.name }}', parseInt(this.value), {{ field.restart_required|lower }})">
+                                {% elif field.sensitive %}
+                                <input type="password" class="form-control field-input" 
+                                       id="{{ field.name }}" data-field="{{ field.name }}"
+                                       value="{{ field.value }}"
+                                       onchange="updateConfigValue('{{ field.name }}', this.value, {{ field.restart_required|lower }})">
+                                {% else %}
+                                <input type="text" class="form-control field-input" 
+                                       id="{{ field.name }}" data-field="{{ field.name }}"
+                                       value="{{ field.value }}"
+                                       onchange="updateConfigValue('{{ field.name }}', this.value, {{ field.restart_required|lower }})">
+                                {% endif %}
+                            </div>
+                            
+                            <div class="field-meta">
+                                <span class="badge bg-secondary field-badge">{{ field.category }}</span>
+                                <span class="badge bg-info field-badge">{{ field.data_type }}</span>
+                                {% if field.sensitive %}
+                                <span class="badge bg-warning field-badge">Sensitive</span>
+                                {% endif %}
+                                {% if field.required %}
+                                <span class="badge bg-danger field-badge">Required</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Save Indicator -->
+<div id="saveIndicator" class="save-indicator" style="display: none;">
+    <div class="alert alert-success">
+        <i class="fas fa-check"></i> Configuration saved successfully
+    </div>
+</div>
+
+<!-- Restart Warning Modal -->
+<div class="modal fade" id="restartWarningModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle text-warning"></i>
+                    Restart Required
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>This configuration change requires a server restart to take effect.</p>
+                <p>Would you like to continue?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-warning" onclick="confirmConfigUpdate()">
+                    Continue
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let pendingUpdate = null;
+
+function updateConfigValue(fieldPath, value, restartRequired) {
+    if (restartRequired) {
+        pendingUpdate = { fieldPath, value, restartRequired };
+        new bootstrap.Modal(document.getElementById('restartWarningModal')).show();
+        return;
+    }
+    
+    performConfigUpdate(fieldPath, value, restartRequired);
+}
+
+function confirmConfigUpdate() {
+    if (pendingUpdate) {
+        performConfigUpdate(pendingUpdate.fieldPath, pendingUpdate.value, pendingUpdate.restartRequired);
+        pendingUpdate = null;
+        bootstrap.Modal.getInstance(document.getElementById('restartWarningModal')).hide();
+    }
+}
+
+async function performConfigUpdate(fieldPath, value, restartRequired) {
+    try {
+        const response = await fetch('/config/api/update', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                field_path: fieldPath,
+                value: value,
+                restart_required: restartRequired
+            })
+        });
+        
+        if (response.ok) {
+            showSaveIndicator();
+            if (restartRequired) {
+                showNotification('Configuration updated. Server restart required.', 'warning');
+            }
+        } else {
+            const error = await response.json();
+            showNotification('Failed to update configuration: ' + error.detail, 'error');
+        }
+    } catch (error) {
+        showNotification('Error updating configuration: ' + error.message, 'error');
+    }
+}
+
+function showSaveIndicator() {
+    const indicator = document.getElementById('saveIndicator');
+    indicator.style.display = 'block';
+    setTimeout(() => {
+        indicator.style.display = 'none';
+    }, 3000);
+}
+
+function showNotification(message, type) {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show`;
+    notification.style.position = 'fixed';
+    notification.style.top = '20px';
+    notification.style.right = '20px';
+    notification.style.zIndex = '1060';
+    notification.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.remove();
+    }, 5000);
+}
+
+async function validateConfig() {
+    try {
+        const response = await fetch('/config/api/validate');
+        const validation = await response.json();
+        
+        let message = 'Configuration validation completed.';
+        if (validation.errors.length > 0) {
+            message += ` ${validation.errors.length} errors found.`;
+        }
+        if (validation.warnings.length > 0) {
+            message += ` ${validation.warnings.length} warnings found.`;
+        }
+        
+        showNotification(message, validation.errors.length > 0 ? 'warning' : 'success');
+    } catch (error) {
+        showNotification('Error validating configuration: ' + error.message, 'error');
+    }
+}
+
+async function exportConfig() {
+    try {
+        const response = await fetch('/config/api/export');
+        const config = await response.json();
+        
+        const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `plexichat-config-${new Date().toISOString().split('T')[0]}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        
+        showNotification('Configuration exported successfully', 'success');
+    } catch (error) {
+        showNotification('Error exporting configuration: ' + error.message, 'error');
+    }
+}
+
+async function reloadConfig() {
+    try {
+        const response = await fetch('/config/api/reload', { method: 'POST' });
+        if (response.ok) {
+            showNotification('Configuration reloaded successfully', 'success');
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            const error = await response.json();
+            showNotification('Failed to reload configuration: ' + error.detail, 'error');
+        }
+    } catch (error) {
+        showNotification('Error reloading configuration: ' + error.message, 'error');
+    }
+}
+
+function filterSettings() {
+    const query = document.getElementById('configSearch').value.toLowerCase();
+    const fields = document.querySelectorAll('.config-field');
+    
+    fields.forEach(field => {
+        const fieldName = field.dataset.field.toLowerCase();
+        const fieldText = field.textContent.toLowerCase();
+        
+        if (fieldName.includes(query) || fieldText.includes(query)) {
+            field.style.display = 'block';
+        } else {
+            field.style.display = 'none';
+        }
+    });
+}
+
+function scrollToSection(sectionName) {
+    const section = document.getElementById(`section-${sectionName}`);
+    if (section) {
+        section.scrollIntoView({ behavior: 'smooth' });
+    }
+}
+
+function loadCategory(category) {
+    // Highlight active category
+    document.querySelectorAll('.category-nav').forEach(nav => {
+        nav.classList.remove('active');
+    });
+    document.querySelector(`[data-category="${category}"]`).classList.add('active');
+    
+    // Filter fields by category
+    const fields = document.querySelectorAll('.config-field');
+    fields.forEach(field => {
+        const fieldCategory = field.querySelector('.field-badge').textContent.toLowerCase();
+        if (fieldCategory === category.toLowerCase()) {
+            field.style.display = 'block';
+        } else {
+            field.style.display = 'none';
+        }
+    });
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-save indicator
+    const inputs = document.querySelectorAll('.field-input');
+    inputs.forEach(input => {
+        input.addEventListener('change', function() {
+            // Visual feedback for unsaved changes
+            this.style.borderColor = '#ffc107';
+            setTimeout(() => {
+                this.style.borderColor = '';
+            }, 2000);
+        });
+    });
+});
+</script>
+{% endblock %}

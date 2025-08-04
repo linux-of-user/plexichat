@@ -1,26 +1,45 @@
-# pyright: reportMissingImports=false
-# pyright: reportGeneralTypeIssues=false
-# pyright: reportPossiblyUnboundVariable=false
-# pyright: reportArgumentType=false
-# pyright: reportCallIssue=false
-# pyright: reportAttributeAccessIssue=false
-# pyright: reportAssignmentType=false
-# pyright: reportReturnType=false
 """
-PlexiChat Core Backup System - SINGLE SOURCE OF TRUTH
+PlexiChat Backup System
 
-Consolidates ALL backup functionality from:
-- core/backup/backup_manager.py - INTEGRATED
-- features/backup/ (all modules) - INTEGRATED
-- Related backup components - INTEGRATED
-
-Provides a single, unified interface for all backup operations with:
-- Government-level security and quantum encryption
-- Distributed shard management with Reed-Solomon encoding
-- User privacy controls and opt-out capabilities
-- Real-time monitoring and verification
-- Advanced recovery capabilities
+Unified backup and restore functionality for PlexiChat.
 """
+
+from .backup_system import (
+    BackupManager,
+    BackupInfo,
+    BackupType,
+    BackupStatus,
+    BackupError,
+    RestoreError,
+    get_backup_manager,
+    create_database_backup,
+    create_files_backup,
+    create_full_backup,
+    restore_backup,
+    list_backups
+)
+
+__all__ = [
+    "BackupManager",
+    "BackupInfo",
+    "BackupType",
+    "BackupStatus",
+    "BackupError",
+    "RestoreError",
+    "get_backup_manager",
+    "create_database_backup",
+    "create_files_backup",
+    "create_full_backup",
+    "restore_backup",
+    "list_backups"
+]
+
+# Provides a single, unified interface for all backup operations with:
+# - Government-level security and quantum encryption
+# - Distributed shard management with Reed-Solomon encoding
+# - User privacy controls and opt-out capabilities
+# - Real-time monitoring and verification
+# - Advanced recovery capabilities
 
 import warnings
 import logging
@@ -28,22 +47,15 @@ from typing import Any, Dict, List, Optional
 
 # Import unified backup system (NEW SINGLE SOURCE OF TRUTH)
 try:
-    from .unified_backup_system import (
+    from .backup_system import (
         # Main classes
-        UnifiedBackupManager,
-        unified_backup_manager,
-        ShardManager,
-        UserBackupManager,
-        BackupOperation,
+        BackupManager,
+        get_backup_manager,
 
         # Data classes
         BackupInfo,
-        ShardInfo,
-        UserBackupPreferences,
         BackupType,
         BackupStatus,
-        BackupOptStatus,
-        ShardState,
 
         # Main functions
         create_database_backup,
@@ -51,16 +63,23 @@ try:
         create_full_backup,
         restore_backup,
         list_backups,
-        get_backup_manager,
 
         # Exceptions
         BackupError,
         RestoreError,
     )
 
-    # Backward compatibility aliases
-    backup_manager = unified_backup_manager
-    BackupManager = UnifiedBackupManager
+    # Backward compatibility aliases (lazy initialization to prevent circular imports)
+    _backup_manager = None
+
+    def get_global_backup_manager():
+        """Get the global backup manager instance."""
+        global _backup_manager
+        if _backup_manager is None:
+            _backup_manager = get_backup_manager()
+        return _backup_manager
+
+    UnifiedBackupManager = BackupManager
 
     logger = logging.getLogger(__name__)
     logger.info("Unified backup system imported successfully")
@@ -99,7 +118,7 @@ except ImportError as e:
         def __init__(self, **kwargs):
             self.__dict__.update(kwargs)
 
-    class UnifiedBackupManager:
+    class BackupManager:
         def __init__(self):
             self.initialized = False
             self.backup_history = []
@@ -129,29 +148,29 @@ except ImportError as e:
             return self.backup_history
 
         def get_backup_stats(self) -> Dict[str, Any]:
-            return {"backups_created": 0, "backups_restored": 0}
+            return {}}"backups_created": 0, "backups_restored": 0}
 
-    unified_backup_manager = UnifiedBackupManager()
-    backup_manager = unified_backup_manager
-    BackupManager = UnifiedBackupManager
-
-    async def create_database_backup(backup_name: Optional[str] = None) -> Optional[BackupInfo]:
-        return await unified_backup_manager.create_database_backup(backup_name)
-
-    async def create_files_backup(backup_name: Optional[str] = None, **kwargs) -> Optional[BackupInfo]:
-        return await unified_backup_manager.create_files_backup(backup_name, **kwargs)
-
-    async def create_full_backup(backup_name: Optional[str] = None) -> Optional[BackupInfo]:
-        return await unified_backup_manager.create_full_backup(backup_name)
-
-    async def restore_backup(backup_id: str, **kwargs) -> bool:
-        return await unified_backup_manager.restore_backup(backup_id, **kwargs)
-
-    def list_backups(**kwargs) -> List[BackupInfo]:
-        return unified_backup_manager.list_backups(**kwargs)
+    _backup_manager = BackupManager()
+    backup_manager = _backup_manager
+    UnifiedBackupManager = BackupManager
 
     def get_backup_manager():
-        return unified_backup_manager
+        return _backup_manager
+
+    async def create_database_backup(backup_name: Optional[str] = None) -> Optional[BackupInfo]:
+        return await _backup_manager.create_database_backup(backup_name)
+
+    async def create_files_backup(backup_name: Optional[str] = None, **kwargs) -> Optional[BackupInfo]:
+        return await _backup_manager.create_files_backup(backup_name, **kwargs)
+
+    async def create_full_backup(backup_name: Optional[str] = None) -> Optional[BackupInfo]:
+        return await _backup_manager.create_full_backup(backup_name)
+
+    async def restore_backup(backup_id: str, **kwargs) -> bool:
+        return await _backup_manager.restore_backup(backup_id, **kwargs)
+
+    def list_backups(**kwargs) -> List[BackupInfo]:
+        return _backup_manager.list_backups(**kwargs)
 
     # Fallback classes
     class ShardManager:
@@ -177,21 +196,15 @@ except ImportError as e:
 
 # Export all the main classes and functions
 __all__ = [
-    # Unified backup system (NEW SINGLE SOURCE OF TRUTH)
-    "UnifiedBackupManager",
-    "unified_backup_manager",
-    "ShardManager",
-    "UserBackupManager",
-    "BackupOperation",
+    # Main backup system
+    "BackupManager",
+    "get_backup_manager",
+    "get_global_backup_manager",
 
     # Data classes
     "BackupInfo",
-    "ShardInfo",
-    "UserBackupPreferences",
     "BackupType",
     "BackupStatus",
-    "BackupOptStatus",
-    "ShardState",
 
     # Main functions
     "create_database_backup",
@@ -199,15 +212,13 @@ __all__ = [
     "create_full_backup",
     "restore_backup",
     "list_backups",
-    "get_backup_manager",
-
-    # Backward compatibility aliases
-    "backup_manager",
-    "BackupManager",
 
     # Exceptions
     "BackupError",
     "RestoreError",
+
+    # Backward compatibility
+    "UnifiedBackupManager",
 ]
 
 __version__ = "3.0.0"

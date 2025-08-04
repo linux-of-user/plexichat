@@ -153,7 +153,7 @@ class Comment(SQLModel, table=True):
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert comment to dictionary."""
-        return {
+        return {}}
             "comment_id": self.comment_id,
             "post_id": self.post_id,
             "author_id": self.author_id,

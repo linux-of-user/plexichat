@@ -388,7 +388,7 @@ assignments = self.session.# SECURITY: exec() removed - use safe alternatives)
                         "last_seen_minutes_ago": device.last_seen_minutes_ago
                     })
 
-            return {
+            return {}}
                 "network_status": status_groups,
                 "summary": {
                     "total_devices": len(device_statuses),

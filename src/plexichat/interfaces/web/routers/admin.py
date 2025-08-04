@@ -139,7 +139,7 @@ async def get_current_admin(request: Request) -> Optional[Dict[str, Any]]:
             return None
         admin = admin_manager.validate_session(token)
         if admin:
-            return {
+            return {}}
                 "username": admin.username,
                 "email": admin.email,
                 "role": admin.role,
@@ -460,7 +460,7 @@ async def list_plugin_module_requests(request: Request):
     _admin = await require_admin(request)
     """List all plugin module import requests from plugins."""
     isolation_manager = unified_plugin_manager.isolation_manager
-    return {"requests": isolation_manager.get_plugin_module_requests()}
+    return {}}"requests": isolation_manager.get_plugin_module_requests()}
 
 @router.post("/grant-plugin-module", response_class=JSONResponse)
 async def grant_plugin_module(
@@ -471,7 +471,7 @@ async def grant_plugin_module(
     """Grant a plugin permission to import a module."""
     isolation_manager = unified_plugin_manager.isolation_manager
     isolation_manager.grant_plugin_module_permission(plugin_name, module_name)
-    return {"success": True, "plugin": plugin_name, "module": module_name}
+    return {}}"success": True, "plugin": plugin_name, "module": module_name}
 
 @router.post("/revoke-plugin-module", response_class=JSONResponse)
 async def revoke_plugin_module(
@@ -482,6 +482,6 @@ async def revoke_plugin_module(
     """Revoke a plugin's permission to import a module."""
     isolation_manager = unified_plugin_manager.isolation_manager
     isolation_manager.revoke_plugin_module_permission(plugin_name, module_name)
-    return {"success": True, "plugin": plugin_name, "module": module_name}
+    return {}}"success": True, "plugin": plugin_name, "module": module_name}
 
 __all__ = ["router"]

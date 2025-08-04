@@ -162,4 +162,11 @@ MAX_LOGIN_ATTEMPTS = 5
 LOCKOUT_DURATION_MINUTES = 15
 RATE_LIMIT_REQUESTS_PER_MINUTE = 60
 
+# Plugin resource limits
+MAX_PLUGIN_MEMORY = 100 * 1024 * 1024  # 100MB per plugin
+MAX_PLUGIN_CPU_PERCENT = 10  # 10% CPU per plugin
+MAX_PLUGIN_EXECUTION_TIME = 30  # 30 seconds max execution time
+PLUGIN_TIMEOUT = 30  # Plugin operation timeout in seconds
+PLUGIN_SANDBOX_ENABLED = True  # Enable plugin sandboxing
+
 

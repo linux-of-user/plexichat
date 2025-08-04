@@ -98,7 +98,7 @@ class LogEntry:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for JSON serialization."""
-        return {
+        return {}}
             "timestamp": self.timestamp.isoformat(),
             "level": self.level.name,
             "category": self.category.value,
@@ -194,13 +194,13 @@ class PerformanceTracker:
         """Get statistics for an operation."""
         with self.lock:
             if operation not in self.metrics:
-                return {}
+                return {}}}
 
             timings = self.metrics[operation]
             if not timings:
-                return {}
+                return {}}}
 
-            return {
+            return {}}
                 "count": len(timings),
                 "avg": sum(timings) / len(timings),
                 "min": min(timings),
@@ -663,7 +663,7 @@ class UnifiedLoggingManager:
 
     def get_performance_stats(self) -> Dict[str, Any]:
         """Get performance statistics."""
-        return {
+        return {}}
             "operations": {
                 op: self.performance_tracker.get_stats(op)
                 for op in self.performance_tracker.metrics.keys()

@@ -386,7 +386,7 @@ class PlexiChatMasterCoordinator:
 
     def get_system_status(self) -> Dict[str, Any]:
         """Get comprehensive system status."""
-        return {
+        return {}}
             "system_info": {
                 "name": self.system_name,
                 "version": self.version,

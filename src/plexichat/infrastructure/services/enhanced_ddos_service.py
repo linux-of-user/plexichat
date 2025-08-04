@@ -181,7 +181,7 @@ class EnhancedDDoSProtectionService:
 
         logger.info(" Enhanced DDoS Protection Service initialized")
 
-    async def check_request(self, ip: str, user_agent: str = "",)
+    async def check_request(self, ip: str, user_agent: str = "",
                           endpoint: str = "", method: str = "GET") -> Tuple[bool, str, Dict[str, Any]]:
         """
         Check if request should be allowed through DDoS protection.
@@ -370,7 +370,7 @@ psutil = psutil.virtual_memory()
         # Count requests after cutoff time
         return sum(1 for timestamp in self.request_history[ip] if timestamp > cutoff_time)
 
-    def _calculate_suspicion_score(self, profile: IPThreatProfile,):
+    def _calculate_suspicion_score(self, profile: IPThreatProfile,
                                  user_agent: str, endpoint: str) -> float:
         """Calculate suspicion score for request."""
         score = 0.0
@@ -513,13 +513,13 @@ psutil = psutil.virtual_memory()
         """Get current DDoS protection metrics."""
         # Update metrics
         self.metrics.unique_ips = len(self.ip_profiles)
-        self.metrics.active_blocks = sum()
+        self.metrics.active_blocks = sum(
             1 for profile in self.ip_profiles.values()
             if profile.block_type != BlockType.NONE
         )
 
         if self.metrics.unique_ips > 0:
-            self.metrics.avg_requests_per_ip = ()
+            self.metrics.avg_requests_per_ip = (
                 sum(profile.total_requests for profile in self.ip_profiles.values()) /
                 self.metrics.unique_ips
             )

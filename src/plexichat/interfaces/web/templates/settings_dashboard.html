@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PlexiChat Settings Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="/static/css/ultimate-dashboard.css" rel="stylesheet">
+    <style>
+        .settings-section {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border-left: 5px solid var(--primary-gradient);
+        }
+        
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+        
+        .setting-info h6 {
+            margin: 0;
+            color: #2d3748;
+            font-weight: 600;
+        }
+        
+        .setting-info p {
+            margin: 5px 0 0 0;
+            color: #718096;
+            font-size: 0.9rem;
+        }
+        
+        .setting-control {
+            min-width: 200px;
+            text-align: right;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background: var(--primary-gradient);
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        
+        .config-editor {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            min-height: 300px;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+        
+        .theme-preview {
+            width: 100px;
+            height: 60px;
+            border-radius: 8px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .theme-preview.active {
+            border-color: #667eea;
+            transform: scale(1.05);
+        }
+        
+        .theme-light {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        }
+        
+        .theme-dark {
+            background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+        }
+        
+        .theme-auto {
+            background: linear-gradient(135deg, #ffffff 0%, #2d3748 100%);
+        }
+        
+        .backup-item {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .backup-item:hover {
+            background: white;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .log-viewer {
+            background: #1a202c;
+            color: #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 13px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 5px 0;
+        }
+        
+        .log-info { color: #63b3ed; }
+        .log-warning { color: #f6e05e; }
+        .log-error { color: #fc8181; }
+        .log-success { color: #68d391; }
+        
+        .performance-metric {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+        }
+        
+        .performance-metric:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        }
+        
+        .metric-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #2d3748;
+            margin-bottom: 5px;
+        }
+        
+        .metric-label {
+            color: #718096;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .plugin-card {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border-left: 5px solid #667eea;
+            transition: all 0.3s ease;
+        }
+        
+        .plugin-card:hover {
+            transform: translateX(10px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        }
+        
+        .plugin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .plugin-status {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .security-alert {
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border-left: 4px solid #28a745;
+        }
+        
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border-left: 4px solid #ffc107;
+        }
+        
+        .alert-danger {
+            background: #f8d7da;
+            color: #721c24;
+            border-left: 4px solid #dc3545;
+        }
+        
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border-left: 4px solid #17a2b8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Settings Navigation -->
+            <div class="col-md-3">
+                <div class="settings-section">
+                    <h4><i class="fas fa-cog"></i> Settings</h4>
+                    <nav class="nav flex-column">
+                        <a class="nav-link active" href="#general" onclick="showSettingsSection('general')">
+                            <i class="fas fa-sliders-h"></i> General
+                        </a>
+                        <a class="nav-link" href="#appearance" onclick="showSettingsSection('appearance')">
+                            <i class="fas fa-palette"></i> Appearance
+                        </a>
+                        <a class="nav-link" href="#security" onclick="showSettingsSection('security')">
+                            <i class="fas fa-shield-alt"></i> Security
+                        </a>
+                        <a class="nav-link" href="#notifications" onclick="showSettingsSection('notifications')">
+                            <i class="fas fa-bell"></i> Notifications
+                        </a>
+                        <a class="nav-link" href="#performance" onclick="showSettingsSection('performance')">
+                            <i class="fas fa-tachometer-alt"></i> Performance
+                        </a>
+                        <a class="nav-link" href="#backup" onclick="showSettingsSection('backup')">
+                            <i class="fas fa-database"></i> Backup
+                        </a>
+                        <a class="nav-link" href="#plugins" onclick="showSettingsSection('plugins')">
+                            <i class="fas fa-puzzle-piece"></i> Plugins
+                        </a>
+                        <a class="nav-link" href="#advanced" onclick="showSettingsSection('advanced')">
+                            <i class="fas fa-code"></i> Advanced
+                        </a>
+                        <a class="nav-link" href="#logs" onclick="showSettingsSection('logs')">
+                            <i class="fas fa-file-alt"></i> Logs
+                        </a>
+                    </nav>
+                </div>
+            </div>
+            
+            <!-- Settings Content -->
+            <div class="col-md-9">
+                <!-- General Settings -->
+                <div id="general-section" class="settings-content">
+                    <div class="settings-section">
+                        <h4><i class="fas fa-sliders-h"></i> General Settings</h4>
+                        
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <h6>Server Name</h6>
+                                <p>The display name for your PlexiChat server</p>
+                            </div>
+                            <div class="setting-control">
+                                <input type="text" class="form-control" value="PlexiChat Server" id="serverName">
+                            </div>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <h6>Server Description</h6>
+                                <p>A brief description of your server</p>
+                            </div>
+                            <div class="setting-control">
+                                <textarea class="form-control" rows="2" id="serverDescription">Enterprise-grade communication platform</textarea>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <h6>Default Language</h6>
+                                <p>Default language for the interface</p>
+                            </div>
+                            <div class="setting-control">
+                                <select class="form-select" id="defaultLanguage">
+                                    <option value="en">English</option>
+                                    <option value="es">Spanish</option>
+                                    <option value="fr">French</option>
+                                    <option value="de">German</option>
+                                    <option value="zh">Chinese</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <h6>Timezone</h6>
+                                <p>Server timezone for timestamps</p>
+                            </div>
+                            <div class="setting-control">
+                                <select class="form-select" id="timezone">
+                                    <option value="UTC">UTC</option>
+                                    <option value="America/New_York">Eastern Time</option>
+                                    <option value="America/Chicago">Central Time</option>
+                                    <option value="America/Denver">Mountain Time</option>
+                                    <option value="America/Los_Angeles">Pacific Time</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <h6>Auto-Save Settings</h6>
+                                <p>Automatically save configuration changes</p>
+                            </div>
+                            <div class="setting-control">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" checked id="autoSave">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Appearance Settings -->
+                <div id="appearance-section" class="settings-content" style="display: none;">
+                    <div class="settings-section">
+                        <h4><i class="fas fa-palette"></i> Appearance Settings</h4>
+                        
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <h6>Theme</h6>
+                                <p>Choose your preferred color theme</p>
+                            </div>
+                            <div class="setting-control">
+                                <div class="d-flex gap-3">
+                                    <div class="theme-preview theme-light active" onclick="selectTheme('light')" title="Light Theme"></div>
+                                    <div class="theme-preview theme-dark" onclick="selectTheme('dark')" title="Dark Theme"></div>
+                                    <div class="theme-preview theme-auto" onclick="selectTheme('auto')" title="Auto Theme"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <h6>Compact Mode</h6>
+                                <p>Use a more compact interface layout</p>
+                            </div>
+                            <div class="setting-control">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="compactMode">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <h6>Animations</h6>
+                                <p>Enable interface animations and transitions</p>
+                            </div>
+                            <div class="setting-control">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" checked id="animations">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <h6>Font Size</h6>
+                                <p>Adjust the interface font size</p>
+                            </div>
+                            <div class="setting-control">
+                                <select class="form-select" id="fontSize">
+                                    <option value="small">Small</option>
+                                    <option value="medium" selected>Medium</option>
+                                    <option value="large">Large</option>
+                                    <option value="extra-large">Extra Large</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <h6>Sidebar Position</h6>
+                                <p>Choose sidebar position</p>
+                            </div>
+                            <div class="setting-control">
+                                <select class="form-select" id="sidebarPosition">
+                                    <option value="left" selected>Left</option>
+                                    <option value="right">Right</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Security Settings -->
+                <div id="security-section" class="settings-content" style="display: none;">
+                    <div class="settings-section">
+                        <h4><i class="fas fa-shield-alt"></i> Security Settings</h4>
+                        
+                        <div class="security-alert alert-success">
+                            <i class="fas fa-check-circle fa-2x"></i>
+                            <div>
+                                <strong>Security Status: Excellent</strong>
+                                <p class="mb-0">All security features are properly configured and active.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <h6>Two-Factor Authentication</h6>
+                                <p>Require 2FA for all user accounts</p>
+                            </div>
+                            <div class="setting-control">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" checked id="require2FA">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <h6>End-to-End Encryption</h6>
+                                <p>Enable E2E encryption for all messages</p>
+                            </div>
+                            <div class="setting-control">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" checked id="e2eEncryption">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <h6>Session Timeout</h6>
+                                <p>Automatic logout after inactivity (minutes)</p>
+                            </div>
+                            <div class="setting-control">
+                                <input type="number" class="form-control" value="30" min="5" max="1440" id="sessionTimeout">
+                            </div>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <h6>Password Policy</h6>
+                                <p>Minimum password requirements</p>
+                            </div>
+                            <div class="setting-control">
+                                <select class="form-select" id="passwordPolicy">
+                                    <option value="basic">Basic (8+ characters)</option>
+                                    <option value="standard" selected>Standard (8+ chars, mixed case, numbers)</option>
+                                    <option value="strong">Strong (12+ chars, mixed case, numbers, symbols)</option>
+                                    <option value="enterprise">Enterprise (16+ chars, all requirements)</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <h6>IP Whitelist</h6>
+                                <p>Restrict access to specific IP addresses</p>
+                            </div>
+                            <div class="setting-control">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="ipWhitelist">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function showSettingsSection(sectionName) {
+            // Hide all sections
+            document.querySelectorAll('.settings-content').forEach(section => {
+                section.style.display = 'none';
+            });
+            
+            // Show selected section
+            const targetSection = document.getElementById(sectionName + '-section');
+            if (targetSection) {
+                targetSection.style.display = 'block';
+            }
+            
+            // Update navigation
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            
+            event.target.classList.add('active');
+        }
+        
+        function selectTheme(theme) {
+            document.querySelectorAll('.theme-preview').forEach(preview => {
+                preview.classList.remove('active');
+            });
+            
+            event.target.classList.add('active');
+            
+            // Apply theme
+            document.body.className = `theme-${theme}`;
+            localStorage.setItem('plexichat-theme', theme);
+        }
+        
+        // Auto-save functionality
+        function autoSave() {
+            if (document.getElementById('autoSave').checked) {
+                console.log('Auto-saving settings...');
+                // Implement auto-save logic
+            }
+        }
+        
+        // Initialize settings
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load saved theme
+            const savedTheme = localStorage.getItem('plexichat-theme') || 'light';
+            document.body.className = `theme-${savedTheme}`;
+            
+            // Add event listeners for auto-save
+            document.querySelectorAll('input, select, textarea').forEach(element => {
+                element.addEventListener('change', autoSave);
+            });
+        });
+    </script>
+</body>
+</html>

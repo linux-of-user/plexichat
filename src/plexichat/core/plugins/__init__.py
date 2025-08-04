@@ -151,7 +151,7 @@ except ImportError as e:
         return None
 
     def get_all_plugins_info():
-        return {}
+        return {}}}
 
     async def execute_command(command_name: str, *args, **kwargs):
         raise PluginError("Plugin system not available")

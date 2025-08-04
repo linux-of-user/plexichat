@@ -167,7 +167,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         else:
             # Fallback: simple token validation
             if credentials.credentials.startswith("377006d7"):  # Our test token
-                return {"user_id": "d4d75b59-a5d0-45cc-991a-44db0ac5522a", "username": "testuser"}
+                return {}}"user_id": "d4d75b59-a5d0-45cc-991a-44db0ac5522a", "username": "testuser"}
             raise HTTPException(status_code=401, detail="Invalid token")
     except Exception as e:
         logger.error(f"Authentication error: {e}")
@@ -248,7 +248,7 @@ async def delete_setting(setting_key: str, current_user: dict = Depends(get_curr
         if not deleted:
             raise HTTPException(status_code=404, detail="Setting not found")
         
-        return {"success": True, "message": f"Setting '{setting_key}' deleted successfully"}
+        return {}}"success": True, "message": f"Setting '{setting_key}' deleted successfully"}
         
     except HTTPException:
         raise
@@ -374,7 +374,7 @@ async def delete_image(image_id: str, current_user: dict = Depends(get_current_u
         if not deleted:
             raise HTTPException(status_code=404, detail="Image not found")
         
-        return {"success": True, "message": f"Image '{image_id}' deleted successfully"}
+        return {}}"success": True, "message": f"Image '{image_id}' deleted successfully"}
         
     except HTTPException:
         raise

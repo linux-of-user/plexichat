@@ -25,9 +25,11 @@ import weakref
 try:
     import redis.asyncio as redis
     REDIS_AVAILABLE = True
+    RedisType = redis.Redis
 except ImportError:
     redis = None
     REDIS_AVAILABLE = False
+    RedisType = None
 
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
@@ -291,7 +293,7 @@ class EnhancedConnectionPool:
 class EnhancedQueryCache:
     """Multi-level query cache with Redis integration."""
     
-    def __init__(self, redis_client: Optional[redis.Redis] = None):
+    def __init__(self, redis_client: Optional[RedisType] = None):
         self.redis_client = redis_client
         self.l1_cache: Dict[str, QueryCacheEntry] = {}  # In-memory cache
         self.cache_stats = {
@@ -539,7 +541,7 @@ class EnhancedQueryCache:
             total_hits = self.cache_stats['l1_hits'] + self.cache_stats['l2_hits']
             hit_rate = (total_hits / total_requests) * 100
         
-        return {
+        return {}}
             **self.cache_stats,
             'hit_rate_percent': hit_rate,
             'l1_cache_size': len(self.l1_cache),
@@ -665,7 +667,7 @@ class EnhancedDatabaseManager(ConsolidatedDatabaseManager):
         database = database or self.default_database
         
         if not database or database not in self.connection_pools:
-            return {
+            return {}}
                 "success": False,
                 "error": f"Database '{database}' not found",
                 "execution_time_ms": 0
@@ -687,7 +689,7 @@ class EnhancedDatabaseManager(ConsolidatedDatabaseManager):
                             query, execution_time / 1000, cache_hit=True
                         )
                     
-                    return {
+                    return {}}
                         "success": True,
                         "result": cached_result,
                         "execution_time_ms": execution_time,
@@ -709,11 +711,24 @@ class EnhancedDatabaseManager(ConsolidatedDatabaseManager):
             pool = self.connection_pools[database]
             result = await pool.execute_query(optimized_query, parameters)
             
-            # Process result
+            # Process result efficiently
             if hasattr(result, 'fetchall'):
-                rows = result.fetchall()  # Remove await - fetchall is synchronous
+                # Use async fetchall if available, otherwise sync
+                if hasattr(result, 'fetchall') and asyncio.iscoroutinefunction(result.fetchall):
+                    rows = await result.fetchall()
+                else:
+                    rows = result.fetchall()
+
+                # Process rows efficiently using list comprehension
                 result_data = {
                     "rows": [dict(row._mapping) for row in rows],
+                    "rowcount": len(rows)
+                }
+            elif hasattr(result, 'mappings'):
+                # Handle SQLAlchemy result with mappings
+                rows = result.mappings().all()
+                result_data = {
+                    "rows": [dict(row) for row in rows],
                     "rowcount": len(rows)
                 }
             else:
@@ -735,7 +750,7 @@ class EnhancedDatabaseManager(ConsolidatedDatabaseManager):
                     rows_affected=result_data.get("rowcount", 0)
                 )
             
-            return {
+            return {}}
                 "success": True,
                 "result": result_data,
                 "execution_time_ms": execution_time,
@@ -753,7 +768,7 @@ class EnhancedDatabaseManager(ConsolidatedDatabaseManager):
                 )
             
             logger.error(f"Query execution failed: {e}")
-            return {
+            return {}}
                 "success": False,
                 "error": str(e),
                 "execution_time_ms": execution_time

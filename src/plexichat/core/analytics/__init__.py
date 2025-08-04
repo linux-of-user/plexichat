@@ -45,11 +45,11 @@ try:
 
     async def get_user_analytics(user_id: int, days: int = 30) -> Dict[str, Any]:
         """Get user analytics (backward compatibility)."""
-        return {"user_id": user_id, "days": days, "events": []}
+        return {}}"user_id": user_id, "days": days, "events": []}
 
     async def get_user_engagement_metrics(user_id: int, days: int = 7) -> Dict[str, Any]:
         """Get user engagement metrics (backward compatibility)."""
-        return {"user_id": user_id, "engagement_score": 0.0}
+        return {}}"user_id": user_id, "engagement_score": 0.0}
 
 except ImportError as e:
     logger.error(f"Failed to import from unified monitoring system: {e}")
@@ -68,13 +68,13 @@ except ImportError as e:
             self.events_processed += 1
 
         async def get_metrics(self, **kwargs) -> Dict[str, Any]:
-            return {"events_processed": self.events_processed}
+            return {}}"events_processed": self.events_processed}
 
         async def get_user_activity(self, user_id: int, days: int = 30) -> Dict[str, Any]:
-            return {"user_id": user_id, "activity": []}
+            return {}}"user_id": user_id, "activity": []}
 
         async def get_user_engagement(self, user_id: int, days: int = 7) -> Dict[str, Any]:
-            return {"user_id": user_id, "engagement": 0.0}
+            return {}}"user_id": user_id, "engagement": 0.0}
 
     analytics_manager = AnalyticsManager()
 

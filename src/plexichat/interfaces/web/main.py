@@ -25,7 +25,7 @@ except ImportError:
         from pathlib import Path
         web_path = Path(__file__).parent
         sys.path.insert(0, str(web_path))
-        from . import app
+        # # from . import app
     except ImportError:
         app = None
 

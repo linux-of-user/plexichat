@@ -184,7 +184,7 @@ psutil.virtual_memory()
             cpu_percent = import psutil
 psutil.cpu_percent(interval=1)
 
-            return {
+            return {}}
                 'python_version': sys.version,
                 'platform_info': platform.platform(),
                 'memory_usage': {
@@ -196,7 +196,7 @@ psutil.cpu_percent(interval=1)
                 'cpu_usage': cpu_percent
             }
         except Exception as e:
-            return {
+            return {}}
                 'python_version': sys.version,
                 'platform_info': platform.platform(),
                 'memory_usage': {'error': str(e)},
@@ -219,7 +219,7 @@ psutil.cpu_percent(interval=1)
     def get_crash_statistics(self) -> Dict[str, Any]:
         """Get crash statistics."""
         if not self.crash_history:
-            return {'total_crashes': 0}
+            return {}}'total_crashes': 0}
 
         # Count by exception type
         exception_counts = {}
@@ -231,7 +231,7 @@ psutil.cpu_percent(interval=1)
             severity_counts[crash.severity.value] = severity_counts.get(crash.severity.value, 0) + 1
             category_counts[crash.category.value] = category_counts.get(crash.category.value, 0) + 1
 
-        return {
+        return {}}
             'total_crashes': len(self.crash_history),
             'exception_types': exception_counts,
             'severity_distribution': severity_counts,

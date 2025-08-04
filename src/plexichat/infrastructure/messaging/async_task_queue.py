@@ -279,7 +279,7 @@ class TaskWorker:
             else 0
         )
 
-        return {
+        return {}}
             "worker_id": self.worker_id,
             "running": self.running,
             "uptime_seconds": uptime,
@@ -545,7 +545,7 @@ class AsyncTaskQueueManager:
         self.stats["pending_tasks"] = total_pending
         self.stats["running_tasks"] = running_tasks
 
-        return {
+        return {}}
             "running": self.running,
             "total_workers": len(self.workers),
             "active_workers": sum(1 for w in self.workers.values() if w.running),

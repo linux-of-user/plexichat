@@ -1,4 +1,0 @@
-Defaulting to user installation because normal site-packages is not writeable
-Requirement already satisfied: PyQt6 in /home/dennis/.local/lib/python3.13/site-packages (6.9.1)
-Requirement already satisfied: PyQt6-sip<14,>=13.8 in /home/dennis/.local/lib/python3.13/site-packages (from PyQt6) (13.10.2)
-Requirement already satisfied: PyQt6-Qt6<6.10.0,>=6.9.0 in /home/dennis/.local/lib/python3.13/site-packages (from PyQt6) (6.9.1)

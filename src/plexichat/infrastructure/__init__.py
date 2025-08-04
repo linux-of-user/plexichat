@@ -73,7 +73,7 @@ class InfrastructureManager:
 
     def get_status(self) -> Dict[str, Any]:
         """Get infrastructure status."""
-        return {
+        return {}}
             "components": self.components.copy(),
             "optimization_engine": self.optimization_engine is not None,
             "performance_logger": self.performance_logger is not None,

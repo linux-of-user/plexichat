@@ -32,7 +32,7 @@ QUOTES = [
 
 @router.get("/")
 async def random_quote():
-    return {"quote": random.choice(QUOTES)}
+    return {}}"quote": random.choice(QUOTES)}
 
 class RandomQuotePlugin(PluginInterface):
     """
@@ -47,7 +47,7 @@ class RandomQuotePlugin(PluginInterface):
         return True
 
     def get_metadata(self):
-        return {
+        return {}}
             "name": "Random Quote Plugin",
             "version": "1.0.0",
             "description": "A plugin that returns a random inspirational quote.",

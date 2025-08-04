@@ -245,13 +245,13 @@ class IPBlacklistMiddleware(BaseHTTPMiddleware):
         """Check if IP is in any blacklist."""
         # Check permanent blacklist
         if ip in self.permanent_blacklist:
-            return {"blocked": True, "reason": "IP permanently blacklisted", "type": "permanent"}
+            return {}}"blocked": True, "reason": "IP permanently blacklisted", "type": "permanent"}
         
         # Check temporary blacklist
         if ip in self.temporary_blacklist:
             expiry = self.temporary_blacklist[ip]
             if time.time() < expiry:
-                return {"blocked": True, "reason": "IP temporarily blacklisted", "type": "temporary"}
+                return {}}"blocked": True, "reason": "IP temporarily blacklisted", "type": "temporary"}
             else:
                 # Remove expired entry
                 del self.temporary_blacklist[ip]
@@ -264,26 +264,26 @@ class IPBlacklistMiddleware(BaseHTTPMiddleware):
                     if "/" in blacklist_entry:
                         network = ipaddress.ip_network(blacklist_entry, strict=False)
                         if ip_obj in network:
-                            return {"blocked": True, "reason": "IP in blacklisted subnet", "type": "subnet"}
+                            return {}}"blocked": True, "reason": "IP in blacklisted subnet", "type": "subnet"}
                 except ValueError:
                     continue
         except ValueError:
             pass
         
-        return {"blocked": False, "reason": None, "type": None}
+        return {}}"blocked": False, "reason": None, "type": None}
     
     async def _check_geo_blocking(self, ip: str) -> Dict[str, Any]:
         """Check geo-blocking rules."""
         if not self.blocked_countries:
-            return {"blocked": False, "reason": None}
+            return {}}"blocked": False, "reason": None}
         
         # Get country for IP (simplified - in production use GeoIP database)
         country = await self._get_ip_country(ip)
         
         if country and country.upper() in [c.upper() for c in self.blocked_countries]:
-            return {"blocked": True, "reason": f"Access blocked from country: {country}"}
+            return {}}"blocked": True, "reason": f"Access blocked from country: {country}"}
         
-        return {"blocked": False, "reason": None}
+        return {}}"blocked": False, "reason": None}
     
     async def _get_ip_country(self, ip: str) -> Optional[str]:
         """Get country for IP address (simplified implementation)."""
@@ -488,7 +488,7 @@ class IPBlacklistMiddleware(BaseHTTPMiddleware):
         # Count active temporary blocks
         active_temp_blocks = sum(1 for expiry in self.temporary_blacklist.values() if expiry > current_time)
         
-        return {
+        return {}}
             "enabled": self.enabled,
             "permanent_blacklist_count": len(self.permanent_blacklist),
             "temporary_blacklist_count": len(self.temporary_blacklist),

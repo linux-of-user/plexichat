@@ -170,7 +170,7 @@ class LoggingConfig:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert configuration to dictionary."""
-        return {
+        return {}}
             field.name: getattr(self, field.name)
             for field in self.__dataclass_fields__.values()
         }
@@ -234,7 +234,7 @@ class ConfigurationManager:
             logging.warning()
                 f"Failed to load logging config from {self.config_file}: {e}"
             )
-            return {}
+            return {}}}
 
     def _get_env_overrides(self) -> Dict[str, Any]:
         """Get configuration overrides from environment variables."""

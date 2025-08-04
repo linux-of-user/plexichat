@@ -47,7 +47,7 @@ class FortuneResponse(BaseModel):
 @router.get("/")
 async def easter_egg_index():
     """List available Easter eggs."""
-    return {
+    return {}}
         "message": "? Welcome to PlexiChat Easter Eggs! ?",
         "available_eggs": [
             {
@@ -151,7 +151,7 @@ async def brew_beverage(
     
     # Normal beverage brewing
     if brew_request.beverage.lower() in ["tea", "herbal tea", "green tea", "black tea"]:
-        return {
+        return {}}
             "success": True,
             "message": f"Successfully brewed {brew_request.size} {brew_request.temperature} {brew_request.beverage} ?",
             "brewing_time": "3-5 minutes",
@@ -159,7 +159,7 @@ async def brew_beverage(
             "note": "Perfect choice! Tea is always a good idea."
         }
     elif brew_request.beverage.lower() == "coffee":
-        return {
+        return {}}
             "success": False,
             "message": "Sorry, this server is a teapot and cannot brew coffee ?",
             "suggestion": "Try requesting tea instead! ?",
@@ -167,7 +167,7 @@ async def brew_beverage(
             "alternative": "We can brew excellent tea though!"
         }
     else:
-        return {
+        return {}}
             "success": False,
             "message": f"Unknown beverage: {brew_request.beverage}",
             "supported_beverages": ["tea", "herbal tea", "green tea", "black tea"],
@@ -212,7 +212,7 @@ async def magic_8_ball(question: Dict[str, str]):
     
     response = random.choice(responses)
     
-    return {
+    return {}}
         "question": user_question,
         "answer": response,
         "magic_8_ball": "?",
@@ -269,7 +269,7 @@ async def get_dad_joke():
     
     joke = random.choice(jokes)
     
-    return {
+    return {}}
         "setup": joke["setup"],
         "punchline": joke["punchline"],
         "type": "dad_joke",
@@ -321,7 +321,7 @@ async def get_system_haiku():
     
     haiku = random.choice(haikus)
     
-    return {
+    return {}}
         "haiku": haiku["lines"],
         "theme": "system_status",
         "style": "traditional_5_7_5",
@@ -332,7 +332,7 @@ async def get_system_haiku():
 @router.get("/konami")
 async def konami_code():
     """Secret Konami code endpoint."""
-    return {
+    return {}}
         "message": "[GAME] KONAMI CODE ACTIVATED! [GAME]",
         "code": "^ ^ v v < > < > B A",
         "reward": "You found the secret developer endpoint!",
@@ -350,7 +350,7 @@ async def konami_code():
 @router.get("/the-answer")
 async def the_answer():
     """The answer to the ultimate question of life, the universe, and everything."""
-    return {
+    return {}}
         "question": "What is the answer to the ultimate question of life, the universe, and everything?",
         "answer": 42,
         "source": "The Hitchhiker's Guide to the Galaxy",

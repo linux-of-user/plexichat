@@ -1081,6 +1081,87 @@ def format_size(bytes_size: int) -> str:
         bytes_size /= 1024
     return f"{bytes_size:.1f} TB"
 
+def setup_project_structure():
+    """Setup project directory structure."""
+    try:
+        directories = [
+            "data/config",
+            "data/logs",
+            "data/uploads",
+            "data/cache",
+            "data/backups",
+            "tests/reports",
+            "tests/fixtures"
+        ]
+
+        for directory in directories:
+            Path(directory).mkdir(parents=True, exist_ok=True)
+
+        print_colored("[SETUP] Created project directory structure", Colors.GREEN)
+
+        # Create initial config files if they don't exist
+        config_files = {
+            "data/config/rate_limits.json": {
+                "enabled": True,
+                "per_ip_requests_per_minute": 60,
+                "per_user_requests_per_minute": 120,
+                "global_requests_per_minute": 10000
+            },
+            "data/config/security.json": {
+                "csrf_protection": True,
+                "xss_protection": True,
+                "rate_limiting": True
+            }
+        }
+
+        for config_file, default_config in config_files.items():
+            config_path = Path(config_file)
+            if not config_path.exists():
+                import json
+                with open(config_path, 'w') as f:
+                    json.dump(default_config, f, indent=2)
+                print_colored(f"  [OK] Created {config_file}", Colors.GREEN)
+
+    except Exception as e:
+        print_colored(f"[WARN] Failed to setup project structure: {e}", Colors.YELLOW)
+
+def verify_installation(env_manager):
+    """Verify the installation is working correctly."""
+    print_colored("[VERIFY] Verifying installation...", Colors.BLUE)
+
+    try:
+        # Test Python version
+        result = env_manager.run_command([env_manager.python_path, '--version'])
+        if result.returncode == 0:
+            version = result.stdout.strip()
+            print_colored(f"  [OK] Python: {version}", Colors.GREEN)
+
+        # Test critical imports
+        critical_imports = [
+            'fastapi',
+            'uvicorn',
+            'pydantic',
+            'bcrypt',
+            'psutil'
+        ]
+
+        for module in critical_imports:
+            try:
+                result = env_manager.run_command([
+                    env_manager.python_path, '-c', f'import {module}; print(f"{module} imported successfully")'
+                ])
+                if result.returncode == 0:
+                    print_colored(f"  [OK] {module} import successful", Colors.GREEN)
+                else:
+                    print_colored(f"  [WARN] {module} import failed", Colors.YELLOW)
+            except Exception:
+                print_colored(f"  [ERROR] {module} import error", Colors.RED)
+
+        print_colored("[VERIFY] Installation verification completed", Colors.GREEN)
+
+    except Exception as e:
+        print_colored(f"[WARN] Installation verification failed: {e}", Colors.YELLOW)
+
 def handle_test_command(args, env_manager):
     """Handle test execution."""
     print_colored("[TEST] Running PlexiChat Tests", Colors.BLUE, bold=True)
@@ -1089,9 +1170,13 @@ def handle_test_command(args, env_manager):
     env_manager.activate_virtual_environment()
 
     test_commands = {
+        'basic': ['python', 'src/plexichat/tests/test_basic_functionality.py'],
         'unit': ['python', '-m', 'pytest', 'tests/unit/', '-v'],
         'integration': ['python', '-m', 'pytest', 'tests/integration/', '-v'],
-        'security': ['python', 'pentest.py'],
+        'security': ['python', 'src/plexichat/tests/security/test_comprehensive_security.py'],
+        'protection': ['python', 'src/plexichat/tests/test_protection_simple.py'],
+        'performance': ['python', 'src/plexichat/tests/performance/test_rate_limiting_performance.py'],
+        'simple': ['python', 'src/plexichat/tests/simple_security_test.py'],
         'all': ['python', '-m', 'pytest', 'tests/', '-v']
     }
 
@@ -1150,7 +1235,11 @@ def start_server(host="0.0.0.0", port=8000, reload=True):
         print()
 
         # Run the command
-        subprocess.run(cmd)
+        try:
+            subprocess.run(cmd)
+        except KeyboardInterrupt:
+            print_colored("\n[STOP] Server stopped by user", Colors.YELLOW, bold=True)
+            sys.exit(0)
 
     except KeyboardInterrupt:
         print_colored("\n[STOP] Server stopped by user", Colors.YELLOW, bold=True)
@@ -1182,7 +1271,11 @@ def start_webui_server(host="0.0.0.0", port=8080):
         print()
 
         # Run the command
-        subprocess.run(cmd)
+        try:
+            subprocess.run(cmd)
+        except KeyboardInterrupt:
+            print_colored("\n[STOP] WebUI Server stopped by user", Colors.YELLOW, bold=True)
+            sys.exit(0)
 
     except KeyboardInterrupt:
         print_colored("\n[STOP] WebUI Server stopped by user", Colors.YELLOW, bold=True)
@@ -1233,7 +1326,11 @@ def start_servers(host="0.0.0.0", port=8000, webui_port=8080, reload=True):
             ]
             if reload:
                 cmd.append("--reload")
-            subprocess.run(cmd)
+            try:
+                subprocess.run(cmd)
+            except KeyboardInterrupt:
+                print_colored("\n[STOP] API Server stopped by user", Colors.YELLOW, bold=True)
+                return
 
         # Start WebUI server in background thread
         def start_webui():
@@ -1244,7 +1341,11 @@ def start_servers(host="0.0.0.0", port=8000, webui_port=8080, reload=True):
                 "--host", host,
                 "--port", str(webui_port),
             ]
-            subprocess.run(cmd)
+            try:
+                subprocess.run(cmd)
+            except KeyboardInterrupt:
+                print_colored("\n[STOP] WebUI Server stopped by user", Colors.YELLOW, bold=True)
+                return
 
         print_colored("[FETCH] Starting API Server...", Colors.GREEN)
         api_thread = threading.Thread(target=start_api, daemon=True)
@@ -1296,7 +1397,11 @@ def start_full_system(host="0.0.0.0", port=8000, webui_port=8080, reload=True, e
             ]
             if reload:
                 cmd.append("--reload")
-            subprocess.run(cmd)
+            try:
+                subprocess.run(cmd)
+            except KeyboardInterrupt:
+                print_colored("\n[STOP] API Server stopped by user", Colors.YELLOW, bold=True)
+                return
 
         # Start WebUI server in background thread
         def start_webui():
@@ -1307,7 +1412,11 @@ def start_full_system(host="0.0.0.0", port=8000, webui_port=8080, reload=True, e
                 "--host", host,
                 "--port", str(webui_port),
             ]
-            subprocess.run(cmd)
+            try:
+                subprocess.run(cmd)
+            except KeyboardInterrupt:
+                print_colored("\n[STOP] WebUI Server stopped by user", Colors.YELLOW, bold=True)
+                return
 
         # Start CLI in main thread
         def start_cli():
@@ -1403,10 +1512,18 @@ Examples:
 
     # Setup command
     setup_parser = subparsers.add_parser('setup', help='Setup Python environment and dependencies')
-    setup_parser.add_argument('--level', choices=['minimal', 'full', 'developer'],
+    setup_parser.add_argument('--level', choices=['minimal', 'full', 'developer', 'testing'],
                              default=config_manager.get("installation.default_level"), help='Installation level')
     setup_parser.add_argument('--force', action='store_true',
                              help='Force reinstall all packages')
+    setup_parser.add_argument('--clean', action='store_true',
+                             help='Clean install (remove existing venv)')
+    setup_parser.add_argument('--test-deps', action='store_true',
+                             help='Install testing dependencies')
+    setup_parser.add_argument('--security-deps', action='store_true',
+                             help='Install security testing dependencies')
+    setup_parser.add_argument('--performance-deps', action='store_true',
+                             help='Install performance testing dependencies')
     setup_parser.add_argument('--no-venv', action='store_true',
                              help='Skip virtual environment creation')
     setup_parser.add_argument('--clean', action='store_true',
@@ -1434,8 +1551,8 @@ Examples:
 
     # Test command
     test_parser = subparsers.add_parser('test', help='Run tests')
-    test_parser.add_argument('--type', choices=['unit', 'integration', 'security', 'all'],
-                           default='all', help='Type of tests to run')
+    test_parser.add_argument('--type', choices=['basic', 'unit', 'integration', 'security', 'protection', 'performance', 'simple', 'all'],
+                           default='basic', help='Type of tests to run')
     test_parser.add_argument('--coverage', action='store_true', help='Generate coverage report')
 
     # Server arguments (for default command)
@@ -1530,8 +1647,56 @@ Examples:
         if not installer.install_dependencies(args.level, args.force):
             print_colored("[WARNING]  Some packages failed to install, but continuing...", Colors.YELLOW)
 
+        # Install additional dependencies based on flags
+        additional_packages = []
+
+        if hasattr(args, 'test_deps') and args.test_deps:
+            print_colored("[SETUP] Installing testing dependencies...", Colors.BLUE)
+            additional_packages.extend([
+                'pytest>=7.0.0',
+                'pytest-asyncio>=0.21.0',
+                'pytest-cov>=4.0.0',
+                'httpx>=0.24.0',  # For FastAPI testing
+                'faker>=18.0.0'   # For generating test data
+            ])
+
+        if hasattr(args, 'security_deps') and args.security_deps:
+            print_colored("[SETUP] Installing security testing dependencies...", Colors.BLUE)
+            additional_packages.extend([
+                'bandit>=1.7.0',      # Security linter
+                'safety>=2.3.0',      # Vulnerability scanner
+                'semgrep>=1.0.0'      # Static analysis
+            ])
+
+        if hasattr(args, 'performance_deps') and args.performance_deps:
+            print_colored("[SETUP] Installing performance testing dependencies...", Colors.BLUE)
+            additional_packages.extend([
+                'locust>=2.0.0',      # Load testing
+                'memory-profiler>=0.60.0',  # Memory profiling
+                'py-spy>=0.3.0'       # Performance profiling
+            ])
+
+        # Install additional packages
+        if additional_packages:
+            for package in additional_packages:
+                try:
+                    result = env_manager.run_command([env_manager.pip_path, 'install', package])
+                    if result.returncode == 0:
+                        print_colored(f"  [OK] Installed {package}", Colors.GREEN)
+                    else:
+                        print_colored(f"  [WARN] Failed to install {package}", Colors.YELLOW)
+                except Exception as e:
+                    print_colored(f"  [ERROR] Error installing {package}: {e}", Colors.RED)
+
+        # Setup directories and initial configuration
+        setup_project_structure()
+
+        # Verify installation
+        verify_installation(env_manager)
+
         print_colored("[SUCCESS] Environment setup completed!", Colors.GREEN, bold=True)
         print_colored("Run 'python run.py' to start the server", Colors.CYAN)
+        print_colored("Run 'python run.py test' to run tests", Colors.CYAN)
 
     elif args.command == 'test':
         handle_test_command(args, env_manager)

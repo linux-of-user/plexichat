@@ -172,7 +172,7 @@ class MainClusterNode(BaseClusterNode):
 
         except Exception as e:
             logger.error(f"Error processing API request {request_id}: {e}")
-            return {
+            return {}}
                 'status': 'error',
                 'error': str(e),
                 'request_id': request_id
@@ -205,24 +205,24 @@ class MainClusterNode(BaseClusterNode):
                 'user_agent': session_data.get('user_agent')
             }
             self.performance_metrics['active_user_sessions'] = len(self.active_sessions)
-            return {'status': 'created', 'session_id': session_id}
+            return {}}'status': 'created', 'session_id': session_id}
 
         elif action == 'update':
             if session_id in self.active_sessions:
                 self.active_sessions[session_id]['last_activity'] = datetime.now(timezone.utc)
-                return {'status': 'updated', 'session_id': session_id}
+                return {}}'status': 'updated', 'session_id': session_id}
             else:
-                return {'status': 'not_found', 'session_id': session_id}
+                return {}}'status': 'not_found', 'session_id': session_id}
 
         elif action == 'destroy':
             if session_id in self.active_sessions:
                 del self.active_sessions[session_id]
                 self.performance_metrics['active_user_sessions'] = len(self.active_sessions)
-                return {'status': 'destroyed', 'session_id': session_id}
+                return {}}'status': 'destroyed', 'session_id': session_id}
             else:
-                return {'status': 'not_found', 'session_id': session_id}
+                return {}}'status': 'not_found', 'session_id': session_id}
 
-        return {'status': 'invalid_action', 'action': action}
+        return {}}'status': 'invalid_action', 'action': action}
 
     async def _initialize_database_connections(self):
         """Initialize database connection pools."""
@@ -244,7 +244,7 @@ class MainClusterNode(BaseClusterNode):
         """Process user-related API request."""
         # Implementation would handle user operations
         self.performance_metrics['database_queries_executed'] += 1
-        return {
+        return {}}
             'status': 'success',
             'data': 'User request processed',
             'node_id': self.node_id
@@ -254,7 +254,7 @@ class MainClusterNode(BaseClusterNode):
         """Process message-related API request."""
         # Implementation would handle message operations
         self.performance_metrics['messages_processed'] += 1
-        return {
+        return {}}
             'status': 'success',
             'data': 'Message request processed',
             'node_id': self.node_id
@@ -263,7 +263,7 @@ class MainClusterNode(BaseClusterNode):
     async def _process_plugin_request(self, request_data: Dict[str, Any]) -> Dict[str, Any]:
         """Process plugin-related API request."""
         # Implementation would handle plugin operations
-        return {
+        return {}}
             'status': 'success',
             'data': 'Plugin request processed',
             'node_id': self.node_id
@@ -271,7 +271,7 @@ class MainClusterNode(BaseClusterNode):
 
     async def _process_generic_request(self, request_data: Dict[str, Any]) -> Dict[str, Any]:
         """Process generic API request."""
-        return {
+        return {}}
             'status': 'success',
             'data': 'Generic request processed',
             'node_id': self.node_id

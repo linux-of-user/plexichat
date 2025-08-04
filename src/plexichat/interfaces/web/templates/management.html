@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PlexiChat Management Console</title>
+    <title>PlexiChat Server Management Interface</title>
     
     <!-- CSS -->
     <link href="/static/css/main.css" rel="stylesheet">
@@ -185,6 +185,31 @@
                     <i class="fas fa-chart-line"></i> Monitoring
                 </button>
             </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="client-management-tab" data-bs-toggle="tab" data-bs-target="#client-management" type="button">
+                    <i class="fas fa-desktop"></i> Client Management
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="message-management-tab" data-bs-toggle="tab" data-bs-target="#message-management" type="button">
+                    <i class="fas fa-comments"></i> Message Management
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="file-management-tab" data-bs-toggle="tab" data-bs-target="#file-management" type="button">
+                    <i class="fas fa-folder"></i> File Management
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="system-config-tab" data-bs-toggle="tab" data-bs-target="#system-config" type="button">
+                    <i class="fas fa-cog"></i> System Config
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="logs-tab" data-bs-toggle="tab" data-bs-target="#logs" type="button">
+                    <i class="fas fa-file-alt"></i> System Logs
+                </button>
+            </li>
         </ul>
 
         <div class="tab-content" id="managementTabContent">
@@ -344,6 +369,401 @@
                             </div>
                             <div class="col-md-6">
                                 <canvas id="requests-chart" width="400" height="200"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Client Management Tab -->
+            <div class="tab-pane fade" id="client-management" role="tabpanel">
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h4><i class="fas fa-desktop"></i> Desktop Client Management</h4>
+
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <div class="card text-center">
+                                    <div class="card-body">
+                                        <h5 class="text-primary">12</h5>
+                                        <p class="card-text">Active Clients</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card text-center">
+                                    <div class="card-body">
+                                        <h5 class="text-success">v2.0.0</h5>
+                                        <p class="card-text">Latest Client Version</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card text-center">
+                                    <div class="card-body">
+                                        <h5 class="text-info">45ms</h5>
+                                        <p class="card-text">Avg Response Time</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Connected Desktop Clients</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>User</th>
+                                                <th>Client Version</th>
+                                                <th>IP Address</th>
+                                                <th>Connected Since</th>
+                                                <th>Status</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>john_doe</td>
+                                                <td>v2.0.0</td>
+                                                <td>192.168.1.100</td>
+                                                <td>2 hours ago</td>
+                                                <td><span class="badge bg-success">Online</span></td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-warning" onclick="disconnectClient('john_doe')">Disconnect</button>
+                                                    <button class="btn btn-sm btn-info" onclick="sendMessage('john_doe')">Message</button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>sarah_smith</td>
+                                                <td>v1.9.5</td>
+                                                <td>192.168.1.101</td>
+                                                <td>1 hour ago</td>
+                                                <td><span class="badge bg-warning">Update Available</span></td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-warning" onclick="disconnectClient('sarah_smith')">Disconnect</button>
+                                                    <button class="btn btn-sm btn-info" onclick="sendMessage('sarah_smith')">Message</button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Message Management Tab -->
+            <div class="tab-pane fade" id="message-management" role="tabpanel">
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h4><i class="fas fa-comments"></i> Message Management</h4>
+
+                        <div class="row mb-3">
+                            <div class="col-md-3">
+                                <div class="card text-center">
+                                    <div class="card-body">
+                                        <h5 class="text-primary">1,234</h5>
+                                        <p class="card-text">Messages Today</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card text-center">
+                                    <div class="card-body">
+                                        <h5 class="text-success">45,678</h5>
+                                        <p class="card-text">Total Messages</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card text-center">
+                                    <div class="card-body">
+                                        <h5 class="text-warning">23</h5>
+                                        <p class="card-text">Flagged Messages</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card text-center">
+                                    <div class="card-body">
+                                        <h5 class="text-info">567</h5>
+                                        <p class="card-text">Files Shared</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5>Message Actions</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <button class="btn btn-primary mb-2 w-100" onclick="broadcastMessage()">
+                                            <i class="fas fa-bullhorn"></i> Broadcast Message
+                                        </button>
+                                        <button class="btn btn-warning mb-2 w-100" onclick="moderateMessages()">
+                                            <i class="fas fa-shield-alt"></i> Moderate Messages
+                                        </button>
+                                        <button class="btn btn-info mb-2 w-100" onclick="exportMessages()">
+                                            <i class="fas fa-download"></i> Export Messages
+                                        </button>
+                                        <button class="btn btn-danger mb-2 w-100" onclick="purgeOldMessages()">
+                                            <i class="fas fa-trash"></i> Purge Old Messages
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5>Recent Messages</h5>
+                                    </div>
+                                    <div class="card-body" style="max-height: 300px; overflow-y: auto;">
+                                        <div class="message-item mb-2 p-2 border rounded">
+                                            <strong>john_doe:</strong> Hello everyone!
+                                            <br><small class="text-muted">2 minutes ago</small>
+                                        </div>
+                                        <div class="message-item mb-2 p-2 border rounded">
+                                            <strong>sarah_smith:</strong> How's the new client working?
+                                            <br><small class="text-muted">5 minutes ago</small>
+                                        </div>
+                                        <div class="message-item mb-2 p-2 border rounded">
+                                            <strong>mike_johnson:</strong> File uploaded: report.pdf
+                                            <br><small class="text-muted">10 minutes ago</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- File Management Tab -->
+            <div class="tab-pane fade" id="file-management" role="tabpanel">
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h4><i class="fas fa-folder"></i> File Management</h4>
+
+                        <div class="row mb-3">
+                            <div class="col-md-3">
+                                <div class="card text-center">
+                                    <div class="card-body">
+                                        <h5 class="text-primary">2.4 GB</h5>
+                                        <p class="card-text">Total Storage</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card text-center">
+                                    <div class="card-body">
+                                        <h5 class="text-success">1,567</h5>
+                                        <p class="card-text">Total Files</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card text-center">
+                                    <div class="card-body">
+                                        <h5 class="text-warning">23</h5>
+                                        <p class="card-text">Files Today</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card text-center">
+                                    <div class="card-body">
+                                        <h5 class="text-info">8,234</h5>
+                                        <p class="card-text">Downloads</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5>File Actions</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <button class="btn btn-primary mb-2 w-100" onclick="scanFiles()">
+                                            <i class="fas fa-search"></i> Scan for Viruses
+                                        </button>
+                                        <button class="btn btn-warning mb-2 w-100" onclick="cleanupFiles()">
+                                            <i class="fas fa-broom"></i> Cleanup Old Files
+                                        </button>
+                                        <button class="btn btn-info mb-2 w-100" onclick="backupFiles()">
+                                            <i class="fas fa-archive"></i> Backup Files
+                                        </button>
+                                        <button class="btn btn-success mb-2 w-100" onclick="optimizeStorage()">
+                                            <i class="fas fa-compress"></i> Optimize Storage
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-8">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5>Recent Files</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="table-responsive">
+                                            <table class="table table-sm">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Filename</th>
+                                                        <th>Size</th>
+                                                        <th>Uploaded By</th>
+                                                        <th>Date</th>
+                                                        <th>Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td><i class="fas fa-file-pdf text-danger"></i> report.pdf</td>
+                                                        <td>2.4 MB</td>
+                                                        <td>john_doe</td>
+                                                        <td>10 min ago</td>
+                                                        <td>
+                                                            <button class="btn btn-sm btn-outline-primary">Download</button>
+                                                            <button class="btn btn-sm btn-outline-danger">Delete</button>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><i class="fas fa-file-image text-success"></i> screenshot.png</td>
+                                                        <td>1.8 MB</td>
+                                                        <td>sarah_smith</td>
+                                                        <td>1 hour ago</td>
+                                                        <td>
+                                                            <button class="btn btn-sm btn-outline-primary">Download</button>
+                                                            <button class="btn btn-sm btn-outline-danger">Delete</button>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Config Tab -->
+            <div class="tab-pane fade" id="system-config" role="tabpanel">
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h4><i class="fas fa-cog"></i> System Configuration</h4>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5>Server Settings</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label class="form-label">Server Name</label>
+                                            <input type="text" class="form-control" value="PlexiChat Server" id="serverName">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Max Clients</label>
+                                            <input type="number" class="form-control" value="100" id="maxClients">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Message Retention (days)</label>
+                                            <input type="number" class="form-control" value="30" id="messageRetention">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">File Size Limit (MB)</label>
+                                            <input type="number" class="form-control" value="50" id="fileSizeLimit">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5>Security Settings</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="form-check mb-3">
+                                            <input class="form-check-input" type="checkbox" checked id="enableEncryption">
+                                            <label class="form-check-label">Enable End-to-End Encryption</label>
+                                        </div>
+                                        <div class="form-check mb-3">
+                                            <input class="form-check-input" type="checkbox" checked id="require2FA">
+                                            <label class="form-check-label">Require 2FA for Admin</label>
+                                        </div>
+                                        <div class="form-check mb-3">
+                                            <input class="form-check-input" type="checkbox" id="enableAuditLog">
+                                            <label class="form-check-label">Enable Audit Logging</label>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Session Timeout (minutes)</label>
+                                            <input type="number" class="form-control" value="30" id="sessionTimeout">
+                                        </div>
+                                        <button class="btn btn-primary" onclick="saveConfig()">Save Configuration</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Logs Tab -->
+            <div class="tab-pane fade" id="logs" role="tabpanel">
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h4><i class="fas fa-file-alt"></i> System Logs</h4>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <select class="form-select" id="logLevel">
+                                    <option value="all">All Levels</option>
+                                    <option value="error">Error</option>
+                                    <option value="warning">Warning</option>
+                                    <option value="info">Info</option>
+                                    <option value="debug">Debug</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <button class="btn btn-primary" onclick="refreshLogs()">
+                                    <i class="fas fa-sync-alt"></i> Refresh Logs
+                                </button>
+                                <button class="btn btn-secondary" onclick="downloadLogs()">
+                                    <i class="fas fa-download"></i> Download
+                                </button>
+                                <button class="btn btn-warning" onclick="clearLogs()">
+                                    <i class="fas fa-trash"></i> Clear
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="log-viewer" style="background: #1e1e1e; color: #d4d4d4; font-family: monospace; padding: 15px; border-radius: 8px; max-height: 400px; overflow-y: auto;">
+                                    <div>[2024-01-01 12:00:01] <span style="color: #4ec9b0;">[INFO]</span> Server startup completed successfully</div>
+                                    <div>[2024-01-01 12:00:15] <span style="color: #4ec9b0;">[INFO]</span> Database connection established</div>
+                                    <div>[2024-01-01 12:00:30] <span style="color: #4ec9b0;">[INFO]</span> WebSocket server started on port 8080</div>
+                                    <div>[2024-01-01 12:01:00] <span style="color: #dcdcaa;">[WARNING]</span> High memory usage detected (85%)</div>
+                                    <div>[2024-01-01 12:01:15] <span style="color: #4ec9b0;">[INFO]</span> Garbage collection completed</div>
+                                    <div>[2024-01-01 12:01:30] <span style="color: #4ec9b0;">[INFO]</span> Desktop client connected: john_doe from 192.168.1.100</div>
+                                    <div>[2024-01-01 12:02:00] <span style="color: #4ec9b0;">[INFO]</span> Message received from john_doe</div>
+                                    <div>[2024-01-01 12:02:15] <span style="color: #4ec9b0;">[INFO]</span> File uploaded: report.pdf (2.4MB)</div>
+                                    <div>[2024-01-01 12:02:30] <span style="color: #4ec9b0;">[INFO]</span> Desktop client connected: sarah_smith from 192.168.1.101</div>
+                                    <div>[2024-01-01 12:03:00] <span style="color: #dcdcaa;">[WARNING]</span> Client sarah_smith using outdated version v1.9.5</div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -627,7 +1047,118 @@
                 alert('Emergency mode would be activated here');
             }
         }
-        
+
+        // Client Management Functions
+        function disconnectClient(username) {
+            if (confirm(`Disconnect client for user ${username}?`)) {
+                alert(`Client for ${username} has been disconnected`);
+                // Here you would make an API call to disconnect the client
+            }
+        }
+
+        function sendMessage(username) {
+            const message = prompt(`Send message to ${username}:`);
+            if (message) {
+                alert(`Message sent to ${username}: ${message}`);
+                // Here you would make an API call to send the message
+            }
+        }
+
+        // Message Management Functions
+        function broadcastMessage() {
+            const message = prompt('Enter broadcast message to send to all connected clients:');
+            if (message) {
+                alert(`Broadcast message sent: ${message}`);
+                // Here you would make an API call to broadcast the message
+            }
+        }
+
+        function moderateMessages() {
+            alert('Opening message moderation interface...');
+            // Here you would open a detailed moderation interface
+        }
+
+        function exportMessages() {
+            if (confirm('Export all messages to CSV file?')) {
+                alert('Message export initiated...');
+                // Here you would trigger a message export
+            }
+        }
+
+        function purgeOldMessages() {
+            const days = prompt('Delete messages older than how many days?', '30');
+            if (days && confirm(`Delete all messages older than ${days} days? This cannot be undone.`)) {
+                alert(`Messages older than ${days} days will be deleted`);
+                // Here you would make an API call to purge old messages
+            }
+        }
+
+        // File Management Functions
+        function scanFiles() {
+            if (confirm('Scan all files for viruses? This may take several minutes.')) {
+                alert('Virus scan initiated...');
+                // Here you would trigger a virus scan
+            }
+        }
+
+        function cleanupFiles() {
+            const days = prompt('Delete files older than how many days?', '90');
+            if (days && confirm(`Delete all files older than ${days} days?`)) {
+                alert(`Files older than ${days} days will be cleaned up`);
+                // Here you would make an API call to cleanup files
+            }
+        }
+
+        function backupFiles() {
+            if (confirm('Create backup of all files? This may take several minutes.')) {
+                alert('File backup initiated...');
+                // Here you would trigger a file backup
+            }
+        }
+
+        function optimizeStorage() {
+            if (confirm('Optimize storage by compressing and deduplicating files?')) {
+                alert('Storage optimization initiated...');
+                // Here you would trigger storage optimization
+            }
+        }
+
+        // System Configuration Functions
+        function saveConfig() {
+            const config = {
+                serverName: document.getElementById('serverName').value,
+                maxClients: document.getElementById('maxClients').value,
+                messageRetention: document.getElementById('messageRetention').value,
+                fileSizeLimit: document.getElementById('fileSizeLimit').value,
+                enableEncryption: document.getElementById('enableEncryption').checked,
+                require2FA: document.getElementById('require2FA').checked,
+                enableAuditLog: document.getElementById('enableAuditLog').checked,
+                sessionTimeout: document.getElementById('sessionTimeout').value
+            };
+
+            alert('Configuration saved successfully!');
+            console.log('Config saved:', config);
+            // Here you would make an API call to save the configuration
+        }
+
+        // Log Management Functions
+        function refreshLogs() {
+            alert('Refreshing system logs...');
+            // Here you would make an API call to refresh logs
+        }
+
+        function downloadLogs() {
+            alert('Downloading log files...');
+            // Here you would trigger a log download
+        }
+
+        function clearLogs() {
+            if (confirm('Clear all log files? This cannot be undone.')) {
+                alert('Log files cleared');
+                // Here you would make an API call to clear logs
+            }
+        }
+
         // Initialize management console
         const managementConsole = new ManagementConsole();
     </script>

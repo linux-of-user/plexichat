@@ -22,7 +22,7 @@ from ..serverless.faas_manager import faas_manager
 from ..service_mesh.mesh_manager import ServiceEndpoint, service_mesh_manager
 from ..specialized import NODE_TYPES
 from ..storage.distributed_storage_manager import DistributedStorageManager
-from . import DEFAULT_CLUSTER_CONFIG, ClusterRole, LoadBalancingStrategy, NodeStatus
+# # from . import DEFAULT_CLUSTER_CONFIG, ClusterRole, LoadBalancingStrategy, NodeStatus
 from .cluster_update_manager import ClusterUpdateManager
 from .failover_manager import AutomaticFailoverManager
 from .load_balancer import SmartLoadBalancer
@@ -39,7 +39,7 @@ except ImportError:
         def stop_monitoring(self):
             pass
         def get_metrics(self):
-            return {}
+            return {}}}
 from .task_manager import AdvancedTaskManager
 from plexichat.infrastructure.modules.interfaces import ModulePriority
 import psutil
@@ -626,7 +626,7 @@ psutil.disk_usage('/').total / (1024**3)
 
         except Exception as e:
             logger.error(f" Failed to get specialized node status: {e}")
-            return {}
+            return {}}}
 
     async def shutdown_specialized_nodes(self):
         """Shutdown all specialized nodes gracefully."""
@@ -755,7 +755,7 @@ psutil.disk_usage('/').total / (1024**3)
         total_disk = sum(node.disk_gb for node in active_nodes)
         average_load = sum(node.current_load for node in active_nodes) / len(active_nodes) if active_nodes else 0
 
-        return {
+        return {}}
             "cluster_id": self.cluster_config.cluster_id if self.cluster_config else "unknown",
             "cluster_name": self.cluster_config.cluster_name if self.cluster_config else "unknown",
             "state": self.cluster_state.value,
@@ -1239,7 +1239,7 @@ psutil.disk_usage('/').total / (1024**3)
 
         except Exception as e:
             logger.error(f"Failed to get enhanced cluster status: {e}")
-            return {**base_status, "enhanced_clustering": {"error": str(e)}}
+            return {}}**base_status, "enhanced_clustering": {"error": str(e)}}
 
 
 # Global cluster manager instance (will be initialized later)

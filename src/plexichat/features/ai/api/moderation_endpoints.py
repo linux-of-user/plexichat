@@ -150,7 +150,7 @@ async def submit_feedback(request: FeedbackRequest):
         )
 
         if success:
-            return {"status": "success", "message": "Feedback submitted successfully"}
+            return {}}"status": "success", "message": "Feedback submitted successfully"}
         else:
             raise HTTPException(status_code=500, detail="Failed to submit feedback")
 
@@ -174,7 +174,7 @@ async def add_training_data(request: TrainingRequest):
         )
 
         if success:
-            return {"status": "success", "message": "Training data added successfully"}
+            return {}}"status": "success", "message": "Training data added successfully"}
         else:
             raise HTTPException(status_code=500, detail="Failed to add training data")
 
@@ -191,7 +191,7 @@ async def train_model(background_tasks: BackgroundTasks, min_samples: int = 100)
         # Run training in background
         background_tasks.add_task(_train_model_background, min_samples)
 
-        return {
+        return {}}
             "status": "success",
             "message": f"Model training started with minimum {min_samples} samples"
         }
@@ -219,7 +219,7 @@ async def get_moderation_stats(days: int = 7):
         feedback_stats = await feedback_collector.get_feedback_stats(days)
         training_stats = await training_system.get_training_stats()
 
-        return {
+        return {}}
             "moderation": moderation_stats,
             "feedback": feedback_stats,
             "training": training_stats,
@@ -235,7 +235,7 @@ async def get_user_feedback(user_id: str, limit: int = 50):
     """Get feedback history for a user."""
     try:
         feedback_history = await feedback_collector.get_user_feedback_history(user_id, limit)
-        return {
+        return {}}
             "user_id": user_id,
             "feedback_count": len(feedback_history),
             "feedback": feedback_history
@@ -252,12 +252,12 @@ async def predict_with_trained_model(content: str):
         prediction = await training_system.predict(content)
 
         if prediction:
-            return {
+            return {}}
                 "status": "success",
                 "prediction": prediction
             }
         else:
-            return {
+            return {}}
                 "status": "no_model",
                 "message": "No trained model available"
             }
@@ -270,7 +270,7 @@ async def predict_with_trained_model(content: str):
 async def health_check():
     """Health check for moderation system."""
     try:
-        return {
+        return {}}
             "status": "healthy",
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "components": {
@@ -282,7 +282,7 @@ async def health_check():
 
     except Exception as e:
         logger.error(f"Health check failed: {e}")
-        return {
+        return {}}
             "status": "unhealthy",
             "error": str(e),
             "timestamp": datetime.now(timezone.utc).isoformat()

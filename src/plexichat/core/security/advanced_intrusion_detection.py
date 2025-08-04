@@ -573,7 +573,7 @@ class AdvancedIntrusionDetection:
         for event in recent_events:
             threat_counts[event.threat_level.value] += 1
         
-        return {
+        return {}}
             'total_events_24h': len(recent_events),
             'threat_level_counts': dict(threat_counts),
             'blocked_ips': len(self.blocked_ips),

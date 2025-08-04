@@ -95,7 +95,7 @@ class MITMProtectionManager:
             
             logger.info(f"Key exchange completed for session {session_id}")
             
-            return {
+            return {}}
                 "session_id": session_id,
                 "server_public_key": server_public_key_pem,
                 "key_rotation_interval": self.key_rotation_interval
@@ -299,7 +299,7 @@ class MITMProtectionManager:
         if not session:
             return None
         
-        return {
+        return {}}
             "session_id": session_id,
             "created_at": session["created_at"],
             "last_used": session["last_used"],
@@ -340,7 +340,7 @@ async def require_mitm_protection(request: Request) -> Dict[str, Any]:
                     pass
         
         # Return empty dict if no encrypted payload
-        return {}
+        return {}}}
         
     except Exception as e:
         logger.error(f"MITM protection dependency failed: {e}")
@@ -363,7 +363,7 @@ async def encrypt_response(session_id: str, response_data: Dict[str, Any]) -> Di
     """
     encrypted_payload = await mitm_protection.encrypt_payload(session_id, response_data)
     
-    return {
+    return {}}
         "encrypted_payload": encrypted_payload,
         "session_id": session_id,
         "encryption_type": "aes-gcm-time-based"

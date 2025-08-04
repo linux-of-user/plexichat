@@ -116,12 +116,13 @@ class FeatureToggleConfig:
             self.feature_permissions = {}
 
 class WebUIConfigManager:
-    """Enhanced WebUI configuration manager."""
+    """Enhanced WebUI configuration manager integrated with unified config system."""
 
     def __init__(self, config_dir: str = "config"):
         self.config_dir = Path(config_dir)
         self.config_dir.mkdir(exist_ok=True)
 
+        # Legacy config files for backward compatibility
         self.config_file = self.config_dir / "webui_config.yaml"
         self.auth_config_file = self.config_dir / "webui_auth.yaml"
         self.secrets_file = self.config_dir / "webui_secrets.json"
@@ -130,7 +131,18 @@ class WebUIConfigManager:
         self.encryption_key = self._get_or_create_encryption_key()
         self.cipher = Fernet(self.encryption_key)
 
-        # Configuration objects
+        # Get unified config system
+        try:
+            from plexichat.core.unified_config import get_config
+            self.unified_config = get_config()
+            self.use_unified_config = True
+            logger.info("WebUI config manager using unified configuration system")
+        except ImportError:
+            self.unified_config = None
+            self.use_unified_config = False
+            logger.warning("Unified config not available, using legacy WebUI config")
+
+        # Configuration objects (legacy support)
         self.port_config = WebUIPortConfig()
         self.mfa_config = MFAConfig()
         self.auth_storage_config = AuthStorageConfig()
@@ -166,29 +178,56 @@ class WebUIConfigManager:
         return key
 
     def load_configuration(self):
-        """Load configuration from files."""
+        """Load configuration from unified config system or legacy files."""
         try:
-            # Load main configuration
-            if self.config_file and self.config_file.exists():
-                with open(self.config_file, 'r') as f:
-                    config_data = yaml.safe_load(f)
+            if self.use_unified_config and self.unified_config:
+                # Load from unified config system
+                webui_config = self.unified_config.webui
+                network_config = self.unified_config.network
 
-                if config_data:
-                    self._update_config_objects(config_data)
+                # Update port configuration from unified config
+                self.port_config.primary_port = network_config.port
+                self.port_config.ssl_enabled = network_config.ssl_enabled
+                self.port_config.ssl_cert_path = network_config.ssl_cert_path
+                self.port_config.ssl_key_path = network_config.ssl_key_path
 
-            # Load authentication configuration
-            if self.auth_config_file and self.auth_config_file.exists():
-                with open(self.auth_config_file, 'r') as f:
-                    auth_data = yaml.safe_load(f)
+                # Update feature toggles from unified config
+                self.feature_toggle_config.enabled_features = ['dashboard', 'user_management', 'system_monitoring', 'api_access']
+                if webui_config.config_editing_enabled:
+                    self.feature_toggle_config.enabled_features.append('config_management')
+                if webui_config.advanced_features:
+                    self.feature_toggle_config.enabled_features.append('advanced_features')
+                if webui_config.beta_features:
+                    self.feature_toggle_config.beta_features = ['ai_features', 'advanced_collaboration']
 
-                if auth_data:
-                    self._update_auth_config(auth_data)
-
-            logger.info("WebUI configuration loaded successfully")
+                logger.info("WebUI configuration loaded from unified config system")
+            else:
+                # Fallback to legacy configuration loading
+                self._load_legacy_configuration()
 
         except Exception as e:
             logger.error(f"Failed to load WebUI configuration: {e}")
             self._create_default_configuration()
+
+    def _load_legacy_configuration(self):
+        """Load configuration from legacy files."""
+        # Load main configuration
+        if self.config_file and self.config_file.exists():
+            with open(self.config_file, 'r') as f:
+                config_data = yaml.safe_load(f)
+
+            if config_data:
+                self._update_config_objects(config_data)
+
+        # Load authentication configuration
+        if self.auth_config_file and self.auth_config_file.exists():
+            with open(self.auth_config_file, 'r') as f:
+                auth_data = yaml.safe_load(f)
+
+            if auth_data:
+                self._update_auth_config(auth_data)
+
+        logger.info("WebUI configuration loaded from legacy files")
 
     def _update_config_objects(self, config_data: Dict[str, Any]):
         """Update configuration objects from loaded data."""

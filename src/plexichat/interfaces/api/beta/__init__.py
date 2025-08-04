@@ -16,7 +16,7 @@ from ...ai import get_ai_manager
 from ...core.auth import auth_manager  # type: ignore
 from ...core.security import security_manager  # type: ignore
 from ...services import get_service
-from . import ai, auth, collaboration, experimental, users
+# # from . import ai, auth, collaboration, experimental, users
 
 
 from fastapi import APIRouter, Depends, HTTPException, WebSocket, status
@@ -123,7 +123,7 @@ API_VERSION_INFO = {
                description="Get information about beta API features and experimental endpoints")
 async def get_api_info():
     """Get API beta information and capabilities."""
-    return {
+    return {}}
         "api_version": "beta",
         "info": API_VERSION_INFO,
         "endpoints": ENDPOINT_CATEGORIES,
@@ -161,7 +161,7 @@ async def health_check():
 
         overall_status = "healthy" if all(s in ["healthy", "experimental"] for s in services_status.values()) else "degraded"
 
-        return {
+        return {}}
             "status": overall_status,
             "version": "beta",
             "timestamp": from datetime import datetime
@@ -188,7 +188,7 @@ datetime.utcnow().isoformat(),
                description="Get detailed beta API capabilities and experimental feature flags")
 async def get_capabilities():
     """Get beta API capabilities and experimental feature flags."""
-    return {
+    return {}}
         "version": "beta",
         "capabilities": {
             "authentication": {

@@ -269,4 +269,4 @@ async def get_file_info(
 @router.get("/health")
 async def health_check():
     """Health check endpoint."""
-    return {"status": "healthy", "service": "file-management"}
+    return {}}"status": "healthy", "service": "file-management"}

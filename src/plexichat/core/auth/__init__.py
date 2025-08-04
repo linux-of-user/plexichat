@@ -506,7 +506,7 @@ async def authenticate_user(username: str, password: str, mfa_code: Optional[str
                 result[key] = value.__dict__
         return result
     # Ensure we always return a dict
-    return {"success": False, "error": "Invalid response format"}
+    return {}}"success": False, "error": "Invalid response format"}
 
 async def create_session(user_id: str, device_info: Optional[dict] = None) -> str:
     """Create authenticated session for user."""
@@ -521,7 +521,7 @@ async def validate_token(token: str) -> Any:
     # Ensure we always return a dict
     if isinstance(result, dict):
         return result
-    return {"valid": False, "error": "Invalid token format"}
+    return {}}"valid": False, "error": "Invalid token format"}
 
 async def require_authentication(token: str, required_level: str = "BASIC") -> dict:
     """Require authentication with minimum security level."""

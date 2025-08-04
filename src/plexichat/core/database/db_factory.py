@@ -443,7 +443,7 @@ class DatabaseManager:
             if self.connection_status.get(name, False):
                 database_types[db_type]["connected"] += 1
 
-        return {
+        return {}}
             "total_databases": total_databases,
             "connected_databases": connected_databases,
             "connection_rate": (connected_databases / total_databases * 100) if total_databases > 0 else 0,

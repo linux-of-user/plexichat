@@ -143,7 +143,7 @@ class AdvancedMessagingCoordinator:
             # Get sender profile
             sender = self.user_manager.get_user_profile(sender_id)
             if not sender:
-                return {"success": False, "error": "Sender not found"}
+                return {}}"success": False, "error": "Sender not found"}
 
             # Update sender activity
             sender.update_activity("message")
@@ -156,23 +156,23 @@ class AdvancedMessagingCoordinator:
             elif target_type == "channel":
                 return await self._send_channel_message(sender, target_id, message, media_url)
             else:
-                return {"success": False, "error": "Invalid target type"}
+                return {}}"success": False, "error": "Invalid target type"}
 
         except Exception as e:
             logger.error(f"Failed to send message: {e}")
-            return {"success": False, "error": str(e)}
+            return {}}"success": False, "error": str(e)}
 
     async def _send_direct_message(self, sender: RichUserProfile, recipient_id: str,)
                                  message: str, media_url: Optional[str]) -> Dict[str, Any]:
         """Send direct message between users."""
         recipient = self.user_manager.get_user_profile(recipient_id)
         if not recipient:
-            return {"success": False, "error": "Recipient not found"}
+            return {}}"success": False, "error": "Recipient not found"}
 
         # Check if recipient allows direct messages
         if not recipient.privacy_from plexichat.core.config import settings
 settings.get("allow_direct_messages", True):
-            return {"success": False, "error": "Recipient doesn't allow direct messages"}
+            return {}}"success": False, "error": "Recipient doesn't allow direct messages"}
 
         # Create message data
         message_data = {
@@ -206,25 +206,25 @@ settings.get("allow_direct_messages", True):
                 }
                 message_data["auto_response"] = response_data
 
-        return {"success": True, "message_data": message_data}
+        return {}}"success": True, "message_data": message_data}
 
     async def _send_group_message(self, sender: RichUserProfile, group_id: str,)
                                 message: str, media_url: Optional[str]) -> Dict[str, Any]:
         """Send message to group."""
         if group_id not in self.group_manager.groups:
-            return {"success": False, "error": "Group not found"}
+            return {}}"success": False, "error": "Group not found"}
 
         group = self.group_manager.groups[group_id]
 
         # Check if sender is member
         if sender.user_id not in group.members:
-            return {"success": False, "error": "Not a group member"}
+            return {}}"success": False, "error": "Not a group member"}
 
         member = group.members[sender.user_id]
 
         # Check permissions
         if not member.has_permission(Permission.SEND_MESSAGES, group.roles):
-            return {"success": False, "error": "No permission to send messages"}
+            return {}}"success": False, "error": "No permission to send messages"}
 
         # Update group analytics
         group.update_analytics("message", user_id=sender.user_id)
@@ -242,19 +242,19 @@ settings.get("allow_direct_messages", True):
             "type": "group_message"
         }
 
-        return {"success": True, "message_data": message_data}
+        return {}}"success": True, "message_data": message_data}
 
     async def _send_channel_message(self, sender: RichUserProfile, channel_id: str,)
                                   message: str, media_url: Optional[str]) -> Dict[str, Any]:
         """Send message to voice/video channel."""
         if channel_id not in self.voice_video_manager.channels:
-            return {"success": False, "error": "Channel not found"}
+            return {}}"success": False, "error": "Channel not found"}
 
         channel = self.voice_video_manager.channels[channel_id]
 
         # Check if sender is in channel
         if sender.user_id not in channel.participants:
-            return {"success": False, "error": "Not in channel"}
+            return {}}"success": False, "error": "Not in channel"}
 
         message_data = {
             "message_id": f"channel_{int(datetime.now().timestamp())}_{sender.user_id}_{channel_id}",
@@ -269,7 +269,7 @@ settings.get("allow_direct_messages", True):
             "type": "channel_message"
         }
 
-        return {"success": True, "message_data": message_data}
+        return {}}"success": True, "message_data": message_data}
 
     async def start_typing(self, user_id: str, target_id: str, target_type: str):
         """Start typing indicator."""
@@ -338,7 +338,7 @@ settings.get("allow_direct_messages", True):
         """Get comprehensive system status."""
         user_analytics = self.user_manager.get_user_analytics()
 
-        return {
+        return {}}
             "messaging_system": {
                 "users": user_analytics,
                 "groups": {

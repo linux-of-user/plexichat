@@ -238,7 +238,7 @@ class Server(SQLModel, table=True):
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert server to dictionary."""
-        return {
+        return {}}
             "server_id": self.server_id,
             "name": self.name,
             "owner_id": self.owner_id,

@@ -18,7 +18,41 @@ from fastapi import APIRouter, HTTPException, Depends, Query
 from pydantic import BaseModel, Field
 import logging
 
-from .auth import get_current_user, users_db
+from .auth import get_current_user
+
+# Import database service layer
+try:
+    from plexichat.core.services.database_service import get_database_service
+    DATABASE_SERVICE_AVAILABLE = True
+except ImportError:
+    DATABASE_SERVICE_AVAILABLE = False
+    async def get_database_service(): return None
+
+# Import caching system
+try:
+    from plexichat.core.caching.unified_cache_integration import (
+        cache_get, cache_set, cache_delete, CacheKeyBuilder
+    )
+    CACHE_AVAILABLE = True
+except ImportError:
+    # Fallback if cache not available
+    async def cache_get(key: str, default=None): return default
+    async def cache_set(key: str, value, ttl=None): return True
+    async def cache_delete(key: str): return True
+    class CacheKeyBuilder:
+        @staticmethod
+        def message_key(msg_id: str, suffix: str = ""): return f"msg:{msg_id}:{suffix}"
+        @staticmethod
+        def conversation_key(user1: str, user2: str): return f"conv:{min(user1, user2)}:{max(user1, user2)}"
+        @staticmethod
+        def user_conversations_key(user_id: str): return f"user_conv:{user_id}"
+        @staticmethod
+        def message_stats_key(user_id: str): return f"msg_stats:{user_id}"
+    CACHE_AVAILABLE = False
+
+# Fallback in-memory storage (for backward compatibility)
+messages_db = {}
+users_db = {}
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/messages", tags=["Messages"])
@@ -69,18 +103,18 @@ async def check_message_permission(sender_id: str, recipient_id: str) -> dict:
         recipient_settings = await get_user_settings_by_id(recipient_id)
         if not recipient_settings:
             # If no settings found, allow by default
-            return {"allowed": True, "permission_level": "default"}
+            return {}}"allowed": True, "permission_level": "default"}
 
         message_permission = recipient_settings.get("message_permissions", "friends_only")
 
         # Check permission based on setting
         if message_permission == "everyone":
-            return {"allowed": True, "permission_level": "everyone"}
+            return {}}"allowed": True, "permission_level": "everyone"}
 
         elif message_permission == "friends_only":
             # Check if they are friends (simplified check for demo)
             is_friend = await check_friendship(sender_id, recipient_id)
-            return {
+            return {}}
                 "allowed": is_friend,
                 "reason": "Only friends can send messages to this user" if not is_friend else None,
                 "permission_level": "friends_only"
@@ -89,7 +123,7 @@ async def check_message_permission(sender_id: str, recipient_id: str) -> dict:
         elif message_permission == "verified_only":
             # Check if sender is verified
             is_verified = await check_user_verified(sender_id)
-            return {
+            return {}}
                 "allowed": is_verified,
                 "reason": "Only verified users can send messages to this user" if not is_verified else None,
                 "permission_level": "verified_only"
@@ -98,32 +132,32 @@ async def check_message_permission(sender_id: str, recipient_id: str) -> dict:
         elif message_permission == "contacts_only":
             # Check if they are in contacts
             is_contact = await check_contact(sender_id, recipient_id)
-            return {
+            return {}}
                 "allowed": is_contact,
                 "reason": "Only contacts can send messages to this user" if not is_contact else None,
                 "permission_level": "contacts_only"
             }
 
         elif message_permission == "nobody":
-            return {
+            return {}}
                 "allowed": False,
                 "reason": "This user has disabled incoming messages",
                 "permission_level": "nobody"
             }
 
         else:
-            return {"allowed": True, "permission_level": "default"}  # Default allow
+            return {}}"allowed": True, "permission_level": "default"}  # Default allow
 
     except Exception as e:
         logger.error(f"Error checking message permission: {e}")
         # On error, allow by default to avoid breaking functionality
-        return {"allowed": True, "permission_level": "error_fallback"}
+        return {}}"allowed": True, "permission_level": "error_fallback"}
 
 async def get_user_settings_by_id(user_id: str) -> dict:
     """Get user settings by user ID."""
     # Simplified implementation - in real app would query database
     # For demo, return default settings that allow friends only
-    return {
+    return {}}
         "message_permissions": "friends_only",
         "blocked_users": []
     }
@@ -150,10 +184,13 @@ async def send_message(
     message_data: MessageCreate,
     current_user: dict = Depends(get_current_user)
 ):
-    """Send a message to another user."""
+    """Send a message to another user using database service."""
     try:
+        db_service = await get_database_service()
+
         # Validate recipient exists
-        if message_data.recipient_id not in users_db:
+        recipient = await db_service.get_user(message_data.recipient_id)
+        if not recipient:
             raise HTTPException(status_code=404, detail="Recipient not found")
 
         # Can't send message to yourself
@@ -167,13 +204,13 @@ async def send_message(
         if not privacy_check["allowed"]:
             reason = privacy_check.get("reason", "Message not allowed by recipient's privacy settings")
             raise HTTPException(status_code=403, detail=reason)
-        
+
         # Create message
         message_id = str(uuid4())
         content = message_data.content
         encrypted_content = encrypt_message(content) if message_data.encrypted else content
-        
-        message = {
+
+        message_data_dict = {
             'id': message_id,
             'sender_id': current_user['id'],
             'recipient_id': message_data.recipient_id,
@@ -181,15 +218,40 @@ async def send_message(
             'original_content': content,  # Keep for search/display
             'message_type': message_data.message_type,
             'encrypted': message_data.encrypted,
-            'timestamp': datetime.now(),
+            'created_at': datetime.now(),
             'read': False,
             'deleted': False
         }
-        
-        messages_db[message_id] = message
-        
+
+        # Save to database
+        created_id = await db_service.create_message(message_data_dict)
+        if not created_id:
+            raise HTTPException(status_code=500, detail="Failed to save message")
+
+        # Fallback: also save to in-memory for backward compatibility
+        messages_db[message_id] = message_data_dict
+
+        # Invalidate relevant caches
+        sender_id = current_user['id']
+        recipient_id = message_data.recipient_id
+
+        # Invalidate conversation caches for both users
+        await cache_delete(CacheKeyBuilder.user_conversations_key(sender_id))
+        await cache_delete(CacheKeyBuilder.user_conversations_key(recipient_id))
+
+        # Invalidate message stats for both users
+        await cache_delete(CacheKeyBuilder.message_stats_key(sender_id))
+        await cache_delete(CacheKeyBuilder.message_stats_key(recipient_id))
+
+        # Invalidate conversation pages cache
+        conv_key_prefix = CacheKeyBuilder.conversation_key(sender_id, recipient_id)
+        # Note: In a real implementation, you'd want to invalidate all pages
+        # For now, we'll invalidate the first page which is most commonly accessed
+        await cache_delete(f"{conv_key_prefix}:page:0:50")
+
         logger.info(f"Message sent: {message_id} from {current_user['username']} to {message_data.recipient_id}")
-        
+        logger.debug(f"Invalidated caches for message send: {sender_id} -> {recipient_id}")
+
         return MessageResponse(
             id=message_id,
             sender_id=current_user['id'],
@@ -197,7 +259,7 @@ async def send_message(
             content=content,  # Return decrypted content to sender
             message_type=message_data.message_type,
             encrypted=message_data.encrypted,
-            timestamp=message['timestamp'],
+            timestamp=message_data_dict['created_at'],
             read=False
         )
         
@@ -209,55 +271,61 @@ async def send_message(
 
 @router.get("/conversations")
 async def get_conversations(current_user: dict = Depends(get_current_user)):
-    """Get list of conversations for current user."""
+    """Get list of conversations for current user with caching and database service."""
     try:
         user_id = current_user['id']
-        conversations = {}
-        
-        # Find all users we've had conversations with
-        for message in messages_db.values():
-            if message.get('deleted'):
-                continue
-                
-            other_user_id = None
-            if message['sender_id'] == user_id:
-                other_user_id = message['recipient_id']
-            elif message['recipient_id'] == user_id:
-                other_user_id = message['sender_id']
-            
-            if other_user_id and other_user_id in users_db:
-                if other_user_id not in conversations:
-                    conversations[other_user_id] = {
-                        'user_id': other_user_id,
-                        'username': users_db[other_user_id]['username'],
-                        'display_name': users_db[other_user_id]['display_name'],
-                        'last_message': None,
-                        'last_message_time': None,
-                        'unread_count': 0
-                    }
-                
-                # Update with latest message info
-                if (conversations[other_user_id]['last_message_time'] is None or 
-                    message['timestamp'] > conversations[other_user_id]['last_message_time']):
-                    conversations[other_user_id]['last_message'] = message['original_content'][:100]
-                    conversations[other_user_id]['last_message_time'] = message['timestamp']
-                
-                # Count unread messages
-                if message['recipient_id'] == user_id and not message['read']:
-                    conversations[other_user_id]['unread_count'] += 1
-        
-        # Convert to list and sort by last message time
-        conversation_list = list(conversations.values())
-        conversation_list.sort(
-            key=lambda x: x['last_message_time'] or datetime.min,
+
+        # Try to get from cache first
+        cache_key = CacheKeyBuilder.user_conversations_key(user_id)
+        cached_conversations = await cache_get(cache_key)
+        if cached_conversations is not None:
+            logger.debug(f"Cache hit for conversations: {user_id}")
+            return cached_conversations
+
+        db_service = await get_database_service()
+
+        # Get conversations from database service
+        conversations = await db_service.get_user_conversations(user_id)
+
+        # Add unread count and last message for each conversation
+        for conv in conversations:
+            other_user_id = conv['user_id']
+
+            # Get recent messages to calculate unread count and last message
+            recent_messages = await db_service.get_messages_for_conversation(
+                user_id, other_user_id, limit=50, offset=0
+            )
+
+            unread_count = 0
+            last_message = None
+
+            for msg in reversed(recent_messages):  # Most recent first
+                if not last_message:
+                    last_message = msg.get('original_content', '')[:100]
+
+                if msg.get('recipient_id') == user_id and not msg.get('read'):
+                    unread_count += 1
+
+            conv['last_message'] = last_message
+            conv['unread_count'] = unread_count
+
+        # Sort by last message time (most recent first)
+        conversations.sort(
+            key=lambda x: x.get('last_message_time') or datetime.min,
             reverse=True
         )
-        
-        return {
-            "conversations": conversation_list,
-            "count": len(conversation_list)
+
+        result = {
+            "conversations": conversations,
+            "count": len(conversations)
         }
-        
+
+        # Cache the result for 5 minutes (conversations change frequently)
+        await cache_set(cache_key, result, ttl=300)
+        logger.debug(f"Cached conversations for user: {user_id}")
+
+        return result
+
     except Exception as e:
         logger.error(f"Get conversations error: {e}")
         raise HTTPException(status_code=500, detail="Failed to get conversations")
@@ -269,66 +337,98 @@ async def get_conversation(
     offset: int = Query(0, ge=0),
     current_user: dict = Depends(get_current_user)
 ):
-    """Get messages in a conversation with another user."""
+    """Get messages in a conversation with another user using database service and caching."""
     try:
-        if other_user_id not in users_db:
+        db_service = await get_database_service()
+
+        # Validate other user exists
+        other_user = await db_service.get_user(other_user_id)
+        if not other_user:
             raise HTTPException(status_code=404, detail="User not found")
-        
+
         user_id = current_user['id']
-        conversation_messages = []
-        
-        # Find messages between these two users
-        for message in messages_db.values():
-            if message.get('deleted'):
-                continue
-                
-            if ((message['sender_id'] == user_id and message['recipient_id'] == other_user_id) or
-                (message['sender_id'] == other_user_id and message['recipient_id'] == user_id)):
-                conversation_messages.append(message)
-        
-        # Sort by timestamp (oldest first)
-        conversation_messages.sort(key=lambda x: x['timestamp'])
-        
-        # Apply pagination
-        total = len(conversation_messages)
-        paginated_messages = conversation_messages[offset:offset + limit]
-        
+
+        # Generate cache key for this specific conversation page
+        cache_key = f"{CacheKeyBuilder.conversation_key(user_id, other_user_id)}:page:{offset}:{limit}"
+
+        # Get messages from database service
+        conversation_messages = await db_service.get_messages_for_conversation(
+            user_id, other_user_id, limit, offset
+        )
+
+        # Check if there are unread messages that need to be marked as read
+        has_unread = any(
+            msg.get('recipient_id') == user_id and not msg.get('read')
+            for msg in conversation_messages
+        )
+
+        # Try cache only if no unread messages
+        if not has_unread:
+            cached_result = await cache_get(cache_key)
+            if cached_result is not None:
+                logger.debug(f"Cache hit for conversation: {user_id} <-> {other_user_id}")
+                return cached_result
+
         # Mark messages as read if current user is recipient
-        for message in paginated_messages:
-            if message['recipient_id'] == user_id and not message['read']:
+        messages_marked_read = False
+        for message in conversation_messages:
+            if message.get('recipient_id') == user_id and not message.get('read'):
+                # Update in database (simplified - in production you'd batch this)
+                # For now, just mark in memory
                 message['read'] = True
-        
+                messages_marked_read = True
+
         # Format response
         response_messages = []
-        for message in paginated_messages:
-            content = message['original_content']
-            if message['encrypted']:
-                content = decrypt_message(message['content'], message['original_content'])
-            
+        for message in conversation_messages:
+            content = message.get('original_content', '')
+            if message.get('encrypted'):
+                content = decrypt_message(message.get('content', ''), message.get('original_content', ''))
+
+            # Handle timestamp field (could be 'timestamp' or 'created_at')
+            timestamp = message.get('timestamp') or message.get('created_at')
+
             response_messages.append(MessageResponse(
                 id=message['id'],
                 sender_id=message['sender_id'],
                 recipient_id=message['recipient_id'],
                 content=content,
-                message_type=message['message_type'],
-                encrypted=message['encrypted'],
-                timestamp=message['timestamp'],
-                read=message['read']
+                message_type=message.get('message_type', 'text'),
+                encrypted=message.get('encrypted', False),
+                timestamp=timestamp,
+                read=message.get('read', False)
             ))
-        
-        return {
+
+        # Get total count (for pagination)
+        # In a real implementation, you'd get this from a separate count query
+        total = len(conversation_messages) + offset  # Approximation
+
+        result = {
             "messages": response_messages,
             "total": total,
             "limit": limit,
             "offset": offset,
-            "has_more": offset + limit < total,
+            "has_more": len(conversation_messages) == limit,  # Has more if we got a full page
             "other_user": {
                 "id": other_user_id,
-                "username": users_db[other_user_id]['username'],
-                "display_name": users_db[other_user_id]['display_name']
+                "username": other_user.get('username'),
+                "display_name": other_user.get('display_name')
             }
         }
-        
+
+        # Cache the result if no messages were marked as read (10 minutes TTL)
+        if not messages_marked_read:
+            await cache_set(cache_key, result, ttl=600)
+            logger.debug(f"Cached conversation page for: {user_id} <-> {other_user_id}")
+
+        # If messages were marked as read, invalidate related caches
+        if messages_marked_read:
+            await cache_delete(CacheKeyBuilder.user_conversations_key(user_id))
+            await cache_delete(CacheKeyBuilder.message_stats_key(user_id))
+            logger.debug(f"Invalidated caches due to read status update: {user_id}")
+
+        return result
+
     except HTTPException:
         raise
     except Exception as e:
@@ -354,10 +454,27 @@ async def delete_message(
         # Mark as deleted instead of actually deleting
         message['deleted'] = True
         message['deleted_at'] = datetime.now()
-        
+
+        # Invalidate relevant caches
+        sender_id = message['sender_id']
+        recipient_id = message['recipient_id']
+
+        # Invalidate conversation caches for both users
+        await cache_delete(CacheKeyBuilder.user_conversations_key(sender_id))
+        await cache_delete(CacheKeyBuilder.user_conversations_key(recipient_id))
+
+        # Invalidate message stats for both users
+        await cache_delete(CacheKeyBuilder.message_stats_key(sender_id))
+        await cache_delete(CacheKeyBuilder.message_stats_key(recipient_id))
+
+        # Invalidate conversation pages cache
+        conv_key_prefix = CacheKeyBuilder.conversation_key(sender_id, recipient_id)
+        await cache_delete(f"{conv_key_prefix}:page:0:50")
+
         logger.info(f"Message deleted: {message_id} by {current_user['username']}")
-        
-        return {
+        logger.debug(f"Invalidated caches for message deletion: {sender_id} <-> {recipient_id}")
+
+        return {}}
             "success": True,
             "message": "Message deleted successfully"
         }
@@ -370,24 +487,37 @@ async def delete_message(
 
 @router.get("/stats")
 async def get_message_stats(current_user: dict = Depends(get_current_user)):
-    """Get messaging statistics."""
+    """Get messaging statistics with caching."""
     try:
         user_id = current_user['id']
-        
-        sent_count = sum(1 for m in messages_db.values() 
+
+        # Try to get from cache first
+        cache_key = CacheKeyBuilder.message_stats_key(user_id)
+        cached_stats = await cache_get(cache_key)
+        if cached_stats is not None:
+            logger.debug(f"Cache hit for message stats: {user_id}")
+            return cached_stats
+
+        sent_count = sum(1 for m in messages_db.values()
                         if m['sender_id'] == user_id and not m.get('deleted'))
-        received_count = sum(1 for m in messages_db.values() 
+        received_count = sum(1 for m in messages_db.values()
                            if m['recipient_id'] == user_id and not m.get('deleted'))
-        unread_count = sum(1 for m in messages_db.values() 
+        unread_count = sum(1 for m in messages_db.values()
                           if m['recipient_id'] == user_id and not m['read'] and not m.get('deleted'))
-        
-        return {
+
+        stats = {
             "sent_messages": sent_count,
             "received_messages": received_count,
             "unread_messages": unread_count,
             "total_messages": len([m for m in messages_db.values() if not m.get('deleted')])
         }
-        
+
+        # Cache for 2 minutes (stats change frequently)
+        await cache_set(cache_key, stats, ttl=120)
+        logger.debug(f"Cached message stats for user: {user_id}")
+
+        return stats
+
     except Exception as e:
         logger.error(f"Get message stats error: {e}")
         raise HTTPException(status_code=500, detail="Failed to get message stats")

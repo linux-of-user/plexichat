@@ -38,9 +38,9 @@ try:
     from plexichat.infrastructure.utils.auth import get_current_user, require_admin
 except ImportError:
     def get_current_user():
-        return {"id": 1, "username": "admin", "is_admin": True}
+        return {}}"id": 1, "username": "admin", "is_admin": True}
     def require_admin():
-        return {"id": 1, "username": "admin", "is_admin": True}
+        return {}}"id": 1, "username": "admin", "is_admin": True}
 
 # Analytics imports
 try:
@@ -378,7 +378,7 @@ async def get_performance_metrics(
             report = optimization_engine.get_comprehensive_performance_report()
             return report
         else:
-            return {
+            return {}}
                 "error": "Performance optimization engine not available",
                 "timestamp": datetime.now().isoformat()
             }
@@ -410,12 +410,12 @@ async def trigger_optimization(
             # Trigger optimization
             await optimization_engine._check_and_optimize()
 
-            return {
+            return {}}
                 "message": "System optimization completed",
                 "timestamp": datetime.now().isoformat()
             }
         else:
-            return {
+            return {}}
                 "message": "Performance optimization engine not available",
                 "timestamp": datetime.now().isoformat()
             }
@@ -437,8 +437,8 @@ async def get_resilience_status():
     """Get the current system resilience status."""
     try:
         if resilience_manager is None:
-            return {"success": False, "error": "Resilience manager not available"}
+            return {}}"success": False, "error": "Resilience manager not available"}
         report = await resilience_manager.run_system_check()
-        return {"success": True, "resilience": report}
+        return {}}"success": True, "resilience": report}
     except Exception as e:
-        return {"success": False, "error": str(e)}
+        return {}}"success": False, "error": str(e)}

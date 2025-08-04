@@ -1,6 +1,0 @@
-Defaulting to user installation because normal site-packages is not writeable
-Requirement already satisfied: jsonschema in /usr/lib/python3.13/site-packages (4.23.0)
-Requirement already satisfied: attrs>=22.2.0 in /usr/lib/python3.13/site-packages (from jsonschema) (25.1.0)
-Requirement already satisfied: jsonschema-specifications>=2023.03.6 in /usr/lib/python3.13/site-packages (from jsonschema) (2024.10.1)
-Requirement already satisfied: referencing>=0.28.4 in /usr/lib/python3.13/site-packages (from jsonschema) (0.36.2)
-Requirement already satisfied: rpds-py>=0.7.1 in /usr/lib64/python3.13/site-packages (from jsonschema) (0.25.0)

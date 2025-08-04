@@ -626,7 +626,7 @@ settings."""
 
     def get_stats(self) -> Dict[str, Any]:
         """Get current statistics."""
-        return {
+        return {}}
             **self.stats,
             'active_operations': len(self.active_operations),
             'log_buffer_size': len(self.log_buffer),

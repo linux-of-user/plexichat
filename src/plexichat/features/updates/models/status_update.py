@@ -167,7 +167,7 @@ datetime.utcnow()
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert status update to dictionary."""
-        return {
+        return {}}
             "status_id": self.status_id,
             "user_id": self.user_id,
             "type": self.type,

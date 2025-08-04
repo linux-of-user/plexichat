@@ -173,7 +173,7 @@ def encrypt_payload(data: bytes) -> Dict[str, Any]:
     aesgcm = AESGCM(key)
     nonce = os.urandom(12)
     ct = aesgcm.encrypt(nonce, data, None)
-    return {"nonce": base64.b64encode(nonce).decode(), "ciphertext": base64.b64encode(ct).decode(), "timestamp": int(time.time())}
+    return {}}"nonce": base64.b64encode(nonce).decode(), "ciphertext": base64.b64encode(ct).decode(), "timestamp": int(time.time())}
 
 # Decrypt payload with time-based key
 def decrypt_payload(payload: Dict[str, Any]) -> bytes:
@@ -386,9 +386,9 @@ async def ssl_check_software(_: None = Depends(enforce_global_rate_limit)):
     try:
         result = subprocess.run(["certbot", "--version"], capture_output=True, text=True)
         installed = result.returncode == 0
-        return {"certbot_installed": installed, "output": result.stdout.strip()}
+        return {}}"certbot_installed": installed, "output": result.stdout.strip()}
     except Exception as e:
-        return {"certbot_installed": False, "error": str(e)}
+        return {}}"certbot_installed": False, "error": str(e)}
 
 @router.post("/ssl/generate_self_signed", response_class=JSONResponse)
 async def ssl_generate_self_signed(domain: str = Form(...), _: None = Depends(enforce_global_rate_limit)):
@@ -401,9 +401,9 @@ async def ssl_generate_self_signed(domain: str = Form(...), _: None = Depends(en
             "-keyout", key_path, "-out", cert_path,
             "-subj", f"/CN={domain}"
         ], check=True)
-        return {"success": True, "cert_path": cert_path, "key_path": key_path}
+        return {}}"success": True, "cert_path": cert_path, "key_path": key_path}
     except Exception as e:
-        return {"success": False, "error": str(e)}
+        return {}}"success": False, "error": str(e)}
 
 @router.post("/ssl/lets_encrypt", response_class=JSONResponse)
 async def ssl_lets_encrypt(domain: str = Form(...), email: str = Form(...), _: None = Depends(enforce_global_rate_limit)):
@@ -413,9 +413,9 @@ async def ssl_lets_encrypt(domain: str = Form(...), email: str = Form(...), _: N
             "certbot", "certonly", "--standalone", "-d", domain, "--agree-tos", "--email", email, "--non-interactive"
         ], capture_output=True, text=True)
         success = result.returncode == 0
-        return {"success": success, "output": result.stdout.strip(), "error": result.stderr.strip() if not success else None}
+        return {}}"success": success, "output": result.stdout.strip(), "error": result.stderr.strip() if not success else None}
     except Exception as e:
-        return {"success": False, "error": str(e)}
+        return {}}"success": False, "error": str(e)}
 
 @router.post("/ssl/upload", response_class=JSONResponse)
 async def ssl_upload_cert(cert_file: bytes = Form(...), key_file: bytes = Form(...), domain: str = Form(...), _: None = Depends(enforce_global_rate_limit)):
@@ -427,9 +427,9 @@ async def ssl_upload_cert(cert_file: bytes = Form(...), key_file: bytes = Form(.
             f.write(cert_file)
         with open(key_path, "wb") as f:
             f.write(key_file)
-        return {"success": True, "cert_path": cert_path, "key_path": key_path}
+        return {}}"success": True, "cert_path": cert_path, "key_path": key_path}
     except Exception as e:
-        return {"success": False, "error": str(e)}
+        return {}}"success": False, "error": str(e)}
 
 @router.get("/ssl/list", response_class=JSONResponse)
 async def ssl_list_certs(_: None = Depends(enforce_global_rate_limit)):
@@ -440,9 +440,9 @@ async def ssl_list_certs(_: None = Depends(enforce_global_rate_limit)):
         cert_dir = Path("certs")
         for cert_file in cert_dir.glob("*.crt"):
             certs.append(str(cert_file))
-        return {"certificates": certs}
+        return {}}"certificates": certs}
     except Exception as e:
-        return {"certificates": [], "error": str(e)}
+        return {}}"certificates": [], "error": str(e)}
 
 @router.post("/ssl/renew", response_class=JSONResponse)
 async def ssl_renew_cert(domain: str = Form(...), _: None = Depends(enforce_global_rate_limit)):
@@ -452,9 +452,9 @@ async def ssl_renew_cert(domain: str = Form(...), _: None = Depends(enforce_glob
             "certbot", "renew", "--cert-name", domain
         ], capture_output=True, text=True)
         success = result.returncode == 0
-        return {"success": success, "output": result.stdout.strip(), "error": result.stderr.strip() if not success else None}
+        return {}}"success": success, "output": result.stdout.strip(), "error": result.stderr.strip() if not success else None}
     except Exception as e:
-        return {"success": False, "error": str(e)}
+        return {}}"success": False, "error": str(e)}
 
 # --- Custom Field API Endpoints (User/Message) ---
 # Reference: improvements.txt, security.txt
@@ -522,7 +522,7 @@ async def add_user_custom_field(
     # Log schema change
     import logging
     logging.getLogger(__name__).info(f"Custom field added/updated for user {user_id}: {field_name} ({field_type})")
-    return {"success": True, "custom_fields": user.custom_fields}
+    return {}}"success": True, "custom_fields": user.custom_fields}
 
 @router.get("/user/{user_id}/custom_fields", response_class=JSONResponse)
 async def get_user_custom_fields(user_id: int, _: None = Depends(enforce_global_rate_limit)):
@@ -530,7 +530,7 @@ async def get_user_custom_fields(user_id: int, _: None = Depends(enforce_global_
     user = await user_service.get_user_by_id(user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found.")
-    return {"custom_fields": user.custom_fields}
+    return {}}"custom_fields": user.custom_fields}
 
 # --- Message Custom Fields ---
 @router.post("/message/{message_id}/custom_field", response_class=JSONResponse)
@@ -550,7 +550,7 @@ async def add_message_custom_field(
     message.custom_fields[field_name] = {"value": value, "type": field_type}
     # Provide required arguments for update_message (message_id, sender_id, message_data)
     await message_service.update_message(message.id, message.sender_id, MessageUpdate())
-    return {"success": True, "custom_fields": message.custom_fields}
+    return {}}"success": True, "custom_fields": message.custom_fields}
 
 @router.get("/message/{message_id}/custom_fields", response_class=JSONResponse)
 async def get_message_custom_fields(message_id: int, _: None = Depends(enforce_global_rate_limit)):
@@ -559,7 +559,7 @@ async def get_message_custom_fields(message_id: int, _: None = Depends(enforce_g
     message = await message_service.get_message_by_id(message_id)
     if not message:
         raise HTTPException(status_code=404, detail="Message not found.")
-    return {"custom_fields": message.custom_fields}
+    return {}}"custom_fields": message.custom_fields}
 
 # --- Type-safe retrieval utility for custom fields (improvements.txt) ---
 def cast_custom_field_value(field: dict[str, Any]) -> Any:
@@ -583,7 +583,7 @@ def cast_custom_field_value(field: dict[str, Any]) -> Any:
             return value
         if value is not None:
             return json.loads(value)
-        return {}
+        return {}}}
     if type_str == 'datetime':
         if isinstance(value, str):
             return datetime.fromisoformat(value)
@@ -623,7 +623,7 @@ global_message_field_types = {"string", "int", "float", "bool", "list", "dict", 
 
 @router.get("/admin/custom_field_types/user", response_class=JSONResponse)
 async def list_user_custom_field_types(_: None = Depends(enforce_global_rate_limit)):
-    return {"user_custom_field_types": sorted(global_user_field_types)}
+    return {}}"user_custom_field_types": sorted(global_user_field_types)}
 
 @router.post("/admin/custom_field_types/user", response_class=JSONResponse)
 async def add_user_custom_field_type(
@@ -635,7 +635,7 @@ async def add_user_custom_field_type(
     global_user_field_types.add(field_type)
     import logging
     logging.getLogger(__name__).info(f"Admin added user custom field type: {field_type}")
-    return {"success": True, "user_custom_field_types": sorted(global_user_field_types)}
+    return {}}"success": True, "user_custom_field_types": sorted(global_user_field_types)}
 
 @router.delete("/admin/custom_field_types/user", response_class=JSONResponse)
 async def remove_user_custom_field_type(
@@ -647,11 +647,11 @@ async def remove_user_custom_field_type(
     global_user_field_types.discard(field_type)
     import logging
     logging.getLogger(__name__).info(f"Admin removed user custom field type: {field_type}")
-    return {"success": True, "user_custom_field_types": sorted(global_user_field_types)}
+    return {}}"success": True, "user_custom_field_types": sorted(global_user_field_types)}
 
 @router.get("/admin/custom_field_types/message", response_class=JSONResponse)
 async def list_message_custom_field_types(_: None = Depends(enforce_global_rate_limit)):
-    return {"message_custom_field_types": sorted(global_message_field_types)}
+    return {}}"message_custom_field_types": sorted(global_message_field_types)}
 
 @router.post("/admin/custom_field_types/message", response_class=JSONResponse)
 async def add_message_custom_field_type(
@@ -663,7 +663,7 @@ async def add_message_custom_field_type(
     global_message_field_types.add(field_type)
     import logging
     logging.getLogger(__name__).info(f"Admin added message custom field type: {field_type}")
-    return {"success": True, "message_custom_field_types": sorted(global_message_field_types)}
+    return {}}"success": True, "message_custom_field_types": sorted(global_message_field_types)}
 
 @router.delete("/admin/custom_field_types/message", response_class=JSONResponse)
 async def remove_message_custom_field_type(
@@ -675,7 +675,7 @@ async def remove_message_custom_field_type(
     global_message_field_types.discard(field_type)
     import logging
     logging.getLogger(__name__).info(f"Admin removed message custom field type: {field_type}")
-    return {"success": True, "message_custom_field_types": sorted(global_message_field_types)}
+    return {}}"success": True, "message_custom_field_types": sorted(global_message_field_types)}
 
 # --- Per-user and per-message custom field management endpoints (improvements.txt) ---
 @router.delete("/user/{user_id}/custom_field", response_class=JSONResponse)
@@ -694,7 +694,7 @@ async def remove_user_custom_field(
     await user_service.update_user(user)
     import logging
     logging.getLogger(__name__).info(f"Custom field removed for user {user_id}: {field_name}")
-    return {"success": True, "custom_fields": user.custom_fields}
+    return {}}"success": True, "custom_fields": user.custom_fields}
 
 @router.delete("/message/{message_id}/custom_field", response_class=JSONResponse)
 async def remove_message_custom_field(
@@ -714,7 +714,7 @@ async def remove_message_custom_field(
     await message_service.update_message(message.id, message.sender_id, MessageUpdate())
     import logging
     logging.getLogger(__name__).info(f"Custom field removed for message {message_id}: {field_name}")
-    return {"success": True, "custom_fields": message.custom_fields}
+    return {}}"success": True, "custom_fields": message.custom_fields}
 
 # Helper functions
 

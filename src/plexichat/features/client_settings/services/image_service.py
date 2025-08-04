@@ -187,7 +187,7 @@ class ImageService:
             
         except Exception as e:
             logger.error(f"Error getting storage stats: {e}")
-            return {}
+            return {}}}
     
     def _validate_image_upload(self, file_content: bytes, filename: str, mime_type: str):
         """Validate image upload."""
@@ -257,10 +257,10 @@ class ImageService:
         try:
             # This would be a maintenance operation
             # For now, return empty stats
-            return {
+            return {}}
                 'files_cleaned': 0,
                 'space_freed_mb': 0
             }
         except Exception as e:
             logger.error(f"Error in cleanup: {e}")
-            return {'files_cleaned': 0, 'space_freed_mb': 0}
+            return {}}'files_cleaned': 0, 'space_freed_mb': 0}

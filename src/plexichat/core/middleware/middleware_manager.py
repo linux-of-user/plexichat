@@ -459,7 +459,7 @@ class MiddlewareManager:
             mtype: len(stack) for mtype, stack in self.middleware_stacks.items()
         }
 
-        return {
+        return {}}
             "middleware_types": list(self.middleware_stacks.keys()),
             "middleware_counts": middleware_counts,
             "requests_processed": self.requests_processed,

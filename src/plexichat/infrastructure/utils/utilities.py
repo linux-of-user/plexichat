@@ -268,7 +268,7 @@ class FileManager:
                 return None
 
             stat = filepath.stat()
-            return {
+            return {}}
                 "name": filepath.name,
                 "size": stat.st_size,
                 "modified": datetime.fromtimestamp(stat.st_mtime),

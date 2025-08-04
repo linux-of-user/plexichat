@@ -429,7 +429,7 @@ class ProactiveContentModerator:
     async def _call_openai_moderation(self, text: str) -> Dict[str, Any]:
         """Call OpenAI Moderation API."""
         if not self.ai_providers["openai"]["api_key"]:
-            return {}
+            return {}}}
 
         headers = {
             "Authorization": f"Bearer {self.ai_providers['openai']['api_key']}",
@@ -625,15 +625,15 @@ class ProactiveContentModerator:
     # Placeholder methods for external AI services
     async def _call_google_text_analysis(self, text: str) -> Dict[str, Any]:
         """Placeholder for Google Cloud Natural Language API."""
-        return {}
+        return {}}}
 
     async def _call_google_vision_analysis(self, image_data: bytes) -> Dict[str, Any]:
         """Placeholder for Google Cloud Vision API."""
-        return {}
+        return {}}}
 
     async def _call_azure_vision_analysis(self, image_data: bytes) -> Dict[str, Any]:
         """Placeholder for Azure Computer Vision API."""
-        return {}
+        return {}}}
 
     async def _apply_custom_text_rules(self, text: str, result: ModerationResult):
         """Apply custom rule-based text analysis."""
@@ -691,7 +691,7 @@ class ProactiveContentModerator:
     async def _analyze_audio_features(self, audio_data: bytes) -> Dict[str, Any]:
         """Analyze audio features."""
         # Placeholder - would analyze tone, volume, etc.
-        return {}
+        return {}}}
 
     def _merge_image_results():
         self, result: ModerationResult, ai_result: Dict[str, Any], provider: str
@@ -702,7 +702,7 @@ class ProactiveContentModerator:
 
     def get_moderation_statistics(self) -> Dict[str, Any]:
         """Get comprehensive moderation statistics."""
-        return {
+        return {}}
             "enabled": self.enabled,
             "real_time_processing": self.real_time_processing,
             "statistics": self.stats,

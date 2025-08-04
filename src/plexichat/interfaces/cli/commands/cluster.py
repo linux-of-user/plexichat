@@ -17,7 +17,7 @@ import sys
 # Mock imports for missing modules
 class MockClusterManager:
     async def get_enhanced_cluster_status(self):
-        return {
+        return {}}
             'cluster_id': 'mock_cluster',
             'local_node_id': 'node_1',
             'total_nodes': 3,
@@ -32,7 +32,7 @@ class MockClusterManager:
         }
     
     async def get_cluster_status(self):
-        return {
+        return {}}
             'cluster_id': 'mock_cluster',
             'local_node_id': 'node_1',
             'total_nodes': 3,
@@ -50,7 +50,7 @@ class MockClusterManager:
 
 class MockServiceMeshManager:
     async def get_mesh_topology(self):
-        return {
+        return {}}
             'services': [
                 {'name': 'api-service', 'protocol': 'http', 'port': 8080},
                 {'name': 'auth-service', 'protocol': 'grpc', 'port': 9090}
@@ -61,7 +61,7 @@ class MockServiceMeshManager:
         }
     
     async def get_service_metrics(self, service_name):
-        return {
+        return {}}
             'service_name': service_name,
             'total_requests': 1000,
             'success_rate_percent': 99.5,
@@ -86,7 +86,7 @@ class MockHybridCloudOrchestrator:
         }
     
     async def optimize_placements(self):
-        return {
+        return {}}
             'optimized_workloads': 2,
             'cost_savings': 15.50,
             'recommendations': [

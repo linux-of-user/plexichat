@@ -472,7 +472,7 @@ class P2PMessagingService:
 
     def get_network_status(self) -> Dict[str, Any]:
         """Get P2P network status."""
-        return {
+        return {}}
             "connected_peers": len(self.peers),
             "online_peers": sum(1 for p in self.peers.values() if p.is_online),
             "cached_messages": len(self.message_cache.cache),

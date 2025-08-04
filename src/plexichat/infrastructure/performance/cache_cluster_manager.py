@@ -337,7 +337,7 @@ class CacheClusterManager:
 
     def get_cluster_status(self) -> Dict[str, Any]:
         """Get comprehensive cluster status."""
-        return {
+        return {}}
             'cluster_health': {
                 'total_nodes': self.metrics.total_nodes,
                 'healthy_nodes': self.metrics.healthy_nodes,

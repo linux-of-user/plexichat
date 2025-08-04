@@ -74,7 +74,7 @@ class Metric:
     tags: Dict[str, str] = None
 
     def to_dict(self) -> Dict[str, Any]:
-        return {
+        return {}}
             'name': self.name,
             'type': self.type,
             'value': self.value,
@@ -256,7 +256,7 @@ datetime.utcnow() - timedelta(hours=1)
                 messages_growth = await self._calculate_growth('user_messages', user_id)
                 files_growth = await self._calculate_growth('user_files', user_id)
 
-                return {
+                return {}}
                     'guilds_count': guilds_count,
                     'guilds_growth': guilds_growth,
                     'messages_count': messages_count,
@@ -269,7 +269,7 @@ datetime.utcnow() - timedelta(hours=1)
 
         except Exception as e:
             logger.error(f"Failed to get dashboard stats: {e}")
-            return {
+            return {}}
                 'guilds_count': 0, 'guilds_growth': 0,
                 'messages_count': 0, 'messages_growth': 0,
                 'friends_count': 0, 'friends_growth': 0,
@@ -334,7 +334,7 @@ datetime.utcnow() - timedelta(hours=1)
                 # Total file size
                 total_file_size = await session.execute(select(func.sum(FileRecord.size)))
 
-                return {
+                return {}}
                     'users': {
                         'total': total_users.scalar() or 0,
                         'active_today': active_today.scalar() or 0,
@@ -362,7 +362,7 @@ datetime.utcnow() - timedelta(hours=1)
 
         except Exception as e:
             logger.error(f"Failed to get system stats: {e}")
-            return {}
+            return {}}}
 
     async def get_guild_analytics(self, guild_id: int, time_range: TimeRange = TimeRange.WEEK) -> Dict[str, Any]:
         """Get analytics for a specific guild."""
@@ -384,7 +384,7 @@ datetime.utcnow()
                 # Top users
                 top_users = await self._get_top_users(session, guild_id, start_time, end_time)
 
-                return {
+                return {}}
                     'time_range': time_range,
                     'start_time': start_time.isoformat(),
                     'end_time': end_time.isoformat(),
@@ -396,7 +396,7 @@ datetime.utcnow()
 
         except Exception as e:
             logger.error(f"Failed to get guild analytics: {e}")
-            return {}
+            return {}}}
 
     def _get_start_time(self, end_time: datetime, time_range: TimeRange) -> datetime:
         """Get start time based on time range."""

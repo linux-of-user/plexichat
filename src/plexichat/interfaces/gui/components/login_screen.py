@@ -1357,15 +1357,15 @@ Note: You must have access to the command line to reset your password."""
                     if password_hash == stored_hash:
                         return self.create_success_response(username)
 
-            return {"success": False, "error": "Invalid username or password"}
+            return {}}"success": False, "error": "Invalid username or password"}
 
         except Exception as e:
             logger.error(f"Auth API call failed: {e}")
-            return {"success": False, "error": str(e)}
+            return {}}"success": False, "error": str(e)}
 
     def create_success_response(self, username: str) -> Dict[str, Any]:
         """Create successful authentication response."""
-        return {
+        return {}}
             "success": True,
             "user": {
                 "id": "admin",
@@ -1398,7 +1398,7 @@ Note: You must have access to the command line to reset your password."""
                         with open(creds_file, 'r') as f:
                             data = json.load(f)
                             admin_creds = data.get('admin', {})
-                            return {
+                            return {}}
                                 "username": admin_creds.get("username", "admin"),
                                 "password": admin_creds.get("password", "admin123")
                             }
@@ -1414,14 +1414,14 @@ Note: You must have access to the command line to reset your password."""
                                 elif 'password:' in line.lower():
                                     password = line.split(':')[1].strip()
                             
-                            return {"username": username, "password": password}
+                            return {}}"username": username, "password": password}
 
             # Return default if no file found
-            return {"username": "admin", "password": "admin123"}
+            return {}}"username": "admin", "password": "admin123"}
 
         except Exception as e:
             logger.error(f"Failed to load default credentials: {e}")
-            return {"username": "admin", "password": "admin123"}
+            return {}}"username": "admin", "password": "admin123"}
 
     def generate_secure_token(self, username: str) -> str:
         """Generate secure authentication token."""

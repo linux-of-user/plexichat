@@ -95,7 +95,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         else:
             # Fallback: simple token validation
             if credentials.credentials.startswith("377006d7"):  # Our test token
-                return {"user_id": "d4d75b59-a5d0-45cc-991a-44db0ac5522a", "username": "testuser"}
+                return {}}"user_id": "d4d75b59-a5d0-45cc-991a-44db0ac5522a", "username": "testuser"}
             raise HTTPException(status_code=401, detail="Invalid token")
     except Exception as e:
         logger.error(f"Authentication error: {e}")
@@ -266,9 +266,9 @@ async def block_user(
             update_data = {"blocked_users": blocked_users}
             await update_user_settings_internal(current_user_id, update_data)
             
-            return {"success": True, "message": "User blocked successfully"}
+            return {}}"success": True, "message": "User blocked successfully"}
         else:
-            return {"success": True, "message": "User already blocked"}
+            return {}}"success": True, "message": "User already blocked"}
             
     except Exception as e:
         logger.error(f"Error blocking user: {e}")
@@ -294,9 +294,9 @@ async def unblock_user(
             update_data = {"blocked_users": blocked_users}
             await update_user_settings_internal(current_user_id, update_data)
             
-            return {"success": True, "message": "User unblocked successfully"}
+            return {}}"success": True, "message": "User unblocked successfully"}
         else:
-            return {"success": True, "message": "User was not blocked"}
+            return {}}"success": True, "message": "User was not blocked"}
             
     except Exception as e:
         logger.error(f"Error unblocking user: {e}")
@@ -331,7 +331,7 @@ async def create_default_settings(user_id: str) -> Dict:
 
 def create_default_settings_dict(user_id: str) -> Dict:
     """Create default settings dictionary."""
-    return {
+    return {}}
         "user_id": user_id,
         "profile_visibility": "friends_only",
         "message_permissions": "friends_only",

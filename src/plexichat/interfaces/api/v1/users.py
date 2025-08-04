@@ -17,11 +17,44 @@ from fastapi import APIRouter, HTTPException, Depends, Query, Request
 from pydantic import BaseModel, EmailStr, Field
 from src.plexichat.core.logging import get_logger
 
-from .auth import get_current_user, users_db
+from .auth import get_current_user
+
+# Import database service layer
+try:
+    from plexichat.core.services.database_service import get_database_service
+    DATABASE_SERVICE_AVAILABLE = True
+except ImportError:
+    DATABASE_SERVICE_AVAILABLE = False
+    async def get_database_service(): return None
 
 # Use existing logging system
 logger = get_logger(__name__)
 router = APIRouter(prefix="/users", tags=["Enhanced Users"])
+
+# Import caching system
+try:
+    from plexichat.core.caching.unified_cache_integration import (
+        cache_get, cache_set, cache_delete, CacheKeyBuilder
+    )
+    CACHE_AVAILABLE = True
+except ImportError:
+    # Fallback if cache not available
+    async def cache_get(key: str, default=None): return default
+    async def cache_set(key: str, value, ttl=None): return True
+    async def cache_delete(key: str): return True
+    class CacheKeyBuilder:
+        @staticmethod
+        def user_profile_key(user_id: str): return f"user_profile:{user_id}"
+        @staticmethod
+        def user_search_key(query: str, limit: int): return f"user_search:{hash(query)}:{limit}"
+        @staticmethod
+        def user_list_key(offset: int, limit: int): return f"user_list:{offset}:{limit}"
+        @staticmethod
+        def public_profile_key(user_id: str): return f"public_profile:{user_id}"
+    CACHE_AVAILABLE = False
+
+# Fallback in-memory storage (for backward compatibility)
+users_db = {}
 
 # Import global rate limiting system
 try:
@@ -213,12 +246,29 @@ async def get_my_profile(
     current_user: dict = Depends(get_current_user),
     _: None = Depends(apply_security_and_rate_limit)
 ):
-    """Get current user's complete profile including custom fields."""
+    """Get current user's complete profile including custom fields with caching and database service."""
     try:
+        user_id = current_user['id']
+
+        # Try to get from cache first
+        cache_key = CacheKeyBuilder.user_profile_key(user_id)
+        cached_profile = await cache_get(cache_key)
+        if cached_profile is not None:
+            logger.debug(f"Cache hit for user profile: {user_id}")
+            return cached_profile
+
+        # Get fresh user data from database service
+        db_service = await get_database_service()
+        user_data = await db_service.get_user(user_id)
+
+        if not user_data:
+            # Fallback to current_user data if database service fails
+            user_data = current_user
+
         # Convert custom fields to proper format
         custom_fields = {}
-        if 'custom_fields' in current_user and current_user['custom_fields']:
-            for name, field_data in current_user['custom_fields'].items():
+        if 'custom_fields' in user_data and user_data['custom_fields']:
+            for name, field_data in user_data['custom_fields'].items():
                 if isinstance(field_data, dict):
                     custom_fields[name] = CustomField(**field_data)
                 else:
@@ -231,23 +281,29 @@ async def get_my_profile(
                         is_searchable=False
                     )
 
-        return UserProfile(
-            id=current_user['id'],
-            username=current_user['username'],
-            email=current_user['email'],
-            display_name=current_user.get('display_name', current_user['username']),
-            first_name=current_user.get('first_name'),
-            last_name=current_user.get('last_name'),
-            bio=current_user.get('bio'),
-            avatar_url=current_user.get('avatar_url'),
-            location=current_user.get('location'),
-            website=current_user.get('website'),
-            created_at=current_user['created_at'],
-            last_active=current_user.get('last_active'),
-            is_active=current_user.get('is_active', True),
-            is_verified=current_user.get('is_verified', False),
+        profile = UserProfile(
+            id=user_data['id'],
+            username=user_data['username'],
+            email=user_data['email'],
+            display_name=user_data.get('display_name', user_data['username']),
+            first_name=user_data.get('first_name'),
+            last_name=user_data.get('last_name'),
+            bio=user_data.get('bio'),
+            avatar_url=user_data.get('avatar_url'),
+            location=user_data.get('location'),
+            website=user_data.get('website'),
+            created_at=user_data['created_at'],
+            last_active=user_data.get('last_active'),
+            is_active=user_data.get('is_active', True),
+            is_verified=user_data.get('is_verified', False),
             custom_fields=custom_fields
         )
+
+        # Cache for 15 minutes (user profiles don't change very often)
+        await cache_set(cache_key, profile, ttl=900)
+        logger.debug(f"Cached user profile: {user_id}")
+
+        return profile
     except Exception as e:
         logger.error(f"Error getting user profile: {e}")
         raise HTTPException(status_code=500, detail="Failed to retrieve profile")
@@ -262,7 +318,7 @@ async def update_my_profile(
     """Update current user's profile with enhanced fields and security validation."""
     try:
         user_id = current_user['id']
-        user = users_db[user_id]
+        db_service = await get_database_service()
 
         # Security validation for all input fields
         if SECURITY_UTILS_AVAILABLE:
@@ -291,49 +347,69 @@ async def update_my_profile(
                     if sanitized_value != str(field_value):
                         logger.info(f"Input sanitized for {field_name} from user {user_id}")
 
-        # Update all provided fields with sanitized values
+        # Prepare update data with sanitized values
+        updates = {}
         if update_data.display_name is not None:
-            user['display_name'] = sanitize_input(update_data.display_name) if SECURITY_UTILS_AVAILABLE else update_data.display_name
+            updates['display_name'] = sanitize_input(update_data.display_name) if SECURITY_UTILS_AVAILABLE else update_data.display_name
         if update_data.first_name is not None:
-            user['first_name'] = sanitize_input(update_data.first_name) if SECURITY_UTILS_AVAILABLE else update_data.first_name
+            updates['first_name'] = sanitize_input(update_data.first_name) if SECURITY_UTILS_AVAILABLE else update_data.first_name
         if update_data.last_name is not None:
-            user['last_name'] = sanitize_input(update_data.last_name) if SECURITY_UTILS_AVAILABLE else update_data.last_name
+            updates['last_name'] = sanitize_input(update_data.last_name) if SECURITY_UTILS_AVAILABLE else update_data.last_name
         if update_data.bio is not None:
-            user['bio'] = sanitize_input(update_data.bio) if SECURITY_UTILS_AVAILABLE else update_data.bio
+            updates['bio'] = sanitize_input(update_data.bio) if SECURITY_UTILS_AVAILABLE else update_data.bio
         if update_data.location is not None:
-            user['location'] = sanitize_input(update_data.location) if SECURITY_UTILS_AVAILABLE else update_data.location
+            updates['location'] = sanitize_input(update_data.location) if SECURITY_UTILS_AVAILABLE else update_data.location
         if update_data.website is not None:
             # Additional URL validation for website
             import re
             url_pattern = re.compile(r'^https?://[^\s/$.?#].[^\s]*$')
             if not url_pattern.match(update_data.website):
                 raise HTTPException(status_code=400, detail="Invalid website URL format")
-            user['website'] = update_data.website
+            updates['website'] = update_data.website
         if update_data.avatar_url is not None:
             # Additional URL validation for avatar
             import re
             url_pattern = re.compile(r'^https?://[^\s/$.?#].[^\s]*$')
             if not url_pattern.match(update_data.avatar_url):
                 raise HTTPException(status_code=400, detail="Invalid avatar URL format")
-            user['avatar_url'] = update_data.avatar_url
+            updates['avatar_url'] = update_data.avatar_url
 
-        user['updated_at'] = datetime.now()
+        # Update user in database
+        success = await db_service.update_user(user_id, updates)
+        if not success:
+            raise HTTPException(status_code=500, detail="Failed to update profile")
+
+        # Get updated user data for response
+        updated_user = await db_service.get_user(user_id)
+
+        # Invalidate relevant caches
+        user_id = current_user['id']
+        await cache_delete(CacheKeyBuilder.user_profile_key(user_id))
+        await cache_delete(CacheKeyBuilder.public_profile_key(user_id))
+
+        # Invalidate user search cache (since profile data might affect search results)
+        # Note: In a real implementation, you'd want a more sophisticated cache invalidation strategy
+        # For now, we'll let search caches expire naturally since they have short TTL
+
+        # Invalidate user list cache (first page most commonly accessed)
+        await cache_delete(CacheKeyBuilder.user_list_key(0, 20))
 
         logger.info(f"User profile updated: {current_user['username']}")
+        logger.debug(f"Invalidated profile caches for user: {user_id}")
 
-        return {
+        return {}}
             "success": True,
             "message": "Profile updated successfully",
             "user": {
-                "id": user['id'],
-                "username": user['username'],
-                "display_name": user.get('display_name', user['username']),
-                "first_name": user.get('first_name'),
-                "last_name": user.get('last_name'),
-                "bio": user.get('bio'),
-                "location": user.get('location'),
-                "website": user.get('website'),
-                "avatar_url": user.get('avatar_url')
+                "id": updated_user['id'] if updated_user else user_id,
+                "username": updated_user.get('username', '') if updated_user else '',
+                "display_name": updated_user.get('display_name', updated_user.get('username', '')) if updated_user else '',
+                "first_name": updated_user.get('first_name') if updated_user else None,
+                "last_name": updated_user.get('last_name') if updated_user else None,
+                "bio": updated_user.get('bio') if updated_user else None,
+                "location": updated_user.get('location') if updated_user else None,
+                "website": updated_user.get('website') if updated_user else None,
+                "avatar_url": updated_user.get('avatar_url') if updated_user else None
             }
         }
 
@@ -349,35 +425,52 @@ async def search_users(
     limit: int = Query(10, ge=1, le=50),
     current_user: dict = Depends(get_current_user)
 ):
-    """Search for users."""
+    """Search for users with caching."""
     try:
+        # Try to get from cache first
+        cache_key = CacheKeyBuilder.user_search_key(query, limit)
+        cached_results = await cache_get(cache_key)
+        if cached_results is not None:
+            # Filter out the current user from cached results
+            filtered_users = [u for u in cached_results["users"] if u["id"] != current_user['id']]
+            cached_results["users"] = filtered_users
+            cached_results["count"] = len(filtered_users)
+            logger.debug(f"Cache hit for user search: {query}")
+            return cached_results
+
         results = []
         query_lower = query.lower()
-        
+
         for user in users_db.values():
             if user['id'] == current_user['id']:
                 continue
-                
-            if (query_lower in user['username'].lower() or 
+
+            if (query_lower in user['username'].lower() or
                 query_lower in user['display_name'].lower() or
                 query_lower in user['email'].lower()):
-                
+
                 results.append(UserSearch(
                     id=user['id'],
                     username=user['username'],
                     display_name=user['display_name'],
                     is_online=False  # Would check session status in real app
                 ))
-                
+
                 if len(results) >= limit:
                     break
-        
-        return {
+
+        search_results = {
             "users": results,
             "count": len(results),
             "query": query
         }
-        
+
+        # Cache for 5 minutes (search results can change as users update profiles)
+        await cache_set(cache_key, search_results, ttl=300)
+        logger.debug(f"Cached user search results: {query}")
+
+        return search_results
+
     except Exception as e:
         logger.error(f"User search error: {e}")
         raise HTTPException(status_code=500, detail="Search failed")
@@ -415,14 +508,21 @@ async def list_users(
     offset: int = Query(0, ge=0),
     current_user: dict = Depends(get_current_user)
 ):
-    """List all users (paginated)."""
+    """List all users (paginated) with caching."""
     try:
+        # Try to get from cache first
+        cache_key = CacheKeyBuilder.user_list_key(offset, limit)
+        cached_list = await cache_get(cache_key)
+        if cached_list is not None:
+            logger.debug(f"Cache hit for user list: offset={offset}, limit={limit}")
+            return cached_list
+
         all_users = list(users_db.values())
         total = len(all_users)
-        
+
         # Apply pagination
         paginated_users = all_users[offset:offset + limit]
-        
+
         users_list = []
         for user in paginated_users:
             users_list.append({
@@ -432,15 +532,21 @@ async def list_users(
                 "created_at": user['created_at'],
                 "is_active": user['is_active']
             })
-        
-        return {
+
+        result = {
             "users": users_list,
             "total": total,
             "limit": limit,
             "offset": offset,
             "has_more": offset + limit < total
         }
-        
+
+        # Cache for 10 minutes (user list changes when new users register)
+        await cache_set(cache_key, result, ttl=600)
+        logger.debug(f"Cached user list: offset={offset}, limit={limit}")
+
+        return result
+
     except Exception as e:
         logger.error(f"List users error: {e}")
         raise HTTPException(status_code=500, detail="Failed to list users")
@@ -467,7 +573,7 @@ async def delete_my_account(current_user: dict = Depends(get_current_user)):
         
         logger.info(f"User account deleted: {current_user['username']}")
         
-        return {
+        return {}}
             "success": True,
             "message": "Account deleted successfully"
         }
@@ -510,9 +616,15 @@ async def update_custom_fields(
 
         user['updated_at'] = datetime.now()
 
-        logger.info(f"Custom fields updated for user: {current_user['username']}")
+        # Invalidate relevant caches
+        user_id = current_user['id']
+        await cache_delete(CacheKeyBuilder.user_profile_key(user_id))
+        await cache_delete(CacheKeyBuilder.public_profile_key(user_id))
 
-        return {
+        logger.info(f"Custom fields updated for user: {current_user['username']}")
+        logger.debug(f"Invalidated profile caches for custom fields update: {user_id}")
+
+        return {}}
             "success": True,
             "message": "Custom fields updated successfully",
             "custom_fields": user['custom_fields']
@@ -542,7 +654,7 @@ async def delete_custom_field(
 
         logger.info(f"Custom field '{field_name}' deleted for user: {current_user['username']}")
 
-        return {
+        return {}}
             "success": True,
             "message": f"Custom field '{field_name}' deleted successfully"
         }
@@ -560,7 +672,7 @@ async def get_public_user_profile(
     request: Request,
     _: None = Depends(apply_security_and_rate_limit)
 ):
-    """Get public user profile information (no authentication required but secured)."""
+    """Get public user profile information (no authentication required but secured) with caching."""
     try:
         # Validate user_id format for security
         if SECURITY_UTILS_AVAILABLE:
@@ -572,6 +684,13 @@ async def get_public_user_profile(
         import re
         if not re.match(r'^[a-zA-Z0-9_-]+$', user_id):
             raise HTTPException(status_code=400, detail="Invalid user ID format")
+
+        # Try to get from cache first
+        cache_key = CacheKeyBuilder.public_profile_key(user_id)
+        cached_profile = await cache_get(cache_key)
+        if cached_profile is not None:
+            logger.debug(f"Cache hit for public profile: {user_id}")
+            return cached_profile
 
         user = None
         for u in users_db.values():
@@ -589,7 +708,7 @@ async def get_public_user_profile(
                 if isinstance(field_data, dict) and field_data.get('is_public', False):
                     public_custom_fields[name] = field_data.get('value')
 
-        return PublicUserProfile(
+        profile = PublicUserProfile(
             id=user['id'],
             username=user['username'],
             display_name=user.get('display_name', user['username']),
@@ -601,6 +720,12 @@ async def get_public_user_profile(
             member_since=user['created_at'],
             public_custom_fields=public_custom_fields
         )
+
+        # Cache for 30 minutes (public profiles are accessed frequently and change less often)
+        await cache_set(cache_key, profile, ttl=1800)
+        logger.debug(f"Cached public profile: {user_id}")
+
+        return profile
     except HTTPException:
         raise
     except Exception as e:
@@ -610,7 +735,7 @@ async def get_public_user_profile(
 @router.get("/stats/summary")
 async def get_user_stats(current_user: dict = Depends(get_current_user)):
     """Get user statistics summary."""
-    return {
+    return {}}
         "total_users": len(users_db),
         "active_users": sum(1 for u in users_db.values() if u.get('is_active', False)),
         "timestamp": datetime.now()

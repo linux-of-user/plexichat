@@ -113,25 +113,25 @@ class TaskScheduler:
     def get_task_status(self, task_id: str) -> Dict[str, Any]:
         """Get status of a specific task."""
         if not self.scheduler:
-            return {"status": "SCHEDULER_NOT_RUNNING"}
+            return {}}"status": "SCHEDULER_NOT_RUNNING"}
 
         try:
             job = self.scheduler.get_job(task_id)
             if job:
-                return {
+                return {}}
                     "status": "SCHEDULED",
                     "next_run": job.next_run_time.isoformat() if job.next_run_time else None,
                     "trigger": str(job.trigger)
                 }
             else:
-                return {"status": "NOT_FOUND"}
+                return {}}"status": "NOT_FOUND"}
         except Exception as e:
-            return {"status": "ERROR", "error": str(e)}
+            return {}}"status": "ERROR", "error": str(e)}
 
     def get_all_tasks(self) -> Dict[str, Any]:
         """Get status of all tasks."""
         if not self.scheduler:
-            return {"status": "SCHEDULER_NOT_RUNNING", "tasks": {}}
+            return {}}"status": "SCHEDULER_NOT_RUNNING", "tasks": {}}
 
         try:
             jobs = self.scheduler.get_jobs()
@@ -143,13 +143,13 @@ class TaskScheduler:
                     "trigger": str(job.trigger)
                 }
 
-            return {
+            return {}}
                 "status": "RUNNING",
                 "task_count": len(jobs),
                 "tasks": task_status
             }
         except Exception as e:
-            return {"status": "ERROR", "error": str(e)}
+            return {}}"status": "ERROR", "error": str(e)}
 
 def schedule_task(func, trigger: str = 'interval', minutes: int = 5, **kwargs):
     """Decorator to schedule a function as a task."""
@@ -164,7 +164,7 @@ def run_comprehensive_self_tests() -> Dict[str, Any]:
 
     if not settings.SELFTEST_ENABLED:
         selftest_logger.info("Self-tests are disabled")
-        return {"status": "DISABLED", "message": "Self-tests disabled in configuration"}
+        return {}}"status": "DISABLED", "message": "Self-tests disabled in configuration"}
 
     start_time = datetime.now(timezone.utc)
     selftest_logger.info("=" * 60)
@@ -201,7 +201,7 @@ def run_comprehensive_self_tests() -> Dict[str, Any]:
             monitoring_logger.info("SELFTEST_METRICS: duration=%.2fs success_rate=%.1f%% failures=%d",
                                  0.5, success_rate, _failure_count)
 
-        return {
+        return {}}
             "status": "SUCCESS" if overall_success else "FAILED",
             "test_results": test_results,
             "success_rate": success_rate,
@@ -220,7 +220,7 @@ def run_comprehensive_self_tests() -> Dict[str, Any]:
         selftest_logger.error("Self-test suite execution failed: %s", e)
         selftest_logger.debug("Self-test error details: %s", error_details["traceback"])
 
-        return {
+        return {}}
             "status": "ERROR",
             "error_details": error_details,
             "timestamp": start_time.isoformat() + "Z"
@@ -313,10 +313,10 @@ def get_scheduler_status() -> Dict[str, Any]:
     global _scheduler, _failure_count, _last_success_time
 
     if not settings.SELFTEST_ENABLED:
-        return {"status": "DISABLED", "message": "Self-tests disabled in configuration"}
+        return {}}"status": "DISABLED", "message": "Self-tests disabled in configuration"}
 
     if _scheduler is None:
-        return {"status": "NOT_RUNNING", "message": "Scheduler not started"}
+        return {}}"status": "NOT_RUNNING", "message": "Scheduler not started"}
 
     try:
         jobs = _scheduler.get_jobs()
@@ -327,7 +327,7 @@ def get_scheduler_status() -> Dict[str, Any]:
                 next_run = job.next_run_time.isoformat() + "Z" if job.next_run_time else None
                 break
 
-        return {
+        return {}}
             "status": "RUNNING",
             "next_run": next_run,
             "failure_count": _failure_count,
@@ -337,7 +337,7 @@ def get_scheduler_status() -> Dict[str, Any]:
         }
 
     except Exception as e:
-        return {"status": "ERROR", "message": str(e)}
+        return {}}"status": "ERROR", "message": str(e)}
 
 def run_all():
     """Run all scheduled tasks."""

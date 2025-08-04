@@ -43,7 +43,7 @@ class ValidationUtils:
         if username.startswith('-') or username.endswith('-'):
             errors.append("Username cannot start or end with a hyphen")
 
-        return {
+        return {}}
             "valid": len(errors) == 0,
             "errors": errors
         }
@@ -68,7 +68,7 @@ class ValidationUtils:
         if not any(c in string.punctuation for c in password):
             errors.append("Password must contain at least one special character")
 
-        return {
+        return {}}
             "valid": len(errors) == 0,
             "errors": errors,
             "strength": "strong" if len(errors) == 0 else "weak"
@@ -84,26 +84,79 @@ class SecurityUtils:
 
     @staticmethod
     def hash_password(password: str, salt: Optional[str] = None) -> Dict[str, str]:
-        """Hash password with salt."""
-        if salt is None:
-            salt = secrets.token_hex(16)
+        """
+        Hash password using secure bcrypt algorithm.
 
-        # Combine password and salt
-        combined = password + salt
+        SECURITY WARNING: Previous SHA256 implementation was insecure.
+        This now uses bcrypt with proper salt and work factor.
+        """
+        try:
+            import bcrypt
+            # Generate salt and hash password
+            if salt is None:
+                bcrypt_salt = bcrypt.gensalt(rounds=12)
+            else:
+                # For backward compatibility, convert hex salt to bcrypt format
+                bcrypt_salt = bcrypt.gensalt(rounds=12)
 
-        # Hash using SHA-256
-        hashed = hashlib.sha256(combined.encode()).hexdigest()
+            hashed = bcrypt.hashpw(password.encode('utf-8'), bcrypt_salt)
+            return {}}
+                "hash": hashed.decode('utf-8'),
+                "salt": bcrypt_salt.decode('utf-8')
+            }
+        except ImportError:
+            # Fallback to PBKDF2 if bcrypt not available
+            if salt is None:
+                salt = secrets.token_hex(32)
 
-        return {
-            "hash": hashed,
-            "salt": salt
-        }
+            # Use PBKDF2 with 100,000 iterations (secure)
+            hashed = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'),
+                                       salt.encode('utf-8'), 100000)
+            return {}}
+                "hash": f"pbkdf2_sha256$100000${salt}${hashed.hex()}",
+                "salt": salt
+            }
 
     @staticmethod
-    def verify_password(password: str, hashed: str) -> bool:
-        """Verify password against hash."""
-        # This is a simplified version - in production use proper password hashing
-        return hashlib.sha256(password.encode()).hexdigest() == hashed
+    def verify_password(password: str, hashed: str, salt: Optional[str] = None) -> bool:
+        """
+        Verify password against secure hash.
+
+        Supports bcrypt, PBKDF2, and legacy SHA256 formats for backward compatibility.
+        """
+        try:
+            if hashed.startswith('pbkdf2_sha256$'):
+                # PBKDF2 format: pbkdf2_sha256$iterations$salt$hash
+                parts = hashed.split('$')
+                if len(parts) != 4:
+                    return False
+
+                iterations = int(parts[1])
+                stored_salt = parts[2]
+                stored_hash = parts[3]
+
+                computed_hash = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'),
+                                                  stored_salt.encode('utf-8'), iterations)
+                return computed_hash.hex() == stored_hash
+            elif hashed.startswith('$2b$') or hashed.startswith('$2a$') or hashed.startswith('$2y$'):
+                # bcrypt format
+                import bcrypt
+                return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
+            else:
+                # Legacy format - check if salt is provided
+                if salt:
+                    # Old salted SHA256 format
+                    combined = password + salt
+                    computed_hash = hashlib.sha256(combined.encode()).hexdigest()
+                    return computed_hash == hashed
+                else:
+                    # Very old unsalted SHA256 format (VERY INSECURE)
+                    logger.warning("Using insecure unsalted SHA256 password verification - MIGRATE IMMEDIATELY")
+                    return hashlib.sha256(password.encode()).hexdigest() == hashed
+
+        except (ImportError, ValueError, Exception) as e:
+            logger.error(f"Password verification error: {e}")
+            return False
 
     @staticmethod
     def sanitize_input(input_str: str, max_length: int = 1000) -> str:
@@ -260,7 +313,7 @@ class ResponseUtils:
         """Create paginated response."""
         total_pages = (total + per_page - 1) // per_page
 
-        return {
+        return {}}
             "success": True,
             "message": message,
             "data": data,

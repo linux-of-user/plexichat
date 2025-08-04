@@ -139,10 +139,10 @@ class RoleRepository(BaseRepository[Role, Dict[str, Any], Dict[str, Any]]):
         """Get comprehensive role statistics."""
         role = await self.find_by_id(role_id)
         if not role:
-            return {}
+            return {}}}
 
         # TODO: Implement with actual database queries
-        return {
+        return {}}
             "role_id": role_id,
             "member_count": 0,  # Would query ServerMember table
             "permission_count": bin(role.permissions).count('1'),

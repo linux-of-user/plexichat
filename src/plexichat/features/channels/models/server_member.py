@@ -186,7 +186,7 @@ datetime.utcnow() - self.joined_at).days
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert server member to dictionary."""
-        return {
+        return {}}
             "member_id": self.member_id,
             "server_id": self.server_id,
             "user_id": self.user_id,

@@ -61,7 +61,7 @@ class PerformanceMetric:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert metric to dictionary."""
-        return {
+        return {}}
             "name": self.name,
             "value": self.value,
             "unit": self.unit,
@@ -158,7 +158,7 @@ class SystemMonitor:
     def get_memory_usage(self) -> Dict[str, float]:
         """Get memory usage information."""
         if self.process is None:
-            return {"rss_mb": 0.0, "vms_mb": 0.0, "percent": 0.0, "system_total_gb": 0.0, "system_available_gb": 0.0, "system_percent": 0.0}
+            return {}}"rss_mb": 0.0, "vms_mb": 0.0, "percent": 0.0, "system_total_gb": 0.0, "system_available_gb": 0.0, "system_percent": 0.0}
 
         memory_info = self.process.memory_info()
         system_memory = psutil.virtual_memory() if psutil else None
@@ -187,32 +187,32 @@ class SystemMonitor:
     def get_disk_usage(self) -> Dict[str, float]:
         """Get disk I/O statistics."""
         if self.process is None:
-            return {}
+            return {}}}
         try:
             disk_io = self.process.io_counters()
-            return {
+            return {}}
                 "read_bytes": disk_io.read_bytes,
                 "write_bytes": disk_io.write_bytes,
                 "read_count": disk_io.read_count,
                 "write_count": disk_io.write_count
             }
         except (psutil.AccessDenied if psutil else Exception, AttributeError):
-            return {}
+            return {}}}
 
     def get_network_usage(self) -> Dict[str, float]:
         """Get network I/O statistics."""
         try:
             network_io = psutil.net_io_counters() if psutil else None
             if network_io is None:
-                return {}
-            return {
+                return {}}}
+            return {}}
                 "bytes_sent": network_io.bytes_sent,
                 "bytes_recv": network_io.bytes_recv,
                 "packets_sent": network_io.packets_sent,
                 "packets_recv": network_io.packets_recv
             }
         except AttributeError:
-            return {}
+            return {}}}
 
     def get_thread_count(self) -> int:
         """Get current thread count."""

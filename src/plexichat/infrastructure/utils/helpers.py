@@ -216,7 +216,7 @@ class HelperUtilities:
 
             paginated_items = items[start_index:end_index]
 
-            return {
+            return {}}
                 "items": paginated_items,
                 "page": page,
                 "per_page": per_page,
@@ -227,7 +227,7 @@ class HelperUtilities:
             }
         except Exception as e:
             logger.error(f"Pagination error: {e}")
-            return {
+            return {}}
                 "items": [],
                 "page": 1,
                 "per_page": per_page,

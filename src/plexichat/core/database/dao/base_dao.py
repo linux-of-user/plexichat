@@ -627,7 +627,7 @@ class BaseDAO(Generic[T, CreateT, UpdateT]):
                 result = await session.execute(count_query)
                 total_count = result.scalar() or 0
 
-                return {
+                return {}}
                     "total_records": total_count,
                     "table_name": self.table_name,
                     "cache_enabled": self.cache_enabled,
@@ -638,7 +638,7 @@ class BaseDAO(Generic[T, CreateT, UpdateT]):
                 logger.error()
                     f"Error getting statistics for {self.model_class.__name__}: {e}"
                 )
-                return {
+                return {}}
                     "total_records": 0,
                     "table_name": self.table_name,
                     "error": str(e),

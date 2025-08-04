@@ -102,7 +102,7 @@ async def get_public_info(request: Request):
             tags=["public", "info"]
         )
     
-    return {
+    return {}}
         "message": "This is public information",
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "features": ["enhanced_security", "comprehensive_logging", "rate_limiting"]
@@ -142,12 +142,12 @@ async def get_user_profile(request: Request, current_user: Dict = None):
                 "permissions": current_user.get("permissions", [])
             }
             
-            return {
+            return {}}
                 "profile": profile_data,
                 "timestamp": datetime.now(timezone.utc).isoformat()
             }
     
-    return {"error": "Logging system not available"}
+    return {}}"error": "Logging system not available"}
 
 
 # Endpoint with input validation
@@ -196,7 +196,7 @@ async def create_user(
             tags=["user_created", "success"]
         )
     
-    return {
+    return {}}
         "message": "User created successfully",
         "user_id": new_user_id,
         "created_by": current_user.get("username"),
@@ -274,7 +274,7 @@ async def update_system_config(
             tags=["system_config", "critical_change"]
         )
     
-    return {
+    return {}}
         "message": "System configuration updated",
         "key": config_data.key,
         "category": config_data.category,
@@ -298,7 +298,7 @@ async def list_messages(
 ):
     """List messages with performance monitoring."""
     if not logging_system:
-        return {"error": "Enhanced logging not available"}
+        return {}}"error": "Enhanced logging not available"}
     
     with PerformanceTracker("list_messages", logger) as tracker:
         tracker.add_metadata(
@@ -341,7 +341,7 @@ async def list_messages(
             tags=["performance", "database_query"]
         )
         
-        return {
+        return {}}
             "messages": messages,
             "total_count": 1000,  # Simulated total
             "limit": limit,
@@ -381,7 +381,7 @@ async def upload_file(
     # Simulate file processing
     file_id = f"file_{int(datetime.now().timestamp())}"
     
-    return {
+    return {}}
         "message": "File uploaded successfully",
         "file_id": file_id,
         "uploaded_by": current_user.get("username"),
@@ -433,7 +433,7 @@ async def detailed_health_check(request: Request):
 async def get_security_metrics(request: Request, current_user: Dict = None):
     """Get security metrics (admin only)."""
     if not logging_system:
-        return {"error": "Enhanced logging not available"}
+        return {}}"error": "Enhanced logging not available"}
     
     # Get security-related logs
     security_logs = logging_system.search_logs(

@@ -40,21 +40,36 @@ except ImportError as e:
     print("Install with: pip install fastapi uvicorn")
     sys.exit(1)
 
-# Initialize logging
+# Initialize basic logging first
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Initialize variables
+database_manager = None
+UnifiedAuthManager = None
 
 # Try to import core modules with fallbacks
 try:
     from plexichat.core.database.manager import database_manager
+    logger.info("Database manager imported successfully")
+except ImportError as e:
+    logger.warning(f"Database manager not available: {e}")
+    database_manager = None
+
+try:
     from plexichat.core.auth.unified_auth_manager import UnifiedAuthManager
+    logger.info("Auth manager imported successfully")
+except ImportError as e:
+    logger.warning(f"Auth manager not available: {e}")
+    UnifiedAuthManager = None
+
+try:
     from plexichat.core.logging_advanced.enhanced_logging_system import get_logger
     logger = get_logger('plexichat.main')
     logger.info("Enhanced logging system initialized")
 except ImportError as e:
-    logger.warning(f"Core modules not fully available: {e}")
-    database_manager = None
-    UnifiedAuthManager = None
+    logger.warning(f"Enhanced logging not available: {e}")
+    # Keep using basic logger
 
 from plexichat.core.config import settings
 from plexichat.core.app_setup import setup_routers, setup_static_files
@@ -69,6 +84,53 @@ async def lifespan(app: FastAPI):
 
     # Startup
     try:
+        # Initialize unified configuration system
+        try:
+            from plexichat.core.unified_config import get_config
+            config = get_config()
+            logger.info(f"[CONFIG] Unified configuration system initialized for environment: {config.system.environment}")
+        except Exception as e:
+            logger.error(f"Failed to initialize configuration system: {e}")
+            raise
+
+        # Initialize cache system using unified config
+        try:
+            from plexichat.core.caching.unified_cache_integration import UnifiedCacheIntegration
+
+            # Get cache configuration from unified config
+            cache_config = {
+                "enabled": config.caching.enabled,
+                "l1_max_size": config.caching.l1_max_items,
+                "l1_max_memory_mb": config.caching.l1_memory_size_mb,
+                "default_ttl_seconds": config.caching.default_ttl_seconds,
+                "compression_threshold": config.caching.compression_threshold_bytes,
+                "strategy": "cache_aside",
+                "warming_enabled": config.caching.warming_enabled,
+                "warming_patterns": ["user_profiles", "conversations", "message_stats"],
+                "redis": {
+                    "enabled": config.caching.l2_redis_enabled,
+                    "host": config.caching.l2_redis_host,
+                    "port": config.caching.l2_redis_port,
+                    "db": config.caching.l2_redis_db,
+                    "password": config.caching.l2_redis_password,
+                    "max_connections": 50
+                },
+                "memcached": {
+                    "enabled": config.caching.l3_memcached_enabled,
+                    "host": config.caching.l3_memcached_host,
+                    "port": config.caching.l3_memcached_port
+                }
+            }
+
+            if config.caching.enabled:
+                cache_integration = UnifiedCacheIntegration()
+                await cache_integration.initialize(cache_config)
+                logger.info("[CACHE] Multi-tier cache system initialized successfully")
+            else:
+                logger.info("[CACHE] Caching disabled in configuration")
+        except Exception as e:
+            logger.warning(f"Cache initialization failed, continuing without cache: {e}")
+
         # Initialize database if available
         if database_manager:
             logger.info("Initializing database...")
@@ -94,6 +156,17 @@ async def lifespan(app: FastAPI):
     # Shutdown
     logger.info("[SHUTDOWN] Shutting down PlexiChat application...")
     try:
+        # Shutdown cache system
+        try:
+            from plexichat.infrastructure.performance.multi_tier_cache_manager import get_cache_manager
+            cache_manager = get_cache_manager()
+            if hasattr(cache_manager, 'shutdown'):
+                await cache_manager.shutdown()
+            logger.info("[CACHE] Cache system shutdown completed")
+        except Exception as e:
+            logger.warning(f"Cache shutdown error: {e}")
+
+        # Shutdown other services
         # Stop microsecond optimizer
         try:
             from plexichat.core.performance.microsecond_optimizer import stop_microsecond_optimization
@@ -157,6 +230,40 @@ async def security_middleware(request, call_next):
     
     return response
 
+# Add integrated protection system (DDoS + Rate Limiting + Dynamic Scaling)
+try:
+    from plexichat.core.middleware.integrated_protection_system import IntegratedProtectionMiddleware
+    from plexichat.core.config.rate_limit_config import get_rate_limit_config
+
+    # Initialize integrated protection middleware
+    rate_limit_config = get_rate_limit_config()
+    protection_middleware = IntegratedProtectionMiddleware(rate_limit_config)
+
+    @app.middleware("http")
+    async def integrated_protection_middleware(request, call_next):
+        """Integrated protection with DDoS prevention, rate limiting, and dynamic scaling."""
+        return await protection_middleware(request, call_next)
+
+    logger.info("🛡️  Integrated Protection System enabled (DDoS + Rate Limiting + Dynamic Scaling)")
+except Exception as e:
+    logger.warning(f"Integrated protection middleware not available: {e}")
+
+    # Fallback to basic rate limiting
+    try:
+        from plexichat.core.middleware.unified_rate_limiter import RateLimitMiddleware
+
+        rate_limit_config = get_rate_limit_config()
+        rate_limit_middleware = RateLimitMiddleware(rate_limit_config)
+
+        @app.middleware("http")
+        async def fallback_rate_limiting_middleware(request, call_next):
+            """Fallback rate limiting middleware."""
+            return await rate_limit_middleware(request, call_next)
+
+        logger.info("⚠️  Fallback rate limiting middleware enabled")
+    except Exception as e2:
+        logger.error(f"No protection middleware available: {e2}")
+
 # Add microsecond performance middleware second
 try:
     @app.middleware("http")
@@ -212,7 +319,7 @@ async def root():
         except:
             version = "b.1.1-91"
 
-    return {
+    return {}}
         "message": "PlexiChat API",
         "version": version,
         "status": "running",
@@ -230,7 +337,7 @@ async def health_check():
             version = config.get("system", {}).get("version", "b.1.1-91")
         except:
             version = "b.1.1-91"
-        return {
+        return {}}
             "status": "healthy",
             "timestamp": datetime.now().isoformat(),
             "version": version
@@ -242,13 +349,13 @@ async def performance_stats():
     try:
         from plexichat.core.performance.microsecond_optimizer import get_microsecond_performance_stats
         stats = get_microsecond_performance_stats()
-        return {
+        return {}}
             "performance_stats": stats,
             "timestamp": datetime.now().isoformat(),
             "optimization_level": "microsecond"
         }
     except ImportError:
-        return {
+        return {}}
             "error": "Performance optimizer not available",
             "timestamp": datetime.now().isoformat()
         }

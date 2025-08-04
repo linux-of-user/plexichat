@@ -116,7 +116,7 @@ def _get_quick_stats(performance_service):
 
 def _get_admin_stats():
     """Get administrative statistics."""
-    return {
+    return {}}
         "total_users": 1247,  # Would be from user database
         "active_sessions": 89,  # Would be from session tracking
         "storage_used": "1.2 TB",  # Would be from storage monitoring
@@ -128,9 +128,9 @@ def _get_admin_stats():
 def get_performance_service():
     class DummyPerformanceService:
         def _calculate_health_score(self, *a, **k): return 100
-        def get_current_metrics(self): return {"system": {}, "application": {}}
+        def get_current_metrics(self): return {}}"system": {}, "application": {}}
         def _get_active_alerts(self): return []
-        def get_performance_summary(self): return {}
+        def get_performance_summary(self): return {}}}
     import asyncio
     async def dummy():
         return DummyPerformanceService()

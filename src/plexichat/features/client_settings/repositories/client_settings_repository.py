@@ -299,7 +299,7 @@ class ClientSettingsRepository(BaseRepository if BaseRepository != object else o
                     
                     settings_by_type = {type_name: count for type_name, count in type_counts}
                 
-                return {
+                return {}}
                     'total_settings': settings_count,
                     'total_images': images_count,
                     'total_storage_used_bytes': storage_used,
@@ -310,7 +310,7 @@ class ClientSettingsRepository(BaseRepository if BaseRepository != object else o
                 return self._get_user_stats_fallback(user_id)
         except Exception as e:
             logger.error(f"Error getting user stats: {e}")
-            return {
+            return {}}
                 'total_settings': 0,
                 'total_images': 0,
                 'total_storage_used_bytes': 0,
@@ -365,7 +365,7 @@ class ClientSettingsRepository(BaseRepository if BaseRepository != object else o
                 except Exception as e:
                     errors.append({'key': key, 'error': str(e)})
 
-            return {
+            return {}}
                 'success': len(errors) == 0,
                 'updated_count': len(updated_keys),
                 'failed_count': len(errors),
@@ -374,7 +374,7 @@ class ClientSettingsRepository(BaseRepository if BaseRepository != object else o
             }
         except Exception as e:
             logger.error(f"Error in bulk update: {e}")
-            return {
+            return {}}
                 'success': False,
                 'updated_count': 0,
                 'failed_count': len(settings),
@@ -445,7 +445,7 @@ class ClientSettingsRepository(BaseRepository if BaseRepository != object else o
     
     def _get_user_stats_fallback(self, user_id: str) -> Dict[str, Any]:
         """Fallback implementation for getting user stats."""
-        return {
+        return {}}
             'total_settings': 0,
             'total_images': 0,
             'total_storage_used_bytes': 0,

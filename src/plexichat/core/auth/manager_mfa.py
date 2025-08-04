@@ -126,7 +126,7 @@ class Advanced2FASystem:
 
         logger.info(f"2FA setup initiated for user {user_id} with methods: {methods}")
 
-        return {
+        return {}}
             "setup_token": setup_token,
             "methods": methods,
             "totp_secret": setup_data.get("totp_secret_plain"),
@@ -137,14 +137,14 @@ class Advanced2FASystem:
     def verify_2fa_setup(self, setup_token: str, verification_code: str) -> Dict[str, Any]:
         """Verify 2FA setup with provided code."""
         if setup_token not in self.pending_setups:
-            return {"success": False, "error": "Invalid setup token"}
+            return {}}"success": False, "error": "Invalid setup token"}
 
         setup_data = self.pending_setups[setup_token]
 
         # Check if setup has expired (30 minutes)
         if datetime.utcnow() - setup_data["created_at"] > timedelta(minutes=30):
             del self.pending_setups[setup_token]
-            return {"success": False, "error": "Setup token expired"}
+            return {}}"success": False, "error": "Setup token expired"}
 
         # Verify TOTP code
         if "totp_secret_plain" in setup_data:
@@ -165,24 +165,24 @@ class Advanced2FASystem:
 
                 logger.info(f"2FA setup completed for user {setup_data['user_id']}")
 
-                return {
+                return {}}
                     "success": True,
                     "message": "2FA setup completed successfully",
                     "backup_codes": setup_data.get("backup_codes", [])
                 }
 
-        return {"success": False, "error": "Invalid verification code"}
+        return {}}"success": False, "error": "Invalid verification code"}
 
     def verify_2fa_login(self, user_id: int, code: str, method: Optional[str] = None) -> Dict[str, Any]:
         """Verify 2FA code during login."""
         if user_id not in self.user_configs:
-            return {"success": False, "error": "2FA not configured"}
+            return {}}"success": False, "error": "2FA not configured"}
 
         config = self.user_configs[user_id]
 
         # Check if account is locked
         if config.locked_until and datetime.utcnow() < config.locked_until:
-            return {"success": False, "error": "Account temporarily locked due to failed attempts"}
+            return {}}"success": False, "error": "Account temporarily locked due to failed attempts"}
 
         # Try TOTP verification
         if TwoFactorMethod.TOTP in config.enabled_methods and config.totp_secret:
@@ -198,7 +198,7 @@ class Advanced2FASystem:
                     config.locked_until = None
 
                     logger.info(f"2FA TOTP verification successful for user {user_id}")
-                    return {"success": True, "method": "totp"}
+                    return {}}"success": True, "method": "totp"}
             except Exception as e:
                 logger.error(f"TOTP verification error for user {user_id}: {e}")
 
@@ -213,7 +213,7 @@ class Advanced2FASystem:
                 config.locked_until = None
 
                 logger.info(f"2FA backup code verification successful for user {user_id}")
-                return {
+                return {}}
                     "success": True,
                     "method": "backup_code",
                     "remaining_codes": len(config.backup_codes)
@@ -228,7 +228,7 @@ class Advanced2FASystem:
             logger.warning(f"2FA account locked for user {user_id} due to failed attempts")
 
         logger.warning(f"2FA verification failed for user {user_id}")
-        return {"success": False, "error": "Invalid 2FA code"}
+        return {}}"success": False, "error": "Invalid 2FA code"}
 
     def disable_2fa(self, user_id: int) -> bool:
         """Disable 2FA for a user."""
@@ -241,10 +241,10 @@ class Advanced2FASystem:
     def get_user_2fa_status(self, user_id: int) -> Dict[str, Any]:
         """Get 2FA status for a user."""
         if user_id not in self.user_configs:
-            return {"enabled": False}
+            return {}}"enabled": False}
 
         config = self.user_configs[user_id]
-        return {
+        return {}}
             "enabled": config.enabled,
             "methods": config.enabled_methods,
             "backup_codes_remaining": len(config.backup_codes),
@@ -306,7 +306,7 @@ class Advanced2FASystem:
             return None
 
         config = self.user_configs[user_id]
-        return {
+        return {}}
             "user_id": config.user_id,
             "enabled": config.enabled,
             "enabled_methods": config.enabled_methods,

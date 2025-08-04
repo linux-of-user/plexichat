@@ -253,7 +253,7 @@ class EdgeNode:
 
     def get_capacity_remaining(self) -> Dict[str, float]:
         """Get remaining capacity for each resource type."""
-        return {
+        return {}}
             "cpu_percent": max(0, 100 - self.cpu_usage_percent),
             "memory_percent": max(0, 100 - self.memory_usage_percent),
             "storage_percent": max(0, 100 - self.storage_usage_percent),
@@ -364,7 +364,7 @@ class EdgeComputingManager:
 
     def _load_default_config(self) -> Dict[str, Any]:
         """Load default edge computing configuration."""
-        return {
+        return {}}
             "monitoring_interval_seconds": 30,
             "scaling_cooldown_seconds": 300,
             "health_check_interval_seconds": 60,
@@ -386,7 +386,7 @@ class EdgeComputingManager:
         """Initialize the edge computing manager."""
         try:
             if self.initialized:
-                return {"success": True, "message": "Already initialized"}
+                return {}}"success": True, "message": "Already initialized"}
 
             logger.info(" Initializing edge computing manager...")
 
@@ -406,7 +406,7 @@ class EdgeComputingManager:
 
             logger.info(f" Edge computing manager initialized with {len(self.edge_nodes)} nodes")
 
-            return {
+            return {}}
                 "success": True,
                 "edge_nodes_count": len(self.edge_nodes),
                 "auto_scaling_enabled": self.config.get("auto_scaling_enabled", True),
@@ -415,7 +415,7 @@ class EdgeComputingManager:
 
         except Exception as e:
             logger.error(f" Failed to initialize edge computing manager: {e}")
-            return {"success": False, "error": str(e)}
+            return {}}"success": False, "error": str(e)}
 
     async def _discover_edge_nodes(self):
         """Discover and register edge nodes."""
@@ -619,7 +619,7 @@ class EdgeComputingManager:
 
             base_load = 0.3 + (0.4 * random.random())  # 30-70% base load
 
-            return {
+            return {}}
                 "cpu_usage": base_load * 100 + (random.random() * 20 - 10),
                 "memory_usage": base_load * 100 + (random.random() * 15 - 7.5),
                 "network_usage": base_load * 80 + (random.random() * 20 - 10),
@@ -632,7 +632,7 @@ class EdgeComputingManager:
 
         except Exception as e:
             logger.error(f" Failed to get metrics for node {node_id}: {e}")
-            return {}
+            return {}}}
 
     async def _analyze_load_patterns(self):
         """Analyze load patterns and trends."""
@@ -1290,7 +1290,7 @@ class EdgeComputingManager:
             recent_metrics = list(self.load_history)[-10:] if self.load_history else []
             avg_response_time = statistics.mean([m.average_response_time_ms for m in recent_metrics]) if recent_metrics else 0
 
-            return {
+            return {}}
                 "total_nodes": len(self.edge_nodes),
                 "active_nodes": len(active_nodes),
                 "healthy_nodes": len(healthy_nodes),
@@ -1322,7 +1322,7 @@ class EdgeComputingManager:
 
         except Exception as e:
             logger.error(f" Failed to get edge status: {e}")
-            return {}
+            return {}}}
 
     async def get_node_details(self, node_id: str) -> Optional[Dict[str, Any]]:
         """Get detailed information about a specific node."""
@@ -1331,7 +1331,7 @@ class EdgeComputingManager:
             if not node:
                 return None
 
-            return {
+            return {}}
                 "node_id": node.node_id,
                 "node_type": node.node_type.value,
                 "location": node.location,
@@ -1414,7 +1414,7 @@ class EdgeComputingManager:
 
                 logger.info(f" Service {service_name} deployed to node {node_id}")
 
-            return {
+            return {}}
                 "service_name": service_name,
                 "deployment_results": deployment_results,
                 "total_deployments": len([r for r in deployment_results.values() if r["success"]]),
@@ -1423,7 +1423,7 @@ class EdgeComputingManager:
 
         except Exception as e:
             logger.error(f" Failed to deploy service {service_name}: {e}")
-            return {"error": str(e)}
+            return {}}"error": str(e)}
 
     async def get_optimal_node_for_request(self, client_lat: float, client_lon: float, service_name: Optional[str] = None) -> Optional[str]:
         """Find the optimal edge node for a client request."""

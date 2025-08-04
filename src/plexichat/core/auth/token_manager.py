@@ -388,7 +388,7 @@ class TokenManager:
                 # Blacklist old refresh token
                 await self.blacklist_token(refresh_token)
 
-            return {
+            return {}}
                 "access_token": new_access_token,
                 "refresh_token": new_refresh_token,
                 "token_type": "Bearer",
@@ -472,7 +472,7 @@ class TokenManager:
             validation_result = await self.validate_token(token)
 
             if not validation_result.valid:
-                return {
+                return {}}
                     "active": False,
                     "error": validation_result.error_message
                 }
@@ -480,9 +480,9 @@ class TokenManager:
             token_data = validation_result.token_data
 
             if not token_data:
-                return {"active": False, "error": "Invalid token data"}
+                return {}}"active": False, "error": "Invalid token data"}
 
-            return {
+            return {}}
                 "active": True,
                 "token_id": token_data.token_id,
                 "user_id": token_data.user_id,
@@ -499,7 +499,7 @@ class TokenManager:
 
         except Exception as e:
             logger.error(f" Token introspection error: {e}")
-            return {"active": False, "error": "Introspection failed"}
+            return {}}"active": False, "error": "Introspection failed"}
 
     async def shutdown(self):
         """Gracefully shutdown the token manager."""

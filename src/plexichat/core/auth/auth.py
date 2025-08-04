@@ -10,11 +10,20 @@ import hashlib
 import json
 import logging
 import secrets
+import hmac
+import time
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
+
+try:
+    import jwt
+    JWT_AVAILABLE = True
+except ImportError:
+    jwt = None
+    JWT_AVAILABLE = False
 
 """
 PlexiChat Unified Authentication System
@@ -350,20 +359,185 @@ class TokenManager:
     """JWT Token management for API authentication."""
 
     def __init__(self):
-        self.secret_key = secrets.token_urlsafe(64)
+        # Use cryptographically secure key generation
+        self.secret_key = secrets.token_bytes(64)
         self.algorithm = "HS256"
         self.access_token_expire_minutes = 15
         self.refresh_token_expire_days = 30
+        self.issued_tokens = set()  # Track issued tokens for revocation
 
-    async def create_access_token(self, username: str, security_level: SecurityLevel) -> str:
-        """Create JWT access token."""
-        # Implementation will be added
-        return f"mock_token_{username}_{security_level.value}"
+    async def create_access_token(self, username: str, security_level: SecurityLevel,
+                                 user_id: str = None, scopes: List[str] = None) -> str:
+        """Create cryptographically secure JWT access token."""
+        if not JWT_AVAILABLE:
+            # Fallback to secure HMAC-based tokens
+            return self._create_hmac_token(username, security_level, user_id, scopes)
+
+        # Create JWT payload
+        now = datetime.now(timezone.utc)
+        payload = {
+            "sub": user_id or username,  # Subject (user ID)
+            "username": username,
+            "security_level": security_level.value,
+            "scopes": scopes or [],
+            "iat": now,  # Issued at
+            "exp": now + timedelta(minutes=self.access_token_expire_minutes),  # Expiration
+            "jti": secrets.token_urlsafe(16),  # JWT ID for revocation
+            "iss": "plexichat",  # Issuer
+            "aud": "plexichat-api"  # Audience
+        }
+
+        try:
+            token = jwt.encode(payload, self.secret_key, algorithm=self.algorithm)
+            self.issued_tokens.add(payload["jti"])
+            return token
+        except Exception as e:
+            logger.error(f"JWT token creation failed: {e}")
+            # Fallback to HMAC token
+            return self._create_hmac_token(username, security_level, user_id, scopes)
+
+    def _create_hmac_token(self, username: str, security_level: SecurityLevel,
+                          user_id: str = None, scopes: List[str] = None) -> str:
+        """Create HMAC-based token as fallback."""
+        timestamp = str(int(time.time()))
+        expiry = str(int(time.time()) + (self.access_token_expire_minutes * 60))
+        token_id = secrets.token_urlsafe(16)
+
+        payload_data = {
+            "username": username,
+            "user_id": user_id or username,
+            "security_level": security_level.value,
+            "scopes": scopes or [],
+            "iat": timestamp,
+            "exp": expiry,
+            "jti": token_id
+        }
+
+        payload_str = json.dumps(payload_data, sort_keys=True)
+        signature = hmac.new(
+            self.secret_key,
+            payload_str.encode(),
+            hashlib.sha256
+        ).hexdigest()
+
+        # Base64 encode payload for URL safety
+        import base64
+        encoded_payload = base64.urlsafe_b64encode(payload_str.encode()).decode()
+
+        token = f"{encoded_payload}.{signature}"
+        self.issued_tokens.add(token_id)
+        return token
 
     async def validate_token(self, token: str) -> Dict[str, Any]:
+        """Validate JWT or HMAC token with comprehensive security checks."""
+        if not token:
+            return {}}"valid": False, "error": "No token provided"}
+
+        try:
+            if JWT_AVAILABLE and "." in token and len(token.split(".")) == 3:
+                # Try JWT validation first
+                return await self._validate_jwt_token(token)
+            else:
+                # Try HMAC token validation
+                return await self._validate_hmac_token(token)
+        except Exception as e:
+            logger.error(f"Token validation error: {e}")
+            return {}}"valid": False, "error": "Token validation failed"}
+
+    async def _validate_jwt_token(self, token: str) -> Dict[str, Any]:
         """Validate JWT token."""
-        # Implementation will be added
-        return {"valid": True, "username": "mock_user", "security_level": "BASIC"}
+        try:
+            payload = jwt.decode(
+                token,
+                self.secret_key,
+                algorithms=[self.algorithm],
+                audience="plexichat-api",
+                issuer="plexichat"
+            )
+
+            # Check if token was revoked
+            if payload.get("jti") not in self.issued_tokens:
+                return {}}"valid": False, "error": "Token revoked"}
+
+            return {}}
+                "valid": True,
+                "username": payload.get("username"),
+                "user_id": payload.get("sub"),
+                "security_level": payload.get("security_level", "BASIC"),
+                "scopes": payload.get("scopes", []),
+                "expires_at": payload.get("exp")
+            }
+
+        except jwt.ExpiredSignatureError:
+            return {}}"valid": False, "error": "Token expired"}
+        except jwt.InvalidTokenError as e:
+            return {}}"valid": False, "error": f"Invalid token: {e}"}
+
+    async def _validate_hmac_token(self, token: str) -> Dict[str, Any]:
+        """Validate HMAC-based token."""
+        try:
+            if "." not in token:
+                return {}}"valid": False, "error": "Invalid token format"}
+
+            encoded_payload, signature = token.rsplit(".", 1)
+
+            # Decode payload
+            import base64
+            payload_str = base64.urlsafe_b64decode(encoded_payload.encode()).decode()
+            payload_data = json.loads(payload_str)
+
+            # Verify signature
+            expected_signature = hmac.new(
+                self.secret_key,
+                payload_str.encode(),
+                hashlib.sha256
+            ).hexdigest()
+
+            if not hmac.compare_digest(signature, expected_signature):
+                return {}}"valid": False, "error": "Invalid signature"}
+
+            # Check expiration
+            if int(time.time()) > int(payload_data.get("exp", 0)):
+                return {}}"valid": False, "error": "Token expired"}
+
+            # Check if token was revoked
+            if payload_data.get("jti") not in self.issued_tokens:
+                return {}}"valid": False, "error": "Token revoked"}
+
+            return {}}
+                "valid": True,
+                "username": payload_data.get("username"),
+                "user_id": payload_data.get("user_id"),
+                "security_level": payload_data.get("security_level", "BASIC"),
+                "scopes": payload_data.get("scopes", []),
+                "expires_at": payload_data.get("exp")
+            }
+
+        except Exception as e:
+            return {}}"valid": False, "error": f"Token validation failed: {e}"}
+
+    async def revoke_token(self, token: str) -> bool:
+        """Revoke a token by removing its JTI from issued tokens."""
+        try:
+            if JWT_AVAILABLE and "." in token and len(token.split(".")) == 3:
+                payload = jwt.decode(token, self.secret_key, algorithms=[self.algorithm])
+                jti = payload.get("jti")
+            else:
+                # HMAC token
+                encoded_payload, _ = token.rsplit(".", 1)
+                import base64
+                payload_str = base64.urlsafe_b64decode(encoded_payload.encode()).decode()
+                payload_data = json.loads(payload_str)
+                jti = payload_data.get("jti")
+
+            if jti and jti in self.issued_tokens:
+                self.issued_tokens.remove(jti)
+                return True
+            return False
+
+        except Exception as e:
+            logger.error(f"Token revocation failed: {e}")
+            return False
 
 class SessionManager:
     """Session management for web authentication."""

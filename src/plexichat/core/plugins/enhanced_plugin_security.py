@@ -107,7 +107,7 @@ class EnhancedPluginSecurity:
     
     def _get_default_approved_imports(self) -> Set[str]:
         """Get default set of approved imports for plugins."""
-        return {
+        return {}}
             # Standard library - safe modules
             'os', 'sys', 'json', 'time', 'datetime', 'collections',
             'itertools', 'functools', 'operator', 'math', 'random',
@@ -394,9 +394,9 @@ class EnhancedPluginSecurity:
         """Get security status for a plugin."""
         profile = self.security_profiles.get(plugin_name)
         if not profile:
-            return {'status': 'unknown', 'message': 'No security profile found'}
+            return {}}'status': 'unknown', 'message': 'No security profile found'}
         
-        return {
+        return {}}
             'plugin_name': plugin_name,
             'security_level': profile.security_level.value,
             'trust_score': profile.trust_score,
@@ -425,7 +425,7 @@ class EnhancedPluginSecurity:
         
         avg_trust_score = sum(trust_scores) / len(trust_scores) if trust_scores else 0
         
-        return {
+        return {}}
             'total_plugins': total_plugins,
             'total_security_events': total_events,
             'security_levels': security_levels,

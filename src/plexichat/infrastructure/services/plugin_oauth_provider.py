@@ -126,7 +126,7 @@ self.data_dir = Path(self.config.get("data_dir", "data/oauth"))
 
     def _load_default_config(self) -> Dict[str, Any]:
         """Load default OAuth configuration."""
-        return {
+        return {}}
             "data_dir": "data/oauth",
             "access_token_ttl": 3600,  # 1 hour
             "refresh_token_ttl": 2592000,  # 30 days
@@ -170,7 +170,7 @@ self.data_dir = Path(self.config.get("data_dir", "data/oauth"))
                 try:
                     valid_scopes.append(OAuthScope(scope))
                 except ValueError:
-                    return {"success": False, "error": f"Invalid scope: {scope}"}
+                    return {}}"success": False, "error": f"Invalid scope: {scope}"}
 
             # Validate grant types
             valid_grant_types = []
@@ -178,7 +178,7 @@ self.data_dir = Path(self.config.get("data_dir", "data/oauth"))
                 try:
                     valid_grant_types.append(GrantType(grant_type))
                 except ValueError:
-                    return {"success": False, "error": f"Invalid grant type: {grant_type}"}
+                    return {}}"success": False, "error": f"Invalid grant type: {grant_type}"}
 
             # Generate client credentials
             client_id = f"plexichat_plugin_{secrets.token_urlsafe(16)}"
@@ -201,7 +201,7 @@ self.data_dir = Path(self.config.get("data_dir", "data/oauth"))
 
             logger.info(f" Registered OAuth client: {client_name}")
 
-            return {
+            return {}}
                 "success": True,
                 "client_id": client_id,
                 "client_secret": client_secret,
@@ -210,7 +210,7 @@ self.data_dir = Path(self.config.get("data_dir", "data/oauth"))
 
         except Exception as e:
             logger.error(f"Failed to register OAuth client: {e}")
-            return {"success": False, "error": str(e)}
+            return {}}"success": False, "error": str(e)}
 
     async def authorize(self, client_id: str, redirect_uri: str, scopes: List[str],)
                        user_id: str, state: Optional[str] = None, code_challenge: Optional[str] = None,
@@ -219,16 +219,16 @@ self.data_dir = Path(self.config.get("data_dir", "data/oauth"))
         try:
             # Validate client
             if client_id not in self.clients:
-                return {"success": False, "error": "Invalid client"}
+                return {}}"success": False, "error": "Invalid client"}
 
             client = self.clients[client_id]
 
             if not client.is_active:
-                return {"success": False, "error": "Client is inactive"}
+                return {}}"success": False, "error": "Client is inactive"}
 
             # Validate redirect URI
             if redirect_uri not in client.redirect_uris:
-                return {"success": False, "error": "Invalid redirect URI"}
+                return {}}"success": False, "error": "Invalid redirect URI"}
 
             # Validate scopes
             requested_scopes = []
@@ -236,14 +236,14 @@ self.data_dir = Path(self.config.get("data_dir", "data/oauth"))
                 try:
                     oauth_scope = OAuthScope(scope)
                     if oauth_scope not in client.scopes:
-                        return {"success": False, "error": f"Scope not allowed: {scope}"}
+                        return {}}"success": False, "error": f"Scope not allowed: {scope}"}
                     requested_scopes.append(oauth_scope)
                 except ValueError:
-                    return {"success": False, "error": f"Invalid scope: {scope}"}
+                    return {}}"success": False, "error": f"Invalid scope: {scope}"}
 
             # Validate PKCE if required
             if self.config["require_pkce"] and not code_challenge:
-                return {"success": False, "error": "PKCE code challenge required"}
+                return {}}"success": False, "error": "PKCE code challenge required"}
 
             # Generate authorization code
             auth_code = secrets.token_urlsafe(32)
@@ -270,7 +270,7 @@ self.data_dir = Path(self.config.get("data_dir", "data/oauth"))
             query_string = "&".join([f"{k}={v}" for k, v in redirect_params.items()])
             redirect_url = f"{redirect_uri}?{query_string}"
 
-            return {
+            return {}}
                 "success": True,
                 "authorization_code": auth_code,
                 "redirect_url": redirect_url,
@@ -279,7 +279,7 @@ self.data_dir = Path(self.config.get("data_dir", "data/oauth"))
 
         except Exception as e:
             logger.error(f"Authorization failed: {e}")
-            return {"success": False, "error": str(e)}
+            return {}}"success": False, "error": str(e)}
 
     async def exchange_code_for_token(self, client_id: str, client_secret: str,)
                                     code: str, redirect_uri: str,
@@ -288,33 +288,33 @@ self.data_dir = Path(self.config.get("data_dir", "data/oauth"))
         try:
             # Validate client
             if client_id not in self.clients:
-                return {"success": False, "error": "Invalid client"}
+                return {}}"success": False, "error": "Invalid client"}
 
             client = self.clients[client_id]
 
             if client.client_secret != client_secret:
-                return {"success": False, "error": "Invalid client secret"}
+                return {}}"success": False, "error": "Invalid client secret"}
 
             # Validate authorization code
             if code not in self.authorization_codes:
-                return {"success": False, "error": "Invalid authorization code"}
+                return {}}"success": False, "error": "Invalid authorization code"}
 
             authorization = self.authorization_codes[code]
 
             if authorization.client_id != client_id:
-                return {"success": False, "error": "Authorization code mismatch"}
+                return {}}"success": False, "error": "Authorization code mismatch"}
 
             if authorization.redirect_uri != redirect_uri:
-                return {"success": False, "error": "Redirect URI mismatch"}
+                return {}}"success": False, "error": "Redirect URI mismatch"}
 
             if datetime.now(timezone.utc) > authorization.expires_at:
                 del self.authorization_codes[code]
-                return {"success": False, "error": "Authorization code expired"}
+                return {}}"success": False, "error": "Authorization code expired"}
 
             # Validate PKCE if present
             if authorization.code_challenge:
                 if not code_verifier:
-                    return {"success": False, "error": "Code verifier required"}
+                    return {}}"success": False, "error": "Code verifier required"}
 
                 if authorization.code_challenge_method == "S256":
                     challenge = base64.urlsafe_b64encode()
@@ -324,7 +324,7 @@ self.data_dir = Path(self.config.get("data_dir", "data/oauth"))
                     challenge = code_verifier
 
                 if challenge != authorization.code_challenge:
-                    return {"success": False, "error": "Invalid code verifier"}
+                    return {}}"success": False, "error": "Invalid code verifier"}
 
             # Generate tokens
             access_token = await self._generate_access_token()
@@ -338,7 +338,7 @@ self.data_dir = Path(self.config.get("data_dir", "data/oauth"))
             # Clean up authorization code
             del self.authorization_codes[code]
 
-            return {
+            return {}}
                 "success": True,
                 "access_token": access_token.token,
                 "token_type": access_token.token_type,
@@ -349,7 +349,7 @@ self.data_dir = Path(self.config.get("data_dir", "data/oauth"))
 
         except Exception as e:
             logger.error(f"Token exchange failed: {e}")
-            return {"success": False, "error": str(e)}
+            return {}}"success": False, "error": str(e)}
 
     async def refresh_access_token(self, client_id: str, client_secret: str,)
                                  refresh_token: str) -> Dict[str, Any]:
@@ -357,32 +357,32 @@ self.data_dir = Path(self.config.get("data_dir", "data/oauth"))
         try:
             # Validate client
             if client_id not in self.clients:
-                return {"success": False, "error": "Invalid client"}
+                return {}}"success": False, "error": "Invalid client"}
 
             client = self.clients[client_id]
 
             if client.client_secret != client_secret:
-                return {"success": False, "error": "Invalid client secret"}
+                return {}}"success": False, "error": "Invalid client secret"}
 
             # Validate refresh token
             if refresh_token not in self.refresh_tokens:
-                return {"success": False, "error": "Invalid refresh token"}
+                return {}}"success": False, "error": "Invalid refresh token"}
 
             refresh_token_obj = self.refresh_tokens[refresh_token]
 
             if refresh_token_obj.client_id != client_id:
-                return {"success": False, "error": "Refresh token mismatch"}
+                return {}}"success": False, "error": "Refresh token mismatch"}
 
             if datetime.now(timezone.utc) > refresh_token_obj.expires_at:
                 del self.refresh_tokens[refresh_token]
-                return {"success": False, "error": "Refresh token expired"}
+                return {}}"success": False, "error": "Refresh token expired"}
 
             # Generate new access token
             access_token = await self._generate_access_token()
                 client_id, refresh_token_obj.user_id, refresh_token_obj.scopes
             )
 
-            return {
+            return {}}
                 "success": True,
                 "access_token": access_token.token,
                 "token_type": access_token.token_type,
@@ -392,7 +392,7 @@ self.data_dir = Path(self.config.get("data_dir", "data/oauth"))
 
         except Exception as e:
             logger.error(f"Token refresh failed: {e}")
-            return {"success": False, "error": str(e)}
+            return {}}"success": False, "error": str(e)}
 
     async def validate_token(self, token: str) -> Optional[Dict[str, Any]]:
         """Validate an access token and return token info."""
@@ -406,7 +406,7 @@ self.data_dir = Path(self.config.get("data_dir", "data/oauth"))
                 del self.access_tokens[token]
                 return None
 
-            return {
+            return {}}
                 "client_id": access_token.client_id,
                 "user_id": access_token.user_id,
                 "scopes": [scope.value for scope in access_token.scopes],
@@ -557,7 +557,7 @@ self.data_dir = Path(self.config.get("data_dir", "data/oauth"))
 
     def _client_to_dict(self, client: OAuthClient) -> Dict[str, Any]:
         """Convert client to dictionary."""
-        return {
+        return {}}
             "client_id": client.client_id,
             "client_secret": client.client_secret,
             "client_name": client.client_name,

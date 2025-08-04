@@ -388,7 +388,7 @@ class SecureService:
 
     def get_status(self) -> Dict[str, Any]:
         """Get service status information."""
-        return {
+        return {}}
             "service_id": self.metadata.service_id,
             "name": self.metadata.name,
             "status": self.status.value,

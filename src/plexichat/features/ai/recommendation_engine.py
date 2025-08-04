@@ -847,7 +847,7 @@ class AIRecommendationEngine:
     def get_recommendation_statistics(self) -> Dict[str, Any]:
         """Get comprehensive recommendation statistics."""
 
-        return {
+        return {}}
             "enabled": self.enabled,
             "running": self.running,
             "statistics": self.stats,

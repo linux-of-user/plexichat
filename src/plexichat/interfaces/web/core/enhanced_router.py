@@ -477,7 +477,7 @@ class EnhancedWebUIRouter:
         """Get system status."""
         auth_health = await self.auth_storage.health_check()
 
-        return {
+        return {}}
             "auth_storage": auth_health,
             "mfa_enabled": self.mfa_manager.is_mfa_enabled(),
             "self_tests_enabled": self.config.is_self_test_enabled(),
@@ -486,7 +486,7 @@ class EnhancedWebUIRouter:
 
     def _get_system_config(self) -> Dict[str, Any]:
         """Get system configuration."""
-        return {
+        return {}}
             "ports": {
                 "primary_port": self.config.port_config.primary_port,
                 "admin_port": self.config.port_config.admin_port,

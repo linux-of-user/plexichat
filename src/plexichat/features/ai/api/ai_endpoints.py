@@ -221,7 +221,7 @@ async def add_model(model: ModelConfigModel):
         if not success:
             raise HTTPException(status_code=400, detail="Failed to add model")
 
-        return {"message": f"Model {model.id} added successfully"}
+        return {}}"message": f"Model {model.id} added successfully"}
 
     except Exception as e:
         logger.error(f"Add model error: {e}")
@@ -235,7 +235,7 @@ async def remove_model(model_id: str):
         if not success:
             raise HTTPException(status_code=404, detail="Model not found")
 
-        return {"message": f"Model {model_id} removed successfully"}
+        return {}}"message": f"Model {model_id} removed successfully"}
 
     except Exception as e:
         logger.error(f"Remove model error: {e}")
@@ -249,7 +249,7 @@ async def update_model_status(model_id: str, status: ModelStatus):
         if not success:
             raise HTTPException(status_code=404, detail="Model not found")
 
-        return {"message": f"Model {model_id} status updated to {status}"}
+        return {}}"message": f"Model {model_id} status updated to {status}"}
 
     except Exception as e:
         logger.error(f"Update model status error: {e}")
@@ -277,7 +277,7 @@ async def configure_provider(config: ProviderConfigModel):
         if not success:
             raise HTTPException(status_code=400, detail="Failed to configure provider")
 
-        return {"message": f"Provider {config.provider} configured successfully"}
+        return {}}"message": f"Provider {config.provider} configured successfully"}
 
     except Exception as e:
         logger.error(f"Configure provider error: {e}")
@@ -312,7 +312,7 @@ async def add_user_permission(permission: UserPermissionModel):
         )
         ai_layer.save_config()
 
-        return {"message": f"Permission added for user {permission.user_id}"}
+        return {}}"message": f"Permission added for user {permission.user_id}"}
 
     except Exception as e:
         logger.error(f"Add permission error: {e}")
@@ -323,7 +323,7 @@ async def get_user_permissions(user_id: str):
     """Get user permissions."""
     try:
         permissions = ai_layer.access_control.user_permissions.get(user_id, {})
-        return {"user_id": user_id, "permissions": permissions}
+        return {}}"user_id": user_id, "permissions": permissions}
 
     except Exception as e:
         logger.error(f"Get permissions error: {e}")
@@ -346,7 +346,7 @@ async def get_user_usage(user_id: str):
     """Get user usage statistics."""
     try:
         usage = ai_layer.get_usage_stats(user_id)
-        return {"user_id": user_id, "usage": usage}
+        return {}}"user_id": user_id, "usage": usage}
 
     except Exception as e:
         logger.error(f"Get usage error: {e}")
@@ -357,7 +357,7 @@ async def clear_cache():
     """Clear AI request cache."""
     try:
         ai_layer.clear_cache()
-        return {"message": "Cache cleared successfully"}
+        return {}}"message": "Cache cleared successfully"}
 
     except Exception as e:
         logger.error(f"Clear cache error: {e}")

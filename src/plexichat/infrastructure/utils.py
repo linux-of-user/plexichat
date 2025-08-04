@@ -48,10 +48,10 @@ class PerformanceMonitor:
     def get_stats(self, name: str) -> Dict[str, float]:
         """Get statistics for a metric."""
         if name not in self.metrics or not self.metrics[name]:
-            return {"count": 0, "avg": 0.0, "min": 0.0, "max": 0.0}
+            return {}}"count": 0, "avg": 0.0, "min": 0.0, "max": 0.0}
         
         values = self.metrics[name]
-        return {
+        return {}}
             "count": len(values),
             "avg": sum(values) / len(values),
             "min": min(values),
@@ -183,7 +183,7 @@ class SecurityUtils:
             return result
         except Exception as e:
             logger.error(f"Error validating file upload: {e}")
-            return {"valid": False, "errors": ["Validation error"], "warnings": []}
+            return {}}"valid": False, "errors": ["Validation error"], "warnings": []}
 
     @staticmethod
     def hash_sensitive_data(data: str, salt: str = None) -> str:

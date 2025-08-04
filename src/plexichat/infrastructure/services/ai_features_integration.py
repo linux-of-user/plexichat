@@ -122,7 +122,7 @@ class AIPoweredFeaturesIntegration(BaseService):
     async def health_check(self) -> Dict[str, Any]:
         """Perform health check on the AI-powered features service."""
         if not self.ai_features_service:
-            return {
+            return {}}
                 "status": "error",
                 "message": "Service not initialized",
                 "timestamp": self._get_timestamp()
@@ -130,14 +130,14 @@ class AIPoweredFeaturesIntegration(BaseService):
 
         try:
             health = await self.ai_features_service.health_check()
-            return {
+            return {}}
                 "status": "healthy" if health.get("service_state") == "running" else "unhealthy",
                 "details": health,
                 "timestamp": self._get_timestamp()
             }
 
         except Exception as e:
-            return {
+            return {}}
                 "status": "error",
                 "message": str(e),
                 "timestamp": self._get_timestamp()

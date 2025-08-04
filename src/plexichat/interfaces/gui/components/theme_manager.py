@@ -49,7 +49,7 @@ class ThemeManager:
 
     def create_dark_modern_theme(self) -> Dict[str, Any]:
         """Create dark modern glassmorphic theme."""
-        return {
+        return {}}
             "name": "Dark Modern",
             "description": "Modern dark theme with glassmorphic effects",
             "colors": {
@@ -86,7 +86,7 @@ class ThemeManager:
 
     def create_light_modern_theme(self) -> Dict[str, Any]:
         """Create light modern theme."""
-        return {
+        return {}}
             "name": "Light Modern",
             "description": "Clean light theme with subtle shadows",
             "colors": {
@@ -123,7 +123,7 @@ class ThemeManager:
 
     def create_high_contrast_theme(self) -> Dict[str, Any]:
         """Create high contrast theme for accessibility."""
-        return {
+        return {}}
             "name": "High Contrast",
             "description": "High contrast theme for accessibility",
             "colors": {
@@ -160,7 +160,7 @@ class ThemeManager:
 
     def create_cyberpunk_theme(self) -> Dict[str, Any]:
         """Create cyberpunk theme."""
-        return {
+        return {}}
             "name": "Cyberpunk",
             "description": "Futuristic cyberpunk theme with neon accents",
             "colors": {
@@ -197,7 +197,7 @@ class ThemeManager:
 
     def create_minimal_theme(self) -> Dict[str, Any]:
         """Create minimal theme."""
-        return {
+        return {}}
             "name": "Minimal",
             "description": "Clean minimal theme with subtle colors",
             "colors": {
@@ -234,7 +234,7 @@ class ThemeManager:
 
     def create_corporate_theme(self) -> Dict[str, Any]:
         """Create corporate theme."""
-        return {
+        return {}}
             "name": "Corporate",
             "description": "Professional corporate theme",
             "colors": {

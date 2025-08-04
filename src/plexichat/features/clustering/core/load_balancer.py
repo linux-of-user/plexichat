@@ -14,7 +14,7 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from . import ()
+# # from . import ()
     CRITICAL_LOAD_THRESHOLD,
     REBALANCE_INTERVAL,
     LoadBalancingStrategy,
@@ -636,7 +636,7 @@ class SmartLoadBalancer:
     def get_load_balancing_statistics(self) -> Dict[str, Any]:
         """Get comprehensive load balancing statistics."""
         if not self.recent_decisions:
-            return {
+            return {}}
                 "total_requests": self.total_requests,
                 "successful_requests": self.successful_requests,
                 "success_rate": 0.0,
@@ -669,7 +669,7 @@ class SmartLoadBalancer:
         # Calculate success rate
         success_rate = (self.successful_requests / max(1, self.total_requests)) * 100
 
-        return {
+        return {}}
             "total_requests": self.total_requests,
             "successful_requests": self.successful_requests,
             "success_rate": success_rate,

@@ -120,7 +120,7 @@ class FileResourceManager:
                     logger.warning(f"Failed to remove temp file {filepath}: {e}")
 
         logger.info(f"[CLEAN] Cleaned {cleaned_files} temp files, freed {freed_space_mb:.1f}MB")
-        return {'files_cleaned': cleaned_files, 'space_freed_mb': freed_space_mb}
+        return {}}'files_cleaned': cleaned_files, 'space_freed_mb': freed_space_mb}
 
     def get_temp_usage(self) -> Dict[str, Any]:
         """Get temporary file usage statistics."""
@@ -138,7 +138,7 @@ class FileResourceManager:
                     except OSError:
                         pass
 
-        return {
+        return {}}
             'total_files': total_files,
             'total_size_mb': total_size / (1024 * 1024),
             'max_size_mb': self.max_temp_size_mb,
@@ -208,7 +208,7 @@ class ConnectionResourceManager:
             for info in self.active_connections.values():
                 connection_types[info['type']] += 1
 
-            return {
+            return {}}
                 'total_connections': len(self.active_connections),
                 'max_connections': self.max_connections,
                 'usage_percent': len(self.active_connections) / self.max_connections * 100,
@@ -443,7 +443,7 @@ class ResourceManager:
 
         except Exception as e:
             logger.error(f"Error during resource cleanup: {e}")
-            return {'error': str(e)}
+            return {}}'error': str(e)}
 
     async def _cleanup_resource_pools(self) -> Dict[str, int]:
         """Cleanup resource pools."""
@@ -462,11 +462,11 @@ class ResourceManager:
             except Exception as e:
                 logger.warning(f"Failed to cleanup pool {pool_name}: {e}")
 
-        return {'pools_cleaned': cleaned_pools}
+        return {}}'pools_cleaned': cleaned_pools}
 
     def get_resource_stats(self) -> Dict[str, Any]:
         """Get comprehensive resource statistics."""
-        return {
+        return {}}
             'system_resources': {
                 'cpu_usage_percent': self.metrics.cpu_usage,
                 'memory_usage_mb': self.metrics.memory_usage_mb,
@@ -531,7 +531,7 @@ class ResourceManager:
 
         except Exception as e:
             logger.error(f"Error during resource optimization: {e}")
-            return {'error': str(e)}
+            return {}}'error': str(e)}
 
 
 # Global resource manager instance

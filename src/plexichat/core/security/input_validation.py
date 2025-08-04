@@ -99,7 +99,7 @@ class ValidationResult:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
-        return {
+        return {}}
             "original_value": str(self.original_value),
             "sanitized_value": str(self.sanitized_value),
             "is_valid": self.is_valid,
@@ -137,7 +137,7 @@ class UnifiedInputValidator:
         self.initialized = False
 
         # Security patterns
-        from . import validation_rules
+        # # from . import validation_rules
         self.sql_injection_patterns = validation_rules.SQL_INJECTION_PATTERNS
         self.xss_patterns = validation_rules.XSS_PATTERNS
         self.command_injection_patterns = validation_rules.COMMAND_INJECTION_PATTERNS
@@ -619,7 +619,7 @@ class UnifiedInputValidator:
 
     def get_status(self) -> Dict[str, Any]:
         """Get input validator status."""
-        return {
+        return {}}
             "initialized": self.initialized,
             "patterns_loaded": len(self._compiled_patterns),
             "supported_types": [t.value for t in InputType],

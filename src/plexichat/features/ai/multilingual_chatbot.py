@@ -509,7 +509,7 @@ respond in their preferred language ({context.language}).
     async def _load_user_preferences(self, user_id: str) -> Dict[str, Any]:
         """Load user preferences."""
         # Placeholder - would load from database
-        return {}
+        return {}}}
 
     async def _generate_welcome_message()
         self, context: ConversationContext, personality: str
@@ -593,7 +593,7 @@ respond in their preferred language ({context.language}).
 
     def get_chatbot_statistics(self) -> Dict[str, Any]:
         """Get comprehensive chatbot statistics."""
-        return {
+        return {}}
             "enabled": self.enabled,
             "active_conversations": len(self.conversations),
             "supported_languages": len(self.supported_languages),

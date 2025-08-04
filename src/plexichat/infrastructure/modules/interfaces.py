@@ -379,7 +379,7 @@ class BaseModule(ABC):
 
     async def health_check(self) -> Dict[str, Any]:
         """Perform health check."""
-        return {
+        return {}}
             "name": self.name,
             "version": self.version,
             "state": self.state.value,
@@ -401,7 +401,7 @@ class BaseModule(ABC):
     # Configuration interface
     def get_config_schema(self) -> Dict[str, Any]:
         """Get configuration schema."""
-        return {
+        return {}}
             "type": "object",
             "properties": {
                 "enabled": {"type": "boolean", "default": True},
@@ -449,7 +449,7 @@ class BaseModule(ABC):
 
     def get_current_config(self) -> Dict[str, Any]:
         """Get current configuration."""
-        return {
+        return {}}
             "enabled": self.configuration.enabled,
             "auto_start": self.configuration.auto_start,
             "timeout_seconds": self.configuration.timeout_seconds,

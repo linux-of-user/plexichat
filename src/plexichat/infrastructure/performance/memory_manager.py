@@ -91,10 +91,45 @@ class ObjectPool:
                 if len(self.pool) < self.max_size:
                     # Reset object state if it has a reset method
                     if hasattr(obj, 'reset'):
-                        obj.reset()
+                        try:
+                            obj.reset()
+                        except Exception as e:
+                            logger.warning(f"Failed to reset object: {e}")
+                            # Don't add to pool if reset fails
+                            return
                     self.pool.append(obj)
+                else:
+                    # Pool is full, properly dispose of object
+                    if hasattr(obj, 'close'):
+                        try:
+                            obj.close()
+                        except Exception as e:
+                            logger.warning(f"Failed to close object: {e}")
 
                 self._update_stats()
+
+    def cleanup(self):
+        """Clean up the object pool and release all resources."""
+        with self.lock:
+            # Close all pooled objects
+            while self.pool:
+                obj = self.pool.popleft()
+                if hasattr(obj, 'close'):
+                    try:
+                        obj.close()
+                    except Exception as e:
+                        logger.warning(f"Failed to close pooled object: {e}")
+
+            # Close all active objects
+            for obj in list(self.active_objects):
+                if hasattr(obj, 'close'):
+                    try:
+                        obj.close()
+                    except Exception as e:
+                        logger.warning(f"Failed to close active object: {e}")
+
+            self.active_objects.clear()
+            self._update_stats()
 
     def _update_stats(self):
         """Update pool statistics."""
@@ -382,11 +417,11 @@ class MemoryManager:
 
         except Exception as e:
             logger.error(f"Error during garbage collection: {e}")
-            return {}
+            return {}}}
 
     def get_memory_stats(self) -> Dict[str, Any]:
         """Get comprehensive memory statistics."""
-        return {
+        return {}}
             'system_memory': {
                 'total_mb': self.metrics.total_memory_mb,
                 'used_mb': self.metrics.used_memory_mb,
@@ -453,7 +488,7 @@ class MemoryManager:
 
         except Exception as e:
             logger.error(f"Error during memory optimization: {e}")
-            return {'error': str(e)}
+            return {}}'error': str(e)}
 
 
 # Global memory manager instance

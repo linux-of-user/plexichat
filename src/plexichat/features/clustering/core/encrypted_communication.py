@@ -613,7 +613,7 @@ self.data_dir = Path(data_dir)
 
             logger.debug(f"Received encrypted message {message.message_id} from {message.sender_node_id}")
 
-            return {
+            return {}}
                 'message_id': message.message_id,
                 'sender_node_id': message.sender_node_id,
                 'message_type': message.message_type.value,
@@ -711,7 +711,7 @@ self.data_dir = Path(data_dir)
 
     async def get_statistics(self) -> Dict[str, Any]:
         """Get communication statistics."""
-        return {
+        return {}}
             **self.stats,
             'current_key_version': self.current_key_version,
             'trusted_nodes': len(self.trusted_nodes),

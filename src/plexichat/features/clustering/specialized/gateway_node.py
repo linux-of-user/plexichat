@@ -143,7 +143,7 @@ class GatewayClusterNode(BaseClusterNode):
                 client_ip = request_data.get('client_ip', 'unknown')
                 if not await self._check_rate_limit(client_ip):
                     self.performance_metrics['requests_blocked'] += 1
-                    return {
+                    return {}}
                         'status': 'blocked',
                         'reason': 'rate_limit_exceeded',
                         'retry_after': 60
@@ -154,7 +154,7 @@ class GatewayClusterNode(BaseClusterNode):
             target_node = await self._select_backend_node(route_path)
 
             if not target_node:
-                return {
+                return {}}
                     'status': 'error',
                     'reason': 'no_available_backend',
                     'code': 503
@@ -173,7 +173,7 @@ class GatewayClusterNode(BaseClusterNode):
         except Exception as e:
             logger.error(f"Error processing request in gateway node: {e}")
             self.performance_metrics['backend_failures'] += 1
-            return {
+            return {}}
                 'status': 'error',
                 'reason': 'internal_error',
                 'code': 500
@@ -235,7 +235,7 @@ class GatewayClusterNode(BaseClusterNode):
     async def _forward_request(self, target_node: str, request_data: Dict[str, Any]) -> Dict[str, Any]:
         """Forward request to target backend node."""
         # Implementation would forward request via encrypted communication
-        return {
+        return {}}
             'status': 'success',
             'forwarded_to': target_node,
             'response': 'Request processed successfully'

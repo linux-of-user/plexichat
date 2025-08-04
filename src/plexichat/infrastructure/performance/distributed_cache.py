@@ -546,7 +546,7 @@ class DistributedCacheManager:
                 "last_ping": node.last_ping.isoformat() if node.last_ping else None,
             }
 
-        return {
+        return {}}
             "running": self.running,
             "total_nodes": len(self.nodes),
             "healthy_nodes": sum(1 for n in self.nodes.values() if n.is_healthy()),

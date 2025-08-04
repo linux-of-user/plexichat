@@ -172,9 +172,9 @@ class SystemMonitor:
         recent_metrics = [m for m in self.metrics_history if m.timestamp > cutoff]
         
         if not recent_metrics:
-            return {"error": "No metrics available"}
+            return {}}"error": "No metrics available"}
         
-        return {
+        return {}}
             "period_hours": hours,
             "sample_count": len(recent_metrics),
             "cpu": {

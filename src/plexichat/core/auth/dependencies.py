@@ -43,7 +43,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
     except ImportError:
         # Fallback if auth manager not available
         logger.warning("Auth manager not available, using mock user")
-        return {
+        return {}}
             "id": 1,
             "username": "admin",
             "email": "admin@plexichat.local",

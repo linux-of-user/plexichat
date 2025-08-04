@@ -87,7 +87,7 @@ class SecurityEvent:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert event to dictionary."""
-        return {
+        return {}}
             "event_id": self.event_id,
             "event_type": self.event_type.value,
             "severity": self.severity.value,
@@ -117,7 +117,7 @@ class SecurityAlert:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert alert to dictionary."""
-        return {
+        return {}}
             "alert_id": self.alert_id,
             "event": self.event.to_dict(),
             "status": self.status.value,
@@ -146,7 +146,7 @@ class MonitoringRule:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert rule to dictionary."""
-        return {
+        return {}}
             "rule_id": self.rule_id,
             "name": self.name,
             "description": self.description,
@@ -522,7 +522,7 @@ Please investigate this security event immediately.
             if alert.status == AlertStatus.OPEN
         ])
 
-        return {
+        return {}}
             **self.stats,
             "open_alerts": open_alerts,
             "total_alerts": len(self.alerts),

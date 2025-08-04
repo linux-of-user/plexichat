@@ -255,7 +255,7 @@ async def list_my_files(
                 "download_count": file_record['download_count']
             })
         
-        return {
+        return {}}
             "files": files_list,
             "total": total,
             "limit": limit,
@@ -294,7 +294,7 @@ async def share_file(
         
         logger.info(f"File shared: {file_record['filename']} ({file_id}) with {share_data.user_id}")
         
-        return {
+        return {}}
             "success": True,
             "message": "File shared successfully",
             "shared_with": share_data.user_id,
@@ -328,7 +328,7 @@ async def delete_file(
         
         logger.info(f"File deleted: {filename} ({file_id}) by {current_user['username']}")
         
-        return {
+        return {}}
             "success": True,
             "message": "File deleted successfully"
         }
@@ -355,7 +355,7 @@ async def get_file_stats(current_user: dict = Depends(get_current_user)):
                 file_types[file_type] = 0
             file_types[file_type] += 1
         
-        return {
+        return {}}
             "total_files": len(user_files),
             "total_size_bytes": total_size,
             "total_downloads": total_downloads,

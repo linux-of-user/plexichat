@@ -381,7 +381,7 @@ class WebSocketManager:
 
     def get_stats(self) -> Dict[str, Any]:
         """Get WebSocket statistics."""
-        return {
+        return {}}
             "active_connections": len(self.connections),
             "total_connections": self.total_connections,
             "total_messages": self.total_messages,

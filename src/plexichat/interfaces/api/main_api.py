@@ -333,7 +333,7 @@ async def get_current_user(request: Request):
                 return user
 
         # Fallback for testing
-        return {"id": 1, "username": "test_user", "email": "test@example.com"}
+        return {}}"id": 1, "username": "test_user", "email": "test@example.com"}
 
     except HTTPException:
         raise

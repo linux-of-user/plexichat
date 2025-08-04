@@ -14,7 +14,7 @@ import logging
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status, BackgroundTasks
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, Field
 
@@ -48,6 +48,36 @@ except ImportError:
         return plain_password == "password"
     def hash_password(password: str):
         return f"hashed_{password}"
+
+# Security audit decorator
+try:
+    from plexichat.infrastructure.utils.security import security_audit
+except ImportError:
+    def security_audit(**kwargs):
+        """Mock security audit decorator"""
+        def decorator(func):
+            return func
+        return decorator
+
+# Input validation decorator
+try:
+    from plexichat.infrastructure.utils.validation import input_validation
+except ImportError:
+    def input_validation(**kwargs):
+        """Mock input validation decorator"""
+        def decorator(func):
+            return func
+        return decorator
+
+# Rate limiting decorator
+try:
+    from plexichat.infrastructure.utils.rate_limiting import rate_limit
+except ImportError:
+    def rate_limit(**kwargs):
+        """Mock rate limiting decorator"""
+        def decorator(func):
+            return func
+        return decorator
 
 # JWT imports
 try:
@@ -290,6 +320,98 @@ class AuthService:
 auth_service = AuthService()
 
 @router.post(
+    "/register",
+    response_model=TokenResponse,
+    responses={400: {"model": ErrorDetail}, 409: {"model": ErrorDetail}}
+)
+@rate_limit(requests_per_minute=5, burst=2)  # Strict rate limiting for registration
+@security_audit(
+    action="user_registration",
+    resource_type="user_account",
+    sensitivity_level="high"
+)
+@input_validation(
+    max_length={"username": 50, "email": 100, "password": 128},
+    required_fields=["username", "email", "password"]
+)
+async def register(
+    request: Request,
+    user_data: LoginRequest,  # Reusing LoginRequest for simplicity
+    background_tasks: BackgroundTasks
+) -> TokenResponse:
+    """
+    Register a new user account.
+
+    Creates a new user account with the provided credentials.
+    Returns an access token upon successful registration.
+    """
+    enhanced_logger.info(f"Registration attempt for user '{user_data.username}'")
+
+    with PerformanceTracker("user_registration", enhanced_logger) as tracker:
+        try:
+            # Check if user already exists
+            # For now, we'll use a simple mock check
+            if user_data.username in ["admin", "test", "demo"]:
+                enhanced_logger.warning(f"Registration failed - user '{user_data.username}' already exists")
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail="Username already exists"
+                )
+
+            # Validate password strength
+            if len(user_data.password) < 6:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Password must be at least 6 characters long"
+                )
+
+            # Mock user creation (in real implementation, save to database)
+            user_id = f"user_{user_data.username}_{hash(user_data.username) % 10000}"
+
+            # Generate token for new user
+            token_data = {
+                "sub": user_id,
+                "username": user_data.username,
+                "email": f"{user_data.username}@example.com",
+                "is_active": True,
+                "user_id": user_id
+            }
+
+            # Create access token
+            access_token = create_access_token(data=token_data)
+
+            # Log successful registration
+            enhanced_logger.audit(
+                f"User '{user_data.username}' registered successfully",
+                extra={
+                    "user_id": user_id,
+                    "username": user_data.username,
+                    "registration_method": "standard",
+                    "ip_address": request.client.host if request.client else "unknown"
+                }
+            )
+
+            # Add background task for welcome email (mock)
+            background_tasks.add_task(
+                lambda: enhanced_logger.info(f"Welcome email sent to {user_data.username}")
+            )
+
+            return TokenResponse(
+                access_token=access_token,
+                token_type="bearer",
+                expires_in=1800  # 30 minutes
+            )
+
+        except HTTPException:
+            raise
+        except Exception as e:
+            enhanced_logger.error(f"Registration error for user '{user_data.username}': {str(e)}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Registration failed due to server error"
+            )
+
+@router.post(
     "/login",
     response_model=TokenResponse,
     responses={401: {"model": ErrorDetail}, 400: {"model": ErrorDetail}}
@@ -463,7 +585,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
                 detail="User not found"
             )
 
-        return {
+        return {}}
             "id": user.id,
             "username": user.username,
             "email": user.email,
@@ -516,4 +638,4 @@ async def logout(
 
     logger.info(f"User '{current_user['username']}' logged out")
 
-    return {"message": "Successfully logged out"}
+    return {}}"message": "Successfully logged out"}

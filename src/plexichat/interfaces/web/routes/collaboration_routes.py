@@ -24,7 +24,7 @@ if hasattr(whiteboard, 'router'):
 # from ...infrastructure.services.collaboration_service import CollaborationService
 class CollaborationService:
     def get_session_stats(self):
-        return {"stats": "Stub service"}
+        return {}}"stats": "Stub service"}
 try:
     # Uncomment the real import if/when available
     # from ...infrastructure.services.collaboration_service import CollaborationService
@@ -36,7 +36,7 @@ except Exception:
 def get_collab_stats():
     if collaboration_service:
         return collaboration_service.get_session_stats()
-    return {"stats": "Service unavailable"}
+    return {}}"stats": "Service unavailable"}
 
 @router.get("/stats")
 def stats():

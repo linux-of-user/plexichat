@@ -67,7 +67,7 @@ class MetricDataPoint:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
-        return {
+        return {}}
             "timestamp": self.timestamp.isoformat(),
             "value": self.value,
             "resource_type": self.resource_type.value,
@@ -200,7 +200,7 @@ class TimeSeriesForecaster:
         # Detect seasonal patterns (simplified)
         seasonal_pattern = self._detect_seasonal_pattern(values)
 
-        return {
+        return {}}
             "type": "simple_forecast",
             "moving_avg": moving_avg[-1] if moving_avg else 0.0,
             "trend": trend,
@@ -212,7 +212,7 @@ class TimeSeriesForecaster:
     def _detect_seasonal_pattern(self, values: List[float]) -> Dict[str, float]:
         """Detect seasonal patterns in data."""
         if len(values) < 24:
-            return {}
+            return {}}}
 
         # Daily pattern (24 hours)
         daily_pattern = {}
@@ -221,7 +221,7 @@ class TimeSeriesForecaster:
             if hour_values:
                 daily_pattern[str(hour)] = sum(hour_values) / len(hour_values)
 
-        return {"daily": daily_pattern}
+        return {}}"daily": daily_pattern}
 
     async def _evaluate_model_accuracy(self, key: str, test_data: List[MetricDataPoint]) -> float:
         """Evaluate model accuracy on test data."""
@@ -576,7 +576,7 @@ class PredictiveScaler:
 
         total_cost_impact = sum(a.prediction.cost_impact for a in recent_actions if a.prediction)
 
-        return {
+        return {}}
             "total_actions": len(recent_actions),
             "successful_actions": len(successful_actions),
             "failed_actions": len(failed_actions),

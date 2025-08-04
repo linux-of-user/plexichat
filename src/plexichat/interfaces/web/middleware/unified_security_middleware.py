@@ -149,7 +149,7 @@ class UnifiedSecurityMiddleware(BaseHTTPMiddleware):
                     body = body.decode('utf-8')
             except Exception:
                 body = None
-        return {
+        return {}}
             'client_ip': client_ip,
             'method': request.method,
             'path': str(request.url.path),
@@ -183,7 +183,7 @@ class UnifiedSecurityMiddleware(BaseHTTPMiddleware):
         try:
             ipaddress.ip_address(client_ip)
         except ValueError:
-            return {'allowed': False, 'reason': 'Invalid IP address', 'action': 'blocked'}
+            return {}}'allowed': False, 'reason': 'Invalid IP address', 'action': 'blocked'}
         if self.network_protection:
             rate_request = RateLimitRequest()
             rate_request.ip_address = client_ip
@@ -199,8 +199,8 @@ class UnifiedSecurityMiddleware(BaseHTTPMiddleware):
                     ThreatLevel.HIGH,
                     request_info
                 )
-                return {'allowed': False, 'reason': f"IP blocked: {threat.description if threat else 'Security policy violation'}", 'action': 'blocked'}
-        return {'allowed': True}
+                return {}}'allowed': False, 'reason': f"IP blocked: {threat.description if threat else 'Security policy violation'}", 'action': 'blocked'}
+        return {}}'allowed': True}
 
     async def _check_rate_limits(self, request_info: Dict[str, Any]) -> Dict[str, Any]:
         path = request_info['path']
@@ -221,8 +221,8 @@ class UnifiedSecurityMiddleware(BaseHTTPMiddleware):
                     ThreatLevel.MEDIUM,
                     request_info
                 )
-                return {'allowed': False, 'reason': 'Rate limit exceeded', 'action': 'rate_limited', 'retry_after': 60}
-        return {'allowed': True}
+                return {}}'allowed': False, 'reason': 'Rate limit exceeded', 'action': 'rate_limited', 'retry_after': 60}
+        return {}}'allowed': True}
 
     async def _validate_input_security(self, request: Request, request_info: Dict[str, Any]) -> Dict[str, Any]:
         threats_detected = []
@@ -260,33 +260,120 @@ class UnifiedSecurityMiddleware(BaseHTTPMiddleware):
                 request_info,
                 {"threats": threats_detected}
             )
-            return {'allowed': False, 'reason': 'Input validation failed', 'action': 'blocked', 'threats': threats_detected}
-        return {'allowed': True}
+            return {}}'allowed': False, 'reason': 'Input validation failed', 'action': 'blocked', 'threats': threats_detected}
+        return {}}'allowed': True}
 
     async def _check_authentication_authorization(self, request: Request, request_info: Dict[str, Any]) -> Dict[str, Any]:
         # Example: Use UnifiedSecurityManager's authenticate_user and validate_session
         token = self._extract_token(request)
         if not token:
-            return {'authenticated': False, 'reason': 'No token provided'}
+            return {}}'authenticated': False, 'reason': 'No token provided'}
         # Simulate token/session validation (replace with real logic as needed)
         # session_result = await self.security_manager.validate_session(token) # This line was removed
         # if not session_result.get('valid'): # This line was removed
-        #     return {'authenticated': False, 'reason': 'Invalid session'} # This line was removed
-        return {'authenticated': True, 'user_id': None} # Placeholder for user_id
+        #     return {}}'authenticated': False, 'reason': 'Invalid session'} # This line was removed
+        return {}}'authenticated': True, 'user_id': None} # Placeholder for user_id
 
     async def _validate_csrf_token(self, request: Request) -> Dict[str, Any]:
-        # Placeholder: Always valid for now
-        return {'valid': True}
+        """Validate CSRF token for state-changing requests."""
+        try:
+            # Skip CSRF for API endpoints with proper authentication
+            if request.url.path.startswith('/api/') and request.headers.get('Authorization'):
+                return {}}'valid': True}
+
+            # Skip CSRF for safe methods
+            if request.method in ['GET', 'HEAD', 'OPTIONS']:
+                return {}}'valid': True}
+
+            # Get CSRF token from various sources
+            csrf_token = None
+
+            # Check headers (most common for AJAX)
+            csrf_headers = ['X-CSRF-Token', 'X-CSRFToken', 'CSRF-Token']
+            for header in csrf_headers:
+                csrf_token = request.headers.get(header)
+                if csrf_token:
+                    break
+
+            # Check form data if no header token
+            if not csrf_token:
+                try:
+                    if request.headers.get('content-type', '').startswith('application/x-www-form-urlencoded'):
+                        form_data = await request.form()
+                        csrf_token = form_data.get('csrf_token')
+                    elif request.headers.get('content-type', '').startswith('application/json'):
+                        json_data = await request.json()
+                        csrf_token = json_data.get('csrf_token')
+                except Exception:
+                    pass
+
+            # Check cookies for double-submit pattern
+            cookie_token = request.cookies.get('csrf_token')
+
+            if not csrf_token:
+                return {}}
+                    'valid': False,
+                    'reason': 'CSRF token missing',
+                    'required_headers': csrf_headers
+                }
+
+            # Validate token format (should be hex string of specific length)
+            import re
+            if not re.match(r'^[a-f0-9]{64}$', csrf_token):
+                return {}}
+                    'valid': False,
+                    'reason': 'Invalid CSRF token format'
+                }
+
+            # For double-submit pattern, compare header/form token with cookie
+            if cookie_token:
+                if not self._constant_time_compare(csrf_token, cookie_token):
+                    return {}}
+                        'valid': False,
+                        'reason': 'CSRF token mismatch'
+                    }
+            else:
+                # If no cookie, validate against server-side storage
+                # This is a simplified validation - in production, use proper session storage
+                session_id = request.cookies.get('session_id')
+                if not session_id:
+                    return {}}
+                        'valid': False,
+                        'reason': 'No session for CSRF validation'
+                    }
+
+                # In a real implementation, you would validate against stored tokens
+                # For now, we'll accept properly formatted tokens
+                pass
+
+            return {}}'valid': True}
+
+        except Exception as e:
+            logger.error(f"CSRF validation error: {e}")
+            return {}}
+                'valid': False,
+                'reason': 'CSRF validation failed'
+            }
+
+    def _constant_time_compare(self, a: str, b: str) -> bool:
+        """Constant-time string comparison to prevent timing attacks."""
+        if len(a) != len(b):
+            return False
+
+        result = 0
+        for x, y in zip(a, b):
+            result |= ord(x) ^ ord(y)
+        return result == 0
 
     async def _validate_session_security(self, request: Request, auth_check: Dict[str, Any]) -> Dict[str, Any]:
         # Example: Use UnifiedSecurityManager's validate_session
         session_id = auth_check.get('user_id')
         if not session_id:
-            return {'valid': False, 'reason': 'No session ID'}
+            return {}}'valid': False, 'reason': 'No session ID'}
         # session_result = await self.security_manager.validate_session(session_id) # This line was removed
         # if not session_result.get('valid'): # This line was removed
-        #     return {'valid': False, 'reason': 'Invalid session'} # This line was removed
-        return {'valid': True}
+        #     return {}}'valid': False, 'reason': 'Invalid session'} # This line was removed
+        return {}}'valid': True}
 
     async def _risk_based_authentication(self, request: Request, request_info: Dict[str, Any], auth_check: Dict[str, Any]) -> Dict[str, Any]:
         """Perform risk-based authentication for admin/critical endpoints."""
@@ -338,14 +425,14 @@ class UnifiedSecurityMiddleware(BaseHTTPMiddleware):
             }
         )
         if not allowed:
-            return {
+            return {}}
                 'allowed': False,
                 'reason': 'Risk-based authentication failed: ' + ', '.join(risk_factors),
                 'action': 'step_up_auth',
                 'risk_score': risk_score,
                 'risk_factors': risk_factors
             }
-        return {'allowed': True}
+        return {}}'allowed': True}
 
     def _extract_token(self, request: Request) -> Optional[str]:
         auth_header = request.headers.get('authorization')

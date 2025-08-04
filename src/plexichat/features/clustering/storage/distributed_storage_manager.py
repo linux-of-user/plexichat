@@ -93,7 +93,7 @@ class StorageNode:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
-        return {
+        return {}}
             "node_id": self.node_id,
             "hostname": self.hostname,
             "ip_address": self.ip_address,
@@ -131,7 +131,7 @@ class StoredData:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
-        return {
+        return {}}
             "data_id": self.data_id,
             "data_type": self.data_type,
             "size_bytes": self.size_bytes,
@@ -660,7 +660,7 @@ class DistributedStorageManager:
         )
         total_used = sum(node.used_capacity_gb for node in self.storage_nodes.values())
 
-        return {
+        return {}}
             "total_nodes": len(self.storage_nodes),
             "healthy_nodes": len()
                 [n for n in self.storage_nodes.values() if n.is_healthy]
@@ -696,7 +696,7 @@ class DistributedStorageManager:
                     node_data_counts[node_id] += 1
                     node_data_sizes[node_id] += data.size_bytes
 
-        return {
+        return {}}
             "data_counts_per_node": node_data_counts,
             "data_sizes_per_node": node_data_sizes,
             "total_replicas": sum()

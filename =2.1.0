@@ -1,4 +1,0 @@
-Defaulting to user installation because normal site-packages is not writeable
-Requirement already satisfied: email-validator in /home/dennis/.local/lib/python3.13/site-packages (2.2.0)
-Requirement already satisfied: dnspython>=2.0.0 in /home/dennis/.local/lib/python3.13/site-packages (from email-validator) (2.7.0)
-Requirement already satisfied: idna>=2.0.0 in /usr/lib/python3.13/site-packages (from email-validator) (3.10)

@@ -466,7 +466,7 @@ class ConsolidatedCertificateManager:
         """Get certificate status information."""
         cert_info = self.certificates.get(domain)
         if not cert_info:
-            return {"error": f"Certificate for {domain} not found"}
+            return {}}"error": f"Certificate for {domain} not found"}
 
         now = datetime.now(timezone.utc)
         days_until_expiry = None
@@ -474,7 +474,7 @@ class ConsolidatedCertificateManager:
         if cert_info.expiry_date:
             days_until_expiry = (cert_info.expiry_date - now).days
 
-        return {
+        return {}}
             "domain": domain,
             "certificate_type": cert_info.certificate_type.value,
             "status": cert_info.status.value,

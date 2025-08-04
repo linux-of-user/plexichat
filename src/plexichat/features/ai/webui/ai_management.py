@@ -133,7 +133,7 @@ async def add_model_form(
         if not success:
             raise HTTPException(status_code=400, detail="Failed to add model")
 
-        return {"success": True, "message": f"Model {model_id} added successfully"}
+        return {}}"success": True, "message": f"Model {model_id} added successfully"}
 
     except Exception as e:
         logger.error(f"Add model form error: {e}")
@@ -147,7 +147,7 @@ async def delete_model_form(model_id: str):
         if not success:
             raise HTTPException(status_code=404, detail="Model not found")
 
-        return {"success": True, "message": f"Model {model_id} deleted successfully"}
+        return {}}"success": True, "message": f"Model {model_id} deleted successfully"}
 
     except Exception as e:
         logger.error(f"Delete model form error: {e}")
@@ -161,7 +161,7 @@ async def update_model_status_form(model_id: str, status: str = Form(...)):
         if not success:
             raise HTTPException(status_code=404, detail="Model not found")
 
-        return {"success": True, "message": f"Model {model_id} status updated"}
+        return {}}"success": True, "message": f"Model {model_id} status updated"}
 
     except Exception as e:
         logger.error(f"Update model status form error: {e}")
@@ -215,7 +215,7 @@ async def configure_provider_form(
         if not success:
             raise HTTPException(status_code=400, detail="Failed to configure provider")
 
-        return {"success": True, "message": f"Provider {provider} configured successfully"}
+        return {}}"success": True, "message": f"Provider {provider} configured successfully"}
 
     except Exception as e:
         logger.error(f"Configure provider form error: {e}")
@@ -259,7 +259,7 @@ async def add_permission_form(
         )
         ai_layer.save_config()
 
-        return {"success": True, "message": f"Permission added for user {user_id}"}
+        return {}}"success": True, "message": f"Permission added for user {user_id}"}
 
     except Exception as e:
         logger.error(f"Add permission form error: {e}")
@@ -359,7 +359,7 @@ async def test_ai_request(
 
         response = await ai_layer.process_request(ai_request)
 
-        return {
+        return {}}
             "success": response.success,
             "response": {
                 "content": response.content,
@@ -382,7 +382,7 @@ async def clear_cache_form():
     """Clear AI cache via form."""
     try:
         ai_layer.clear_cache()
-        return {"success": True, "message": "Cache cleared successfully"}
+        return {}}"success": True, "message": "Cache cleared successfully"}
 
     except Exception as e:
         logger.error(f"Clear cache form error: {e}")

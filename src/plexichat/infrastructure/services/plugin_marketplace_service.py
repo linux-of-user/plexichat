@@ -257,7 +257,7 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
 
     def _load_default_config(self) -> Dict[str, Any]:
         """Load default marketplace configuration."""
-        return {
+        return {}}
             "data_dir": "data/plugin_marketplace",
             "cache_dir": "data/plugin_marketplace/cache",
             "cache_ttl": 3600,  # 1 hour
@@ -361,7 +361,7 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
 
         except Exception as e:
             logger.error(f"Plugin search failed: {e}")
-            return {
+            return {}}
                 "plugins": [],
                 "total_count": 0,
                 "error": str(e)
@@ -439,7 +439,7 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
 
         except Exception as e:
             logger.error(f"Failed to get categories: {e}")
-            return {}
+            return {}}}
 
     # Remote plugin installation removed - plugins managed locally through WebUI
 
@@ -448,7 +448,7 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
         """Add a review for a plugin."""
         try:
             if plugin_id not in self.plugins:
-                return {"success": False, "error": "Plugin not found"}
+                return {}}"success": False, "error": "Plugin not found"}
 
             # Create review
             review = PluginReview()
@@ -485,7 +485,7 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
                 "timestamp": review.created_at.isoformat()
             })
 
-            return {
+            return {}}
                 "success": True,
                 "review_id": review.review_id,
                 "message": "Review added successfully"
@@ -493,12 +493,12 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
 
         except Exception as e:
             logger.error(f"Failed to add review: {e}")
-            return {"success": False, "error": str(e)}
+            return {}}"success": False, "error": str(e)}
 
     async def get_marketplace_statistics(self) -> Dict[str, Any]:
         """Get marketplace statistics."""
         await self._update_statistics()
-        return {
+        return {}}
             "statistics": self.stats,
             "categories": await self.get_categories(),
             "recent_plugins": await self._get_recent_plugins(5),
@@ -544,7 +544,7 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
 
     def _plugin_to_dict(self, plugin: PluginMarketplaceInfo) -> Dict[str, Any]:
         """Convert plugin info to dictionary."""
-        return {
+        return {}}
             "plugin_id": plugin.plugin_id,
             "name": plugin.name,
             "version": plugin.version,
@@ -580,7 +580,7 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
 
     def _review_to_dict(self, review: PluginReview) -> Dict[str, Any]:
         """Convert review to dictionary."""
-        return {
+        return {}}
             "review_id": review.review_id,
             "plugin_id": review.plugin_id,
             "user_id": review.user_id,
@@ -596,7 +596,7 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
 
     def _developer_to_dict(self, developer: PluginDeveloper) -> Dict[str, Any]:
         """Convert developer to dictionary."""
-        return {
+        return {}}
             "developer_id": developer.developer_id,
             "username": developer.username,
             "display_name": developer.display_name,
@@ -711,7 +711,7 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
         """Download plugin file from repository."""
         try:
             if not plugin.download_url:
-                return {"success": False, "error": "No download URL available"}
+                return {}}"success": False, "error": "No download URL available"}
 
             # Create temporary file
             temp_file = self.cache_dir / f"{plugin.plugin_id}_{plugin.version}.zip"
@@ -720,7 +720,7 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
             async with aiohttp.ClientSession() as session:
                 async with session.get(plugin.download_url) as response:
                     if response.status != 200:
-                        return {"success": False, "error": f"Download failed: HTTP {response.status}"}
+                        return {}}"success": False, "error": f"Download failed: HTTP {response.status}"}
 
                     async with aiofiles.open(temp_file, 'wb') as f:
                         async for chunk in response.content.iter_chunked(8192):
@@ -731,9 +731,9 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
                 file_checksum = await self._calculate_file_checksum(temp_file)
                 if file_checksum != plugin.checksum:
                     temp_file.unlink(missing_ok=True)
-                    return {"success": False, "error": "Checksum verification failed"}
+                    return {}}"success": False, "error": "Checksum verification failed"}
 
-            return {
+            return {}}
                 "success": True,
                 "file_path": temp_file,
                 "message": "Plugin downloaded successfully"
@@ -741,7 +741,7 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
 
         except Exception as e:
             logger.error(f"Failed to download plugin: {e}")
-            return {"success": False, "error": str(e)}
+            return {}}"success": False, "error": str(e)}
 
     async def _calculate_file_checksum(self, file_path: Path) -> str:
         """Calculate SHA-256 checksum of file."""
@@ -1061,7 +1061,7 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
                 try:
                     valid_events.append(WebhookEvent(event))
                 except ValueError:
-                    return {"success": False, "error": f"Invalid event: {event}"}
+                    return {}}"success": False, "error": f"Invalid event: {event}"}
 
             # Generate endpoint ID and secret
             endpoint_id = f"webhook_{secrets.token_urlsafe(16)}"
@@ -1080,7 +1080,7 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
 
             logger.info(f" Registered webhook endpoint: {url}")
 
-            return {
+            return {}}
                 "success": True,
                 "endpoint_id": endpoint_id,
                 "secret": webhook_secret,
@@ -1089,7 +1089,7 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
 
         except Exception as e:
             logger.error(f"Failed to register webhook: {e}")
-            return {"success": False, "error": str(e)}
+            return {}}"success": False, "error": str(e)}
 
     async def trigger_webhook(self, event: WebhookEvent, payload: Dict[str, Any]):
         """Trigger webhook notifications for an event."""

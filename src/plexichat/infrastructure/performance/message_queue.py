@@ -98,7 +98,7 @@ async def get_queue_status(current_user: Dict = Depends(require_auth)):
         else:
             status = "healthy"
 
-        return {
+        return {}}
             "status": status,
             "initialized": queue_manager.initialized,
             "statistics": stats,
@@ -138,7 +138,7 @@ async def get_queue_stats()
             if not topic_stats:
                 raise HTTPException(status_code=404, detail=f"Topic '{topic}' not found")
 
-            return {
+            return {}}
                 "topic": topic,
                 "statistics": topic_stats,
                 "timestamp": "2025-01-07T12:00:00Z"
@@ -335,7 +335,7 @@ async def list_topics(current_user: Dict = Depends(require_auth)):
                 "consumer_count": topic_stats.get("consumer_count", 0)
             })
 
-        return {
+        return {}}
             "topics": topic_list,
             "total_topics": len(topic_list),
             "registered_handlers": stats.get("registered_handlers", []),
@@ -415,7 +415,7 @@ async def get_queue_health(current_user: Dict = Depends(require_auth)):
         else:
             health_status = "healthy"
 
-        return {
+        return {}}
             "status": health_status,
             "initialized": queue_manager.initialized,
             "broker_availability": availability,
@@ -456,7 +456,7 @@ async def get_dead_letter_queue()
         if limit > 0:
             messages = messages[:limit]
 
-        return {
+        return {}}
             "total_count": dead_letter_data.get("count", 0),
             "returned_count": len(messages),
             "messages": messages,

@@ -37,7 +37,7 @@ try:
     from plexichat.infrastructure.utils.auth import require_admin
 except ImportError:
     def require_admin():
-        return {"id": 1, "username": "admin", "is_admin": True}
+        return {}}"id": 1, "username": "admin", "is_admin": True}
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/database", tags=["database"])
@@ -110,20 +110,20 @@ class DatabaseService:
         try:
             if initialize_database_system:
                 result = await initialize_database_system()
-                return {
+                return {}}
                     "success": True,
                     "message": "Database initialized successfully",
                     "details": result
                 }
             else:
-                return {
+                return {}}
                     "success": False,
                     "message": "Database initialization system not available",
                     "details": {}
                 }
         except Exception as e:
             logger.error(f"Error initializing database: {e}")
-            return {
+            return {}}
                 "success": False,
                 "message": f"Database initialization failed: {str(e)}",
                 "details": {}
@@ -180,13 +180,13 @@ async def run_migrations(request: Request, current_user: Dict[str, Any] = Depend
     try:
         if database_service.db_manager:
             result = await database_service.db_manager.run_migrations()
-            return {
+            return {}}
                 "success": True,
                 "message": "Migrations completed successfully",
                 "migrations_applied": result.get("migrations_applied", [])
             }
         else:
-            return {
+            return {}}
                 "success": False,
                 "message": "Database manager not available"
             }
@@ -211,7 +211,7 @@ async def create_backup(request: Request, current_user: Dict[str, Any] = Depends
     try:
         if database_service.db_manager:
             result = await database_service.db_manager.create_backup()
-            return {
+            return {}}
                 "success": True,
                 "message": "Backup created successfully",
                 "backup_path": result.get("backup_path"),
@@ -219,7 +219,7 @@ async def create_backup(request: Request, current_user: Dict[str, Any] = Depends
                 "timestamp": datetime.now().isoformat()
             }
         else:
-            return {
+            return {}}
                 "success": False,
                 "message": "Database manager not available"
             }
@@ -244,7 +244,7 @@ async def database_health_check(request: Request, current_user: Dict[str, Any] =
     try:
         if database_service.db_manager:
             health_data = await database_service.db_manager.health_check()
-            return {
+            return {}}
                 "healthy": health_data.get("healthy", False),
                 "response_time_ms": health_data.get("response_time_ms", 0),
                 "connection_count": health_data.get("connection_count", 0),
@@ -252,7 +252,7 @@ async def database_health_check(request: Request, current_user: Dict[str, Any] =
                 "timestamp": datetime.now().isoformat()
             }
         else:
-            return {
+            return {}}
                 "healthy": False,
                 "response_time_ms": 0,
                 "connection_count": 0,
@@ -262,7 +262,7 @@ async def database_health_check(request: Request, current_user: Dict[str, Any] =
             }
     except Exception as e:
         logger.error(f"Error in health check: {e}")
-        return {
+        return {}}
             "healthy": False,
             "response_time_ms": 0,
             "connection_count": 0,

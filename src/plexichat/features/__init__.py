@@ -165,14 +165,14 @@ def import_feature_modules():
         # User features
         if users_enabled():
             try:
-                from . import users
+                # # from . import users
                 logger.info("Users module imported successfully")
             except ImportError as e:
                 logger.warning(f"Could not import users module: {e}")
         # Messaging features
         if messaging_enabled():
             try:
-                from . import messaging
+                # # from . import messaging
                 logger.info("Messaging module imported successfully")
             except ImportError as e:
                 logger.warning(f"Could not import messaging module: {e}")
@@ -181,7 +181,7 @@ def import_feature_modules():
             try:
                 import platform
                 if platform.system() != "Windows":
-                    from . import security
+                    # # from . import security
                     logger.info("Security module imported successfully")
                 else:
                     logger.warning("Security module not loaded on Windows due to syslog dependency.")
@@ -190,28 +190,28 @@ def import_feature_modules():
         # AI features
         if ai_enabled():
             try:
-                from . import ai
+                # # from . import ai
                 logger.info("AI module imported successfully")
             except ImportError as e:
                 logger.warning(f"Could not import AI module: {e}")
         # Backup features
         if backup_enabled():
             try:
-                from . import backup
+                # # from . import backup
                 logger.info("Backup module imported successfully")
             except ImportError as e:
                 logger.warning(f"Could not import backup module: {e}")
         # Clustering features
         if clustering_enabled():
             try:
-                from . import clustering
+                # # from . import clustering
                 logger.info("Clustering module imported successfully")
             except ImportError as e:
                 logger.warning(f"Could not import clustering module: {e}")
         # Monitoring features
         if monitoring_enabled():
             try:
-                from . import monitoring
+                # # from . import monitoring
                 logger.info("Monitoring module imported successfully")
             except ImportError as e:
                 logger.warning(f"Could not import monitoring module: {e}")

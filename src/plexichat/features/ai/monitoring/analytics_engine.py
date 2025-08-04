@@ -240,7 +240,7 @@ class AIAnalyticsEngine:
 
         except Exception as e:
             logger.error(f"Failed to get usage analytics: {e}")
-            return {}
+            return {}}}
 
     def start_monitoring(self):
         """Start background monitoring."""

@@ -79,7 +79,7 @@ async def create_group(
     group_members_db[group_id] = [current_user["user_id"]]
     group_messages_db[group_id] = []
     
-    return {
+    return {}}
         "status": "Group created successfully",
         "group": group
     }
@@ -115,7 +115,7 @@ async def list_groups(
     total = len(groups)
     groups = groups[offset:offset + limit]
     
-    return {
+    return {}}
         "groups": groups,
         "total": total,
         "limit": limit,
@@ -134,7 +134,7 @@ async def get_groups_stats(
     total_members = sum(len(members) for members in group_members_db.values())
     avg_members = total_members / total_groups if total_groups > 0 else 0
 
-    return {
+    return {}}
         "total_groups": total_groups,
         "public_groups": public_groups,
         "private_groups": private_groups,
@@ -196,7 +196,7 @@ async def update_group(
     
     group["updated_at"] = time.time()
     
-    return {
+    return {}}
         "status": "Group updated successfully",
         "group": group
     }
@@ -223,7 +223,7 @@ async def delete_group(
     if group_id in group_messages_db:
         del group_messages_db[group_id]
     
-    return {"status": "Group deleted successfully"}
+    return {}}"status": "Group deleted successfully"}
 
 # Member management endpoints
 @router.post("/{group_id}/join")
@@ -258,7 +258,7 @@ async def join_group(
     # Update member count
     groups_db[group_id]["member_count"] = len(group_members_db[group_id])
     
-    return {"status": "Successfully joined group"}
+    return {}}"status": "Successfully joined group"}
 
 @router.post("/{group_id}/leave")
 async def leave_group(
@@ -279,7 +279,7 @@ async def leave_group(
     # Update member count
     groups_db[group_id]["member_count"] = len(group_members_db[group_id])
     
-    return {"status": "Successfully left group"}
+    return {}}"status": "Successfully left group"}
 
 @router.post("/{group_id}/invite")
 async def invite_users(
@@ -315,7 +315,7 @@ async def invite_users(
     # Update member count
     groups_db[group_id]["member_count"] = len(group_members_db[group_id])
     
-    return {
+    return {}}
         "status": "Invitations sent",
         "invited_users": invited_users,
         "total_invited": len(invited_users)
@@ -339,7 +339,7 @@ async def get_group_members(
     
     members = group_members_db.get(group_id, [])
     
-    return {
+    return {}}
         "group_id": group_id,
         "members": members,
         "member_count": len(members)
@@ -361,7 +361,7 @@ async def get_my_groups(
                 group_info["is_owner"] = group["owner_id"] == current_user["user_id"]
                 user_groups.append(group_info)
     
-    return {
+    return {}}
         "groups": user_groups,
         "total": len(user_groups)
     }

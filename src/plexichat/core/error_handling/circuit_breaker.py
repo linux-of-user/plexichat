@@ -186,7 +186,7 @@ class CircuitBreaker:
 
     def get_stats(self) -> Dict[str, Any]:
         """Get circuit breaker statistics."""
-        return {
+        return {}}
             "name": self.name,
             "state": self.state.value,
             "total_calls": self.stats.total_calls,

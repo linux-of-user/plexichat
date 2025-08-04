@@ -144,7 +144,7 @@ class NodeManager:
     def _get_server_info(self) -> Dict[str, Any]:
         """Get current server information."""
         try:
-            return {
+            return {}}
                 "hostname": socket.gethostname(),
                 "ip_address": socket.gethostbyname(socket.gethostname()),
                 "port": 8000,  # Default port
@@ -159,7 +159,7 @@ psutil = psutil.LINUX if hasattr(psutil, 'LINUX') else "unknown"
             }
         except Exception as e:
             self.logger.error(f"Failed to get server info: {e}")
-            return {
+            return {}}
                 "hostname": "unknown",
                 "ip_address": "127.0.0.1",
                 "port": 8000,
@@ -479,7 +479,7 @@ Path("config/cluster.json")
                     # Get response data
                     response_data = await response.text()
 
-                    return {
+                    return {}}
                         "status_code": response.status,
                         "headers": dict(response.headers),
                         "body": response_data,
@@ -611,7 +611,7 @@ psutil = psutil.disk_usage('/').percent,
         """Get comprehensive cluster status."""
         online_nodes = sum(1 for node in self.cluster_nodes.values() if node.status == NodeStatus.ONLINE)
 
-        return {
+        return {}}
             "cluster_id": self.config.cluster_id,
             "cluster_name": self.config.cluster_name,
             "current_node": self.node_id,

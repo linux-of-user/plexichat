@@ -212,7 +212,7 @@ async def validate_token(token: str) -> Optional[Dict[str, Any]]:
         for session_id, session in sessions_db.items():
             if session.get('access_token') == token or session.get('refresh_token') == token:
                 if session.get('expires_at', 0) > time.time():
-                    return {
+                    return {}}
                         'user_id': session.get('user_id'),
                         'session_id': session_id,
                         'expires_at': session.get('expires_at')
@@ -462,7 +462,7 @@ async def register(user_data: UserRegister):
         users_db[user_id] = user
         logger.info(f"User registered: {user_data.username}")
         
-        return {
+        return {}}
             "success": True,
             "message": "User registered successfully",
             "user_id": user_id,
@@ -541,7 +541,7 @@ async def logout(current_user: dict = Depends(get_current_user)):
             del sessions_db[session_id]
         
         logger.info(f"User logged out: {current_user['username']}")
-        return {"success": True, "message": "Logged out successfully"}
+        return {}}"success": True, "message": "Logged out successfully"}
         
     except Exception as e:
         logger.error(f"Logout error: {e}")
@@ -550,7 +550,7 @@ async def logout(current_user: dict = Depends(get_current_user)):
 @router.get("/me")
 async def get_current_user_info(current_user: dict = Depends(get_current_user)):
     """Get current user information."""
-    return {
+    return {}}
         "id": current_user['id'],
         "username": current_user['username'],
         "email": current_user['email'],
@@ -562,7 +562,7 @@ async def get_current_user_info(current_user: dict = Depends(get_current_user)):
 @router.get("/status")
 async def auth_status():
     """Get authentication service status."""
-    return {
+    return {}}
         "service": "authentication",
         "status": "online",
         "total_users": len(users_db),
@@ -620,7 +620,7 @@ async def verify_two_factor_setup(
 
         if success:
             logger.info(f"2FA setup completed for user {current_user['username']}")
-            return {"success": True, "message": "Two-factor authentication enabled successfully"}
+            return {}}"success": True, "message": "Two-factor authentication enabled successfully"}
         else:
             raise HTTPException(status_code=400, detail="Invalid verification code")
 
@@ -660,7 +660,7 @@ async def verify_two_factor_code(
         )
 
         if result['success']:
-            return {
+            return {}}
                 "success": True,
                 "method": result['method'],
                 "message": result['message']
@@ -701,7 +701,7 @@ async def disable_two_factor_auth(
 
         if success:
             logger.info(f"2FA disabled for user {current_user['username']}")
-            return {"success": True, "message": "Two-factor authentication disabled successfully"}
+            return {}}"success": True, "message": "Two-factor authentication disabled successfully"}
         else:
             raise HTTPException(status_code=400, detail="Failed to disable two-factor authentication")
 
@@ -721,7 +721,7 @@ async def generate_new_backup_codes(current_user: dict = Depends(get_current_use
 
         if new_codes:
             logger.info(f"New backup codes generated for user {current_user['username']}")
-            return {
+            return {}}
                 "success": True,
                 "backup_codes": new_codes,
                 "message": "New backup codes generated successfully"

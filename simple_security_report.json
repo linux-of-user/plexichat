@@ -1,0 +1,14 @@
+{
+  "timestamp": 1754306011.8970165,
+  "total_tests": 6,
+  "passed_tests": 0,
+  "security_score": 0.0,
+  "test_results": {
+    "Password Security": false,
+    "Rate Limiting": false,
+    "Security Headers": false,
+    "Input Validation": false,
+    "Authentication": false,
+    "Database Security": false
+  }
+}

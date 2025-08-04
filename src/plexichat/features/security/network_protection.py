@@ -551,7 +551,7 @@ class ConsolidatedNetworkProtection:
         current_time = time.time()
         uptime = current_time - self.stats["last_reset"]
 
-        return {
+        return {}}
             "initialized": self.initialized,
             "uptime_seconds": uptime,
             "statistics": self.stats.copy(),

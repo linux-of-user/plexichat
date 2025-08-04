@@ -521,7 +521,7 @@ class ComprehensiveEndpointTester:
             return data
         
         # Default test data
-        return {'test_field': 'test_value', 'timestamp': int(time.time())}
+        return {}}'test_field': 'test_value', 'timestamp': int(time.time())}
     
     async def _safe_json_response(self, response) -> Optional[Dict]:
         """Safely get JSON response."""
@@ -829,7 +829,7 @@ class ComprehensiveEndpointTester:
         for result in test_results:
             performance_issues.extend(result.performance_issues)
         
-        return {
+        return {}}
             'summary': {
                 'total_endpoints': len(endpoints),
                 'total_tests': total_tests,

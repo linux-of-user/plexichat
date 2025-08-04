@@ -376,7 +376,7 @@ class DebugManager:
         try:
             process = psutil.Process()
 
-            return {
+            return {}}
                 "cpu_percent": process.cpu_percent(),
                 "memory_mb": process.memory_info().rss / 1024 / 1024,
                 "memory_percent": process.memory_percent(),
@@ -387,7 +387,7 @@ class DebugManager:
 
         except Exception as e:
             logger.error(f"Error getting performance data: {e}")
-            return {}
+            return {}}}
 
     def _get_memory_usage(self) -> float:
         """Get current memory usage in MB."""
@@ -464,7 +464,7 @@ class DebugManager:
                 reverse=True
             )[:10]
 
-            return {
+            return {}}
                 "total_errors": total_errors,
                 "unique_errors": len(error_counts),
                 "top_errors": top_errors,
@@ -473,7 +473,7 @@ class DebugManager:
 
         except Exception as e:
             logger.error(f"Error getting error summary: {e}")
-            return {}
+            return {}}}
 
     def get_performance_summary(self) -> Dict[str, Any]:
         """Get performance summary statistics."""
@@ -497,7 +497,7 @@ class DebugManager:
 
         except Exception as e:
             logger.error(f"Error getting performance summary: {e}")
-            return {}
+            return {}}}
 
     def export_debug_data(self, session_id: Optional[str] = None) -> Dict[str, Any]:
         """Export debug data for analysis."""
@@ -505,7 +505,7 @@ class DebugManager:
             with self._lock:
                 if session_id and session_id in self.debug_sessions:
                     session = self.debug_sessions[session_id]
-                    return {
+                    return {}}
                         "session_id": session_id,
                         "session_name": session.name,
                         "start_time": session.start_time,
@@ -531,7 +531,7 @@ class DebugManager:
                         ]
                     }
                 else:
-                    return {
+                    return {}}
                         "all_events": [
                             {
                                 "timestamp": event.timestamp,
@@ -549,7 +549,7 @@ class DebugManager:
 
         except Exception as e:
             logger.error(f"Error exporting debug data: {e}")
-            return {}
+            return {}}}
 
     def clear_debug_data(self, session_id: Optional[str] = None):
         """Clear debug data."""

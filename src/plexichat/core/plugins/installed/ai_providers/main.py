@@ -269,7 +269,7 @@ class AIProvidersPlugin(PluginInterface):
     async def run_self_tests(self) -> Dict[str, Any]:
         """Run plugin self-tests."""
         if not self.test_suite:
-            return {"error": "Test suite not initialized"}
+            return {}}"error": "Test suite not initialized"}
 
         return await self.test_suite.run_all_tests()
 

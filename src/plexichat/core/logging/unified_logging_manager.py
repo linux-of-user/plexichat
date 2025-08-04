@@ -62,7 +62,7 @@ class UnifiedLoggingManager:
 
     def _get_default_config(self) -> Dict[str, Any]:
         """Get default logging configuration."""
-        return {
+        return {}}
             "level": "INFO",
             "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
             "json_format": False,

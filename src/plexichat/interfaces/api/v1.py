@@ -149,18 +149,18 @@ async def upload_file(file: UploadFile = File(...)):
         "size": 0  # Mock size for now
     }
     files_db.append(file_info)
-    return {"message": "File uploaded successfully", "file": file_info}
+    return {}}"message": "File uploaded successfully", "file": file_info}
 
 # Admin endpoints
 @v1_router.get("/admin/users")
 async def admin_list_users():
     """Admin endpoint to list all users."""
-    return {"users": users_db, "total": len(users_db)}
+    return {}}"users": users_db, "total": len(users_db)}
 
 @v1_router.get("/admin/stats")
 async def admin_stats():
     """Admin endpoint for system statistics."""
-    return {
+    return {}}
         "total_users": len(users_db),
         "total_messages": len(messages_db),
         "total_files": len(files_db),
@@ -172,18 +172,18 @@ async def admin_delete_user(user_id: int):
     """Admin endpoint to delete a user."""
     global users_db
     users_db = [u for u in users_db if u["id"] != user_id]
-    return {"message": f"User {user_id} deleted"}
+    return {}}"message": f"User {user_id} deleted"}
 
 # Additional endpoints for testing
 @v1_router.get("/health")
 async def health_check():
     """Health check endpoint."""
-    return {"status": "healthy", "timestamp": "2025-07-30T12:00:00"}
+    return {}}"status": "healthy", "timestamp": "2025-07-30T12:00:00"}
 
 @v1_router.get("/test")
 async def test_endpoint():
     """Test endpoint for connectivity."""
-    return {"message": "API v1 is working"}
+    return {}}"message": "API v1 is working"}
 
 logger.info("[CHECK] API v1 router initialized with all endpoints")
 
@@ -268,17 +268,17 @@ async def upload_file_root(file: UploadFile = File(...)):
         "size": 0  # Mock size for now
     }
     files_db.append(file_info)
-    return {"message": "File uploaded successfully", "file": file_info}
+    return {}}"message": "File uploaded successfully", "file": file_info}
 
 @root_router.get("/admin/users")
 async def admin_list_users_root():
     """Admin endpoint to list all users at root level."""
-    return {"users": users_db, "total": len(users_db)}
+    return {}}"users": users_db, "total": len(users_db)}
 
 @root_router.get("/admin/stats")
 async def admin_stats_root():
     """Admin endpoint for system statistics at root level."""
-    return {
+    return {}}
         "total_users": len(users_db),
         "total_messages": len(messages_db),
         "total_files": len(files_db),
@@ -290,6 +290,6 @@ async def admin_delete_user_root(user_id: int):
     """Admin endpoint to delete a user at root level."""
     global users_db
     users_db = [u for u in users_db if u["id"] != user_id]
-    return {"message": f"User {user_id} deleted"}
+    return {}}"message": f"User {user_id} deleted"}
 
 logger.info("[CHECK] Root-level endpoints added for backward compatibility")

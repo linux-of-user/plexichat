@@ -29,7 +29,7 @@ class EnhancedLogicEngine:
         return []
     
     def get_rule_status(self, rule_id):
-        return {'error': 'Not implemented'}
+        return {}}'error': 'Not implemented'}
     
     def add_rule(self, rule):
         return True
@@ -53,10 +53,10 @@ class EnhancedLogicEngine:
         self._running = False
     
     def get_execution_logs(self, execution_id):
-        return {'error': 'Not implemented'}
+        return {}}'error': 'Not implemented'}
     
     def export_config(self):
-        return {}
+        return {}}}
     
     def import_config(self, config):
         return True

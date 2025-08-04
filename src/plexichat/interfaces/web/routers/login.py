@@ -40,7 +40,7 @@ try:
     from plexichat.infrastructure.utils.auth import get_current_user
 except ImportError:
     def get_current_user():
-        return {"id": 1, "username": "admin", "is_admin": True}
+        return {}}"id": 1, "username": "admin", "is_admin": True}
 
 # Security imports
 try:
@@ -409,7 +409,7 @@ async def logout(
     if performance_logger:
         performance_logger.record_metric("logout_requests", 1, "count")
 
-    return {"message": "Successfully logged out"}
+    return {}}"message": "Successfully logged out"}
 
 @router.get("/status")
 async def login_status(
@@ -426,7 +426,7 @@ async def login_status(
     if performance_logger:
         performance_logger.record_metric("login_status_checks", 1, "count")
 
-    return {
+    return {}}
         "logged_in": True,
         "user": {
             "id": current_user.get("id"),

@@ -72,7 +72,7 @@ class AuditEvent:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for JSON serialization."""
-        return {
+        return {}}
             "event_id": self.event_id,
             "event_type": self.event_type.value,
             "timestamp": self.timestamp.isoformat(),

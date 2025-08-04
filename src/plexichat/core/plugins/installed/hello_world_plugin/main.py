@@ -23,7 +23,7 @@ router = APIRouter(prefix="/api/v1/hello", tags=["HelloWorld"])
 
 @router.get("/")
 async def hello_world():
-    return {"message": "Hello from the HelloWorld plugin!"}
+    return {}}"message": "Hello from the HelloWorld plugin!"}
 
 class HelloWorldPlugin(PluginInterface):
     """
@@ -38,7 +38,7 @@ class HelloWorldPlugin(PluginInterface):
         return True
 
     def get_metadata(self):
-        return {
+        return {}}
             "name": "Hello World Plugin",
             "version": "1.0.0",
             "description": "A simple Hello World plugin for demonstration.",

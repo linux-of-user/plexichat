@@ -181,7 +181,7 @@ class MetricsService:
 psutil = psutil.boot_time(), timezone.utc)
             uptime = (datetime.now(timezone.utc) - boot_time).total_seconds()
 
-            return {
+            return {}}
                 "uptime_seconds": uptime,
                 "load_average_1m": import psutil
 psutil = psutil.getloadavg()[0] if hasattr(psutil, 'getloadavg') else 0,
@@ -190,7 +190,7 @@ psutil = psutil.pids())
             }
         except Exception as e:
             self.logger.warning(f"Failed to collect system metrics: {e}")
-            return {}
+            return {}}}
 
     async def _collect_cpu_metrics(self) -> Dict[str, float]:
         """Collect CPU metrics."""
@@ -223,7 +223,7 @@ psutil = psutil.cpu_percent(percpu=True)
 
         except Exception as e:
             self.logger.warning(f"Failed to collect CPU metrics: {e}")
-            return {}
+            return {}}}
 
     async def _collect_memory_metrics(self) -> Dict[str, float]:
         """Collect memory metrics."""
@@ -233,7 +233,7 @@ psutil = psutil.virtual_memory()
             swap = import psutil
 psutil = psutil.swap_memory()
 
-            return {
+            return {}}
                 "total_bytes": memory.total,
                 "available_bytes": memory.available,
                 "used_bytes": memory.used,
@@ -245,7 +245,7 @@ psutil = psutil.swap_memory()
 
         except Exception as e:
             self.logger.warning(f"Failed to collect memory metrics: {e}")
-            return {}
+            return {}}}
 
     async def _collect_disk_metrics(self) -> Dict[str, float]:
         """Collect disk metrics."""
@@ -277,7 +277,7 @@ psutil = psutil.disk_io_counters()
 
         except Exception as e:
             self.logger.warning(f"Failed to collect disk metrics: {e}")
-            return {}
+            return {}}}
 
     async def _collect_network_metrics(self) -> Dict[str, float]:
         """Collect network metrics."""
@@ -286,9 +286,9 @@ psutil = psutil.disk_io_counters()
 psutil = psutil.net_io_counters()
 
             if not net_io:
-                return {}
+                return {}}}
 
-            return {
+            return {}}
                 "bytes_sent": net_io.bytes_sent,
                 "bytes_recv": net_io.bytes_recv,
                 "packets_sent": net_io.packets_sent,
@@ -301,7 +301,7 @@ psutil = psutil.net_io_counters()
 
         except Exception as e:
             self.logger.warning(f"Failed to collect network metrics: {e}")
-            return {}
+            return {}}}
 
     async def _collect_process_metrics(self) -> Dict[str, float]:
         """Collect process-specific metrics."""
@@ -312,7 +312,7 @@ psutil = psutil.Process()
             memory_info = current_process.memory_info()
             cpu_percent = current_process.cpu_percent()
 
-            return {
+            return {}}
                 "memory_rss_bytes": memory_info.rss,
                 "memory_vms_bytes": memory_info.vms,
                 "cpu_percent": cpu_percent,
@@ -322,7 +322,7 @@ psutil = psutil.Process()
 
         except Exception as e:
             self.logger.warning(f"Failed to collect process metrics: {e}")
-            return {}
+            return {}}}
 
     async def _check_alerts(self):
         """Check for alert conditions."""
@@ -430,11 +430,11 @@ psutil = psutil.Process()
         data = self.get_metric(metric_name, hours)
 
         if not data:
-            return {}
+            return {}}}
 
         values = [point["value"] for point in data]
 
-        return {
+        return {}}
             "min": min(values),
             "max": max(values),
             "avg": sum(values) / len(values),
@@ -464,7 +464,7 @@ psutil = psutil.Process()
 
             overall_health = collection_running and data_fresh and cpu_ok and memory_ok
 
-            return {
+            return {}}
                 "status": "healthy" if overall_health else "unhealthy",
                 "collection_running": collection_running,
                 "data_fresh": data_fresh,
@@ -475,7 +475,7 @@ psutil = psutil.Process()
             }
 
         except Exception as e:
-            return {
+            return {}}
                 "status": "error",
                 "error": str(e)
             }

@@ -64,7 +64,7 @@ class KnowledgeNode:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
-        return {
+        return {}}
             "id": self.id,
             "label": self.label,
             "type": self.node_type.value,
@@ -90,7 +90,7 @@ class KnowledgeRelation:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
-        return {
+        return {}}
             "id": self.id,
             "source_id": self.source_id,
             "target_id": self.target_id,
@@ -211,7 +211,7 @@ class SemanticGraph:
     def get_subgraph(self, center_id: str, depth: int = 2) -> Dict[str, Any]:
         """Get subgraph around a central node."""
         if center_id not in self.nodes:
-            return {"nodes": [], "relations": []}
+            return {}}"nodes": [], "relations": []}
 
         visited_nodes = set()
         visited_relations = set()
@@ -240,7 +240,7 @@ class SemanticGraph:
                         )
                         queue.append((other_id, current_depth + 1))
 
-        return {
+        return {}}
             "nodes": [self.nodes[nid].to_dict() for nid in visited_nodes],
             "relations": [self.relations[rid].to_dict() for rid in visited_relations],
         }
@@ -433,7 +433,7 @@ class SemanticReasoner:
     def get_insights(self, node_id: str) -> Dict[str, Any]:
         """Generate insights about a node."""
         if node_id not in self.graph.nodes:
-            return {}
+            return {}}}
 
         node = self.graph.nodes[node_id]
         neighbors = self.graph.get_node_neighbors(node_id)
@@ -446,7 +446,7 @@ class SemanticReasoner:
             rel_type = rel.relation_type.value
             relation_types[rel_type] = relation_types.get(rel_type, 0) + 1
 
-        return {
+        return {}}
             "node": node.to_dict(),
             "neighbor_count": len(neighbors),
             "neighbor_types": list(set(n.node_type.value for n in neighbors)),
@@ -504,7 +504,7 @@ class SemanticKnowledgeManager:
         # Perform reasoning
         inferred_relations = self.reasoner.infer_relationships()
 
-        return {
+        return {}}
             "message_node_id": message_node.id,
             "extracted_entities": len(extracted_nodes),
             "inferred_relationships": len(inferred_relations),
@@ -522,7 +522,7 @@ class SemanticKnowledgeManager:
             insight = self.reasoner.get_insights(node.id)
             insights.append(insight)
 
-        return {
+        return {}}
             "query": query,
             "matching_nodes": len(matching_nodes),
             "top_matches": [node.to_dict() for node in matching_nodes[:10]],
@@ -542,7 +542,7 @@ class SemanticKnowledgeManager:
             rel_type = relation.relation_type.value
             relation_types[rel_type] = relation_types.get(rel_type, 0) + 1
 
-        return {
+        return {}}
             "total_nodes": len(self.graph.nodes),
             "total_relations": len(self.graph.relations),
             "node_types": node_types,
@@ -556,7 +556,7 @@ class SemanticKnowledgeManager:
         """Get semantic knowledge system status."""
         stats = self.get_graph_statistics()
 
-        return {
+        return {}}
             "semantic_knowledge": {
                 "graph_enabled": True,
                 "total_nodes": stats["total_nodes"],

@@ -277,7 +277,7 @@ class AdvancedORM:
             raise RuntimeError("Async ORM not initialized")
         return self.async_session_factory()
 
-    async def execute_query()
+    async def execute_query(
         self,
         query: str,
         parameters: Optional[Dict[str, Any]] = None,
@@ -343,7 +343,7 @@ class AdvancedORM:
 
     # Advanced Query Builder
 
-    async def find_by_id()
+    async def find_by_id(
         self,
         model_class: Type[T],
         id: Any,
@@ -356,18 +356,21 @@ class AdvancedORM:
                 # Use getattr to safely access id attribute
                 id_attr = getattr(model_class, "id", None)
                 if id_attr is None:
-                    raise ValueError()
+                    raise ValueError(
                         f"Model {model_class.__name__} does not have an 'id' attribute"
                     )
                 query = select(model_class).where(id_attr == id)
 
-                # Add relationship loading
+                # Add relationship loading efficiently
                 if include_relations:
+                    options = []
                     for relation in include_relations:
                         if hasattr(model_class, relation):
-                            query = query.options()
+                            options.append(
                                 selectinload(getattr(model_class, relation))
                             )
+                    if options:
+                        query = query.options(*options)
 
                 result = await session.execute(query)
                 return result.scalar_one_or_none()
@@ -575,7 +578,7 @@ class AdvancedORM:
         if total_cache_operations > 0:
             cache_hit_rate = self.query_metrics.cache_hits / total_cache_operations
 
-        return {
+        return {}}
             "query_metrics": {
                 "query_count": self.query_metrics.query_count,
                 "average_execution_time": self.query_metrics.average_execution_time,
@@ -614,7 +617,7 @@ class AdvancedORM:
             end_time = datetime.now(timezone.utc)
             response_time = (end_time - start_time).total_seconds() * 1000
 
-            return {
+            return {}}
                 "status": "healthy",
                 "response_time_ms": response_time,
                 "active_connections": self.connection_metrics["active_connections"],
@@ -623,7 +626,7 @@ class AdvancedORM:
             }
 
         except Exception as e:
-            return {
+            return {}}
                 "status": "unhealthy",
                 "error": str(e),
                 "last_check": datetime.now(timezone.utc).isoformat(),

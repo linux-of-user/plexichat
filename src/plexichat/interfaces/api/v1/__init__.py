@@ -20,12 +20,13 @@ import logging
 logger = logging.getLogger(__name__)
 
 # Import all routers
-from . import auth
-from . import users
-from . import messages
-from . import files
-from . import admin
-from . import system
+# # from . import auth
+# # from . import users
+# # from . import messages
+# # from . import files
+# # from . import admin
+# # from . import system
+# # from . import rate_limits
 
 # Import Easter eggs router
 try:
@@ -46,6 +47,7 @@ v1_router.include_router(messages.router)
 v1_router.include_router(files.router)
 v1_router.include_router(admin.router)
 v1_router.include_router(system.router)
+v1_router.include_router(rate_limits.router)
 
 # Include Easter eggs router if available
 if easter_eggs_available and easter_eggs_router:

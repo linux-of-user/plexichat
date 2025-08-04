@@ -65,7 +65,7 @@ class NodeUpdateStatus:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for serialization."""
-        return {
+        return {}}
             "node_id": self.node_id,
             "node_name": self.node_name,
             "status": self.status.value,
@@ -99,7 +99,7 @@ class ClusterUpdateOperation:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for serialization."""
-        return {
+        return {}}
             "operation_id": self.operation_id,
             "target_version": str(self.target_version),
             "update_type": self.update_type.value,
@@ -538,7 +538,7 @@ datetime = datetime.now()
             else:
                 # Fallback for testing
                 logger.warning(f"No communication available, simulating message to {node_id}")
-                return {"success": True}
+                return {}}"success": True}
         except Exception as e:
             logger.error(f"Failed to send message to node {node_id}: {e}")
             return None

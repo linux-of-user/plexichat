@@ -240,7 +240,7 @@ class Message(SQLModel, table=True):
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert message to dictionary."""
-        return {
+        return {}}
             "message_id": self.message_id,
             "channel_id": self.channel_id,
             "author_id": self.author_id,

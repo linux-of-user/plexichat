@@ -57,7 +57,7 @@ class ModerationFeedback:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
-        return {
+        return {}}
             "content_id": self.content_id,
             "user_id": self.user_id,
             "feedback_type": self.feedback_type.value,
@@ -203,7 +203,7 @@ class FeedbackCollector:
 
         except Exception as e:
             logger.error(f"Failed to get feedback stats: {e}")
-            return {"error": str(e)}
+            return {}}"error": str(e)}
 
     async def get_user_feedback_history(self, user_id: str, limit: int = 50) -> List[Dict[str, Any]]:
         """Get feedback history for a user."""

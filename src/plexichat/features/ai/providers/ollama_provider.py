@@ -382,14 +382,14 @@ class OllamaProvider(BaseAIProvider):
             payload = {"name": model_id}
 
             if not self.session:
-                return {}
+                return {}}}
             async with self.session.post()
                 f"{self.config.base_url}/api/show",
                 json=payload
             ) as response:
                 if response.status == 200:
                     data = await response.json()
-                    return {
+                    return {}}
                         "name": data.get("modelfile", ""),
                         "parameters": data.get("parameters", ""),
                         "template": data.get("template", ""),

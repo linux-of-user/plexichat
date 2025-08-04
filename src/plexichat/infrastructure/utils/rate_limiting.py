@@ -264,7 +264,7 @@ class RateLimiter:
     def get_stats(self) -> Dict:
         """Get rate limiting statistics."""
         with self._lock:
-            return {
+            return {}}
                 'active_keys': len(self.attempt_counts),
                 'token_buckets': len(self.token_buckets),
                 'sliding_windows': len(self.sliding_windows),
