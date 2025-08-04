@@ -136,7 +136,7 @@ class TokenBucket:
     
     def get_info(self) -> Dict[str, float]:
         """Get current bucket information."""
-        return {}}
+        return {
             "capacity": self.capacity,
             "tokens": self.tokens,
             "refill_rate": self.refill_rate
@@ -450,7 +450,7 @@ class UnifiedRateLimiter:
 
     def get_stats(self) -> Dict[str, Any]:
         """Get rate limiting statistics."""
-        return {}}
+        return {
             "total_requests": self.stats["total_requests"],
             "blocked_requests": self.stats["blocked_requests"],
             "block_rate": (self.stats["blocked_requests"] / max(self.stats["total_requests"], 1)) * 100,

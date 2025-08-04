@@ -98,7 +98,7 @@ async def get_rate_limit_config(
         config_manager = get_rate_limit_config_manager()
         config = config_manager.get_config()
         
-        return {}}
+        return {
             "enabled": config.enabled,
             "default_algorithm": config.default_algorithm.value,
             "per_ip_requests_per_minute": config.per_ip_requests_per_minute,
@@ -135,7 +135,7 @@ async def update_rate_limit_config(
         
         logger.info(f"Rate limit config updated by admin {current_user.get('username', 'unknown')}: {update_data}")
         
-        return {}}
+        return {
             "success": True,
             "message": "Rate limiting configuration updated successfully",
             "updated_fields": list(update_data.keys())
@@ -176,7 +176,7 @@ async def add_endpoint_override(
         
         logger.info(f"Endpoint override added by admin {current_user.get('username', 'unknown')}: {override.path}")
         
-        return {}}
+        return {
             "success": True,
             "message": f"Endpoint override added for {override.path}",
             "limits": limits
@@ -205,7 +205,7 @@ async def remove_endpoint_override(
         
         logger.info(f"Endpoint override removed by admin {current_user.get('username', 'unknown')}: /{path}")
         
-        return {}}
+        return {
             "success": True,
             "message": f"Endpoint override removed for /{path}"
         }
@@ -234,7 +234,7 @@ async def update_user_tier_multiplier(
         logger.info(f"User tier multiplier updated by admin {current_user.get('username', 'unknown')}: "
                    f"{tier_update.tier} = {tier_update.multiplier}")
         
-        return {}}
+        return {
             "success": True,
             "message": f"User tier multiplier updated for {tier_update.tier}",
             "tier": tier_update.tier,
@@ -262,7 +262,7 @@ async def get_effective_limits(
         config_manager = get_rate_limit_config_manager()
         limits = config_manager.get_effective_limits_for_user(user_tier)
         
-        return {}}
+        return {
             "user_tier": user_tier,
             "effective_limits": limits
         }
@@ -296,7 +296,7 @@ async def test_rate_limits(
         max_requests, window_seconds = rate_limiter._get_rate_limit_for_strategy(strategy, request)
         current_count = rate_limiter._get_current_count(client_id, rate_limiter.config.default_algorithm)
         
-        return {}}
+        return {
             "strategy": strategy.value,
             "client_id": client_id,
             "max_requests": max_requests,
@@ -327,7 +327,7 @@ async def get_integrated_protection_stats(
         protection_system = get_protection_system()
         stats = protection_system.get_comprehensive_stats()
 
-        return {}}
+        return {
             "success": True,
             "timestamp": time.time(),
             "stats": stats
@@ -382,7 +382,7 @@ async def update_account_type_limits(
         logger.info(f"Account limits updated by admin {current_user.get('username', 'unknown')}: "
                    f"{account_type} = {requests_per_minute} req/min")
 
-        return {}}
+        return {
             "success": True,
             "message": f"Account limits updated for {account_type}",
             "account_type": account_type,
@@ -435,7 +435,7 @@ async def update_load_multipliers(
 
         logger.info(f"Load multipliers updated by admin {current_user.get('username', 'unknown')}: {multipliers}")
 
-        return {}}
+        return {
             "success": True,
             "message": "Load multipliers updated successfully",
             "multipliers": {
@@ -475,7 +475,7 @@ async def get_system_health(
         overall_status = "critical" if cpu_status == "critical" or memory_status == "critical" else \
                         "warning" if cpu_status == "warning" or memory_status == "warning" else "healthy"
 
-        return {}}
+        return {
             "success": True,
             "timestamp": time.time(),
             "overall_status": overall_status,

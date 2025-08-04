@@ -223,7 +223,7 @@ class EnhancedAntivirusManager:
             ]
 
         # Create scan request
-        scan_request = ScanRequest()
+        scan_request = ScanRequest(
             file_path=file_path,
             scan_types=scan_types,
             priority=priority,
@@ -298,20 +298,20 @@ class EnhancedAntivirusManager:
             from pathlib import Path
 
             file_path_obj = Path(file_path)
-            if not path.exists():
+            if not file_path_obj.exists():
                 logger.warning(f"Cannot quarantine non-existent file: {file_path}")
                 return False
 
             # Calculate file hash
-            file_hash = await self._calculate_file_hash(path)
+            file_hash = await self._calculate_file_hash(file_path)
 
             # Create quarantine filename
             timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-            quarantine_filename = f"{timestamp}_{file_hash[:16]}_{path.name}"
+            quarantine_filename = f"{timestamp}_{file_hash[:16]}_{file_path_obj.name}"
             quarantine_path = self.quarantine_dir / quarantine_filename
 
             # Move file to quarantine
-            path.rename(quarantine_path)
+            file_path_obj.rename(quarantine_path)
 
             # Determine threat level and name
             max_threat_level = max((r.threat_level for r in scan_results), default=ThreatLevel.CLEAN)
@@ -320,8 +320,8 @@ class EnhancedAntivirusManager:
                 threat_name = threat_names[0] if threat_names else "Unknown Threat"
 
             # Create quarantine entry
-            entry = QuarantineEntry()
-                original_path=str(path),
+            entry = QuarantineEntry(
+                original_path=str(file_path),
                 quarantine_path=str(quarantine_path),
                 threat_name=threat_name,
                 threat_level=max_threat_level,
@@ -366,7 +366,7 @@ class EnhancedAntivirusManager:
             entry = self.quarantine_entries[file_hash]
             from pathlib import Path
 
-            self.quarantine_path = Path(entry.quarantine_path)
+            quarantine_path = Path(entry.quarantine_path)
 
             if not quarantine_path.exists():
                 logger.error(f"Quarantined file not found: {entry.quarantine_path}")
@@ -376,14 +376,11 @@ class EnhancedAntivirusManager:
             if not restore_path:
                 restore_path = entry.original_path
 
-            from pathlib import Path
-
-
-            self.restore_path = Path(restore_path)
-            restore_path.parent.mkdir(parents=True, exist_ok=True)
+            restore_path_obj = Path(restore_path)
+            restore_path_obj.parent.mkdir(parents=True, exist_ok=True)
 
             # Move file back
-            quarantine_path.rename(restore_path)
+            quarantine_path.rename(restore_path_obj)
 
             # Remove from quarantine
             del self.quarantine_entries[file_hash]
@@ -414,7 +411,7 @@ class EnhancedAntivirusManager:
             entry = self.quarantine_entries[file_hash]
             from pathlib import Path
 
-            self.quarantine_path = Path(entry.quarantine_path)
+            quarantine_path = Path(entry.quarantine_path)
 
             if quarantine_path.exists():
                 quarantine_path.unlink()
@@ -593,15 +590,13 @@ class EnhancedAntivirusManager:
             file_path = scan_request.file_path
 
             # Check if file exists
-            if not from pathlib import Path
-Path(file_path).exists():
+            from pathlib import Path
+            if not Path(file_path).exists():
                 logger.warning(f"File not found for scanning: {file_path}")
                 return []
 
             # Check file size limit
-            from pathlib import Path
-
-            self.file_size = Path(file_path).stat().st_size
+            file_size = Path(file_path).stat().st_size
             if file_size > self.config["max_file_size"]:
                 logger.warning(f"File too large for scanning: {file_path} ({file_size} bytes)")
                 return []
@@ -610,8 +605,7 @@ Path(file_path).exists():
             for scan_type in scan_request.scan_types:
                 try:
                     if scan_type == ScanType.HASH_SCAN and self.config["hash_scanning"]:
-                        file_hash = await self._calculate_file_hash(from pathlib import Path)
-Path(file_path))
+                        file_hash = await self._calculate_file_hash(file_path)
                         result = await self.antivirus_engine.hash_scanner.scan_hash(file_hash, file_path)
                         results.append(result)
 
@@ -624,12 +618,11 @@ Path(file_path))
                         results.append(result)
 
                     elif scan_type == ScanType.THREAT_INTELLIGENCE and self.config["threat_intelligence"]:
-                        file_hash = await self._calculate_file_hash(from pathlib import Path)
-Path(file_path))
+                        file_hash = await self._calculate_file_hash(Path(file_path))
                         threat_sig = await self.antivirus_engine.threat_intelligence.check_hash_threat(file_hash)
                         if threat_sig:
                             # Convert threat signature to scan result
-                            result = ScanResult()
+                            result = ScanResult(
                                 file_path=file_path,
                                 file_hash=file_hash,
                                 threat_level=threat_sig.threat_level,
@@ -649,7 +642,7 @@ Path(file_path))
             # Update statistics
             self.stats["total_scans"] += 1
             scan_duration = (datetime.now(timezone.utc) - start_time).total_seconds()
-            self.stats["average_scan_time"] = ()
+            self.stats["average_scan_time"] = (
                 (self.stats["average_scan_time"] * (self.stats["total_scans"] - 1) + scan_duration) /
                 self.stats["total_scans"]
             )
@@ -668,7 +661,7 @@ Path(file_path))
             return
 
         # Determine overall threat level
-        max((r.threat_level for r in results), default=ThreatLevel.CLEAN)
+        max_threat_level = max((r.threat_level for r in results), default=ThreatLevel.CLEAN)
 
         # Count clean vs threat results
         threat_results = [r for r in results if r.threat_level.value > ThreatLevel.CLEAN.value]
@@ -677,7 +670,7 @@ Path(file_path))
             self.stats["threats_detected"] += 1
 
             # Determine if file should be quarantined
-            should_quarantine = any()
+            should_quarantine = any(
                 r.threat_level.value >= ThreatLevel.MEDIUM_RISK.value
                 for r in threat_results
             )
@@ -712,8 +705,9 @@ Path(file_path))
 
         try:
             # Check if it's a ZIP file (plugin format)
-            if not path.suffix.lower() == '.zip':
-                return ScanResult()
+            plugin_path_obj = Path(plugin_path)
+            if not plugin_path_obj.suffix.lower() == '.zip':
+                return ScanResult(
                     file_path=plugin_path,
                     file_hash="",
                     threat_level=ThreatLevel.SUSPICIOUS,

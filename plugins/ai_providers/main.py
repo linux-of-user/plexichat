@@ -13,114 +13,86 @@ from typing import Any, Dict, List, Optional
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
-# Plugin interface imports with fallbacks
-try:
-    from plugin_internal import PluginInterface, PluginMetadata, PluginType, ModulePermissions, ModuleCapability
-    pass
-except ImportError:
-    class PluginInterface:
-        def __init__(self, name, version):
-            self.name = name
-            self.version = version
-        def get_metadata(self) -> Dict[str, Any]:
-            return {}
-        def get_required_permissions(self) -> "ModulePermissions":
-            return ModulePermissions()
+# Plugin interface imports
+from plugin_internal import PluginInterface, PluginMetadata, PluginType, ModulePermissions, ModuleCapability
+# Configuration classes for AI providers
 
-    class PluginMetadata:
-        def __init__(self, **kwargs):
-            for k, v in kwargs.items():
-                setattr(self, k, v)
+class BitNetConfig:
+    def __init__(self, **kwargs):
+        for k, v in kwargs.items():
+            setattr(self, k, v)
 
-    class PluginType:
-        FEATURE = "feature"
+class BitNetProvider:
+    def __init__(self, config):
+        self.config = config
+    async def initialize(self):
+        pass
+    async def generate(self, prompt, **kwargs):
+        return f"BitNet response to: {prompt}"
+    async def shutdown(self):
+        pass
+    async def benchmark(self):
+        return {"provider": "BitNet", "status": "not_available"}
 
-    class ModulePermissions:
-        def __init__(self, **kwargs):
-            for k, v in kwargs.items():
-                setattr(self, k, v)
+class LlamaConfig:
+    def __init__(self, **kwargs):
+        for k, v in kwargs.items():
+            setattr(self, k, v)
 
-    class ModuleCapability:
-        MESSAGING = "messaging"
-        FILE_SYSTEM_ACCESS = "file_system_access"
-        NETWORK_ACCESS = "network_access"
+class LlamaProvider:
+    def __init__(self, config):
+        self.config = config
+    async def initialize(self):
+        pass
+    async def generate(self, prompt, **kwargs):
+        return f"Llama response to: {prompt}"
+    async def shutdown(self):
+        pass
+    async def benchmark(self):
+        return {"provider": "Llama", "status": "not_available"}
 
-    class BitNetConfig:
-        def __init__(self, **kwargs):
-            for k, v in kwargs.items():
-                setattr(self, k, v)
+class HFConfig:
+    def __init__(self, **kwargs):
+        for k, v in kwargs.items():
+            setattr(self, k, v)
 
-    class BitNetProvider:
-        def __init__(self, config):
-            self.config = config
-        async def initialize(self):
-            pass
-        async def generate(self, prompt, **kwargs):
-            return f"BitNet response to: {prompt}"
-        async def shutdown(self):
-            pass
-        async def benchmark(self):
-            return {"provider": "BitNet", "status": "not_available"}
+class HFProvider:
+    def __init__(self, config):
+        self.config = config
+    async def initialize(self):
+        pass
+    async def generate(self, prompt, **kwargs):
+        return f"HuggingFace response to: {prompt}"
+    async def shutdown(self):
+        pass
+    async def benchmark(self):
+        return {"provider": "HuggingFace", "status": "not_available"}
 
-    class LlamaConfig:
-        def __init__(self, **kwargs):
-            for k, v in kwargs.items():
-                setattr(self, k, v)
+class AIPanel:
+    def __init__(self):
+        pass
+    async def shutdown(self):
+        pass
+    def get_panel_data(self):
+        return {"status": "not_available"}
+    async def initialize(self):
+        pass
 
-    class LlamaProvider:
-        def __init__(self, config):
-            self.config = config
-        async def initialize(self):
-            pass
-        async def generate(self, prompt, **kwargs):
-            return f"Llama response to: {prompt}"
-        async def shutdown(self):
-            pass
-        async def benchmark(self):
-            return {"provider": "Llama", "status": "not_available"}
+class TestSuite:
+    def __init__(self):
+        pass
+    async def run_tests(self):
+        return {"status": "tests_not_available"}
+    async def run_all(self):
+        return {"status": "tests_not_available"}
+    async def initialize(self):
+        pass
 
-    class HFConfig:
-        def __init__(self, **kwargs):
-            for k, v in kwargs.items():
-                setattr(self, k, v)
-
-    class HFProvider:
-        def __init__(self, config):
-            self.config = config
-        async def initialize(self):
-            pass
-        async def generate(self, prompt, **kwargs):
-            return f"HuggingFace response to: {prompt}"
-        async def shutdown(self):
-            pass
-        async def benchmark(self):
-            return {"provider": "HuggingFace", "status": "not_available"}
-
-    class AIPanel:
-        def __init__(self):
-            pass
-        async def shutdown(self):
-            pass
-        def get_panel_data(self):
-            return {"status": "not_available"}
-        async def initialize(self):
-            pass
-
-    class TestSuite:
-        def __init__(self):
-            pass
-        async def run_tests(self):
-            return {"status": "tests_not_available"}
-        async def run_all(self):
-            return {"status": "tests_not_available"}
-        async def initialize(self):
-            pass
-
-    class AIAbstractionLayer:
-        def __init__(self):
-            pass
-        async def register_provider(self, name, provider):
-            pass
+class AIAbstractionLayer:
+    def __init__(self):
+        pass
+    async def register_provider(self, name, provider):
+        pass
 
 logger = logging.getLogger(__name__)
 
@@ -148,30 +120,24 @@ class AIProvidersPlugin(PluginInterface):
         # State
         self.providers_registered = False
 
-    def get_metadata(self) -> Dict[str, Any]:
+    def get_metadata(self) -> PluginMetadata:
         """Get plugin metadata."""
-        return {
-            "name": "ai_providers",
-            "version": "1.0.0",
-            "description": "AI providers with BitNet 1-bit LLM, Llama.cpp, and HF support",
-            "author": "PlexiChat Team",
-            "plugin_type": "FEATURE",
-            "enabled": True,
-            "capabilities": [
-                "bitnet_1bit_llm",
-                "llama_cpp",
-                "hf_integration",
-                "local_inference"
-            ]
-        }
+        return PluginMetadata(
+            name="ai_providers",
+            version="1.0.0",
+            description="AI providers with BitNet 1-bit LLM, Llama.cpp, and HF support",
+            author="PlexiChat Team",
+            plugin_type=PluginType.FEATURE,
+            enabled=True
+        )
 
     def get_required_permissions(self) -> ModulePermissions:
         """Get required permissions."""
         return ModulePermissions(
             capabilities=[
-                ModuleCapability.MESSAGING,
-                ModuleCapability.FILE_SYSTEM_ACCESS,
-                ModuleCapability.NETWORK_ACCESS
+                ModuleCapability("messaging", "AI messaging capabilities"),
+                ModuleCapability("file_system_access", "File system access for models"),
+                ModuleCapability("network_access", "Network access for remote models")
             ],
             network_access=True,
             file_system_access=True,
@@ -257,14 +223,7 @@ class AIProvidersPlugin(PluginInterface):
     async def _register_providers(self):
         """Register providers with AI layer."""
         try:
-            # Import AI layer
-            try:
-                from plugin_internal import AIAbstractionLayer
-                pass
-            except ImportError:
-                # Use fallback
-                pass
-
+            # Use local AI layer
             ai_layer = AIAbstractionLayer()
 
             # Register providers

@@ -21,8 +21,10 @@ Specialized antivirus scanner for message content with:
 
 logger = logging.getLogger(__name__)
 
+
 class MessageThreatType(Enum):
     """Types of threats that can be found in messages."""
+
     CLEAN = "clean"
     SQL_INJECTION = "sql_injection"
     XSS_ATTEMPT = "xss_attempt"
@@ -32,17 +34,21 @@ class MessageThreatType(Enum):
     MALWARE_LINK = "malware_link"
     SUSPICIOUS_PATTERN = "suspicious_pattern"
 
+
 class MessageThreatLevel(Enum):
     """Threat severity levels."""
+
     CLEAN = 0
     LOW = 1
     MEDIUM = 2
     HIGH = 3
     CRITICAL = 4
 
+
 @dataclass
 class MessageScanResult:
     """Result of message content scanning."""
+
     message_hash: str
     threat_type: MessageThreatType
     threat_level: MessageThreatLevel
@@ -53,6 +59,7 @@ class MessageScanResult:
     timestamp: datetime
     metadata: Dict[str, Any]
     recommended_action: str
+
 
 class MessageAntivirusScanner:
     """
@@ -81,7 +88,7 @@ class MessageAntivirusScanner:
             "total_scans": 0,
             "threats_detected": 0,
             "false_positives": 0,
-            "scan_time_total": 0
+            "scan_time_total": 0,
         }
 
         logger.info(" Message Antivirus Scanner initialized")
@@ -169,13 +176,15 @@ class MessageAntivirusScanner:
         """Initialize patterns that should be allowed."""
         # Quoted SQL patterns (legitimate use)
         self.whitelist_patterns = [
-            r'\"?\[.*?\]\"?',  # "[SQL]" format
-            r'\"?\{.*?\}\"?',  # "{SQL}" format
-            r'```sql\n.*?\n```',  # Code blocks
-            r'`.*?`',  # Inline code
+            r"\"?\[.*?\]\"?",  # "[SQL]" format
+            r"\"?\{.*?\}\"?",  # "{SQL}" format
+            r"```sql\n.*?\n```",  # Code blocks
+            r"`.*?`",  # Inline code
         ]
 
-    async def scan_message(self, message_content: str, sender_info: Optional[Dict] = None) -> MessageScanResult:
+    async def scan_message(
+        self, message_content: str, sender_info: Optional[Dict] = None
+    ) -> MessageScanResult:
         """
         Scan message content for threats.
 
@@ -194,7 +203,9 @@ class MessageAntivirusScanner:
 
             # Check whitelist first
             if self._is_whitelisted_content(message_content):
-                return self._create_clean_result(message_hash, message_content, start_time)
+                return self._create_clean_result(
+                    message_hash, message_content, start_time
+                )
 
             # Perform threat detection
             threats = []
@@ -221,32 +232,38 @@ class MessageAntivirusScanner:
 
             # Determine overall threat level
             if not threats:
-                return self._create_clean_result(message_hash, message_content, start_time)
+                return self._create_clean_result(
+                    message_hash, message_content, start_time
+                )
 
             # Find highest threat level
-            highest_threat = max(threats, key=lambda t: t['level'].value)
+            highest_threat = max(threats, key=lambda t: t["level"].value)
 
-            scan_duration = int((datetime.now(timezone.utc) - start_time).total_seconds() * 1000)
+            scan_duration = int(
+                (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+            )
             self.scan_stats["scan_time_total"] += scan_duration
 
-            if highest_threat['level'].value >= MessageThreatLevel.MEDIUM.value:
+            if highest_threat["level"].value >= MessageThreatLevel.MEDIUM.value:
                 self.scan_stats["threats_detected"] += 1
 
             return MessageScanResult(
                 message_hash=message_hash,
-                threat_type=highest_threat['type'],
-                threat_level=highest_threat['level'],
-                confidence_score=highest_threat['confidence'],
-                description=highest_threat['description'],
-                detected_patterns=highest_threat['patterns'],
+                threat_type=highest_threat["type"],
+                threat_level=highest_threat["level"],
+                confidence_score=highest_threat["confidence"],
+                description=highest_threat["description"],
+                detected_patterns=highest_threat["patterns"],
                 scan_duration_ms=scan_duration,
                 timestamp=start_time,
                 metadata={
                     "all_threats": threats,
                     "message_length": len(message_content),
-                    "sender_info": sender_info or {}
+                    "sender_info": sender_info or {},
                 },
-                recommended_action=self._get_recommended_action(highest_threat['level'])
+                recommended_action=self._get_recommended_action(
+                    highest_threat["level"]
+                ),
             )
 
         except Exception as e:
@@ -272,13 +289,15 @@ class MessageAntivirusScanner:
 
         if detected_patterns:
             confidence = min(0.9, len(detected_patterns) * 0.3)  # Max 90% confidence
-            threats.append({
-                'type': MessageThreatType.SQL_INJECTION,
-                'level': MessageThreatLevel.HIGH,
-                'confidence': confidence,
-                'description': f"SQL injection patterns detected: {len(detected_patterns)} patterns",
-                'patterns': detected_patterns
-            })
+            threats.append(
+                {
+                    "type": MessageThreatType.SQL_INJECTION,
+                    "level": MessageThreatLevel.HIGH,
+                    "confidence": confidence,
+                    "description": f"SQL injection patterns detected: {len(detected_patterns)} patterns",
+                    "patterns": detected_patterns,
+                }
+            )
 
         return threats
 
@@ -294,13 +313,15 @@ class MessageAntivirusScanner:
 
         if detected_patterns:
             confidence = min(0.85, len(detected_patterns) * 0.4)
-            threats.append({
-                'type': MessageThreatType.XSS_ATTEMPT,
-                'level': MessageThreatLevel.HIGH,
-                'confidence': confidence,
-                'description': f"XSS patterns detected: {len(detected_patterns)} patterns",
-                'patterns': detected_patterns
-            })
+            threats.append(
+                {
+                    "type": MessageThreatType.XSS_ATTEMPT,
+                    "level": MessageThreatLevel.HIGH,
+                    "confidence": confidence,
+                    "description": f"XSS patterns detected: {len(detected_patterns)} patterns",
+                    "patterns": detected_patterns,
+                }
+            )
 
         return threats
 
@@ -310,7 +331,7 @@ class MessageAntivirusScanner:
         detected_patterns = []
 
         # Extract URLs
-        url_pattern = r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
+        url_pattern = r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+"
         urls = re.findall(url_pattern, content)
 
         for url in urls:
@@ -320,13 +341,15 @@ class MessageAntivirusScanner:
 
         if detected_patterns:
             confidence = min(0.7, len(detected_patterns) * 0.5)
-            threats.append({
-                'type': MessageThreatType.MALICIOUS_LINK,
-                'level': MessageThreatLevel.MEDIUM,
-                'confidence': confidence,
-                'description': f"Suspicious URLs detected: {len(detected_patterns)} URLs",
-                'patterns': detected_patterns
-            })
+            threats.append(
+                {
+                    "type": MessageThreatType.MALICIOUS_LINK,
+                    "level": MessageThreatLevel.MEDIUM,
+                    "confidence": confidence,
+                    "description": f"Suspicious URLs detected: {len(detected_patterns)} URLs",
+                    "patterns": detected_patterns,
+                }
+            )
 
         return threats
 
@@ -342,13 +365,15 @@ class MessageAntivirusScanner:
 
         if detected_patterns:
             confidence = min(0.75, len(detected_patterns) * 0.3)
-            threats.append({
-                'type': MessageThreatType.PHISHING_ATTEMPT,
-                'level': MessageThreatLevel.MEDIUM,
-                'confidence': confidence,
-                'description': f"Phishing patterns detected: {len(detected_patterns)} patterns",
-                'patterns': detected_patterns
-            })
+            threats.append(
+                {
+                    "type": MessageThreatType.PHISHING_ATTEMPT,
+                    "level": MessageThreatLevel.MEDIUM,
+                    "confidence": confidence,
+                    "description": f"Phishing patterns detected: {len(detected_patterns)} patterns",
+                    "patterns": detected_patterns,
+                }
+            )
 
         return threats
 
@@ -364,19 +389,25 @@ class MessageAntivirusScanner:
 
         if detected_patterns:
             confidence = min(0.6, len(detected_patterns) * 0.2)
-            threats.append({
-                'type': MessageThreatType.SPAM_CONTENT,
-                'level': MessageThreatLevel.LOW,
-                'confidence': confidence,
-                'description': f"Spam patterns detected: {len(detected_patterns)} patterns",
-                'patterns': detected_patterns
-            })
+            threats.append(
+                {
+                    "type": MessageThreatType.SPAM_CONTENT,
+                    "level": MessageThreatLevel.LOW,
+                    "confidence": confidence,
+                    "description": f"Spam patterns detected: {len(detected_patterns)} patterns",
+                    "patterns": detected_patterns,
+                }
+            )
 
         return threats
 
-    def _create_clean_result(self, message_hash: str, content: str, start_time: datetime) -> MessageScanResult:
+    def _create_clean_result(
+        self, message_hash: str, content: str, start_time: datetime
+    ) -> MessageScanResult:
         """Create a clean scan result."""
-        scan_duration = int((datetime.now(timezone.utc) - start_time).total_seconds() * 1000)
+        scan_duration = int(
+            (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+        )
 
         return MessageScanResult(
             message_hash=message_hash,
@@ -388,12 +419,16 @@ class MessageAntivirusScanner:
             scan_duration_ms=scan_duration,
             timestamp=start_time,
             metadata={"message_length": len(content)},
-            recommended_action="allow"
+            recommended_action="allow",
         )
 
-    def _create_error_result(self, message_hash: str, error: str, start_time: datetime) -> MessageScanResult:
+    def _create_error_result(
+        self, message_hash: str, error: str, start_time: datetime
+    ) -> MessageScanResult:
         """Create an error scan result."""
-        scan_duration = int((datetime.now(timezone.utc) - start_time).total_seconds() * 1000)
+        scan_duration = int(
+            (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+        )
 
         return MessageScanResult(
             message_hash=message_hash,
@@ -405,7 +440,7 @@ class MessageAntivirusScanner:
             scan_duration_ms=scan_duration,
             timestamp=start_time,
             metadata={"error": error},
-            recommended_action="review"
+            recommended_action="review",
         )
 
     def _get_recommended_action(self, threat_level: MessageThreatLevel) -> str:
@@ -415,18 +450,26 @@ class MessageAntivirusScanner:
             MessageThreatLevel.LOW: "allow_with_warning",
             MessageThreatLevel.MEDIUM: "quarantine",
             MessageThreatLevel.HIGH: "block",
-            MessageThreatLevel.CRITICAL: "block_and_report"
+            MessageThreatLevel.CRITICAL: "block_and_report",
         }
         return actions.get(threat_level, "review")
 
     def get_scan_statistics(self) -> Dict[str, Any]:
         """Get scanning statistics."""
-        avg_scan_time = self.scan_stats["scan_time_total"] / self.scan_stats["total_scans"] if self.scan_stats["total_scans"] > 0 else 0
+        avg_scan_time = (
+            self.scan_stats["scan_time_total"] / self.scan_stats["total_scans"]
+            if self.scan_stats["total_scans"] > 0
+            else 0
+        )
 
         return {
             "total_scans": self.scan_stats["total_scans"],
             "threats_detected": self.scan_stats["threats_detected"],
             "false_positives": self.scan_stats["false_positives"],
             "average_scan_time_ms": round(avg_scan_time, 2),
-            "threat_detection_rate": self.scan_stats["threats_detected"] / self.scan_stats["total_scans"] if self.scan_stats["total_scans"] > 0 else 0
+            "threat_detection_rate": (
+                self.scan_stats["threats_detected"] / self.scan_stats["total_scans"]
+                if self.scan_stats["total_scans"] > 0
+                else 0
+            ),
         }

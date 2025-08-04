@@ -367,7 +367,7 @@ class AuthManager:
         # Ensure we always return a dict
         if isinstance(result, dict):
             return result
-        return {}}"valid": False, "error": "Invalid token format"}
+        return {"valid": False, "error": "Invalid token format"}
 
     async def refresh_token(self, refresh_token: str) -> Dict[str, Any]:
         """Refresh an access token."""
@@ -414,7 +414,7 @@ class AuthManager:
                 if not session_data.get("valid"):
                     raise AuthenticationError("Invalid session")
 
-            return {}}
+            return {
                 "authenticated": True,
                 "user_id": token_data.get("user_id"),
                 "session_id": session_id,

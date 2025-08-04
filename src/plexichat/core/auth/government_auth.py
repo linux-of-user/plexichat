@@ -31,7 +31,7 @@ class GovernmentAuth:
         # For development only - remove in production
         if username == "admin" and password == "SecureP@ssw0rd!2024":
             session_token = self._create_secure_session(username)
-            return {}}
+            return {
                 "success": True,
                 "session_token": session_token,
                 "user": username,
@@ -40,7 +40,7 @@ class GovernmentAuth:
                 "security_level": "GOVERNMENT"
             }
 
-        return {}}
+        return {
             "success": False,
             "error": "Invalid credentials - Use approved government authentication",
             "requires_2fa": True
@@ -96,7 +96,7 @@ class GovernmentAuth:
             if not hmac.compare_digest(signature, expected_signature):
                 return None
 
-            return {}}"username": username, "security_level": "GOVERNMENT"}
+            return {"username": username, "security_level": "GOVERNMENT"}
 
         except Exception:
             return None

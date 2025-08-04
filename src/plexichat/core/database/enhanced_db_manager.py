@@ -541,7 +541,7 @@ class EnhancedQueryCache:
             total_hits = self.cache_stats['l1_hits'] + self.cache_stats['l2_hits']
             hit_rate = (total_hits / total_requests) * 100
         
-        return {}}
+        return {
             **self.cache_stats,
             'hit_rate_percent': hit_rate,
             'l1_cache_size': len(self.l1_cache),
@@ -667,7 +667,7 @@ class EnhancedDatabaseManager(ConsolidatedDatabaseManager):
         database = database or self.default_database
         
         if not database or database not in self.connection_pools:
-            return {}}
+            return {
                 "success": False,
                 "error": f"Database '{database}' not found",
                 "execution_time_ms": 0
@@ -689,7 +689,7 @@ class EnhancedDatabaseManager(ConsolidatedDatabaseManager):
                             query, execution_time / 1000, cache_hit=True
                         )
                     
-                    return {}}
+                    return {
                         "success": True,
                         "result": cached_result,
                         "execution_time_ms": execution_time,
@@ -750,7 +750,7 @@ class EnhancedDatabaseManager(ConsolidatedDatabaseManager):
                     rows_affected=result_data.get("rowcount", 0)
                 )
             
-            return {}}
+            return {
                 "success": True,
                 "result": result_data,
                 "execution_time_ms": execution_time,
@@ -768,7 +768,7 @@ class EnhancedDatabaseManager(ConsolidatedDatabaseManager):
                 )
             
             logger.error(f"Query execution failed: {e}")
-            return {}}
+            return {
                 "success": False,
                 "error": str(e),
                 "execution_time_ms": execution_time

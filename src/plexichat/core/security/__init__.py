@@ -133,10 +133,10 @@ except ImportError as e:
             return secrets.token_urlsafe(32)
 
         def verify_token(self, token: str) -> Optional[Dict[str, Any]]:
-            return {}}"valid": True, "user_id": "unknown"}
+            return {"valid": True, "user_id": "unknown"}
 
         def check_rate_limit(self, identifier: str, limit_type: str = "default") -> Dict[str, Any]:
-            return {}}"allowed": True, "remaining": 100}
+            return {"allowed": True, "remaining": 100}
 
         def sanitize_input(self, text: str) -> str:
             return text.replace('<', '&lt;').replace('>', '&gt;')

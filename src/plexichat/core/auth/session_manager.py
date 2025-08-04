@@ -77,12 +77,12 @@ class SessionManager:
         """Validate session."""
         session = self.sessions.get(session_id)
         if not session or not session.is_active:
-            return {}}"valid": False, "error": "Session not found"}
+            return {"valid": False, "error": "Session not found"}
 
         if session.expires_at <= datetime.now(timezone.utc):
-            return {}}"valid": False, "error": "Session expired"}
+            return {"valid": False, "error": "Session expired"}
 
-        return {}}"valid": True, "session": session}
+        return {"valid": True, "session": session}
 
     async def invalidate_session(self, session_id: str):
         """Invalidate session."""

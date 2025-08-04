@@ -963,13 +963,13 @@ class ConsolidatedDatabaseManager:
                 await cache_set(cache_key, {"success": True, "result": result, "execution_time": execution_time}, ttl=300)
                 logger.debug(f"Cached query result: {query[:50]}...")
 
-            return {}}"success": True, "result": result, "execution_time": execution_time}
+            return {"success": True, "result": result, "execution_time": execution_time}
 
         except Exception as e:
             execution_time = time.time() - start_time
             self._update_metrics(database or 'unknown', execution_time, success=False)
             logger.error(f"Query execution failed on '{database}': {e}")
-            return {}}"success": False, "error": str(e), "execution_time": execution_time}
+            return {"success": False, "error": str(e), "execution_time": execution_time}
 
     def _format_last_query_time(self, last_query_time) -> Optional[str]:
         """Helper method to safely format last query time."""
@@ -1037,7 +1037,7 @@ class ConsolidatedDatabaseManager:
 
     def get_status(self) -> Dict[str, Any]:
         """Get comprehensive database system status."""
-        return {}}
+        return {
             "initialized": self.initialized,
             "databases": {
                 name: {

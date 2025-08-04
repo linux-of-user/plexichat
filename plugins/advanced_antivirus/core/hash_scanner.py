@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from typing import Any, Dict, Optional, Set
 
@@ -35,24 +35,24 @@ class HashBasedScanner:
 
         # Public API configurations (would need real API keys)
         self.public_apis = {
-            'virustotal': {
-                'url': 'https://www.virustotal.com/vtapi/v2/file/report',
-                'api_key': 'your_virustotal_api_key',
-                'enabled': False  # Disabled by default
+            "virustotal": {
+                "url": "https://www.virustotal.com/vtapi/v2/file/report",
+                "api_key": "your_virustotal_api_key",
+                "enabled": False,  # Disabled by default
             },
-            'malwarebytes': {
-                'url': 'https://api.malwarebytes.com/v1/hash/lookup',
-                'api_key': 'your_malwarebytes_api_key',
-                'enabled': False
-            }
+            "malwarebytes": {
+                "url": "https://api.malwarebytes.com/v1/hash/lookup",
+                "api_key": "your_malwarebytes_api_key",
+                "enabled": False,
+            },
         }
 
         self.scan_stats = {
-            'total_hash_scans': 0,
-            'threats_found': 0,
-            'api_queries': 0,
-            'cache_hits': 0,
-            'last_db_update': None
+            "total_hash_scans": 0,
+            "threats_found": 0,
+            "api_queries": 0,
+            "cache_hits": 0,
+            "last_db_update": None,
         }
 
         self._initialized = False
@@ -87,25 +87,31 @@ class HashBasedScanner:
         # Check local database first
         local_result = await self._check_local_database(file_hash)
         if local_result:
-            self.scan_stats['cache_hits'] += 1
-            return self._create_scan_result(file_path, file_hash, local_result, start_time)
+            self.scan_stats["cache_hits"] += 1
+            return self._create_scan_result(
+                file_path, file_hash, local_result, start_time
+            )
 
         # Check public APIs if enabled
         api_result = await self._check_public_apis(file_hash)
         if api_result:
             # Cache the result
             await self._cache_threat_result(file_hash, api_result)
-            return self._create_scan_result(file_path, file_hash, api_result, start_time)
+            return self._create_scan_result(
+                file_path, file_hash, api_result, start_time
+            )
 
         # Check PlexiChat community database
         community_result = await self._check_community_database(file_hash)
         if community_result:
-            return self._create_scan_result(file_path, file_hash, community_result, start_time)
+            return self._create_scan_result(
+                file_path, file_hash, community_result, start_time
+            )
 
         # Hash not found in any database - mark as clean
         await self._mark_hash_clean(file_hash)
 
-        self.scan_stats['total_hash_scans'] += 1
+        self.scan_stats["total_hash_scans"] += 1
 
         return ScanResult(
             file_path=file_path,
@@ -117,7 +123,10 @@ class HashBasedScanner:
             scan_duration=(datetime.now(timezone.utc) - start_time).total_seconds(),
             detected_at=start_time,
             confidence_score=0.9,
-            details={"hash_status": "clean", "databases_checked": ["local", "public", "community"]}
+            details={
+                "hash_status": "clean",
+                "databases_checked": ["local", "public", "community"],
+            },
         )
 
     async def update_database(self) -> bool:
@@ -139,7 +148,9 @@ class HashBasedScanner:
             await self._cleanup_old_entries()
 
             if updated:
-                self.scan_stats['last_db_update'] = datetime.now(timezone.utc).isoformat()
+                self.scan_stats["last_db_update"] = datetime.now(
+                    timezone.utc
+                ).isoformat()
                 logger.info("Hash database updated successfully")
 
             return updated
@@ -148,8 +159,13 @@ class HashBasedScanner:
             logger.error(f"Failed to update hash database: {e}")
             return False
 
-    async def report_threat(self, file_hash: str, threat_name: str, threat_type: ThreatType,
-                          confidence: float = 0.8) -> bool:
+    async def report_threat(
+        self,
+        file_hash: str,
+        threat_name: str,
+        threat_type: ThreatType,
+        confidence: float = 0.8,
+    ) -> bool:
         """Report a new threat to the community database."""
         try:
             signature = ThreatSignature(
@@ -164,7 +180,7 @@ class HashBasedScanner:
                 pattern=None,
                 description=f"Community reported threat: {threat_name}",
                 created_at=datetime.now(timezone.utc),
-                updated_at=datetime.now(timezone.utc)
+                updated_at=datetime.now(timezone.utc),
             )
 
             await self._save_threat_signature(signature)
@@ -181,16 +197,17 @@ class HashBasedScanner:
         """Get hash scanner statistics."""
         return {
             **self.scan_stats,
-            'known_threats': len(self.known_threats),
-            'clean_hashes': len(self.clean_hashes),
-            'suspicious_hashes': len(self.suspicious_hashes)
+            "known_threats": len(self.known_threats),
+            "clean_hashes": len(self.clean_hashes),
+            "suspicious_hashes": len(self.suspicious_hashes),
         }
 
     async def _initialize_database(self):
         """Initialize hash database."""
         async with aiosqlite.connect(self.hash_db_path) as db:
             # Threat signatures table
-            await db.execute("""
+            await db.execute(
+                """
                 CREATE TABLE IF NOT EXISTS threat_signatures (
                     signature_id TEXT PRIMARY KEY,
                     threat_name TEXT NOT NULL,
@@ -206,20 +223,24 @@ class HashBasedScanner:
                     created_at TEXT NOT NULL,
                     updated_at TEXT NOT NULL
                 )
-            """)
+            """
+            )
 
             # Clean hashes table
-            await db.execute("""
+            await db.execute(
+                """
                 CREATE TABLE IF NOT EXISTS clean_hashes (
                     hash_value TEXT PRIMARY KEY,
                     verified_at TEXT NOT NULL,
                     verification_source TEXT,
                     scan_count INTEGER DEFAULT 1
                 )
-            """)
+            """
+            )
 
             # Hash scan history
-            await db.execute("""
+            await db.execute(
+                """
                 CREATE TABLE IF NOT EXISTS hash_scan_history (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     file_hash TEXT NOT NULL,
@@ -228,18 +249,21 @@ class HashBasedScanner:
                     scanned_at TEXT NOT NULL,
                     source_api TEXT
                 )
-            """)
+            """
+            )
 
             await db.commit()
 
     async def _load_threat_signatures(self):
         """Load threat signatures from database."""
         async with aiosqlite.connect(self.hash_db_path) as db:
-            async with db.execute("""
+            async with db.execute(
+                """
                 SELECT signature_id, threat_name, threat_type, hash_md5, hash_sha256,
                        hash_sha512, pattern, description, severity, created_at, updated_at
                 FROM threat_signatures
-            """) as cursor:
+            """
+            ) as cursor:
                 async for row in cursor:
                     signature = ThreatSignature(
                         signature_id=row[0],
@@ -253,7 +277,7 @@ class HashBasedScanner:
                         pattern=row[8],
                         description=row[9],
                         created_at=datetime.fromisoformat(row[10]),
-                        updated_at=datetime.fromisoformat(row[11])
+                        updated_at=datetime.fromisoformat(row[11]),
                     )
 
                     # Index by all available hashes
@@ -267,7 +291,9 @@ class HashBasedScanner:
                 async for row in cursor:
                     self.clean_hashes.add(row[0])
 
-        logger.info(f"Loaded {len(self.known_threats)} threat signatures and {len(self.clean_hashes)} clean hashes")
+        logger.info(
+            f"Loaded {len(self.known_threats)} threat signatures and {len(self.clean_hashes)} clean hashes"
+        )
 
     async def _check_local_database(self, file_hash: str) -> Optional[ThreatSignature]:
         """Check local threat database."""
@@ -276,84 +302,26 @@ class HashBasedScanner:
     async def _check_public_apis(self, file_hash: str) -> Optional[ThreatSignature]:
         """Check public virus databases via APIs."""
         for api_name, api_config in self.public_apis.items():
-            if not api_config['enabled']:
+            if not api_config["enabled"]:
                 continue
 
             try:
                 result = await self._query_public_api(api_name, api_config, file_hash)
                 if result:
-                    self.scan_stats['api_queries'] += 1
+                    self.scan_stats["api_queries"] += 1
                     return result
             except Exception as e:
                 logger.warning(f"Failed to query {api_name} API: {e}")
 
         return None
 
-    async def _initialize_database(self):
-        """Initialize the hash database."""
-        try:
-            # Create database tables if they don't exist
-            async with aiosqlite.connect(self.hash_db_path) as db:
-                await db.execute("""
-                    CREATE TABLE IF NOT EXISTS threat_signatures (
-                        signature_id TEXT PRIMARY KEY,
-                        signature_type TEXT NOT NULL,
-                        threat_name TEXT NOT NULL,
-                        threat_type TEXT NOT NULL,
-                        threat_level INTEGER NOT NULL,
-                        hash_md5 TEXT,
-                        hash_sha256 TEXT,
-                        hash_sha512 TEXT,
-                        pattern TEXT,
-                        description TEXT,
-                        created_at TEXT NOT NULL,
-                        updated_at TEXT NOT NULL
-                    )
-                """)
-                await db.commit()
-            logger.info("Hash database initialized")
-        except Exception as e:
-            logger.error(f"Failed to initialize hash database: {e}")
-            raise
-
-    async def _load_threat_signatures(self):
-        """Load threat signatures from database."""
-        try:
-            async with aiosqlite.connect(self.hash_db_path) as db:
-                async with db.execute("SELECT * FROM threat_signatures") as cursor:
-                    async for row in cursor:
-                        signature = ThreatSignature(
-                            signature_id=row[0],
-                            signature_type=row[1],
-                            threat_name=row[2],
-                            threat_type=ThreatType(row[3]),
-                            threat_level=ThreatLevel(row[4]),
-                            hash_md5=row[5],
-                            hash_sha256=row[6],
-                            hash_sha512=row[7],
-                            pattern=row[8],
-                            description=row[9],
-                            created_at=datetime.fromisoformat(row[10]),
-                            updated_at=datetime.fromisoformat(row[11])
-                        )
-
-                        # Index by hash values
-                        if signature.hash_md5:
-                            self.known_threats[signature.hash_md5] = signature
-                        if signature.hash_sha256:
-                            self.known_threats[signature.hash_sha256] = signature
-                        if signature.hash_sha512:
-                            self.known_threats[signature.hash_sha512] = signature
-
-            logger.info(f"Loaded {len(self.known_threats)} threat signatures")
-        except Exception as e:
-            logger.error(f"Failed to load threat signatures: {e}")
-
-    async def _check_local_database(self, file_hash: str) -> Optional[ThreatSignature]:
-        """Check local database for threat signature."""
-        return self.known_threats.get(file_hash)
-
-    def _create_scan_result(self, file_path: str, file_hash: str, signature: Optional[ThreatSignature], start_time: datetime) -> ScanResult:
+    def _create_scan_result(
+        self,
+        file_path: str,
+        file_hash: str,
+        signature: Optional[ThreatSignature],
+        start_time: datetime,
+    ) -> ScanResult:
         """Create a scan result."""
         end_time = datetime.now(timezone.utc)
         scan_duration = (end_time - start_time).total_seconds()
@@ -361,33 +329,42 @@ class HashBasedScanner:
         if signature:
             return ScanResult(
                 file_path=file_path,
-                scan_type=ScanType.HASH_SCAN,
+                file_hash=file_hash,
                 threat_level=signature.threat_level,
-                threats_found=[signature],
-                is_clean=False,
+                threat_type=signature.threat_type,
+                threat_name=signature.threat_name,
+                scan_type=ScanType.HASH_SCAN,
                 scan_duration=scan_duration,
-                scanner_version="1.0.0",
-                scan_timestamp=end_time,
-                metadata={
-                    'file_hash': file_hash,
-                    'signature_id': signature.signature_id,
-                    'threat_name': signature.threat_name
-                }
+                detected_at=end_time,
+                confidence_score=0.9,
+                details={
+                    "signature_id": signature.signature_id,
+                    "scanner_version": "1.0.0",
+                    "threats_found": [signature.threat_name],
+                    "is_clean": False,
+                },
             )
         else:
             return ScanResult(
                 file_path=file_path,
-                scan_type=ScanType.HASH_SCAN,
+                file_hash=file_hash,
                 threat_level=ThreatLevel.CLEAN,
-                threats_found=[],
-                is_clean=True,
+                threat_type=None,
+                threat_name=None,
+                scan_type=ScanType.HASH_SCAN,
                 scan_duration=scan_duration,
-                scanner_version="1.0.0",
-                scan_timestamp=end_time,
-                metadata={'file_hash': file_hash}
+                detected_at=end_time,
+                confidence_score=0.9,
+                details={
+                    "scanner_version": "1.0.0",
+                    "threats_found": [],
+                    "is_clean": True,
+                },
             )
 
-    async def _check_community_database(self, file_hash: str) -> Optional[ThreatSignature]:
+    async def _check_community_database(
+        self, file_hash: str
+    ) -> Optional[ThreatSignature]:
         """Check community database for threat signature."""
         try:
             # Placeholder for community database check
@@ -397,7 +374,7 @@ class HashBasedScanner:
             logger.error(f"Failed to check community database: {e}")
             return None
 
-    def _mark_hash_clean(self, file_hash: str):
+    async def _mark_hash_clean(self, file_hash: str):
         """Mark a hash as clean in the cache."""
         # Create a clean signature for caching
         clean_signature = ThreatSignature(
@@ -409,7 +386,7 @@ class HashBasedScanner:
             hash_sha512=file_hash,
             description="Verified clean file",
             created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc)
+            updated_at=datetime.now(timezone.utc),
         )
         self.known_threats[file_hash] = clean_signature
 
@@ -420,39 +397,31 @@ class HashBasedScanner:
         # Also save to database
         try:
             async with aiosqlite.connect(self.hash_db_path) as db:
-                await db.execute("""
+                await db.execute(
+                    """
                     INSERT OR REPLACE INTO threat_signatures
                     (signature_id, signature_type, threat_name, threat_type, threat_level,
                      hash_md5, hash_sha256, hash_sha512, pattern, description, created_at, updated_at)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, (
-                    signature.signature_id,
-                    signature.signature_type,
-                    signature.threat_name,
-                    signature.threat_type.value,
-                    signature.threat_level.value,
-                    signature.hash_md5,
-                    signature.hash_sha256,
-                    signature.hash_sha512,
-                    signature.pattern,
-                    signature.description,
-                    signature.created_at.isoformat(),
-                    signature.updated_at.isoformat()
-                ))
+                """,
+                    (
+                        signature.signature_id,
+                        signature.signature_type,
+                        signature.threat_name,
+                        signature.threat_type.value,
+                        signature.threat_level.value,
+                        signature.hash_md5,
+                        signature.hash_sha256,
+                        signature.hash_sha512,
+                        signature.pattern,
+                        signature.description,
+                        signature.created_at.isoformat() if signature.created_at else "",
+                        signature.updated_at.isoformat() if signature.updated_at else "",
+                    ),
+                )
                 await db.commit()
         except Exception as e:
             logger.error(f"Failed to cache threat result: {e}")
-
-    def get_statistics(self) -> Dict[str, Any]:
-        """Get scanner statistics."""
-        return {
-            'total_scans': self.scan_stats['total_scans'],
-            'threats_found': self.scan_stats['threats_found'],
-            'cache_hits': self.scan_stats['cache_hits'],
-            'api_queries': self.scan_stats['api_queries'],
-            'known_threats': len(self.known_threats),
-            'last_update': self.last_update.isoformat() if self.last_update else None
-        }
 
     async def _update_from_public_feeds(self) -> bool:
         """Update threat signatures from public feeds."""
@@ -482,10 +451,13 @@ class HashBasedScanner:
             cutoff_date = datetime.now(timezone.utc) - timedelta(days=30)
 
             async with aiosqlite.connect(self.hash_db_path) as db:
-                await db.execute("""
+                await db.execute(
+                    """
                     DELETE FROM threat_signatures
                     WHERE created_at < ?
-                """, (cutoff_date.isoformat(),))
+                """,
+                    (cutoff_date.isoformat(),),
+                )
                 await db.commit()
 
             logger.debug("Cleaned up old threat signature entries")
@@ -496,30 +468,43 @@ class HashBasedScanner:
         """Save a threat signature to the database."""
         try:
             async with aiosqlite.connect(self.hash_db_path) as db:
-                await db.execute("""
+                await db.execute(
+                    """
                     INSERT OR REPLACE INTO threat_signatures
                     (signature_id, signature_type, threat_name, threat_type, threat_level,
                      hash_md5, hash_sha256, hash_sha512, pattern, description, created_at, updated_at)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, (
-                    signature.signature_id,
-                    signature.signature_type,
-                    signature.threat_name,
-                    signature.threat_type.value,
-                    signature.threat_level.value,
-                    signature.hash_md5,
-                    signature.hash_sha256,
-                    signature.hash_sha512,
-                    signature.pattern,
-                    signature.description,
-                    signature.created_at.isoformat() if signature.created_at else None,
-                    signature.updated_at.isoformat() if signature.updated_at else None
-                ))
+                """,
+                    (
+                        signature.signature_id,
+                        signature.signature_type,
+                        signature.threat_name,
+                        signature.threat_type.value,
+                        signature.threat_level.value,
+                        signature.hash_md5,
+                        signature.hash_sha256,
+                        signature.hash_sha512,
+                        signature.pattern,
+                        signature.description,
+                        (
+                            signature.created_at.isoformat()
+                            if signature.created_at
+                            else None
+                        ),
+                        (
+                            signature.updated_at.isoformat()
+                            if signature.updated_at
+                            else None
+                        ),
+                    ),
+                )
                 await db.commit()
         except Exception as e:
             logger.error(f"Failed to save threat signature: {e}")
 
-    async def _query_public_api(self, api_name: str, api_config: Dict[str, Any], file_hash: str) -> Optional[ThreatSignature]:
+    async def _query_public_api(
+        self, api_name: str, api_config: Dict[str, Any], file_hash: str
+    ) -> Optional[ThreatSignature]:
         """Query a public API for threat information."""
         try:
             # Placeholder for public API queries

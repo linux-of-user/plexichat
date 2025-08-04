@@ -132,29 +132,44 @@ class ShardSet:
                                if s.shard_type in [ShardType.DATA, ShardType.PARITY]]
         return len(available_data_parity) >= self.min_shards_required
 
-class ShardManager:
-    """Manages data sharding with Reed-Solomon error correction."""
-    
-    def __init__(self, storage_dir: Path, data_shards: int = DEFAULT_DATA_SHARDS, 
-                 parity_shards: int = DEFAULT_PARITY_SHARDS):
+class EnhancedShardManager:
+    """Advanced shard manager for massive scale with intelligent redundancy."""
+
+    def __init__(self, storage_dir: Path, data_shards: int = DEFAULT_DATA_SHARDS,
+                 parity_shards: int = DEFAULT_PARITY_SHARDS, redundancy_copies: int = 5,
+                 streaming_threshold_mb: int = 1024):
         self.storage_dir = Path(storage_dir)
         self.storage_dir.mkdir(parents=True, exist_ok=True)
-        
+
+        # Sharding configuration
         self.data_shards = data_shards
         self.parity_shards = parity_shards
         self.total_shards = data_shards + parity_shards
         self.min_shards_required = data_shards
-        
+        self.redundancy_copies = redundancy_copies  # Multiple copies per shard
+        self.streaming_threshold_mb = streaming_threshold_mb
+
         # Initialize Reed-Solomon codec
         if REED_SOLOMON_AVAILABLE:
             self.rs_codec = RSCodec(parity_shards)
-            logger.info(f"Reed-Solomon codec initialized: {data_shards} data + {parity_shards} parity shards")
+            logger.info(f"Enhanced Reed-Solomon codec: {data_shards} data + {parity_shards} parity, {redundancy_copies}x redundancy")
         else:
             self.rs_codec = None
-            logger.warning("Reed-Solomon not available, using simple redundancy")
-        
-        # Shard registry
+            logger.warning("Reed-Solomon not available, using enhanced simple redundancy")
+
+        # Enhanced registries
         self.shard_sets: Dict[str, ShardSet] = {}
+        self.shard_copies: Dict[str, List[ShardInfo]] = {}  # Track multiple copies
+        self.shard_health: Dict[str, Dict[str, Any]] = {}  # Health monitoring
+
+        # Performance tracking
+        self.stats = {
+            "total_shards_created": 0,
+            "total_bytes_processed": 0,
+            "streaming_operations": 0,
+            "redundancy_repairs": 0,
+            "health_checks": 0
+        }
     
     def _calculate_checksum(self, data: bytes) -> str:
         """Calculate SHA256 checksum of data."""
@@ -171,6 +186,177 @@ class ShardManager:
             chunks.append(chunk)
         return chunks
     
+    async def create_shards_streaming(self, data_stream, backup_id: str, version_id: str,
+                                    total_size: Optional[int] = None) -> ShardSet:
+        """Create shards from streaming data for massive datasets."""
+        try:
+            logger.info(f"Starting streaming shard creation for backup {backup_id}")
+
+            if total_size and total_size > self.streaming_threshold_mb * 1024 * 1024:
+                logger.info(f"Large dataset detected ({total_size:,} bytes), using streaming mode")
+                self.stats["streaming_operations"] += 1
+
+            data_shards = []
+            parity_shards = []
+            chunk_index = 0
+            total_processed = 0
+
+            # Process data in streaming chunks
+            async for chunk in self._stream_chunks(data_stream, SHARD_SIZE):
+                if not chunk:
+                    break
+
+                # Create shards for this chunk with multiple copies
+                chunk_data_shards, chunk_parity_shards = await self._create_chunk_shards_with_copies(
+                    chunk, backup_id, chunk_index
+                )
+
+                data_shards.extend(chunk_data_shards)
+                parity_shards.extend(chunk_parity_shards)
+
+                total_processed += len(chunk)
+                chunk_index += 1
+
+                # Progress logging for large datasets
+                if chunk_index % 1000 == 0:
+                    logger.info(f"Processed {chunk_index:,} chunks ({total_processed:,} bytes)")
+
+            # Create enhanced metadata shard
+            metadata = await self._create_enhanced_metadata(
+                backup_id, version_id, total_processed, chunk_index, data_shards, parity_shards
+            )
+
+            metadata_shard = await self._create_metadata_shard(backup_id, metadata)
+
+            # Create enhanced shard set
+            shard_set = ShardSet(
+                backup_id=backup_id,
+                version_id=version_id,
+                data_shards=data_shards,
+                parity_shards=parity_shards,
+                metadata_shard=metadata_shard,
+                total_size=total_processed,
+                created_at=datetime.now(timezone.utc),
+                redundancy_level=self.redundancy_copies,
+                min_shards_required=self.min_shards_required
+            )
+
+            self.shard_sets[backup_id] = shard_set
+            self.stats["total_shards_created"] += len(shard_set.all_shards)
+            self.stats["total_bytes_processed"] += total_processed
+
+            logger.info(f"Streaming shard creation completed: {len(data_shards)} data + {len(parity_shards)} parity shards")
+            return shard_set
+
+        except Exception as e:
+            logger.error(f"Streaming shard creation failed: {e}")
+            raise
+
+    async def _stream_chunks(self, data_stream, chunk_size: int):
+        """Stream data in fixed-size chunks."""
+        if hasattr(data_stream, 'read'):
+            # File-like object
+            while True:
+                chunk = data_stream.read(chunk_size)
+                if not chunk:
+                    break
+                yield chunk
+        elif hasattr(data_stream, '__aiter__'):
+            # Async iterator
+            buffer = b''
+            async for data in data_stream:
+                buffer += data
+                while len(buffer) >= chunk_size:
+                    yield buffer[:chunk_size]
+                    buffer = buffer[chunk_size:]
+            if buffer:
+                yield buffer
+        else:
+            # Assume it's bytes
+            for i in range(0, len(data_stream), chunk_size):
+                yield data_stream[i:i + chunk_size]
+
+    async def _create_chunk_shards_with_copies(self, chunk: bytes, backup_id: str,
+                                             chunk_index: int) -> Tuple[List[ShardInfo], List[ShardInfo]]:
+        """Create shards for a chunk with multiple redundant copies."""
+        data_shards = []
+        parity_shards = []
+
+        # Apply Reed-Solomon encoding
+        if self.rs_codec and REED_SOLOMON_AVAILABLE:
+            try:
+                encoded_chunk = self.rs_codec.encode(chunk)
+                data_portion = encoded_chunk[:SHARD_SIZE]
+                parity_portion = encoded_chunk[SHARD_SIZE:]
+
+                # Create multiple copies of data shard
+                for copy_index in range(self.redundancy_copies):
+                    data_shard = ShardInfo(
+                        shard_id=str(uuid4()),
+                        backup_id=backup_id,
+                        shard_index=chunk_index,
+                        shard_type=ShardType.DATA,
+                        size=len(data_portion),
+                        checksum=self._calculate_checksum(data_portion),
+                        created_at=datetime.now(timezone.utc),
+                        metadata={
+                            "chunk_index": chunk_index,
+                            "copy_index": copy_index,
+                            "total_copies": self.redundancy_copies,
+                            "original_size": len(chunk),
+                            "redundancy_level": "enhanced"
+                        }
+                    )
+                    data_shards.append(data_shard)
+
+                    # Save data shard
+                    await self._save_shard_with_verification(data_shard, data_portion)
+
+                # Create multiple copies of parity shards
+                parity_chunk_size = len(parity_portion) // self.parity_shards
+                for parity_idx in range(self.parity_shards):
+                    start_idx = parity_idx * parity_chunk_size
+                    end_idx = start_idx + parity_chunk_size
+                    if parity_idx == self.parity_shards - 1:
+                        end_idx = len(parity_portion)
+
+                    parity_data = parity_portion[start_idx:end_idx]
+                    if not parity_data:
+                        continue
+
+                    # Create multiple copies of each parity shard
+                    for copy_index in range(self.redundancy_copies):
+                        parity_shard = ShardInfo(
+                            shard_id=str(uuid4()),
+                            backup_id=backup_id,
+                            shard_index=chunk_index * self.parity_shards + parity_idx,
+                            shard_type=ShardType.PARITY,
+                            size=len(parity_data),
+                            checksum=self._calculate_checksum(parity_data),
+                            created_at=datetime.now(timezone.utc),
+                            metadata={
+                                "chunk_index": chunk_index,
+                                "parity_index": parity_idx,
+                                "copy_index": copy_index,
+                                "total_copies": self.redundancy_copies,
+                                "redundancy_level": "enhanced"
+                            }
+                        )
+                        parity_shards.append(parity_shard)
+
+                        # Save parity shard
+                        await self._save_shard_with_verification(parity_shard, parity_data)
+
+            except Exception as e:
+                logger.error(f"Enhanced Reed-Solomon encoding failed for chunk {chunk_index}: {e}")
+                # Fallback to enhanced simple redundancy
+                return await self._create_enhanced_simple_shards(chunk, backup_id, chunk_index)
+        else:
+            # Enhanced simple redundancy
+            return await self._create_enhanced_simple_shards(chunk, backup_id, chunk_index)
+
+        return data_shards, parity_shards
+
     def create_shards(self, data: bytes, backup_id: str, version_id: str) -> ShardSet:
         """Create shards from data with Reed-Solomon encoding."""
         try:
@@ -559,6 +745,316 @@ class ShardManager:
         except Exception as e:
             logger.error(f"Failed to cleanup shards: {e}")
             return False
+
+    async def _save_shard_with_verification(self, shard: ShardInfo, data: bytes):
+        """Save shard with verification and health tracking."""
+        try:
+            shard_file = self.storage_dir / f"{shard.shard_id}.shard"
+
+            # Save shard data
+            with open(shard_file, 'wb') as f:
+                f.write(data)
+
+            shard.location = str(shard_file)
+
+            # Verify immediately after saving
+            if self._verify_shard_integrity(shard, data):
+                shard.status = ShardStatus.VERIFIED
+
+                # Track shard copies
+                if shard.shard_id not in self.shard_copies:
+                    self.shard_copies[shard.shard_id] = []
+                self.shard_copies[shard.shard_id].append(shard)
+
+                # Initialize health tracking
+                self.shard_health[shard.shard_id] = {
+                    "last_verified": datetime.now(timezone.utc),
+                    "verification_count": 1,
+                    "corruption_count": 0,
+                    "access_count": 0,
+                    "copies_available": len(self.shard_copies[shard.shard_id])
+                }
+            else:
+                shard.status = ShardStatus.CORRUPTED
+                logger.error(f"Shard verification failed immediately after creation: {shard.shard_id}")
+
+        except Exception as e:
+            logger.error(f"Failed to save shard {shard.shard_id}: {e}")
+            shard.status = ShardStatus.CORRUPTED
+
+    def _verify_shard_integrity(self, shard: ShardInfo, expected_data: Optional[bytes] = None) -> bool:
+        """Verify shard integrity with checksum validation."""
+        try:
+            if not shard.location or not Path(shard.location).exists():
+                return False
+
+            with open(shard.location, 'rb') as f:
+                actual_data = f.read()
+
+            # Verify checksum
+            actual_checksum = self._calculate_checksum(actual_data)
+            if actual_checksum != shard.checksum:
+                return False
+
+            # Verify against expected data if provided
+            if expected_data is not None:
+                return actual_data == expected_data
+
+            return True
+
+        except Exception as e:
+            logger.error(f"Shard integrity verification failed: {e}")
+            return False
+
+    async def _create_enhanced_simple_shards(self, chunk: bytes, backup_id: str,
+                                           chunk_index: int) -> Tuple[List[ShardInfo], List[ShardInfo]]:
+        """Create enhanced simple redundancy shards with multiple copies."""
+        data_shards = []
+        parity_shards = []
+
+        # Create multiple copies of data shard
+        for copy_index in range(self.redundancy_copies):
+            data_shard = ShardInfo(
+                shard_id=str(uuid4()),
+                backup_id=backup_id,
+                shard_index=chunk_index,
+                shard_type=ShardType.DATA,
+                size=len(chunk),
+                checksum=self._calculate_checksum(chunk),
+                created_at=datetime.now(timezone.utc),
+                metadata={
+                    "chunk_index": chunk_index,
+                    "copy_index": copy_index,
+                    "total_copies": self.redundancy_copies,
+                    "redundancy_type": "enhanced_simple"
+                }
+            )
+            data_shards.append(data_shard)
+            await self._save_shard_with_verification(data_shard, chunk)
+
+        # Create multiple copies of parity shards (simple copies)
+        for parity_idx in range(self.parity_shards):
+            for copy_index in range(self.redundancy_copies):
+                parity_shard = ShardInfo(
+                    shard_id=str(uuid4()),
+                    backup_id=backup_id,
+                    shard_index=chunk_index * self.parity_shards + parity_idx,
+                    shard_type=ShardType.PARITY,
+                    size=len(chunk),
+                    checksum=self._calculate_checksum(chunk),
+                    created_at=datetime.now(timezone.utc),
+                    metadata={
+                        "chunk_index": chunk_index,
+                        "parity_index": parity_idx,
+                        "copy_index": copy_index,
+                        "total_copies": self.redundancy_copies,
+                        "redundancy_type": "enhanced_simple"
+                    }
+                )
+                parity_shards.append(parity_shard)
+                await self._save_shard_with_verification(parity_shard, chunk)
+
+        return data_shards, parity_shards
+
+    async def _create_enhanced_metadata(self, backup_id: str, version_id: str, total_size: int,
+                                      chunk_count: int, data_shards: List[ShardInfo],
+                                      parity_shards: List[ShardInfo]) -> Dict[str, Any]:
+        """Create enhanced metadata with redundancy and health information."""
+        return {
+            "backup_id": backup_id,
+            "version_id": version_id,
+            "total_size": total_size,
+            "chunk_count": chunk_count,
+            "data_shards": len(data_shards),
+            "parity_shards": len(parity_shards),
+            "redundancy_copies": self.redundancy_copies,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "shard_size": SHARD_SIZE,
+            "redundancy_config": {
+                "data_shards": self.data_shards,
+                "parity_shards": self.parity_shards,
+                "min_required": self.min_shards_required,
+                "redundancy_copies": self.redundancy_copies,
+                "total_shard_copies": len(data_shards) + len(parity_shards)
+            },
+            "health_info": {
+                "initial_health_score": 100.0,
+                "expected_copies_per_shard": self.redundancy_copies,
+                "verification_timestamp": datetime.now(timezone.utc).isoformat()
+            },
+            "recovery_info": {
+                "min_shards_for_recovery": self.min_shards_required,
+                "optimal_shards_for_recovery": self.data_shards + self.parity_shards,
+                "can_survive_failures": self.parity_shards * self.redundancy_copies
+            }
+        }
+
+    async def _create_metadata_shard(self, backup_id: str, metadata: Dict[str, Any]) -> ShardInfo:
+        """Create metadata shard with multiple copies."""
+        metadata_bytes = json.dumps(metadata, indent=2).encode('utf-8')
+
+        metadata_shard = ShardInfo(
+            shard_id=str(uuid4()),
+            backup_id=backup_id,
+            shard_index=-1,  # Special index for metadata
+            shard_type=ShardType.METADATA,
+            size=len(metadata_bytes),
+            checksum=self._calculate_checksum(metadata_bytes),
+            created_at=datetime.now(timezone.utc),
+            metadata=metadata
+        )
+
+        # Save metadata shard with verification
+        await self._save_shard_with_verification(metadata_shard, metadata_bytes)
+
+        return metadata_shard
+
+    async def perform_health_check(self, backup_id: str) -> Dict[str, Any]:
+        """Perform comprehensive health check on all shards."""
+        try:
+            shard_set = self.shard_sets.get(backup_id)
+            if not shard_set:
+                return {"error": "Backup not found"}
+
+            health_report = {
+                "backup_id": backup_id,
+                "check_timestamp": datetime.now(timezone.utc).isoformat(),
+                "overall_health": 0.0,
+                "shard_health": {},
+                "redundancy_status": {},
+                "recommendations": []
+            }
+
+            total_shards = len(shard_set.all_shards)
+            healthy_shards = 0
+
+            for shard in shard_set.all_shards:
+                shard_health = await self._check_shard_health(shard)
+                health_report["shard_health"][shard.shard_id] = shard_health
+
+                if shard_health["is_healthy"]:
+                    healthy_shards += 1
+
+            # Calculate overall health
+            health_report["overall_health"] = (healthy_shards / total_shards) * 100
+
+            # Check redundancy status
+            health_report["redundancy_status"] = await self._check_redundancy_status(shard_set)
+
+            # Generate recommendations
+            health_report["recommendations"] = self._generate_health_recommendations(health_report)
+
+            self.stats["health_checks"] += 1
+
+            return health_report
+
+        except Exception as e:
+            logger.error(f"Health check failed: {e}")
+            return {"error": str(e)}
+
+    async def _check_shard_health(self, shard: ShardInfo) -> Dict[str, Any]:
+        """Check health of individual shard."""
+        health_info = {
+            "shard_id": shard.shard_id,
+            "is_healthy": False,
+            "exists": False,
+            "checksum_valid": False,
+            "size_correct": False,
+            "copies_available": 0,
+            "last_accessed": None
+        }
+
+        try:
+            # Check if shard file exists
+            if shard.location and Path(shard.location).exists():
+                health_info["exists"] = True
+
+                # Verify checksum
+                health_info["checksum_valid"] = self._verify_shard_integrity(shard)
+
+                # Check size
+                actual_size = Path(shard.location).stat().st_size
+                health_info["size_correct"] = (actual_size == shard.size)
+
+                # Count available copies
+                if shard.shard_id in self.shard_copies:
+                    health_info["copies_available"] = len(self.shard_copies[shard.shard_id])
+
+                # Overall health
+                health_info["is_healthy"] = (
+                    health_info["exists"] and
+                    health_info["checksum_valid"] and
+                    health_info["size_correct"]
+                )
+
+        except Exception as e:
+            logger.error(f"Shard health check failed for {shard.shard_id}: {e}")
+
+        return health_info
+
+    async def _check_redundancy_status(self, shard_set: ShardSet) -> Dict[str, Any]:
+        """Check redundancy status of shard set."""
+        redundancy_status = {
+            "can_restore": shard_set.can_restore,
+            "available_copies": {},
+            "under_replicated_shards": [],
+            "over_replicated_shards": [],
+            "missing_shards": []
+        }
+
+        for shard in shard_set.all_shards:
+            copies_count = len(self.shard_copies.get(shard.shard_id, []))
+            redundancy_status["available_copies"][shard.shard_id] = copies_count
+
+            if copies_count == 0:
+                redundancy_status["missing_shards"].append(shard.shard_id)
+            elif copies_count < self.redundancy_copies:
+                redundancy_status["under_replicated_shards"].append(shard.shard_id)
+            elif copies_count > self.redundancy_copies:
+                redundancy_status["over_replicated_shards"].append(shard.shard_id)
+
+        return redundancy_status
+
+    def _generate_health_recommendations(self, health_report: Dict[str, Any]) -> List[str]:
+        """Generate health recommendations based on report."""
+        recommendations = []
+
+        if health_report["overall_health"] < 95.0:
+            recommendations.append("Overall health is below optimal. Consider running repair operations.")
+
+        redundancy = health_report.get("redundancy_status", {})
+
+        if redundancy.get("missing_shards"):
+            recommendations.append(f"Critical: {len(redundancy['missing_shards'])} shards are completely missing. Immediate attention required.")
+
+        if redundancy.get("under_replicated_shards"):
+            recommendations.append(f"Warning: {len(redundancy['under_replicated_shards'])} shards are under-replicated. Consider increasing redundancy.")
+
+        if not redundancy.get("can_restore", False):
+            recommendations.append("Critical: Backup cannot be restored. Insufficient healthy shards available.")
+
+        return recommendations
+
+    def get_enhanced_stats(self) -> Dict[str, Any]:
+        """Get enhanced statistics including health and redundancy info."""
+        stats = self.stats.copy()
+
+        stats.update({
+            "total_shard_sets": len(self.shard_sets),
+            "total_shard_copies": sum(len(copies) for copies in self.shard_copies.values()),
+            "unique_shards": len(self.shard_copies),
+            "average_copies_per_shard": (
+                sum(len(copies) for copies in self.shard_copies.values()) / len(self.shard_copies)
+                if self.shard_copies else 0
+            ),
+            "redundancy_level": self.redundancy_copies,
+            "streaming_threshold_mb": self.streaming_threshold_mb
+        })
+
+        return stats
+
+# Backward compatibility alias
+ShardManager = EnhancedShardManager
 
 # Export main classes
 __all__ = [

@@ -956,7 +956,7 @@ users = self.session.# SECURITY: exec() removed - use safe alternativesstatement
             pending_received = len(await self.get_pending_friend_requests(user_id, sent=False))
             pending_sent = len(await self.get_pending_friend_requests(user_id, sent=True))
 
-            return {}}
+            return {
                 "user_id": user_id,
                 "login_count": user.login_count,
                 "message_count": user.message_count,

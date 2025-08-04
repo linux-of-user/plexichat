@@ -101,7 +101,7 @@ class AuthManager:
 
     def __init__(self, config_dir: str = "data/auth"):
         from pathlib import Path
-self.config_dir = Path(config_dir)
+        self.config_dir = Path(config_dir)
         self.config_dir.mkdir(parents=True, exist_ok=True)
 
         # Data storage
@@ -151,7 +151,7 @@ self.config_dir = Path(config_dir)
                 with open(self.attempts_file, 'r') as f:
                     attempts_data = json.load(f)
                     self.auth_attempts = [
-                        AuthAttempt()
+                        AuthAttempt(
                             timestamp=datetime.fromisoformat(attempt['timestamp']),
                             username=attempt['username'],
                             ip_address=attempt['ip_address'],
@@ -170,7 +170,7 @@ self.config_dir = Path(config_dir)
                 with open(self.sessions_file, 'r') as f:
                     sessions_data = json.load(f)
                     self.active_sessions = {
-                        session_id: AuthSession()
+                        session_id: AuthSession(
                             session_id=session_data['session_id'],
                             username=session_data['username'],
                             security_level=SecurityLevel(session_data['security_level']),
@@ -259,7 +259,7 @@ self.config_dir = Path(config_dir)
         logger.info(f" Default admin account created with password: {default_password}")
         logger.warning(" Please change the default admin password immediately!")
 
-    async def authenticate(self, username: str, password: str, ip_address: str,)
+    async def authenticate(self, username: str, password: str, ip_address: str,
                           user_agent: str, security_level: SecurityLevel = SecurityLevel.BASIC) -> Tuple[bool, Optional[str], Optional[AuthSession]]:
         """
         Authenticate user with comprehensive security checks.
@@ -311,7 +311,7 @@ self.config_dir = Path(config_dir)
             account['failed_attempts'] = 0
 
             # Create session
-            session = AuthSession()
+            session = AuthSession(
                 session_id=secrets.token_urlsafe(32),
                 username=username,
                 security_level=security_level,
@@ -331,11 +331,11 @@ self.config_dir = Path(config_dir)
             logger.error(f"Authentication error: {e}")
             return False, "Authentication system error", None
 
-    def _log_attempt(self, username: str, ip_address: str, user_agent: str,):
+    def _log_attempt(self, username: str, ip_address: str, user_agent: str,
                     action: AuthAction, success: bool, security_level: SecurityLevel,
                     failure_reason: Optional[str] = None, session_id: Optional[str] = None):
         """Log authentication attempt."""
-        attempt = AuthAttempt()
+        attempt = AuthAttempt(
             timestamp=datetime.now(timezone.utc),
             username=username,
             ip_address=ip_address,
@@ -431,7 +431,7 @@ class TokenManager:
     async def validate_token(self, token: str) -> Dict[str, Any]:
         """Validate JWT or HMAC token with comprehensive security checks."""
         if not token:
-            return {}}"valid": False, "error": "No token provided"}
+            return {"valid": False, "error": "No token provided"}
 
         try:
             if JWT_AVAILABLE and "." in token and len(token.split(".")) == 3:
@@ -442,7 +442,7 @@ class TokenManager:
                 return await self._validate_hmac_token(token)
         except Exception as e:
             logger.error(f"Token validation error: {e}")
-            return {}}"valid": False, "error": "Token validation failed"}
+            return {"valid": False, "error": "Token validation failed"}
 
     async def _validate_jwt_token(self, token: str) -> Dict[str, Any]:
         """Validate JWT token."""
@@ -457,9 +457,9 @@ class TokenManager:
 
             # Check if token was revoked
             if payload.get("jti") not in self.issued_tokens:
-                return {}}"valid": False, "error": "Token revoked"}
+                return {"valid": False, "error": "Token revoked"}
 
-            return {}}
+            return {
                 "valid": True,
                 "username": payload.get("username"),
                 "user_id": payload.get("sub"),
@@ -469,15 +469,15 @@ class TokenManager:
             }
 
         except jwt.ExpiredSignatureError:
-            return {}}"valid": False, "error": "Token expired"}
+            return {"valid": False, "error": "Token expired"}
         except jwt.InvalidTokenError as e:
-            return {}}"valid": False, "error": f"Invalid token: {e}"}
+            return {"valid": False, "error": f"Invalid token: {e}"}
 
     async def _validate_hmac_token(self, token: str) -> Dict[str, Any]:
         """Validate HMAC-based token."""
         try:
             if "." not in token:
-                return {}}"valid": False, "error": "Invalid token format"}
+                return {"valid": False, "error": "Invalid token format"}
 
             encoded_payload, signature = token.rsplit(".", 1)
 
@@ -494,17 +494,17 @@ class TokenManager:
             ).hexdigest()
 
             if not hmac.compare_digest(signature, expected_signature):
-                return {}}"valid": False, "error": "Invalid signature"}
+                return {"valid": False, "error": "Invalid signature"}
 
             # Check expiration
             if int(time.time()) > int(payload_data.get("exp", 0)):
-                return {}}"valid": False, "error": "Token expired"}
+                return {"valid": False, "error": "Token expired"}
 
             # Check if token was revoked
             if payload_data.get("jti") not in self.issued_tokens:
-                return {}}"valid": False, "error": "Token revoked"}
+                return {"valid": False, "error": "Token revoked"}
 
-            return {}}
+            return {
                 "valid": True,
                 "username": payload_data.get("username"),
                 "user_id": payload_data.get("user_id"),
@@ -514,7 +514,7 @@ class TokenManager:
             }
 
         except Exception as e:
-            return {}}"valid": False, "error": f"Token validation failed: {e}"}
+            return {"valid": False, "error": f"Token validation failed: {e}"}
 
     async def revoke_token(self, token: str) -> bool:
         """Revoke a token by removing its JTI from issued tokens."""

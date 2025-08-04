@@ -21,8 +21,13 @@ try:
     from .distribution_manager import NodeType, NodeStatus, DistributionStrategy
     from .version_manager import VersionType, ChangeType
     BACKUP_AVAILABLE = True
-except ImportError:
+except ImportError as e:
     BACKUP_AVAILABLE = False
+    logger.warning(f"Backup components not available: {e}")
+
+    # Create a dummy get_backup_manager for fallback
+    def get_backup_manager():
+        return None
 
 # Import authentication
 try:
@@ -341,6 +346,217 @@ async def create_message_diff_backup(
     except Exception as e:
         logger.error(f"Failed to create message diff backup: {e}")
         raise HTTPException(status_code=500, detail="Failed to create message diff backup")
+
+# Enhanced P2P and Massive Scale Endpoints
+
+@router.post("/nodes/register")
+async def register_node(
+    node_id: str,
+    endpoint: str,
+    capacity_gb: float,
+    location: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Register a storage node in the P2P network."""
+    if not BACKUP_AVAILABLE:
+        raise HTTPException(status_code=503, detail="Backup system not available")
+
+    try:
+        backup_manager = get_backup_manager()
+
+        if not hasattr(backup_manager, 'register_storage_node'):
+            raise HTTPException(status_code=503, detail="P2P network not available")
+
+        success = await backup_manager.register_storage_node(
+            node_id=node_id,
+            endpoint=endpoint,
+            capacity_gb=capacity_gb,
+            location=location,
+            user_id=current_user.get('user_id')
+        )
+
+        if success:
+            logger.info(f"Node {node_id} registered by {current_user.get('username', 'unknown')}")
+            return JSONResponse(content={
+                "success": True,
+                "message": "Node registered successfully",
+                "node_id": node_id,
+                "capacity_gb": capacity_gb,
+                "location": location
+            })
+        else:
+            raise HTTPException(status_code=400, detail="Failed to register node")
+
+    except Exception as e:
+        logger.error(f"Node registration failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/network")
+async def get_network_status(current_user: dict = Depends(get_current_user)):
+    """Get P2P network status."""
+    if not BACKUP_AVAILABLE:
+        raise HTTPException(status_code=503, detail="Backup system not available")
+
+    try:
+        backup_manager = get_backup_manager()
+
+        if not hasattr(backup_manager, 'get_network_status'):
+            return JSONResponse(content={
+                "available": False,
+                "reason": "P2P network not initialized"
+            })
+
+        status = backup_manager.get_network_status()
+        return JSONResponse(content=status)
+
+    except Exception as e:
+        logger.error(f"Failed to get network status: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/massive")
+async def create_massive_backup(
+    name: Optional[str] = None,
+    streaming: bool = True,
+    current_user: dict = Depends(get_current_user)
+):
+    """Create a massive scale database backup."""
+    if not BACKUP_AVAILABLE:
+        raise HTTPException(status_code=503, detail="Backup system not available")
+
+    try:
+        backup_manager = get_backup_manager()
+
+        # Check if massive scale backup is available
+        if not hasattr(backup_manager, 'create_massive_database_backup'):
+            # Fallback to regular backup
+            backup_info = await backup_manager.create_database_backup(name)
+        else:
+            backup_info = await backup_manager.create_massive_database_backup(
+                name=name,
+                streaming=streaming
+            )
+
+        if backup_info:
+            logger.info(f"Backup started by {current_user.get('username', 'unknown')}: {backup_info.backup_id}")
+            return JSONResponse(content={
+                "success": True,
+                "message": "Backup started successfully",
+                "backup_id": backup_info.backup_id,
+                "name": backup_info.name,
+                "size_mb": round(backup_info.size / (1024**2), 2),
+                "streaming": streaming,
+                "type": "massive" if hasattr(backup_manager, 'create_massive_database_backup') else "standard"
+            })
+        else:
+            raise HTTPException(status_code=500, detail="Failed to start backup")
+
+    except Exception as e:
+        logger.error(f"Backup creation failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/restore/{backup_id}")
+async def restore_massive_backup(
+    backup_id: str,
+    target_path: Optional[str] = None,
+    verify: bool = True,
+    current_user: dict = Depends(get_current_user)
+):
+    """Restore a backup (massive scale if available)."""
+    if not BACKUP_AVAILABLE:
+        raise HTTPException(status_code=503, detail="Backup system not available")
+
+    try:
+        backup_manager = get_backup_manager()
+
+        # Check if massive scale restore is available
+        if hasattr(backup_manager, 'restore_massive_backup'):
+            result_path = await backup_manager.restore_massive_backup(
+                backup_id=backup_id,
+                target_path=target_path,
+                verify_integrity=verify
+            )
+            restore_type = "massive"
+        else:
+            # Fallback to regular restore
+            success = await backup_manager.restore_backup(backup_id, target_path)
+            result_path = target_path if success else None
+            restore_type = "standard"
+
+        if result_path:
+            logger.info(f"Backup {backup_id} restored by {current_user.get('username', 'unknown')}")
+            return JSONResponse(content={
+                "success": True,
+                "message": "Backup restored successfully",
+                "backup_id": backup_id,
+                "restored_path": result_path,
+                "verified": verify,
+                "type": restore_type
+            })
+        else:
+            raise HTTPException(status_code=500, detail="Restore failed")
+
+    except Exception as e:
+        logger.error(f"Restore failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/stats")
+async def get_backup_stats(current_user: dict = Depends(get_current_user)):
+    """Get backup system statistics."""
+    if not BACKUP_AVAILABLE:
+        raise HTTPException(status_code=503, detail="Backup system not available")
+
+    try:
+        backup_manager = get_backup_manager()
+        stats = backup_manager.get_backup_stats()
+
+        return JSONResponse(content={
+            "timestamp": datetime.now().isoformat(),
+            "stats": stats
+        })
+
+    except Exception as e:
+        logger.error(f"Failed to get stats: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/health")
+async def get_system_health(current_user: dict = Depends(get_current_user)):
+    """Get system health information."""
+    if not BACKUP_AVAILABLE:
+        raise HTTPException(status_code=503, detail="Backup system not available")
+
+    try:
+        backup_manager = get_backup_manager()
+
+        health_info = {
+            "timestamp": datetime.now().isoformat(),
+            "distributed_enabled": getattr(backup_manager, 'distributed_enabled', False),
+            "components": {
+                "basic_backup": True,
+                "distributed_backup": hasattr(backup_manager, 'shard_manager'),
+                "p2p_network": hasattr(backup_manager, 'p2p_manager'),
+                "massive_scale": hasattr(backup_manager, 'recovery_manager'),
+                "key_management": hasattr(backup_manager, 'key_manager')
+            }
+        }
+
+        # Add component stats if available
+        if hasattr(backup_manager, 'shard_manager') and backup_manager.shard_manager:
+            try:
+                health_info["shard_stats"] = backup_manager.shard_manager.get_enhanced_stats()
+            except:
+                health_info["shard_stats"] = {"error": "Stats unavailable"}
+
+        if hasattr(backup_manager, 'p2p_manager') and backup_manager.p2p_manager:
+            try:
+                health_info["network_stats"] = backup_manager.p2p_manager.get_network_stats()
+            except:
+                health_info["network_stats"] = {"error": "Stats unavailable"}
+
+        return JSONResponse(content=health_info)
+
+    except Exception as e:
+        logger.error(f"Failed to get health info: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 # Export router
 __all__ = ["router"]

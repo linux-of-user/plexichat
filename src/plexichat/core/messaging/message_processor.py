@@ -160,7 +160,7 @@ class MessageProcessor:
             word_count = len(message.content.split())
             char_count = len(message.content)
 
-            return {}}
+            return {
                 "processed_content": message.content,
                 "mentions": mentions,
                 "hashtags": hashtags,
@@ -171,7 +171,7 @@ class MessageProcessor:
             }
         except Exception as e:
             logger.error(f"Error processing text message: {e}")
-            return {}}"error": str(e)}
+            return {"error": str(e)}
 
     def _process_image_message(self, message: MessageData) -> Dict[str, Any]:
         """Process image message."""
@@ -179,7 +179,7 @@ class MessageProcessor:
             # Extract image metadata from message
             image_data = message.metadata.get("image", {})
 
-            return {}}
+            return {
                 "image_url": image_data.get("url"),
                 "image_size": image_data.get("size"),
                 "image_type": image_data.get("type"),
@@ -188,7 +188,7 @@ class MessageProcessor:
             }
         except Exception as e:
             logger.error(f"Error processing image message: {e}")
-            return {}}"error": str(e)}
+            return {"error": str(e)}
 
     def _process_file_message(self, message: MessageData) -> Dict[str, Any]:
         """Process file message."""
@@ -196,7 +196,7 @@ class MessageProcessor:
             # Extract file metadata
             file_data = message.metadata.get("file", {})
 
-            return {}}
+            return {
                 "file_name": file_data.get("name"),
                 "file_size": file_data.get("size"),
                 "file_type": file_data.get("type"),
@@ -206,23 +206,23 @@ class MessageProcessor:
             }
         except Exception as e:
             logger.error(f"Error processing file message: {e}")
-            return {}}"error": str(e)}
+            return {"error": str(e)}
 
     def _process_system_message(self, message: MessageData) -> Dict[str, Any]:
         """Process system message."""
         try:
-            return {}}
+            return {
                 "system_type": message.metadata.get("system_type", "unknown"),
                 "processed": True,
                 "timestamp": message.timestamp.isoformat()
             }
         except Exception as e:
             logger.error(f"Error processing system message: {e}")
-            return {}}"error": str(e)}
+            return {"error": str(e)}
 
     def _process_default_message(self, message: MessageData) -> Dict[str, Any]:
         """Default message processing."""
-        return {}}
+        return {
             "message_type": message.message_type,
             "processed": True,
             "content_length": len(message.content)
@@ -304,7 +304,7 @@ class MessageProcessor:
 
     def get_status(self) -> Dict[str, Any]:
         """Get processor status."""
-        return {}}
+        return {
             "processing": self.processing,
             "queue_size": self.get_queue_size(),
             "supported_types": list(self.processors.keys())

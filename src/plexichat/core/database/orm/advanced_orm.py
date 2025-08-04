@@ -578,7 +578,7 @@ class AdvancedORM:
         if total_cache_operations > 0:
             cache_hit_rate = self.query_metrics.cache_hits / total_cache_operations
 
-        return {}}
+        return {
             "query_metrics": {
                 "query_count": self.query_metrics.query_count,
                 "average_execution_time": self.query_metrics.average_execution_time,
@@ -617,7 +617,7 @@ class AdvancedORM:
             end_time = datetime.now(timezone.utc)
             response_time = (end_time - start_time).total_seconds() * 1000
 
-            return {}}
+            return {
                 "status": "healthy",
                 "response_time_ms": response_time,
                 "active_connections": self.connection_metrics["active_connections"],
@@ -626,7 +626,7 @@ class AdvancedORM:
             }
 
         except Exception as e:
-            return {}}
+            return {
                 "status": "unhealthy",
                 "error": str(e),
                 "last_check": datetime.now(timezone.utc).isoformat(),

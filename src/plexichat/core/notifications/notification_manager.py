@@ -280,7 +280,7 @@ class NotificationManager:
                 return preferences
 
             # Return default preferences if no database
-            return {}}
+            return {
                 "notifications_enabled": True,
                 "message_notifications": True,
                 "mention_notifications": True,
@@ -293,7 +293,7 @@ class NotificationManager:
 
         except Exception as e:
             logger.error(f"Error getting user preferences: {e}")
-            return {}}"notifications_enabled": True}
+            return {"notifications_enabled": True}
 
     async def _store_notification(self, notification: Notification):
         """Store notification in database."""
@@ -492,7 +492,7 @@ class NotificationManager:
 
     def get_stats(self) -> Dict[str, Any]:
         """Get notification statistics."""
-        return {}}
+        return {
             "notifications_sent": self.notifications_sent,
             "notifications_read": self.notifications_read,
             "notifications_expired": self.notifications_expired,

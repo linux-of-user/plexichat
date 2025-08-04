@@ -409,12 +409,16 @@ class ComprehensiveAPITester:
                         result_data = response.json() if self._is_json_response(response) else {}
 
                         # Extract messages from various response formats
-                        messages = (
-                            result_data.get('messages') or
-                            result_data.get('data') or
-                            result_data if isinstance(result_data, list) else
-                            []
-                        )
+                        if isinstance(result_data, dict):
+                            messages = (
+                                result_data.get('messages') or
+                                result_data.get('data') or
+                                []
+                            )
+                        elif isinstance(result_data, list):
+                            messages = result_data
+                        else:
+                            messages = []
 
                         result = {
                             "status": "success",
@@ -717,6 +721,8 @@ class ComprehensiveAPITester:
             
             elif validation_type == "json_path":
                 path = validation.get("path")
+                if not path:
+                    return {"passed": False, "error": "JSON path not specified"}
                 expected_value = validation.get("value")
                 actual_value = self._get_json_path_value(response["body"], path)
                 
@@ -754,7 +760,92 @@ class ComprehensiveAPITester:
             
         except Exception:
             return None
-    
+
+    async def send_request(self, method: str, endpoint: str, data=None, headers=None, params=None) -> Dict[str, Any]:
+        """Send an HTTP request and return response details."""
+        try:
+            import aiohttp
+            import time
+
+            # Prepare request
+            url = f"{self.base_url.rstrip('/')}/{endpoint.lstrip('/')}"
+            headers = headers or {}
+            params = params or {}
+
+            start_time = time.time()
+
+            async with aiohttp.ClientSession() as session:
+                async with session.request(
+                    method=method.upper(),
+                    url=url,
+                    json=data if method.upper() in ['POST', 'PUT', 'PATCH'] else None,
+                    params=params,
+                    headers=headers
+                ) as response:
+                    response_time = time.time() - start_time
+
+                    try:
+                        body = await response.json()
+                    except:
+                        body = await response.text()
+
+                    return {
+                        "status_code": response.status,
+                        "headers": dict(response.headers),
+                        "body": body,
+                        "response_time": response_time,
+                        "url": str(response.url)
+                    }
+
+        except Exception as e:
+            return {
+                "status_code": 0,
+                "headers": {},
+                "body": {"error": str(e)},
+                "response_time": 0,
+                "url": endpoint,
+                "error": str(e)
+            }
+
+    async def run_test_case(self, test_case) -> Dict[str, Any]:
+        """Run a single test case."""
+        try:
+            # Send the request
+            response = await self.send_request(
+                method=test_case.get('method', 'GET'),
+                endpoint=test_case.get('endpoint', '/'),
+                data=test_case.get('data'),
+                headers=test_case.get('headers', {}),
+                params=test_case.get('params', {})
+            )
+
+            # Validate response
+            validations = test_case.get('validations', [])
+            validation_results = []
+
+            for validation in validations:
+                result = await self._validate_response(response, validation)
+                validation_results.append(result)
+
+            # Determine overall result
+            passed = all(v.get('passed', False) for v in validation_results)
+
+            return {
+                "test_name": test_case.get('name', 'Unnamed Test'),
+                "passed": passed,
+                "response": response,
+                "validations": validation_results,
+                "execution_time": response.get('response_time', 0)
+            }
+
+        except Exception as e:
+            return {
+                "test_name": test_case.get('name', 'Unnamed Test'),
+                "passed": False,
+                "error": str(e),
+                "execution_time": 0
+            }
+
     async def run_test_suite(self, test_cases: List[TestCase]) -> Dict[str, Any]:
         """Run multiple test cases."""
         try:

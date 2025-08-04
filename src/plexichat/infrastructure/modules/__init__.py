@@ -425,7 +425,7 @@ class SecureModule:
 
     def get_status(self) -> Dict[str, Any]:
         """Get module status information."""
-        return {}}
+        return {
             "module_id": self.metadata.module_id,
             "name": self.metadata.name,
             "status": self.status.value,

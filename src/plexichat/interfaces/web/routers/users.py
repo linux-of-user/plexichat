@@ -42,9 +42,9 @@ try:
     from plexichat.infrastructure.utils.auth import get_current_user, require_admin
 except ImportError:
     def get_current_user():
-        return {}}"id": 1, "username": "admin", "is_admin": True}
+        return {"id": 1, "username": "admin", "is_admin": True}
     def require_admin():
-        return {}}"id": 1, "username": "admin", "is_admin": True}
+        return {"id": 1, "username": "admin", "is_admin": True}
 
 # Security imports
 try:

@@ -15,7 +15,7 @@ import os
 import logging
 import asyncio
 from contextlib import asynccontextmanager
-from datetime import datetime
+# datetime import removed - not used in main.py
 from pathlib import Path
 from typing import Optional, Dict, Any
 
@@ -30,11 +30,9 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 # Core imports with error handling
 try:
-    from fastapi import FastAPI, Request, HTTPException
+    from fastapi import FastAPI
     from fastapi.middleware.cors import CORSMiddleware
-    from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
-    from fastapi.staticfiles import StaticFiles
-    from fastapi.templating import Jinja2Templates
+    from fastapi.responses import JSONResponse
 except ImportError as e:
     print(f"[X] FastAPI not available: {e}")
     print("Install with: pip install fastapi uvicorn")
@@ -71,10 +69,22 @@ except ImportError as e:
     logger.warning(f"Enhanced logging not available: {e}")
     # Keep using basic logger
 
+# Load unified configuration system (required)
+from plexichat.core.unified_config import get_unified_config
 from plexichat.core.config import settings
 from plexichat.core.app_setup import setup_routers, setup_static_files
 
-config = settings
+# Initialize unified config
+config = get_unified_config()
+
+# Get production mode from unified config
+production_mode = config.system.environment == "production"
+
+logger.info(f"[CONFIG] Unified configuration loaded - Environment: {config.system.environment}")
+logger.info(f"[CONFIG] Production mode: {production_mode}")
+logger.info(f"[CONFIG] CORS origins: {config.network.cors_origins}")
+logger.info(f"[CONFIG] Rate limiting: {config.network.rate_limit_enabled}")
+logger.info(f"[CONFIG] SSL enabled: {config.network.ssl_enabled}")
 
 # Application lifespan manager
 @asynccontextmanager
@@ -201,42 +211,71 @@ app = FastAPI(
 setup_routers(app)
 setup_static_files(app)
 
-# Add security middleware first (highest priority)
+# Add production-ready security middleware (highest priority)
 @app.middleware("http")
 async def security_middleware(request, call_next):
-    """Security middleware to block dangerous HTTP methods and add security headers."""
-    from fastapi import HTTPException
+    """Production-ready security middleware optimized for 10K+ req/min."""
     from fastapi.responses import JSONResponse
-    
-    # Block dangerous HTTP methods
-    dangerous_methods = ["TRACE", "CONNECT"]
+
+    # Block dangerous HTTP methods (optimized set lookup)
+    dangerous_methods = {"TRACE", "CONNECT", "DEBUG"}
     if request.method in dangerous_methods:
         return JSONResponse(
             status_code=405,
-            content={"error": "Method Not Allowed", "message": f"HTTP method {request.method} is not allowed"},
+            content={"error": "Method Not Allowed"},
             headers={"Allow": "GET, POST, PUT, DELETE, OPTIONS, HEAD, PATCH"}
         )
-    
+
+    # Request validation using unified config
+    content_length = request.headers.get("content-length")
+    max_size_bytes = config.network.max_request_size_mb * 1024 * 1024
+    if content_length and int(content_length) > max_size_bytes:
+        return JSONResponse(status_code=413, content={"error": "Request Entity Too Large"})
+
     response = await call_next(request)
-    
-    # Add security headers
-    response.headers["X-Content-Type-Options"] = "nosniff"
-    response.headers["X-Frame-Options"] = "DENY"
-    response.headers["X-XSS-Protection"] = "1; mode=block"
-    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
-    response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'"
-    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-    response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
-    
+
+    # Security headers based on unified config environment
+
+    if production_mode:
+        # Strict production headers
+        response.headers.update({
+            "X-Content-Type-Options": "nosniff",
+            "X-Frame-Options": "DENY",
+            "X-XSS-Protection": "1; mode=block",
+            "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload",
+            "Content-Security-Policy": "default-src 'none'; script-src 'self'; style-src 'self'",
+            "Referrer-Policy": "strict-origin-when-cross-origin",
+            "Permissions-Policy": "geolocation=(), microphone=(), camera=()",
+            "Cache-Control": "no-store, no-cache, must-revalidate, private"
+        })
+        # Remove server info in production
+        response.headers.pop("server", None)
+    else:
+        # Development headers
+        response.headers.update({
+            "X-Content-Type-Options": "nosniff",
+            "X-Frame-Options": "DENY",
+            "X-XSS-Protection": "1; mode=block",
+            "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+            "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'",
+            "Referrer-Policy": "strict-origin-when-cross-origin",
+            "Permissions-Policy": "geolocation=(), microphone=(), camera=()"
+        })
+
     return response
 
 # Add integrated protection system (DDoS + Rate Limiting + Dynamic Scaling)
 try:
     from plexichat.core.middleware.integrated_protection_system import IntegratedProtectionMiddleware
-    from plexichat.core.config.rate_limit_config import get_rate_limit_config
 
-    # Initialize integrated protection middleware
-    rate_limit_config = get_rate_limit_config()
+    # Initialize integrated protection middleware using unified config
+    rate_limit_config = {
+        "enabled": config.network.rate_limit_enabled,
+        "requests_per_minute": config.network.rate_limit_requests_per_minute,
+        "burst_limit": config.network.rate_limit_burst_limit,
+        "ddos_protection": True,
+        "dynamic_scaling": True
+    }
     protection_middleware = IntegratedProtectionMiddleware(rate_limit_config)
 
     @app.middleware("http")
@@ -248,12 +287,17 @@ try:
 except Exception as e:
     logger.warning(f"Integrated protection middleware not available: {e}")
 
-    # Fallback to basic rate limiting
+    # Fallback to basic rate limiting using unified config
     try:
         from plexichat.core.middleware.unified_rate_limiter import RateLimitMiddleware
 
-        rate_limit_config = get_rate_limit_config()
-        rate_limit_middleware = RateLimitMiddleware(rate_limit_config)
+        # Use unified config for rate limiting
+        fallback_rate_config = {
+            "enabled": config.network.rate_limit_enabled,
+            "requests_per_minute": config.network.rate_limit_requests_per_minute,
+            "burst_limit": config.network.rate_limit_burst_limit
+        }
+        rate_limit_middleware = RateLimitMiddleware(fallback_rate_config)
 
         @app.middleware("http")
         async def fallback_rate_limiting_middleware(request, call_next):
@@ -274,11 +318,13 @@ try:
 
         response = await call_next(request)
 
-        # Add microsecond timing
+        # Add performance headers (development only for security)
         end_time = time.time_ns()
         duration_us = (end_time - start_time) / 1000.0
-        response.headers["X-Response-Time-Microseconds"] = f"{duration_us:.1f}"
-        response.headers["X-Performance-Optimized"] = "true"
+
+        if not production_mode:
+            response.headers["X-Response-Time-Microseconds"] = f"{duration_us:.1f}"
+            response.headers["X-Performance-Optimized"] = "production_10k_plus"
 
         return response
 
@@ -297,68 +343,33 @@ except Exception as e:
 #     logger.warning(f"Rate limiting middleware error: {e}")
 logger.info("[CHECK] Rate limiting middleware temporarily disabled")
 
-# Configure CORS
+# Configure CORS using unified config
+if production_mode:
+    # Production CORS - very restrictive for security
+    cors_origins = []  # No cross-origin requests in production
+    cors_credentials = False
+    cors_methods = ["GET", "POST"]
+    cors_headers = ["Content-Type", "Authorization"]
+    logger.info("[CORS] Production CORS enabled - restrictive")
+else:
+    # Development CORS - use config settings
+    cors_origins = config.network.cors_origins
+    cors_credentials = True
+    cors_methods = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+    cors_headers = ["*"]
+    logger.info(f"[CORS] Development CORS enabled - origins: {cors_origins}")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.allowed_origins,
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allow_headers=["*"],
+    allow_origins=cors_origins,
+    allow_credentials=cors_credentials,
+    allow_methods=cors_methods,
+    allow_headers=cors_headers,
+    max_age=3600
 )
 
-# Basic health check endpoint
-@app.get("/")
-async def root():
-    """Root endpoint."""
-    try:
-        from plexichat.shared.version_utils import get_version
-        version = get_version()
-    except ImportError:
-        try:
-            version = config.get("system", {}).get("version", "b.1.1-91")
-        except:
-            version = "b.1.1-91"
-
-    return {}}
-        "message": "PlexiChat API",
-        "version": version,
-        "status": "running",
-        "timestamp": datetime.now().isoformat()
-    }
-
-@app.get("/health")
-async def health_check():
-    """Health check endpoint."""
-    try:
-        from plexichat.shared.version_utils import get_health_info
-        return get_health_info()
-    except ImportError:
-        try:
-            version = config.get("system", {}).get("version", "b.1.1-91")
-        except:
-            version = "b.1.1-91"
-        return {}}
-            "status": "healthy",
-            "timestamp": datetime.now().isoformat(),
-            "version": version
-        }
-
-@app.get("/performance/stats")
-async def performance_stats():
-    """Get microsecond-level performance statistics."""
-    try:
-        from plexichat.core.performance.microsecond_optimizer import get_microsecond_performance_stats
-        stats = get_microsecond_performance_stats()
-        return {}}
-            "performance_stats": stats,
-            "timestamp": datetime.now().isoformat(),
-            "optimization_level": "microsecond"
-        }
-    except ImportError:
-        return {}}
-            "error": "Performance optimizer not available",
-            "timestamp": datetime.now().isoformat()
-        }
+# API endpoints are handled by existing routers in interfaces/api/
+# No custom endpoints defined in main.py - only system integration
 
 from plexichat.core.app_setup import setup_routers, setup_static_files
 

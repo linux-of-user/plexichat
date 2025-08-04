@@ -50,7 +50,7 @@ except ImportError:
         def __init__(self, config):
             self.config = config
         async def execute_query(self, query, params=None):
-            return {}}"success": True, "data": []}
+            return {"success": True, "data": []}
 
     class DatabaseType:
         POSTGRESQL = "postgresql"
@@ -473,7 +473,7 @@ class PreparedStatementManager:
 
         hit_rate = (total_hits / total_requests * 100) if total_requests > 0 else 0
 
-        return {}}
+        return {
             "cache_size": len(self.query_cache),
             "max_cache_size": self.cache_max_size,
             "total_hits": total_hits,
@@ -643,7 +643,7 @@ class StoredProcedureManager:
     def get_procedure_performance_report(self, database_name: str) -> Dict[str, Any]:
         """Generate performance report for stored procedures."""
         if database_name not in self.procedures:
-            return {}}"database": database_name, "procedures": []}
+            return {"database": database_name, "procedures": []}
 
         procedures = self.procedures[database_name]
 
@@ -662,7 +662,7 @@ class StoredProcedureManager:
         # Sort by execution count
         procedure_stats.sort(key=lambda x: x["execution_count"], reverse=True)
 
-        return {}}
+        return {
             "database": database_name,
             "total_procedures": len(procedures),
             "active_procedures": len([p for p in procedures.values() if p.status == ProcedureStatus.ACTIVE]),

@@ -148,7 +148,7 @@ except ImportError as e:
             return self.backup_history
 
         def get_backup_stats(self) -> Dict[str, Any]:
-            return {}}"backups_created": 0, "backups_restored": 0}
+            return {"backups_created": 0, "backups_restored": 0}
 
     _backup_manager = BackupManager()
     backup_manager = _backup_manager
@@ -199,7 +199,7 @@ __all__ = [
     # Main backup system
     "BackupManager",
     "get_backup_manager",
-    "get_global_backup_manager",
+    "backup_manager",
 
     # Data classes
     "BackupInfo",

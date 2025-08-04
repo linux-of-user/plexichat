@@ -58,7 +58,7 @@ class CoreManager:
 
     def get_status(self) -> Dict[str, Any]:
         """Get core status."""
-        return {}}
+        return {
             "components": self.components.copy(),
             "total_components": len(self.components),
             "active_components": sum(1 for status in self.components.values() if status)

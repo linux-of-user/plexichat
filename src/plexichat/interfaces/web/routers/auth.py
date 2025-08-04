@@ -585,7 +585,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
                 detail="User not found"
             )
 
-        return {}}
+        return {
             "id": user.id,
             "username": user.username,
             "email": user.email,
@@ -638,4 +638,4 @@ async def logout(
 
     logger.info(f"User '{current_user['username']}' logged out")
 
-    return {}}"message": "Successfully logged out"}
+    return {"message": "Successfully logged out"}

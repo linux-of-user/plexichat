@@ -119,25 +119,60 @@ class DistributionPlan:
         """Get unique node IDs used."""
         return {dist.node_id for dist in self.shard_distributions}
 
-class DistributionManager:
-    """Manages distribution of shards across storage nodes."""
-    
-    def __init__(self, storage_dir: Path):
+class AdvancedDistributionManager:
+    """Advanced distribution manager with intelligent geographic distribution and automatic replication."""
+
+    def __init__(self, storage_dir: Path, p2p_manager=None):
         self.storage_dir = Path(storage_dir)
         self.storage_dir.mkdir(parents=True, exist_ok=True)
-        
+
+        # P2P network integration
+        self.p2p_manager = p2p_manager
+
         # Node management
         self.nodes: Dict[str, StorageNode] = {}
         self.distribution_plans: Dict[str, DistributionPlan] = {}
         self.shard_locations: Dict[str, List[ShardDistribution]] = {}
-        
-        # Configuration
-        self.default_strategy = DistributionStrategy.LOAD_BALANCED
-        self.min_redundancy = 3
-        self.max_shards_per_node = 100
-        
+
+        # Geographic regions for intelligent distribution
+        self.geographic_regions = {
+            "us-east": {"nodes": set(), "capacity_gb": 0.0},
+            "us-west": {"nodes": set(), "capacity_gb": 0.0},
+            "europe": {"nodes": set(), "capacity_gb": 0.0},
+            "asia": {"nodes": set(), "capacity_gb": 0.0},
+            "other": {"nodes": set(), "capacity_gb": 0.0}
+        }
+
+        # Enhanced configuration
+        self.default_strategy = DistributionStrategy.GEOGRAPHIC
+        self.min_redundancy = 5  # Increased for massive scale
+        self.max_redundancy = 10
+        self.max_shards_per_node = 1000  # Increased for scale
+        self.geographic_distribution_enabled = True
+        self.auto_replication_enabled = True
+        self.replication_check_interval = 3600  # 1 hour
+
+        # Health monitoring
+        self.node_health_scores: Dict[str, float] = {}
+        self.failed_nodes: Set[str] = set()
+        self.maintenance_nodes: Set[str] = set()
+
+        # Statistics
+        self.stats = {
+            "total_distributions": 0,
+            "successful_replications": 0,
+            "failed_replications": 0,
+            "auto_repairs": 0,
+            "geographic_distributions": 0,
+            "load_balanced_distributions": 0
+        }
+
         # Initialize with local node
         self._initialize_local_node()
+
+        # Start background tasks
+        asyncio.create_task(self._monitor_node_health())
+        asyncio.create_task(self._auto_replication_task())
     
     def _initialize_local_node(self):
         """Initialize local storage node."""
@@ -156,8 +191,9 @@ class DistributionManager:
         logger.info("Initialized local storage node")
     
     def register_node(self, node_id: str, node_type: NodeType, capacity_mb: int,
-                     location: str, user_id: Optional[str] = None, 
-                     metadata: Optional[Dict[str, Any]] = None) -> StorageNode:
+                     location: str, user_id: Optional[str] = None,
+                     metadata: Optional[Dict[str, Any]] = None,
+                     geographic_region: Optional[str] = None) -> StorageNode:
         """Register a new storage node."""
         node = StorageNode(
             node_id=node_id,
@@ -170,9 +206,24 @@ class DistributionManager:
             last_seen=datetime.now(timezone.utc),
             metadata=metadata or {}
         )
-        
+
+        # Add geographic region info
+        if geographic_region:
+            node.metadata["geographic_region"] = geographic_region
+        else:
+            # Auto-detect region from location
+            node.metadata["geographic_region"] = self._detect_geographic_region(location)
+
+        # Update geographic regions
+        region = node.metadata["geographic_region"]
+        if region in self.geographic_regions:
+            self.geographic_regions[region]["nodes"].add(node_id)
+            self.geographic_regions[region]["capacity_gb"] += capacity_mb / 1024
+
         self.nodes[node_id] = node
-        logger.info(f"Registered storage node {node_id} ({node_type.value}) with {capacity_mb}MB capacity")
+        self.node_health_scores[node_id] = 100.0  # Start with perfect health
+
+        logger.info(f"Registered storage node {node_id} ({node_type.value}) in {region} with {capacity_mb}MB capacity")
         return node
     
     def unregister_node(self, node_id: str) -> bool:
@@ -227,11 +278,15 @@ class DistributionManager:
             return self._create_round_robin_plan(shard_set)
         elif strategy == DistributionStrategy.LOAD_BALANCED:
             return self._create_load_balanced_plan(shard_set)
+        elif strategy == DistributionStrategy.GEOGRAPHIC:
+            return await self._create_geographic_plan(shard_set)
         elif strategy == DistributionStrategy.RANDOM:
             return self._create_random_plan(shard_set)
+        elif strategy == DistributionStrategy.AFFINITY_BASED:
+            return await self._create_affinity_based_plan(shard_set)
         else:
-            # Default to load balanced
-            return self._create_load_balanced_plan(shard_set)
+            # Default to geographic for massive scale
+            return await self._create_geographic_plan(shard_set)
     
     def _create_load_balanced_plan(self, shard_set: ShardSet) -> DistributionPlan:
         """Create load-balanced distribution plan."""
@@ -517,6 +572,432 @@ class DistributionManager:
         except Exception as e:
             logger.error(f"Failed to cleanup backup distribution: {e}")
             return False
+
+    async def _create_geographic_plan(self, shard_set: ShardSet) -> DistributionPlan:
+        """Create geographic distribution plan for maximum redundancy."""
+        distributions = []
+        available_nodes = self.get_available_nodes()
+
+        if not available_nodes:
+            raise ValueError("No available storage nodes")
+
+        # Group nodes by geographic region
+        nodes_by_region = {}
+        for node in available_nodes:
+            region = node.metadata.get("geographic_region", "other")
+            if region not in nodes_by_region:
+                nodes_by_region[region] = []
+            nodes_by_region[region].append(node)
+
+        # Ensure we have nodes in multiple regions
+        if len(nodes_by_region) < 2:
+            logger.warning("Insufficient geographic diversity, falling back to load balanced")
+            return self._create_load_balanced_plan(shard_set)
+
+        # Create multiple copies of each shard across different regions
+        for shard in shard_set.all_shards:
+            shard_distributions = []
+            regions_used = set()
+
+            # Try to place copies in different regions
+            for copy_index in range(self.min_redundancy):
+                # Find best region that hasn't been used
+                best_region = None
+                best_node = None
+
+                for region, region_nodes in nodes_by_region.items():
+                    if region in regions_used and len(regions_used) < len(nodes_by_region):
+                        continue  # Skip already used regions if we have alternatives
+
+                    # Find best node in this region
+                    available_region_nodes = [n for n in region_nodes
+                                            if n.node_id not in [d.node_id for d in shard_distributions]]
+
+                    if available_region_nodes:
+                        # Select node with best health score and available capacity
+                        region_node = max(available_region_nodes,
+                                        key=lambda n: (self.node_health_scores.get(n.node_id, 0), n.available_mb))
+
+                        if not best_node or self.node_health_scores.get(region_node.node_id, 0) > self.node_health_scores.get(best_node.node_id, 0):
+                            best_region = region
+                            best_node = region_node
+
+                if best_node:
+                    storage_path = f"{best_node.location}/shard_{shard.shard_id}_{copy_index}"
+                    distribution = ShardDistribution(
+                        shard_id=shard.shard_id,
+                        node_id=best_node.node_id,
+                        storage_path=storage_path,
+                        stored_at=datetime.now(timezone.utc),
+                        metadata={
+                            "shard_type": shard.shard_type.value,
+                            "copy_index": copy_index,
+                            "geographic_region": best_region,
+                            "distribution_strategy": "geographic"
+                        }
+                    )
+                    shard_distributions.append(distribution)
+                    regions_used.add(best_region)
+
+                    # Update node usage
+                    best_node.used_mb += shard.size // (1024 * 1024)
+
+            distributions.extend(shard_distributions)
+
+        self.stats["geographic_distributions"] += 1
+
+        return DistributionPlan(
+            backup_id=shard_set.backup_id,
+            shard_distributions=distributions,
+            strategy=DistributionStrategy.GEOGRAPHIC,
+            created_at=datetime.now(timezone.utc),
+            redundancy_factor=len(set(d.metadata.get("geographic_region") for d in distributions))
+        )
+
+    async def _create_affinity_based_plan(self, shard_set: ShardSet) -> DistributionPlan:
+        """Create affinity-based distribution plan considering node relationships."""
+        distributions = []
+        available_nodes = self.get_available_nodes()
+
+        if not available_nodes:
+            raise ValueError("No available storage nodes")
+
+        # Calculate node affinity scores based on user relationships, geographic proximity, etc.
+        node_affinities = await self._calculate_node_affinities(available_nodes)
+
+        for shard in shard_set.all_shards:
+            # Select nodes with diverse affinities to minimize correlated failures
+            selected_nodes = self._select_diverse_nodes(available_nodes, node_affinities, self.min_redundancy)
+
+            for i, node in enumerate(selected_nodes):
+                storage_path = f"{node.location}/shard_{shard.shard_id}_{i}"
+                distribution = ShardDistribution(
+                    shard_id=shard.shard_id,
+                    node_id=node.node_id,
+                    storage_path=storage_path,
+                    stored_at=datetime.now(timezone.utc),
+                    metadata={
+                        "shard_type": shard.shard_type.value,
+                        "copy_index": i,
+                        "affinity_score": node_affinities.get(node.node_id, 0.0),
+                        "distribution_strategy": "affinity_based"
+                    }
+                )
+                distributions.append(distribution)
+
+                # Update node usage
+                node.used_mb += shard.size // (1024 * 1024)
+
+        return DistributionPlan(
+            backup_id=shard_set.backup_id,
+            shard_distributions=distributions,
+            strategy=DistributionStrategy.AFFINITY_BASED,
+            created_at=datetime.now(timezone.utc),
+            redundancy_factor=len(set(d.node_id for d in distributions))
+        )
+
+    def _detect_geographic_region(self, location: str) -> str:
+        """Detect geographic region from location string."""
+        location_lower = location.lower()
+
+        if any(term in location_lower for term in ["us-east", "east", "virginia", "ohio", "new york"]):
+            return "us-east"
+        elif any(term in location_lower for term in ["us-west", "west", "california", "oregon", "nevada"]):
+            return "us-west"
+        elif any(term in location_lower for term in ["europe", "eu", "london", "frankfurt", "paris", "ireland"]):
+            return "europe"
+        elif any(term in location_lower for term in ["asia", "tokyo", "singapore", "mumbai", "seoul"]):
+            return "asia"
+        else:
+            return "other"
+
+    async def _calculate_node_affinities(self, nodes: List[StorageNode]) -> Dict[str, float]:
+        """Calculate affinity scores between nodes."""
+        affinities = {}
+
+        for node in nodes:
+            score = 0.0
+
+            # Geographic diversity bonus
+            region = node.metadata.get("geographic_region", "other")
+            region_count = len(self.geographic_regions[region]["nodes"])
+            if region_count > 0:
+                score += 100.0 / region_count  # Higher score for less populated regions
+
+            # Health score factor
+            score += self.node_health_scores.get(node.node_id, 50.0)
+
+            # Capacity factor
+            if node.capacity_mb > 0:
+                score += (node.available_mb / node.capacity_mb) * 50.0
+
+            # User diversity (if different users, higher score)
+            if node.user_id:
+                user_node_count = len([n for n in nodes if n.user_id == node.user_id])
+                score += 50.0 / user_node_count
+
+            affinities[node.node_id] = score
+
+        return affinities
+
+    def _select_diverse_nodes(self, available_nodes: List[StorageNode],
+                            affinities: Dict[str, float], count: int) -> List[StorageNode]:
+        """Select diverse nodes to minimize correlated failures."""
+        if len(available_nodes) <= count:
+            return available_nodes
+
+        selected = []
+        remaining = available_nodes.copy()
+
+        # First, select the highest affinity node
+        best_node = max(remaining, key=lambda n: affinities.get(n.node_id, 0.0))
+        selected.append(best_node)
+        remaining.remove(best_node)
+
+        # Then select nodes that are most diverse from already selected ones
+        while len(selected) < count and remaining:
+            best_candidate = None
+            best_diversity_score = -1
+
+            for candidate in remaining:
+                diversity_score = 0.0
+
+                for selected_node in selected:
+                    # Geographic diversity
+                    if (candidate.metadata.get("geographic_region") !=
+                        selected_node.metadata.get("geographic_region")):
+                        diversity_score += 50.0
+
+                    # User diversity
+                    if candidate.user_id != selected_node.user_id:
+                        diversity_score += 30.0
+
+                    # Network diversity (different endpoints)
+                    if candidate.location != selected_node.location:
+                        diversity_score += 20.0
+
+                # Add base affinity score
+                diversity_score += affinities.get(candidate.node_id, 0.0) * 0.1
+
+                if diversity_score > best_diversity_score:
+                    best_diversity_score = diversity_score
+                    best_candidate = candidate
+
+            if best_candidate:
+                selected.append(best_candidate)
+                remaining.remove(best_candidate)
+            else:
+                break
+
+        return selected
+
+    async def _monitor_node_health(self):
+        """Background task to monitor node health."""
+        while True:
+            try:
+                await asyncio.sleep(300)  # Check every 5 minutes
+
+                for node_id, node in self.nodes.items():
+                    health_score = await self._check_node_health(node)
+                    self.node_health_scores[node_id] = health_score
+
+                    # Update node status based on health
+                    if health_score < 20.0:
+                        node.status = NodeStatus.UNREACHABLE
+                        self.failed_nodes.add(node_id)
+                    elif health_score < 50.0:
+                        node.status = NodeStatus.OVERLOADED
+                    else:
+                        node.status = NodeStatus.ONLINE
+                        self.failed_nodes.discard(node_id)
+
+            except Exception as e:
+                logger.error(f"Node health monitoring error: {e}")
+
+    async def _check_node_health(self, node: StorageNode) -> float:
+        """Check health of a specific node."""
+        health_score = 100.0
+
+        try:
+            # Check if node is reachable
+            if self.p2p_manager:
+                # Use P2P manager to ping node
+                response_time = await self._ping_node(node.node_id)
+                if response_time is None:
+                    health_score -= 50.0  # Unreachable
+                elif response_time > 5000:  # 5 seconds
+                    health_score -= 30.0  # Very slow
+                elif response_time > 1000:  # 1 second
+                    health_score -= 15.0  # Slow
+
+            # Check storage usage
+            if node.usage_percent > 95.0:
+                health_score -= 40.0  # Nearly full
+            elif node.usage_percent > 85.0:
+                health_score -= 20.0  # Getting full
+
+            # Check last seen time
+            time_since_seen = datetime.now(timezone.utc) - node.last_seen
+            if time_since_seen.total_seconds() > 3600:  # 1 hour
+                health_score -= 25.0
+            elif time_since_seen.total_seconds() > 300:  # 5 minutes
+                health_score -= 10.0
+
+        except Exception as e:
+            logger.error(f"Health check failed for node {node.node_id}: {e}")
+            health_score = 0.0
+
+        return max(0.0, health_score)
+
+    async def _ping_node(self, node_id: str) -> Optional[float]:
+        """Ping a node and return response time in milliseconds."""
+        if self.p2p_manager:
+            try:
+                start_time = time.time()
+                # Use P2P manager to send health check
+                success = await self.p2p_manager._health_check_node(node_id)
+                response_time = (time.time() - start_time) * 1000
+                return response_time if success else None
+            except:
+                return None
+        return None
+
+    async def _auto_replication_task(self):
+        """Background task for automatic shard replication."""
+        while True:
+            try:
+                await asyncio.sleep(self.replication_check_interval)
+
+                if self.auto_replication_enabled:
+                    await self._check_and_repair_replications()
+
+            except Exception as e:
+                logger.error(f"Auto replication task error: {e}")
+
+    async def _check_and_repair_replications(self):
+        """Check and repair under-replicated shards."""
+        try:
+            repairs_needed = 0
+            repairs_completed = 0
+
+            for backup_id, plan in self.distribution_plans.items():
+                # Group distributions by shard
+                shard_distributions = {}
+                for dist in plan.shard_distributions:
+                    if dist.shard_id not in shard_distributions:
+                        shard_distributions[dist.shard_id] = []
+                    shard_distributions[dist.shard_id].append(dist)
+
+                # Check each shard's replication level
+                for shard_id, distributions in shard_distributions.items():
+                    # Count healthy replicas
+                    healthy_replicas = [
+                        dist for dist in distributions
+                        if (dist.node_id not in self.failed_nodes and
+                            self.node_health_scores.get(dist.node_id, 0) > 50.0)
+                    ]
+
+                    if len(healthy_replicas) < self.min_redundancy:
+                        repairs_needed += 1
+
+                        # Attempt to create additional replicas
+                        if await self._replicate_shard(shard_id, backup_id,
+                                                     self.min_redundancy - len(healthy_replicas)):
+                            repairs_completed += 1
+                            self.stats["auto_repairs"] += 1
+
+            if repairs_needed > 0:
+                logger.info(f"Auto-replication: {repairs_completed}/{repairs_needed} repairs completed")
+
+        except Exception as e:
+            logger.error(f"Replication check and repair failed: {e}")
+
+    async def _replicate_shard(self, shard_id: str, backup_id: str, copies_needed: int) -> bool:
+        """Create additional replicas of a shard."""
+        try:
+            if not self.p2p_manager:
+                return False
+
+            # Try to retrieve shard data from existing replicas
+            shard_data = await self.p2p_manager.request_shard(shard_id, backup_id)
+
+            if not shard_data:
+                logger.error(f"Could not retrieve shard {shard_id} for replication")
+                return False
+
+            # Find suitable nodes for new replicas
+            available_nodes = self.get_available_nodes()
+            existing_nodes = set()
+
+            # Get nodes that already have this shard
+            if backup_id in self.distribution_plans:
+                for dist in self.distribution_plans[backup_id].shard_distributions:
+                    if dist.shard_id == shard_id:
+                        existing_nodes.add(dist.node_id)
+
+            # Filter out nodes that already have the shard
+            candidate_nodes = [n for n in available_nodes if n.node_id not in existing_nodes]
+
+            if len(candidate_nodes) < copies_needed:
+                logger.warning(f"Insufficient nodes for shard replication: need {copies_needed}, have {len(candidate_nodes)}")
+                copies_needed = len(candidate_nodes)
+
+            # Select best nodes for replication
+            selected_nodes = self._select_diverse_nodes(candidate_nodes,
+                                                      await self._calculate_node_affinities(candidate_nodes),
+                                                      copies_needed)
+
+            # Offer shard to selected nodes
+            if self.p2p_manager:
+                offer_results = await self.p2p_manager.offer_shard(
+                    shard_id, backup_id, shard_data,
+                    [n.node_id for n in selected_nodes], copies_needed
+                )
+
+                successful_offers = sum(1 for success in offer_results.values() if success)
+
+                if successful_offers > 0:
+                    self.stats["successful_replications"] += successful_offers
+                    logger.info(f"Successfully replicated shard {shard_id} to {successful_offers} additional nodes")
+                    return True
+                else:
+                    self.stats["failed_replications"] += 1
+                    return False
+
+            return False
+
+        except Exception as e:
+            logger.error(f"Shard replication failed: {e}")
+            self.stats["failed_replications"] += 1
+            return False
+
+    def get_advanced_stats(self) -> Dict[str, Any]:
+        """Get advanced distribution statistics."""
+        stats = self.stats.copy()
+
+        # Geographic distribution stats
+        geographic_stats = {}
+        for region, info in self.geographic_regions.items():
+            geographic_stats[region] = {
+                "node_count": len(info["nodes"]),
+                "total_capacity_gb": info["capacity_gb"],
+                "average_health": sum(self.node_health_scores.get(nid, 0) for nid in info["nodes"]) / len(info["nodes"]) if info["nodes"] else 0
+            }
+
+        stats.update({
+            "total_nodes": len(self.nodes),
+            "healthy_nodes": len([nid for nid, score in self.node_health_scores.items() if score > 70.0]),
+            "failed_nodes": len(self.failed_nodes),
+            "geographic_regions": geographic_stats,
+            "average_redundancy": sum(len(plan.shard_distributions) for plan in self.distribution_plans.values()) / len(self.distribution_plans) if self.distribution_plans else 0,
+            "auto_replication_enabled": self.auto_replication_enabled,
+            "geographic_distribution_enabled": self.geographic_distribution_enabled
+        })
+
+        return stats
+
+# Backward compatibility alias
+DistributionManager = AdvancedDistributionManager
 
 # Export main classes
 __all__ = [

@@ -31,7 +31,7 @@ except ImportError:
             self.session = session
 
         async def check_file_access(self, user_id, file_id, permission_type):
-            return {}}"has_access": True, "permission_source": "mock"}
+            return {"has_access": True, "permission_source": "mock"}
 
 """
 import time
@@ -173,7 +173,7 @@ class MessageService:
                 raise HTTPException(status_code=404, detail="Message not found")
 
             if not message.attached_files:
-                return {}}"accessible_files": [], "inaccessible_files": []}
+                return {"accessible_files": [], "inaccessible_files": []}
 
             accessible_files = []
             inaccessible_files = []
@@ -205,7 +205,7 @@ class MessageService:
                     file_info["error"] = error_message
                     inaccessible_files.append(file_info)
 
-            return {}}
+            return {
                 "accessible_files": accessible_files,
                 "inaccessible_files": inaccessible_files
             }

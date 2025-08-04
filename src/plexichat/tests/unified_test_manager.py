@@ -142,7 +142,7 @@ class UnifiedTestManager:
         elif category == "smoke":
             return await self._run_smoke_tests(verbose)
         else:
-            return {}}"total": 0, "passed": 0, "failed": 0, "skipped": 1, "error": f"Unknown category: {category}"}
+            return {"total": 0, "passed": 0, "failed": 0, "skipped": 1, "error": f"Unknown category: {category}"}
             
     async def _run_core_tests(self, verbose: bool) -> Dict[str, Any]:
         """Run core system tests."""
@@ -170,7 +170,7 @@ class UnifiedTestManager:
     async def _run_plugin_tests(self, verbose: bool) -> Dict[str, Any]:
         """Run plugin tests."""
         if not self.plugin_manager:
-            return {}}"total": 0, "passed": 0, "failed": 0, "skipped": 1, "error": "Plugin manager not available"}
+            return {"total": 0, "passed": 0, "failed": 0, "skipped": 1, "error": "Plugin manager not available"}
             
         try:
             # Get all loaded plugins
@@ -182,13 +182,13 @@ class UnifiedTestManager:
                     tests.append((f"plugin_{plugin_name}", lambda p=plugin_instance: p.run_tests()))
                     
             if not tests:
-                return {}}"total": 0, "passed": 0, "failed": 0, "skipped": 1, "message": "No plugins with tests found"}
+                return {"total": 0, "passed": 0, "failed": 0, "skipped": 1, "message": "No plugins with tests found"}
                 
             return await self._execute_test_suite("plugins", tests, verbose)
             
         except Exception as e:
             logger.error(f"Error running plugin tests: {e}")
-            return {}}"total": 0, "passed": 0, "failed": 1, "skipped": 0, "error": str(e)}
+            return {"total": 0, "passed": 0, "failed": 1, "skipped": 0, "error": str(e)}
             
     async def _run_integration_tests(self, verbose: bool) -> Dict[str, Any]:
         """Run integration tests."""
@@ -258,33 +258,33 @@ class UnifiedTestManager:
         try:
             from plexichat.core.config import get_config
             config = get_config()
-            return {}}"success": True, "message": "Configuration loaded successfully"}
+            return {"success": True, "message": "Configuration loaded successfully"}
         except Exception as e:
-            return {}}"success": False, "error": str(e)}
+            return {"success": False, "error": str(e)}
             
     async def _test_logging_system(self) -> Dict[str, Any]:
         """Test logging system."""
         try:
             test_logger = logging.getLogger("test")
             test_logger.info("Test log message")
-            return {}}"success": True, "message": "Logging system working"}
+            return {"success": True, "message": "Logging system working"}
         except Exception as e:
-            return {}}"success": False, "error": str(e)}
+            return {"success": False, "error": str(e)}
             
     async def _test_database_connection(self) -> Dict[str, Any]:
         """Test database connection."""
         try:
             # Basic database connection test
-            return {}}"success": True, "message": "Database connection test passed (stub)"}
+            return {"success": True, "message": "Database connection test passed (stub)"}
         except Exception as e:
-            return {}}"success": False, "error": str(e)}
+            return {"success": False, "error": str(e)}
             
     async def _test_cache_system(self) -> Dict[str, Any]:
         """Test cache system."""
         try:
-            return {}}"success": True, "message": "Cache system test passed (stub)"}
+            return {"success": True, "message": "Cache system test passed (stub)"}
         except Exception as e:
-            return {}}"success": False, "error": str(e)}
+            return {"success": False, "error": str(e)}
             
     async def _test_health_endpoint(self) -> Dict[str, Any]:
         """Test health endpoint."""
@@ -293,51 +293,51 @@ class UnifiedTestManager:
             async with aiohttp.ClientSession() as session:
                 async with session.get("http://localhost:8000/health") as response:
                     if response.status == 200:
-                        return {}}"success": True, "message": "Health endpoint responding"}
+                        return {"success": True, "message": "Health endpoint responding"}
                     else:
-                        return {}}"success": False, "error": f"Health endpoint returned {response.status}"}
+                        return {"success": False, "error": f"Health endpoint returned {response.status}"}
         except Exception as e:
-            return {}}"success": False, "error": str(e)}
+            return {"success": False, "error": str(e)}
             
     # Additional test method stubs
     async def _test_auth_endpoints(self) -> Dict[str, Any]:
-        return {}}"success": True, "message": "Auth endpoints test passed (stub)"}
-        
+        return {"success": True, "message": "Auth endpoints test passed (stub)"}
+
     async def _test_user_endpoints(self) -> Dict[str, Any]:
-        return {}}"success": True, "message": "User endpoints test passed (stub)"}
-        
+        return {"success": True, "message": "User endpoints test passed (stub)"}
+
     async def _test_message_endpoints(self) -> Dict[str, Any]:
-        return {}}"success": True, "message": "Message endpoints test passed (stub)"}
-        
+        return {"success": True, "message": "Message endpoints test passed (stub)"}
+
     async def _test_file_endpoints(self) -> Dict[str, Any]:
-        return {}}"success": True, "message": "File endpoints test passed (stub)"}
-        
+        return {"success": True, "message": "File endpoints test passed (stub)"}
+
     async def _test_plugin_api_integration(self) -> Dict[str, Any]:
-        return {}}"success": True, "message": "Plugin API integration test passed (stub)"}
-        
+        return {"success": True, "message": "Plugin API integration test passed (stub)"}
+
     async def _test_database_api_integration(self) -> Dict[str, Any]:
-        return {}}"success": True, "message": "Database API integration test passed (stub)"}
-        
+        return {"success": True, "message": "Database API integration test passed (stub)"}
+
     async def _test_websocket_integration(self) -> Dict[str, Any]:
-        return {}}"success": True, "message": "WebSocket integration test passed (stub)"}
-        
+        return {"success": True, "message": "WebSocket integration test passed (stub)"}
+
     async def _test_api_response_time(self) -> Dict[str, Any]:
-        return {}}"success": True, "message": "API response time test passed (stub)"}
-        
+        return {"success": True, "message": "API response time test passed (stub)"}
+
     async def _test_concurrent_requests(self) -> Dict[str, Any]:
-        return {}}"success": True, "message": "Concurrent requests test passed (stub)"}
-        
+        return {"success": True, "message": "Concurrent requests test passed (stub)"}
+
     async def _test_memory_usage(self) -> Dict[str, Any]:
-        return {}}"success": True, "message": "Memory usage test passed (stub)"}
-        
+        return {"success": True, "message": "Memory usage test passed (stub)"}
+
     async def _test_authentication_security(self) -> Dict[str, Any]:
-        return {}}"success": True, "message": "Authentication security test passed (stub)"}
-        
+        return {"success": True, "message": "Authentication security test passed (stub)"}
+
     async def _test_authorization_checks(self) -> Dict[str, Any]:
-        return {}}"success": True, "message": "Authorization checks test passed (stub)"}
-        
+        return {"success": True, "message": "Authorization checks test passed (stub)"}
+
     async def _test_input_validation(self) -> Dict[str, Any]:
-        return {}}"success": True, "message": "Input validation test passed (stub)"}
+        return {"success": True, "message": "Input validation test passed (stub)"}
 
     # New test category implementations
     async def _run_database_tests(self, verbose: bool) -> Dict[str, Any]:
@@ -459,112 +459,112 @@ class UnifiedTestManager:
 
     # Test method stubs for new categories
     async def _test_database_operations(self) -> Dict[str, Any]:
-        return {}}"success": True, "message": "Database operations test passed (stub)"}
+        return {"success": True, "message": "Database operations test passed (stub)"}
 
     async def _test_database_migrations(self) -> Dict[str, Any]:
-        return {}}"success": True, "message": "Database migrations test passed (stub)"}
+        return {"success": True, "message": "Database migrations test passed (stub)"}
 
     async def _test_token_validation(self) -> Dict[str, Any]:
-        return {}}"success": True, "message": "Token validation test passed (stub)"}
+        return {"success": True, "message": "Token validation test passed (stub)"}
 
     async def _test_message_sending(self) -> Dict[str, Any]:
-        return {}}"success": True, "message": "Message sending test passed (stub)"}
+        return {"success": True, "message": "Message sending test passed (stub)"}
 
     async def _test_message_receiving(self) -> Dict[str, Any]:
-        return {}}"success": True, "message": "Message receiving test passed (stub)"}
+        return {"success": True, "message": "Message receiving test passed (stub)"}
 
     async def _test_message_encryption(self) -> Dict[str, Any]:
-        return {}}"success": True, "message": "Message encryption test passed (stub)"}
+        return {"success": True, "message": "Message encryption test passed (stub)"}
 
     async def _test_file_upload(self) -> Dict[str, Any]:
-        return {}}"success": True, "message": "File upload test passed (stub)"}
+        return {"success": True, "message": "File upload test passed (stub)"}
 
     async def _test_file_download(self) -> Dict[str, Any]:
-        return {}}"success": True, "message": "File download test passed (stub)"}
+        return {"success": True, "message": "File download test passed (stub)"}
 
     async def _test_file_validation(self) -> Dict[str, Any]:
-        return {}}"success": True, "message": "File validation test passed (stub)"}
+        return {"success": True, "message": "File validation test passed (stub)"}
 
     async def _test_websocket_connection(self) -> Dict[str, Any]:
-        return {}}"success": True, "message": "WebSocket connection test passed (stub)"}
+        return {"success": True, "message": "WebSocket connection test passed (stub)"}
 
     async def _test_realtime_messaging(self) -> Dict[str, Any]:
-        return {}}"success": True, "message": "Real-time messaging test passed (stub)"}
+        return {"success": True, "message": "Real-time messaging test passed (stub)"}
 
     async def _test_websocket_security(self) -> Dict[str, Any]:
-        return {}}"success": True, "message": "WebSocket security test passed (stub)"}
+        return {"success": True, "message": "WebSocket security test passed (stub)"}
 
     async def _test_cli_commands(self) -> Dict[str, Any]:
-        return {}}"success": True, "message": "CLI commands test passed (stub)"}
+        return {"success": True, "message": "CLI commands test passed (stub)"}
 
     async def _test_cli_plugins(self) -> Dict[str, Any]:
-        return {}}"success": True, "message": "CLI plugins test passed (stub)"}
+        return {"success": True, "message": "CLI plugins test passed (stub)"}
 
     async def _test_cli_interface(self) -> Dict[str, Any]:
-        return {}}"success": True, "message": "CLI interface test passed (stub)"}
+        return {"success": True, "message": "CLI interface test passed (stub)"}
 
     async def _test_gui_startup(self) -> Dict[str, Any]:
-        return {}}"success": True, "message": "GUI startup test passed (stub)"}
+        return {"success": True, "message": "GUI startup test passed (stub)"}
 
     async def _test_gui_interactions(self) -> Dict[str, Any]:
-        return {}}"success": True, "message": "GUI interactions test passed (stub)"}
+        return {"success": True, "message": "GUI interactions test passed (stub)"}
 
     async def _test_gui_responsiveness(self) -> Dict[str, Any]:
-        return {}}"success": True, "message": "GUI responsiveness test passed (stub)"}
+        return {"success": True, "message": "GUI responsiveness test passed (stub)"}
 
     async def _test_webui_loading(self) -> Dict[str, Any]:
-        return {}}"success": True, "message": "Web UI loading test passed (stub)"}
+        return {"success": True, "message": "Web UI loading test passed (stub)"}
 
     async def _test_webui_navigation(self) -> Dict[str, Any]:
-        return {}}"success": True, "message": "Web UI navigation test passed (stub)"}
+        return {"success": True, "message": "Web UI navigation test passed (stub)"}
 
     async def _test_webui_functionality(self) -> Dict[str, Any]:
-        return {}}"success": True, "message": "Web UI functionality test passed (stub)"}
+        return {"success": True, "message": "Web UI functionality test passed (stub)"}
 
     async def _test_settings_crud(self) -> Dict[str, Any]:
-        return {}}"success": True, "message": "Settings CRUD test passed (stub)"}
+        return {"success": True, "message": "Settings CRUD test passed (stub)"}
 
     async def _test_settings_validation(self) -> Dict[str, Any]:
-        return {}}"success": True, "message": "Settings validation test passed (stub)"}
+        return {"success": True, "message": "Settings validation test passed (stub)"}
 
     async def _test_settings_api(self) -> Dict[str, Any]:
-        return {}}"success": True, "message": "Settings API test passed (stub)"}
+        return {"success": True, "message": "Settings API test passed (stub)"}
 
     async def _test_user_creation(self) -> Dict[str, Any]:
-        return {}}"success": True, "message": "User creation test passed (stub)"}
+        return {"success": True, "message": "User creation test passed (stub)"}
 
     async def _test_user_authentication(self) -> Dict[str, Any]:
-        return {}}"success": True, "message": "User authentication test passed (stub)"}
+        return {"success": True, "message": "User authentication test passed (stub)"}
 
     async def _test_user_permissions(self) -> Dict[str, Any]:
-        return {}}"success": True, "message": "User permissions test passed (stub)"}
+        return {"success": True, "message": "User permissions test passed (stub)"}
 
     async def _test_load_testing(self) -> Dict[str, Any]:
-        return {}}"success": True, "message": "Load testing test passed (stub)"}
+        return {"success": True, "message": "Load testing test passed (stub)"}
 
     async def _test_concurrent_users(self) -> Dict[str, Any]:
-        return {}}"success": True, "message": "Concurrent users test passed (stub)"}
+        return {"success": True, "message": "Concurrent users test passed (stub)"}
 
     async def _test_resource_limits(self) -> Dict[str, Any]:
-        return {}}"success": True, "message": "Resource limits test passed (stub)"}
+        return {"success": True, "message": "Resource limits test passed (stub)"}
 
     async def _test_core_regression(self) -> Dict[str, Any]:
-        return {}}"success": True, "message": "Core regression test passed (stub)"}
+        return {"success": True, "message": "Core regression test passed (stub)"}
 
     async def _test_api_regression(self) -> Dict[str, Any]:
-        return {}}"success": True, "message": "API regression test passed (stub)"}
+        return {"success": True, "message": "API regression test passed (stub)"}
 
     async def _test_feature_regression(self) -> Dict[str, Any]:
-        return {}}"success": True, "message": "Feature regression test passed (stub)"}
+        return {"success": True, "message": "Feature regression test passed (stub)"}
 
     async def _test_basic_startup(self) -> Dict[str, Any]:
-        return {}}"success": True, "message": "Basic startup test passed (stub)"}
+        return {"success": True, "message": "Basic startup test passed (stub)"}
 
     async def _test_basic_api(self) -> Dict[str, Any]:
-        return {}}"success": True, "message": "Basic API test passed (stub)"}
+        return {"success": True, "message": "Basic API test passed (stub)"}
 
     async def _test_basic_connectivity(self) -> Dict[str, Any]:
-        return {}}"success": True, "message": "Basic connectivity test passed (stub)"}
+        return {"success": True, "message": "Basic connectivity test passed (stub)"}
 
     async def _save_test_report(self, results: Dict[str, Any]):
         """Save test report to file."""

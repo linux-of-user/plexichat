@@ -741,7 +741,7 @@ class UnifiedMessagingManager:
 
     def get_stats(self) -> Dict[str, Any]:
         """Get messaging statistics."""
-        return {}}
+        return {
             **self.stats,
             "router_stats": self.router.stats,
             "total_messages": len(self.messages),
@@ -908,7 +908,7 @@ class UnifiedMessagingManager:
 
             total_recent_messages = sum(recent_stats.values())
 
-            return {}}
+            return {
                 "total_messages": self.analytics_data["total_messages"],
                 "recent_messages": total_recent_messages,
                 "messages_per_hour": total_recent_messages / hours if hours > 0 else 0,
@@ -926,7 +926,7 @@ class UnifiedMessagingManager:
 
         except Exception as e:
             logger.error(f"Failed to get analytics summary: {e}")
-            return {}}"error": str(e)}
+            return {"error": str(e)}
 
     def subscribe_to_real_time_updates(self, channel_id: ChannelId, callback: callable):
         """Subscribe to real-time message updates for a channel."""

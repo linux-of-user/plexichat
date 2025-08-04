@@ -51,7 +51,7 @@ try:
     from plexichat.infrastructure.utils.auth import get_current_user
 except ImportError:
     def get_current_user():
-        return {}}"id": 1, "username": "admin"}
+        return {"id": 1, "username": "admin"}
 
 # Model imports - Updated for Pydantic v2 compatibility
 class Message(BaseModel):

@@ -548,7 +548,7 @@ class UnifiedConfigManager:
     def get_config_fields(self, category: Optional[ConfigCategory] = None) -> Dict[str, ConfigField]:
         """Get configuration fields, optionally filtered by category."""
         if category:
-            return {}}k: v for k, v in self._config_fields.items() if v.category == category}
+            return {k: v for k, v in self._config_fields.items() if v.category == category}
         return self._config_fields.copy()
 
     def get_webui_config_sections(self) -> Dict[str, List[ConfigField]]:
@@ -636,7 +636,7 @@ class UnifiedConfigManager:
         if self.caching.enabled and self.caching.l1_memory_size_mb < 50:
             warnings.append("L1 cache memory size is very low")
 
-        return {}}"errors": errors, "warnings": warnings}
+        return {"errors": errors, "warnings": warnings}
 
     def export_config(self, include_sensitive: bool = False) -> Dict[str, Any]:
         """Export configuration for backup or transfer."""

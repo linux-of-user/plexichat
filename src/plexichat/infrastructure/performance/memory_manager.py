@@ -417,11 +417,11 @@ class MemoryManager:
 
         except Exception as e:
             logger.error(f"Error during garbage collection: {e}")
-            return {}}}
+            return {}
 
     def get_memory_stats(self) -> Dict[str, Any]:
         """Get comprehensive memory statistics."""
-        return {}}
+        return {
             'system_memory': {
                 'total_mb': self.metrics.total_memory_mb,
                 'used_mb': self.metrics.used_memory_mb,
@@ -488,7 +488,7 @@ class MemoryManager:
 
         except Exception as e:
             logger.error(f"Error during memory optimization: {e}")
-            return {}}'error': str(e)}
+            return {'error': str(e)}
 
 
 # Global memory manager instance

@@ -230,7 +230,7 @@ async def enhanced_documentation(
 
 async def get_system_stats() -> Dict[str, Any]:
     """Get comprehensive system statistics."""
-    return {}}
+    return {
         "users": {
             "total": 1234,
             "online": 892,
@@ -300,14 +300,14 @@ async def get_activity_data(limit: int = 50) -> Dict[str, Any]:
         }
     ]
     
-    return {}}
+    return {
         "activities": activities[:limit],
         "total_count": len(activities)
     }
 
 async def get_security_status() -> Dict[str, Any]:
     """Get security status and alerts."""
-    return {}}
+    return {
         "overall_score": "A+",
         "status": "secure",
         "alerts": [
@@ -354,7 +354,7 @@ async def handle_dashboard_action(action_type: str, data: Dict, user: Optional[D
 
 async def handle_new_message(data: Dict, user: Optional[Dict]) -> Dict[str, Any]:
     """Handle new message creation."""
-    return {}}
+    return {
         "success": True,
         "message": "Message sent successfully",
         "action": "newMessage"
@@ -362,7 +362,7 @@ async def handle_new_message(data: Dict, user: Optional[Dict]) -> Dict[str, Any]
 
 async def handle_add_user(data: Dict, user: Optional[Dict]) -> Dict[str, Any]:
     """Handle user addition."""
-    return {}}
+    return {
         "success": True,
         "message": "User added successfully",
         "action": "addUser"
@@ -370,7 +370,7 @@ async def handle_add_user(data: Dict, user: Optional[Dict]) -> Dict[str, Any]:
 
 async def handle_upload_file(data: Dict, user: Optional[Dict]) -> Dict[str, Any]:
     """Handle file upload."""
-    return {}}
+    return {
         "success": True,
         "message": "File uploaded successfully",
         "action": "uploadFile"
@@ -378,7 +378,7 @@ async def handle_upload_file(data: Dict, user: Optional[Dict]) -> Dict[str, Any]
 
 async def handle_system_backup(data: Dict, user: Optional[Dict]) -> Dict[str, Any]:
     """Handle system backup."""
-    return {}}
+    return {
         "success": True,
         "message": "Backup initiated successfully",
         "action": "systemBackup"
@@ -386,7 +386,7 @@ async def handle_system_backup(data: Dict, user: Optional[Dict]) -> Dict[str, An
 
 async def handle_security_scan(data: Dict, user: Optional[Dict]) -> Dict[str, Any]:
     """Handle security scan."""
-    return {}}
+    return {
         "success": True,
         "message": "Security scan completed",
         "action": "securityScan",
@@ -399,7 +399,7 @@ async def handle_security_scan(data: Dict, user: Optional[Dict]) -> Dict[str, An
 
 async def handle_ai_assistant(data: Dict, user: Optional[Dict]) -> Dict[str, Any]:
     """Handle AI assistant interaction."""
-    return {}}
+    return {
         "success": True,
         "message": "AI assistant response",
         "action": "aiAssistant",

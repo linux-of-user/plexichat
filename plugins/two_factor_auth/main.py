@@ -67,8 +67,8 @@ class PluginMetadata:
     settings_schema: Optional[Dict[str, Any]] = None
     auto_start: bool = False
     background_tasks: Optional[List[str]] = None
-        
-        def __post_init__(self):
+
+    def __post_init__(self):
             if self.screenshots is None:
                 self.screenshots = []
             if self.changelog is None:

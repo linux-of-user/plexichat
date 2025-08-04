@@ -253,7 +253,7 @@ class EdgeNode:
 
     def get_capacity_remaining(self) -> Dict[str, float]:
         """Get remaining capacity for each resource type."""
-        return {}}
+        return {
             "cpu_percent": max(0, 100 - self.cpu_usage_percent),
             "memory_percent": max(0, 100 - self.memory_usage_percent),
             "storage_percent": max(0, 100 - self.storage_usage_percent),
@@ -364,7 +364,7 @@ class EdgeComputingManager:
 
     def _load_default_config(self) -> Dict[str, Any]:
         """Load default edge computing configuration."""
-        return {}}
+        return {
             "monitoring_interval_seconds": 30,
             "scaling_cooldown_seconds": 300,
             "health_check_interval_seconds": 60,
@@ -386,7 +386,7 @@ class EdgeComputingManager:
         """Initialize the edge computing manager."""
         try:
             if self.initialized:
-                return {}}"success": True, "message": "Already initialized"}
+                return {"success": True, "message": "Already initialized"}
 
             logger.info(" Initializing edge computing manager...")
 
@@ -406,7 +406,7 @@ class EdgeComputingManager:
 
             logger.info(f" Edge computing manager initialized with {len(self.edge_nodes)} nodes")
 
-            return {}}
+            return {
                 "success": True,
                 "edge_nodes_count": len(self.edge_nodes),
                 "auto_scaling_enabled": self.config.get("auto_scaling_enabled", True),
@@ -415,7 +415,7 @@ class EdgeComputingManager:
 
         except Exception as e:
             logger.error(f" Failed to initialize edge computing manager: {e}")
-            return {}}"success": False, "error": str(e)}
+            return {"success": False, "error": str(e)}
 
     async def _discover_edge_nodes(self):
         """Discover and register edge nodes."""
@@ -1423,7 +1423,7 @@ class EdgeComputingManager:
 
         except Exception as e:
             logger.error(f" Failed to deploy service {service_name}: {e}")
-            return {}}"error": str(e)}
+            return {"error": str(e)}
 
     async def get_optimal_node_for_request(self, client_lat: float, client_lon: float, service_name: Optional[str] = None) -> Optional[str]:
         """Find the optimal edge node for a client request."""

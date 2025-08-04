@@ -115,10 +115,10 @@ class TokenManager:
             self.config = config
 
             # Configure token lifetimes
-            self.access_token_lifetime = timedelta()
+            self.access_token_lifetime = timedelta(
                 minutes=config.get("access_token_lifetime_minutes", 15)
             )
-            self.refresh_token_lifetime = timedelta()
+            self.refresh_token_lifetime = timedelta(
                 days=config.get("refresh_token_lifetime_days", 30)
             )
 
@@ -188,7 +188,7 @@ class TokenManager:
                 payload.update(metadata)
 
             # Sign token
-            token = jwt.encode()
+            token = jwt.encode(
                 payload,
                 self.private_key,
                 algorithm=self.algorithm,

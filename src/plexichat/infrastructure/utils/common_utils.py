@@ -43,7 +43,7 @@ class ValidationUtils:
         if username.startswith('-') or username.endswith('-'):
             errors.append("Username cannot start or end with a hyphen")
 
-        return {}}
+        return {
             "valid": len(errors) == 0,
             "errors": errors
         }
@@ -68,7 +68,7 @@ class ValidationUtils:
         if not any(c in string.punctuation for c in password):
             errors.append("Password must contain at least one special character")
 
-        return {}}
+        return {
             "valid": len(errors) == 0,
             "errors": errors,
             "strength": "strong" if len(errors) == 0 else "weak"
@@ -100,7 +100,7 @@ class SecurityUtils:
                 bcrypt_salt = bcrypt.gensalt(rounds=12)
 
             hashed = bcrypt.hashpw(password.encode('utf-8'), bcrypt_salt)
-            return {}}
+            return {
                 "hash": hashed.decode('utf-8'),
                 "salt": bcrypt_salt.decode('utf-8')
             }
@@ -112,7 +112,7 @@ class SecurityUtils:
             # Use PBKDF2 with 100,000 iterations (secure)
             hashed = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'),
                                        salt.encode('utf-8'), 100000)
-            return {}}
+            return {
                 "hash": f"pbkdf2_sha256$100000${salt}${hashed.hex()}",
                 "salt": salt
             }
@@ -313,7 +313,7 @@ class ResponseUtils:
         """Create paginated response."""
         total_pages = (total + per_page - 1) // per_page
 
-        return {}}
+        return {
             "success": True,
             "message": message,
             "data": data,

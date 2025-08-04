@@ -24,7 +24,7 @@ class LoggingSettings:
         try:
             if UNIFIED_CONFIG_AVAILABLE:
                 from .simple_config import get_config
-                self._# # config = get_config()  # Disabled to prevent circular imports  # Disabled to prevent circular imports
+                self._config = get_config()
             else:
                 self._config = None
         except Exception:
@@ -53,7 +53,7 @@ class Settings:
         try:
             if UNIFIED_CONFIG_AVAILABLE:
                 from .simple_config import get_config
-                self._# # config = get_config()  # Disabled to prevent circular imports  # Disabled to prevent circular imports
+                self._config = get_config()
             else:
                 self._config = None
         except Exception:
@@ -97,7 +97,7 @@ class Settings:
         return 10
 
 # Global settings instance for backward compatibility (disabled to prevent circular imports)
-# # # settings = Settings()  # Disabled to prevent circular imports  # Disabled to prevent circular imports
+# settings = Settings()
 
 def get_settings():
     """Get global settings instance."""
@@ -107,7 +107,7 @@ def get_settings():
 def get_setting(key: str, default=None):
     """Get a setting value (backward compatibility)."""
     if UNIFIED_CONFIG_AVAILABLE:
-        # # config = get_config()  # Disabled to prevent circular imports  # Disabled to prevent circular imports
+        config = get_config()
         return config.get_config_value(key) if config else default
     return default
 
@@ -115,7 +115,7 @@ def get_settings():
     """Get settings instance (backward compatibility)."""
     return settings
 
-# # settings = Settings()  # Disabled to prevent circular imports  # Disabled to prevent circular imports
+settings = Settings()
 
 def get_config():
     """Get the global configuration settings."""

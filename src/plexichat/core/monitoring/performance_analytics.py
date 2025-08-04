@@ -216,10 +216,10 @@ class MetricsCollector:
         """Get statistical summary of a metric."""
         history = self.get_metric_history(name, duration_minutes)
         if not history:
-            return {}}}
-        
+            return {}
+
         values = [m.value for m in history]
-        return {}}
+        return {
             'count': len(values),
             'min': min(values),
             'max': max(values),
@@ -528,7 +528,7 @@ class PerformanceMonitor:
         trends = self.analyzer.get_performance_trends(24)
         alerts = self.analyzer.alerts[-50:]  # Last 50 alerts
         
-        return {}}
+        return {
             'report_timestamp': datetime.now().isoformat(),
             'system_health': {
                 'overall_status': health.overall_status,
@@ -623,7 +623,7 @@ class PredictiveAnalytics:
             variance = sum((v - recent_avg) ** 2 for v in values[-10:]) / 10
             confidence = max(0.1, min(0.9, 1.0 - (variance / (recent_avg + 1))))
 
-            return {}}
+            return {
                 'metric_name': metric_name,
                 'predicted_value': predicted_value,
                 'current_value': values[-1],
@@ -834,7 +834,7 @@ class AutoScaler:
             if entry['timestamp'] > datetime.now() - timedelta(hours=24)
         ]
 
-        return {}}
+        return {
             'scaling_enabled': self.scaling_enabled,
             'total_rules': len(self.scaling_rules),
             'recent_actions_24h': len(recent_actions),

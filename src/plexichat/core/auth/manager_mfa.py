@@ -76,7 +76,7 @@ class Advanced2FASystem:
     def generate_qr_code(self, secret: str, user_email: str, issuer: str = "PlexiChat") -> bytes:
         """Generate QR code for TOTP setup."""
         totp = pyotp.TOTP(secret)
-        provisioning_uri = totp.provisioning_uri()
+        provisioning_uri = totp.provisioning_uri(
             name=user_email,
             issuer_name=issuer
         )
@@ -111,7 +111,7 @@ class Advanced2FASystem:
             encrypted_secret = self.cipher.encrypt(secret.encode()).decode()
             setup_data["totp_secret"] = encrypted_secret
             setup_data["totp_secret_plain"] = secret  # For QR code generation
-            setup_data["qr_code"] = base64.b64encode()
+            setup_data["qr_code"] = base64.b64encode(
                 self.generate_qr_code(secret, user_email)
             ).decode()
 

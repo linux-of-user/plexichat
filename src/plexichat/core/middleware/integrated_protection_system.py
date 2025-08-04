@@ -378,7 +378,7 @@ class IntegratedProtectionSystem:
             
             if not ddos_allowed:
                 self.protection_stats["blocked_by_ddos"] += 1
-                return {}}
+                return {
                     "blocked": True,
                     "reason": "ddos_protection",
                     "details": ddos_reason,
@@ -397,7 +397,7 @@ class IntegratedProtectionSystem:
             
             if violation:
                 self.protection_stats["blocked_by_rate_limit"] += 1
-                return {}}
+                return {
                     "blocked": True,
                     "reason": "rate_limit_exceeded",
                     "strategy": violation.strategy.value,
@@ -431,7 +431,7 @@ class IntegratedProtectionSystem:
         ddos_metrics = self.ddos_service.get_metrics()
         rate_limit_stats = self.rate_limiter.get_stats()
 
-        return {}}
+        return {
             "system_metrics": {
                 "cpu_usage": self.system_metrics.cpu_usage,
                 "memory_usage": self.system_metrics.memory_usage,

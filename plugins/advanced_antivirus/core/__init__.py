@@ -13,6 +13,7 @@ Core antivirus scanning and detection engines.
 
 class ThreatLevel(Enum):
     """Threat severity levels."""
+
     CLEAN = 0
     SUSPICIOUS = 1
     LOW_RISK = 2
@@ -43,6 +44,7 @@ class ThreatLevel(Enum):
 
 class ScanType(Enum):
     """Types of scans performed."""
+
     QUICK_SCAN = "quick"
     FULL_SCAN = "full"
     HASH_SCAN = "hash"
@@ -53,6 +55,7 @@ class ScanType(Enum):
 
 class ThreatType(Enum):
     """Types of threats detected."""
+
     CLEAN = "clean"
     VIRUS = "virus"
     MALWARE = "malware"
@@ -70,6 +73,7 @@ class ThreatType(Enum):
 @dataclass
 class ScanResult:
     """Result of an antivirus scan."""
+
     file_path: str
     file_hash: str
     threat_level: ThreatLevel
@@ -87,6 +91,7 @@ class ScanResult:
 @dataclass
 class ThreatSignature:
     """Threat signature for detection."""
+
     signature_id: str
     signature_type: str  # 'hash', 'url', 'file', 'pattern'
     threat_name: str
@@ -145,6 +150,7 @@ THREAT_INTEL_UPDATE_INTERVAL = 1800  # 30 minutes
 @dataclass
 class ScanRequest:
     """Request for file scanning."""
+
     request_id: str
     file_path: str
     scan_types: List[ScanType]
@@ -157,6 +163,7 @@ class ScanRequest:
 @dataclass
 class QuarantineEntry:
     """Entry for quarantined files."""
+
     entry_id: str
     original_path: str
     quarantine_path: str

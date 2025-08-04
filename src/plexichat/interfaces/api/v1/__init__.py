@@ -20,13 +20,13 @@ import logging
 logger = logging.getLogger(__name__)
 
 # Import all routers
-# # from . import auth
-# # from . import users
-# # from . import messages
-# # from . import files
-# # from . import admin
-# # from . import system
-# # from . import rate_limits
+from . import auth
+from . import users
+from . import messages
+from . import files
+from . import admin
+from . import system
+from . import rate_limits
 
 # Import Easter eggs router
 try:

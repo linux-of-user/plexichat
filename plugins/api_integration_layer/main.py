@@ -13,9 +13,45 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 from urllib.parse import urljoin
 import aiohttp
-import websockets
-from cachetools import TTLCache
-from tenacity import retry, stop_after_attempt, wait_exponential
+try:
+    import websockets
+    websockets_available = True
+except ImportError:
+    websockets_available = False
+    # Fallback websockets implementation
+    class websockets:
+        class WebSocketServerProtocol:
+            pass
+try:
+    from cachetools import TTLCache
+    cachetools_available = True
+except ImportError:
+    cachetools_available = False
+    # Fallback cache implementation
+    class TTLCache:
+        def __init__(self, maxsize, ttl):
+            self._cache = {}
+        def get(self, key, default=None):
+            return self._cache.get(key, default)
+        def __setitem__(self, key, value):
+            self._cache[key] = value
+        def __getitem__(self, key):
+            return self._cache[key]
+
+try:
+    from tenacity import retry, stop_after_attempt, wait_exponential
+    tenacity_available = True
+except ImportError:
+    tenacity_available = False
+    # Fallback retry decorator
+    def retry(*args, **kwargs):
+        def decorator(func):
+            return func
+        return decorator
+    def stop_after_attempt(n):
+        return None
+    def wait_exponential(**kwargs):
+        return None
 
 from fastapi import APIRouter, HTTPException, WebSocket
 from fastapi.responses import JSONResponse
@@ -65,20 +101,25 @@ class APIIntegrationCore:
         # Initialize cache
         if self.cache_enabled:
             self.cache = TTLCache(maxsize=1000, ttl=self.cache_ttl)
-        else: Optional[self.cache] = None
+        else:
+            self.cache = None
         
         # Rate limiting
         self.request_times = []
         self.requests_per_minute = self.rate_limit.get('requests_per_minute', 1000)
         
         # WebSocket connections
-        self.websocket_connections: Dict[str, websockets.WebSocketServerProtocol] = {}
+        self.websocket_connections: Dict[str, Any] = {}
         
         # Authentication token
         self.auth_token = None
         
         # Available endpoints from config
         self.endpoints = config.get('api_endpoints', {})
+
+        # Additional attributes for compatibility
+        self.config = config
+        self.manager = None  # Will be set during initialization
         
     async def authenticate(self, username: str, password: str) -> Dict[str, Any]:
         """Authenticate with the API and store token."""
@@ -247,6 +288,8 @@ class APIIntegrationCore:
                 ws_url += f"?token={self.auth_token}"
             
             # Connect to WebSocket
+            if not websockets_available:
+                raise Exception("WebSockets not available")
             websocket = await websockets.connect(ws_url)
             
             # Store connection
@@ -264,8 +307,8 @@ class APIIntegrationCore:
             logger.error(f"WebSocket subscription error: {e}")
             raise
     
-    async def _handle_websocket_messages(self, connection_id: str, 
-                                       websocket: websockets.WebSocketServerProtocol,
+    async def _handle_websocket_messages(self, connection_id: str,
+                                       websocket: Any,
                                        subscription: WebSocketSubscription):
         """Handle WebSocket messages."""
         try:
@@ -287,8 +330,11 @@ class APIIntegrationCore:
                 except Exception as e:
                     logger.error(f"Error processing WebSocket message: {e}")
                     
-        except websockets.exceptions.ConnectionClosed:
-            logger.info(f"WebSocket connection {connection_id} closed")
+        except Exception as conn_error:
+            if websockets_available and "ConnectionClosed" in str(type(conn_error)):
+                logger.info(f"WebSocket connection {connection_id} closed")
+            else:
+                logger.error(f"WebSocket connection error: {conn_error}")
         except Exception as e:
             logger.error(f"WebSocket handler error: {e}")
         finally:
@@ -420,33 +466,31 @@ class APIIntegrationLayerPlugin(PluginInterface):
         """Get required permissions."""
         return ModulePermissions(
             capabilities=[
-                ModuleCapability.API,
-                ModuleCapability.NETWORK,
-                ModuleCapability.FILE_SYSTEM,
-                ModuleCapability.WEB_UI,
-                ModuleCapability.DATABASE,
-                ModuleCapability.WEBSOCKET,
-                ModuleCapability.NOTIFICATIONS
+                ModuleCapability("api", "API integration capabilities"),
+                ModuleCapability("network", "Network access for API calls"),
+                ModuleCapability("file_system", "File system access for caching"),
+                ModuleCapability("web_ui", "Web UI integration"),
+                ModuleCapability("database", "Database access for caching"),
+                ModuleCapability("websocket", "WebSocket support"),
+                ModuleCapability("notifications", "Notification capabilities")
             ],
             network_access=True,
             file_system_access=True,
             database_access=True
         )
 
-    async def initialize(self) -> bool:
+    def initialize(self, config: Optional[Dict[str, Any]] = None) -> bool:
         """Initialize the plugin."""
         try:
-            # Load configuration
-            await self._load_configuration()
+            # Update config if provided
+            if config:
+                self._config.update(config)
 
             # Initialize API core
-            self.api_core = APIIntegrationCore(self.config)
+            self.api_core = APIIntegrationCore(self._config)
 
             # Setup API routes
             self._setup_routes()
-
-            # Register UI pages
-            await self._register_ui_pages()
 
             self.logger.info("API Integration Layer plugin initialized successfully")
             return True
