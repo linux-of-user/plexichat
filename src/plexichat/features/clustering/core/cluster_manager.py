@@ -39,7 +39,7 @@ except ImportError:
         def stop_monitoring(self):
             pass
         def get_metrics(self):
-            return {}}
+            return {}
 from .task_manager import AdvancedTaskManager
 from plexichat.infrastructure.modules.interfaces import ModulePriority
 import psutil

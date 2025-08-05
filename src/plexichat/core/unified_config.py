@@ -794,3 +794,7 @@ def get_plugin_config(plugin_name: str) -> Dict[str, Any]:
 def set_plugin_config(plugin_name: str, plugin_config: Dict[str, Any]) -> bool:
     """Set plugin configuration."""
     return config.set_plugin_config(plugin_name, plugin_config)
+
+def get_unified_config() -> UnifiedConfigManager:
+    """Get the unified configuration manager instance."""
+    return config
