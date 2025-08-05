@@ -597,7 +597,7 @@ class EnhancedSecurityManager:
         try:
             rate_config = get_rate_limiting_config()
 
-            return {}}
+            return {}
                 "enhanced_security_enabled": True,
                 "middleware_status": {
                     "core_security": True,
@@ -617,7 +617,7 @@ class EnhancedSecurityManager:
             }
         except Exception as e:
             logger.error(f"Error getting security status: {e}")
-            return {}}"error": str(e), "enhanced_security_enabled": False}
+            return {"error": str(e), "enhanced_security_enabled": False}
 
 
 # Global instance

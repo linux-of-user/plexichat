@@ -193,7 +193,7 @@ async def broadcast_presence_update(presence_event: PresenceEvent):
 @router.get("/connections")
 async def get_active_connections(current_user: dict = Depends(get_current_user)):
     """Get information about active connections."""
-    return {}}
+    return {}
         "total_connections": len(manager.active_connections),
         "active_users": len(manager.user_connections),
         "active_rooms": len(manager.room_connections),
@@ -215,7 +215,7 @@ async def broadcast_message(
     for connection_id in manager.active_connections:
         await manager.send_personal_message(message.json(), connection_id)
     
-    return {}}"status": "Message broadcasted", "connections": len(manager.active_connections)}
+    return {"status": "Message broadcasted", "connections": len(manager.active_connections)}
 
 @router.post("/send/{user_id}")
 async def send_direct_message(
@@ -229,12 +229,12 @@ async def send_direct_message(
     
     await manager.send_to_user(message.json(), user_id)
     
-    return {}}"status": f"Message sent to user {user_id}"}
+    return {"status": f"Message sent to user {user_id}"}
 
 @router.get("/status")
 async def realtime_status():
     """Get real-time system status."""
-    return {}}
+    return {}
         "status": "operational",
         "active_connections": len(manager.active_connections),
         "active_users": len(manager.user_connections),

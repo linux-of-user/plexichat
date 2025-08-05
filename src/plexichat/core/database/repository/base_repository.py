@@ -548,7 +548,7 @@ class BaseRepository(Generic[T, CreateT, UpdateT], ABC):
         if total_cache_operations > 0:
             cache_hit_rate = self.stats["cache_hits"] / total_cache_operations
 
-        return {}}
+        return {}
             "entity_name": self.entity_name,
             "operations_count": self.stats["operations_count"],
             "cache_hit_rate": cache_hit_rate,
@@ -575,7 +575,7 @@ class BaseRepository(Generic[T, CreateT, UpdateT], ABC):
             end_time = datetime.now(timezone.utc)
             response_time = (end_time - start_time).total_seconds() * 1000
 
-            return {}}
+            return {}
                 "status": "healthy",
                 "response_time_ms": response_time,
                 "entity_count": count,
@@ -584,7 +584,7 @@ class BaseRepository(Generic[T, CreateT, UpdateT], ABC):
             }
 
         except Exception as e:
-            return {}}
+            return {}
                 "status": "unhealthy",
                 "error": str(e),
                 "last_check": datetime.now(timezone.utc).isoformat()

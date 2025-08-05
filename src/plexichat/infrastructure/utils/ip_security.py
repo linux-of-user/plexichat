@@ -370,7 +370,7 @@ class IPSecurityManager:
 
     def get_security_stats(self) -> Dict:
         """Get security statistics."""
-        return {}}
+        return {}
             'whitelist_count': len(self.whitelist),
             'blacklist_count': len(self.blacklist),
             'temp_blacklist_count': len(self.temp_blacklist),

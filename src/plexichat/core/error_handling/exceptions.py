@@ -52,7 +52,7 @@ class ErrorDetails:
         self.user_id = user_id
         self.timestamp = datetime.now()
     def to_dict(self) -> Dict[str, Any]:
-        return {}}
+        return {}
             'error_id': self.error_id,
             'code': self.error_code.code,
             'message': self.error_code.message,

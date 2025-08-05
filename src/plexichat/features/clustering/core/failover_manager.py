@@ -623,7 +623,7 @@ class AutomaticFailoverManager:
             if (datetime.now(timezone.utc) - event.detected_at).total_seconds() < 3600  # Last hour
         ]
 
-        return {}}
+        return {}
             "total_failovers": self.total_failovers,
             "successful_failovers": self.successful_failovers,
             "success_rate": (self.successful_failovers / max(1, self.total_failovers)) * 100,

@@ -99,7 +99,7 @@ class ValidationResult:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
-        return {}}
+        return {}
             "original_value": str(self.original_value),
             "sanitized_value": str(self.sanitized_value),
             "is_valid": self.is_valid,
@@ -619,7 +619,7 @@ class UnifiedInputValidator:
 
     def get_status(self) -> Dict[str, Any]:
         """Get input validator status."""
-        return {}}
+        return {}
             "initialized": self.initialized,
             "patterns_loaded": len(self._compiled_patterns),
             "supported_types": [t.value for t in InputType],

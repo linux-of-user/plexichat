@@ -163,7 +163,7 @@ class PerformanceAggregator:
     def get_latest_metrics(self) -> Dict[str, Any]:
         """Get latest metrics from all sources."""
         with self.lock:
-            return {}}
+            return {}
                 "system": ()
                     self.system_metrics[-1].__dict__ if self.system_metrics else None
                 ),
@@ -186,7 +186,7 @@ class PerformanceAggregator:
         cutoff_time = datetime.now(timezone.utc) - timedelta(hours=hours)
 
         with self.lock:
-            return {}}
+            return {}
                 "system": [
                     m.__dict__
                     for m in self.system_metrics
@@ -674,7 +674,7 @@ class PerformanceService(BaseService):
         latest = self.aggregator.get_latest_metrics()
         historical = self.aggregator.get_historical_data(24)  # Last 24 hours
 
-        return {}}
+        return {}
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "current": latest,
             "trends": self._calculate_trends(historical),
@@ -685,7 +685,7 @@ class PerformanceService(BaseService):
     def _calculate_trends(self, historical_data: Dict[str, Any]) -> Dict[str, str]:
         """Calculate performance trends."""
         # This would implement trend analysis
-        return {}}
+        return {}
             "cpu_usage": "stable",
             "memory_usage": "increasing",
             "response_time": "improving",

@@ -26,6 +26,16 @@ from dataclasses import dataclass, field
 from enum import Enum
 from collections import defaultdict, deque
 
+# Web framework imports
+try:
+    from fastapi import Request
+except ImportError:
+    try:
+        from starlette.requests import Request
+    except ImportError:
+        # Fallback for when Request is not available
+        Request = Any
+
 # Import logging safely
 try:
     from ..logging.unified_logger import get_logger, LogCategory

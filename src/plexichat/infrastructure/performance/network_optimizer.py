@@ -201,7 +201,7 @@ class NetworkOptimizer:
                 request_time = time.time() - start_time
                 await self._update_request_metrics(request_time, len(str(data).encode()) if data else 0, len(response_data))
 
-                return {}}
+                return {}
                     'status': response.status,
                     'headers': dict(response.headers),
                     'data': response_data,
@@ -366,7 +366,7 @@ class NetworkOptimizer:
 
     def get_network_stats(self) -> Dict[str, Any]:
         """Get comprehensive network statistics."""
-        return {}}
+        return {}
             'connections': {
                 'total': self.metrics.total_connections,
                 'active': self.metrics.active_connections,

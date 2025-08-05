@@ -40,7 +40,7 @@ class VersionManager:
     
     def _get_fallback_version_data(self) -> Dict[str, Any]:
         """Get fallback version data when version.json is not available."""
-        return {}}
+        return {}
             "version": "b.1.1-88",
             "version_type": "beta",
             "major_version": 1,
@@ -83,7 +83,7 @@ class VersionManager:
     
     def get_full_version_info(self) -> Dict[str, Any]:
         """Get complete version information."""
-        return {}}
+        return {}
             "version": self.get_version(),
             "api_version": self.get_api_version(),
             "version_type": self.get_version_type(),
@@ -95,7 +95,7 @@ class VersionManager:
     
     def get_health_version_info(self) -> Dict[str, Any]:
         """Get version info suitable for health checks."""
-        return {}}
+        return {}
             "version": self.get_version(),
             "status": "healthy",
             "timestamp": datetime.now().isoformat()

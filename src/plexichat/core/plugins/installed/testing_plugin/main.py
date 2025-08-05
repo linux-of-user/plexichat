@@ -264,7 +264,7 @@ class TestDataGenerator:
     @staticmethod
     def generate_security_payloads() -> Dict[str, List[str]]:
         """Generate security testing payloads."""
-        return {}}
+        return {}
             "sql_injection": [
                 "' OR '1'='1",
                 "'; DROP TABLE users; --",
@@ -1101,7 +1101,7 @@ class ComprehensiveTestingPlugin(PluginBase):
                 return plugin_data.get("config", {})
         except Exception as e:
             self.logger.warning(f"Failed to load config: {e}")
-            return {}}}
+            return {}}
     
     async def register_cli_commands(self):
         """Register CLI commands with the enhanced CLI system."""
@@ -2514,7 +2514,7 @@ Success Rate: {success_rate:.1f}%
 
     def get_plugin_info(self):
         """Get comprehensive plugin information."""
-        return {}}
+        return {}
             "name": self.name,
             "version": self.version,
             "description": "MASSIVE COMPREHENSIVE TESTING PLUGIN - 400+ tests covering EVERY PlexiChat feature",

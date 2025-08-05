@@ -162,7 +162,7 @@ class LogEntry:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert log entry to dictionary."""
-        return {}}
+        return {
             "timestamp": self.timestamp.isoformat(),
             "level": self.level.name,
             "category": self.category.value if hasattr(self.category, 'value') else str(self.category),
@@ -247,10 +247,10 @@ class PerformanceTracker:
         with self.lock:
             if operation:
                 if operation not in self.metrics:
-                    return {}}}
+                    return {}
 
                 durations = [m["duration"] for m in self.metrics[operation]]
-                return {}}
+                return {
                     "count": len(durations),
                     "avg": sum(durations) / len(durations) if durations else 0,
                     "min": min(durations) if durations else 0,
@@ -258,7 +258,7 @@ class PerformanceTracker:
                     "recent": durations[-10:] if durations else []
                 }
             else:
-                return {}}op: self.get_stats(op) for op in self.metrics.keys()}
+                return {op: self.get_stats(op) for op in self.metrics.keys()}
 
 class StructuredFormatter(logging.Formatter):
     """Structured JSON formatter with context."""
@@ -631,7 +631,7 @@ class LoggingManager:
         """Get performance summary if available."""
         if hasattr(self, 'performance_logger'):
             return self.performance_logger.get_performance_summary()
-        return {}}}
+        return {}
 
     def shutdown(self):
         """Shutdown logging system."""

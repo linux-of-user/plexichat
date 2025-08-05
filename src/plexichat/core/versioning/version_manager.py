@@ -184,7 +184,7 @@ class VersionInfo:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for serialization."""
-        return {}}
+        return {}
             "version": str(self.version),
             "release_date": self.release_date.isoformat(),
             "status": self.status.value,
@@ -358,7 +358,7 @@ class VersionManager:
 
     def generate_version_json(self) -> Dict[str, Any]:
         """Generate version.json content."""
-        return {}}
+        return {}
             "version": self.current_version,
             "version_type": self.version_type,
             "major_version": self.major_version,
@@ -401,7 +401,7 @@ class VersionManager:
 
     def generate_changelog_json(self) -> Dict[str, Any]:
         """Generate changelog.json content."""
-        return {}}
+        return {}
             "project": "PlexiChat",
             "description": "Government-Level Secure Communication Platform",
             "versions": [
@@ -587,7 +587,7 @@ class VersionManager:
 
     def get_version_info(self) -> Dict[str, Any]:
         """Get current version information."""
-        return {}}
+        return {}
             "version": self.current_version,
             "version_type": self.version_type,
             "major_version": self.major_version,

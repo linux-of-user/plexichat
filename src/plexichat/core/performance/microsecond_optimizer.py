@@ -323,12 +323,12 @@ class MicrosecondOptimizer:
     def get_performance_stats(self) -> Dict[str, Any]:
         """Get current performance statistics."""
         if not self.metrics:
-            return {}}"error": "No metrics available"}
+            return {"error": "No metrics available"}
         
         recent_metrics = self.metrics[-100:]  # Last 100 requests
         durations = [m.duration_microseconds for m in recent_metrics]
         
-        return {}}
+        return {}
             "total_requests": len(self.metrics),
             "recent_requests": len(recent_metrics),
             "avg_response_time_us": sum(durations) / len(durations),
@@ -365,11 +365,11 @@ class MicrosecondOptimizer:
         # Calculate statistics
         successful_results = [r for r in results if r["success"]]
         if not successful_results:
-            return {}}"error": "All test iterations failed"}
+            return {"error": "All test iterations failed"}
         
         durations = [r["duration_us"] for r in successful_results]
         
-        return {}}
+        return {}
             "total_iterations": iterations,
             "successful_iterations": len(successful_results),
             "success_rate": len(successful_results) / iterations * 100,

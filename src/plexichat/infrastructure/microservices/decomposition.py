@@ -153,7 +153,7 @@ class AuthenticationMicroservice(BaseMicroservice):
                 else {"status": "unknown"}
             )
 
-            return {}}
+            return {}
                 "status": "healthy" if self.running else "unhealthy",
                 "service": "authentication",
                 "uptime_seconds": ()
@@ -167,7 +167,7 @@ class AuthenticationMicroservice(BaseMicroservice):
                 "timestamp": datetime.now(timezone.utc).isoformat(),
             }
         except Exception as e:
-            return {}}
+            return {}
                 "status": "unhealthy",
                 "error": str(e),
                 "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -208,7 +208,7 @@ class MessagingMicroservice(BaseMicroservice):
     async def health_check(self) -> Dict[str, Any]:
         """Messaging service health check."""
         try:
-            return {}}
+            return {}
                 "status": "healthy" if self.running else "unhealthy",
                 "service": "messaging",
                 "uptime_seconds": ()
@@ -221,7 +221,7 @@ class MessagingMicroservice(BaseMicroservice):
                 "timestamp": datetime.now(timezone.utc).isoformat(),
             }
         except Exception as e:
-            return {}}
+            return {}
                 "status": "unhealthy",
                 "error": str(e),
                 "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -262,7 +262,7 @@ class FileStorageMicroservice(BaseMicroservice):
     async def health_check(self) -> Dict[str, Any]:
         """File storage service health check."""
         try:
-            return {}}
+            return {}
                 "status": "healthy" if self.running else "unhealthy",
                 "service": "file_storage",
                 "uptime_seconds": ()
@@ -275,7 +275,7 @@ class FileStorageMicroservice(BaseMicroservice):
                 "timestamp": datetime.now(timezone.utc).isoformat(),
             }
         except Exception as e:
-            return {}}
+            return {}
                 "status": "unhealthy",
                 "error": str(e),
                 "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -316,7 +316,7 @@ class AIServicesMicroservice(BaseMicroservice):
     async def health_check(self) -> Dict[str, Any]:
         """AI services health check."""
         try:
-            return {}}
+            return {}
                 "status": "healthy" if self.running else "unhealthy",
                 "service": "ai_services",
                 "uptime_seconds": ()
@@ -329,7 +329,7 @@ class AIServicesMicroservice(BaseMicroservice):
                 "timestamp": datetime.now(timezone.utc).isoformat(),
             }
         except Exception as e:
-            return {}}
+            return {}
                 "status": "unhealthy",
                 "error": str(e),
                 "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -455,7 +455,7 @@ class MicroservicesOrchestrator:
                 ),
             }
 
-        return {}}
+        return {}
             "running": self.running,
             "total_services": len(self.services),
             "running_services": sum(1 for s in self.services.values() if s.running),

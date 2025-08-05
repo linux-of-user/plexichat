@@ -329,7 +329,7 @@ class AdvancedGroup:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for API responses."""
-        return {}}
+        return {}
             "group_id": self.group_id,
             "name": self.name,
             "description": self.description,

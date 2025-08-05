@@ -83,7 +83,7 @@ async def send_notification(
     # Here you would typically trigger actual notification delivery
     # (email, push notification, WebSocket, etc.)
     
-    return {}}
+    return {}
         "status": "Notification sent successfully",
         "notification_id": notification_id,
         "notification": notification_data
@@ -119,7 +119,7 @@ async def broadcast_notification(
         notifications_db[notification_id] = notification_data
         notification_ids.append(notification_id)
     
-    return {}}
+    return {}
         "status": "Broadcast notification sent successfully",
         "notification_ids": notification_ids,
         "recipients_count": len(notification.recipient_ids)
@@ -157,7 +157,7 @@ async def get_notifications(
     total = len(user_notifications)
     user_notifications = user_notifications[offset:offset + limit]
     
-    return {}}
+    return {}
         "notifications": user_notifications,
         "total": total,
         "unread_count": len([n for n in user_notifications if not n["read"]]),
@@ -180,12 +180,12 @@ async def get_unread_count(
                 not n.get("archived", False))
         ])
 
-        return {}}
+        return {}
             "unread_count": unread_count,
             "user_id": user_id
         }
     except Exception as e:
-        return {}}
+        return {}
             "unread_count": 0,
             "user_id": user_id,
             "note": "Notification count temporarily unavailable"
@@ -219,7 +219,7 @@ async def get_notification_settings(
         return user_notification_settings[user_id]
     except Exception as e:
         # Return basic default settings on error
-        return {}}
+        return {}
             "email_notifications": True,
             "push_notifications": True,
             "desktop_notifications": True,
@@ -264,7 +264,7 @@ async def get_notification_stats(
             if n.get("created_at", 0) > week_ago
         ]
 
-        return {}}
+        return {}
             "total_notifications": total_notifications,
             "unread_notifications": unread_notifications,
             "archived_notifications": archived_notifications,
@@ -276,7 +276,7 @@ async def get_notification_stats(
         }
     except Exception as e:
         # Return default stats on error
-        return {}}
+        return {}
             "total_notifications": 0,
             "unread_notifications": 0,
             "archived_notifications": 0,
@@ -332,7 +332,7 @@ async def update_notification(
     if update_data.archived is not None:
         notification["archived"] = update_data.archived
     
-    return {}}
+    return {}
         "status": "Notification updated successfully",
         "notification": notification
     }
@@ -353,7 +353,7 @@ async def mark_all_read(
             notification["read_at"] = current_time
             updated_count += 1
     
-    return {}}
+    return {}
         "status": "All notifications marked as read",
         "updated_count": updated_count
     }
@@ -375,7 +375,7 @@ async def delete_notification(
     
     del notifications_db[notification_id]
     
-    return {}}"status": "Notification deleted successfully"}
+    return {"status": "Notification deleted successfully"}
 
 # Keep only the PUT settings endpoint
 @router.put("/settings")
@@ -387,7 +387,7 @@ async def update_notification_settings(
     user_id = current_user["user_id"]
     user_notification_settings[user_id] = settings.dict()
 
-    return {}}
+    return {}
         "status": "Notification settings updated successfully",
         "settings": user_notification_settings[user_id]
     }
@@ -417,7 +417,7 @@ async def send_test_notification(
     
     notifications_db[notification_id] = test_notification
     
-    return {}}
+    return {}
         "status": "Test notification sent successfully",
         "notification": test_notification
     }
@@ -428,7 +428,7 @@ async def notification_system_status():
     total_notifications = len(notifications_db)
     active_users = len(set(n["recipient_id"] for n in notifications_db.values()))
     
-    return {}}
+    return {}
         "status": "operational",
         "total_notifications": total_notifications,
         "active_users": active_users,

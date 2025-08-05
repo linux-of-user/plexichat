@@ -243,7 +243,7 @@ class AdminCredentialsManager:
         """List all admin users (without sensitive data)."""
         try:
             if not self.admin_creds_file.exists() if self.admin_creds_file else False:
-                return {}}
+                return {}
 
             with open(self.admin_creds_file, 'r') as f:
                 admin_data = json.load(f)
@@ -263,7 +263,7 @@ class AdminCredentialsManager:
 
         except Exception as e:
             logger.error(f"Failed to list admin users: {e}")
-            return {}}
+            return {}
 
     def reset_admin_password(self, username: str) -> Optional[str]:
         """Reset admin password to a random password (emergency use)."""

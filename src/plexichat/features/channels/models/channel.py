@@ -291,7 +291,7 @@ class Channel(SQLModel, table=True):
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert channel to dictionary."""
-        return {}}
+        return {}
             "channel_id": self.channel_id,
             "server_id": self.server_id,
             "name": self.name,

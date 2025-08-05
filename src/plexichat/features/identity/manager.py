@@ -58,7 +58,7 @@ class DecentralizedIdentifier:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
-        return {}}
+        return {}
             "did": self.did,
             "method": self.method,
             "identifier": self.identifier,
@@ -259,7 +259,7 @@ class CredentialIssuer:
             f"{credential_id}{subject_did}{json.dumps(claims, sort_keys=True)}".encode()
         ).hexdigest()
 
-        return {}}
+        return {}
             "type": "Ed25519Signature2020",
             "created": datetime.now(timezone.utc).isoformat(),
             "verificationMethod": f"{self.issuer_did}#key-1",
@@ -327,7 +327,7 @@ class ZeroTrustAccessManager:
                 break
 
         if not applicable_policy:
-            return {}}
+            return {}
                 "access_granted": False,
                 "reason": "No applicable policy found",
                 "policy_id": None
@@ -354,7 +354,7 @@ class ZeroTrustAccessManager:
         # Update trust score based on behavior
         self._update_trust_score(user_did, access_granted, context)
 
-        return {}}
+        return {}
             "access_granted": access_granted,
             "policy_id": applicable_policy.policy_id,
             "trust_score": trust_score,
@@ -436,7 +436,7 @@ class DecentralizedIdentityManager:
 
         logger.info(f"Created decentralized identity for user: {user_id}")
 
-        return {}}
+        return {}
             "did": did.did,
             "identity_credential": identity_credential.to_dict(),
             "did_document": self.did_manager.resolve_did(did.did)
@@ -446,7 +446,7 @@ class DecentralizedIdentityManager:
         """Verify access using Zero-Trust principles."""
         user_identity = self.user_identities.get(user_id)
         if not user_identity:
-            return {}}"access_granted": False, "reason": "User identity not found"}
+            return {"access_granted": False, "reason": "User identity not found"}
 
         # Get user credentials
         user_credentials = []
@@ -463,7 +463,7 @@ class DecentralizedIdentityManager:
 
     def get_identity_status(self) -> Dict[str, Any]:
         """Get decentralized identity system status."""
-        return {}}
+        return {}
             "decentralized_identity": {
                 "total_dids": len(self.did_manager.dids),
                 "total_credentials": len(self.credential_issuer.issued_credentials),

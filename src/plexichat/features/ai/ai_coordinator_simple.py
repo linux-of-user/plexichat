@@ -116,7 +116,7 @@ class AICoordinator:
             self.performance_metrics["total_requests"] += 1
             self.performance_metrics["successful_requests"] += 1
 
-            return {}}
+            return {}
                 "success": True,
                 "analysis": results,
                 "text_length": len(text),
@@ -126,7 +126,7 @@ class AICoordinator:
         except Exception as e:
             self.performance_metrics["failed_requests"] += 1
             logger.error(f"Comprehensive text analysis failed: {e}")
-            return {}}"success": False, "error": str(e)}
+            return {"success": False, "error": str(e)}
 
     async def smart_content_moderation(self, content: str, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """Enhanced content moderation with context awareness."""
@@ -151,7 +151,7 @@ class AICoordinator:
             # Update analytics
             self.usage_analytics["moderation_checks"] += 1
 
-            return {}}
+            return {}
                 "success": True,
                 "moderation": moderation_result,
                 "sentiment": sentiment_result,
@@ -163,7 +163,7 @@ class AICoordinator:
 
         except Exception as e:
             logger.error(f"Smart content moderation failed: {e}")
-            return {}}"success": False, "error": str(e)}
+            return {"success": False, "error": str(e)}
 
     async def _ai_analytics_task(self):
         """Background task for AI analytics."""
@@ -201,7 +201,7 @@ class AICoordinator:
 
     async def health_check(self) -> Dict[str, Any]:
         """Perform health check."""
-        return {}}
+        return {}
             "status": "healthy",
             "usage_analytics": self.usage_analytics,
             "performance_metrics": self.performance_metrics,

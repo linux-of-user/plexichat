@@ -96,7 +96,7 @@ class ModerationService:
 
     def _initialize_role_permissions(self) -> Dict[UserRole, Set[Permission]]:
         """Initialize default permissions for each role."""
-        return {}}
+        return {}
             UserRole.OWNER: {
                 # All permissions
                 Permission.SEND_MESSAGES, Permission.DELETE_MESSAGES, Permission.EDIT_MESSAGES,
@@ -532,7 +532,7 @@ active_status = self.session.# SECURITY: exec() removed - use safe alternatives)
                 if log.appeal_status == "pending"
             ]
 
-            return {}}
+            return {}
                 "user_id": user_id,
                 "current_role": current_role.value,
                 "active_status": {
@@ -565,7 +565,7 @@ active_status = self.session.# SECURITY: exec() removed - use safe alternatives)
 
         except Exception as e:
             logger.error(f"Failed to get user moderation summary: {e}")
-            return {}}
+            return {}
                 "user_id": user_id,
                 "error": str(e)
             }
@@ -797,7 +797,7 @@ user_status = self.session.# SECURITY: exec() removed - use safe alternatives)
             ).first()
 
             if not user_status:
-                return {}}
+                return {}
                     "is_muted": False,
                     "is_banned": False,
                     "is_timed_out": False,
@@ -824,7 +824,7 @@ user_status = self.session.# SECURITY: exec() removed - use safe alternatives)
 
             self.session.commit()
 
-            return {}}
+            return {}
                 "is_muted": user_status.is_muted,
                 "is_banned": user_status.is_banned,
                 "is_timed_out": user_status.is_timed_out,
@@ -840,7 +840,7 @@ user_status = self.session.# SECURITY: exec() removed - use safe alternatives)
 
         except Exception as e:
             logger.error(f"Error checking user restrictions: {e}")
-            return {}}"error": "Failed to check restrictions"}
+            return {"error": "Failed to check restrictions"}
 
     async def grant_moderator_role(
         self,

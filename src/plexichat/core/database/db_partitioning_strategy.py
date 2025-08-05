@@ -36,7 +36,7 @@ except ImportError:
         def __init__(self, config):
             self.config = config
         async def execute_query(self, query, params=None):
-            return {}}"success": True, "data": []}
+            return {"success": True, "data": []}
 
     class DatabaseType:
         POSTGRESQL = "postgresql"
@@ -462,7 +462,7 @@ class PartitionManager:
         # Acknowledge unused parameter
         _ = client
         if table_name not in self.partition_info:
-            return {}}"error": "No partition info found"}
+            return {"error": "No partition info found"}
 
         partitions = self.partition_info[table_name]
 

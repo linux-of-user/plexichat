@@ -15,9 +15,10 @@ Uses EXISTING database abstraction and optimization systems.
 
 import logging
 import sys
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 import json
 from pathlib import Path
+import importlib
 
 # Version information
 def get_version_from_json():
@@ -37,10 +38,8 @@ __description__ = "Enhanced chat application with comprehensive features"
 
 # Use EXISTING performance optimization engine
 try:
-    from plexichat.infrastructure.performance.optimization_engine import PerformanceOptimizationEngine
     from plexichat.core.logging_advanced.performance_logger import get_performance_logger
 except ImportError:
-    PerformanceOptimizationEngine = None
     get_performance_logger = None
 
 # Setup basic logging
@@ -109,28 +108,28 @@ class PlexiChatManager:
         try:
             # Core module
             try:
-                from plexichat.core import core_manager
+                importlib.import_module("plexichat.core")
                 self.register_module("core", True)
             except ImportError:
                 self.register_module("core", False)
 
             # Infrastructure module
             try:
-                from plexichat.infrastructure import infrastructure_manager
+                importlib.import_module("plexichat.infrastructure")
                 self.register_module("infrastructure", True)
             except ImportError:
                 self.register_module("infrastructure", False)
 
             # Features module
             try:
-                from plexichat.features import feature_manager
+                importlib.import_module("plexichat.features")
                 self.register_module("features", True)
             except ImportError:
                 self.register_module("features", False)
 
             # Interfaces module
             try:
-                from plexichat.interfaces import interface_manager
+                importlib.import_module("plexichat.interfaces")
                 self.register_module("interfaces", True)
             except ImportError:
                 self.register_module("interfaces", False)
@@ -185,7 +184,6 @@ def get_plexichat_manager():
     return _plexichat_manager
 
 # For backward compatibility - create a module-level attribute
-import sys
 class LazyManagerModule(sys.modules[__name__].__class__):
     @property
     def plexichat_manager(self):
@@ -287,7 +285,7 @@ __all__ = [
     "__version__",
     "__author__",
     "__description__",
-    "plexichat_manager",
+    "get_plexichat_manager",
     "core_available",
     "infrastructure_available",
     "features_available",

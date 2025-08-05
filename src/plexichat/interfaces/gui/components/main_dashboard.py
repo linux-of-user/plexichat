@@ -2354,7 +2354,7 @@ External Services: {integration_status['external_services']}"""
         """Get configuration system status."""
         try:
             # This would integrate with actual config system
-            return {}}
+            return {}
                 "available": True,
                 "files_count": 12,
                 "active_settings": 156,
@@ -2363,13 +2363,13 @@ External Services: {integration_status['external_services']}"""
             }
         except Exception as e:
             logger.error(f"Failed to get config status: {e}")
-            return {}}"available": False, "files_count": 0, "active_settings": 0, "environment": "unknown", "last_modified": "unknown"}
+            return {"available": False, "files_count": 0, "active_settings": 0, "environment": "unknown", "last_modified": "unknown"}
 
     def get_database_core_status(self) -> Dict[str, Any]:
         """Get database core status."""
         try:
             # This would integrate with actual database system
-            return {}}
+            return {}
                 "available": True,
                 "connections": 15,
                 "type": "PostgreSQL",
@@ -2378,13 +2378,13 @@ External Services: {integration_status['external_services']}"""
             }
         except Exception as e:
             logger.error(f"Failed to get database core status: {e}")
-            return {}}"available": False, "connections": 0, "type": "unknown", "schema_version": "unknown", "performance": "unknown"}
+            return {"available": False, "connections": 0, "type": "unknown", "schema_version": "unknown", "performance": "unknown"}
 
     def get_auth_core_status(self) -> Dict[str, Any]:
         """Get authentication core status."""
         try:
             # This would integrate with actual auth system
-            return {}}
+            return {}
                 "available": True,
                 "active_sessions": 42,
                 "auth_methods": ["password", "2fa", "oauth"],
@@ -2393,13 +2393,13 @@ External Services: {integration_status['external_services']}"""
             }
         except Exception as e:
             logger.error(f"Failed to get auth core status: {e}")
-            return {}}"available": False, "active_sessions": 0, "auth_methods": [], "security_level": "unknown", "token_expiry": "unknown"}
+            return {"available": False, "active_sessions": 0, "auth_methods": [], "security_level": "unknown", "token_expiry": "unknown"}
 
     def get_logging_core_status(self) -> Dict[str, Any]:
         """Get logging core status."""
         try:
             # This would integrate with actual logging system
-            return {}}
+            return {}
                 "available": True,
                 "log_level": "INFO",
                 "log_files": 8,
@@ -2408,13 +2408,13 @@ External Services: {integration_status['external_services']}"""
             }
         except Exception as e:
             logger.error(f"Failed to get logging core status: {e}")
-            return {}}"available": False, "log_level": "unknown", "log_files": 0, "total_size": "unknown", "handlers": 0}
+            return {"available": False, "log_level": "unknown", "log_files": 0, "total_size": "unknown", "handlers": 0}
 
     def get_exception_core_status(self) -> Dict[str, Any]:
         """Get exception handling status."""
         try:
             # This would integrate with actual exception system
-            return {}}
+            return {}
                 "available": True,
                 "recent_count": 3,
                 "error_rate": 0.02,
@@ -2423,13 +2423,13 @@ External Services: {integration_status['external_services']}"""
             }
         except Exception as e:
             logger.error(f"Failed to get exception core status: {e}")
-            return {}}"available": False, "recent_count": 0, "error_rate": 0, "critical_count": 0, "last_error": "unknown"}
+            return {"available": False, "recent_count": 0, "error_rate": 0, "critical_count": 0, "last_error": "unknown"}
 
     def get_messaging_core_status(self) -> Dict[str, Any]:
         """Get messaging core status."""
         try:
             # This would integrate with actual messaging system
-            return {}}
+            return {}
                 "available": True,
                 "active_channels": 25,
                 "messages_per_hour": 1250,
@@ -2438,13 +2438,13 @@ External Services: {integration_status['external_services']}"""
             }
         except Exception as e:
             logger.error(f"Failed to get messaging core status: {e}")
-            return {}}"available": False, "active_channels": 0, "messages_per_hour": 0, "queue_size": 0, "websocket_connections": 0}
+            return {"available": False, "active_channels": 0, "messages_per_hour": 0, "queue_size": 0, "websocket_connections": 0}
 
     def get_integration_core_status(self) -> Dict[str, Any]:
         """Get integration core status."""
         try:
             # This would integrate with actual integration system
-            return {}}
+            return {}
                 "available": True,
                 "active_integrations": 8,
                 "api_endpoints": 45,
@@ -2453,7 +2453,7 @@ External Services: {integration_status['external_services']}"""
             }
         except Exception as e:
             logger.error(f"Failed to get integration core status: {e}")
-            return {}}"available": False, "active_integrations": 0, "api_endpoints": 0, "webhooks": 0, "external_services": 0}
+            return {"available": False, "active_integrations": 0, "api_endpoints": 0, "webhooks": 0, "external_services": 0}
 
     # ==================== CORE MODULE ACTION METHODS ====================
 

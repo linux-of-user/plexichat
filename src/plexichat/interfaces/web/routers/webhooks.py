@@ -46,9 +46,9 @@ try:
     from plexichat.infrastructure.utils.auth import get_current_user, require_admin
 except ImportError:
     def get_current_user():
-        return {}}"id": 1, "username": "admin", "is_admin": True}
+        return {"id": 1, "username": "admin", "is_admin": True}
     def require_admin():
-        return {}}"id": 1, "username": "admin", "is_admin": True}
+        return {"id": 1, "username": "admin", "is_admin": True}
 
 # Security imports
 try:
@@ -632,7 +632,7 @@ async def trigger_webhook(
             # Trigger webhook in background
             background_tasks.add_task(webhook_service.trigger_webhook, webhook_id, event)
             
-            return {}}"message": "Webhook triggered", "webhook_id": webhook_id}
+            return {"message": "Webhook triggered", "webhook_id": webhook_id}
     else:
         # Fallback to original performance tracking
         if performance_logger:
@@ -644,7 +644,7 @@ async def trigger_webhook(
         # Trigger webhook in background
         background_tasks.add_task(webhook_service.trigger_webhook, webhook_id, event)
 
-        return {}}"message": "Webhook triggered", "webhook_id": webhook_id}
+        return {"message": "Webhook triggered", "webhook_id": webhook_id}
 
 @router.post(
     "/broadcast",
@@ -672,7 +672,7 @@ async def broadcast_event(
         if webhook.is_active and event.event_type in webhook.events:
             background_tasks.add_task(webhook_service.trigger_webhook, webhook.id, event)
 
-    return {}}
+    return {}
         "message": "Event broadcasted to all matching webhooks",
         "webhook_count": len([w for w in webhooks if w.is_active and event.event_type in w.events])
     }

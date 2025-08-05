@@ -569,7 +569,7 @@ class AdvancedTaskManager:
         if not task:
             return None
 
-        return {}}
+        return {}
             "task_id": task.task_id,
             "task_type": task.task_type.value,
             "priority": task.priority.value,
@@ -589,7 +589,7 @@ class AdvancedTaskManager:
 
     async def get_cluster_task_metrics(self) -> Dict[str, Any]:
         """Get comprehensive task metrics for the cluster."""
-        return {}}
+        return {}
             "total_tasks": self.metrics.total_tasks,
             "pending_tasks": self.metrics.pending_tasks,
             "running_tasks": self.metrics.running_tasks,

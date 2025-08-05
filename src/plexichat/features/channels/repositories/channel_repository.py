@@ -155,7 +155,7 @@ class ChannelRepository(BaseRepository[Channel, Dict[str, Any], Dict[str, Any]])
             else:
                 orphaned_channels.append(channel)
 
-        return {}}
+        return {}
             "categories": categories,
             "orphaned_channels": orphaned_channels
         }
@@ -174,10 +174,10 @@ class ChannelRepository(BaseRepository[Channel, Dict[str, Any], Dict[str, Any]])
         """Get comprehensive channel statistics."""
         channel = await self.find_by_id(channel_id)
         if not channel:
-            return {}}}
+            return {}}
 
         # TODO: Implement with actual database queries
-        return {}}
+        return {}
             "channel_id": channel_id,
             "message_count": 0,  # Would query Message table
             "member_count": 0,   # Would query permissions and server members

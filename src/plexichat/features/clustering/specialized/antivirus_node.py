@@ -241,7 +241,7 @@ class AntivirusClusterNode(ClusterNode):
         # Get antivirus engine statistics
         engine_stats = await self.antivirus_engine.get_scan_statistics()
 
-        return {}}
+        return {}
             **self.performance_metrics,
             'engine_stats': engine_stats,
             'node_id': self.node_id,

@@ -30,7 +30,7 @@ try:
     AUTH_AVAILABLE = True
 except ImportError:
     AUTH_AVAILABLE = False
-    async def get_current_user(): return {}}"id": "admin", "username": "admin", "is_admin": True}
+    async def get_current_user(): return {"id": "admin", "username": "admin", "is_admin": True}
 
 logger = logging.getLogger(__name__)
 

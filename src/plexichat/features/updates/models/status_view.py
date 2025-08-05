@@ -76,7 +76,7 @@ class StatusView(SQLModel, table=True):
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert status view to dictionary."""
-        return {}}
+        return {}
             "view_id": self.view_id,
             "status_id": self.status_id,
             "user_id": self.user_id,

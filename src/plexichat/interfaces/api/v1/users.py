@@ -397,7 +397,7 @@ async def update_my_profile(
         logger.info(f"User profile updated: {current_user['username']}")
         logger.debug(f"Invalidated profile caches for user: {user_id}")
 
-        return {}}
+        return {}
             "success": True,
             "message": "Profile updated successfully",
             "user": {
@@ -573,7 +573,7 @@ async def delete_my_account(current_user: dict = Depends(get_current_user)):
         
         logger.info(f"User account deleted: {current_user['username']}")
         
-        return {}}
+        return {}
             "success": True,
             "message": "Account deleted successfully"
         }
@@ -624,7 +624,7 @@ async def update_custom_fields(
         logger.info(f"Custom fields updated for user: {current_user['username']}")
         logger.debug(f"Invalidated profile caches for custom fields update: {user_id}")
 
-        return {}}
+        return {}
             "success": True,
             "message": "Custom fields updated successfully",
             "custom_fields": user['custom_fields']
@@ -654,7 +654,7 @@ async def delete_custom_field(
 
         logger.info(f"Custom field '{field_name}' deleted for user: {current_user['username']}")
 
-        return {}}
+        return {}
             "success": True,
             "message": f"Custom field '{field_name}' deleted successfully"
         }
@@ -735,7 +735,7 @@ async def get_public_user_profile(
 @router.get("/stats/summary")
 async def get_user_stats(current_user: dict = Depends(get_current_user)):
     """Get user statistics summary."""
-    return {}}
+    return {}
         "total_users": len(users_db),
         "active_users": sum(1 for u in users_db.values() if u.get('is_active', False)),
         "timestamp": datetime.now()

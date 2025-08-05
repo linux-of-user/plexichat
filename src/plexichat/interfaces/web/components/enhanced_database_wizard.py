@@ -230,7 +230,7 @@ class EnhancedDatabaseWizard:
         self.progress = WizardProgress()
         self.progress.current_step = WizardStep.WELCOME
 
-        return {}}
+        return {}
             "success": True,
             "step": self.progress.current_step,
             "message": "Database setup wizard started",
@@ -254,7 +254,7 @@ class EnhancedDatabaseWizard:
             db_type = DatabaseType(database_type)
 
             if db_type not in self.templates:
-                return {}}
+                return {}
                     "success": False,
                     "error": f"Database type {database_type} not supported"
                 }
@@ -265,7 +265,7 @@ class EnhancedDatabaseWizard:
             self.progress.completed_steps.append(WizardStep.DATABASE_SELECTION)
             self.progress.current_step = WizardStep.CONNECTION_CONFIG
 
-            return {}}
+            return {}
                 "success": True,
                 "step": self.progress.current_step,
                 "database_info": {
@@ -287,7 +287,7 @@ class EnhancedDatabaseWizard:
             }
 
         except ValueError:
-            return {}}
+            return {}
                 "success": False,
                 "error": f"Invalid database type: {database_type}"
             }
@@ -296,7 +296,7 @@ class EnhancedDatabaseWizard:
         """Configure database connection settings."""
         try:
             if not self.current_template:
-                return {}}
+                return {}
                     "success": False,
                     "error": "No database type selected"
                 }
@@ -308,7 +308,7 @@ class EnhancedDatabaseWizard:
                     missing_fields.append(field)
 
             if missing_fields:
-                return {}}
+                return {}
                     "success": False,
                     "error": f"Missing required fields: {', '.join(missing_fields)}"
                 }
@@ -322,7 +322,7 @@ class EnhancedDatabaseWizard:
             self.progress.completed_steps.append(WizardStep.CONNECTION_CONFIG)
             self.progress.current_step = WizardStep.AUTHENTICATION
 
-            return {}}
+            return {}
                 "success": True,
                 "step": self.progress.current_step,
                 "message": "Connection configuration saved",
@@ -334,7 +334,7 @@ class EnhancedDatabaseWizard:
             }
 
         except Exception as e:
-            return {}}
+            return {}
                 "success": False,
                 "error": f"Configuration error: {str(e)}"
             }
@@ -343,7 +343,7 @@ class EnhancedDatabaseWizard:
         """Test database connection with current configuration."""
         try:
             if not self.progress.connection_config:
-                return {}}
+                return {}
                     "success": False,
                     "error": "No connection configuration found"
                 }
@@ -351,7 +351,7 @@ class EnhancedDatabaseWizard:
             # Import appropriate adapter
             adapter_class = self._get_adapter_class(self.progress.database_type)
             if not adapter_class:
-                return {}}
+                return {}
                     "success": False,
                     "error": f"No adapter available for {self.progress.database_type}"
                 }
@@ -371,7 +371,7 @@ class EnhancedDatabaseWizard:
                     "tested_at": asyncio.get_event_loop().time()
                 }
 
-                return {}}
+                return {}
                     "success": True,
                     "message": "Database connection successful",
                     "health_info": health_info,
@@ -379,7 +379,7 @@ class EnhancedDatabaseWizard:
                     "recommendations": self._get_connection_recommendations(health_info)
                 }
             else:
-                return {}}
+                return {}
                     "success": False,
                     "error": "Failed to connect to database",
                     "troubleshooting": self._get_troubleshooting_tips()
@@ -387,7 +387,7 @@ class EnhancedDatabaseWizard:
 
         except Exception as e:
             logger.error(f"Connection test failed: {e}")
-            return {}}
+            return {}
                 "success": False,
                 "error": f"Connection test error: {str(e)}",
                 "troubleshooting": self._get_troubleshooting_tips()

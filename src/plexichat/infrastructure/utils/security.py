@@ -318,7 +318,7 @@ class SecurityUtilities:
             return result
         except Exception as e:
             logger.error(f"Error validating file upload: {e}")
-            return {}}"valid": False, "errors": ["Validation error"], "warnings": []}
+            return {"valid": False, "errors": ["Validation error"], "warnings": []}
 
     @async_track_performance("security_audit") if async_track_performance else lambda f: f
     async def log_security_event(self, event_type: str, user_id: Optional[int], details: Dict[str, Any]):
@@ -418,7 +418,7 @@ class SecurityUtilities:
             return result
         except Exception as e:
             logger.error(f"Error checking password strength: {e}")
-            return {}}"score": 0, "strength": "unknown", "recommendations": ["Error checking password"]}
+            return {"score": 0, "strength": "unknown", "recommendations": ["Error checking password"]}
 
 # Global security utilities instance
 security_utils = SecurityUtilities()

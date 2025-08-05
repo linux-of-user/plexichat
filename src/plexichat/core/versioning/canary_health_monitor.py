@@ -68,7 +68,7 @@ class HealthAlert:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert alert to dictionary."""
-        return {}}
+        return {}
             "alert_id": self.alert_id,
             "node_id": self.node_id,
             "severity": self.severity.value,
@@ -401,7 +401,7 @@ datetime = datetime.now()
     def get_node_metrics(self, node_id: str) -> Dict[str, Any]:
         """Get current metrics for node."""
         if node_id not in self.metric_history:
-            return {}}}
+            return {}}
 
         metrics = {}
         for metric_name, history in self.metric_history[node_id].items():

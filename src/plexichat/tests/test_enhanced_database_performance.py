@@ -150,7 +150,7 @@ class EnhancedDatabasePerformanceTester:
             pool_stats = await self.db_manager.get_performance_stats()
             pool_metrics = pool_stats.get("connection_pools", {}).get("test_enhanced", {})
             
-            return {}}
+            return {}
                 "success": successful_queries == 50,
                 "message": f"Executed {successful_queries}/50 concurrent queries in {execution_time:.2f}s",
                 "metrics": {
@@ -162,7 +162,7 @@ class EnhancedDatabasePerformanceTester:
             }
             
         except Exception as e:
-            return {}}"success": False, "message": f"Connection pool test failed: {e}"}
+            return {"success": False, "message": f"Connection pool test failed: {e}"}
 
     async def _test_query_cache_performance(self) -> Dict[str, Any]:
         """Test query cache performance and hit rates."""
@@ -188,7 +188,7 @@ class EnhancedDatabasePerformanceTester:
             
             cache_hit_improvement = (first_execution_time - second_execution_time) / first_execution_time * 100
             
-            return {}}
+            return {}
                 "success": result2.get("cached", False),
                 "message": f"Cache hit rate: {cache_metrics.get('hit_rate_percent', 0):.1f}%, Speed improvement: {cache_hit_improvement:.1f}%",
                 "metrics": {
@@ -201,13 +201,13 @@ class EnhancedDatabasePerformanceTester:
             }
             
         except Exception as e:
-            return {}}"success": False, "message": f"Query cache test failed: {e}"}
+            return {"success": False, "message": f"Query cache test failed: {e}"}
 
     async def _test_redis_integration(self) -> Dict[str, Any]:
         """Test Redis integration for distributed caching."""
         try:
             if not self.db_manager.redis_client:
-                return {}}"success": False, "message": "Redis not available"}
+                return {"success": False, "message": "Redis not available"}
             
             # Test Redis connectivity
             await self.db_manager.redis_client.ping()
@@ -228,7 +228,7 @@ class EnhancedDatabasePerformanceTester:
             # Get Redis info
             redis_info = await self.db_manager.redis_client.info('memory')
             
-            return {}}
+            return {}
                 "success": True,
                 "message": f"Redis integration working, Memory usage: {redis_info.get('used_memory_human', 'unknown')}",
                 "metrics": {
@@ -239,7 +239,7 @@ class EnhancedDatabasePerformanceTester:
             }
             
         except Exception as e:
-            return {}}"success": False, "message": f"Redis integration test failed: {e}"}
+            return {"success": False, "message": f"Redis integration test failed: {e}"}
 
     async def _test_query_optimization(self) -> Dict[str, Any]:
         """Test query optimization features."""
@@ -255,7 +255,7 @@ class EnhancedDatabasePerformanceTester:
             # Get optimization stats
             optimizer_stats = self.db_manager.query_optimizer.get_optimization_stats()
             
-            return {}}
+            return {}
                 "success": result.get("success", False),
                 "message": f"Query optimization: {optimizer_stats.get('queries_optimized', 0)} queries optimized",
                 "metrics": {
@@ -266,7 +266,7 @@ class EnhancedDatabasePerformanceTester:
             }
             
         except Exception as e:
-            return {}}"success": False, "message": f"Query optimization test failed: {e}"}
+            return {"success": False, "message": f"Query optimization test failed: {e}"}
 
     async def _test_auto_tuning(self) -> Dict[str, Any]:
         """Test auto-tuning capabilities."""
@@ -287,7 +287,7 @@ class EnhancedDatabasePerformanceTester:
             # Get performance stats
             perf_stats = await self.db_manager.get_performance_stats()
             
-            return {}}
+            return {}
                 "success": True,
                 "message": "Auto-tuning system active",
                 "metrics": {
@@ -298,7 +298,7 @@ class EnhancedDatabasePerformanceTester:
             }
             
         except Exception as e:
-            return {}}"success": False, "message": f"Auto-tuning test failed: {e}"}
+            return {"success": False, "message": f"Auto-tuning test failed: {e}"}
 
     async def _test_concurrent_load(self) -> Dict[str, Any]:
         """Test performance under concurrent load."""
@@ -329,7 +329,7 @@ class EnhancedDatabasePerformanceTester:
             
             throughput = total_queries / total_time
             
-            return {}}
+            return {}
                 "success": successful_queries == total_queries,
                 "message": f"Processed {successful_queries}/{total_queries} concurrent queries at {throughput:.1f} QPS",
                 "metrics": {
@@ -342,7 +342,7 @@ class EnhancedDatabasePerformanceTester:
             }
             
         except Exception as e:
-            return {}}"success": False, "message": f"Concurrent load test failed: {e}"}
+            return {"success": False, "message": f"Concurrent load test failed: {e}"}
 
     async def _test_memory_usage(self) -> Dict[str, Any]:
         """Test memory usage and cache efficiency."""
@@ -370,7 +370,7 @@ class EnhancedDatabasePerformanceTester:
             cache_stats = await self.db_manager.get_performance_stats()
             cache_metrics = cache_stats.get("query_cache", {})
             
-            return {}}
+            return {}
                 "success": memory_increase < 50,  # Less than 50MB increase
                 "message": f"Memory usage increased by {memory_increase:.1f}MB, Cache size: {cache_metrics.get('l1_cache_size', 0)}",
                 "metrics": {
@@ -383,9 +383,9 @@ class EnhancedDatabasePerformanceTester:
             }
             
         except ImportError:
-            return {}}"success": False, "message": "psutil not available for memory testing"}
+            return {"success": False, "message": "psutil not available for memory testing"}
         except Exception as e:
-            return {}}"success": False, "message": f"Memory usage test failed: {e}"}
+            return {"success": False, "message": f"Memory usage test failed: {e}"}
 
     async def _test_cache_invalidation(self) -> Dict[str, Any]:
         """Test cache invalidation functionality."""
@@ -409,7 +409,7 @@ class EnhancedDatabasePerformanceTester:
             result3 = await self.db_manager.execute_query(test_query, database="test_enhanced")
             not_cached_after_clear = not result3.get("cached", False)
             
-            return {}}
+            return {}
                 "success": was_cached and not_cached_after_clear,
                 "message": f"Cache invalidation working: was_cached={was_cached}, cleared={not_cached_after_clear}",
                 "metrics": {
@@ -420,7 +420,7 @@ class EnhancedDatabasePerformanceTester:
             }
             
         except Exception as e:
-            return {}}"success": False, "message": f"Cache invalidation test failed: {e}"}
+            return {"success": False, "message": f"Cache invalidation test failed: {e}"}
 
     async def _test_performance_monitoring(self) -> Dict[str, Any]:
         """Test performance monitoring capabilities."""
@@ -439,7 +439,7 @@ class EnhancedDatabasePerformanceTester:
             has_cache_stats = "query_cache" in perf_stats
             has_monitor_stats = "performance_monitor" in perf_stats
             
-            return {}}
+            return {}
                 "success": has_connection_stats and has_cache_stats,
                 "message": f"Performance monitoring active: pools={has_connection_stats}, cache={has_cache_stats}, monitor={has_monitor_stats}",
                 "metrics": {
@@ -451,7 +451,7 @@ class EnhancedDatabasePerformanceTester:
             }
             
         except Exception as e:
-            return {}}"success": False, "message": f"Performance monitoring test failed: {e}"}
+            return {"success": False, "message": f"Performance monitoring test failed: {e}"}
 
     async def _test_stress_performance(self) -> Dict[str, Any]:
         """Stress test the enhanced database system."""
@@ -488,7 +488,7 @@ class EnhancedDatabasePerformanceTester:
             # Get final performance stats
             final_stats = await self.db_manager.get_performance_stats()
             
-            return {}}
+            return {}
                 "success": successful_stress_queries >= total_stress_queries * 0.95,  # 95% success rate
                 "message": f"Stress test: {successful_stress_queries}/{total_stress_queries} queries at {stress_throughput:.1f} QPS",
                 "metrics": {
@@ -502,7 +502,7 @@ class EnhancedDatabasePerformanceTester:
             }
             
         except Exception as e:
-            return {}}"success": False, "message": f"Stress test failed: {e}"}
+            return {"success": False, "message": f"Stress test failed: {e}"}
 
     async def _generate_performance_report(self):
         """Generate comprehensive performance report."""

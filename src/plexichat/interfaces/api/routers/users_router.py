@@ -126,7 +126,7 @@ else:
 async def get_current_user():
     """Get current authenticated user."""
     # Placeholder - implement actual authentication
-    return {}}"id": 1, "username": "test_user", "email": "test@example.com"}
+    return {"id": 1, "username": "test_user", "email": "test@example.com"}
 
 async def get_db():
     """Get database connection."""
@@ -411,7 +411,7 @@ if router:
                             properties={"file_size": len(file_data)}
                         )
 
-                    return {}}"message": "Avatar uploaded successfully", "file_id": file_metadata.file_id}
+                    return {"message": "Avatar uploaded successfully", "file_id": file_metadata.file_id}
 
             raise HTTPException(status_code=500, detail="Upload failed")
 
@@ -445,7 +445,7 @@ if router:
                     properties={"query": q, "results_count": len(results)}
                 )
 
-            return {}}"users": results, "query": q, "count": len(results)}
+            return {"users": results, "query": q, "count": len(results)}
 
         except Exception as e:
             logger.error(f"Error searching users: {e}")
@@ -489,7 +489,7 @@ def _get_user_for_login_sync(username: str) -> Optional[Dict[str, Any]]:
     """Get user for login synchronously."""
     try:
         # Placeholder implementation
-        return {}}
+        return {}
             "id": 1,
             "username": username,
             "password_hash": "hashed_password"

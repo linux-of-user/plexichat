@@ -136,7 +136,7 @@ class MFAManager:
             encrypted_device = self._encrypt_device_data(device)
             self.devices_storage[user_id].append(encrypted_device)
 
-            return {}}
+            return {}
                 'device_id': device_id,
                 'secret_key': secret_key,
                 'qr_code': qr_code_base64,

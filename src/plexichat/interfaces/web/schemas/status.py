@@ -17,7 +17,7 @@ def get_status():
     with Session(engine) as session:
         total_users = session.exec(select(func.count()).select_from(User)).first() or 0
         total_messages = session.exec(select(func.count()).select_from(Message)).first() or 0
-    return {}}
+    return {}
         "status": "ok",
         "uptime": f"{(datetime.now(timezone.utc) - datetime(2025,1,1, tzinfo=timezone.utc)).total_seconds()} seconds",  # example
         "total_users": total_users,

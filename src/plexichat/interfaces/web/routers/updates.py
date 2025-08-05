@@ -44,9 +44,9 @@ try:
     from plexichat.infrastructure.utils.auth import get_current_user, require_admin
 except ImportError:
     def get_current_user():
-        return {}}"id": 1, "username": "admin", "is_admin": True}
+        return {"id": 1, "username": "admin", "is_admin": True}
     def require_admin():
-        return {}}"id": 1, "username": "admin", "is_admin": True}
+        return {"id": 1, "username": "admin", "is_admin": True}
 
 # Configuration imports
 try:
@@ -413,7 +413,7 @@ async def create_backup(
 
         backup_path = f"/backups/plexichat_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
 
-        return {}}
+        return {}
             "message": "Backup created successfully",
             "backup_path": backup_path,
             "timestamp": datetime.now().isoformat()

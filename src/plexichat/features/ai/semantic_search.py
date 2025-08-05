@@ -737,7 +737,7 @@ class SemanticSearchEngine:
 
     def get_search_statistics(self) -> Dict[str, Any]:
         """Get comprehensive search statistics."""
-        return {}}
+        return {}
             "enabled": self.enabled,
             "running": self.running,
             "statistics": self.stats,

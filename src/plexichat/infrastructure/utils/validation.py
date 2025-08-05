@@ -82,7 +82,7 @@ class ValidationUtilities:
             return result
         except Exception as e:
             logger.error(f"Email validation error: {e}")
-            return {}}"valid": False, "errors": ["Validation error"]}
+            return {"valid": False, "errors": ["Validation error"]}
 
     def validate_username(self, username: str) -> Dict[str, Any]:
         """Validate username."""
@@ -119,7 +119,7 @@ class ValidationUtilities:
             return result
         except Exception as e:
             logger.error(f"Username validation error: {e}")
-            return {}}"valid": False, "errors": ["Validation error"]}
+            return {"valid": False, "errors": ["Validation error"]}
 
     def validate_password(self, password: str) -> Dict[str, Any]:
         """Validate password strength."""
@@ -183,7 +183,7 @@ class ValidationUtilities:
             return result
         except Exception as e:
             logger.error(f"Password validation error: {e}")
-            return {}}"valid": False, "errors": ["Validation error"], "score": 0, "strength": "unknown"}
+            return {"valid": False, "errors": ["Validation error"], "score": 0, "strength": "unknown"}
 
     def validate_file_upload(self, filename: str, content_type: str, file_size: int) -> Dict[str, Any]:
         """Validate file upload."""
@@ -246,7 +246,7 @@ class ValidationUtilities:
             return result
         except Exception as e:
             logger.error(f"File validation error: {e}")
-            return {}}"valid": False, "errors": ["Validation error"], "warnings": []}
+            return {"valid": False, "errors": ["Validation error"], "warnings": []}
 
     def validate_url(self, url: str) -> Dict[str, Any]:
         """Validate URL."""
@@ -286,7 +286,7 @@ class ValidationUtilities:
             return result
         except Exception as e:
             logger.error(f"URL validation error: {e}")
-            return {}}"valid": False, "errors": ["Validation error"]}
+            return {"valid": False, "errors": ["Validation error"]}
 
     def sanitize_input(self, input_data: str, max_length: int = 1000) -> str:
         """Sanitize user input."""
@@ -342,7 +342,7 @@ class ValidationUtilities:
             return result
         except Exception as e:
             logger.error(f"JSON validation error: {e}")
-            return {}}"valid": False, "errors": ["Validation error"], "data": None}
+            return {"valid": False, "errors": ["Validation error"], "data": None}
 
 # Global validation utilities
 validation_utils = ValidationUtilities()

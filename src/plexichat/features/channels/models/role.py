@@ -217,7 +217,7 @@ class Role(SQLModel, table=True):
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert role to dictionary."""
-        return {}}
+        return {}
             "role_id": self.role_id,
             "server_id": self.server_id,
             "name": self.name,

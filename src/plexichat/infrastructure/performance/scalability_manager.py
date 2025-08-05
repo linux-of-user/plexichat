@@ -337,7 +337,7 @@ class CapacityPlanner:
     def analyze_growth_trends(self) -> Dict[str, float]:
         """Analyze growth trends in resource usage."""
         if len(self.usage_history) < 10:
-            return {}}}
+            return {}}
 
         # Simple linear trend analysis
         trends = {}
@@ -597,7 +597,7 @@ class ScalabilityManager:
 
     def get_scalability_stats(self) -> Dict[str, Any]:
         """Get comprehensive scalability statistics."""
-        return {}}
+        return {}
             'cluster': {
                 'total_nodes': len(self.load_balancer.nodes),
                 'healthy_nodes': len(self.load_balancer.healthy_nodes),

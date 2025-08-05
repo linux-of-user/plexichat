@@ -108,7 +108,7 @@ else:
 async def get_current_user():
     """Get current authenticated user."""
     # Placeholder - implement actual authentication
-    return {}}"user_id": 1, "username": "test_user"}
+    return {"user_id": 1, "username": "test_user"}
 
 async def get_db():
     """Get database connection."""
@@ -325,7 +325,7 @@ if router:
             if performance_logger:
                 performance_logger.record_metric("messages_deleted", 1, "count")
 
-            return {}}"message": "Message deleted successfully"}
+            return {"message": "Message deleted successfully"}
 
         except HTTPException:
             raise
@@ -353,7 +353,7 @@ def _get_messages_sync(user_id: int, channel_id: Optional[int], recipient_id: Op
         messages = []
         total = 0
 
-        return {}}
+        return {}
             "messages": messages,
             "total": total,
             "page": page,
@@ -362,7 +362,7 @@ def _get_messages_sync(user_id: int, channel_id: Optional[int], recipient_id: Op
         }
     except Exception as e:
         logger.error(f"Error getting messages: {e}")
-        return {}}"messages": [], "total": 0, "page": page, "per_page": per_page, "has_next": False}
+        return {"messages": [], "total": 0, "page": page, "per_page": per_page, "has_next": False}
 
 def _get_message_sync(message_id: str, user_id: int) -> Optional[Dict[str, Any]]:
     """Get message synchronously."""

@@ -139,7 +139,7 @@ class PermissionOverwrite(SQLModel, table=True):
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert permission overwrite to dictionary."""
-        return {}}
+        return {}
             "overwrite_id": self.overwrite_id,
             "channel_id": self.channel_id,
             "target_id": self.target_id,

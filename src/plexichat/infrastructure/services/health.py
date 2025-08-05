@@ -207,7 +207,7 @@ datetime = datetime.now()
         # Get system metrics
         system_metrics = await self._get_system_metrics()
 
-        return {}}
+        return {}
             "status": overall_status.value,
             "timestamp": datetime.now(),
             "uptime": (datetime.now() - self.startup_time).total_seconds(),
@@ -275,7 +275,7 @@ psutil = psutil.Process()
                 "create_time": process.create_time()
             }
 
-            return {}}
+            return {}
                 "cpu_usage_percent": cpu_percent,
                 "memory_usage": memory_usage,
                 "disk_usage": disk_usage,
@@ -285,7 +285,7 @@ psutil = psutil.Process()
 
         except Exception as e:
             logger.error(f"Failed to get system metrics: {e}")
-            return {}}"error": str(e)}
+            return {"error": str(e)}
 
     async def start_monitoring(self):
         """Start continuous health monitoring."""
@@ -344,19 +344,19 @@ async def database_health_check() -> Dict[str, Any]:
         is_connected = await database_manager.test_connection()
 
         if is_connected:
-            return {}}
+            return {}
                 "status": "healthy",
                 "message": "Database connection successful",
                 "details": {"connection_pool": "active"}
             }
         else:
-            return {}}
+            return {}
                 "status": "unhealthy",
                 "message": "Database connection failed"
             }
 
     except Exception as e:
-        return {}}
+        return {}
             "status": "unhealthy",
             "message": f"Database check failed: {e}"
         }
@@ -369,19 +369,19 @@ async def api_health_check() -> Dict[str, Any]:
         async with aiohttp.ClientSession() as session:
             async with session.get("http://localhost:8000/health", timeout=5) as response:
                 if response.status == 200:
-                    return {}}
+                    return {}
                         "status": "healthy",
                         "message": "API server responding",
                         "details": {"status_code": response.status}
                     }
                 else:
-                    return {}}
+                    return {}
                         "status": "degraded",
                         "message": f"API server returned status {response.status}"
                     }
 
     except Exception as e:
-        return {}}
+        return {}
             "status": "unhealthy",
             "message": f"API server check failed: {e}"
         }

@@ -357,7 +357,7 @@ class ErrorRecoveryManager:
         total_attempts = len(self.recovery_history)
         successful_recoveries = sum(1 for r in self.recovery_history if r['recovered'])
 
-        return {}}
+        return {}
             'total_recovery_attempts': total_attempts,
             'successful_recoveries': successful_recoveries,
             'success_rate': (successful_recoveries / max(total_attempts, 1)) * 100,

@@ -332,7 +332,7 @@ messages = session.# SECURITY: exec() removed - use safe alternativesquery).all(
             with Session(engine) as session:
                 message = session.get(Message, message_id)
                 if not message:
-                    return {}}}
+                    return {}}
 
                 # Get reactions
                 reactions = await self.reaction_service.get_message_reactions(message_id)
@@ -345,7 +345,7 @@ messages = session.# SECURITY: exec() removed - use safe alternativesquery).all(
                 if message.referenced_message_id:
                     referenced_message = session.get(Message, message.referenced_message_id)
 
-                return {}}
+                return {}
                     "message": message,
                     "reactions": reactions,
                     "replies": replies,
@@ -356,7 +356,7 @@ messages = session.# SECURITY: exec() removed - use safe alternativesquery).all(
 
         except Exception as e:
             logger.error(f"Failed to get message context: {e}")
-            return {}}}
+            return {}}
 
     async def _check_rate_limit(self, user_id: int, action: str = "message") -> bool:
         """Check if user is within rate limits."""

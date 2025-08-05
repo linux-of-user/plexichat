@@ -447,7 +447,7 @@ class EventManager:
 
         except Exception as e:
             logger.error(f"Error getting handlers: {e}")
-            return {}}}
+            return {}}
 
     def get_queue_size(self) -> int:
         """Get current queue size."""
@@ -457,7 +457,7 @@ class EventManager:
         """Get event manager statistics."""
         avg_processing_time = self.total_processing_time / self.events_processed if self.events_processed > 0 else 0
 
-        return {}}
+        return {}
             "processing": self.processing,
             "max_processors": self.max_processors,
             "active_processors": len(self.processor_tasks),

@@ -1526,8 +1526,6 @@ Examples:
                              help='Install performance testing dependencies')
     setup_parser.add_argument('--no-venv', action='store_true',
                              help='Skip virtual environment creation')
-    setup_parser.add_argument('--clean', action='store_true',
-                             help='Clean install (remove existing venv first)')
 
     # Version command
     version_parser = subparsers.add_parser('version', help='Show version information')

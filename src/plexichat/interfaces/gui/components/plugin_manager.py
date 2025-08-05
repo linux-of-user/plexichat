@@ -393,7 +393,7 @@ class DeclarativePlugin(Plugin):
 
 def create_example_chat_plugin():
     """Example of how a chat plugin would be defined."""
-    return {}}
+    return {}
         "type": "frame",
         "config": {"padding": 10},
         "layout": {"type": "pack", "options": {"fill": "both", "expand": True}},
@@ -430,7 +430,7 @@ def create_example_chat_plugin():
 
 def create_example_dashboard_plugin():
     """Example of how a dashboard plugin would be defined."""
-    return {}}
+    return {}
         "type": "notebook",
         "layout": {"type": "pack", "options": {"fill": "both", "expand": True}},
         "children": [

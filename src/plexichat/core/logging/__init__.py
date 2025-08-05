@@ -26,7 +26,7 @@ This module replaces and consolidates:
 """
 
 import warnings
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any
 
 # Import unified logging system (NEW SINGLE SOURCE OF TRUTH)
 try:
@@ -161,7 +161,7 @@ except ImportError as e:
                     duration = time.time() - start_time
                     log_performance(operation, duration, **kwargs)
                     return result
-                except Exception as e:
+                except Exception:
                     duration = time.time() - start_time
                     log_performance(f"{operation} (error)", duration, **kwargs)
                     raise

@@ -61,7 +61,7 @@ class ModuleManager:
     
     def get_status(self) -> Dict[str, Any]:
         """Get module loading status."""
-        return {}}
+        return {}
             "loaded_count": len(self.loaded_modules),
             "failed_count": len(self.failed_modules),
             "loaded_modules": list(self.loaded_modules),
@@ -158,7 +158,7 @@ class SystemOrchestrator:
     
     def get_system_status(self) -> Dict[str, Any]:
         """Get overall system status."""
-        return {}}
+        return {}
             "is_running": self.is_running,
             "startup_hooks_count": len(self.startup_hooks),
             "shutdown_hooks_count": len(self.shutdown_hooks),
@@ -185,7 +185,7 @@ class ComponentRegistry:
     
     def get_by_type(self, component_type: str) -> Dict[str, Any]:
         """Get all components of a specific type."""
-        return {}}
+        return {}
             name: component
             for name, component in self.components.items()
             if self.component_types.get(name) == component_type

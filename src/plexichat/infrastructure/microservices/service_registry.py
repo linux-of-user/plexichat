@@ -433,7 +433,7 @@ class ServiceRegistry:
                 "unhealthy": len(service_ids) - healthy_count,
             }
 
-        return {}}
+        return {}
             "running": self.running,
             "statistics": self.stats,
             "service_types": service_types_count,

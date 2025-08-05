@@ -23,7 +23,8 @@ Uses shared components for consistent error handling and type definitions.
 """
 
 import logging
-from typing import Any, Dict, Optional
+from typing import Any, Dict
+import importlib
 
 # Import shared components (NEW ARCHITECTURE)
 from ..shared.models import Event, Priority, Status
@@ -32,7 +33,6 @@ from ..shared.exceptions import ServiceUnavailableError, ValidationError
 # from ..shared.constants import *  # Removed due to invalid wildcard import
 
 # Infrastructure imports
-from plexichat.infrastructure.modules.interfaces import ModulePriority
 
 # Use EXISTING performance optimization engine
 try:
@@ -101,7 +101,7 @@ def register_core_components():
 
         # Utility components
         try:
-            from plexichat.infrastructure.utils import auth, security, performance, validation, helpers
+            importlib.import_module("plexichat.infrastructure.utils")
             infrastructure_manager.register_component("auth_utils", True)
             infrastructure_manager.register_component("security_utils", True)
             infrastructure_manager.register_component("performance_utils", True)
@@ -117,14 +117,14 @@ def register_core_components():
 
         # Caching components
         try:
-            from plexichat.infrastructure.caching import cache_manager
+            importlib.import_module("plexichat.infrastructure.caching")
             infrastructure_manager.register_component("cache_manager", True)
         except ImportError:
             infrastructure_manager.register_component("cache_manager", False)
 
         # Monitoring components
         try:
-            from plexichat.infrastructure.monitoring import monitor
+            importlib.import_module("plexichat.infrastructure.monitoring")
             infrastructure_manager.register_component("monitoring", True)
         except ImportError:
             infrastructure_manager.register_component("monitoring", False)
@@ -176,17 +176,14 @@ def import_infrastructure_modules():
         # Utils modules
         # Import consolidated utils
         try:
-            from .utils import (
-                PerformanceMonitor, RateLimiter, SecurityUtils,
-                AsyncUtils, CacheManager, performance_monitor
-            )
+            importlib.import_module("plexichat.infrastructure.utils")
             logger.info("Infrastructure utils imported successfully")
         except ImportError as e:
             logger.warning(f"Could not import infrastructure utils: {e}")
 
         if validation_available():
             try:
-                from .utils import validation
+                importlib.import_module("plexichat.infrastructure.utils.validation")
                 logger.info("Validation utils imported successfully")
             except ImportError as e:
                 logger.warning(f"Could not import validation utils: {e}")
@@ -194,7 +191,7 @@ def import_infrastructure_modules():
         # Performance optimization
         if performance_available():
             try:
-                from .performance import optimization_engine
+                importlib.import_module("plexichat.infrastructure.performance")
                 logger.info("Performance optimization imported successfully")
             except ImportError as e:
                 logger.warning(f"Could not import performance optimization: {e}")
@@ -202,7 +199,7 @@ def import_infrastructure_modules():
         # Caching
         if cache_available():
             try:
-                from .caching import cache_manager
+                importlib.import_module("plexichat.infrastructure.caching")
                 logger.info("Cache manager imported successfully")
             except ImportError as e:
                 logger.warning(f"Could not import cache manager: {e}")
@@ -210,7 +207,7 @@ def import_infrastructure_modules():
         # Monitoring
         if monitoring_available():
             try:
-                from .monitoring import monitor
+                importlib.import_module("plexichat.infrastructure.monitoring")
                 logger.info("Monitoring imported successfully")
             except ImportError as e:
                 logger.warning(f"Could not import monitoring: {e}")

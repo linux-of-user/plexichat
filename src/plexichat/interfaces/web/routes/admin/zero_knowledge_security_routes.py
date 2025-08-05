@@ -25,13 +25,13 @@ def get_logger(name):
     return logging.getLogger(name)
 class ZeroKnowledgeSecurityService:
     def __init__(self): pass
-    async def get_security_statistics(self): return {}}}
-    async def health_check(self): return {}}}
+    async def get_security_statistics(self): return {}}
+    async def health_check(self): return {}}
     async def enable_zero_knowledge(self, *a, **k): return True
     async def disable_zero_knowledge(self, *a, **k): return True
-    async def get_status(self): return {}}}
+    async def get_status(self): return {}}
     @property
-    def config(self): return {}}}
+    def config(self): return {}}
     def save_configuration(self): pass
 import logging
 
@@ -179,6 +179,6 @@ def internal_error(error):
 if not hasattr(request, 'get_json'):
     class MockRequest:
         def get_json(self):
-            return {}}}
+            return {}}
         method = 'GET'
     request = MockRequest()

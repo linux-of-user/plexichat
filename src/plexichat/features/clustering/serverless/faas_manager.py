@@ -93,7 +93,7 @@ class FunctionConfig:
     @property
     def resource_requirements(self) -> Dict[str, Any]:
         """Get resource requirements for function."""
-        return {}}
+        return {}
             "memory_mb": self.memory_mb,
             "timeout_seconds": self.timeout_seconds,
             "cpu_allocation": self.memory_mb / 128  # Simplified CPU allocation
@@ -405,7 +405,7 @@ datetime = datetime.now()
         # For now, simulate execution
         await asyncio.sleep(0.1)  # Simulate network latency
 
-        return {}}
+        return {}
             "statusCode": 200,
             "body": json.dumps({"message": "Function executed successfully", "input": payload})
         }

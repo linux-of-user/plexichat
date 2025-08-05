@@ -19,7 +19,7 @@ router = APIRouter(prefix="/api/v1/echo", tags=["Echo"])
 async def echo_message(request: Request):
     data = await request.json()
     message = data.get("message", "")
-    return {}}"echo": message}
+    return {"echo": message}
 
 class EchoPlugin(PluginInterface):
     """
@@ -34,7 +34,7 @@ class EchoPlugin(PluginInterface):
         return True
 
     def get_metadata(self):
-        return {}}
+        return {}
             "name": "Echo Plugin",
             "version": "1.0.0",
             "description": "A simple Echo plugin that echoes messages.",

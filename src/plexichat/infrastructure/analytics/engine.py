@@ -121,12 +121,12 @@ class RealTimeMetrics:
         values = self.histograms.get(key, [])
 
         if not values:
-            return {}}"count": 0, "min": 0, "max": 0, "mean": 0, "p50": 0, "p95": 0, "p99": 0}
+            return {"count": 0, "min": 0, "max": 0, "mean": 0, "p50": 0, "p95": 0, "p99": 0}
 
         sorted_values = sorted(values)
         count = len(sorted_values)
 
-        return {}}
+        return {}
             "count": count,
             "min": min(sorted_values),
             "max": max(sorted_values),
@@ -253,7 +253,7 @@ datetime.utcnow()
             if (now - event.timestamp).total_seconds() < 600
         )
 
-        return {}}
+        return {}
             "timestamp": now.isoformat(),
             "active_sessions": active_sessions,
             "total_sessions": len(self.session_data),
@@ -298,7 +298,7 @@ datetime.utcnow()
         user_sessions = self.user_sessions.get(user_id, [])
 
         if not user_events:
-            return {}}"user_id": user_id, "total_events": 0, "sessions": 0}
+            return {"user_id": user_id, "total_events": 0, "sessions": 0}
 
         first_event = min(user_events, key=lambda e: e.timestamp)
         last_event = max(user_events, key=lambda e: e.timestamp)
@@ -308,7 +308,7 @@ datetime.utcnow()
         for event in user_events:
             event_types[event.event_type.value] += 1
 
-        return {}}
+        return {}
             "user_id": user_id,
             "total_events": len(user_events),
             "sessions": len(user_sessions),
@@ -348,7 +348,7 @@ datetime.utcnow()
         for event in events_last_day:
             event_breakdown[event.event_type.value] += 1
 
-        return {}}
+        return {}
             "overview": {
                 "total_events": len(self.collector.events),
                 "active_sessions": self.collector.get_real_time_stats()["active_sessions"],
@@ -369,7 +369,7 @@ datetime.utcnow()
 
     async def get_performance_metrics(self) -> Dict[str, Any]:
         """Get performance metrics."""
-        return {}}
+        return {}
             "api_timing": self.collector.metrics.get_histogram_stats("api.request.duration"),
             "error_rate": self._calculate_error_rate(),
             "throughput": self._calculate_throughput(),
@@ -405,7 +405,7 @@ datetime.utcnow()
             if event.event_type == EventType.API_REQUEST and event.timestamp >= last_hour
         )
 
-        return {}}
+        return {}
             "requests_per_minute": requests_last_minute,
             "requests_per_hour": requests_last_hour
         }
@@ -414,7 +414,7 @@ datetime.utcnow()
         """Get response code breakdown."""
         # This would need to be tracked in events
         # For now, return placeholder data
-        return {}}
+        return {}
             "2xx": 0,
             "3xx": 0,
             "4xx": 0,

@@ -292,7 +292,7 @@ class DatabasePerformanceMonitor:
         total_queries = sum(m.execution_count for m in self.query_metrics.values())
         total_errors = sum(m.error_count for m in self.query_metrics.values())
 
-        return {}}
+        return {}
             'query_metrics': {
                 'total_queries': total_queries,
                 'total_errors': total_errors,

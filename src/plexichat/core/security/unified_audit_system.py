@@ -140,7 +140,7 @@ class SecurityEvent:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for serialization."""
-        return {}}
+        return {}
             "event_id": self.event_id,
             "event_type": self.event_type.value,
             "timestamp": self.timestamp.isoformat(),
@@ -268,7 +268,7 @@ class TamperResistantLogger:
     def verify_integrity(self) -> Dict[str, Any]:
         """Verify the integrity of the log file."""
         if not self.log_file.exists() if self.log_file else False:
-            return {}}"status": "no_log_file", "verified": True}
+            return {"status": "no_log_file", "verified": True}
 
         verification_results = {
             "status": "verified",
@@ -464,7 +464,7 @@ class AuditBlockchain:
         """Get blockchain statistics."""
         total_events = sum(len(block.events) for block in self.chain)
 
-        return {}}
+        return {}
             "total_blocks": len(self.chain),
             "total_events": total_events,
             "pending_events": len(self.pending_events),
@@ -607,7 +607,7 @@ Path(self.config.get("log_directory", "logs/security"))
     def get_incident_timeline(self, correlation_id: str) -> Dict[str, Any]:
         """Get timeline of events for an incident."""
         if correlation_id not in self.correlation_map:
-            return {}}"error": "Correlation ID not found"}
+            return {"error": "Correlation ID not found"}
 
         event_ids = self.correlation_map[correlation_id]
         events = []
@@ -620,7 +620,7 @@ Path(self.config.get("log_directory", "logs/security"))
         # Sort by timestamp
         events.sort(key=lambda e: e.timestamp)
 
-        return {}}
+        return {}
             "correlation_id": correlation_id,
             "total_events": len(events),
             "timeline": [event.to_dict() for event in events],
@@ -632,7 +632,7 @@ Path(self.config.get("log_directory", "logs/security"))
         blockchain_valid = self.blockchain.is_chain_valid()
         tamper_log_result = self.tamper_logger.verify_integrity()
 
-        return {}}
+        return {}
             "blockchain_integrity": {
                 "valid": blockchain_valid,
                 "stats": self.blockchain.get_blockchain_stats()
@@ -666,7 +666,7 @@ Path(self.config.get("log_directory", "logs/security"))
         security_events = len([e for e in events if e.threat_level.value >= ThreatLevel.MEDIUM.value])
         critical_events = len([e for e in events if e.severity.value >= SecuritySeverity.CRITICAL.value])
 
-        return {}}
+        return {}
             "compliance_standard": compliance_standard,
             "report_period": {
                 "start": start_date.isoformat(),
@@ -835,7 +835,7 @@ Path(self.config.get("log_directory", "logs/security"))
 
     async def _collect_current_metrics(self) -> Dict[str, Any]:
         """Collect current system metrics."""
-        return {}}
+        return {}
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "total_events": sum(self.event_counters.values()),
             "blockchain_blocks": len(self.blockchain.chain),
@@ -848,7 +848,7 @@ Path(self.config.get("log_directory", "logs/security"))
         """Get comprehensive audit system status."""
         blockchain_stats = self.blockchain.get_blockchain_stats()
 
-        return {}}
+        return {}
             "initialized": self.initialized,
             "monitoring_active": self.monitoring_active,
             "blockchain": blockchain_stats,

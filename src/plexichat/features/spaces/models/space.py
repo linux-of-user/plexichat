@@ -149,7 +149,7 @@ class Space(SQLModel, table=True):
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert space to dictionary."""
-        return {}}
+        return {}
             "space_id": self.space_id,
             "name": self.name,
             "display_name": self.display_name,

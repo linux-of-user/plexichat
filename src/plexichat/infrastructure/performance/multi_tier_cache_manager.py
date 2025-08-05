@@ -587,7 +587,7 @@ class MultiTierCacheManager:
                 "max_memory_mb": self.l1_max_memory_mb
             }
 
-            return {}}
+            return {}
                 "global": {
                     "hits": self.global_stats.hits,
                     "misses": self.global_stats.misses,
@@ -616,7 +616,7 @@ class MultiTierCacheManager:
 
         except Exception as e:
             logger.error(f" Error getting cache stats: {e}")
-            return {}}"error": str(e)}
+            return {"error": str(e)}
 
     # Helper methods for tier-specific operations
 

@@ -320,7 +320,7 @@ class MongoDBEngine(DatabaseEngine):
 
             # MongoDB operations are different - this is a placeholder
             # In practice, you'd use collection.find(), collection.insert_one(), etc.
-            return {}}"status": "MongoDB operation placeholder"}
+            return {"status": "MongoDB operation placeholder"}
 
         except Exception as e:
             logger.error(f"MongoDB operation failed: {e}")

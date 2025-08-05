@@ -6,7 +6,8 @@ PlexiChat Interface Layer - Clean Recreated Version
 """
 
 import logging
-from typing import Any, Dict
+from typing import Dict
+import importlib
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +35,7 @@ def register_interfaces():
 
         # CLI interface (used by gui and webui)
         try:
-            from plexichat.interfaces.cli import cli_app
+            importlib.import_module("plexichat.interfaces.cli")
             interface_manager.register_interface("cli", True)
             interface_manager.register_interface("gui", True)  # GUI uses CLI
             interface_manager.register_interface("webui", True)  # WebUI uses CLI

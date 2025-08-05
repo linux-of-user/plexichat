@@ -162,7 +162,7 @@ class UserProfileResponse:
         self.created_at = created_at
 
     def to_dict(self):
-        return {}}
+        return {}
             "id": self.id,
             "user_id": self.user_id,
             "display_name": self.display_name,
@@ -194,7 +194,7 @@ class UserSettingsResponse:
         self.created_at = created_at
 
     def to_dict(self):
-        return {}}
+        return {}
             "id": self.id,
             "user_id": self.user_id,
             "email_notifications": self.email_notifications,
@@ -218,7 +218,7 @@ class UserActivityResponse:
         self.timestamp = timestamp
 
     def to_dict(self):
-        return {}}
+        return {}
             "id": self.id,
             "activity_type": self.activity_type,
             "description": self.description,
@@ -236,7 +236,7 @@ class UserSessionResponse:
         self.last_activity = last_activity
 
     def to_dict(self):
-        return {}}
+        return {}
             "id": self.id,
             "device_info": self.device_info,
             "ip_address": self.ip_address,

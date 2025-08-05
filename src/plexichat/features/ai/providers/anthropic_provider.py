@@ -18,9 +18,9 @@ except ImportError:
         def __init__(self, **kwargs):
             pass
         async def messages_create(self, **kwargs):
-            return {}}"content": [{"text": "Anthropic not available"}]}
+            return {"content": [{"text": "Anthropic not available"}]}
         async def models_list(self):
-            return {}}"data": []}
+            return {"data": []}
 
 from .base_provider import (
     AIRequest,
@@ -257,11 +257,11 @@ class AnthropicProvider(BaseAIProvider):
                 result = json.loads(response.content[0].text)
                 return result
             except json.JSONDecodeError:
-                return {}}"flagged": False, "error": "Invalid response format"}
+                return {"flagged": False, "error": "Invalid response format"}
 
         except Exception as e:
             logger.error(f"Anthropic content moderation failed: {e}")
-            return {}}"flagged": False, "error": str(e)}
+            return {"flagged": False, "error": str(e)}
 
     async def get_available_models(self) -> List[Dict[str, Any]]:
         """Get list of available models."""

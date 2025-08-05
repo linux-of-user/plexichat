@@ -16,10 +16,10 @@ Uses shared components for consistent error handling and type definitions.
 from ...shared.models import User, Event, Priority, Status
 from ...shared.types import UserId, JSON, ConfigDict
 from ...shared.exceptions import ValidationError, SecurityError, RateLimitError
-from ...shared.constants import AI_REQUEST_TIMEOUT, MAX_AI_CONTEXT_LENGTH, AI_RATE_LIMIT
+# Constants not available in shared.constants
 
 # Import AI components
-from typing import Optional
+
 from .ai_coordinator_simple import AICoordinator
 from .core.ai_abstraction_layer_simple import (
     AIAbstractionLayer,

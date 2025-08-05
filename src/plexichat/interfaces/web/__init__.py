@@ -144,7 +144,7 @@ def create_app() -> Optional[Any]:
         # Add health check endpoint
         @app.get("/health")
         async def health_check():
-            return {}}
+            return {}
                 "status": "healthy",
                 "timestamp": "2024-01-01T00:00:00Z",
                 "version": getattr(settings, 'APP_VERSION', 'b.1.1-86')

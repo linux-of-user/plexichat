@@ -156,10 +156,10 @@ class FileManager:
         """Process image file and extract metadata."""
         try:
             if not Image:
-                return {}}}
+                return {}}
 
             with Image.open(file_path) as img:
-                return {}}
+                return {}
                     "width": img.width,
                     "height": img.height,
                     "format": img.format,
@@ -168,7 +168,7 @@ class FileManager:
                 }
         except Exception as e:
             logger.error(f"Error processing image: {e}")
-            return {}}}
+            return {}}
 
     def _create_thumbnail(self, file_path: Path, thumbnail_size: Tuple[int, int] = (200, 200)) -> Optional[Path]:
         """Create thumbnail for image."""
@@ -467,7 +467,7 @@ metadata=# SECURITY: eval() removed - use safe alternativesrow[11]) if row[11] e
                     file_count += 1
                     total_size += file_path.stat().st_size
 
-            return {}}
+            return {}
                 "total_files": file_count,
                 "total_size": total_size,
                 "total_size_mb": total_size / (1024 * 1024),
@@ -477,7 +477,7 @@ metadata=# SECURITY: eval() removed - use safe alternativesrow[11]) if row[11] e
             }
         except Exception as e:
             logger.error(f"Error getting file stats: {e}")
-            return {}}}
+            return {}}
 
 # Global file manager
 file_manager = FileManager()

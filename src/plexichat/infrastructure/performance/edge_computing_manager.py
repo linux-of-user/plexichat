@@ -619,7 +619,7 @@ class EdgeComputingManager:
 
             base_load = 0.3 + (0.4 * random.random())  # 30-70% base load
 
-            return {}}
+            return {
                 "cpu_usage": base_load * 100 + (random.random() * 20 - 10),
                 "memory_usage": base_load * 100 + (random.random() * 15 - 7.5),
                 "network_usage": base_load * 80 + (random.random() * 20 - 10),
@@ -632,7 +632,7 @@ class EdgeComputingManager:
 
         except Exception as e:
             logger.error(f" Failed to get metrics for node {node_id}: {e}")
-            return {}}}
+            return {}
 
     async def _analyze_load_patterns(self):
         """Analyze load patterns and trends."""
@@ -1290,7 +1290,7 @@ class EdgeComputingManager:
             recent_metrics = list(self.load_history)[-10:] if self.load_history else []
             avg_response_time = statistics.mean([m.average_response_time_ms for m in recent_metrics]) if recent_metrics else 0
 
-            return {}}
+            return {
                 "total_nodes": len(self.edge_nodes),
                 "active_nodes": len(active_nodes),
                 "healthy_nodes": len(healthy_nodes),
@@ -1322,7 +1322,7 @@ class EdgeComputingManager:
 
         except Exception as e:
             logger.error(f" Failed to get edge status: {e}")
-            return {}}}
+            return {}
 
     async def get_node_details(self, node_id: str) -> Optional[Dict[str, Any]]:
         """Get detailed information about a specific node."""
@@ -1331,7 +1331,7 @@ class EdgeComputingManager:
             if not node:
                 return None
 
-            return {}}
+            return {
                 "node_id": node.node_id,
                 "node_type": node.node_type.value,
                 "location": node.location,
@@ -1414,7 +1414,7 @@ class EdgeComputingManager:
 
                 logger.info(f" Service {service_name} deployed to node {node_id}")
 
-            return {}}
+            return {
                 "service_name": service_name,
                 "deployment_results": deployment_results,
                 "total_deployments": len([r for r in deployment_results.values() if r["success"]]),

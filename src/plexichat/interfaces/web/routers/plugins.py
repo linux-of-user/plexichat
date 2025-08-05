@@ -75,7 +75,7 @@ async def api_available_plugins(repo: str = "official", token: str = Depends(ver
     """API endpoint to get available plugins from repository."""
     try:
         plugins = await fetch_plugins_from_repo(repo)
-        return {}}"plugins": plugins, "repository": repo}
+        return {"plugins": plugins, "repository": repo}
     except Exception as e:
         logger.error(f"Failed to fetch plugins from {repo}: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to fetch plugins from {repo}")
@@ -85,7 +85,7 @@ async def api_installed_plugins(token: str = Depends(verify_admin_token)):
     """API endpoint to get installed plugins."""
     try:
         plugins = get_installed_plugins()
-        return {}}"plugins": plugins}
+        return {"plugins": plugins}
     except Exception as e:
         logger.error(f"Failed to get installed plugins: {e}")
         raise HTTPException(status_code=500, detail="Failed to get installed plugins")
@@ -101,12 +101,12 @@ async def api_install_plugin(
     try:
         success = await install_plugin_from_repo(plugin_name, repo)
         if success:
-            return {}}"success": True, "message": f"Plugin {plugin_name} installed successfully"}
+            return {"success": True, "message": f"Plugin {plugin_name} installed successfully"}
         else:
-            return {}}"success": False, "message": f"Failed to install plugin {plugin_name}"}
+            return {"success": False, "message": f"Failed to install plugin {plugin_name}"}
     except Exception as e:
         logger.error(f"Plugin installation failed: {e}")
-        return {}}"success": False, "message": f"Installation failed: {str(e)}"}
+        return {"success": False, "message": f"Installation failed: {str(e)}"}
 
 @router.post("/api/uninstall")
 async def api_uninstall_plugin(
@@ -118,12 +118,12 @@ async def api_uninstall_plugin(
     try:
         success = await uninstall_plugin(plugin_name)
         if success:
-            return {}}"success": True, "message": f"Plugin {plugin_name} uninstalled successfully"}
+            return {"success": True, "message": f"Plugin {plugin_name} uninstalled successfully"}
         else:
-            return {}}"success": False, "message": f"Failed to uninstall plugin {plugin_name}"}
+            return {"success": False, "message": f"Failed to uninstall plugin {plugin_name}"}
     except Exception as e:
         logger.error(f"Plugin uninstallation failed: {e}")
-        return {}}"success": False, "message": f"Uninstallation failed: {str(e)}"}
+        return {"success": False, "message": f"Uninstallation failed: {str(e)}"}
 
 @router.post("/api/enable")
 async def api_enable_plugin(
@@ -135,12 +135,12 @@ async def api_enable_plugin(
     try:
         success = await enable_plugin(plugin_name)
         if success:
-            return {}}"success": True, "message": f"Plugin {plugin_name} enabled successfully"}
+            return {"success": True, "message": f"Plugin {plugin_name} enabled successfully"}
         else:
-            return {}}"success": False, "message": f"Failed to enable plugin {plugin_name}"}
+            return {"success": False, "message": f"Failed to enable plugin {plugin_name}"}
     except Exception as e:
         logger.error(f"Plugin enable failed: {e}")
-        return {}}"success": False, "message": f"Enable failed: {str(e)}"}
+        return {"success": False, "message": f"Enable failed: {str(e)}"}
 
 @router.post("/api/disable")
 async def api_disable_plugin(
@@ -152,12 +152,12 @@ async def api_disable_plugin(
     try:
         success = await disable_plugin(plugin_name)
         if success:
-            return {}}"success": True, "message": f"Plugin {plugin_name} disabled successfully"}
+            return {"success": True, "message": f"Plugin {plugin_name} disabled successfully"}
         else:
-            return {}}"success": False, "message": f"Failed to disable plugin {plugin_name}"}
+            return {"success": False, "message": f"Failed to disable plugin {plugin_name}"}
     except Exception as e:
         logger.error(f"Plugin disable failed: {e}")
-        return {}}"success": False, "message": f"Disable failed: {str(e)}"}
+        return {"success": False, "message": f"Disable failed: {str(e)}"}
 
 @router.post("/api/repositories/add")
 async def api_add_repository(
@@ -170,12 +170,12 @@ async def api_add_repository(
     try:
         success = add_plugin_repository(name, url)
         if success:
-            return {}}"success": True, "message": f"Repository {name} added successfully"}
+            return {"success": True, "message": f"Repository {name} added successfully"}
         else:
-            return {}}"success": False, "message": f"Failed to add repository {name}"}
+            return {"success": False, "message": f"Failed to add repository {name}"}
     except Exception as e:
         logger.error(f"Repository addition failed: {e}")
-        return {}}"success": False, "message": f"Repository addition failed: {str(e)}"}
+        return {"success": False, "message": f"Repository addition failed: {str(e)}"}
 
 # Helper functions
 
@@ -210,7 +210,7 @@ def load_plugin_info(plugin_dir: Path) -> Optional[Dict[str, Any]]:
                 return info
         
         # Fallback to basic info
-        return {}}
+        return {}
             "name": plugin_dir.name,
             "version": "unknown",
             "description": f"Plugin: {plugin_dir.name}",

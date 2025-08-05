@@ -13,9 +13,9 @@ from plexichat.core.logging import get_logger
 def get_performance_service():
     class DummyPerformanceService:
         def _calculate_health_score(self, *a, **k): return 100
-        def get_current_metrics(self): return {}}"system": {}, "application": {}}
+        def get_current_metrics(self): return {"system": {}, "application": {}}
         def _get_active_alerts(self): return []
-        def get_performance_summary(self): return {}}}
+        def get_performance_summary(self): return {}}
         def get_historical_metrics(self, *a, **k): return []
         def _calculate_trends(self, *a, **k): return []
     import asyncio
@@ -187,11 +187,11 @@ async def analytics_page(
 def _calculate_component_health(component_metrics):
     """Calculate health score for a component."""
     if not component_metrics:
-        return {}}"score": 0, "status": "unknown", "issues": ["No data available"]}
+        return {"score": 0, "status": "unknown", "issues": ["No data available"]}
 
     # This would implement actual health calculation logic
     # For now, return a placeholder
-    return {}}
+    return {}
         "score": 85,
         "status": "healthy",
         "issues": []

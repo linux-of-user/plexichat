@@ -156,7 +156,7 @@ class EnhancedSecurityMiddleware(BaseHTTPMiddleware):
     async def _validate_request_security(self, request: Request) -> Dict[str, Any]:
         """Validate request security using enhanced security manager."""
         if not self.security_manager:
-            return {}}"allowed": True, "reason": "Security manager not available"}
+            return {"allowed": True, "reason": "Security manager not available"}
         
         try:
             allowed, context, error_info = await self.security_manager.validate_request(request)
@@ -173,17 +173,17 @@ class EnhancedSecurityMiddleware(BaseHTTPMiddleware):
                     }
                 )
                 
-                return {}}
+                return {}
                     "allowed": False,
                     "reason": error_info.get("error", "Security policy violation"),
                     "details": error_info
                 }
             
-            return {}}"allowed": True, "context": context}
+            return {"allowed": True, "context": context}
             
         except Exception as e:
             self.logger.error(f"Security validation error: {e}")
-            return {}}"allowed": True, "reason": "Security validation failed"}
+            return {"allowed": True, "reason": "Security validation failed"}
     
     async def _check_authentication(self, request: Request) -> Dict[str, Any]:
         """Check request authentication."""
@@ -193,7 +193,7 @@ class EnhancedSecurityMiddleware(BaseHTTPMiddleware):
             # Check for session cookie or other auth methods
             session_id = request.cookies.get("session_id")
             if not session_id:
-                return {}}"authenticated": False, "user": None}
+                return {"authenticated": False, "user": None}
         
         if self.auth_manager:
             try:
@@ -214,17 +214,17 @@ class EnhancedSecurityMiddleware(BaseHTTPMiddleware):
                             session_id=user_data.get("session_id", "")
                         )
                     
-                    return {}}"authenticated": True, "user": user_data}
+                    return {"authenticated": True, "user": user_data}
                 
             except Exception as e:
                 self.logger.warning(f"Authentication error: {e}")
         
-        return {}}"authenticated": False, "user": None}
+        return {"authenticated": False, "user": None}
     
     async def _check_authorization(self, request: Request, user_data: Dict) -> Dict[str, Any]:
         """Check request authorization."""
         if not self.security_manager:
-            return {}}"authorized": True}
+            return {"authorized": True}
         
         endpoint = str(request.url.path)
         
@@ -242,11 +242,11 @@ class EnhancedSecurityMiddleware(BaseHTTPMiddleware):
                     }
                 )
             
-            return {}}"authorized": authorized}
+            return {"authorized": authorized}
             
         except Exception as e:
             self.logger.error(f"Authorization check error: {e}")
-            return {}}"authorized": False}
+            return {"authorized": False}
     
     async def _log_request_success(self, request: Request, response: Response, start_time: float):
         """Log successful request."""
@@ -365,7 +365,7 @@ class EnhancedSecurityMiddleware(BaseHTTPMiddleware):
     
     def get_metrics(self) -> Dict[str, Any]:
         """Get security middleware metrics."""
-        return {}}
+        return {}
             "total_requests": self.request_count,
             "blocked_requests": self.blocked_requests,
             "threat_detections": self.threat_detections,

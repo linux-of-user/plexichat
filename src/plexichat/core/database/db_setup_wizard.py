@@ -198,7 +198,7 @@ self.config_dir = Path("config")
         errors = self.progress.errors or []
         warnings = self.progress.warnings or []
 
-        return {}}
+        return {}
             "current_step": self.progress.current_step.value,
             "completed_steps": [step.value for step in completed_steps],
             "total_steps": len(SetupStep),
@@ -211,7 +211,7 @@ self.config_dir = Path("config")
 
     def get_database_types(self) -> Dict[str, Any]:
         """Get available database types with descriptions."""
-        return {}}
+        return {}
             "database_types": [
                 {
                     "type": db_type.value,
@@ -244,7 +244,7 @@ self.config_dir = Path("config")
 
             self.progress.current_step = SetupStep.CONNECTION_DETAILS
 
-            return {}}
+            return {}
                 "success": True,
                 "message": f"Database type set to {config['name']}",
                 "next_step": self.progress.current_step.value,
@@ -270,7 +270,7 @@ self.config_dir = Path("config")
             if self.progress.errors is None:
                 self.progress.errors = []
             self.progress.errors.append(error_msg)
-            return {}}
+            return {}
                 "success": False,
                 "error": error_msg,
                 "valid_types": [t.value for t in DatabaseType]
@@ -279,7 +279,7 @@ self.config_dir = Path("config")
     def set_connection_details(self, details: Dict[str, Any]) -> Dict[str, Any]:
         """Set database connection details."""
         if not self.progress.connection_config:
-            return {}}
+            return {}
                 "success": False,
                 "error": "Database type must be selected first"
             }
@@ -313,7 +313,7 @@ self.config_dir = Path("config")
             else:
                 self.progress.current_step = SetupStep.AUTHENTICATION
 
-            return {}}
+            return {}
                 "success": True,
                 "message": "Connection details configured",
                 "next_step": self.progress.current_step.value,
@@ -325,7 +325,7 @@ self.config_dir = Path("config")
             if self.progress.errors is None:
                 self.progress.errors = []
             self.progress.errors.append(error_msg)
-            return {}}
+            return {}
                 "success": False,
                 "error": error_msg
             }
@@ -333,7 +333,7 @@ self.config_dir = Path("config")
     def set_authentication(self, auth_details: Dict[str, Any]) -> Dict[str, Any]:
         """Set database authentication details."""
         if not self.progress.connection_config:
-            return {}}
+            return {}
                 "success": False,
                 "error": "Connection details must be configured first"
             }
@@ -348,7 +348,7 @@ self.config_dir = Path("config")
 
             self.progress.current_step = SetupStep.ADVANCED_SETTINGS
 
-            return {}}
+            return {}
                 "success": True,
                 "message": "Authentication configured",
                 "next_step": self.progress.current_step.value
@@ -357,7 +357,7 @@ self.config_dir = Path("config")
         except Exception as e:
             error_msg = f"Failed to set authentication: {e}"
             self._add_error(error_msg)
-            return {}}
+            return {}
                 "success": False,
                 "error": error_msg
             }
@@ -366,7 +366,7 @@ self.config_dir = Path("config")
         """Set advanced database from plexichat.core.config import settings
 settings."""
         if not self.progress.connection_config:
-            return {}}
+            return {}
                 "success": False,
                 "error": "Connection must be configured first"
             }
@@ -395,7 +395,7 @@ connect_timeout = settings().get("connect_timeout", config.connect_timeout)
 
             self.progress.current_step = SetupStep.TEST_CONNECTION
 
-            return {}}
+            return {}
                 "success": True,
                 "message": "Advanced settings configured",
                 "next_step": self.progress.current_step.value,
@@ -409,7 +409,7 @@ connect_timeout = settings().get("connect_timeout", config.connect_timeout)
         except Exception as e:
             error_msg = f"Failed to set advanced settings: {e}"
             self._add_error(error_msg)
-            return {}}
+            return {}
                 "success": False,
                 "error": error_msg
             }
@@ -433,7 +433,7 @@ connect_timeout = settings().get("connect_timeout", config.connect_timeout)
     async def test_connection(self) -> Dict[str, Any]:
         """Test database connection."""
         if not self.progress.connection_config:
-            return {}}
+            return {}
                 "success": False,
                 "error": "Connection must be configured first"
             }
@@ -472,14 +472,14 @@ connect_timeout = settings().get("connect_timeout", config.connect_timeout)
 
                 self.progress.current_step = SetupStep.INITIALIZE_SCHEMA
 
-                return {}}
+                return {}
                     "success": True,
                     "message": "Database connection successful",
                     "test_results": test_results,
                     "next_step": self.progress.current_step.value
                 }
             else:
-                return {}}
+                return {}
                     "success": False,
                     "error": "Database connection failed",
                     "test_results": test_results,
@@ -489,7 +489,7 @@ connect_timeout = settings().get("connect_timeout", config.connect_timeout)
         except Exception as e:
             error_msg = f"Connection test failed: {e}"
             self._add_error(error_msg)
-            return {}}
+            return {}
                 "success": False,
                 "error": error_msg,
                 "troubleshooting": self._get_troubleshooting_tips(config.db_type)
@@ -517,7 +517,7 @@ connect_timeout = settings().get("connect_timeout", config.connect_timeout)
                 conn.execute(text("DROP TABLE IF EXISTS test_table"))
                 conn.commit()
 
-            return {}}
+            return {}
                 "connection_successful": True,
                 "database_exists": True,
                 "permissions_ok": True,
@@ -525,7 +525,7 @@ connect_timeout = settings().get("connect_timeout", config.connect_timeout)
             }
 
         except Exception as e:
-            return {}}
+            return {}
                 "connection_successful": False,
                 "error_details": str(e)
             }
@@ -551,7 +551,7 @@ connect_timeout = settings().get("connect_timeout", config.connect_timeout)
                 conn.execute(text("DROP TABLE IF EXISTS test_table"))
                 conn.commit()
 
-            return {}}
+            return {}
                 "connection_successful": True,
                 "database_exists": True,
                 "permissions_ok": True,
@@ -559,7 +559,7 @@ connect_timeout = settings().get("connect_timeout", config.connect_timeout)
             }
 
         except Exception as e:
-            return {}}
+            return {}
                 "connection_successful": False,
                 "error_details": str(e)
             }
@@ -585,7 +585,7 @@ connect_timeout = settings().get("connect_timeout", config.connect_timeout)
                 conn.execute(text("DROP TABLE IF EXISTS test_table"))
                 conn.commit()
 
-            return {}}
+            return {}
                 "connection_successful": True,
                 "database_exists": True,
                 "permissions_ok": True,
@@ -593,7 +593,7 @@ connect_timeout = settings().get("connect_timeout", config.connect_timeout)
             }
 
         except Exception as e:
-            return {}}
+            return {}
                 "connection_successful": False,
                 "error_details": str(e)
             }
@@ -634,7 +634,7 @@ connect_timeout = settings().get("connect_timeout", config.connect_timeout)
         """Initialize database schema."""
         test_results = self.progress.test_results or {}
         if not self.progress.connection_config or not test_results.get("connection_successful"):
-            return {}}
+            return {}
                 "success": False,
                 "error": "Database connection must be tested successfully first"
             }
@@ -690,7 +690,7 @@ connect_timeout = settings().get("connect_timeout", config.connect_timeout)
 
             self.progress.current_step = SetupStep.COMPLETE
 
-            return {}}
+            return {}
                 "success": True,
                 "message": "Database schema initialized successfully",
                 "schema_results": schema_results,
@@ -700,7 +700,7 @@ connect_timeout = settings().get("connect_timeout", config.connect_timeout)
         except Exception as e:
             error_msg = f"Schema initialization failed: {e}"
             self._add_error(error_msg)
-            return {}}
+            return {}
                 "success": False,
                 "error": error_msg
             }
@@ -757,7 +757,7 @@ connect_timeout = settings().get("connect_timeout", config.connect_timeout)
     def save_configuration(self) -> Dict[str, Any]:
         """Save the database configuration to files."""
         if not self.progress.connection_config:
-            return {}}
+            return {}
                 "success": False,
                 "error": "No configuration to save"
             }
@@ -818,7 +818,7 @@ connect_timeout = settings().get("connect_timeout", config.connect_timeout)
             if SetupStep.COMPLETE not in self.progress.completed_steps:
                 self.progress.completed_steps.append(SetupStep.COMPLETE)
 
-            return {}}
+            return {}
                 "success": True,
                 "message": "Database configuration saved successfully",
                 "files_created": [
@@ -834,14 +834,14 @@ connect_timeout = settings().get("connect_timeout", config.connect_timeout)
             if self.progress.errors is None:
                 self.progress.errors = []
             self.progress.errors.append(error_msg)
-            return {}}
+            return {}
                 "success": False,
                 "error": error_msg
             }
 
     def get_setup_summary(self) -> Dict[str, Any]:
         """Get complete setup summary."""
-        return {}}
+        return {}
             "wizard_status": self.get_wizard_status(),
             "configuration": asdict(self.progress.connection_config) if self.progress.connection_config else None,
             "test_results": self.progress.test_results,
@@ -869,7 +869,7 @@ connect_timeout = settings().get("connect_timeout", config.connect_timeout)
         """Reset the wizard to start over."""
         self.progress = SetupProgress()
 
-        return {}}
+        return {}
             "success": True,
             "message": "Wizard reset successfully",
             "current_step": self.progress.current_step.value
@@ -912,13 +912,13 @@ connect_timeout = settings().get("connect_timeout", config.connect_timeout)
                     migration_info["migration_complexity"] = "moderate"
                     migration_info["estimated_time_minutes"] = 15
 
-            return {}}
+            return {}
                 "success": True,
                 "migration_info": migration_info
             }
 
         except Exception as e:
-            return {}}
+            return {}
                 "success": False,
                 "error": f"Failed to analyze source database: {e}"
             }

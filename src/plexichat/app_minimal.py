@@ -6,20 +6,18 @@ A simple, working FastAPI application without complex dependencies.
 """
 
 import time
-from typing import Dict, Any
 
 try:
     from fastapi import FastAPI, Request
-    from fastapi.responses import JSONResponse
     from fastapi.middleware.cors import CORSMiddleware
-    FASTAPI_AVAILABLE = True
+    fastapi_available = True
 except ImportError:
     print("[ERROR] FastAPI not available. Install with: pip install fastapi uvicorn")
-    FASTAPI_AVAILABLE = False
+    fastapi_available = False
     FastAPI = None
 
 # Create the application
-if FASTAPI_AVAILABLE:
+if fastapi_available and FastAPI is not None:
     app = FastAPI(
         title="PlexiChat API",
         description="A working chat application",

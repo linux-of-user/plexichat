@@ -108,7 +108,7 @@ class Message:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert message to dictionary."""
-        return {}}
+        return {}
             "id": self.id,
             "topic": self.topic,
             "payload": self.payload,
@@ -738,7 +738,7 @@ class MessageQueueManager:
                     "consumer_count": stats.consumer_count
                 }
 
-            return {}}
+            return {}
                 "global": {
                     "messages_sent": self.global_stats.messages_sent,
                     "messages_received": self.global_stats.messages_received,
@@ -772,7 +772,7 @@ class MessageQueueManager:
 
         except Exception as e:
             logger.error(f" Error getting message queue stats: {e}")
-            return {}}"error": str(e)}
+            return {"error": str(e)}
 
     # Background tasks
 

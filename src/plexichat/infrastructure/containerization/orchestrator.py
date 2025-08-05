@@ -548,18 +548,18 @@ class ContainerOrchestrator:
                 input=input_data.encode() if input_data else None
             )
 
-            return {}}
+            return {}
                 "returncode": process.returncode,
                 "stdout": stdout.decode() if stdout else "",
                 "stderr": stderr.decode() if stderr else "",
             }
 
         except Exception as e:
-            return {}}"returncode": -1, "stdout": "", "stderr": str(e)}
+            return {"returncode": -1, "stdout": "", "stderr": str(e)}
 
     def get_orchestrator_status(self) -> Dict[str, Any]:
         """Get orchestrator status and statistics."""
-        return {}}
+        return {}
             "platform": self.platform.value,
             "total_containers": len(self.containers),
             "statistics": self.stats,

@@ -40,7 +40,7 @@ try:
     from plexichat.infrastructure.utils.auth import require_admin
 except ImportError:
     def require_admin():
-        return {}}"id": 1, "username": "admin", "is_admin": True}
+        return {"id": 1, "username": "admin", "is_admin": True}
 
 # Cluster management imports
 try:
@@ -274,13 +274,13 @@ async def scale_cluster(request: Request, target_nodes: int, current_user: Dict[
     try:
         if cluster_service.cluster_manager:
             result = await cluster_service.cluster_manager.scale_cluster(target_nodes)
-            return {}}
+            return {}
                 "message": f"Cluster scaling initiated to {target_nodes} nodes",
                 "operation_id": result.get("operation_id", "unknown"),
                 "estimated_time": result.get("estimated_time", "unknown")
             }
         else:
-            return {}}
+            return {}
                 "message": "Cluster scaling not available in single-node mode",
                 "current_nodes": 1,
                 "target_nodes": target_nodes
@@ -306,13 +306,13 @@ async def rebalance_cluster(request: Request, current_user: Dict[str, Any] = Dep
     try:
         if cluster_service.cluster_manager:
             result = await cluster_service.cluster_manager.rebalance_cluster()
-            return {}}
+            return {}
                 "message": "Cluster rebalancing initiated",
                 "operation_id": result.get("operation_id", "unknown"),
                 "estimated_time": result.get("estimated_time", "unknown")
             }
         else:
-            return {}}
+            return {}
                 "message": "Cluster rebalancing not applicable in single-node mode"
             }
     except Exception as e:

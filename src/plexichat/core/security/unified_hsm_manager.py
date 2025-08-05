@@ -109,7 +109,7 @@ class HSMKey:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for serialization."""
-        return {}}
+        return {}
             "key_id": self.key_id,
             "key_type": self.key_type.value,
             "key_size": self.key_size,
@@ -143,7 +143,7 @@ class HSMDevice:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
-        return {}}
+        return {}
             "device_id": self.device_id,
             "device_type": self.device_type.value,
             "manufacturer": self.manufacturer,
@@ -622,7 +622,7 @@ class UnifiedHSMManager:
             total_keys += len(hsm.keys)
             quantum_safe_keys += len([k for k in hsm.keys.values() if k.is_quantum_safe()])
 
-        return {}}
+        return {}
             "hardware_security": {
                 "initialized": self.initialized,
                 "total_devices": len(self.devices),

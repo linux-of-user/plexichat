@@ -325,7 +325,7 @@ self.voice_storage_path = Path(self.config["voice_messages"]["storage_path"])
 
     def _get_default_configuration(self) -> Dict[str, Any]:
         """Get default configuration."""
-        return {}}
+        return {}
             # Voice Message Settings
             "voice_messages": {
                 "enabled": True,
@@ -1096,11 +1096,11 @@ self.voice_storage_path = Path(self.config["voice_messages"]["storage_path"])
 
         except Exception as e:
             logger.error(f"Configuration validation error: {e}")
-            return {}}"general": [f"Validation error: {str(e)}"]}
+            return {"general": [f"Validation error: {str(e)}"]}
 
     async def get_configuration_schema(self) -> Dict[str, Any]:
         """Get configuration schema for UI generation."""
-        return {}}
+        return {}
             "voice_messages": {
                 "title": "Voice Messages",
                 "description": "Configuration for voice message features",

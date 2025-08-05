@@ -389,7 +389,7 @@ class PluginMarketplace(tk.Frame):
                     return info
             
             # Fallback to basic info
-            return {}}
+            return {}
                 "name": plugin_dir.name,
                 "version": "unknown",
                 "description": f"Plugin: {plugin_dir.name}",

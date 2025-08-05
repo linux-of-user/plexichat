@@ -7,17 +7,16 @@
 import asyncio
 import logging
 import secrets
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict
 
 from .distributed_key_manager import distributed_key_manager
 from .e2e_encryption import e2e_encryption
 from .database_encryption import database_encryption
 from .core.security_monitoring import DistributedSecurityMonitor, MonitoringScope
 from .database_encryption import DataClassification
-from plexichat.infrastructure.modules.interfaces import ModulePriority
-import time
+
 
 # Remove legacy imports
 # from .middleware import SecurityMiddleware  # DELETED
@@ -169,7 +168,7 @@ class SecurityManager:
 
             encryption_works = decrypted_data == test_data
 
-            return {}}
+            return {
                 "operational": encryption_works,
                 "algorithm": "quantum-resistant-multi-layer",
                 "key_count": len(self.quantum_encryption.master_keys),
@@ -179,7 +178,7 @@ class SecurityManager:
 
         except Exception as e:
             logger.error(f"Quantum encryption check failed: {e}")
-            return {}}
+            return {
                 "operational": False,
                 "issues": [str(e)]
             }
@@ -189,7 +188,7 @@ class SecurityManager:
         try:
             status = await self.distributed_keys.get_security_status()
 
-            return {}}
+            return {
                 "operational": status["overall_security_intact"],
                 "total_keys": status["total_keys"],
                 "total_vaults": status["total_vaults"],
@@ -201,7 +200,7 @@ class SecurityManager:
 
         except Exception as e:
             logger.error(f"Key management check failed: {e}")
-            return {}}
+            return {
                 "operational": False,
                 "issues": [str(e)]
             }
@@ -211,7 +210,7 @@ class SecurityManager:
         try:
             stats = await self.e2e_encryption.get_endpoint_stats()
 
-            return {}}
+            return {
                 "operational": True,
                 "active_sessions": stats["total_active_sessions"],
                 "sessions_by_endpoint": stats["sessions_by_endpoint"],
@@ -222,7 +221,7 @@ class SecurityManager:
 
         except Exception as e:
             logger.error(f"E2E encryption check failed: {e}")
-            return {}}
+            return {
                 "operational": False,
                 "issues": [str(e)]
             }
@@ -232,7 +231,7 @@ class SecurityManager:
         try:
             status = await self.database_encryption.get_encryption_status()
 
-            return {}}
+            return {
                 "operational": True,
                 "encrypted_columns": status["total_encrypted_columns"],
                 "database_keys": status["total_database_keys"],
@@ -243,7 +242,7 @@ class SecurityManager:
 
         except Exception as e:
             logger.error(f"Database encryption check failed: {e}")
-            return {}}
+            return {
                 "operational": False,
                 "issues": [str(e)]
             }

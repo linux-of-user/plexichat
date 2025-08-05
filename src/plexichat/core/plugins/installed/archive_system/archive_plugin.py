@@ -743,7 +743,7 @@ self.data_dir = Path(data_dir)
 
     def get_plugin_info(self) -> Dict[str, Any]:
         """Get plugin information."""
-        return {}}
+        return {}
             "name": "Archive System",
             "version": "1.0.0",
             "description": "Message and user versioning through shard system",

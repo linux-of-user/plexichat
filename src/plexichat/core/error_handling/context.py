@@ -95,7 +95,7 @@ class ErrorContext:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert error context to dictionary."""
-        return {}}
+        return {}
             "error_id": self.error_id,
             "timestamp": self.timestamp.isoformat(),
             "exception": {

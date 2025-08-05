@@ -192,7 +192,7 @@ class SecurityMetrics:
 
     def get_stats(self) -> Dict[str, Any]:
         """Get security statistics."""
-        return {}}
+        return {}
             "metrics": self.metrics.copy(),
             "event_counts": self.event_counts.copy(),
             "threat_counts": self.threat_counts.copy(),
@@ -286,7 +286,7 @@ class PasswordManager:
         else:
             score += 1
 
-        return {}}
+        return {}
             "valid": len(issues) == 0,
             "score": score,
             "max_score": 6,
@@ -508,7 +508,7 @@ class RateLimiter:
         # Check if currently blocked
         if identifier in self.blocked_until:
             if now < self.blocked_until[identifier]:
-                return {}}
+                return {}
                     "allowed": False,
                     "reason": "rate_limited",
                     "retry_after": (self.blocked_until[identifier] - now).total_seconds()
@@ -536,7 +536,7 @@ class RateLimiter:
         if len(self.requests[identifier]) >= max_requests:
             # Block for the window duration
             self.blocked_until[identifier] = now + timedelta(seconds=window_seconds)
-            return {}}
+            return {}
                 "allowed": False,
                 "reason": "rate_limited",
                 "retry_after": window_seconds
@@ -545,7 +545,7 @@ class RateLimiter:
         # Record this request
         self.requests[identifier].append(now)
 
-        return {}}
+        return {}
             "allowed": True,
             "remaining": max_requests - len(self.requests[identifier]),
             "reset_time": (now + timedelta(seconds=window_seconds)).isoformat()
@@ -605,7 +605,7 @@ class InputSanitizer:
         import re
 
         if not text:
-            return {}}"safe": True, "patterns": []}
+            return {"safe": True, "patterns": []}
 
         found_patterns = []
 
@@ -614,7 +614,7 @@ class InputSanitizer:
             if matches:
                 found_patterns.extend(matches)
 
-        return {}}
+        return {}
             "safe": len(found_patterns) == 0,
             "patterns": found_patterns,
             "risk_level": "high" if found_patterns else "low"
@@ -862,7 +862,7 @@ class UnifiedSecurityManager:
 
     def get_security_stats(self) -> Dict[str, Any]:
         """Get security statistics."""
-        return {}}
+        return {}
             "metrics": self.metrics.get_stats(),
             "security_level": self.security_level.name,
             "policies": self.security_policies,

@@ -474,7 +474,7 @@ Path("data"))
 
     def get_security_status(self) -> Dict[str, Any]:
         """Get overall security system status."""
-        return {}}
+        return {}
             "enabled": self.enabled,
             "services": {
                 "security_service": self.security_service is not None,
@@ -497,21 +497,21 @@ Path("data"))
             Response data for the client
         """
         if not assessment.threat_detected:
-            return {}}
+            return {}
                 "status": "allowed",
                 "message": "Request processed successfully"
             }
 
         # Generate response based on recommended action
         if assessment.recommended_action == SecurityAction.ALLOW:
-            return {}}
+            return {}
                 "status": "allowed",
                 "message": "Request allowed with warnings",
                 "warnings": [assessment.threat_type.value]
             }
 
         elif assessment.recommended_action == SecurityAction.WARN:
-            return {}}
+            return {}
                 "status": "warning",
                 "message": "Security warning issued",
                 "threat_type": assessment.threat_type.value,
@@ -539,7 +539,7 @@ Path("data"))
             return response
 
         elif assessment.recommended_action == SecurityAction.ESCALATE:
-            return {}}
+            return {}
                 "status": "escalated",
                 "error": "Critical Security Violation",
                 "message": "Request escalated to security team",
@@ -550,7 +550,7 @@ Path("data"))
             }
 
         # Default response
-        return {}}
+        return {}
             "status": "blocked",
             "error": "Security Violation",
             "message": "Request blocked by security systems"

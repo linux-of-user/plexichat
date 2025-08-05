@@ -103,18 +103,18 @@ async def check_message_permission(sender_id: str, recipient_id: str) -> dict:
         recipient_settings = await get_user_settings_by_id(recipient_id)
         if not recipient_settings:
             # If no settings found, allow by default
-            return {}}"allowed": True, "permission_level": "default"}
+            return {"allowed": True, "permission_level": "default"}
 
         message_permission = recipient_settings.get("message_permissions", "friends_only")
 
         # Check permission based on setting
         if message_permission == "everyone":
-            return {}}"allowed": True, "permission_level": "everyone"}
+            return {"allowed": True, "permission_level": "everyone"}
 
         elif message_permission == "friends_only":
             # Check if they are friends (simplified check for demo)
             is_friend = await check_friendship(sender_id, recipient_id)
-            return {}}
+            return {}
                 "allowed": is_friend,
                 "reason": "Only friends can send messages to this user" if not is_friend else None,
                 "permission_level": "friends_only"
@@ -123,7 +123,7 @@ async def check_message_permission(sender_id: str, recipient_id: str) -> dict:
         elif message_permission == "verified_only":
             # Check if sender is verified
             is_verified = await check_user_verified(sender_id)
-            return {}}
+            return {}
                 "allowed": is_verified,
                 "reason": "Only verified users can send messages to this user" if not is_verified else None,
                 "permission_level": "verified_only"
@@ -132,32 +132,32 @@ async def check_message_permission(sender_id: str, recipient_id: str) -> dict:
         elif message_permission == "contacts_only":
             # Check if they are in contacts
             is_contact = await check_contact(sender_id, recipient_id)
-            return {}}
+            return {}
                 "allowed": is_contact,
                 "reason": "Only contacts can send messages to this user" if not is_contact else None,
                 "permission_level": "contacts_only"
             }
 
         elif message_permission == "nobody":
-            return {}}
+            return {}
                 "allowed": False,
                 "reason": "This user has disabled incoming messages",
                 "permission_level": "nobody"
             }
 
         else:
-            return {}}"allowed": True, "permission_level": "default"}  # Default allow
+            return {"allowed": True, "permission_level": "default"}  # Default allow
 
     except Exception as e:
         logger.error(f"Error checking message permission: {e}")
         # On error, allow by default to avoid breaking functionality
-        return {}}"allowed": True, "permission_level": "error_fallback"}
+        return {"allowed": True, "permission_level": "error_fallback"}
 
 async def get_user_settings_by_id(user_id: str) -> dict:
     """Get user settings by user ID."""
     # Simplified implementation - in real app would query database
     # For demo, return default settings that allow friends only
-    return {}}
+    return {}
         "message_permissions": "friends_only",
         "blocked_users": []
     }
@@ -474,7 +474,7 @@ async def delete_message(
         logger.info(f"Message deleted: {message_id} by {current_user['username']}")
         logger.debug(f"Invalidated caches for message deletion: {sender_id} <-> {recipient_id}")
 
-        return {}}
+        return {}
             "success": True,
             "message": "Message deleted successfully"
         }

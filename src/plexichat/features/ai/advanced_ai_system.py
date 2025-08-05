@@ -285,7 +285,7 @@ class AIProviderManager:
         # In production, this would use the actual OpenAI client
         await asyncio.sleep(0.1)  # Simulate API call
 
-        return {}}
+        return {}
             "response": f"OpenAI {model.name} response to: {prompt[:50]}...",
             "tokens_used": len(prompt.split()) * 2,
             "model": model.model_id,
@@ -297,7 +297,7 @@ class AIProviderManager:
         # Placeholder for Anthropic API call
         await asyncio.sleep(0.1)  # Simulate API call
 
-        return {}}
+        return {}
             "response": f"Anthropic {model.name} response to: {prompt[:50]}...",
             "tokens_used": len(prompt.split()) * 2,
             "model": model.model_id,
@@ -309,7 +309,7 @@ class AIProviderManager:
         # Placeholder for local model inference
         await asyncio.sleep(0.05)  # Simulate local inference
 
-        return {}}
+        return {}
             "response": f"Local {model.name} response to: {prompt[:50]}...",
             "tokens_used": len(prompt.split()),
             "model": model.model_id,
@@ -513,21 +513,21 @@ class IntelligentAssistant:
         try:
             model = await self.provider_manager.get_available_model(AICapability.TEXT_GENERATION)
             if not model:
-                return {}}"success": False, "error": "No text generation model available"}
+                return {"success": False, "error": "No text generation model available"}
 
             # TODO: Implement content generation logic
-            return {}}"success": True, "content": "Generated content placeholder"}
+            return {"success": True, "content": "Generated content placeholder"}
 
         except Exception as e:
             logger.error(f"Content generation failed: {e}")
-            return {}}"success": False, "error": str(e)}
+            return {"success": False, "error": str(e)}
 
     async def analyze_sentiment_advanced(self, text: str) -> Dict[str, Any]:
         """Advanced sentiment analysis with emotion detection."""
         try:
             model = await self.provider_manager.get_available_model(AICapability.TEXT_ANALYSIS)
             if not model:
-                return {}}"success": False, "error": "No text analysis model available"}
+                return {"success": False, "error": "No text analysis model available"}
 
             prompt = f"""Perform advanced sentiment analysis on the following text:
 
@@ -556,20 +556,20 @@ class IntelligentAssistant:
                 "context_factors": []
             }
 
-            return {}}
+            return {}
                 "success": True,
                 "analysis": analysis,
                 "model_used": model.model_id
             }
         except Exception as e:
-            return {}}"success": False, "error": str(e)}
+            return {"success": False, "error": str(e)}
 
     async def extract_entities(self, text: str) -> Dict[str, Any]:
         """Extract named entities from text."""
         try:
             model = await self.provider_manager.get_available_model(AICapability.TEXT_ANALYSIS)
             if not model:
-                return {}}"success": False, "error": "No text analysis model available"}
+                return {"success": False, "error": "No text analysis model available"}
 
             prompt = f"""Extract named entities from the following text:
 
@@ -600,21 +600,21 @@ class IntelligentAssistant:
                 "TECHNOLOGY": []
             }
 
-            return {}}
+            return {}
                 "success": True,
                 "entities": entities,
                 "total_entities": sum(len(v) for v in entities.values()),
                 "model_used": model.model_id
             }
         except Exception as e:
-            return {}}"success": False, "error": str(e)}
+            return {"success": False, "error": str(e)}
 
     async def classify_text(self, text: str, categories: List[str]) -> Dict[str, Any]:
         """Classify text into predefined categories."""
         try:
             model = await self.provider_manager.get_available_model(AICapability.TEXT_ANALYSIS)
             if not model:
-                return {}}"success": False, "error": "No text analysis model available"}
+                return {"success": False, "error": "No text analysis model available"}
 
             categories_str = ", ".join(categories)
             prompt = f"""Classify the following text into one or more of these categories:
@@ -641,13 +641,13 @@ class IntelligentAssistant:
                 "category_scores": {cat: 0.1 for cat in categories}
             }
 
-            return {}}
+            return {}
                 "success": True,
                 "classification": classification,
                 "model_used": model.model_id
             }
         except Exception as e:
-            return {}}"success": False, "error": str(e)}
+            return {"success": False, "error": str(e)}
 
     async def detect_language(self, text: str) -> Dict[str, Any]:
         """Detect the language of the input text."""
@@ -676,21 +676,21 @@ class IntelligentAssistant:
             detected_language = max(scores, key=scores.get) if scores else 'unknown'
             confidence = scores.get(detected_language, 0.0)
 
-            return {}}
+            return {}
                 "success": True,
                 "language": detected_language,
                 "confidence": confidence,
                 "all_scores": scores
             }
         except Exception as e:
-            return {}}"success": False, "error": str(e)}
+            return {"success": False, "error": str(e)}
 
     async def extract_keywords(self, text: str, max_keywords: int = 10) -> Dict[str, Any]:
         """Extract key terms and phrases from text."""
         try:
             model = await self.provider_manager.get_available_model(AICapability.TEXT_ANALYSIS)
             if not model:
-                return {}}"success": False, "error": "No text analysis model available"}
+                return {"success": False, "error": "No text analysis model available"}
 
             prompt = f"""Extract the most important keywords and phrases from the following text:
 
@@ -720,7 +720,7 @@ class IntelligentAssistant:
             keywords = [{"keyword": word, "score": freq/len(words)}
                        for word, freq in sorted_words[:max_keywords]]
 
-            return {}}
+            return {}
                 "success": True,
                 "keywords": keywords,
                 "total_words": len(words),
@@ -728,7 +728,7 @@ class IntelligentAssistant:
                 "model_used": model.model_id if model else "fallback"
             }
         except Exception as e:
-            return {}}"success": False, "error": str(e)}
+            return {"success": False, "error": str(e)}
 
             enhanced_prompt = f"""Generate {content_type} content in a {style} style.
             Maximum length: {max_length} words.
@@ -739,7 +739,7 @@ class IntelligentAssistant:
 
             response = await self.provider_manager.call_model(model.model_id, enhanced_prompt)
 
-            return {}}
+            return {}
                 "success": True,
                 "content": response.get("response", ""),
                 "content_type": content_type,
@@ -750,14 +750,14 @@ class IntelligentAssistant:
 
         except Exception as e:
             logger.error(f"Content generation failed: {e}")
-            return {}}"success": False, "error": str(e)}
+            return {"success": False, "error": str(e)}
 
     async def answer_question(self, question: str, context: str = "") -> Dict[str, Any]:
         """Answer questions with AI assistance."""
         try:
             model = await self.provider_manager.get_available_model(AICapability.QUESTION_ANSWERING)
             if not model:
-                return {}}"success": False, "error": "No Q&A model available"}
+                return {"success": False, "error": "No Q&A model available"}
 
             prompt = f"""Answer the following question accurately and helpfully.
 
@@ -768,7 +768,7 @@ class IntelligentAssistant:
 
             response = await self.provider_manager.call_model(model.model_id, prompt)
 
-            return {}}
+            return {}
                 "success": True,
                 "answer": response.get("response", ""),
                 "question": question,
@@ -778,14 +778,14 @@ class IntelligentAssistant:
 
         except Exception as e:
             logger.error(f"Question answering failed: {e}")
-            return {}}"success": False, "error": str(e)}
+            return {"success": False, "error": str(e)}
 
     async def generate_code(self, description: str, language: str = "python") -> Dict[str, Any]:
         """Generate code based on description."""
         try:
             model = await self.provider_manager.get_available_model(AICapability.CODE_GENERATION)
             if not model:
-                return {}}"success": False, "error": "No code generation model available"}
+                return {"success": False, "error": "No code generation model available"}
 
             prompt = f"""Generate {language} code for the following description:
 
@@ -795,7 +795,7 @@ class IntelligentAssistant:
 
             response = await self.provider_manager.call_model(model.model_id, prompt)
 
-            return {}}
+            return {}
                 "success": True,
                 "code": response.get("response", ""),
                 "language": language,
@@ -805,7 +805,7 @@ class IntelligentAssistant:
 
         except Exception as e:
             logger.error(f"Code generation failed: {e}")
-            return {}}"success": False, "error": str(e)}
+            return {"success": False, "error": str(e)}
 
 
 class TranslationEngine:
@@ -963,7 +963,7 @@ class SentimentAnalyzer:
             overall = "neutral"
             scores = {"positive": 0.3, "negative": 0.3, "neutral": 0.4}
 
-        return {}}
+        return {}
             "overall": overall,
             "confidence": 0.8,
             "scores": scores,

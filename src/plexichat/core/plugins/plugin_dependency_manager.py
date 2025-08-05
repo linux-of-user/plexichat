@@ -95,7 +95,7 @@ class PluginDependencyManager:
     
     def _get_package_mapping(self) -> Dict[str, str]:
         """Get mapping from import names to package names."""
-        return {}}
+        return {}
             # Common mappings
             'pydantic': 'pydantic',
             'aiofiles': 'aiofiles',
@@ -138,7 +138,7 @@ class PluginDependencyManager:
     
     def _get_trusted_packages(self) -> Set[str]:
         """Get set of trusted packages for security."""
-        return {}}
+        return {}
             'pydantic', 'fastapi', 'sqlalchemy', 'requests', 'httpx',
             'aiofiles', 'click', 'rich', 'matplotlib', 'numpy',
             'pandas', 'plotly', 'seaborn', 'scipy', 'pillow',
@@ -430,9 +430,9 @@ class PluginDependencyManager:
         """Get dependency status for a plugin."""
         dependencies = self.plugin_dependencies.get(plugin_name)
         if not dependencies:
-            return {}}'status': 'unknown', 'message': 'No dependency information available'}
+            return {}'status': 'unknown', 'message': 'No dependency information available'}
         
-        return {}}
+        return {}
             'plugin_name': plugin_name,
             'total_dependencies': len(dependencies.required_dependencies),
             'installed_dependencies': len(dependencies.installed_dependencies),
@@ -461,7 +461,7 @@ class PluginDependencyManager:
             if self.installation_times else 0
         )
         
-        return {}}
+        return {}
             'total_plugins': total_plugins,
             'total_unique_dependencies': total_dependencies,
             'plugins_with_all_dependencies': plugins_with_all_deps,

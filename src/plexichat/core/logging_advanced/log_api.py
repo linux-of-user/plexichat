@@ -227,7 +227,7 @@ async def get_log_entries()
 
         filtered_entries.append(entry.to_dict())
 
-    return {}}
+    return {}
         "entries": filtered_entries,
         "total": len(filtered_entries),
         "filters": {
@@ -299,7 +299,7 @@ async def get_performance_metrics()
         )
         metrics_data[metric_name] = [m.to_dict() for m in metrics]
 
-    return {}}
+    return {}
         "metrics": metrics_data,
         "filters": {
             "metric_names": metric_names,
@@ -347,7 +347,7 @@ async def get_security_events()
     if limit:
         events = events[-limit:]
 
-    return {}}
+    return {}
         "events": events,
         "total": len(events),
         "filters": {
@@ -486,7 +486,7 @@ async def get_log_stats(current_user = Depends(require_admin)):
         hour_key = entry.timestamp.strftime("%Y-%m-%d %H:00")
         hourly_counts[hour_key] = hourly_counts.get(hour_key, 0) + 1
 
-    return {}}
+    return {}
         "total_entries": len(recent_entries),
         "level_distribution": level_counts,
         "category_distribution": category_counts,

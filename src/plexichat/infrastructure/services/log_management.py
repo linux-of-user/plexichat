@@ -303,7 +303,7 @@ class LogManager:
                 hour_key = entry.timestamp.strftime('%Y-%m-%d %H:00')
                 hourly_counts[hour_key] = hourly_counts.get(hour_key, 0) + 1
 
-            return {}}
+            return {}
                 'total_entries': len(entries),
                 'total_lines': total_lines,
                 'level_distribution': level_counts,
@@ -317,7 +317,7 @@ class LogManager:
 
         except Exception as e:
             logger.error(f"Failed to get statistics for {filename}: {e}")
-            return {}}}
+            return {}}
 
     def archive_old_logs(self, days_old: int = 7) -> List[str]:
         """Archive log files older than specified days."""

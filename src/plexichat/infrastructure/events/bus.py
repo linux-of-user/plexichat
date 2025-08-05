@@ -402,7 +402,7 @@ class EventBus:
 
     def get_stats(self) -> Dict[str, Any]:
         """Get event bus statistics."""
-        return {}}
+        return {}
             **self._stats,
             "active_handlers": sum()
                 len(handlers) for handlers in self._handlers.values()

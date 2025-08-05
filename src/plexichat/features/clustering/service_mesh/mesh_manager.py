@@ -96,7 +96,7 @@ class TrafficRule:
 
     def to_istio_config(self) -> Dict[str, Any]:
         """Convert to Istio VirtualService configuration."""
-        return {}}
+        return {}
             "apiVersion": "networking.istio.io/v1beta1",
             "kind": "VirtualService",
             "metadata": {
@@ -128,7 +128,7 @@ class SecurityRule:
 
     def to_istio_config(self) -> Dict[str, Any]:
         """Convert to Istio AuthorizationPolicy configuration."""
-        return {}}
+        return {}
             "apiVersion": "security.istio.io/v1beta1",
             "kind": "AuthorizationPolicy",
             "metadata": {
@@ -452,7 +452,7 @@ Path(f"config/service_mesh_{self.mesh_type.value}.yaml")
     async def get_service_metrics(self, service_name: str) -> Dict[str, Any]:
         """Get metrics for a service."""
         if service_name not in self.service_metrics:
-            return {}}}
+            return {}}
 
         metrics = self.service_metrics[service_name]
 
@@ -460,7 +460,7 @@ Path(f"config/service_mesh_{self.mesh_type.value}.yaml")
         success_rate = (metrics.get("successful_requests", 0) /)
                        max(metrics.get("total_requests", 1), 1)) * 100
 
-        return {}}
+        return {}
             "service_name": service_name,
             "total_requests": metrics.get("total_requests", 0),
             "successful_requests": metrics.get("successful_requests", 0),

@@ -17,9 +17,9 @@ except ImportError:
         def __init__(self, **kwargs):
             pass
         async def chat_completions_create(self, **kwargs):
-            return {}}"choices": [{"message": {"content": "OpenAI not available"}}]}
+            return {"choices": [{"message": {"content": "OpenAI not available"}}]}
         async def models_list(self):
-            return {}}"data": []}
+            return {"data": []}
 
 from .base_provider import (
     AIRequest,
@@ -233,7 +233,7 @@ class OpenAIProvider(BaseAIProvider):
             response = await self.client.moderations.create(input=text)
             result = response.results[0]
 
-            return {}}
+            return {}
                 "flagged": result.flagged,
                 "categories": dict(result.categories),
                 "category_scores": dict(result.category_scores),
@@ -241,7 +241,7 @@ class OpenAIProvider(BaseAIProvider):
 
         except Exception as e:
             logger.error(f"OpenAI content moderation failed: {e}")
-            return {}}"flagged": False, "error": str(e)}
+            return {"flagged": False, "error": str(e)}
 
     async def get_available_models(self) -> List[Dict[str, Any]]:
         """Get list of available models."""

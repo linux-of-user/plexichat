@@ -402,7 +402,7 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
         """Get middleware statistics."""
         avg_response_time = sum(self.response_times) / len(self.response_times) if self.response_times else 0
 
-        return {}}
+        return {}
             'total_requests': self.request_count,
             'total_errors': self.error_count,
             'error_rate': (self.error_count / max(self.request_count, 1)) * 100,

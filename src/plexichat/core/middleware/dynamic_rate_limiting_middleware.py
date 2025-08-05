@@ -109,7 +109,7 @@ class DynamicRateLimitingMiddleware(BaseHTTPMiddleware):
     
     def _define_load_levels(self) -> Dict[str, LoadLevel]:
         """Define system load levels and their characteristics."""
-        return {}}
+        return {}
             "low": LoadLevel(
                 name="low",
                 cpu_threshold=self.dynamic_config.cpu_threshold_low,
@@ -407,12 +407,12 @@ class DynamicRateLimitingMiddleware(BaseHTTPMiddleware):
     def get_load_status(self) -> Dict[str, Any]:
         """Get current load status and metrics."""
         if not self.enabled:
-            return {}}"enabled": False}
+            return {"enabled": False}
         
         latest_system = self.system_metrics[-1] if self.system_metrics else None
         latest_traffic = self.traffic_metrics[-1] if self.traffic_metrics else None
         
-        return {}}
+        return {}
             "enabled": True,
             "current_load_level": self.current_load_level,
             "current_multiplier": self.current_multiplier,

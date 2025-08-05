@@ -13,15 +13,13 @@ Enhanced core module with comprehensive functionality and performance optimizati
 Uses EXISTING database abstraction and optimization systems.
 """
 
-import logging
-from typing import Any, Dict, Optional
+from typing import Any, Dict
+import importlib
 
 # Use EXISTING performance optimization engine
 try:
-    from plexichat.infrastructure.performance.optimization_engine import PerformanceOptimizationEngine
     from plexichat.core.logging_advanced.performance_logger import get_performance_logger
 except ImportError:
-    PerformanceOptimizationEngine = None
     get_performance_logger = None
 
 from .logging import get_logger
@@ -69,127 +67,110 @@ core_manager = CoreManager()
 
 # Import new core modules
 try:
-    from .config import config_manager, get_config, set_config
+    importlib.import_module("plexichat.core.config")
     core_manager.register_component("config_new", True)
 except ImportError:
-    config_manager = None
-    get_config = None
-    set_config = None
     core_manager.register_component("config_new", False)
 
 try:
-    from .threading import thread_manager, async_thread_manager
+    importlib.import_module("plexichat.core.threading")
     core_manager.register_component("threading", True)
 except ImportError:
-    thread_manager = None
-    async_thread_manager = None
     core_manager.register_component("threading", False)
 
 try:
-    from .caching import cache_manager
+    importlib.import_module("plexichat.core.caching")
     core_manager.register_component("caching", True)
 except ImportError:
-    cache_manager = None
     core_manager.register_component("caching", False)
 
 try:
-    from .analytics import analytics_manager, track_event
+    importlib.import_module("plexichat.core.analytics")
     core_manager.register_component("analytics", True)
 except ImportError:
-    analytics_manager = None
-    track_event = None
     core_manager.register_component("analytics", False)
 
 try:
-    from .monitoring import system_monitor, start_monitoring
+    importlib.import_module("plexichat.core.monitoring")
     core_manager.register_component("monitoring", True)
 except ImportError:
-    system_monitor = None
-    start_monitoring = None
     core_manager.register_component("monitoring", False)
 
 try:
-    from .scheduler import task_scheduler
+    importlib.import_module("plexichat.core.scheduler")
     core_manager.register_component("scheduler", True)
 except ImportError:
-    task_scheduler = None
     core_manager.register_component("scheduler", False)
 
 try:
-    from .backup import backup_manager
+    importlib.import_module("plexichat.core.backup")
     core_manager.register_component("backup", True)
 except ImportError:
-    backup_manager = None
     core_manager.register_component("backup", False)
 
 try:
-    from .plugins import plugin_manager
+    importlib.import_module("plexichat.core.plugins")
     core_manager.register_component("plugins", True)
 except ImportError:
-    plugin_manager = None
     core_manager.register_component("plugins", False)
 
 try:
-    from .events import event_manager, emit_event
+    importlib.import_module("plexichat.core.events")
     core_manager.register_component("events", True)
 except ImportError:
-    event_manager = None
-    emit_event = None
     core_manager.register_component("events", False)
 
 try:
-    from .middleware import middleware_manager
+    importlib.import_module("plexichat.core.middleware")
     core_manager.register_component("middleware", True)
 except ImportError:
-    middleware_manager = None
     core_manager.register_component("middleware", False)
 
 try:
-    from .validation import validator, validate_data
+    importlib.import_module("plexichat.core.validation")
     core_manager.register_component("validation", True)
 except ImportError:
-    validator = None
-    validate_data = None
     core_manager.register_component("validation", False)
 
 try:
-    from .utils import generate_id, current_timestamp
+    importlib.import_module("plexichat.core.utils")
     core_manager.register_component("utils", True)
 except ImportError:
-    generate_id = None
-    current_timestamp = None
     core_manager.register_component("utils", False)
 
 # Load from config files instead of constants
-try:
-    import json
-    from pathlib import Path
+def _load_constants():
+    """Load constants from config files."""
+    try:
+        import json
+        from pathlib import Path
 
-    # Load version from version.json
-    version_file = Path(__file__).parent.parent.parent / "version.json"
-    if version_file.exists():
-        with open(version_file, 'r') as f:
-            version_data = json.load(f)
-            APP_NAME = "PlexiChat"
-            APP_VERSION = version_data.get('version', 'b.1.1-88')
-    else:
-        APP_NAME = "PlexiChat"
-        APP_VERSION = "b.1.1-88"
+        # Load version from version.json
+        version_file = Path(__file__).parent.parent.parent / "version.json"
+        if version_file.exists():
+            with open(version_file, 'r') as f:
+                version_data = json.load(f)
+                app_name = "PlexiChat"
+                app_version = version_data.get('version', 'b.1.1-88')
+        else:
+            app_name = "PlexiChat"
+            app_version = "b.1.1-88"
 
-    # Load config from config file
-    config_file = Path(__file__).parent.parent.parent / "config" / "plexichat.json"
-    if config_file.exists():
-        with open(config_file, 'r') as f:
-            DEFAULT_CONFIG = json.load(f)
-    else:
-        DEFAULT_CONFIG = {}
+        # Load config from config file
+        config_file = Path(__file__).parent.parent.parent / "config" / "plexichat.json"
+        if config_file.exists():
+            with open(config_file, 'r') as f:
+                default_config = json.load(f)
+        else:
+            default_config = {}
 
-    core_manager.register_component("constants", True)
-except Exception:
-    APP_NAME = "PlexiChat"
-    APP_VERSION = "a.1.1-144"
-    DEFAULT_CONFIG = {}
-    core_manager.register_component("constants", False)
+        core_manager.register_component("constants", True)
+        return app_name, app_version, default_config
+    except Exception:
+        core_manager.register_component("constants", False)
+        return "PlexiChat", "a.1.1-144", {}
+
+APP_NAME, APP_VERSION, DEFAULT_CONFIG = _load_constants()
 
 # Register core components
 def register_core_components():
@@ -197,37 +178,37 @@ def register_core_components():
     try:
         # Configuration
         try:
-            from plexichat.core.config import config_manager
+            importlib.import_module("plexichat.core.config")
             core_manager.register_component("config", True)
         except ImportError:
             core_manager.register_component("config", False)
 
         # Logging
         try:
-            from plexichat.core.logging import logging_manager
+            importlib.import_module("plexichat.core.logging")
             core_manager.register_component("logging", True)
         except ImportError:
             core_manager.register_component("logging", False)
 
         # Exceptions
         try:
-            from plexichat.core.exceptions import exception_handler
+            importlib.import_module("plexichat.core.exceptions")
             core_manager.register_component("exceptions", True)
         except ImportError:
             core_manager.register_component("exceptions", False)
 
         # Authentication
         try:
-            from plexichat.core.auth.auth_core import auth_core
-            from plexichat.core.auth.manager_auth import auth_manager
+            importlib.import_module("plexichat.core.auth.auth_core")
+            importlib.import_module("plexichat.core.auth.manager_auth")
             core_manager.register_component("auth", True)
         except ImportError:
             core_manager.register_component("auth", False)
 
         # Database
         try:
-            from plexichat.core.database import database_manager
-            core_manager.register_component("database", database_manager is not None)
+            importlib.import_module("plexichat.core.database")
+            core_manager.register_component("database", True)
         except ImportError:
             core_manager.register_component("database", False)
 
@@ -267,7 +248,7 @@ def import_core_modules():
         # Config
         if config_available():
             try:
-                from .config import config_manager
+                importlib.import_module("plexichat.core.config")
                 logger.info("Config imported successfully")
             except ImportError as e:
                 logger.warning(f"Could not import config: {e}")
@@ -275,7 +256,7 @@ def import_core_modules():
         # Logging
         if logging_available():
             try:
-                from .logging import logging_manager, get_logger
+                importlib.import_module("plexichat.core.logging")
                 logger.info("Logging imported successfully")
             except ImportError as e:
                 logger.warning(f"Could not import logging: {e}")
@@ -283,7 +264,7 @@ def import_core_modules():
         # Exceptions
         if exceptions_available():
             try:
-                from .exceptions import exception_handler, handle_exception
+                importlib.import_module("plexichat.core.exceptions")
                 logger.info("Exceptions imported successfully")
             except ImportError as e:
                 logger.warning(f"Could not import exceptions: {e}")
@@ -291,7 +272,7 @@ def import_core_modules():
         # Auth
         if auth_available():
             try:
-                from .auth import auth_core, auth_manager
+                importlib.import_module("plexichat.core.auth")
                 logger.info("Auth imported successfully")
             except ImportError as e:
                 logger.warning(f"Could not import auth: {e}")
@@ -299,7 +280,7 @@ def import_core_modules():
         # Database
         if database_available():
             try:
-                from .database import database_manager, initialize_database_system
+                importlib.import_module("plexichat.core.database")
                 logger.info("Database imported successfully")
             except ImportError as e:
                 logger.warning(f"Could not import database: {e}")

@@ -664,7 +664,7 @@ class ETLPipelineService:
 
     def get_metrics(self) -> Dict[str, Any]:
         """Get pipeline service metrics."""
-        return {}}
+        return {}
             **self.metrics,
             "active_pipelines": len(self.active_runs),
             "registered_pipelines": len(self.pipelines),

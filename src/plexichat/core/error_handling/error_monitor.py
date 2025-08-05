@@ -335,7 +335,7 @@ datetime = datetime.now()
 
     def get_statistics(self) -> Dict[str, Any]:
         """Get comprehensive monitoring statistics."""
-        return {}}
+        return {}
             'metrics': asdict(self.metrics),
             'health_status': self.component_health.get('overall', {}).to_dict() if 'overall' in self.component_health else {},
             'recent_errors': list(self.error_history)[-10:],

@@ -36,7 +36,7 @@ class TwoFactorAuthPlugin(PluginInterface):
         return True
 
     def get_metadata(self):
-        return {}}
+        return {}
             "name": "2FA Plugin",
             "version": "1.0.0",
             "description": "Provides two-factor authentication endpoints for users.",
@@ -58,7 +58,7 @@ async def enable_2fa(request: Request):
         "enabled": True,
         "last_sent": None
     }
-    return {}}"success": True, "secret": secret}
+    return {"success": True, "secret": secret}
 
 @router.post("/send_code")
 async def send_2fa_code(request: Request):
@@ -72,7 +72,7 @@ async def send_2fa_code(request: Request):
     user_2fa_codes[username]["last_sent"] = datetime.now(timezone.utc)
     # In real system, send code via email/SMS
     logger.info(f"2FA code for {username}: {code}")
-    return {}}"success": True, "message": "2FA code sent"}
+    return {"success": True, "message": "2FA code sent"}
 
 @router.post("/verify")
 async def verify_2fa_code(request: Request):
@@ -87,4 +87,4 @@ async def verify_2fa_code(request: Request):
     if user_data.get("code") != code:
         raise HTTPException(status_code=401, detail="Invalid 2FA code")
     # Optionally, check code expiry
-    return {}}"success": True, "message": "2FA verified"}
+    return {"success": True, "message": "2FA verified"}

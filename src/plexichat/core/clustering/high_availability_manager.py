@@ -228,12 +228,12 @@ class HealthChecker:
             async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=self.timeout)) as session:
                 async with session.get(url) as response:
                     if response.status == 200:
-                        return {}}'healthy': True, 'details': {'status_code': response.status}}
+                        return {}'healthy': True, 'details': {'status_code': response.status}}
                     else:
-                        return {}}'healthy': False, 'error': f'HTTP {response.status}'}
+                        return {}'healthy': False, 'error': f'HTTP {response.status}'}
                         
         except Exception as e:
-            return {}}'healthy': False, 'error': str(e)}
+            return {}'healthy': False, 'error': str(e)}
     
     async def _tcp_health_check(self, config: Dict) -> Dict[str, Any]:
         """Perform TCP health check."""
@@ -246,10 +246,10 @@ class HealthChecker:
             writer.close()
             await writer.wait_closed()
             
-            return {}}'healthy': True, 'details': {'connection': 'successful'}}
+            return {}'healthy': True, 'details': {'connection': 'successful'}}
             
         except Exception as e:
-            return {}}'healthy': False, 'error': str(e)}
+            return {}'healthy': False, 'error': str(e)}
     
     async def _custom_health_check(self, config: Dict) -> Dict[str, Any]:
         """Perform custom health check."""
@@ -260,10 +260,10 @@ class HealthChecker:
                 result = await check_function()
                 return result
             else:
-                return {}}'healthy': False, 'error': 'No custom check function provided'}
+                return {}'healthy': False, 'error': 'No custom check function provided'}
                 
         except Exception as e:
-            return {}}'healthy': False, 'error': str(e)}
+            return {}'healthy': False, 'error': str(e)}
     
     def register_health_check(self, check_id: str, check_type: str, **kwargs):
         """Register a health check."""
@@ -290,7 +290,7 @@ class HealthChecker:
             if last_check and last_check.get('healthy'):
                 healthy_checks += 1
         
-        return {}}
+        return {}
             'total_checks': total_checks,
             'healthy_checks': healthy_checks,
             'unhealthy_checks': total_checks - healthy_checks,
@@ -394,7 +394,7 @@ class LoadBalancer:
     
     def get_load_balancing_stats(self) -> Dict[str, Any]:
         """Get load balancing statistics."""
-        return {}}
+        return {}
             'round_robin_counters': dict(self.round_robin_counters),
             'connection_counts': dict(self.connection_counts),
             'total_requests': sum(self.round_robin_counters.values()),
@@ -666,7 +666,7 @@ class HighAvailabilityManager:
                     if node.status == status
                 )
             
-            return {}}
+            return {}
                 'cluster_id': self.cluster_id,
                 'node_id': self.node_id,
                 'is_leader': self.is_leader,

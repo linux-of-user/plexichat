@@ -305,7 +305,7 @@ class PluginDebugger:
                     "total_duration": sum(durations)
                 }
 
-        return {}}
+        return {}
             "plugin_name": self.plugin_name,
             "operations": summary,
             "total_operations": self.operation_count,

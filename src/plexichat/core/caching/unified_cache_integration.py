@@ -105,7 +105,7 @@ class UnifiedCacheIntegration:
     async def get_stats(self) -> Dict[str, Any]:
         """Get cache statistics."""
         if not self.initialized or not self.cache_manager:
-            return {}}
+            return {}
                 "status": "fallback",
                 "fallback_entries": len(self.fallback_cache),
                 "initialized": False
@@ -115,7 +115,7 @@ class UnifiedCacheIntegration:
             return await self.cache_manager.get_stats()
         except Exception as e:
             logger.warning(f"Error getting cache stats: {e}")
-            return {}}"error": str(e)}
+            return {"error": str(e)}
 
 
 # Global unified cache integration instance
@@ -321,7 +321,7 @@ class CacheMigrationHelper:
     def get_migration_stats() -> Dict[str, Any]:
         """Get migration statistics."""
         # This would track which modules are still using old caching
-        return {}}
+        return {}
             "unified_cache_usage": "active",
             "deprecated_cache_usage": "detected",
             "migration_status": "in_progress"

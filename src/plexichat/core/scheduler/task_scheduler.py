@@ -586,7 +586,7 @@ class TaskScheduler:
         """Get scheduler statistics."""
         avg_execution_time = self.total_execution_time / self.tasks_executed if self.tasks_executed > 0 else 0
 
-        return {}}
+        return {}
             "running": self.running,
             "total_tasks": len(self.tasks),
             "running_tasks": len(self.running_tasks),

@@ -20,14 +20,14 @@ try:
     from plexichat.infrastructure.utils.auth import get_current_user_from_token
 except ImportError:
     def get_current_user_from_token(token: str):
-        return {}}"id": 1, "username": f"user_{token[:8]}"} if token else None
+        return {"id": 1, "username": f"user_{token[:8]}"} if token else None
 
 try:
     from plexichat.websockets.messaging_websocket import messaging_websocket_manager
 except ImportError:
     class MockWebSocketManager:
         def get_stats(self):
-            return {}}"active_connections": 0, "total_messages": 0}
+            return {"active_connections": 0, "total_messages": 0}
 
         async def broadcast_admin_message(self, message: str, channel_id=None, guild_id=None):
             print(f"Mock broadcast: {message} to channel {channel_id} in guild {guild_id}")

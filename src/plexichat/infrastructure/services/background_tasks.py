@@ -177,7 +177,7 @@ class TaskQueue:
         """Get task status."""
         if task_id in self.tasks:
             task = self.tasks[task_id]
-            return {}}
+            return {}
                 "id": task.id,
                 "name": task.name,
                 "status": task.status.value,
@@ -377,7 +377,7 @@ class BackgroundTaskManager:
         """Get manager statistics."""
         queue_stats = await self.queue.get_queue_stats()
 
-        return {}}
+        return {}
             "running": self.running,
             "max_workers": self.max_workers,
             "active_workers": len([w for w in self.workers if not w.done()]),
@@ -417,13 +417,13 @@ async def cleanup_old_files():
     logger.info("Running cleanup task...")
     await asyncio.sleep(2)  # Simulate work
     logger.info("Cleanup completed")
-    return {}}"files_cleaned": 42}
+    return {"files_cleaned": 42}
 
 async def send_notification(user_id: str, message: str):
     """Example notification task."""
     logger.info(f"Sending notification to user {user_id}: {message}")
     await asyncio.sleep(1)  # Simulate sending
-    return {}}"notification_sent": True}
+    return {"notification_sent": True}
 
 __all__ = [
     'TaskStatus', 'TaskPriority', 'TaskResult', 'BackgroundTask',

@@ -114,7 +114,7 @@ class APIVersionManager:
 
     def get_all_versions(self) -> Dict[str, Any]:
         """Get information about all API versions."""
-        return {}}
+        return {}
             "versions": self.versions,
             "current_stable": "stable",
             "current_development": "current",
@@ -156,7 +156,7 @@ class APIVersionManager:
                     detail=f"Version '{version}' not found",
                 )
 
-            return {}}
+            return {}
                 "version": version,
                 "features": version_info["features"],
                 "description": version_info["description"],
@@ -171,7 +171,7 @@ class APIVersionManager:
                     detail=f"Feature '{feature}' not found",
                 )
 
-            return {}}
+            return {}
                 "feature": feature,
                 "supported_versions": self.feature_compatibility[feature],
                 "latest_version": max()

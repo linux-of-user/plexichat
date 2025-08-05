@@ -28,7 +28,7 @@ class ThemeManagerPyQt(QObject):
         
     def load_themes(self) -> Dict[str, Dict[str, Any]]:
         """Load all available themes."""
-        return {}}
+        return {}
             "dark_modern": {
                 "name": "Dark Modern",
                 "description": "Modern dark theme with blue accents",
@@ -700,7 +700,7 @@ class ThemeManagerPyQt(QObject):
     
     def get_available_themes(self) -> Dict[str, str]:
         """Get list of available themes."""
-        return {}}name: theme["name"] for name, theme in self.themes.items()}
+        return {}name: theme["name"] for name, theme in self.themes.items()}
     
     def get_theme_color(self, color_name: str, theme_name: Optional[str] = None) -> str:
         """Get a specific color from the current or specified theme."""

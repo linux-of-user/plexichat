@@ -231,7 +231,7 @@ class UnifiedCLIDefault:
     def execute_command(self, command: str, args: List[str], context: Dict[str, Any]) -> Dict[str, Any]:
         """Execute a command."""
         if command not in self.commands:
-            return {}}
+            return {}
                 "error": f"Unknown command: {command}",
                 "suggestions": self.get_suggestions(command)
             }
@@ -261,7 +261,7 @@ class UnifiedCLIDefault:
         elif category == "integration":
             return self.execute_integration_command(command, args, context)
         else:
-            return {}}
+            return {}
                 "error": f"Unknown category: {category}",
                 "command": command
             }
@@ -298,7 +298,7 @@ class UnifiedCLIDefault:
     # Command execution methods
     def execute_system_command(self, command: str, args: List[str], context: Dict[str, Any]) -> Dict[str, Any]:
         """Execute a system command."""
-        return {}}
+        return {}
             "command": command,
             "category": "system",
             "status": "success",
@@ -309,7 +309,7 @@ class UnifiedCLIDefault:
 
     def execute_user_command(self, command: str, args: List[str], context: Dict[str, Any]) -> Dict[str, Any]:
         """Execute a user management command."""
-        return {}}
+        return {}
             "command": command,
             "category": "user_management",
             "status": "success",
@@ -320,7 +320,7 @@ class UnifiedCLIDefault:
 
     def execute_messaging_command(self, command: str, args: List[str], context: Dict[str, Any]) -> Dict[str, Any]:
         """Execute a messaging command."""
-        return {}}
+        return {}
             "command": command,
             "category": "messaging",
             "status": "success",
@@ -331,7 +331,7 @@ class UnifiedCLIDefault:
 
     def execute_ai_command(self, command: str, args: List[str], context: Dict[str, Any]) -> Dict[str, Any]:
         """Execute an AI command."""
-        return {}}
+        return {}
             "command": command,
             "category": "ai_features",
             "status": "success",
@@ -342,7 +342,7 @@ class UnifiedCLIDefault:
 
     def execute_security_command(self, command: str, args: List[str], context: Dict[str, Any]) -> Dict[str, Any]:
         """Execute a security command."""
-        return {}}
+        return {}
             "command": command,
             "category": "security",
             "status": "success",
@@ -353,7 +353,7 @@ class UnifiedCLIDefault:
 
     def execute_admin_command(self, command: str, args: List[str], context: Dict[str, Any]) -> Dict[str, Any]:
         """Execute an administrative command."""
-        return {}}
+        return {}
             "command": command,
             "category": "administration",
             "status": "success",
@@ -364,7 +364,7 @@ class UnifiedCLIDefault:
 
     def execute_dev_command(self, command: str, args: List[str], context: Dict[str, Any]) -> Dict[str, Any]:
         """Execute a development command."""
-        return {}}
+        return {}
             "command": command,
             "category": "development",
             "status": "success",
@@ -375,7 +375,7 @@ class UnifiedCLIDefault:
 
     def execute_data_command(self, command: str, args: List[str], context: Dict[str, Any]) -> Dict[str, Any]:
         """Execute a data management command."""
-        return {}}
+        return {}
             "command": command,
             "category": "data_management",
             "status": "success",
@@ -386,7 +386,7 @@ class UnifiedCLIDefault:
 
     def execute_network_command(self, command: str, args: List[str], context: Dict[str, Any]) -> Dict[str, Any]:
         """Execute a network command."""
-        return {}}
+        return {}
             "command": command,
             "category": "network",
             "status": "success",
@@ -397,7 +397,7 @@ class UnifiedCLIDefault:
 
     def execute_integration_command(self, command: str, args: List[str], context: Dict[str, Any]) -> Dict[str, Any]:
         """Execute an integration command."""
-        return {}}
+        return {}
             "command": command,
             "category": "integration",
             "status": "success",
@@ -412,7 +412,7 @@ class UnifiedCLIDefault:
 
     def get_category_info(self) -> Dict[str, Any]:
         """Get information about all categories."""
-        return {}}
+        return {}
             "total_commands": self.get_command_count(),
             "categories": self.categories
         }

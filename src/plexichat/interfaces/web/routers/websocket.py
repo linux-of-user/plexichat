@@ -46,7 +46,7 @@ try:
     from plexichat.infrastructure.utils.auth import get_current_user
 except ImportError:
     def get_current_user():
-        return {}}"id": 1, "username": "admin", "is_admin": False}
+        return {"id": 1, "username": "admin", "is_admin": False}
 
 # Security imports
 try:
@@ -183,7 +183,7 @@ class WebSocketService:
         except Exception:
             # Fallback validation
             if token == "valid-token":
-                return {}}"id": 1, "username": "admin", "is_admin": True}
+                return {"id": 1, "username": "admin", "is_admin": True}
             return None
 
     @async_track_performance("websocket_message_log") if async_track_performance else lambda f: f
@@ -391,7 +391,7 @@ async def get_system_status() -> Dict[str, Any]:
 
     except Exception as e:
         logger.error(f"Error getting system status: {e}")
-        return {}}
+        return {}
             "error": "Unable to retrieve system status",
             "timestamp": datetime.now().isoformat()
         }

@@ -509,7 +509,7 @@ class UnifiedCLI:
     # Command execution methods
     def execute_system_command(self, command_name: str, context: Dict[str, Any]) -> Dict[str, Any]:
         """Execute a system command."""
-        return {}}
+        return {}
             "command": command_name,
             "category": "system",
             "status": "success",
@@ -519,7 +519,7 @@ class UnifiedCLI:
 
     def execute_user_command(self, command_name: str, context: Dict[str, Any]) -> Dict[str, Any]:
         """Execute a user management command."""
-        return {}}
+        return {}
             "command": command_name,
             "category": "user_management",
             "status": "success",
@@ -529,7 +529,7 @@ class UnifiedCLI:
 
     def execute_messaging_command(self, command_name: str, context: Dict[str, Any]) -> Dict[str, Any]:
         """Execute a messaging command."""
-        return {}}
+        return {}
             "command": command_name,
             "category": "messaging",
             "status": "success",
@@ -539,7 +539,7 @@ class UnifiedCLI:
 
     def execute_ai_command(self, command_name: str, context: Dict[str, Any]) -> Dict[str, Any]:
         """Execute an AI command."""
-        return {}}
+        return {}
             "command": command_name,
             "category": "ai_features",
             "status": "success",
@@ -549,7 +549,7 @@ class UnifiedCLI:
 
     def execute_security_command(self, command_name: str, context: Dict[str, Any]) -> Dict[str, Any]:
         """Execute a security command."""
-        return {}}
+        return {}
             "command": command_name,
             "category": "security",
             "status": "success",
@@ -559,7 +559,7 @@ class UnifiedCLI:
 
     def execute_admin_command(self, command_name: str, context: Dict[str, Any]) -> Dict[str, Any]:
         """Execute an administrative command."""
-        return {}}
+        return {}
             "command": command_name,
             "category": "administration",
             "status": "success",
@@ -569,7 +569,7 @@ class UnifiedCLI:
 
     def execute_dev_command(self, command_name: str, context: Dict[str, Any]) -> Dict[str, Any]:
         """Execute a development command."""
-        return {}}
+        return {}
             "command": command_name,
             "category": "development",
             "status": "success",
@@ -579,7 +579,7 @@ class UnifiedCLI:
 
     def execute_data_command(self, command_name: str, context: Dict[str, Any]) -> Dict[str, Any]:
         """Execute a data management command."""
-        return {}}
+        return {}
             "command": command_name,
             "category": "data_management",
             "status": "success",
@@ -589,7 +589,7 @@ class UnifiedCLI:
 
     def execute_network_command(self, command_name: str, context: Dict[str, Any]) -> Dict[str, Any]:
         """Execute a network command."""
-        return {}}
+        return {}
             "command": command_name,
             "category": "network",
             "status": "success",
@@ -599,7 +599,7 @@ class UnifiedCLI:
 
     def execute_integration_command(self, command_name: str, context: Dict[str, Any]) -> Dict[str, Any]:
         """Execute an integration command."""
-        return {}}
+        return {}
             "command": command_name,
             "category": "integration",
             "status": "success",
@@ -613,7 +613,7 @@ class UnifiedCLI:
 
     def get_category_info(self) -> Dict[str, Any]:
         """Get information about all categories."""
-        return {}}
+        return {}
             "total_commands": self.get_command_count(),
             "categories": self.categories
         }

@@ -177,7 +177,7 @@ class ThreadManager:
 
     def get_status(self) -> Dict[str, Any]:
         """Get thread manager status."""
-        return {}}
+        return {
             "max_workers": self.max_workers,
             "active_tasks": len(self.active_tasks),
             "completed_tasks": len(self.completed_tasks),

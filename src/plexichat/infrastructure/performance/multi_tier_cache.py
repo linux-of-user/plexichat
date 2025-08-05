@@ -95,7 +95,7 @@ async def get_cache_status(current_user: Dict = Depends(require_auth)):
 
         stats = await cache_manager.get_stats()
 
-        return {}}
+        return {}
             "status": "healthy" if stats.get("availability", {}).get("l1_memory", False) else "degraded",
             "initialized": cache_manager.initialized,
             "statistics": stats,
@@ -132,7 +132,7 @@ async def get_cache_stats()
             if not tier_stats:
                 raise HTTPException(status_code=404, detail=f"Tier '{tier}' not found")
 
-            return {}}
+            return {}
                 "tier": tier,
                 "statistics": tier_stats,
                 "availability": stats.get("availability", {}).get(tier, False),
@@ -183,7 +183,7 @@ async def get_cached_value()
         if value is None and default is None:
             raise HTTPException(status_code=404, detail=f"Key '{key}' not found in cache")
 
-        return {}}
+        return {}
             "key": key,
             "value": value,
             "found": value is not None,
@@ -374,7 +374,7 @@ async def get_cache_health(current_user: Dict = Depends(require_auth)):
         else:
             health_status = "healthy"
 
-        return {}}
+        return {}
             "status": health_status,
             "initialized": cache_manager.initialized,
             "tier_availability": availability,
@@ -440,7 +440,7 @@ async def get_cache_config(current_user: Dict = Depends(from plexichat.infrastru
         stats = await cache_manager.get_stats()
         config = stats.get("configuration", {})
 
-        return {}}
+        return {}
             "configuration": config,
             "availability": stats.get("availability", {}),
             "timestamp": "2025-01-07T12:00:00Z"

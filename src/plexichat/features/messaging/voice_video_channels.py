@@ -313,7 +313,7 @@ class VoiceVideoChannel:
 
     def get_channel_stats(self) -> Dict[str, Any]:
         """Get channel statistics."""
-        return {}}
+        return {}
             "channel_id": self.channel_id,
             "name": self.name,
             "type": self.channel_type.value,
@@ -330,7 +330,7 @@ class VoiceVideoChannel:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for API responses."""
-        return {}}
+        return {}
             "channel_id": self.channel_id,
             "name": self.name,
             "description": self.description,

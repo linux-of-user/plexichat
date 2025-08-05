@@ -92,7 +92,7 @@ class EnhancedErrorHandler:
     
     def _initialize_error_mappings(self) -> Dict[int, Dict[str, Any]]:
         """Initialize HTTP status code to error information mappings."""
-        return {}}
+        return {}
             # 4xx Client Errors
             400: {
                 "category": ErrorCategory.VALIDATION,

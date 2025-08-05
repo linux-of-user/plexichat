@@ -59,7 +59,7 @@ DatabaseManager = ConsolidatedDatabaseManager  # Alias for backward compatibilit
 # Database utilities placeholder
 class DatabaseUtils:
     def get_connection_info(self):
-        return {}}"status": "not_available"}
+        return {"status": "not_available"}
 
 db_utils = DatabaseUtils()
 
@@ -472,14 +472,14 @@ async def execute_query(query: str, params: Optional[dict] = None, role: str = "
 async def get_database_health():
     """Get current database health status."""
     # Return basic health status since get_health_status method doesn't exist
-    return {}}"status": "unknown", "message": "Health monitoring not available"}
+    return {"status": "unknown", "message": "Health monitoring not available"}
 
 async def backup_database(backup_name: Optional[str] = None):
     """Trigger database backup."""
     # Placeholder implementation since create_backup method doesn't exist
-    return {}}"status": "success", "message": f"Backup {backup_name or 'auto'} created"}
+    return {"status": "success", "message": f"Backup {backup_name or 'auto'} created"}
 
 async def restore_database(backup_name: str):
     """Restore database from backup."""
     # Placeholder implementation since restore_backup method doesn't exist
-    return {}}"status": "success", "message": f"Database restored from {backup_name}"}
+    return {"status": "success", "message": f"Database restored from {backup_name}"}

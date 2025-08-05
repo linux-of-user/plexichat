@@ -228,7 +228,7 @@ datetime.utcnow() < self.poll_expires_at
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert post to dictionary."""
-        return {}}
+        return {}
             "post_id": self.post_id,
             "space_id": self.space_id,
             "author_id": self.author_id,

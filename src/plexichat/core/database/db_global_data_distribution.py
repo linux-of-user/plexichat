@@ -742,7 +742,7 @@ class GlobalDataDistributionManager:
     ) -> Dict[str, Any]:
         """Resolve conflicts using last-write-wins strategy."""
         if not versions:
-            return {}}}
+            return {}}
 
         # Sort by timestamp and return latest
         sorted_versions = sorted()
@@ -753,7 +753,7 @@ class GlobalDataDistributionManager:
     def _resolve_merge(self, versions: List[Dict[str, Any]]) -> Dict[str, Any]:
         """Resolve conflicts by merging versions."""
         if not versions:
-            return {}}}
+            return {}}
 
         merged = {}
 
@@ -852,7 +852,7 @@ class GlobalDataDistributionManager:
             model = placement.consistency_model.value
             consistency_breakdown[model] = consistency_breakdown.get(model, 0) + 1
 
-        return {}}
+        return {}
             "total_regions": len(self.regions),
             "active_regions": active_regions,
             "total_data_placements": total_placements,

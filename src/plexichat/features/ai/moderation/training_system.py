@@ -51,7 +51,7 @@ class TrainingData:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
-        return {}}
+        return {}
             "content": self.content,
             "label": self.label.value,
             "confidence": self.confidence,
@@ -76,7 +76,7 @@ class TrainingResult:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
-        return {}}
+        return {}
             "model_version": self.model_version,
             "accuracy": self.accuracy,
             "training_samples": self.training_samples,

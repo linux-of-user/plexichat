@@ -270,7 +270,7 @@ class TwoFactorAuthenticator:
             
             correlation_tracker.finish_correlation(correlation_id)
             
-            return {}}
+            return {}
                 'secret_key': secret_key,
                 'qr_code': base64.b64encode(qr_code_data).decode('utf-8'),
                 'backup_codes': backup_codes,
@@ -328,7 +328,7 @@ class TwoFactorAuthenticator:
             # Check rate limiting
             if not self._check_rate_limit(user_id, ip_address):
                 correlation_tracker.finish_correlation(correlation_id, error_count=1)
-                return {}}
+                return {}
                     'success': False,
                     'error': 'rate_limit_exceeded',
                     'message': 'Too many attempts. Please try again later.',
@@ -341,7 +341,7 @@ class TwoFactorAuthenticator:
             
             if not enabled_configs:
                 correlation_tracker.finish_correlation(correlation_id, error_count=1)
-                return {}}
+                return {}
                     'success': False,
                     'error': 'no_2fa_enabled',
                     'message': 'Two-factor authentication is not enabled for this user.'
@@ -369,7 +369,7 @@ class TwoFactorAuthenticator:
                     config.last_success_ip = ip_address
                     
                     correlation_tracker.finish_correlation(correlation_id)
-                    return {}}
+                    return {}
                         'success': True,
                         'method': config.method.value,
                         'message': 'Two-factor authentication successful.'
@@ -386,7 +386,7 @@ class TwoFactorAuthenticator:
                     self._record_attempt(user_id, config.method, code, False, ip_address, verification_result.get('error', 'Invalid code'), user_agent)
             
             correlation_tracker.finish_correlation(correlation_id, error_count=1)
-            return {}}
+            return {}
                 'success': False,
                 'error': 'invalid_code',
                 'message': 'Invalid two-factor authentication code.'
@@ -399,7 +399,7 @@ class TwoFactorAuthenticator:
                 error_count=1,
                 error_types=[type(e).__name__]
             )
-            return {}}
+            return {}
                 'success': False,
                 'error': 'system_error',
                 'message': 'System error during verification.'
@@ -412,9 +412,9 @@ class TwoFactorAuthenticator:
                 totp = TOTPGenerator(config.secret_key)
                 if totp.verify_totp(code, window=self.code_validity_window):
                     self._record_attempt(config.user_id, config.method, code, True, ip_address, "", user_agent)
-                    return {}}'success': True}
+                    return {}'success': True}
                 else:
-                    return {}}'success': False, 'error': 'Invalid TOTP code'}
+                    return {}'success': False, 'error': 'Invalid TOTP code'}
             
             elif config.method == TwoFactorMethod.BACKUP_CODES:
                 # Check if code is a valid unused backup code
@@ -427,17 +427,17 @@ class TwoFactorAuthenticator:
                     if remaining_codes <= 2:
                         logger.warning(f"User {config.user_id} has only {remaining_codes} backup codes remaining")
                     
-                    return {}}'success': True, 'remaining_backup_codes': remaining_codes}
+                    return {}'success': True, 'remaining_backup_codes': remaining_codes}
                 else:
-                    return {}}'success': False, 'error': 'Invalid or used backup code'}
+                    return {}'success': False, 'error': 'Invalid or used backup code'}
             
             # Add other methods (SMS, Email, etc.) here
             else:
-                return {}}'success': False, 'error': 'Method not implemented'}
+                return {}'success': False, 'error': 'Method not implemented'}
                 
         except Exception as e:
             logger.error(f"Code verification failed for method {config.method.value}: {e}")
-            return {}}'success': False, 'error': 'Verification error'}
+            return {}'success': False, 'error': 'Verification error'}
     
     def _get_user_config(self, user_id: str, method: TwoFactorMethod) -> Optional[TwoFactorConfig]:
         """Get user configuration for specific method."""
@@ -567,7 +567,7 @@ class TwoFactorAuthenticator:
             if status['enabled']
         ]
         
-        return {}}
+        return {}
             'user_id': user_id,
             'has_2fa_enabled': len(enabled_methods) > 0,
             'enabled_methods': enabled_methods,
@@ -629,7 +629,7 @@ class TwoFactorAuthenticator:
             if recent_attempts else 0
         )
         
-        return {}}
+        return {}
             'total_users': total_users,
             'enabled_users': enabled_users,
             'adoption_rate': (enabled_users / total_users * 100) if total_users > 0 else 0,

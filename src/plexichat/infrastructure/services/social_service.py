@@ -540,7 +540,7 @@ datetime = datetime.now()
                     "received_at": friendship.created_at.isoformat()
                 })
 
-        return {}}
+        return {}
             "sent": sent_requests,
             "received": received_requests
         }
@@ -670,7 +670,7 @@ datetime = datetime.now()
                 activity_type = activity.activity_type.value
                 activity_counts[activity_type] = activity_counts.get(activity_type, 0) + 1
 
-            return {}}
+            return {}
                 "total_users": total_users,
                 "online_users": online_users,
                 "total_friendships": total_friendships,
@@ -682,7 +682,7 @@ datetime = datetime.now()
 
         except Exception as e:
             logger.error(f"Failed to get social statistics: {e}")
-            return {}}}
+            return {}}
 
 
 # Global social service instance

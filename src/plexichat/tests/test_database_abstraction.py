@@ -99,12 +99,12 @@ class DatabaseAbstractionTester:
 
             success = await self.db_manager.add_database("test_sqlite", config)
             if not success:
-                return {}}"success": False, "message": "Failed to add SQLite database"}
+                return {"success": False, "message": "Failed to add SQLite database"}
 
             # Test connection
             connection_test = await self.db_manager._test_connection("test_sqlite")
             if not connection_test:
-                return {}}"success": False, "message": "SQLite connection test failed"}
+                return {"success": False, "message": "SQLite connection test failed"}
 
             # Test query execution
             result = await self.db_manager.execute_query(
@@ -113,12 +113,12 @@ class DatabaseAbstractionTester:
             )
 
             if result.get("success") and result.get("result", {}).get("rows"):
-                return {}}"success": True, "message": "SQLite test completed successfully"}
+                return {"success": True, "message": "SQLite test completed successfully"}
             else:
-                return {}}"success": False, "message": f"SQLite query failed: {result}"}
+                return {"success": False, "message": f"SQLite query failed: {result}"}
 
         except Exception as e:
-            return {}}"success": False, "message": f"SQLite test error: {str(e)}"}
+            return {"success": False, "message": f"SQLite test error: {str(e)}"}
 
     async def _test_postgresql(self) -> Dict[str, Any]:
         """Test PostgreSQL database."""
@@ -136,17 +136,17 @@ class DatabaseAbstractionTester:
 
             success = await self.db_manager.add_database("test_postgres", config)
             if not success:
-                return {}}"success": False, "message": "Failed to add PostgreSQL database"}
+                return {"success": False, "message": "Failed to add PostgreSQL database"}
 
             # Test connection
             connection_test = await self.db_manager._test_connection("test_postgres")
             if not connection_test:
-                return {}}"success": False, "message": "PostgreSQL connection test failed"}
+                return {"success": False, "message": "PostgreSQL connection test failed"}
 
-            return {}}"success": True, "message": "PostgreSQL test completed successfully"}
+            return {"success": True, "message": "PostgreSQL test completed successfully"}
 
         except Exception as e:
-            return {}}"success": False, "message": f"PostgreSQL test error: {str(e)}"}
+            return {"success": False, "message": f"PostgreSQL test error: {str(e)}"}
 
     async def _test_mysql(self) -> Dict[str, Any]:
         """Test MySQL database."""
@@ -164,12 +164,12 @@ class DatabaseAbstractionTester:
 
             success = await self.db_manager.add_database("test_mysql", config)
             if not success:
-                return {}}"success": False, "message": "Failed to add MySQL database"}
+                return {"success": False, "message": "Failed to add MySQL database"}
 
-            return {}}"success": True, "message": "MySQL test completed successfully"}
+            return {"success": True, "message": "MySQL test completed successfully"}
 
         except Exception as e:
-            return {}}"success": False, "message": f"MySQL test error: {str(e)}"}
+            return {"success": False, "message": f"MySQL test error: {str(e)}"}
 
     async def _test_mariadb(self) -> Dict[str, Any]:
         """Test MariaDB database."""
@@ -191,12 +191,12 @@ class DatabaseAbstractionTester:
 
             success = await self.db_manager.add_database("test_mongodb", config)
             if not success:
-                return {}}"success": False, "message": "Failed to add MongoDB database"}
+                return {"success": False, "message": "Failed to add MongoDB database"}
 
-            return {}}"success": True, "message": "MongoDB test completed successfully"}
+            return {"success": True, "message": "MongoDB test completed successfully"}
 
         except Exception as e:
-            return {}}"success": False, "message": f"MongoDB test error: {str(e)}"}
+            return {"success": False, "message": f"MongoDB test error: {str(e)}"}
 
     async def _test_redis(self) -> Dict[str, Any]:
         """Test Redis database."""
@@ -212,31 +212,31 @@ class DatabaseAbstractionTester:
 
             success = await self.db_manager.add_database("test_redis", config)
             if not success:
-                return {}}"success": False, "message": "Failed to add Redis database"}
+                return {"success": False, "message": "Failed to add Redis database"}
 
-            return {}}"success": True, "message": "Redis test completed successfully"}
+            return {"success": True, "message": "Redis test completed successfully"}
 
         except Exception as e:
-            return {}}"success": False, "message": f"Redis test error: {str(e)}"}
+            return {"success": False, "message": f"Redis test error: {str(e)}"}
 
     # Placeholder test methods for other databases
     async def _test_clickhouse(self) -> Dict[str, Any]:
-        return {}}"success": False, "message": "ClickHouse test not implemented yet"}
+        return {"success": False, "message": "ClickHouse test not implemented yet"}
 
     async def _test_timescaledb(self) -> Dict[str, Any]:
-        return {}}"success": False, "message": "TimescaleDB test not implemented yet"}
+        return {"success": False, "message": "TimescaleDB test not implemented yet"}
 
     async def _test_cassandra(self) -> Dict[str, Any]:
-        return {}}"success": False, "message": "Cassandra test not implemented yet"}
+        return {"success": False, "message": "Cassandra test not implemented yet"}
 
     async def _test_elasticsearch(self) -> Dict[str, Any]:
-        return {}}"success": False, "message": "Elasticsearch test not implemented yet"}
+        return {"success": False, "message": "Elasticsearch test not implemented yet"}
 
     async def _test_neo4j(self) -> Dict[str, Any]:
-        return {}}"success": False, "message": "Neo4j test not implemented yet"}
+        return {"success": False, "message": "Neo4j test not implemented yet"}
 
     async def _test_influxdb(self) -> Dict[str, Any]:
-        return {}}"success": False, "message": "InfluxDB test not implemented yet"}
+        return {"success": False, "message": "InfluxDB test not implemented yet"}
 
     def print_summary(self):
         """Print test summary."""

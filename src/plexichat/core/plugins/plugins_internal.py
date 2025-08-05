@@ -82,7 +82,7 @@ class PluginInterface(ABC):
     
     def get_info(self) -> Dict[str, Any]:
         """Get plugin information."""
-        return {}}
+        return {}
             "name": self.name,
             "version": self.version,
             "description": self.description,
@@ -168,10 +168,10 @@ class PluginManager:
         try:
             if self._unified_manager:
                 return self._unified_manager.loaded_plugins
-            return {}}}
+            return {}}
         except Exception as e:
             self.logger.error(f"Failed to get all plugins: {e}")
-            return {}}}
+            return {}}
     
     async def discover_plugins(self) -> List[str]:
         """Discover available plugins."""
