@@ -161,6 +161,7 @@ ANALYTICS_BATCH_SIZE = 100
 MAX_LOGIN_ATTEMPTS = 5
 LOCKOUT_DURATION_MINUTES = 15
 RATE_LIMIT_REQUESTS_PER_MINUTE = 60
+DEFAULT_SECRET_KEY = "plexichat-default-secret-key-change-in-production"
 
 # Plugin resource limits
 MAX_PLUGIN_MEMORY = 100 * 1024 * 1024  # 100MB per plugin

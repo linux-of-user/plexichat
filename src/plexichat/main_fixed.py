@@ -170,7 +170,7 @@ if FASTAPI_AVAILABLE:
     @app.get("/")
     async def root():
         """Root endpoint."""
-        return {}
+        return {
             "message": "Welcome to PlexiChat API",
             "version": "1.0.0",
             "status": "running",

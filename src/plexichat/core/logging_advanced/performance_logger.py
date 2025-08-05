@@ -61,7 +61,7 @@ class PerformanceMetric:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert metric to dictionary."""
-        return {}
+        return {
             "name": self.name,
             "value": self.value,
             "unit": self.unit,
@@ -187,32 +187,32 @@ class SystemMonitor:
     def get_disk_usage(self) -> Dict[str, float]:
         """Get disk I/O statistics."""
         if self.process is None:
-            return {}}
+            return {}
         try:
             disk_io = self.process.io_counters()
-            return {}
+            return {
                 "read_bytes": disk_io.read_bytes,
                 "write_bytes": disk_io.write_bytes,
                 "read_count": disk_io.read_count,
                 "write_count": disk_io.write_count
             }
         except (psutil.AccessDenied if psutil else Exception, AttributeError):
-            return {}}
+            return {}
 
     def get_network_usage(self) -> Dict[str, float]:
         """Get network I/O statistics."""
         try:
             network_io = psutil.net_io_counters() if psutil else None
             if network_io is None:
-                return {}}
-            return {}
+                return {}
+            return {
                 "bytes_sent": network_io.bytes_sent,
                 "bytes_recv": network_io.bytes_recv,
                 "packets_sent": network_io.packets_sent,
                 "packets_recv": network_io.packets_recv
             }
         except AttributeError:
-            return {}}
+            return {}
 
     def get_thread_count(self) -> int:
         """Get current thread count."""
@@ -513,9 +513,16 @@ def get_performance_logger() -> PerformanceLogger:
     """Get the global performance logger instance."""
     global _performance_logger
     if _performance_logger is None:
-        config = get_config()
+        try:
+            from ..unified_config import get_unified_config
+            config = get_unified_config()
+        except ImportError:
+            config = None
         from pathlib import Path
-        log_dir = Path(getattr(config.logging, "directory", "logs")) / "performance"
+        if config and hasattr(config, 'logging'):
+            log_dir = Path(getattr(config.logging, "directory", "logs")) / "performance"
+        else:
+            log_dir = Path("logs") / "performance"
 
         # Performance logging configuration
         perf_config = {

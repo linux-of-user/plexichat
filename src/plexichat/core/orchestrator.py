@@ -61,7 +61,7 @@ class ModuleManager:
     
     def get_status(self) -> Dict[str, Any]:
         """Get module loading status."""
-        return {}
+        return {
             "loaded_count": len(self.loaded_modules),
             "failed_count": len(self.failed_modules),
             "loaded_modules": list(self.loaded_modules),

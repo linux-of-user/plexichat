@@ -716,7 +716,7 @@ class EndToEndEncryption:
         session = self.active_sessions[session_id]
         policy = self.endpoint_policies[session.endpoint_type]
 
-        return {}
+        return {
             "session_id": session.session_id,
             "user_id": session.user_id,
             "endpoint_type": session.endpoint_type.value,

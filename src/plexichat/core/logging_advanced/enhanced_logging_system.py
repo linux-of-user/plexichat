@@ -249,7 +249,7 @@ class LogBuffer:
     def get_stats(self) -> Dict[str, Any]:
         """Get buffer statistics."""
         with self.lock:
-            return {}
+            return {
                 "buffer_size": len(self.buffer),
                 "max_size": self.max_size,
                 "stats": dict(self.stats),
@@ -293,10 +293,10 @@ class PerformanceTracker:
         with self.lock:
             if operation:
                 if operation not in self.operations:
-                    return {}}
+                    return {}
                 
                 durations = [op["duration"] for op in self.operations[operation]]
-                return {}
+                return {
                     "operation": operation,
                     "count": len(durations),
                     "avg_duration": sum(durations) / len(durations) if durations else 0,
@@ -307,7 +307,7 @@ class PerformanceTracker:
                     "p99": self._percentile(durations, 99) if durations else 0
                 }
             else:
-                return {}op: self.get_stats(op) for op in self.operations.keys()}
+                return {op: self.get_stats(op) for op in self.operations.keys()}
     
     def _percentile(self, data: List[float], percentile: int) -> float:
         """Calculate percentile value."""

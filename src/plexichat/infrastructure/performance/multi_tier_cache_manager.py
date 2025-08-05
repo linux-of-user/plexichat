@@ -587,7 +587,7 @@ class MultiTierCacheManager:
                 "max_memory_mb": self.l1_max_memory_mb
             }
 
-            return {}
+            return {
                 "global": {
                     "hits": self.global_stats.hits,
                     "misses": self.global_stats.misses,

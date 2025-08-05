@@ -592,7 +592,7 @@ class DistributedKeyManager:
                 "security_intact": domain_compromised <= self.max_compromised_vaults
             }
 
-        return {}
+        return {
             "total_keys": len(self.distributed_keys),
             "total_vaults": total_vaults,
             "compromised_vaults": compromised_vaults,
