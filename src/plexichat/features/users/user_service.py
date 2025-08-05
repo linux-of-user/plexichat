@@ -19,7 +19,7 @@ class UserCreate:
     role: str
 class UserUpdate:
     def dict(self, exclude_unset=True):
-        return {}}
+        return {}
 
 """User business logic service."""
 logger = logging.getLogger(__name__)

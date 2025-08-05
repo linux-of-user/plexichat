@@ -426,7 +426,7 @@ async def login_status(
     if performance_logger:
         performance_logger.record_metric("login_status_checks", 1, "count")
 
-    return {}
+    return {
         "logged_in": True,
         "user": {
             "id": current_user.get("id"),

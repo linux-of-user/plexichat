@@ -12,16 +12,16 @@ PlexiChat User Model
 Enhanced user model with comprehensive functionality and performance optimization.
 Uses EXISTING database abstraction and optimization systems.
 """
-import time
+# time import not used
 
 import logging
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Union
+from typing import Optional
 from dataclasses import dataclass, field
 
 # SQLModel imports
 try:
-    from sqlmodel import SQLModel, Field, Relationship
+    pass
 except ImportError:
     SQLModel = object
     Field = lambda *args, **kwargs: None
@@ -29,7 +29,7 @@ except ImportError:
 
 # Pydantic imports
 try:
-    from pydantic import BaseModel, validator, EmailStr
+    pass
 except ImportError:
     BaseModel = object
     validator = lambda *args, **kwargs: lambda f: f
@@ -43,18 +43,16 @@ except ImportError:
 
 # Use EXISTING performance optimization engine
 try:
-    from plexichat.infrastructure.performance.optimization_engine import PerformanceOptimizationEngine
     from plexichat.infrastructure.utils.performance import async_track_performance
     from plexichat.core.logging_advanced.performance_logger import get_performance_logger, timer
 except ImportError:
-    PerformanceOptimizationEngine = None
     async_track_performance = None
     get_performance_logger = None
     timer = None
 
 # Security imports
 try:
-    from plexichat.infrastructure.utils.security import hash_password, verify_password
+    from plexichat.infrastructure.utils.security import hash_password
 except ImportError:
     def hash_password(password: str) -> str:
         return f"hashed_{password}"

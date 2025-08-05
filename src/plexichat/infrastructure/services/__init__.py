@@ -11,14 +11,8 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Type, Union
 
-from ..optimization import CacheLevel, optimization_manager, secure_cache
-from ..security import ()
+# from ..optimization import CacheLevel, optimization_manager, secure_cache
 import time
-    KeyDomain,
-    distributed_key_manager,
-    quantum_encryption,
-    security_manager,
-)
 
 
 """
@@ -118,7 +112,7 @@ class SecureService:
     def __init__(self, metadata: ServiceMetadata):
         self.metadata = metadata
         self.status = ServiceStatus.STOPPED
-        self.health = ServiceHealth()
+        self.health = ServiceHealth(
             service_id=metadata.service_id,
             status=ServiceStatus.STOPPED,
             uptime=timedelta(0),
@@ -167,69 +161,66 @@ class SecureService:
         """Setup service-specific encryption."""
         try:
             # Get service encryption key
-            self.service_key = await distributed_key_manager.get_domain_key()
-                KeyDomain.COMMUNICATION
-            )
+            # self.service_key = await distributed_key_manager.get_domain_key(
+            #     KeyDomain.COMMUNICATION
+            # )
 
             # Create encryption context
-            self.encryption_context = type()
-                "Context",
-                (),
-                {
-                    "operation_id": f"service_{self.metadata.service_id}",
-                    "data_type": "service_communication",
-                    "security_tier": self._get_security_tier(),
-                    "algorithms": [],
+            self.encryption_context = {
+                "operation_id": f"service_{self.metadata.service_id}",
+                "data_type": "service_communication",
+                "security_tier": "STANDARD",  # self._get_security_tier(),
+                "algorithms": [],
                     "key_ids": [f"service_key_{self.metadata.service_id}"],
                     "metadata": {
                         "service_id": self.metadata.service_id,
                         "service_type": self.metadata.service_type.value,
                         "security_level": self.metadata.security_level,
                     },
-                },
-            )()
+                }
 
         except Exception as e:
-            logger.warning()
-                f"Failed to setup service encryption for {self.metadata.name}: {e}"
-            )
+            logger.warning(f"Failed to setup service encryption for {self.metadata.name}: {e}")
 
     def _get_security_tier(self):
         """Get quantum security tier based on service security level."""
-        mapping = {
-            "STANDARD": SecurityTier.STANDARD,
-            "ENHANCED": SecurityTier.ENHANCED,
-            "GOVERNMENT": SecurityTier.GOVERNMENT,
-            "MILITARY": SecurityTier.MILITARY,
-            "QUANTUM_PROOF": SecurityTier.QUANTUM_PROOF,
-        }
-        return mapping.get(self.metadata.security_level, SecurityTier.STANDARD)
+        # mapping = {
+        #     "STANDARD": SecurityTier.STANDARD,
+        #     "ENHANCED": SecurityTier.ENHANCED,
+        #     "GOVERNMENT": SecurityTier.GOVERNMENT,
+        #     "MILITARY": SecurityTier.MILITARY,
+        #     "QUANTUM_PROOF": SecurityTier.QUANTUM_PROOF,
+        # }
+        # return mapping.get(self.metadata.security_level, SecurityTier.STANDARD)
+        return "STANDARD"
 
     async def _register_with_optimization_manager(self):
         """Register service with optimization manager."""
         try:
             # Register service for performance monitoring
-            if hasattr(optimization_manager, "register_service"):
-                await optimization_manager.register_service(self)
+            # if hasattr(optimization_manager, "register_service"):
+            #     await optimization_manager.register_service(self)
 
             # Setup service-specific cache if enabled
             if self.cache_enabled:
-                self._get_cache_level()
-                self.service_cache = secure_cache  # Use global secure cache
+                # self._get_cache_level()
+                # self.service_cache = secure_cache  # Use global secure cache
+                pass
 
         except Exception as e:
             logger.warning(f"Failed to register with optimization manager: {e}")
 
-    def _get_cache_level(self) -> CacheLevel:
+    def _get_cache_level(self):
         """Get cache security level based on service security level."""
-        mapping = {
-            "STANDARD": CacheLevel.INTERNAL,
-            "ENHANCED": CacheLevel.CONFIDENTIAL,
-            "GOVERNMENT": CacheLevel.RESTRICTED,
-            "MILITARY": CacheLevel.TOP_SECRET,
-            "QUANTUM_PROOF": CacheLevel.TOP_SECRET,
-        }
-        return mapping.get(self.metadata.security_level, CacheLevel.INTERNAL)
+        # mapping = {
+        #     "STANDARD": CacheLevel.INTERNAL,
+        #     "ENHANCED": CacheLevel.CONFIDENTIAL,
+        #     "GOVERNMENT": CacheLevel.RESTRICTED,
+        #     "MILITARY": CacheLevel.TOP_SECRET,
+        #     "QUANTUM_PROOF": CacheLevel.TOP_SECRET,
+        # }
+        # return mapping.get(self.metadata.security_level, CacheLevel.INTERNAL)
+        return "INTERNAL"
 
     async def _setup_health_monitoring(self):
         """Setup service health monitoring."""
@@ -241,9 +232,7 @@ class SecureService:
                     await self._check_service_health()
                     await asyncio.sleep(30)  # Check every 30 seconds
                 except Exception as e:
-                    logger.error()
-                        f"Health monitoring error for {self.metadata.name}: {e}"
-                    )
+                    logger.error(f"Health monitoring error for {self.metadata.name}: {e}")
                     await asyncio.sleep(60)
 
         asyncio.create_task(health_monitor())
@@ -265,20 +254,14 @@ class SecureService:
         """Check service health and trigger recovery if needed."""
         # Check for excessive errors
         if self.health.error_count > 10:
-            logger.warning()
-                f"Service {self.metadata.name} has excessive errors, considering restart"
-            )
+            logger.warning(f"Service {self.metadata.name} has excessive errors, considering restart")
             await self._trigger_service_recovery()
 
         # Check response times
         if self.health.response_times:
-            avg_response_time = sum(self.health.response_times) / len()
-                self.health.response_times
-            )
+            avg_response_time = sum(self.health.response_times) / len(self.health.response_times)
             if avg_response_time > 5.0:  # 5 seconds threshold
-                logger.warning()
-                    f"Service {self.metadata.name} has slow response times: {avg_response_time:.2f}s"
-                )
+                logger.warning(f"Service {self.metadata.name} has slow response times: {avg_response_time:.2f}s")
 
     async def _trigger_service_recovery(self):
         """Trigger service recovery procedures."""
@@ -286,13 +269,15 @@ class SecureService:
 
         try:
             # Stop service gracefully
-            await if self and hasattr(self, "stop"): self.stop()
+            if hasattr(self, "stop"):
+                await self.stop()
 
             # Wait a moment
             await asyncio.sleep(2)
 
             # Restart service
-            await if self and hasattr(self, "start"): self.start()
+            if hasattr(self, "start"):
+                await self.start()
 
             self.restart_count += 1
             logger.info(f" Service recovery completed: {self.metadata.name}")
@@ -358,9 +343,11 @@ class SecureService:
 
     async def restart(self):
         """Restart the service."""
-        await if self and hasattr(self, "stop"): self.stop()
+        if hasattr(self, "stop"):
+            await self.stop()
         await asyncio.sleep(1)
-        await if self and hasattr(self, "start"): self.start()
+        if hasattr(self, "start"):
+            await self.start()
 
     async def _on_start(self):
         """Override this method to implement service startup logic."""
@@ -388,7 +375,7 @@ class SecureService:
 
     def get_status(self) -> Dict[str, Any]:
         """Get service status information."""
-        return {}
+        return {
             "service_id": self.metadata.service_id,
             "name": self.metadata.name,
             "status": self.status.value,

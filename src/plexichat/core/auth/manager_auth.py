@@ -102,7 +102,7 @@ class AuthenticationManager:
                 if self.performance_logger:
                     self.performance_logger.record_metric("successful_logins", 1, "count")
 
-                return {}
+                return {
                     "session_id": session_id,
                     "access_token": access_token,
                     "refresh_token": refresh_token,
@@ -171,7 +171,7 @@ class AuthenticationManager:
                         if self.performance_logger:
                             self.performance_logger.record_metric("token_refreshes", 1, "count")
 
-                        return {}
+                        return {
                             "access_token": new_access_token,
                             "token_type": "bearer"
                         }

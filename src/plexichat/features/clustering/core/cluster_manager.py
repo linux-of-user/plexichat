@@ -420,7 +420,7 @@ psutil.disk_usage('/').total / (1024**3)
             self.master_node_id = self.local_node_id
 
         # Create local node
-        local_node = ClusterNode()
+        local_node = ClusterNode(
             node_id=self.local_node_id,
             hostname=hostname,
             ip_address=ip_address,
@@ -755,7 +755,7 @@ psutil.disk_usage('/').total / (1024**3)
         total_disk = sum(node.disk_gb for node in active_nodes)
         average_load = sum(node.current_load for node in active_nodes) / len(active_nodes) if active_nodes else 0
 
-        return {}
+        return {
             "cluster_id": self.cluster_config.cluster_id if self.cluster_config else "unknown",
             "cluster_name": self.cluster_config.cluster_name if self.cluster_config else "unknown",
             "state": self.cluster_state.value,
@@ -1121,7 +1121,7 @@ psutil.disk_usage('/').total / (1024**3)
                 compute_types=["Bare Metal", "VM"]
             )
 
-            cluster_config = HybridClusterConfig()
+            cluster_config = HybridClusterConfig(
                 cluster_id=f"plexichat-cluster-{self.local_node_id}",
                 primary_region=primary_region,
                 secondary_regions=[],

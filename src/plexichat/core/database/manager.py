@@ -9,9 +9,9 @@ Uses shared components for consistent error handling and type definitions.
 """
 
 # Import shared components (NEW ARCHITECTURE)
-from ...shared.exceptions import DatabaseError, PlexiChatError
-from ...shared.types import ConfigDict, DatabaseRow, DatabaseRows, QueryResult
-from ...shared.constants import DEFAULT_DATABASE_URL, DATABASE_POOL_SIZE
+from ...shared.exceptions import DatabaseError
+# Types not used in this module
+# Constants not used in this module
 
 # Re-export everything from db_manager to maintain compatibility
 try:

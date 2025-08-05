@@ -170,7 +170,7 @@ class LoggingConfig:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert configuration to dictionary."""
-        return {}
+        return {
             field.name: getattr(self, field.name)
             for field in self.__dataclass_fields__.values()
         }

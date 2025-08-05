@@ -44,7 +44,7 @@ class BaseAPIException(Exception):
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert exception to dictionary."""
-        return {}
+        return {
             "error": self.code,
             "message": self.message,
             "details": self.details,
@@ -185,7 +185,7 @@ def handle_exception(exc: Exception, context: Optional[Dict[str, Any]] = None) -
         
     except Exception as e:
         logger.error(f"Error in exception handler: {e}")
-        return {}
+        return {
             "error": "ExceptionHandlerError",
             "message": "Failed to handle exception",
             "timestamp": datetime.now().isoformat()
@@ -195,7 +195,7 @@ def handle_exception(exc: Exception, context: Optional[Dict[str, Any]] = None) -
 def create_error_response(exc: Exception, status_code: int = 500) -> Dict[str, Any]:
     """Create a standardized error response."""
     error_info = handle_exception(exc)
-    return {}
+    return {
         "success": False,
         "error": error_info,
         "status_code": status_code,

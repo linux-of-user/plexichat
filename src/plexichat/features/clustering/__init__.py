@@ -27,15 +27,13 @@ Advanced clustering system with sophisticated features:
 Uses shared components for consistent error handling and type definitions.
 """
 
-from typing import Optional
+
 
 # Import shared components (NEW ARCHITECTURE)
 from ...shared.models import Event, Priority, Status, Task
 from ...shared.types import JSON, ConfigDict
 from ...shared.exceptions import ValidationError, SecurityError, ServiceUnavailableError
-from ...shared.constants import (
-    CLUSTER_HEARTBEAT_INTERVAL, CLUSTER_ELECTION_TIMEOUT, MAX_CLUSTER_NODES
-)
+# Constants not used in this module
 
 # Import clustering components
 try:

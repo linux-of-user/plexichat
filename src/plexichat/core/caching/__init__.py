@@ -1,7 +1,7 @@
 """PlexiChat Caching"""
 
 import logging
-from typing import Any, Optional
+# Typing imports not used
 
 try:
     from .cache_manager import (

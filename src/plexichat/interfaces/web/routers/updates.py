@@ -413,7 +413,7 @@ async def create_backup(
 
         backup_path = f"/backups/plexichat_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
 
-        return {}
+        return {
             "message": "Backup created successfully",
             "backup_path": backup_path,
             "timestamp": datetime.now().isoformat()

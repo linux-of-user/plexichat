@@ -13,7 +13,7 @@ Discord-like server and channel system with comprehensive features:
 Uses shared components for consistent error handling and type definitions.
 """
 
-from typing import Optional
+
 
 # Import shared components (NEW ARCHITECTURE)
 from ...shared.models import Channel, Message, User, Permission, Role, Priority, Status
@@ -22,9 +22,7 @@ from ...shared.exceptions import (
     ValidationError, AuthorizationError, ResourceNotFoundError,
     QuotaExceededError
 )
-from ...shared.constants import (
-    MAX_CHANNEL_NAME_LENGTH, MAX_CHANNEL_DESCRIPTION_LENGTH, MAX_CHANNEL_MEMBERS
-)
+# Constants not available in shared.constants
 
 # Import local components
 from .models import *
@@ -52,27 +50,20 @@ __all__ = [
     "ResourceNotFoundError",
     "QuotaExceededError",
 
-    # Local Models
+    # Local Models (only include what exists)
     "Server",
-    "PermissionOverwrite",
-    "Reaction",
     "ServerMember",
 
-    # Repositories
+    # Repositories (only include what exists)
     "ServerRepository",
     "ChannelRepository",
     "RoleRepository",
-    "PermissionOverwriteRepository",
     "MessageRepository",
-    "ReactionRepository",
     "ServerMemberRepository",
 
-    # Services
+    # Services (only include what exists)
     "ServerService",
     "ChannelService",
     "RoleService",
-    "PermissionService",
-    "PermissionOverwriteService",
-    "ReactionService",
     "MessageService",
 ]

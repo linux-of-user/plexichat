@@ -1,7 +1,7 @@
 """PlexiChat Events"""
 
 import logging
-from typing import Any, Callable, Dict, List, Optional
+# Typing imports not used
 
 try:
     from .event_manager import (

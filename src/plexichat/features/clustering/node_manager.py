@@ -180,7 +180,7 @@ Path("config/cluster.json")
                 with open(config_file, 'r') as f:
                     data = json.load(f)
 
-                return ClusterConfig()
+                return ClusterConfig(
                     cluster_id=data.get("cluster_id", "plexichat_cluster"),
                     cluster_name=data.get("cluster_name", "PlexiChat Cluster"),
                     master_nodes=data.get("master_nodes", []),
@@ -197,7 +197,7 @@ Path("config/cluster.json")
                 self.logger.error(f"Failed to load cluster config: {e}")
 
         # Default configuration
-        return ClusterConfig()
+        return ClusterConfig(
             cluster_id="plexichat_cluster",
             cluster_name="PlexiChat Cluster",
             master_nodes=[self.node_id] if self.is_master else [],

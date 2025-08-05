@@ -170,7 +170,7 @@ class Advanced2FASystem:
 
         logger.info(f"2FA setup initiated for user {user_id} with methods: {methods}")
 
-        return {}
+        return {
             "setup_token": setup_token,
             "methods": methods,
             "totp_secret": setup_data.get("totp_secret_plain"),
@@ -208,7 +208,7 @@ class Advanced2FASystem:
 
                 logger.info(f"2FA setup completed for user {setup_data['user_id']}")
 
-                return {}
+                return {
                     "success": True,
                     "message": "2FA setup completed successfully",
                     "backup_codes": setup_data.get("backup_codes", [])
@@ -256,7 +256,7 @@ class Advanced2FASystem:
                 config.locked_until = None
 
                 logger.info(f"2FA backup code verification successful for user {user_id}")
-                return {}
+                return {
                     "success": True,
                     "method": "backup_code",
                     "remaining_codes": len(config.backup_codes)
@@ -287,7 +287,7 @@ class Advanced2FASystem:
             return {"enabled": False}
 
         config = self.user_configs[user_id]
-        return {}
+        return {
             "enabled": config.enabled,
             "methods": config.enabled_methods,
             "backup_codes_remaining": len(config.backup_codes),
@@ -348,7 +348,7 @@ class Advanced2FASystem:
             return None
 
         config = self.user_configs[user_id]
-        return {}
+        return {
             "user_id": config.user_id,
             "enabled": config.enabled,
             "enabled_methods": config.enabled_methods,

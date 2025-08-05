@@ -444,7 +444,7 @@ class UnifiedAuthManager:
         session["last_activity"] = datetime.now(timezone.utc)
         await self.storage.save_session(session_id, session)
 
-        return {}
+        return {
             "valid": True,
             "session": session,
             "user_id": session.get("user_id"),
@@ -464,7 +464,7 @@ class UnifiedAuthManager:
         if token_data.get("expires_at") and token_data.get("expires_at") <= datetime.now(timezone.utc):
             return {"valid": False, "error": "Token expired"}
 
-        return {}
+        return {
             "valid": True,
             "token": token_data,
             "user_id": token_data.get("user_id"),
@@ -576,7 +576,7 @@ class UnifiedAuthManager:
                 if not session_validation["valid"]:
                     raise Exception("Invalid session")
 
-            return {}
+            return {
                 "authenticated": True,
                 "user_id": token_data.user_id,
                 "security_level": token_data.security_level.value,
@@ -586,7 +586,7 @@ class UnifiedAuthManager:
 
         except Exception as e:
             logger.warning(f"Authentication requirement failed: {e}")
-            return {}
+            return {
                 "authenticated": False,
                 "error": str(e)
             }
@@ -601,7 +601,7 @@ class UnifiedAuthManager:
 
                 if self._verify_admin_account(admin_data):
                     logger.info("Default admin account verified")
-                    return {}
+                    return {
                         "username": admin_data["username"],
                         "status": "existing"
                     }
@@ -644,7 +644,7 @@ class UnifiedAuthManager:
 
             logger.info("Default admin account created successfully")
 
-            return {}
+            return {
                 "username": username,
                 "password": password,
                 "status": "created"
@@ -688,7 +688,7 @@ class UnifiedAuthManager:
         active_sessions = len([s for s in (await self.storage.get_all_sessions()) if s.get("is_active")])
         valid_tokens = len([t for t in (await self.storage.get_all_tokens()) if not t.get("is_revoked")])
 
-        return {}
+        return {
             "initialized": self.initialized,
             "total_users": len(await self.storage.get_all_users()),
             "active_sessions": active_sessions,

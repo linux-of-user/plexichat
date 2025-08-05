@@ -6,64 +6,52 @@ Uses EXISTING database abstraction and optimization systems.
 """
 
 import logging
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 # FastAPI imports
 try:
-    from fastapi import FastAPI, Request, Response
+    from fastapi import FastAPI
     from fastapi.middleware.cors import CORSMiddleware
     from fastapi.middleware.gzip import GZipMiddleware
     from fastapi.staticfiles import StaticFiles
 except ImportError:
     FastAPI = None
-    Request = None
-    Response = None
     CORSMiddleware = None
     GZipMiddleware = None
     StaticFiles = None
 
 # Use EXISTING performance optimization engine
 try:
-    from ...infrastructure.performance.optimization_engine import PerformanceOptimizationEngine
-    from ...infrastructure.utils.performance import async_track_performance
     from ...core.logging_advanced.performance_logger import get_performance_logger
 except ImportError:
     try:
-        from plexichat.infrastructure.performance.optimization_engine import PerformanceOptimizationEngine
-        from plexichat.infrastructure.utils.performance import async_track_performance
         from plexichat.core.logging_advanced.performance_logger import get_performance_logger
     except ImportError:
-        PerformanceOptimizationEngine = None
-        async_track_performance = None
         get_performance_logger = None
 
 # Configuration imports
+config_manager = None
 try:
     from ...core.config_manager import ConfigurationManager
     config_manager = ConfigurationManager()
-
-    class Settings:
-        DEBUG = config_manager.get('system.debug', False)
-        APP_NAME = config_manager.get('system.name', 'PlexiChat')
-        APP_VERSION = config_manager.get('system.version', 'b.1.1-93')
-
-    settings = Settings()
 except ImportError:
     try:
         from plexichat.core.config_manager import ConfigurationManager
         config_manager = ConfigurationManager()
-
-        class Settings:
-            DEBUG = config_manager.get('system.debug', False)
-            APP_NAME = config_manager.get('system.name', 'PlexiChat')
-            APP_VERSION = config_manager.get('system.version', 'b.1.1-93')
-
-        settings = Settings()
     except ImportError:
-        class MockSettings:
-            DEBUG = False
-            APP_NAME = "PlexiChat"
-            APP_VERSION = "b.1.1-93"
+        pass
+
+if config_manager:
+    class Settings:
+        DEBUG = config_manager.get('system.debug', False)
+        APP_NAME = config_manager.get('system.name', 'PlexiChat')
+        APP_VERSION = config_manager.get('system.version', 'b.1.1-93')
+    settings = Settings()
+else:
+    class MockSettings:
+        DEBUG = False
+        APP_NAME = "PlexiChat"
+        APP_VERSION = "b.1.1-93"
     settings = MockSettings()
 
 logger = logging.getLogger(__name__)
@@ -144,7 +132,7 @@ def create_app() -> Optional[Any]:
         # Add health check endpoint
         @app.get("/health")
         async def health_check():
-            return {}
+            return {
                 "status": "healthy",
                 "timestamp": "2024-01-01T00:00:00Z",
                 "version": getattr(settings, 'APP_VERSION', 'b.1.1-86')

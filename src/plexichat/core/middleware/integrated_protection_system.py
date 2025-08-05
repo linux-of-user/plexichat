@@ -13,6 +13,16 @@ from dataclasses import dataclass, field
 from enum import Enum
 from collections import defaultdict, deque
 
+# FastAPI imports
+try:
+    from fastapi import Request
+except ImportError:
+    # Fallback for testing
+    class Request:
+        def __init__(self):
+            self.state = type('State', (), {})()
+            self.client = type('Client', (), {'host': '127.0.0.1'})()
+
 # Import psutil safely
 try:
     import psutil
@@ -33,6 +43,7 @@ try:
     from ..middleware.unified_rate_limiter import (
         UnifiedRateLimiter, RateLimitConfig, RateLimitStrategy, RateLimitAlgorithm, RateLimitViolation
     )
+    from ..config.rate_limiting_config import AccountType, AccountTypeRateLimit
 except ImportError:
     # Create minimal fallback classes
     class RateLimitStrategy:

@@ -1,8 +1,7 @@
 """PlexiChat Scheduler"""
 
 import logging
-from typing import Any, Callable, Dict, List
-from datetime import datetime
+# Typing and datetime imports not used
 
 try:
     from .task_scheduler import (

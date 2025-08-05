@@ -7,27 +7,22 @@
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
 import asyncio
-import hashlib
-import importlib
-import importlib.util
-import json
+# Unused imports removed
 import logging
 import sys
-import tempfile
-import zipfile
+# More unused imports removed
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from enum import Enum
-from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Type, Union
+# Path import not used
+from typing import Any, Callable, Dict, List, Optional
 
-from ...features.security import security_manager
+# Security manager import not used
 from ...features.security.distributed_key_manager import distributed_key_manager
-from ..performance.cache_manager import CacheManager
+# CacheManager import not used
 from ..security.quantum_encryption import SecurityTier
-from ..services import SecureService, ServiceMetadata, ServicePriority, ServiceType
-from ..services.loader import ServiceLoader
-from .interfaces import ModulePriority
+from ..services import ServiceMetadata, ServicePriority, ServiceType
+# SecureService, ServiceLoader, ModulePriority imports not used
 
 
 """
@@ -40,25 +35,11 @@ intelligent dependency resolution, and seamless service integration.
 
 # Import security and services (with fallbacks for missing modules)
 try:
-    from plexichat.features.security import security_manager
     from plexichat.features.security.distributed_key_manager import distributed_key_manager
 except ImportError:
-    security_manager = None
     distributed_key_manager = None
 
-try:
-    from plexichat.infrastructure.services.service_loader import ServiceLoader
-except ImportError:
-    ServiceLoader = None
-    ServiceMetadata = None
-    ServiceType = None
-    ServicePriority = None
-    SecureService = None
-
-try:
-    from plexichat.core.caching import CacheManager
-except ImportError:
-    CacheManager = None
+# Other imports not used in this module
 
 logger = logging.getLogger(__name__)
 

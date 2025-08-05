@@ -229,7 +229,7 @@ class LogBuffer:
         for subscriber in self.subscribers:
             try:
                 subscriber(entry)
-            except Exception as e:
+            except Exception:
                 # Don't let subscriber errors break logging
                 pass
 

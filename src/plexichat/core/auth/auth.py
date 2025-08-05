@@ -15,7 +15,7 @@ import time
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from enum import Enum
-from pathlib import Path
+# Path import not used
 from typing import Any, Dict, List, Optional, Tuple
 
 try:
@@ -23,7 +23,7 @@ try:
     JWT_AVAILABLE = True
 except ImportError:
     jwt = None
-    JWT_AVAILABLE = False
+    jwt_available = False
 
 """
 PlexiChat Unified Authentication System

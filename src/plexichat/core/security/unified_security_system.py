@@ -614,7 +614,7 @@ class InputSanitizer:
             if matches:
                 found_patterns.extend(matches)
 
-        return {}
+        return {
             "safe": len(found_patterns) == 0,
             "patterns": found_patterns,
             "risk_level": "high" if found_patterns else "low"

@@ -1,7 +1,7 @@
 """PlexiChat Middleware"""
 
 import logging
-from typing import Any, Dict, List
+# Typing imports not used
 
 try:
     from .middleware_manager import (

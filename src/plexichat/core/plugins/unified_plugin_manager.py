@@ -245,19 +245,19 @@ class PluginInterface(ABC):
 
     def get_metadata(self) -> Dict[str, Any]:
         """Get plugin metadata."""
-        return {}}
+        return {}
 
     def get_commands(self) -> Dict[str, Callable]:
         """Get plugin commands."""
-        return {}}
+        return {}
 
     def get_event_handlers(self) -> Dict[str, Callable]:
         """Get plugin event handlers."""
-        return {}}
+        return {}
 
     async def health_check(self) -> Dict[str, Any]:
         """Perform plugin health check."""
-        return {}
+        return {
             "status": "healthy",
             "state": self.state,
             "loaded_at": self.loaded_at.isoformat() if self.loaded_at else None,
@@ -266,7 +266,7 @@ class PluginInterface(ABC):
 
     async def self_test(self) -> Dict[str, Any]:
         """Run plugin self-tests."""
-        return {}
+        return {
             "passed": True,
             "tests": [],
             "message": "No tests implemented"
@@ -274,39 +274,39 @@ class PluginInterface(ABC):
     # --- New extension points ---
     def get_routers(self) -> Dict[str, Any]:
         """Return a dict of routers to be registered (e.g., {"/myroute": router})."""
-        return {}}
+        return {}
     def get_db_extensions(self) -> Dict[str, Any]:
         """Return a dict of DB models, DAOs, or adapters to register."""
-        return {}}
+        return {}
     def get_security_features(self) -> Dict[str, Any]:
         """Return a dict of security features (middleware, policies, etc.) to register."""
-        return {}}
+        return {}
     def get_services(self) -> Dict[str, Any]:
         """Declare which core services the plugin wants injected (logger, analytics, db, ai, backup, security, etc.).
         Return a dict like {"logger": True, "analytics": True, ...} or provide custom handlers.
         The plugin manager will inject these as attributes or via dependency injection."""
-        return {}}
+        return {}
     def register_logging_handlers(self) -> Dict[str, Any]:
         """Return custom logging handlers or formatters to register with the logging system."""
-        return {}}
+        return {}
     def register_analytics_hooks(self) -> Dict[str, Any]:
         """Return analytics hooks or metrics to register with the analytics system."""
-        return {}}
+        return {}
     def get_event_hooks(self) -> Dict[str, Any]:
         """Return a dict of event hooks: {event_name: handler_fn}."""
-        return {}}
+        return {}
     def get_config_schema(self) -> Dict[str, Any]:
         """Return a config schema for this plugin (for validation/UI)."""
-        return {}}
+        return {}
     def get_health_checks(self) -> Dict[str, Any]:
         """Return custom health/readiness/liveness checks."""
-        return {}}
+        return {}
     def get_backup_handlers(self) -> Dict[str, Any]:
         """Return custom backup/restore handlers."""
-        return {}}
+        return {}
     def get_middleware(self) -> Dict[str, Any]:
         """Return custom middleware for web, API, or CLI."""
-        return {}}
+        return {}
     def set_context(self, context: PluginContext):
         """Set the plugin context (called by the plugin manager)."""
         self.context = context
@@ -609,10 +609,10 @@ class PluginIsolationManager:
 
     def get_plugin_module_requests(self, plugin_name: str = None):
         if not hasattr(self, 'plugin_module_requests'):
-            return {}}
+            return {}
         if plugin_name:
-            return {}plugin_name: list(self.plugin_module_requests.get(plugin_name, set()))}
-        return {}k: list(v) for k, v in self.plugin_module_requests.items()}
+            return {plugin_name: list(self.plugin_module_requests.get(plugin_name, set()))}
+        return {k: list(v) for k, v in self.plugin_module_requests.items()}
 
 
 class PluginTestManager:
@@ -648,7 +648,7 @@ class PluginTestManager:
 
         except Exception as e:
             self.logger.error(f"Failed to run tests for plugin {plugin_name}: {e}")
-            return {}
+            return {
                 "plugin_name": plugin_name,
                 "timestamp": datetime.now().isoformat(),
                 "error": str(e),
@@ -659,7 +659,7 @@ class PluginTestManager:
         """Run external tests for a plugin."""
         # Look for test files in plugin directory
         # This is a simplified implementation
-        return {}
+        return {
             "passed": True,
             "tests": [],
             "message": "No external tests found"
@@ -1330,7 +1330,7 @@ class UnifiedPluginManager:
 
         except Exception as e:
             self.logger.error(f"Failed to load enabled plugins: {e}")
-            return {}}
+            return {}
 
     def _generate_plugin_sdk(self):
         """Auto-generate the plugin SDK (plugins_internal.py) - DISABLED to prevent code generation in src."""
@@ -1397,7 +1397,7 @@ class BasePlugin(ABC):
 
     def get_config_schema(self) -> Dict[str, Any]:
         """Return the configuration schema for this plugin."""
-        return {}}
+        return {}
 
     def get_config(self) -> Dict[str, Any]:
         """Get plugin configuration."""
@@ -1487,10 +1487,10 @@ class PluginConfig:
             if self.config_file.exists():
                 with open(self.config_file, 'r') as f:
                     return json.load(f)
-            return {}}
+            return {}
         except Exception as e:
             logging.error(f"Failed to load config for {self.plugin_name}: {e}")
-            return {}}
+            return {}
 
     def save(self, config: Dict[str, Any]):
         """Save plugin configuration."""
@@ -1532,7 +1532,7 @@ class PluginAPI:
     async def get_user_info(user_id: str) -> Dict[str, Any]:
         """Get user information."""
         # This would integrate with the user management system
-        return {}}
+        return {}
 
     @staticmethod
     async def store_data(key: str, value: Any, plugin_name: str):
@@ -1769,7 +1769,7 @@ __all__ = [
 
             plugin_info = self.plugin_info[plugin_name]
 
-            return {}
+            return {
                 "plugin_id": plugin_info.plugin_id,
                 "metadata": {
                     "name": plugin_info.metadata.name,
@@ -1797,18 +1797,18 @@ __all__ = [
     def get_all_plugins_info(self) -> Dict[str, Dict[str, Any]]:
         """Get information for all plugins."""
         try:
-            return {}
+            return {
                 plugin_name: info
                 for plugin_name in self.plugin_info
                 if (info := self.get_plugin_info(plugin_name)) is not None
             }
         except Exception as e:
             self.logger.error(f"Failed to get all plugins info: {e}")
-            return {}}
+            return {}
 
     def get_stats(self) -> Dict[str, Any]:
         """Get plugin manager statistics."""
-        return {}
+        return {
             **self.stats,
             "discovered_plugins": list(self.discovered_plugins),
             "loaded_plugins": list(self.loaded_plugins.keys()),
@@ -1980,13 +1980,13 @@ __all__ = [
     def get_plugin_errors(self, plugin_name: Optional[str] = None) -> Dict[str, List[str]]:
         """Get errors for a specific plugin or all plugins."""
         if plugin_name:
-            return {}plugin_name: self.plugin_errors.get(plugin_name, [])}
+            return {plugin_name: self.plugin_errors.get(plugin_name, [])}
         return self.plugin_errors
 
     def get_plugin_metrics(self, plugin_name: Optional[str] = None) -> Dict[str, Dict[str, Any]]:
         """Get metrics for a specific plugin or all plugins."""
         if plugin_name:
-            return {}plugin_name: self.plugin_metrics.get(plugin_name, {})}
+            return {plugin_name: self.plugin_metrics.get(plugin_name, {})}
         return self.plugin_metrics
 
     def get_dependency_graph(self) -> Dict[str, Set[str]]:

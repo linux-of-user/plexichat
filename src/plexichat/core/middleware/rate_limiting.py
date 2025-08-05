@@ -89,7 +89,7 @@ class SlidingWindowRateLimiter:
         remaining = max(0, self.config.requests_per_minute - requests_in_window)
         reset_time = int(current_time + self.config.window_size)
         
-        return {}
+        return {
             "limit": self.config.requests_per_minute,
             "remaining": remaining,
             "reset": reset_time,
@@ -137,7 +137,7 @@ class TokenBucketRateLimiter:
         current_time = time.time()
         self._refill_tokens(client_id, current_time)
         
-        return {}
+        return {
             "capacity": self.capacity,
             "remaining": self.tokens[client_id],
             "refill_rate": self.refill_rate

@@ -6,8 +6,7 @@
 # pyright: reportReturnType=false
 from .models import *
 from .repositories import *
-from .services import *
-from typing import Optional
+# Services import not available
 
 
 """
@@ -24,6 +23,4 @@ __all__ = [
     # Repositories
     "StatusUpdateRepository",
     "StatusViewRepository",
-    # Services
-    "StatusUpdateService",
 ]

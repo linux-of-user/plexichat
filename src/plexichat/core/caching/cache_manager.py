@@ -9,8 +9,8 @@ import json
 import logging
 import time
 import threading
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Union, Callable
+# datetime imports not used
+from typing import Any, Dict, List, Optional, Callable
 from dataclasses import dataclass
 
 try:
@@ -24,7 +24,7 @@ except ImportError:
     async_thread_manager = None
 
 try:
-    from plexichat.infrastructure.performance.optimization_engine import PerformanceOptimizationEngine
+    # PerformanceOptimizationEngine not used
     from plexichat.core.logging_advanced.performance_logger import get_performance_logger
 except ImportError:
     PerformanceOptimizationEngine = None

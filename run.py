@@ -779,7 +779,16 @@ class DependencyInstaller:
 
     def _install_single_package(self, package: str, force: bool = False) -> bool:
         """Install a single package with retry logic."""
-        package_name = package.split(">=")[0].split("==")[0].split("[")[0].strip()
+        # Better package name parsing to avoid creating junk directories
+        import re
+
+        # Extract package name more carefully
+        package_name = re.split(r'[>=<!=\[\s]', package.strip())[0].strip()
+
+        # Skip empty or invalid package names
+        if not package_name or package_name.isdigit() or len(package_name) < 2:
+            print_colored(f"  [SKIP] Invalid package name: {package}", Colors.YELLOW)
+            return True
 
         print_colored(f"  Installing {package_name}...", Colors.CYAN)
 
@@ -794,7 +803,8 @@ class DependencyInstaller:
                     shell=True,
                     capture_output=True,
                     text=True,
-                    timeout=300  # 5 minute timeout per package
+                    timeout=300,  # 5 minute timeout per package
+                    cwd=self.env_manager.project_root  # Ensure we're in the right directory
                 )
 
                 if result.returncode == 0:
@@ -979,46 +989,7 @@ def handle_update_command(args):
     except subprocess.CalledProcessError as e:
         print_colored(f"[ERROR] Update failed: {e}", Colors.RED)
 
-def handle_gui_command(args):
-    """Handle GUI command."""
-    print_colored("[GUI]  Starting PlexiChat GUI Interface", Colors.BLUE, bold=True)
 
-    # Start servers based on arguments
-    if not args.noserver:
-        print_colored("[START] Starting API server...", Colors.GREEN)
-        api_thread = threading.Thread(target=lambda: start_server(
-            host=args.host,
-            port=args.port,
-            reload=not args.no_reload
-        ), daemon=True)
-        api_thread.start()
-        time.sleep(2)  # Give server time to start
-
-    if not args.nowebui:
-        print_colored("[WEB] Starting WebUI server...", Colors.GREEN)
-        webui_thread = threading.Thread(target=lambda: start_webui_server(
-            host=args.host,
-            port=args.webui_port
-        ), daemon=True)
-        webui_thread.start()
-        time.sleep(2)  # Give server time to start
-
-    print_colored("[LAUNCH] Launching GUI...", Colors.CYAN)
-    try:
-        # Import and launch the GUI interface
-        sys.path.insert(0, str(Path(__file__).parent / "src"))
-        from plexichat.interfaces.gui import run_gui
-
-        print_colored("[OK] GUI interface started successfully!", Colors.GREEN, bold=True)
-        exit_code = run_gui(use_pyqt=True)
-        return exit_code
-    except ImportError as e:
-        print_colored(f"[WARNING]  GUI system not available: {e}", Colors.YELLOW)
-        print_colored("[TIP] Install PyQt6 with: pip install PyQt6", Colors.CYAN)
-        return 1
-    except Exception as e:
-        print_colored(f"[ERROR] GUI error: {e}", Colors.RED)
-        return 1
 
 def update_version_files(version: str):
     """Update version.json and changelog files."""
@@ -1542,10 +1513,13 @@ Examples:
     update_parser.add_argument('--branch', default=config_manager.get("github.default_branch"), help='Git branch to use')
     update_parser.add_argument('--force', action='store_true', help='Force update even if same version')
 
-    # GUI command (replaces doctor)
-    gui_parser = subparsers.add_parser('gui', help='Start GUI interface with server')
-    gui_parser.add_argument('--noserver', action='store_true', help='Don\'t start API server')
-    gui_parser.add_argument('--nowebui', action='store_true', help='Don\'t start WebUI server')
+
+
+    # Server command
+    server_parser = subparsers.add_parser('server', help='Start the API server')
+    server_parser.add_argument('--host', default=config_manager.get("server.host"), help='Host to bind to')
+    server_parser.add_argument('--port', type=int, default=config_manager.get("server.api_port"), help='Port to bind to')
+    server_parser.add_argument('--no-reload', action='store_true', help='Disable auto-reload')
 
     # Test command
     test_parser = subparsers.add_parser('test', help='Run tests')
@@ -1604,9 +1578,19 @@ Examples:
         handle_update_command(args)
         sys.exit(0)
 
-    elif args.command == 'gui':
-        handle_gui_command(args)
-        sys.exit(0)
+    elif args.command == 'server':
+        # Simple server start without complex setup
+        try:
+            start_server(
+                host=args.host,
+                port=args.port,
+                reload=not args.no_reload
+            )
+        except Exception as e:
+            print_colored(f"[ERROR] Failed to start server: {e}", Colors.RED)
+            sys.exit(1)
+
+
 
     # Check Python version for commands that need it
     check_python_version()

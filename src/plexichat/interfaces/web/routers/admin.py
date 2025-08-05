@@ -139,7 +139,7 @@ async def get_current_admin(request: Request) -> Optional[Dict[str, Any]]:
             return None
         admin = admin_manager.validate_session(token)
         if admin:
-            return {}
+            return {
                 "username": admin.username,
                 "email": admin.email,
                 "role": admin.role,

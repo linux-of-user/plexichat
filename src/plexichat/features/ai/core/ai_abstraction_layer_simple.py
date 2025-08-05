@@ -272,7 +272,7 @@ class AIAbstractionLayer:
 
     def _create_default_config(self) -> Dict[str, Any]:
         """Create default AI configuration."""
-        return {}
+        return {
             "providers": {},
             "models": {},
             "settings": {

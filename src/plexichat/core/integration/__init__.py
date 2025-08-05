@@ -1,5 +1,4 @@
-from .orchestrator_core import *
-from typing import Optional
+# orchestrator_core import not available
 
 
 """
@@ -9,4 +8,4 @@ Refactored from src/plexichat/core_system/integration/
 This module handles system integration and orchestration across all PlexiChat components.
 """
 
-__all__ = ["orchestrator_core"]
+__all__ = []

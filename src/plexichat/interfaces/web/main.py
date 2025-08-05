@@ -21,13 +21,17 @@ try:
 except ImportError:
     try:
         # Try alternative import path
-        import sys
-        from pathlib import Path
-        web_path = Path(__file__).parent
-        sys.path.insert(0, str(web_path))
-        # # from . import app
+        from . import app
     except ImportError:
-        app = None
+        try:
+            # Try direct import
+            import sys
+            from pathlib import Path
+            web_path = Path(__file__).parent
+            sys.path.insert(0, str(web_path))
+            from __init__ import app
+        except ImportError:
+            app = None
 
 # Setup logging
 logging.basicConfig(

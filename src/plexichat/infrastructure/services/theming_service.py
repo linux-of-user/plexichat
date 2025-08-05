@@ -278,14 +278,14 @@ self.themes_directory = Path("data/themes")
             if self.custom_themes_file.exists() if self.custom_themes_file else False:
                 with open(self.custom_themes_file, 'r') as f:
                     data = json.load(f)
-                    return {}
+                    return {
                         theme_id: Theme(**theme_data)
                         for theme_id, theme_data in data.items()
                     }
         except Exception as e:
             logger.error(f"Failed to load custom themes: {e}")
 
-        return {}}
+        return {}
 
     def _save_custom_themes(self):
         """Save custom themes to file."""

@@ -274,13 +274,13 @@ async def scale_cluster(request: Request, target_nodes: int, current_user: Dict[
     try:
         if cluster_service.cluster_manager:
             result = await cluster_service.cluster_manager.scale_cluster(target_nodes)
-            return {}
+            return {
                 "message": f"Cluster scaling initiated to {target_nodes} nodes",
                 "operation_id": result.get("operation_id", "unknown"),
                 "estimated_time": result.get("estimated_time", "unknown")
             }
         else:
-            return {}
+            return {
                 "message": "Cluster scaling not available in single-node mode",
                 "current_nodes": 1,
                 "target_nodes": target_nodes

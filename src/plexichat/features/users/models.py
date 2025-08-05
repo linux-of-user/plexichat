@@ -14,16 +14,16 @@ Uses EXISTING database abstraction and optimization systems.
 
 import logging
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 from enum import Enum
 
 # REMOVE SQLModel, Field, Relationship usage. Use only Pydantic or dataclasses for models here.
-from pydantic import BaseModel, Field as PydanticField
+# Pydantic imports not used
 from dataclasses import dataclass, field
 
 # Pydantic imports
 try:
-    from pydantic import validator, EmailStr
+    pass
 except ImportError:
     BaseModel = object
     validator = lambda *args, **kwargs: lambda f: f
@@ -37,7 +37,7 @@ except ImportError:
 
 # Use EXISTING performance optimization engine
 try:
-    from plexichat.infrastructure.performance.optimization_engine import PerformanceOptimizationEngine
+    # PerformanceOptimizationEngine not used
     from plexichat.infrastructure.utils.performance import async_track_performance
     from plexichat.core.logging_advanced.performance_logger import get_performance_logger
 except ImportError:

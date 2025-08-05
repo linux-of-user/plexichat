@@ -144,7 +144,7 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
         else:
             return await self._create_web_error_response_enhanced(error_details, request)
 
-    async def _handle_error(self, request: Request, exception: Exception,)
+    async def _handle_error(self, request: Request, exception: Exception,
                            request_id: str, start_time: float) -> Response:
         """Handle errors with comprehensive logging and response formatting."""
 
@@ -170,7 +170,7 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
         else:
             return await self._create_web_error_response(error_info, request, request_id)
 
-    async def _analyze_error(self, exception: Exception, request: Request,)
+    async def _analyze_error(self, exception: Exception, request: Request,
                            request_id: str) -> Dict[str, Any]:
         """Analyze the error and extract relevant information."""
 
@@ -185,7 +185,7 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
 
         # Handle different exception types
         if isinstance(exception, BaseAPIException):
-            error_info.update({)
+            error_info.update({
                 'severity': ErrorSeverity.MEDIUM,
                 'category': ErrorCategory.BUSINESS_LOGIC,
                 'status_code': exception.status_code,
@@ -193,7 +193,7 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
                 'details': exception.details
             })
         elif isinstance(exception, HTTPException):
-            error_info.update({)
+            error_info.update({
                 'severity': ErrorSeverity.LOW if exception.status_code < 500 else ErrorSeverity.HIGH,
                 'category': ErrorCategory.VALIDATION if exception.status_code == 422 else ErrorCategory.SYSTEM,
                 'status_code': exception.status_code,
@@ -201,7 +201,7 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
                 'details': {'detail': exception.detail}
             })
         elif isinstance(exception, ValueError):
-            error_info.update({)
+            error_info.update({
                 'severity': ErrorSeverity.LOW,
                 'category': ErrorCategory.VALIDATION,
                 'status_code': 400,
@@ -209,7 +209,7 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
                 'details': {}
             })
         elif isinstance(exception, PermissionError):
-            error_info.update({)
+            error_info.update({
                 'severity': ErrorSeverity.MEDIUM,
                 'category': ErrorCategory.AUTHORIZATION,
                 'status_code': 403,
@@ -217,7 +217,7 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
                 'details': {}
             })
         elif isinstance(exception, FileNotFoundError):
-            error_info.update({)
+            error_info.update({
                 'severity': ErrorSeverity.LOW,
                 'category': ErrorCategory.FILE_OPERATION,
                 'status_code': 404,
@@ -225,7 +225,7 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
                 'details': {}
             })
         elif isinstance(exception, asyncio.TimeoutError):
-            error_info.update({)
+            error_info.update({
                 'severity': ErrorSeverity.MEDIUM,
                 'category': ErrorCategory.NETWORK,
                 'status_code': 504,
@@ -234,7 +234,7 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
             })
         else:
             # Unknown error - treat as internal server error
-            error_info.update({)
+            error_info.update({
                 'severity': ErrorSeverity.HIGH,
                 'category': ErrorCategory.SYSTEM,
                 'status_code': 500,
@@ -254,14 +254,14 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
 
         return error_info
 
-    async def _log_error(self, error_info: Dict[str, Any], request: Request,)
+    async def _log_error(self, error_info: Dict[str, Any], request: Request,
                         response_time: float):
         """Log error with appropriate level and context."""
 
         severity = error_info.get('severity', ErrorSeverity.MEDIUM)
         status_code = error_info.get('status_code', 500)
 
-        log_message = ()
+        log_message = (
             f"[{error_info['request_id']}] {request.method} {request.url} - "
             f"{status_code} {error_info['exception_type']}: {error_info['message']} "
             f"({response_time:.3f}s)"
@@ -334,7 +334,7 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
             request.headers.get('content-type', '').startswith('application/json')
         )
 
-    async def _create_api_error_response(self, error_info: Dict[str, Any],)
+    async def _create_api_error_response(self, error_info: Dict[str, Any],
                                        request_id: str, response_time: float) -> JSONResponse:
         """Create JSON error response for API requests."""
 
@@ -371,13 +371,13 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
             }
         )
 
-    async def _create_web_error_response(self, error_info: Dict[str, Any],)
+    async def _create_web_error_response(self, error_info: Dict[str, Any],
                                        request: Request, request_id: str) -> Response:
         """Create HTML error response for web requests."""
 
         if self.enable_beautiful_errors:
             status_code = error_info.get('status_code', 500)
-            return await self.beautiful_handler.handle_error()
+            return await self.beautiful_handler.handle_error(
                 request=request,
                 status_code=status_code,
                 exception=error_info['exception']
@@ -385,7 +385,7 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
         else:
             # Simple text response
             status_code = error_info.get('status_code', 500)
-            return Response()
+            return Response(
                 content=f"Error {status_code}: {error_info['message']}",
                 status_code=status_code,
                 media_type="text/plain",
@@ -402,7 +402,7 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
         """Get middleware statistics."""
         avg_response_time = sum(self.response_times) / len(self.response_times) if self.response_times else 0
 
-        return {}
+        return {
             'total_requests': self.request_count,
             'total_errors': self.error_count,
             'error_rate': (self.error_count / max(self.request_count, 1)) * 100,

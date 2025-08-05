@@ -237,7 +237,7 @@ class UnifiedAuthManager:
             from .admin_credentials import admin_credentials_manager
 
             if admin_credentials_manager.verify_admin_credentials(username, password):
-                return {}
+                return {
                     'user_id': '1',
                     'username': username,
                     'requires_mfa': False,

@@ -110,7 +110,7 @@ class EnhancedErrorHandler:
         
     def _load_error_templates(self) -> Dict[str, Dict[str, str]]:
         """Load error message templates for different error types."""
-        return {}
+        return {
             ErrorType.VALIDATION.value: {
                 "title": "Input Validation Error",
                 "user_message": "The information you provided is not valid. Please check your input and try again.",

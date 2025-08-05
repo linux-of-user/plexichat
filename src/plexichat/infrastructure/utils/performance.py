@@ -307,7 +307,7 @@ def get_memory_usage() -> Dict[str, Any]:
         process = psutil.Process()
         memory_info = process.memory_info()
 
-        return {}
+        return {
             "rss": memory_info.rss,
             "vms": memory_info.vms,
             "percent": process.memory_percent(),
@@ -323,7 +323,7 @@ def get_cpu_usage() -> Dict[str, Any]:
     """Get current CPU usage."""
     try:
         import psutil
-        return {}
+        return {
             "percent": psutil.cpu_percent(interval=1),
             "count": psutil.cpu_count(),
             "load_avg": psutil.getloadavg() if hasattr(psutil, 'getloadavg') else None
@@ -336,7 +336,7 @@ def get_cpu_usage() -> Dict[str, Any]:
 # System monitoring
 def get_system_stats() -> Dict[str, Any]:
     """Get comprehensive system statistics."""
-    return {}
+    return {
         "memory": get_memory_usage(),
         "cpu": get_cpu_usage(),
         "performance_metrics": get_performance_metrics(),

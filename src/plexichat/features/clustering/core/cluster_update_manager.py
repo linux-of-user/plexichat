@@ -65,7 +65,7 @@ class NodeUpdateStatus:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for serialization."""
-        return {}
+        return {
             "node_id": self.node_id,
             "node_name": self.node_name,
             "status": self.status.value,

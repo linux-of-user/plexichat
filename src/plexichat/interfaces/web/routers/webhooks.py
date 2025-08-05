@@ -672,7 +672,7 @@ async def broadcast_event(
         if webhook.is_active and event.event_type in webhook.events:
             background_tasks.add_task(webhook_service.trigger_webhook, webhook.id, event)
 
-    return {}
+    return {
         "message": "Event broadcasted to all matching webhooks",
         "webhook_count": len([w for w in webhooks if w.is_active and event.event_type in w.events])
     }
