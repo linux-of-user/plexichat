@@ -61,13 +61,12 @@ HEARTBEAT_ENCRYPTION = True  # Encrypt heartbeat messages
 HOT_UPDATE_SUPPORT = True  # Support for hot updates without downtime
 
 
-class ClusterRole(Enum, Optional):
+class ClusterRole(Enum):
     """Cluster node roles."""
-
-MASTER = "master"
-WORKER = "worker"
-COORDINATOR = "coordinator"
-BACKUP = "backup"
+    MASTER = "master"
+    WORKER = "worker"
+    COORDINATOR = "coordinator"
+    BACKUP = "backup"
 GATEWAY = "gateway"  # Gateway/proxy node
 ANTIVIRUS = "antivirus"  # Specialized antivirus scanning node
 GENERAL_PURPOSE = "general_purpose"  # Multi-purpose node

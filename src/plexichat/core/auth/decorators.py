@@ -119,13 +119,14 @@ def optional_auth(func: Callable) -> Callable:
 
         if token:
             try:
-                auth_result = loop.run_until_complete()
+                auth_result = loop.run_until_complete(
                     auth_manager.require_authentication(token, "BASIC")
                 )
                 kwargs['auth_context'] = auth_result
             except (AuthenticationError, AuthorizationError):
                 kwargs['auth_context'] = None
-        else: Optional[kwargs['auth_context']] = None
+        else:
+            kwargs['auth_context'] = None
 
         return func(*args, **kwargs)
 
