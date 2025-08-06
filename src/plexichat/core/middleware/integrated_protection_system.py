@@ -38,6 +38,17 @@ except ImportError:
     import logging
     logger = logging.getLogger("integrated_protection")
 
+# Import DDoS protection service
+try:
+    from ...infrastructure.services.enhanced_ddos_service import EnhancedDDoSProtectionService
+except ImportError:
+    # Fallback for testing
+    class EnhancedDDoSProtectionService:
+        def __init__(self):
+            pass
+        async def check_request(self, *args, **kwargs):
+            return True, "ddos_protection_disabled", {}
+
 # Import other components safely
 try:
     from ..middleware.unified_rate_limiter import (

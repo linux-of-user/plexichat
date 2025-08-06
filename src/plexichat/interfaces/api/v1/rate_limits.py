@@ -22,7 +22,7 @@ from plexichat.core.config.rate_limit_config import (
 from plexichat.core.middleware.integrated_protection_system import (
     get_protection_system, SystemLoadLevel, AccountType
 )
-from plexichat.core.security.security_decorators import require_security_level, SecurityLevel
+from plexichat.core.security.security_decorators import require_auth, SecurityLevel
 
 logger = logging.getLogger(__name__)
 
@@ -65,7 +65,7 @@ class ConfigUpdate(BaseModel):
 
 @router.get("/stats", response_model=RateLimitStats)
 async def get_rate_limit_stats(
-    current_user: Dict = Depends(require_security_level(SecurityLevel.ADMIN))
+    current_user: Dict = Depends(require_auth(SecurityLevel.ADMIN))
 ):
     """
     Get comprehensive rate limiting statistics.
@@ -87,7 +87,7 @@ async def get_rate_limit_stats(
 
 @router.get("/config")
 async def get_rate_limit_config(
-    current_user: Dict = Depends(require_security_level(SecurityLevel.ADMIN))
+    current_user: Dict = Depends(require_auth(SecurityLevel.ADMIN))
 ):
     """
     Get current rate limiting configuration.
@@ -119,7 +119,7 @@ async def get_rate_limit_config(
 @router.put("/config")
 async def update_rate_limit_config(
     config_update: ConfigUpdate,
-    current_user: Dict = Depends(require_security_level(SecurityLevel.ADMIN))
+    current_user: Dict = Depends(require_auth(SecurityLevel.ADMIN))
 ):
     """
     Update rate limiting configuration.
@@ -151,7 +151,7 @@ async def update_rate_limit_config(
 @router.post("/endpoint-overrides")
 async def add_endpoint_override(
     override: EndpointOverride,
-    current_user: Dict = Depends(require_security_level(SecurityLevel.ADMIN))
+    current_user: Dict = Depends(require_auth(SecurityLevel.ADMIN))
 ):
     """
     Add or update endpoint-specific rate limits.
@@ -192,7 +192,7 @@ async def add_endpoint_override(
 @router.delete("/endpoint-overrides/{path:path}")
 async def remove_endpoint_override(
     path: str,
-    current_user: Dict = Depends(require_security_level(SecurityLevel.ADMIN))
+    current_user: Dict = Depends(require_auth(SecurityLevel.ADMIN))
 ):
     """
     Remove endpoint-specific rate limits.

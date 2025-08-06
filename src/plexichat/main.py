@@ -96,8 +96,8 @@ async def lifespan(app: FastAPI):
     try:
         # Initialize unified configuration system
         try:
-            from plexichat.core.unified_config import get_config
-            config = get_config()
+            from plexichat.core.unified_config import get_unified_config
+            config = get_unified_config()
             logger.info(f"[CONFIG] Unified configuration system initialized for environment: {config.system.environment}")
         except Exception as e:
             logger.error(f"Failed to initialize configuration system: {e}")

@@ -157,7 +157,7 @@ class AICoordinator:
             self.performance_metrics["total_requests"] += 1
             self.performance_metrics["successful_requests"] += 1
 
-            return {}
+            return {
                 "success": True,
                 "analysis": results,
                 "text_length": len(text),

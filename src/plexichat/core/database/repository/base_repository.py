@@ -584,7 +584,7 @@ class BaseRepository(Generic[T, CreateT, UpdateT], ABC):
             }
 
         except Exception as e:
-            return {}
+            return {
                 "status": "unhealthy",
                 "error": str(e),
                 "last_check": datetime.now(timezone.utc).isoformat()

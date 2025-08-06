@@ -290,7 +290,7 @@ class AuthAuditLogger:
         """Get login history for a user."""
         user_events = []
         for event in reversed(self.recent_events):
-            if (event.username == username and )
+            if (event.username == username and
                 event.event_type in [AuditEventType.LOGIN_SUCCESS, AuditEventType.LOGIN_FAILURE]):
                 user_events.append(event.to_dict())
                 if len(user_events) >= limit:

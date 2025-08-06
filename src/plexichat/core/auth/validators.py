@@ -223,7 +223,7 @@ class BiometricValidator:
             warnings=warnings
         )
 
-    def _validate_fingerlogger.info(self, data: bytes) -> ValidationResult:
+    def _validate_fingerprint(self, data: bytes) -> ValidationResult:
         """Validate fingerprint data."""
         # Mock implementation - data parameter is for future use
         _ = data  # Acknowledge parameter to avoid unused warning
