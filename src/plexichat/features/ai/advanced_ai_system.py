@@ -600,7 +600,7 @@ class IntelligentAssistant:
                 "TECHNOLOGY": []
             }
 
-            return {}
+            return {
                 "success": True,
                 "entities": entities,
                 "total_entities": sum(len(v) for v in entities.values()),
@@ -641,7 +641,7 @@ class IntelligentAssistant:
                 "category_scores": {cat: 0.1 for cat in categories}
             }
 
-            return {}
+            return {
                 "success": True,
                 "classification": classification,
                 "model_used": model.model_id
@@ -676,7 +676,7 @@ class IntelligentAssistant:
             detected_language = max(scores, key=scores.get) if scores else 'unknown'
             confidence = scores.get(detected_language, 0.0)
 
-            return {}
+            return {
                 "success": True,
                 "language": detected_language,
                 "confidence": confidence,
@@ -720,7 +720,7 @@ class IntelligentAssistant:
             keywords = [{"keyword": word, "score": freq/len(words)}
                        for word, freq in sorted_words[:max_keywords]]
 
-            return {}
+            return {
                 "success": True,
                 "keywords": keywords,
                 "total_words": len(words),
@@ -739,7 +739,7 @@ class IntelligentAssistant:
 
             response = await self.provider_manager.call_model(model.model_id, enhanced_prompt)
 
-            return {}
+            return {
                 "success": True,
                 "content": response.get("response", ""),
                 "content_type": content_type,
@@ -768,7 +768,7 @@ class IntelligentAssistant:
 
             response = await self.provider_manager.call_model(model.model_id, prompt)
 
-            return {}
+            return {
                 "success": True,
                 "answer": response.get("response", ""),
                 "question": question,
@@ -795,7 +795,7 @@ class IntelligentAssistant:
 
             response = await self.provider_manager.call_model(model.model_id, prompt)
 
-            return {}
+            return {
                 "success": True,
                 "code": response.get("response", ""),
                 "language": language,
@@ -963,7 +963,7 @@ class SentimentAnalyzer:
             overall = "neutral"
             scores = {"positive": 0.3, "negative": 0.3, "neutral": 0.4}
 
-        return {}
+        return {
             "overall": overall,
             "confidence": 0.8,
             "scores": scores,
