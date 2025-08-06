@@ -1,0 +1,16 @@
+Collecting pydantic
+  Downloading pydantic-2.11.7-py3-none-any.whl.metadata (67 kB)
+Collecting annotated-types>=0.6.0 (from pydantic)
+  Downloading annotated_types-0.7.0-py3-none-any.whl.metadata (15 kB)
+Collecting pydantic-core==2.33.2 (from pydantic)
+  Downloading pydantic_core-2.33.2-cp313-cp313-win_amd64.whl.metadata (6.9 kB)
+Requirement already satisfied: typing-extensions>=4.12.2 in c:\users\dboyn\plexichat\plexichat\plexichat\venv\lib\site-packages (from pydantic) (4.14.1)
+Collecting typing-inspection>=0.4.0 (from pydantic)
+  Downloading typing_inspection-0.4.1-py3-none-any.whl.metadata (2.6 kB)
+Downloading pydantic-2.11.7-py3-none-any.whl (444 kB)
+Downloading pydantic_core-2.33.2-cp313-cp313-win_amd64.whl (2.0 MB)
+   ---------------------------------------- 2.0/2.0 MB 18.6 MB/s eta 0:00:00
+Downloading annotated_types-0.7.0-py3-none-any.whl (13 kB)
+Downloading typing_inspection-0.4.1-py3-none-any.whl (14 kB)
+Installing collected packages: typing-inspection, pydantic-core, annotated-types, pydantic
+Successfully installed annotated-types-0.7.0 pydantic-2.11.7 pydantic-core-2.33.2 typing-inspection-0.4.1

@@ -220,7 +220,7 @@ async def remove_endpoint_override(
 @router.put("/user-tiers")
 async def update_user_tier_multiplier(
     tier_update: UserTierUpdate,
-    current_user: Dict = Depends(require_security_level(SecurityLevel.ADMIN))
+    current_user: Dict = Depends(require_auth(SecurityLevel.ADMIN))
 ):
     """
     Update rate limit multiplier for a user tier.

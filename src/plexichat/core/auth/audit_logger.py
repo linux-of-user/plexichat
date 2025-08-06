@@ -364,13 +364,13 @@ class AuthAuditLogger:
         if event.event_type == AuditEventType.LOGIN_FAILURE and event.ip_address:
             recent_failures = [
                 e for e in self.recent_events[-50:]  # Check last 50 events
-                if (e.event_type == AuditEventType.LOGIN_FAILURE and)
+                if (e.event_type == AuditEventType.LOGIN_FAILURE and
                     e.ip_address == event.ip_address and
                     (datetime.now() - e.timestamp).total_seconds() < 300)  # Last 5 minutes
             ]
 
             if len(recent_failures) >= 10:
-                self.log_suspicious_activity()
+                self.log_suspicious_activity(
                     ip_address=event.ip_address,
                     activity_type="rapid_failed_logins",
                     details={"failure_count": len(recent_failures), "time_window": "5_minutes"}

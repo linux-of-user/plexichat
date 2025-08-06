@@ -1,0 +1,2 @@
+Requirement already satisfied: asyncio-mqtt in c:\users\dboyn\plexichat\plexichat\plexichat\venv\lib\site-packages (0.16.2)
+Requirement already satisfied: paho-mqtt>=1.6.0 in c:\users\dboyn\plexichat\plexichat\plexichat\venv\lib\site-packages (from asyncio-mqtt) (2.1.0)

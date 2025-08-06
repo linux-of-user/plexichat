@@ -126,7 +126,7 @@ class Advanced2FASystem:
 
         logger.info(f"2FA setup initiated for user {user_id} with methods: {methods}")
 
-        return {}
+        return {
             "setup_token": setup_token,
             "methods": methods,
             "totp_secret": setup_data.get("totp_secret_plain"),

@@ -1,0 +1,9 @@
+Collecting sqlalchemy[asyncio]
+  Using cached sqlalchemy-2.0.42-cp313-cp313-win_amd64.whl.metadata (9.8 kB)
+Collecting greenlet>=1 (from sqlalchemy[asyncio])
+  Using cached greenlet-3.2.3-cp313-cp313-win_amd64.whl.metadata (4.2 kB)
+Requirement already satisfied: typing-extensions>=4.6.0 in c:\users\dboyn\plexichat\plexichat\plexichat\venv\lib\site-packages (from sqlalchemy[asyncio]) (4.14.1)
+Using cached greenlet-3.2.3-cp313-cp313-win_amd64.whl (297 kB)
+Using cached sqlalchemy-2.0.42-cp313-cp313-win_amd64.whl (2.1 MB)
+Installing collected packages: greenlet, sqlalchemy
+Successfully installed greenlet-3.2.3 sqlalchemy-2.0.42

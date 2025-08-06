@@ -139,7 +139,7 @@ class TokenManager:
             logger.error(f" Failed to initialize Token Manager: {e}")
             raise
 
-    async def create_access_token(self, user_id: str, session_id: str,)
+    async def create_access_token(self, user_id: str, session_id: str,
                                 security_level: str = "GOVERNMENT",
                                 scopes: Optional[List[str]] = None,
                                 device_id: Optional[str] = None,
