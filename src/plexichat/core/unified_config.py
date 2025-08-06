@@ -280,6 +280,14 @@ class UnifiedConfigManager:
         # Plugin configurations
         self._plugin_configs: Dict[str, Dict[str, Any]] = {}
 
+        # Main configuration data
+        self._config: Dict[str, Any] = {}
+
+        # Create a simple defaults object
+        class Defaults:
+            pass
+        self.defaults = Defaults()
+
         # Configuration metadata
         self._config_fields: Dict[str, ConfigField] = {}
         self._change_callbacks: List[Callable] = []
@@ -287,6 +295,9 @@ class UnifiedConfigManager:
 
         # Ensure directories exist
         self._ensure_directories()
+
+        # Load configuration
+        self.load()
 
         # Initialize configuration fields metadata
         self._initialize_config_fields()
@@ -381,11 +392,16 @@ class UnifiedConfigManager:
                         else:
                             config_data = json.load(f)
 
+                    # Store the raw config data
+                    self._config = config_data
+
                     # Update configuration sections
                     self._update_config_sections(config_data)
                     logger.info(f"Configuration loaded from {self.config_file}")
                 else:
                     logger.info("No configuration file found, using defaults")
+                    # Initialize with empty config
+                    self._config = {}
                     self.save()  # Create default config file
 
                 # Load plugin configurations
@@ -459,7 +475,7 @@ class UnifiedConfigManager:
             return self._config[key]
         
         # Check defaults
-        if hasattr(self.defaults, key):
+        if hasattr(self, 'defaults') and hasattr(self.defaults, key):
             return getattr(self.defaults, key)
         
         return default
@@ -798,3 +814,93 @@ def set_plugin_config(plugin_name: str, plugin_config: Dict[str, Any]) -> bool:
 def get_unified_config() -> UnifiedConfigManager:
     """Get the unified configuration manager instance."""
     return config
+
+# Constants access functions - All constants loaded from YAML config
+def get_app_name() -> str:
+    """Get application name from config."""
+    return config.get("security.app_name", "PlexiChat")
+
+def get_app_version() -> str:
+    """Get application version from config."""
+    return config.get("security.app_version", "2.0.0")
+
+def get_default_secret_key() -> str:
+    """Get default secret key from config."""
+    return config.get("security.default_secret_key", "plexichat-default-secret-key-change-in-production")
+
+def get_token_expiry_hours() -> int:
+    """Get token expiry hours from config."""
+    return config.get("security.token_expiry_hours", 24)
+
+def get_password_min_length() -> int:
+    """Get minimum password length from config."""
+    return config.get("security.password_min_length", 8)
+
+def get_max_login_attempts() -> int:
+    """Get maximum login attempts from config."""
+    return config.get("security.max_login_attempts", 5)
+
+def get_lockout_duration_minutes() -> int:
+    """Get lockout duration in minutes from config."""
+    return config.get("security.lockout_duration_minutes", 15)
+
+def get_logs_dir() -> str:
+    """Get logs directory from config."""
+    return config.get("security.logs_dir", "logs")
+
+def get_plugin_timeout() -> int:
+    """Get plugin timeout from config."""
+    return config.get("security.plugin_timeout", 30)
+
+def get_max_plugin_memory() -> int:
+    """Get max plugin memory from config."""
+    return config.get("security.max_plugin_memory", 512)
+
+def get_plugin_sandbox_enabled() -> bool:
+    """Get plugin sandbox enabled from config."""
+    return config.get("security.plugin_sandbox_enabled", True)
+
+def get_max_message_length() -> int:
+    """Get maximum message length from config."""
+    return config.get("security.max_message_length", 4096)
+
+def get_max_attachment_count() -> int:
+    """Get maximum attachment count from config."""
+    return config.get("security.max_attachment_count", 10)
+
+def get_message_history_limit() -> int:
+    """Get message history limit from config."""
+    return config.get("security.message_history_limit", 1000)
+
+def get_max_channel_members() -> int:
+    """Get maximum channel members from config."""
+    return config.get("security.max_channel_members", 1000)
+
+# Legacy constant names for backward compatibility - lazy loaded
+def _get_legacy_constants():
+    """Get legacy constants - lazy loaded to avoid circular imports."""
+    return {
+        'APP_NAME': get_app_name(),
+        'APP_VERSION': get_app_version(),
+        'DEFAULT_SECRET_KEY': get_default_secret_key(),
+        'TOKEN_EXPIRY_HOURS': get_token_expiry_hours(),
+        'PASSWORD_MIN_LENGTH': get_password_min_length(),
+        'MAX_LOGIN_ATTEMPTS': get_max_login_attempts(),
+        'LOCKOUT_DURATION_MINUTES': get_lockout_duration_minutes(),
+        'LOGS_DIR': get_logs_dir(),
+        'PLUGIN_TIMEOUT': get_plugin_timeout(),
+        'MAX_PLUGIN_MEMORY': get_max_plugin_memory(),
+        'PLUGIN_SANDBOX_ENABLED': get_plugin_sandbox_enabled(),
+        'MAX_MESSAGE_LENGTH': get_max_message_length(),
+        'MAX_ATTACHMENT_COUNT': get_max_attachment_count(),
+        'MESSAGE_HISTORY_LIMIT': get_message_history_limit(),
+        'MAX_CHANNEL_MEMBERS': get_max_channel_members(),
+    }
+
+# Make constants available as module attributes
+def __getattr__(name):
+    """Lazy load constants when accessed."""
+    constants = _get_legacy_constants()
+    if name in constants:
+        return constants[name]
+    raise AttributeError(f"module '{__name__}' has no attribute '{name}'")

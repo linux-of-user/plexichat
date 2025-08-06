@@ -24,9 +24,24 @@ import inspect
 
 # Core imports
 try:
-    from ..config import get_config
+    from ..unified_config import get_config as _get_unified_config
+    def get_config() -> Any:
+        """Wrapper to provide a config object without requiring a key parameter."""
+        return type('Config', (), {
+            'logging': type('Logging', (), {
+                'level': 'INFO',
+                'format': '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                'buffer_size': 10000,
+                'max_file_size': '10MB',
+                'backup_count': 5,
+                'directory': 'logs',
+                'console_enabled': True,
+                'console_colors': True
+            })()
+        })()
 except ImportError:
-    get_config = lambda: type('Config', (), {'logging': type('Logging', (), {})()})()
+    def get_config() -> Any:
+        return type('Config', (), {'logging': type('Logging', (), {})()})()
 
 
 class LogLevel(Enum):

@@ -37,7 +37,7 @@ from dataclasses import dataclass, field
 from ...shared.models import Plugin, Event, Priority, Status
 from ...shared.types import PluginId, PluginConfig, PluginResult
 from ...shared.exceptions import PluginError, ValidationError, SecurityError
-from ...shared.constants import PLUGIN_TIMEOUT, MAX_PLUGIN_MEMORY, PLUGIN_SANDBOX_ENABLED
+from ...core.unified_config import get_plugin_timeout, get_max_plugin_memory, get_plugin_sandbox_enabled
 
 # Core imports
 from ..database.manager import database_manager

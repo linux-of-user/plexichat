@@ -58,7 +58,7 @@ class PerformanceMetric:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
-        return {}
+        return {
             "metric_name": self.metric_name,
             "value": self.value,
             "unit": self.unit,
@@ -419,7 +419,7 @@ class IntelligentCache:
         total_requests = self.hits + self.misses
         hit_rate = (self.hits / total_requests * 100) if total_requests > 0 else 0
 
-        return {}
+        return {
             "size": len(self.cache),
             "max_size": self.max_size,
             "hits": self.hits,
@@ -559,7 +559,7 @@ class DatabaseOptimizer:
         else:
             avg_query_time = 0
 
-        return {}
+        return {
             "average_query_time_ms": avg_query_time,
             "total_queries_executed": sum(stat["total_executions"] for stat in self.query_stats.values()),
             "unique_queries": len(self.query_stats),
@@ -614,7 +614,7 @@ class MemoryOptimizer:
 
         except Exception as e:
             logger.error(f"Memory snapshot failed: {e}")
-            return {}}
+            return {}
 
     def optimize_memory(self):
         """Perform memory optimization."""
@@ -772,7 +772,7 @@ class PerformanceOptimizationEngine:
 
     def get_comprehensive_performance_report(self) -> Dict[str, Any]:
         """Get comprehensive performance report."""
-        return {}
+        return {
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "performance_summary": self.monitor.get_performance_summary(),
             "cache_stats": self.cache.get_stats(),

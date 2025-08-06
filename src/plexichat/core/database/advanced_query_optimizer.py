@@ -431,7 +431,7 @@ class QueryOptimizer:
                 
         except Exception as e:
             logger.error(f"Optimization strategy {strategy} failed: {e}")
-            return {}'success': False, 'optimized_query': query}
+            return {'success': False, 'optimized_query': query}
     
     async def _optimize_index_usage(self, query: str, analysis: Dict[str, Any]) -> Dict[str, Any]:
         """Optimize index usage in query."""
@@ -447,7 +447,7 @@ class QueryOptimizer:
                 optimized_query = f"{query} ORDER BY 1 LIMIT 1000"
             estimated_savings = 50.0  # Estimated 50ms savings
         
-        return {}
+        return {
             'success': optimized_query != query,
             'optimized_query': optimized_query,
             'estimated_savings_ms': estimated_savings
@@ -457,7 +457,7 @@ class QueryOptimizer:
         """Optimize JOIN order for better performance."""
         # For now, just return the original query
         # In a real implementation, this would analyze table sizes and reorder JOINs
-        return {}
+        return {
             'success': False,
             'optimized_query': query,
             'estimated_savings_ms': 0.0
@@ -474,7 +474,7 @@ class QueryOptimizer:
             # Could implement subquery flattening logic here
             estimated_savings = 25.0
         
-        return {}
+        return {
             'success': False,  # Not implemented yet
             'optimized_query': optimized_query,
             'estimated_savings_ms': estimated_savings
@@ -484,7 +484,7 @@ class QueryOptimizer:
         """Push predicates down to reduce intermediate result sets."""
         # For now, just return the original query
         # In a real implementation, this would move WHERE conditions closer to table scans
-        return {}
+        return {
             'success': False,
             'optimized_query': query,
             'estimated_savings_ms': 0.0

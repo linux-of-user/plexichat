@@ -22,7 +22,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Union
 
-from ..config import get_config
+from ..unified_config import get_config
 import enum
 try:
     from .performance_logger import get_performance_logger

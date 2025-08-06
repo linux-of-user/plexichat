@@ -13,10 +13,10 @@ from pathlib import Path
 from typing import Optional
 
 try:
-    from plexichat.shared.constants import get_version
-    PLEXICHAT_VERSION = get_version()
+    from plexichat.core.unified_config import get_app_version
+    PLEXICHAT_VERSION = get_app_version()
 except ImportError:
-    PLEXICHAT_VERSION = "b.1.1-86"
+    PLEXICHAT_VERSION = "2.0.0"
 from plexichat.core.security.security_decorators import require_auth, rate_limit, audit_access
 from plexichat.core.logging_advanced.enhanced_logging_system import get_logger
 

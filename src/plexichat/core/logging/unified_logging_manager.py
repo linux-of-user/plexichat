@@ -30,7 +30,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 import importlib
 
-from ...shared.constants import LOGS_DIR
+from ...core.unified_config import get_logs_dir
 from ...shared.exceptions import LoggingError
 
 
@@ -44,7 +44,7 @@ class UnifiedLoggingManager:
             default_config.update(config)
         self.config = default_config
 
-        self.logs_dir = Path(LOGS_DIR)
+        self.logs_dir = Path(get_logs_dir())
         self.loggers: Dict[str, logging.Logger] = {}
         self.handlers: Dict[str, logging.Handler] = {}
 

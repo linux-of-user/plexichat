@@ -38,9 +38,9 @@ from ...shared.exceptions import (
     ValidationError, AuthorizationError, ResourceNotFoundError,
     QuotaExceededError, RateLimitError
 )
-from ...shared.constants import (
-    MAX_MESSAGE_LENGTH, MAX_ATTACHMENT_COUNT, MESSAGE_HISTORY_LIMIT,
-    MAX_CHANNEL_MEMBERS
+from ...core.unified_config import (
+    get_max_message_length, get_max_attachment_count, get_message_history_limit,
+    get_max_channel_members
 )
 
 # Core imports

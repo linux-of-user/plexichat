@@ -306,13 +306,13 @@ async def rebalance_cluster(request: Request, current_user: Dict[str, Any] = Dep
     try:
         if cluster_service.cluster_manager:
             result = await cluster_service.cluster_manager.rebalance_cluster()
-            return {}
+            return {
                 "message": "Cluster rebalancing initiated",
                 "operation_id": result.get("operation_id", "unknown"),
                 "estimated_time": result.get("estimated_time", "unknown")
             }
         else:
-            return {}
+            return {
                 "message": "Cluster rebalancing not applicable in single-node mode"
             }
     except Exception as e:

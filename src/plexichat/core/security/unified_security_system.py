@@ -29,9 +29,9 @@ from ...shared.exceptions import (
     SecurityError, AuthenticationError, AuthorizationError,
     ValidationError, RateLimitError
 )
-from ...shared.constants import (
-    DEFAULT_SECRET_KEY, PASSWORD_MIN_LENGTH, MAX_LOGIN_ATTEMPTS,
-    LOCKOUT_DURATION_MINUTES
+from ...core.unified_config import (
+    get_default_secret_key, get_password_min_length, get_max_login_attempts,
+    get_lockout_duration_minutes
 )
 
 # Core imports

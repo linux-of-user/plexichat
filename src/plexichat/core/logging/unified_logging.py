@@ -26,9 +26,23 @@ from pathlib import Path
 
 # Core imports
 try:
-    from ..config import get_config  # type: ignore
+    from ..unified_config import get_config as _get_unified_config
+    def get_config() -> Any:
+        """Wrapper to provide a config object without requiring a key parameter."""
+        return type('Config', (), {
+            'logging': type('Logging', (), {
+                'level': 'INFO',
+                'format': '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                'buffer_size': 10000,
+                'max_file_size': '10MB',
+                'backup_count': 5,
+                'directory': 'logs',
+                'console_enabled': True,
+                'console_colors': True
+            })()
+        })()
 except ImportError:
-    def get_config(key: Optional[str] = None, default: Any = None) -> Any:
+    def get_config() -> Any:
         class MockConfig:
             class logging:
                 level = "INFO"

@@ -543,7 +543,7 @@ async def _authenticate_request(request: Request, required_level: SecurityLevel)
             )
     
     # Return empty user data for public endpoints
-    return {}}
+    return {}
 
 
 async def _check_permissions(user_data: Dict[str, Any], permissions: List[RequiredPermission], request: Request):
