@@ -488,7 +488,7 @@ class IPBlacklistMiddleware(BaseHTTPMiddleware):
         # Count active temporary blocks
         active_temp_blocks = sum(1 for expiry in self.temporary_blacklist.values() if expiry > current_time)
         
-        return {}
+        return {
             "enabled": self.enabled,
             "permanent_blacklist_count": len(self.permanent_blacklist),
             "temporary_blacklist_count": len(self.temporary_blacklist),

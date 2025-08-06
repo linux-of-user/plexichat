@@ -27,7 +27,7 @@ from starlette.responses import JSONResponse
 # Core imports
 try:
     from ..logging_advanced import get_logger, LogLevel, LogCategory
-    from ..config import get_config
+    from ..config.simple_config import get_config
     from ..database.manager import database_manager
     from ..auth.unified_auth_manager import get_unified_auth_manager
     # Import our new middleware
@@ -597,7 +597,7 @@ class EnhancedSecurityManager:
         try:
             rate_config = get_rate_limiting_config()
 
-            return {}
+            return {
                 "enhanced_security_enabled": True,
                 "middleware_status": {
                     "core_security": True,

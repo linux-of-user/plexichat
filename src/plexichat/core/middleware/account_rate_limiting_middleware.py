@@ -300,7 +300,7 @@ class AccountRateLimitingMiddleware(BaseHTTPMiddleware):
         if minute_requests >= requests_per_minute:
             # Check if this is a severe violation (way over limit)
             severe_violation = minute_requests > requests_per_minute * 2
-            return {}
+            return {
                 "allowed": False,
                 "message": f"Rate limit exceeded: {minute_requests}/{requests_per_minute} requests per minute",
                 "retry_after": 60,
@@ -309,7 +309,7 @@ class AccountRateLimitingMiddleware(BaseHTTPMiddleware):
         
         # Check hour limit
         if hour_requests >= requests_per_hour:
-            return {}
+            return {
                 "allowed": False,
                 "message": f"Rate limit exceeded: {hour_requests}/{requests_per_hour} requests per hour",
                 "retry_after": 3600
@@ -320,7 +320,7 @@ class AccountRateLimitingMiddleware(BaseHTTPMiddleware):
         burst_requests = sum(1 for record in history if record.timestamp > burst_ago)
         
         if burst_requests >= rate_limit_info.burst_allowance:
-            return {}
+            return {
                 "allowed": False,
                 "message": f"Burst limit exceeded: {burst_requests}/{rate_limit_info.burst_allowance} requests in 10 seconds",
                 "retry_after": 10

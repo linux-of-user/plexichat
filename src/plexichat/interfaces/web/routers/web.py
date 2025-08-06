@@ -157,7 +157,7 @@ class WebService:
 
         except Exception as e:
             logger.error(f"Error generating dashboard data: {e}")
-            return {}
+            return {
                 "user_id": user_id,
                 "total_messages": 0,
                 "total_files": 0,

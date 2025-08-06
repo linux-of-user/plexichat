@@ -583,7 +583,7 @@ def cast_custom_field_value(field: dict[str, Any]) -> Any:
             return value
         if value is not None:
             return json.loads(value)
-        return {}}
+        return {}
     if type_str == 'datetime':
         if isinstance(value, str):
             return datetime.fromisoformat(value)

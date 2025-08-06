@@ -27,7 +27,7 @@ from ...core.unified_config import (
 )
 
 # Core imports
-from ...core.config import get_config
+from ...core.config.simple_config import get_config
 from ...core.logging_advanced import get_logger
 from ...core.security.input_validation import InputType, ValidationLevel, get_input_validator, ValidationResult
 

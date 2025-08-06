@@ -212,7 +212,7 @@ async def validate_token(token: str) -> Optional[Dict[str, Any]]:
         for session_id, session in sessions_db.items():
             if session.get('access_token') == token or session.get('refresh_token') == token:
                 if session.get('expires_at', 0) > time.time():
-                    return {}
+                    return {
                         'user_id': session.get('user_id'),
                         'session_id': session_id,
                         'expires_at': session.get('expires_at')

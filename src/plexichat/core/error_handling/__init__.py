@@ -426,7 +426,7 @@ def get_error_statistics() -> Dict[str, Any]:
     """Get current error statistics."""
     try:
         # Return basic statistics since we don't have a complex monitor
-        return {}
+        return {
             "total_errors": 0,
             "error_rate": 0.0,
             "last_error": None,
