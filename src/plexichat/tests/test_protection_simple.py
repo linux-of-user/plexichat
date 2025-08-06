@@ -13,7 +13,14 @@ from pathlib import Path
 
 # Add src to path
 project_root = Path(__file__).parent.parent.parent
-sys.path.insert(0, str(project_root / "src"))
+src_path = str(project_root / "src")
+if src_path not in sys.path:
+    sys.path.insert(0, src_path)
+
+# Also add current directory to path
+current_dir = str(Path(__file__).parent.parent)
+if current_dir not in sys.path:
+    sys.path.insert(0, current_dir)
 
 def test_rate_limiter_config():
     """Test rate limiter configuration."""

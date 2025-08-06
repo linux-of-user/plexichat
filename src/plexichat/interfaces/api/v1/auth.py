@@ -462,7 +462,7 @@ async def register(user_data: UserRegister):
         users_db[user_id] = user
         logger.info(f"User registered: {user_data.username}")
         
-        return {}
+        return {
             "success": True,
             "message": "User registered successfully",
             "user_id": user_id,
@@ -550,7 +550,7 @@ async def logout(current_user: dict = Depends(get_current_user)):
 @router.get("/me")
 async def get_current_user_info(current_user: dict = Depends(get_current_user)):
     """Get current user information."""
-    return {}
+    return {
         "id": current_user['id'],
         "username": current_user['username'],
         "email": current_user['email'],
@@ -562,7 +562,7 @@ async def get_current_user_info(current_user: dict = Depends(get_current_user)):
 @router.get("/status")
 async def auth_status():
     """Get authentication service status."""
-    return {}
+    return {
         "service": "authentication",
         "status": "online",
         "total_users": len(users_db),
@@ -660,7 +660,7 @@ async def verify_two_factor_code(
         )
 
         if result['success']:
-            return {}
+            return {
                 "success": True,
                 "method": result['method'],
                 "message": result['message']
@@ -721,7 +721,7 @@ async def generate_new_backup_codes(current_user: dict = Depends(get_current_use
 
         if new_codes:
             logger.info(f"New backup codes generated for user {current_user['username']}")
-            return {}
+            return {
                 "success": True,
                 "backup_codes": new_codes,
                 "message": "New backup codes generated successfully"

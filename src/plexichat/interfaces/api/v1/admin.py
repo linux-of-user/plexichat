@@ -127,7 +127,7 @@ async def list_all_users(
                 last_login=last_login
             ))
         
-        return {}
+        return {
             "users": users_list,
             "total": total,
             "limit": limit,
