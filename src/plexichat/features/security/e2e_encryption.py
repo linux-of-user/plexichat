@@ -31,7 +31,7 @@ PlexiChat End-to-End Encryption System
 Implements E2E encryption for all API endpoints, ensuring that even if
 the server is compromised, user data remains encrypted. Uses forward
 secrecy, perfect forward secrecy, and quantum-resistant algorithms.
-"""
+
 
 # Cryptography imports
 logger = logging.getLogger(__name__)
@@ -39,7 +39,7 @@ logger = logging.getLogger(__name__)
 
 class E2EProtocol(Enum):
     """End-to-end encryption protocols."""
-    SIGNAL_PROTOCOL = "signal"
+        SIGNAL_PROTOCOL = "signal"
     DOUBLE_RATCHET = "double_ratchet"
     QUANTUM_RESISTANT_E2E = "quantum_e2e"
     HYBRID_CLASSICAL_QUANTUM = "hybrid_cq"
@@ -58,8 +58,8 @@ class EndpointType(Enum):
 
 @dataclass
 class E2ESession:
-    """End-to-end encryption session."""
-    session_id: str
+    """End-to-end encryption session.
+        session_id: str
     user_id: str
     endpoint_type: EndpointType
     protocol: E2EProtocol
@@ -88,7 +88,7 @@ class E2ESession:
 @dataclass
 class E2EMessage:
     """Encrypted end-to-end message."""
-    message_id: str
+        message_id: str
     session_id: str
     sender_id: str
     recipient_id: str
@@ -100,7 +100,7 @@ class E2EMessage:
 
 
 class EndToEndEncryption:
-    """
+    
     End-to-End Encryption System for API Endpoints
 
     Features:
@@ -111,8 +111,7 @@ class EndToEndEncryption:
     - Endpoint-specific encryption policies
     - Session management and key rotation
     """
-
-    def __init__(self, config_dir: str = "config/security/e2e"):
+        def __init__(self, config_dir: str = "config/security/e2e"):
         from pathlib import Path
         self.config_dir = Path(config_dir)
         self.config_dir.mkdir(parents=True, exist_ok=True)
@@ -139,7 +138,7 @@ class EndToEndEncryption:
         logger.info(" End-to-end encryption system initialized")
 
     async def _init_database(self):
-        """Initialize the E2E sessions database."""
+        """Initialize the E2E sessions database.
         async with aiosqlite.connect(self.db_path) as db:
             await db.execute("""
                 CREATE TABLE IF NOT EXISTS e2e_sessions (
@@ -162,7 +161,7 @@ class EndToEndEncryption:
                 )
             """)
 
-            await db.execute("""
+            await db.execute(
                 CREATE TABLE IF NOT EXISTS e2e_messages (
                     message_id TEXT PRIMARY KEY,
                     session_id TEXT NOT NULL,
@@ -187,7 +186,7 @@ class EndToEndEncryption:
                     timestamp TEXT NOT NULL,
                     metadata TEXT
                 )
-            """)
+            )
 
             await db.commit()
 
@@ -195,7 +194,7 @@ class EndToEndEncryption:
         """Load active E2E sessions from database."""
         async with aiosqlite.connect(self.db_path) as db:
             async with db.execute("SELECT * FROM e2e_sessions WHERE last_used > ?",
-                                 [(datetime.now(timezone.utc) - timedelta(hours=24)).isoformat()]) as cursor:
+                                [(datetime.now(timezone.utc) - timedelta(hours=24)).isoformat()]) as cursor:
                 async for row in cursor:
                     session = E2ESession()
                     session.session_id = row[0]
@@ -413,7 +412,7 @@ class EndToEndEncryption:
         return hashlib.blake2b(combined, digest_size=32).digest()
 
     async def encrypt_message(self, session_id: str, plaintext: bytes,
-                             recipient_id: str = "") -> Optional[E2EMessage]:
+                            recipient_id: str = "") -> Optional[E2EMessage]:
         session = self.active_sessions.get(session_id)
         if not session:
             raise ValueError(f"Session {session_id} not found.")
@@ -576,7 +575,7 @@ class EndToEndEncryption:
         return None
 
     def _sign_message(self, message: E2EMessage, session: E2ESession) -> bytes:
-        """Sign a message for authentication."""
+        """Sign a message for authentication.
         # Create message hash
         message_data = (
             message.message_id.encode() +
@@ -619,7 +618,7 @@ class EndToEndEncryption:
         return message.signature == expected_signature
 
     async def _rotate_session(self, session: E2ESession):
-        """Rotate session keys when limits are reached."""
+        Rotate session keys when limits are reached."""
         logger.info(f" Rotating session: {session.session_id}")
 
         # Create new session
@@ -641,7 +640,7 @@ class EndToEndEncryption:
         return new_session
 
     async def _save_session(self, session: E2ESession):
-        """Save session to database."""
+        """Save session to database.
         async with aiosqlite.connect(self.db_path) as db:
             await db.execute("""
                 INSERT OR REPLACE INTO e2e_sessions
@@ -668,13 +667,13 @@ class EndToEndEncryption:
             await db.commit()
 
     async def _save_message(self, message: E2EMessage):
-        """Save message to database."""
+        Save message to database."""
         async with aiosqlite.connect(self.db_path) as db:
             await db.execute("""
                 INSERT INTO e2e_messages
                 (message_id, session_id, sender_id, recipient_id, encrypted_payload, message_key_index, timestamp, signature, metadata)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
+            , (
                 message.message_id,
                 message.session_id,
                 message.sender_id,
@@ -751,7 +750,7 @@ class EndToEndEncryption:
         today = datetime.now(timezone.utc).date()
         async with aiosqlite.connect(self.db_path) as db:
             async with db.execute("SELECT COUNT(*) FROM e2e_messages WHERE DATE(timestamp) = ?",
-                                 [today.isoformat()]) as cursor:
+                                [today.isoformat()]) as cursor:
                 row = await cursor.fetchone()
                 if row:
                     stats["total_messages_today"] = row[0]

@@ -52,9 +52,8 @@ performance_logger = get_performance_logger() if get_performance_logger else Non
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 class AuthenticationCore:
-    """Core authentication system using EXISTING database abstraction."""
-
-    def __init__(self):
+    """Core authentication system using EXISTING database abstraction.
+        def __init__(self):
         self.db_manager = database_manager
         self.performance_logger = performance_logger
         self.jwt_secret = getattr(settings, 'JWT_SECRET', 'mock-secret-key')
@@ -67,7 +66,7 @@ class AuthenticationCore:
         return pwd_context.hash(password)
 
     def verify_password(self, plain_password: str, hashed_password: str) -> bool:
-        """Verify password against hash."""
+        Verify password against hash."""
         return pwd_context.verify(plain_password, hashed_password)
 
     def create_access_token(self, data: Dict[str, Any], expires_delta: Optional[timedelta] = None) -> str:
@@ -102,7 +101,7 @@ class AuthenticationCore:
 
     @async_track_performance("user_authentication") if async_track_performance else lambda f: f
     async def authenticate_user(self, username: str, password: str) -> Optional[Dict[str, Any]]:
-        """Authenticate user using EXISTING database abstraction."""
+        """Authenticate user using EXISTING database abstraction.
         if self.db_manager:
             try:
                 query = """
@@ -267,7 +266,7 @@ class AuthenticationCore:
         return hashlib.sha256(data.encode()).hexdigest()
 
     async def validate_api_key(self, api_key: str) -> Optional[Dict[str, Any]]:
-        """Validate API key and return user data."""
+        """Validate API key and return user data.
         if self.db_manager:
             try:
                 query = """
@@ -300,7 +299,7 @@ auth_core = AuthenticationCore()
 
 # Convenience functions
 def hash_password(password: str) -> str:
-    """Hash password."""
+    """Hash password.
     return auth_core.hash_password(password)
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -308,7 +307,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     return auth_core.verify_password(plain_password, hashed_password)
 
 def create_access_token(data: Dict[str, Any], expires_delta: Optional[timedelta] = None) -> str:
-    """Create access token."""
+    Create access token."""
     return auth_core.create_access_token(data, expires_delta)
 
 def create_refresh_token(data: Dict[str, Any]) -> str:

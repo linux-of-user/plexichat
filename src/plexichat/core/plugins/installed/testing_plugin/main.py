@@ -25,7 +25,7 @@ Features Tested:
 - Regression Testing (20+ tests)
 
 TOTAL: 400+ COMPREHENSIVE TESTS
-"""
+
 
 import asyncio
 import json
@@ -97,7 +97,7 @@ except ImportError:
 
 class PluginBase(PluginInterface):
     """Base plugin class with safe fallback."""
-    def __init__(self, plugin_id: str = "testing_plugin", config: dict = None):
+        def __init__(self, plugin_id: str = "testing_plugin", config: dict = None):
         super().__init__(plugin_id, config or {})
         self.name = "testing_plugin"
         self.version = "2.0.0"
@@ -115,8 +115,8 @@ class PluginBase(PluginInterface):
 
 @dataclass
 class TestResult:
-    """Comprehensive test result data structure."""
-    test_id: str
+    """Comprehensive test result data structure.
+        test_id: str
     test_name: str
     test_category: str
     test_type: str  # unit, integration, security, performance, etc.
@@ -139,7 +139,7 @@ class TestResult:
 @dataclass
 class TestSuite:
     """Comprehensive test suite configuration."""
-    suite_id: str
+        suite_id: str
     name: str
     description: str
     category: str
@@ -154,8 +154,8 @@ class TestSuite:
 
 @dataclass
 class TestReport:
-    """Comprehensive test report."""
-    report_id: str
+    Comprehensive test report."""
+        report_id: str
     timestamp: datetime
     total_tests: int
     passed_tests: int
@@ -171,9 +171,8 @@ class TestReport:
 
 
 class TestDataGenerator:
-    """Generates comprehensive test data for all PlexiChat features."""
-
-    @staticmethod
+    """Generates comprehensive test data for all PlexiChat features.
+        @staticmethod
     def generate_user_data(count: int = 10) -> List[Dict[str, Any]]:
         """Generate test user data."""
         users = []
@@ -264,7 +263,7 @@ class TestDataGenerator:
     @staticmethod
     def generate_security_payloads() -> Dict[str, List[str]]:
         """Generate security testing payloads."""
-        return {}
+        return {
             "sql_injection": [
                 "' OR '1'='1",
                 "'; DROP TABLE users; --",
@@ -325,13 +324,12 @@ class TestDataGenerator:
                 "*)(userPassword=*)",
                 "*)(mail=*)"
             ]
-        }
+        }}
 
 
 class ComprehensiveEndpointTester:
     """Most comprehensive endpoint testing system ever created."""
-
-    def __init__(self, base_url: str = "http://localhost:8000", timeout: int = 30):
+        def __init__(self, base_url: str = "http://localhost:8000", timeout: int = 30):
         self.base_url = base_url.rstrip('/')
         self.timeout = timeout
         self.session = requests.Session() if requests else None
@@ -342,9 +340,9 @@ class ComprehensiveEndpointTester:
         self.test_counter = 0
     
     async def test_endpoint(self, test_name: str, endpoint: str, method: str = "GET",
-                          data: Optional[Dict] = None, headers: Optional[Dict] = None,
-                          expected_status: int = 200, test_category: str = "api",
-                          test_type: str = "functional") -> TestResult:
+                        data: Optional[Dict] = None, headers: Optional[Dict] = None,
+                        expected_status: int = 200, test_category: str = "api",
+                        test_type: str = "functional") -> TestResult:
         """Test a single endpoint with comprehensive metrics."""
         if not self.session:
             return self._create_error_result(test_name, endpoint, method, "requests library not available", test_category, test_type)
@@ -410,8 +408,8 @@ class ComprehensiveEndpointTester:
         return result
 
     def _create_error_result(self, test_name: str, endpoint: str, method: str, error: str,
-                           test_category: str, test_type: str, response_time: float = 0.0,
-                           test_id: str = None) -> TestResult:
+                        test_category: str, test_type: str, response_time: float = 0.0,
+                        test_id: str = None) -> TestResult:
         """Create an error test result."""
         if not test_id:
             test_id = f"test_{self.test_counter}_{int(time.time())}"
@@ -435,7 +433,7 @@ class ComprehensiveEndpointTester:
         )
     
     async def test_multiple_endpoints(self, endpoints: List[Dict[str, Any]]) -> List[TestResult]:
-        """Test multiple endpoints concurrently."""
+        """Test multiple endpoints concurrently.
         tasks = []
         for endpoint_config in endpoints:
             task = self.test_endpoint(**endpoint_config)
@@ -975,8 +973,7 @@ class ComprehensiveTestingPlugin(PluginBase):
     - Integration Testing (30 tests)
     - Regression Testing (25 tests)
     """
-
-    def __init__(self, plugin_id: str = "testing_plugin", config: dict = None):
+        def __init__(self, plugin_id: str = "testing_plugin", config: dict = None):
         super().__init__(plugin_id, config)
         self.name = "comprehensive_testing_plugin"
         self.version = "2.0.0"
@@ -2514,7 +2511,7 @@ Success Rate: {success_rate:.1f}%
 
     def get_plugin_info(self):
         """Get comprehensive plugin information."""
-        return {}
+        return {
             "name": self.name,
             "version": self.version,
             "description": "MASSIVE COMPREHENSIVE TESTING PLUGIN - 400+ tests covering EVERY PlexiChat feature",
@@ -2546,7 +2543,7 @@ Success Rate: {success_rate:.1f}%
                 "Parallel test execution",
                 "Test cleanup and management"
             ]
-        }
+        }}
 
 
 # Plugin instance
@@ -2554,7 +2551,7 @@ plugin_instance = ComprehensiveTestingPlugin()
 
 # Plugin entry points
 async def initialize():
-    """Plugin initialization entry point."""
+    """Plugin initialization entry point.
     return await plugin_instance.initialize()
 
 async def cleanup():
@@ -2563,7 +2560,7 @@ async def cleanup():
 
 # Legacy function for compatibility
 def get_plugin_info():
-    """Get plugin information (legacy compatibility)."""
+    Get plugin information (legacy compatibility)."""
     return plugin_instance.get_plugin_info()
 
 

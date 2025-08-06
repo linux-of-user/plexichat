@@ -4,7 +4,7 @@ Shard Manager for Distributed Backup System
 
 Handles splitting data into 1MB shards with Reed-Solomon error correction.
 Provides redundancy so that partial shards can reconstruct the full data.
-"""
+
 
 import hashlib
 import logging
@@ -38,7 +38,7 @@ MIN_SHARDS_FOR_RECOVERY = DEFAULT_DATA_SHARDS
 
 class ShardType(Enum):
     """Types of shards."""
-    DATA = "data"
+        DATA = "data"
     PARITY = "parity"
     METADATA = "metadata"
 
@@ -52,8 +52,8 @@ class ShardStatus(Enum):
 
 @dataclass
 class ShardInfo:
-    """Information about a single shard."""
-    shard_id: str
+    """Information about a single shard.
+        shard_id: str
     backup_id: str
     shard_index: int
     shard_type: ShardType
@@ -67,7 +67,7 @@ class ShardInfo:
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
-        return {}
+        return {
             "shard_id": self.shard_id,
             "backup_id": self.backup_id,
             "shard_index": self.shard_index,
@@ -79,7 +79,7 @@ class ShardInfo:
             "location": self.location,
             "encryption_key_id": self.encryption_key_id,
             "metadata": self.metadata
-        }
+        }}
     
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'ShardInfo':
@@ -100,8 +100,8 @@ class ShardInfo:
 
 @dataclass
 class ShardSet:
-    """A complete set of shards for a backup."""
-    backup_id: str
+    """A complete set of shards for a backup.
+        backup_id: str
     version_id: str
     data_shards: List[ShardInfo]
     parity_shards: List[ShardInfo]
@@ -121,23 +121,22 @@ class ShardSet:
     
     @property
     def available_shards(self) -> List[ShardInfo]:
-        """Get available (non-missing, non-corrupted) shards."""
+        Get available (non-missing, non-corrupted) shards."""
         return [s for s in self.all_shards 
                 if s.status not in [ShardStatus.MISSING, ShardStatus.CORRUPTED]]
     
     @property
     def can_restore(self) -> bool:
-        """Check if enough shards are available for restoration."""
+        """Check if enough shards are available for restoration.
         available_data_parity = [s for s in self.available_shards 
-                               if s.shard_type in [ShardType.DATA, ShardType.PARITY]]
+                            if s.shard_type in [ShardType.DATA, ShardType.PARITY]]
         return len(available_data_parity) >= self.min_shards_required
 
 class EnhancedShardManager:
     """Advanced shard manager for massive scale with intelligent redundancy."""
-
-    def __init__(self, storage_dir: Path, data_shards: int = DEFAULT_DATA_SHARDS,
-                 parity_shards: int = DEFAULT_PARITY_SHARDS, redundancy_copies: int = 5,
-                 streaming_threshold_mb: int = 1024):
+        def __init__(self, storage_dir: Path, data_shards: int = DEFAULT_DATA_SHARDS,
+                parity_shards: int = DEFAULT_PARITY_SHARDS, redundancy_copies: int = 5,
+                streaming_threshold_mb: int = 1024):
         self.storage_dir = Path(storage_dir)
         self.storage_dir.mkdir(parents=True, exist_ok=True)
 
@@ -172,7 +171,7 @@ class EnhancedShardManager:
         }
     
     def _calculate_checksum(self, data: bytes) -> str:
-        """Calculate SHA256 checksum of data."""
+        """Calculate SHA256 checksum of data.
         return hashlib.sha256(data).hexdigest()
     
     def _split_into_chunks(self, data: bytes) -> List[bytes]:
@@ -188,7 +187,7 @@ class EnhancedShardManager:
     
     async def create_shards_streaming(self, data_stream, backup_id: str, version_id: str,
                                     total_size: Optional[int] = None) -> ShardSet:
-        """Create shards from streaming data for massive datasets."""
+        Create shards from streaming data for massive datasets."""
         try:
             logger.info(f"Starting streaming shard creation for backup {backup_id}")
 
@@ -253,7 +252,7 @@ class EnhancedShardManager:
             raise
 
     async def _stream_chunks(self, data_stream, chunk_size: int):
-        """Stream data in fixed-size chunks."""
+        """Stream data in fixed-size chunks.
         if hasattr(data_stream, 'read'):
             # File-like object
             while True:
@@ -277,7 +276,7 @@ class EnhancedShardManager:
                 yield data_stream[i:i + chunk_size]
 
     async def _create_chunk_shards_with_copies(self, chunk: bytes, backup_id: str,
-                                             chunk_index: int) -> Tuple[List[ShardInfo], List[ShardInfo]]:
+                                            chunk_index: int) -> Tuple[List[ShardInfo], List[ShardInfo]]:
         """Create shards for a chunk with multiple redundant copies."""
         data_shards = []
         parity_shards = []
@@ -496,7 +495,7 @@ class EnhancedShardManager:
             raise
     
     def _create_simple_redundancy_shards(self, chunk: bytes, chunk_idx: int, backup_id: str,
-                                       data_shards: List[ShardInfo], parity_shards: List[ShardInfo]):
+                                    data_shards: List[ShardInfo], parity_shards: List[ShardInfo]):
         """Create simple redundancy shards when Reed-Solomon is not available."""
         # Create primary data shard
         data_shard = ShardInfo(
@@ -667,7 +666,7 @@ class EnhancedShardManager:
             return None
 
     def get_shard_set(self, backup_id: str) -> Optional[ShardSet]:
-        """Get shard set by backup ID."""
+        """Get shard set by backup ID.
         return self.shard_sets.get(backup_id)
 
     def verify_shards(self, shard_set: ShardSet) -> Dict[str, Any]:
@@ -807,7 +806,7 @@ class EnhancedShardManager:
             return False
 
     async def _create_enhanced_simple_shards(self, chunk: bytes, backup_id: str,
-                                           chunk_index: int) -> Tuple[List[ShardInfo], List[ShardInfo]]:
+                                        chunk_index: int) -> Tuple[List[ShardInfo], List[ShardInfo]]:
         """Create enhanced simple redundancy shards with multiple copies."""
         data_shards = []
         parity_shards = []
@@ -857,8 +856,8 @@ class EnhancedShardManager:
         return data_shards, parity_shards
 
     async def _create_enhanced_metadata(self, backup_id: str, version_id: str, total_size: int,
-                                      chunk_count: int, data_shards: List[ShardInfo],
-                                      parity_shards: List[ShardInfo]) -> Dict[str, Any]:
+                                    chunk_count: int, data_shards: List[ShardInfo],
+                                    parity_shards: List[ShardInfo]) -> Dict[str, Any]:
         """Create enhanced metadata with redundancy and health information."""
         return {
             "backup_id": backup_id,
@@ -890,7 +889,7 @@ class EnhancedShardManager:
         }
 
     async def _create_metadata_shard(self, backup_id: str, metadata: Dict[str, Any]) -> ShardInfo:
-        """Create metadata shard with multiple copies."""
+        """Create metadata shard with multiple copies.
         metadata_bytes = json.dumps(metadata, indent=2).encode('utf-8')
 
         metadata_shard = ShardInfo(

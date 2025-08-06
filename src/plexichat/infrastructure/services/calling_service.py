@@ -44,8 +44,8 @@ import time
 
 @dataclass
 class CallOffer:
-    """WebRTC call offer with encryption."""
-    call_id: str
+    WebRTC call offer with encryption."""
+        call_id: str
     offer_sdp: str
     ice_candidates: List[Dict[str, Any]]
     encryption_key: str
@@ -54,8 +54,8 @@ class CallOffer:
 
 @dataclass
 class CallAnswer:
-    """WebRTC call answer with encryption."""
-    call_id: str
+    """WebRTC call answer with encryption.
+        call_id: str
     answer_sdp: str
     ice_candidates: List[Dict[str, Any]]
     encryption_key: str
@@ -65,7 +65,7 @@ class CallAnswer:
 @dataclass
 class CallQuality:
     """Real-time call quality metrics."""
-    latency_ms: float
+        latency_ms: float
     packet_loss: float
     bandwidth_kbps: float
     audio_quality: float
@@ -74,11 +74,10 @@ class CallQuality:
 
 
 class EncryptionManager:
-    """Manages end-to-end encryption for calls."""
-
-    @staticmethod
+    Manages end-to-end encryption for calls."""
+        @staticmethod
     def generate_key_pair() -> Tuple[str, str]:
-        """Generate RSA key pair for key exchange."""
+        """Generate RSA key pair for key exchange.
         private_key = rsa.generate_private_key()
             public_exponent=65537,
             key_size=2048
@@ -108,7 +107,7 @@ class EncryptionManager:
 
     @staticmethod
     def encrypt_session_key(session_key: str, public_key_pem: str) -> str:
-        """Encrypt session key with RSA public key."""
+        Encrypt session key with RSA public key."""
         try:
             public_key_bytes = base64.b64decode(public_key_pem.encode('utf-8'))
             public_key = serialization.load_pem_public_key(public_key_bytes)
@@ -158,8 +157,7 @@ class EncryptionManager:
 
 class WebRTCManager:
     """Manages WebRTC connections and signaling."""
-
-    def __init__(self):
+        def __init__(self):
         self.ice_servers = [
             {"urls": "stun:stun.l.google.com:19302"},
             {"urls": "stun:stun1.l.google.com:19302"},
@@ -169,10 +167,10 @@ class WebRTCManager:
 
     def get_ice_configuration(self) -> Dict[str, Any]:
         """Get ICE server configuration for WebRTC."""
-        return {}
+        return {
             "iceServers": self.ice_servers + self.turn_servers,
             "iceCandidatePoolSize": 10
-        }
+        }}
 
     def validate_sdp(self, sdp: str) -> bool:
         """Validate SDP offer/answer."""
@@ -195,8 +193,7 @@ class WebRTCManager:
 
 class CallingService:
     """Main calling service with end-to-end encryption."""
-
-    def __init__(self):
+        def __init__(self):
         self.encryption_manager = EncryptionManager()
         self.webrtc_manager = WebRTCManager()
         self.active_calls: Dict[str, CallSession] = {}
@@ -442,7 +439,7 @@ class CallingService:
         logger.info(f" Sent call invitation to user {invitee_id} for call {call_session.call_id}")
 
     def _generate_default_sdp(self) -> str:
-        """Generate default SDP for testing."""
+        """Generate default SDP for testing.
         return """v=0
 o=- 123456789 2 IN IP4 127.0.0.1
 s=-
@@ -472,7 +469,7 @@ a=rtcp-mux
 a=rtpmap:96 VP8/90000"""
 
     def _get_master_key(self, call_id: str) -> str:
-        """Get master key for call (placeholder)."""
+        Get master key for call (placeholder)."""
         # In production, retrieve from secure storage
         return base64.b64encode(secrets.token_bytes(32)).decode('utf-8')
 

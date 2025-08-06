@@ -72,14 +72,14 @@ except ImportError:
 
 class SystemLoadLevel(Enum):
     """System load levels for dynamic scaling."""
-    LOW = "low"           # < 30% load
+        LOW = "low"           # < 30% load
     NORMAL = "normal"     # 30-70% load  
     HIGH = "high"         # 70-90% load
     CRITICAL = "critical" # > 90% load
 
 @dataclass
 class SystemMetrics:
-    """Current system metrics."""
+    """Current system metrics.
     cpu_usage: float = 0.0
     memory_usage: float = 0.0
     disk_usage: float = 0.0
@@ -92,7 +92,7 @@ class SystemMetrics:
 @dataclass
 class DynamicLimits:
     """Dynamic rate limits based on system load and account type."""
-    base_limit: int
+        base_limit: int
     current_limit: int
     load_multiplier: float
     account_multiplier: float
@@ -100,7 +100,7 @@ class DynamicLimits:
     fairness_factor: float = 1.0
 
 class IntegratedProtectionSystem:
-    """
+    
     Integrated protection system combining:
     - DDoS protection
     - Dynamic rate limiting
@@ -108,8 +108,7 @@ class IntegratedProtectionSystem:
     - System load-based scaling
     - Fairness algorithms
     """
-    
-    def __init__(self, rate_limit_config: Optional[RateLimitConfig] = None):
+        def __init__(self, rate_limit_config: Optional[RateLimitConfig] = None):
         # Core components
         self.rate_limiter = UnifiedRateLimiter(rate_limit_config or RateLimitConfig())
         self.ddos_service = EnhancedDDoSProtectionService()
@@ -154,7 +153,7 @@ class IntegratedProtectionSystem:
             print("[INFO] Integrated Protection System initialized")
     
     def _load_account_configurations(self):
-        """Load account type configurations."""
+        """Load account type configurations.
         # Default configurations for different account types
         self.account_limits = {
             AccountType.GUEST: AccountTypeRateLimit(
@@ -323,7 +322,7 @@ class IntegratedProtectionSystem:
             logger.error(f"Failed to update fairness weights: {e}")
     
     def _get_account_type(self, request: Request) -> AccountType:
-        """Determine account type from request."""
+        """Determine account type from request.
         # Check if user is authenticated and get account type
         user_data = getattr(request.state, 'user', None)
         if user_data:
@@ -374,7 +373,7 @@ class IntegratedProtectionSystem:
         )
     
     async def check_request(self, request: Request) -> Optional[Dict[str, Any]]:
-        """
+        
         Check if request should be allowed through integrated protection.
         
         Returns None if allowed, or dict with block info if blocked.
@@ -507,9 +506,8 @@ class IntegratedProtectionSystem:
         logger.info("  Integrated Protection System shutdown")
 
 class IntegratedProtectionMiddleware:
-    """FastAPI middleware for integrated protection system."""
-
-    def __init__(self, rate_limit_config: Optional[RateLimitConfig] = None):
+    """FastAPI middleware for integrated protection system.
+        def __init__(self, rate_limit_config: Optional[RateLimitConfig] = None):
         self.protection_system = IntegratedProtectionSystem(rate_limit_config)
 
     async def __call__(self, request: Request, call_next):
@@ -573,7 +571,7 @@ class IntegratedProtectionMiddleware:
             return await call_next(request)
 
     def get_stats(self) -> Dict[str, Any]:
-        """Get comprehensive protection statistics."""
+        """Get comprehensive protection statistics.
         return self.protection_system.get_comprehensive_stats()
 
     async def shutdown(self):
@@ -584,7 +582,7 @@ class IntegratedProtectionMiddleware:
 _global_protection_system: Optional[IntegratedProtectionSystem] = None
 
 def get_protection_system() -> IntegratedProtectionSystem:
-    """Get the global protection system instance."""
+    Get the global protection system instance."""
     global _global_protection_system
     if _global_protection_system is None:
         _global_protection_system = IntegratedProtectionSystem()

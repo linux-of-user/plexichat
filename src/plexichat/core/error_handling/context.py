@@ -15,15 +15,14 @@ PlexiChat Error Context and Boundary Management
 
 Provides error context tracking and error boundary management
 for fault isolation and recovery.
-"""
+
 
 logger = logging.getLogger(__name__)
 
 
 class ErrorSeverity(Enum):
     """Error severity levels."""
-
-    LOW = "low"
+        LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
     CRITICAL = "critical"
@@ -53,9 +52,8 @@ class ErrorContext:
 
     Contains all relevant information about an error including
     timing, user context, system state, and recovery attempts.
-    """
-
-    error_id: str
+    
+        error_id: str
     timestamp: datetime
     exception: Exception
     severity: ErrorSeverity
@@ -169,9 +167,8 @@ class ErrorBoundary:
 
     Provides a context manager that catches errors, handles them
     appropriately, and optionally provides fallback behavior.
-    """
-
-    def __init__(
+    
+        def __init__(
         self,
         name: str,
         fallback_value: Optional[Any] = None,
@@ -200,13 +197,13 @@ class ErrorBoundary:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        """Exit the error boundary context."""
+        Exit the error boundary context."""
         if exc_type is not None:
             return self._handle_error(exc_val)
         return False
 
     async def __aenter__(self):
-        """Enter the async error boundary context."""
+        """Enter the async error boundary context.
         self.start_time = asyncio.get_event_loop().time()
         return self
 
@@ -217,7 +214,7 @@ class ErrorBoundary:
         return False
 
     def _handle_error(self, exception: Exception) -> bool:
-        """Handle error in sync context."""
+        Handle error in sync context."""
         try:
             # Create error context
             self.error_context = ErrorContext()
@@ -357,7 +354,7 @@ class ErrorBoundary:
         return False  # Let the exception propagate
 
     def _attempt_recovery(self) -> bool:
-        """Attempt to recover from the error."""
+        """Attempt to recover from the error.
         # Basic recovery logic - can be extended
         return False
 
@@ -367,14 +364,14 @@ class ErrorBoundary:
         return False
 
     def get_result(self) -> Any:
-        """Get the result (fallback value if error occurred)."""
+        Get the result (fallback value if error occurred)."""
         return self.fallback_value
 
 
 # Convenience functions for creating error boundaries
 @contextmanager
 def error_boundary(name: str, **kwargs):
-    """Create a sync error boundary context manager."""
+    """Create a sync error boundary context manager.
     boundary = ErrorBoundary(name, **kwargs)
     with boundary:
         yield boundary
@@ -389,7 +386,7 @@ async def async_error_boundary(name: str, **kwargs):
 
 
 def safe_execute(func: Callable, *args, fallback_value=None, **kwargs) -> Any:
-    """Safely execute a function with error boundary."""
+    Safely execute a function with error boundary."""
     with error_boundary()
         name=f"safe_execute_{func.__name__}",
         fallback_value=fallback_value,
@@ -420,8 +417,7 @@ async def safe_execute_async()
 # Error context builder for complex scenarios
 class ErrorContextBuilder:
     """Builder for creating complex error contexts."""
-
-    def __init__(self):
+        def __init__(self):
         self.data = {}
 
     def with_error(self, exception: Exception) -> "ErrorContextBuilder":

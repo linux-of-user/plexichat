@@ -89,8 +89,7 @@ blocked_ips: Set[str] = set()
 
 class EnterpriseSecurityManager:
     """Enterprise-grade security manager."""
-    
-    def __init__(self):
+        def __init__(self):
         self.api_keys = self._load_api_keys()
         self.signing_secret = os.environ.get("PLEXICHAT_SIGNING_SECRET", secrets.token_hex(32))
         self.request_id_store: Set[str] = set()
@@ -158,8 +157,7 @@ class EnterpriseSecurityManager:
 
 class EnterpriseRateLimiter:
     """Enterprise-grade rate limiter."""
-    
-    def __init__(self):
+        def __init__(self):
         self.limits = ENTERPRISE_CONFIG["rate_limits"]
         self.window_size = self.limits["rate_limit_window"]
     

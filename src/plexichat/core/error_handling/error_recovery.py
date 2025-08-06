@@ -36,8 +36,8 @@ from .exceptions import ()
 
 
 class RecoveryStrategy(Enum):
-    """Available recovery strategies."""
-    RETRY = "retry"
+    Available recovery strategies."""
+        RETRY = "retry"
     FALLBACK = "fallback"
     CIRCUIT_BREAKER = "circuit_breaker"
     GRACEFUL_DEGRADATION = "graceful_degradation"
@@ -47,7 +47,7 @@ class RecoveryStrategy(Enum):
 
 @dataclass
 class RecoveryConfig:
-    """Configuration for recovery strategies."""
+    """Configuration for recovery strategies.
     max_retries: int = 3
     retry_delay: float = 1.0
     exponential_backoff: bool = True
@@ -60,8 +60,7 @@ class RecoveryConfig:
 
 class RecoveryAttempt:
     """Represents a recovery attempt."""
-
-    def __init__(self, strategy: RecoveryStrategy, attempt_number: int):
+        def __init__(self, strategy: RecoveryStrategy, attempt_number: int):
         self.strategy = strategy
         self.attempt_number = attempt_number
         self.start_time = time.time()
@@ -71,7 +70,7 @@ class RecoveryAttempt:
         self.result: Optional[Any] = None
 
     def complete(self, success: bool, result: Optional[Any] = None, error: Optional[Exception] = None):
-        """Mark the recovery attempt as complete."""
+        Mark the recovery attempt as complete."""
         self.end_time = time.time()
         self.success = success
         self.result = result
@@ -79,7 +78,7 @@ class RecoveryAttempt:
 
     @property
     def duration(self) -> float:
-        """Get the duration of the recovery attempt."""
+        """Get the duration of the recovery attempt.
         if self.end_time:
             return self.end_time - self.start_time
         return time.time() - self.start_time
@@ -87,8 +86,7 @@ class RecoveryAttempt:
 
 class ErrorRecoveryManager:
     """Manages error recovery strategies and execution."""
-
-    def __init__(self):
+        def __init__(self):
         self.recovery_strategies: Dict[Type[Exception], List[RecoveryStrategy]] = {}
         self.recovery_functions: Dict[RecoveryStrategy, Callable] = {}
         self.recovery_configs: Dict[str, RecoveryConfig] = {}
@@ -103,7 +101,7 @@ class ErrorRecoveryManager:
         self._initialize_default_strategies()
 
     async def initialize(self, config: Dict[str, Any] = None):
-        """Initialize the recovery manager."""
+        Initialize the recovery manager."""
         if config:
             # Update default config
             for key, value in config.get('default_config', {}).items():
@@ -118,7 +116,7 @@ class ErrorRecoveryManager:
         logger.info("Error Recovery Manager initialized")
 
     def _initialize_default_strategies(self):
-        """Initialize default recovery strategies for common exceptions."""
+        """Initialize default recovery strategies for common exceptions.
             AuthenticationError,
             DatabaseError,
             ExternalServiceError,
@@ -160,8 +158,8 @@ class ErrorRecoveryManager:
         ]
 
     async def attempt_recovery(self, exception: Exception,)
-                              context: Dict[str, Any] = None,
-                              component: Optional[str] = None) -> Dict[str, Any]:
+                            context: Dict[str, Any] = None,
+                            component: Optional[str] = None) -> Dict[str, Any]:
         """Attempt to recover from an error using appropriate strategies."""
 
         exception_type = type(exception)
@@ -209,10 +207,10 @@ class ErrorRecoveryManager:
         return recovery_result
 
     async def _execute_recovery_strategy(self, strategy: RecoveryStrategy,)
-                                       exception: Exception,
-                                       context: Dict[str, Any],
-                                       config: RecoveryConfig) -> tuple[bool, Any]:
-        """Execute a specific recovery strategy."""
+                                    exception: Exception,
+                                    context: Dict[str, Any],
+                                    config: RecoveryConfig) -> tuple[bool, Any]:
+        """Execute a specific recovery strategy.
 
         if strategy == RecoveryStrategy.RETRY:
             return await self._retry_strategy(exception, context, config)
@@ -265,9 +263,9 @@ class ErrorRecoveryManager:
         return False, None
 
     async def _fallback_strategy(self, exception: Exception,)
-                               context: Dict[str, Any],
-                               config: RecoveryConfig) -> tuple[bool, Any]:
-        """Implement fallback strategy."""
+                            context: Dict[str, Any],
+                            config: RecoveryConfig) -> tuple[bool, Any]:
+        Implement fallback strategy."""
         fallback_function = context.get('fallback_function')
         if fallback_function:
             try:
@@ -282,9 +280,9 @@ class ErrorRecoveryManager:
         return False, None
 
     async def _cache_fallback_strategy(self, exception: Exception,)
-                                     context: Dict[str, Any],
-                                     config: RecoveryConfig) -> tuple[bool, Any]:
-        """Implement cache fallback strategy."""
+                                    context: Dict[str, Any],
+                                    config: RecoveryConfig) -> tuple[bool, Any]:
+        """Implement cache fallback strategy.
         if not config.cache_fallback_enabled:
             return False, None
 
@@ -301,8 +299,8 @@ class ErrorRecoveryManager:
         return False, None
 
     async def _default_response_strategy(self, exception: Exception,)
-                                       context: Dict[str, Any],
-                                       config: RecoveryConfig) -> tuple[bool, Any]:
+                                    context: Dict[str, Any],
+                                    config: RecoveryConfig) -> tuple[bool, Any]:
         """Implement default response strategy."""
         if not config.default_response_enabled:
             return False, None
@@ -322,9 +320,9 @@ class ErrorRecoveryManager:
         return False, None
 
     async def _graceful_degradation_strategy(self, exception: Exception,)
-                                           context: Dict[str, Any],
-                                           config: RecoveryConfig) -> tuple[bool, Any]:
-        """Implement graceful degradation strategy."""
+                                        context: Dict[str, Any],
+                                        config: RecoveryConfig) -> tuple[bool, Any]:
+        Implement graceful degradation strategy."""
         degraded_function = context.get('degraded_function')
         if degraded_function:
             try:
@@ -344,8 +342,8 @@ class ErrorRecoveryManager:
         }
 
     def register_recovery_strategy(self, exception_type: Type[Exception],):
-                                 strategies: List[RecoveryStrategy]):
-        """Register recovery strategies for an exception type."""
+                                strategies: List[RecoveryStrategy]):
+        """Register recovery strategies for an exception type.
         self.recovery_strategies[exception_type] = strategies
 
     def register_recovery_function(self, strategy: RecoveryStrategy, func: Callable):
@@ -353,7 +351,7 @@ class ErrorRecoveryManager:
         self.recovery_functions[strategy] = func
 
     def get_recovery_statistics(self) -> Dict[str, Any]:
-        """Get recovery statistics."""
+        Get recovery statistics."""
         total_attempts = len(self.recovery_history)
         successful_recoveries = sum(1 for r in self.recovery_history if r['recovered'])
 

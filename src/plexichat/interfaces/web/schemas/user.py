@@ -2,7 +2,7 @@
 """
 User schemas for PlexiChat API.
 Enhanced with comprehensive validation and security.
-"""
+
 
 from datetime import datetime
 from typing import Optional, List
@@ -11,7 +11,7 @@ from pydantic import BaseModel, Field, field_validator, EmailStr
 
 class UserBase(BaseModel):
     """Base user schema."""
-    username: str = Field(..., min_length=3, max_length=50, description="Username")
+        username: str = Field(..., min_length=3, max_length=50, description="Username")
     email: EmailStr = Field(..., description="Email address")
 
     @field_validator('username')
@@ -28,7 +28,7 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     """User creation schema."""
-    password: str = Field(..., min_length=6, max_length=100, description="Password")
+        password: str = Field(..., min_length=6, max_length=100, description="Password")
     is_admin: bool = Field(default=False, description="Admin status")
 
     @field_validator('password')
@@ -42,7 +42,7 @@ class UserCreate(UserBase):
 
 class UserUpdate(BaseModel):
     """User update schema."""
-    username: Optional[str] = Field(None, min_length=3, max_length=50, description="Username")
+        username: Optional[str] = Field(None, min_length=3, max_length=50, description="Username")
     email: Optional[EmailStr] = Field(None, description="Email address")
     is_active: Optional[bool] = Field(None, description="Active status")
     is_admin: Optional[bool] = Field(None, description="Admin status")
@@ -62,7 +62,7 @@ class UserUpdate(BaseModel):
 
 class UserResponse(UserBase):
     """User response schema."""
-    id: int = Field(..., description="User ID")
+        id: int = Field(..., description="User ID")
     is_active: bool = Field(..., description="Active status")
     is_admin: bool = Field(..., description="Admin status")
     created_at: datetime = Field(..., description="Creation timestamp")
@@ -74,7 +74,7 @@ class UserResponse(UserBase):
 
 class UserListResponse(BaseModel):
     """User list response schema."""
-    users: List[UserResponse] = Field(..., description="List of users")
+        users: List[UserResponse] = Field(..., description="List of users")
     total_count: int = Field(..., description="Total number of users")
     page: int = Field(..., description="Current page number")
     per_page: int = Field(..., description="Items per page")
@@ -84,7 +84,7 @@ class UserListResponse(BaseModel):
 
 class UserProfile(UserResponse):
     """Extended user profile schema."""
-    bio: Optional[str] = Field(None, max_length=500, description="User biography")
+        bio: Optional[str] = Field(None, max_length=500, description="User biography")
     avatar_url: Optional[str] = Field(None, description="Avatar image URL")
     timezone: Optional[str] = Field(None, description="User timezone")
     language: Optional[str] = Field(None, description="Preferred language")
@@ -92,7 +92,7 @@ class UserProfile(UserResponse):
 
 class UserStats(BaseModel):
     """User statistics schema."""
-    user_id: int = Field(..., description="User ID")
+        user_id: int = Field(..., description="User ID")
     message_count: int = Field(default=0, description="Total messages sent")
     file_count: int = Field(default=0, description="Total files uploaded")
     login_count: int = Field(default=0, description="Total login count")

@@ -147,8 +147,7 @@ class UserResponse:
 
 class UserService:
     """Enhanced user service using EXISTING database abstraction."""
-
-    def __init__(self):
+        def __init__(self):
         self.db_manager = database_manager
         self.performance_logger = performance_logger
 

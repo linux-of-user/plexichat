@@ -86,7 +86,7 @@ logger = get_logger(__name__)
 
 class MessageType(Enum):
     """Message types."""
-    TEXT = "text"
+        TEXT = "text"
     IMAGE = "image"
     FILE = "file"
     AUDIO = "audio"
@@ -112,7 +112,7 @@ class ChannelType(Enum):
 
 class MessageStatus(Enum):
     """Message delivery status."""
-    PENDING = "pending"
+        PENDING = "pending"
     SENT = "sent"
     DELIVERED = "delivered"
     READ = "read"
@@ -131,8 +131,8 @@ class EncryptionLevel(Enum):
 
 @dataclass
 class MessageMetadata:
-    """Message metadata."""
-    encryption_level: EncryptionLevel = EncryptionLevel.TRANSPORT
+    """Message metadata.
+        encryption_level: EncryptionLevel = EncryptionLevel.TRANSPORT
     priority: Priority = Priority.NORMAL
     expires_at: Optional[datetime] = None
     reply_to: Optional[MessageId] = None
@@ -146,7 +146,7 @@ class MessageMetadata:
 @dataclass
 class MessageDelivery:
     """Message delivery tracking."""
-    message_id: MessageId
+        message_id: MessageId
     recipient_id: UserId
     status: MessageStatus = MessageStatus.PENDING
     delivered_at: Optional[datetime] = None
@@ -157,8 +157,8 @@ class MessageDelivery:
 
 @dataclass
 class ChannelSettings:
-    """Channel settings."""
-    allow_reactions: bool = True
+    Channel settings."""
+        allow_reactions: bool = True
     allow_threads: bool = True
     allow_file_uploads: bool = True
     max_message_length: int = 4096
@@ -169,9 +169,8 @@ class ChannelSettings:
 
 
 class MessageEncryption:
-    """Message encryption handler."""
-
-    def __init__(self):
+    """Message encryption handler.
+        def __init__(self):
         self.encryption_keys: Dict[str, str] = {}
 
     async def encrypt_message(self, content: str, level: EncryptionLevel,
@@ -213,9 +212,8 @@ class MessageEncryption:
 
 
 class MessageValidator:
-    """Message validation."""
-
-    @staticmethod
+    """Message validation.
+        @staticmethod
     def validate_message_content(content: str, message_type: MessageType) -> None:
         """Validate message content."""
         if not content and message_type == MessageType.TEXT:
@@ -230,7 +228,7 @@ class MessageValidator:
 
     @staticmethod
     def _contains_harmful_content(content: str) -> bool:
-        """Check for harmful content."""
+        """Check for harmful content.
         import re
 
         # Basic checks for script tags and other potentially harmful content
@@ -258,8 +256,7 @@ class MessageValidator:
 
 class MessageRouter:
     """Message routing and delivery."""
-
-    def __init__(self, messaging_system):
+        def __init__(self, messaging_system):
         self.messaging_system = messaging_system
         self.delivery_queue: asyncio.Queue = asyncio.Queue()
         self.active_deliveries: Dict[MessageId, MessageDelivery] = {}
@@ -374,16 +371,15 @@ class MessageRouter:
 
 class ChannelManager:
     """Channel management."""
-
-    def __init__(self, messaging_system):
+        def __init__(self, messaging_system):
         self.messaging_system = messaging_system
         self.channels: Dict[ChannelId, Channel] = {}
         self.channel_members: Dict[ChannelId, Set[UserId]] = {}
         self.channel_settings: Dict[ChannelId, ChannelSettings] = {}
 
     async def create_channel(self, name: str, channel_type: ChannelType,
-                           creator_id: UserId, description: str = "",
-                           settings: Optional[ChannelSettings] = None) -> Channel:
+                        creator_id: UserId, description: str = "",
+                        settings: Optional[ChannelSettings] = None) -> Channel:
         """Create a new channel."""
         try:
             channel = Channel(
@@ -433,7 +429,7 @@ class ChannelManager:
             return False
 
     async def _can_join_channel(self, channel: Channel, user_id: UserId) -> bool:
-        """Check if user can join channel."""
+        """Check if user can join channel.
         # This would implement permission checks
         return True
 
@@ -443,13 +439,12 @@ class ChannelManager:
 
 
 class UnifiedMessagingManager:
-    """
+    
     Unified Messaging Manager - SINGLE SOURCE OF TRUTH
 
     Consolidates all messaging functionality.
     """
-
-    def __init__(self):
+        def __init__(self):
         # Initialize components
         self.encryption = MessageEncryption()
         self.validator = MessageValidator()
@@ -541,14 +536,14 @@ class UnifiedMessagingManager:
             logger.error(f"Error shutting down messaging system: {e}")
 
     async def _initialize_database(self):
-        """Initialize database tables."""
+        """Initialize database tables.
         # This would create necessary database tables
         pass
 
     async def send_message(self, sender_id: UserId, channel_id: ChannelId,
-                          content: str, message_type: MessageType = MessageType.TEXT,
-                          attachments: Optional[List[str]] = None,
-                          metadata: Optional[MessageMetadata] = None) -> Message:
+                        content: str, message_type: MessageType = MessageType.TEXT,
+                        attachments: Optional[List[str]] = None,
+                        metadata: Optional[MessageMetadata] = None) -> Message:
         """Send a message."""
         try:
             # Validate message
@@ -644,13 +639,13 @@ class UnifiedMessagingManager:
             return None
 
     async def _can_access_message(self, message: Message, user_id: UserId) -> bool:
-        """Check if user can access message."""
+        """Check if user can access message.
         # Check if user is member of the channel
         members = self.channel_manager.get_channel_members(message.channel_id)
         return user_id in members
 
     async def get_channel_messages(self, channel_id: ChannelId, user_id: UserId,
-                                 limit: int = 50, before: Optional[MessageId] = None) -> List[Message]:
+                                limit: int = 50, before: Optional[MessageId] = None) -> List[Message]:
         """Get messages from a channel with caching."""
         try:
             # Check cache first (for recent messages without pagination)
@@ -710,7 +705,7 @@ class UnifiedMessagingManager:
             return []
 
     async def _can_access_channel(self, channel_id: ChannelId, user_id: UserId) -> bool:
-        """Check if user can access channel."""
+        """Check if user can access channel.
         members = self.channel_manager.get_channel_members(channel_id)
         return user_id in members
 
@@ -730,7 +725,7 @@ class UnifiedMessagingManager:
             logger.error(f"Error triggering event: {e}")
 
     def add_message_handler(self, handler: AsyncMessageHandler):
-        """Add message handler."""
+        """Add message handler.
         self.message_handlers.append(handler)
 
     def add_event_handler(self, event_type: str, handler: Callable):
@@ -740,7 +735,7 @@ class UnifiedMessagingManager:
         self.event_handlers[event_type].append(handler)
 
     def get_stats(self) -> Dict[str, Any]:
-        """Get messaging statistics."""
+        Get messaging statistics."""
         return {
             **self.stats,
             "router_stats": self.router.stats,
@@ -755,7 +750,7 @@ class UnifiedMessagingManager:
     # Enhanced messaging features
 
     def create_message_template(self, template_id: str, name: str, content: str,
-                              variables: List[str] = None, category: str = "general") -> bool:
+                            variables: List[str] = None, category: str = "general") -> bool:
         """Create a message template."""
         try:
             self.message_templates[template_id] = {
@@ -773,7 +768,7 @@ class UnifiedMessagingManager:
             return False
 
     def get_message_template(self, template_id: str) -> Optional[Dict[str, Any]]:
-        """Get a message template."""
+        """Get a message template.
         return self.message_templates.get(template_id)
 
     def list_message_templates(self, category: str = None) -> List[Dict[str, Any]]:
@@ -804,7 +799,7 @@ class UnifiedMessagingManager:
         return content
 
     def search_messages(self, query: str, channel_id: ChannelId = None,
-                       user_id: UserId = None, limit: int = 50) -> List[Message]:
+                    user_id: UserId = None, limit: int = 50) -> List[Message]:
         """Search messages by content."""
         try:
             # Simple keyword search
@@ -968,7 +963,7 @@ unified_messaging_manager = UnifiedMessagingManager()
 
 # Backward compatibility functions
 async def send_message(sender_id: UserId, channel_id: ChannelId, content: str, **kwargs) -> Message:
-    """Send message using global manager."""
+    """Send message using global manager.
     return await unified_messaging_manager.send_message(sender_id, channel_id, content, **kwargs)
 
 async def get_message(message_id: MessageId, user_id: UserId) -> Optional[Message]:
@@ -976,11 +971,11 @@ async def get_message(message_id: MessageId, user_id: UserId) -> Optional[Messag
     return await unified_messaging_manager.get_message(message_id, user_id)
 
 async def get_channel_messages(channel_id: ChannelId, user_id: UserId, **kwargs) -> List[Message]:
-    """Get channel messages using global manager."""
+    Get channel messages using global manager."""
     return await unified_messaging_manager.get_channel_messages(channel_id, user_id, **kwargs)
 
 async def create_channel(name: str, channel_type: str, creator_id: UserId, **kwargs) -> Channel:
-    """Create channel using global manager."""
+    """Create channel using global manager.
     ct = ChannelType.PUBLIC
     try:
         ct = ChannelType(channel_type.lower())

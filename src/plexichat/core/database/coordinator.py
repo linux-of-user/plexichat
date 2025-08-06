@@ -30,9 +30,8 @@ T = TypeVar("T", bound=SQLModel)
 
 @dataclass
 class DatabaseMetrics:
-    """Database system metrics."""
-
-    total_queries: int = 0
+    """Database system metrics.
+        total_queries: int = 0
     successful_queries: int = 0
     failed_queries: int = 0
     average_response_time: float = 0.0
@@ -59,8 +58,7 @@ class DatabaseAbstractionCoordinator:
     9. Security and Encryption (per security.txt)
     10. Performance Monitoring
     """
-
-    def __init__(self):
+        def __init__(self):
         self.initialized = False
         self.running = False
 
@@ -309,7 +307,7 @@ class DatabaseAbstractionCoordinator:
 
     def get_database_status(self) -> Dict[str, Any]:
         """Get current database system status."""
-        return {}
+        return {
             "initialized": self.initialized,
             "running": self.running,
             "start_time": self.start_time.isoformat() if self.start_time else None,
@@ -328,7 +326,7 @@ class DatabaseAbstractionCoordinator:
                 "dao_operations": self.metrics.dao_operations,
                 "repository_operations": self.metrics.repository_operations,
                 "orm_operations": self.metrics.orm_operations,
-            },
+            }},
             "components": {
                 "dao_layer": self.config["enable_dao_layer"],
                 "repository_layer": self.config["enable_repository_layer"],

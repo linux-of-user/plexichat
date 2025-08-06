@@ -17,15 +17,14 @@ from typing import Any, Dict, List, Optional
 """
 PlexiChat Multilingual AI Chatbot
 Advanced conversational AI with multi-language support and context awareness
-"""
+
 
 logger = logging.getLogger(__name__)
 
 
 class ConversationMode(Enum):
     """Chatbot conversation modes."""
-
-    CASUAL = "casual"
+        CASUAL = "casual"
     PROFESSIONAL = "professional"
     EDUCATIONAL = "educational"
     SUPPORT = "support"
@@ -46,8 +45,7 @@ class ResponseStyle(Enum):
 
 class LanguageCapability(Enum):
     """Language capabilities."""
-
-    NATIVE = "native"
+        NATIVE = "native"
     FLUENT = "fluent"
     CONVERSATIONAL = "conversational"
     BASIC = "basic"
@@ -101,9 +99,8 @@ class ConversationContext:
 
 @dataclass
 class ChatbotResponse:
-    """Chatbot response with metadata."""
-
-    content: str
+    """Chatbot response with metadata.
+        content: str
     language: str
     confidence: float
     response_time_ms: float
@@ -136,8 +133,7 @@ class MultilingualChatbot:
     - Integration with PlexiChat's AI ecosystem
     - Conversation analytics and insights
     """
-
-    def __init__(self):
+        def __init__(self):
         self.enabled = True
         self.default_language = "en"
 
@@ -417,7 +413,7 @@ Detected intent: {intent}
 Please respond in a way that matches your personality and the conversation context.
 Keep responses concise but helpful. If the user is speaking in a language other than English,
 respond in their preferred language ({context.language}).
-"""
+
         return prompt
 
     async def _generate_fallback_response()
@@ -494,7 +490,7 @@ respond in their preferred language ({context.language}).
         return "en"
 
     async def _detect_user_language(self, user_id: str) -> str:
-        """Detect user's preferred language."""
+        """Detect user's preferred language.
         # Placeholder - would check user preferences
         return self.default_language
 
@@ -507,7 +503,7 @@ respond in their preferred language ({context.language}).
         return text
 
     async def _load_user_preferences(self, user_id: str) -> Dict[str, Any]:
-        """Load user preferences."""
+        Load user preferences."""
         # Placeholder - would load from database
         return {}}
 
@@ -588,12 +584,12 @@ respond in their preferred language ({context.language}).
     def get_conversation_context():
         self, conversation_id: str
     ) -> Optional[ConversationContext]:
-        """Get conversation context."""
+        """Get conversation context.
         return self.conversations.get(conversation_id)
 
     def get_chatbot_statistics(self) -> Dict[str, Any]:
         """Get comprehensive chatbot statistics."""
-        return {}
+        return {
             "enabled": self.enabled,
             "active_conversations": len(self.conversations),
             "supported_languages": len(self.supported_languages),
@@ -601,7 +597,7 @@ respond in their preferred language ({context.language}).
             "statistics": {
                 **self.stats,
                 "languages_used": list(self.stats["languages_used"]),
-            },
+            }},
             "language_capabilities": {
                 lang: capability.value
                 for lang, capability in self.supported_languages.items()

@@ -9,7 +9,7 @@ Enhanced Software Development Kit for creating PlexiChat plugins with:
 - Event system integration
 - Performance monitoring
 - Auto-discovery and hot-reloading capabilities
-"""
+
 
 import asyncio
 import json
@@ -54,7 +54,7 @@ except ImportError:
 @dataclass
 class EnhancedPluginConfig:
     """Enhanced plugin configuration with validation and optimization settings."""
-    name: str
+        name: str
     version: str
     description: str
     author: str
@@ -86,8 +86,7 @@ class EnhancedPluginConfig:
 
 class EnhancedPluginLogger:
     """Enhanced plugin logger with performance monitoring and caching."""
-    
-    def __init__(self, plugin_name: str):
+        def __init__(self, plugin_name: str):
         self.plugin_name = plugin_name
         self.logger = get_logger(f"plugin.{plugin_name}")
         self._performance_metrics = {}
@@ -115,7 +114,7 @@ class EnhancedPluginLogger:
         self.logger.debug(f"[{self.plugin_name}] {message}", **kwargs)
     
     def track_performance(self, operation: str, duration: float):
-        """Track performance metrics for plugin operations."""
+        """Track performance metrics for plugin operations.
         if operation not in self._performance_metrics:
             self._performance_metrics[operation] = []
         self._performance_metrics[operation].append(duration)
@@ -128,8 +127,7 @@ class EnhancedPluginLogger:
 
 class EnhancedPluginAPI:
     """Enhanced Plugin API with Redis caching and database abstraction."""
-    
-    def __init__(self, plugin_name: str, config: EnhancedPluginConfig):
+        def __init__(self, plugin_name: str, config: EnhancedPluginConfig):
         self.plugin_name = plugin_name
         self.config = config
         self.logger = EnhancedPluginLogger(plugin_name)
@@ -268,14 +266,13 @@ class EnhancedPluginAPI:
     
     # Performance Monitoring
     def track_performance(self, operation: str):
-        """Context manager for tracking operation performance."""
+        """Context manager for tracking operation performance.
         return PerformanceTracker(self.logger, operation)
 
 
 class PerformanceTracker:
     """Context manager for tracking plugin operation performance."""
-    
-    def __init__(self, logger: EnhancedPluginLogger, operation: str):
+        def __init__(self, logger: EnhancedPluginLogger, operation: str):
         self.logger = logger
         self.operation = operation
         self.start_time = None
@@ -291,9 +288,8 @@ class PerformanceTracker:
 
 
 class EnhancedBasePlugin(PluginInterface):
-    """Enhanced base plugin class with optimization systems integration."""
-    
-    def __init__(self, config: EnhancedPluginConfig):
+    Enhanced base plugin class with optimization systems integration."""
+        def __init__(self, config: EnhancedPluginConfig):
         self.config = config
         self.api = EnhancedPluginAPI(config.name, config)
         self.logger = self.api.logger
@@ -316,7 +312,7 @@ class EnhancedBasePlugin(PluginInterface):
     
     @abstractmethod
     async def _initialize(self):
-        """Plugin-specific initialization logic."""
+        """Plugin-specific initialization logic.
         pass
     
     async def cleanup(self):

@@ -10,23 +10,22 @@
 PlexiChat Shared Exceptions
 
 Base exception classes and common exceptions used across the application.
-"""
+
 
 from typing import Any, Dict, Optional
 
 
 class PlexiChatError(Exception):
     """Base exception for all PlexiChat errors."""
-
-    def __init__(self, message: str, error_code: Optional[str] = None,
-                 details: Optional[Dict[str, Any]] = None):
+        def __init__(self, message: str, error_code: Optional[str] = None,
+                details: Optional[Dict[str, Any]] = None):
         super().__init__(message)
         self.message = message
         self.error_code = error_code
         self.details = details or {}
 
     def to_dict(self) -> Dict[str, Any]:
-        """Convert exception to dictionary."""
+        Convert exception to dictionary."""
         result = {
             "error": self.__class__.__name__,
             "message": self.message
@@ -43,9 +42,8 @@ class PlexiChatError(Exception):
 
 class ValidationError(PlexiChatError):
     """Raised when validation fails."""
-
-    def __init__(self, message: str, field: Optional[str] = None,
-                 value: Optional[Any] = None, **kwargs):
+        def __init__(self, message: str, field: Optional[str] = None,
+                value: Optional[Any] = None, **kwargs):
         super().__init__(message, **kwargs)
         self.field = field
         self.value = value
@@ -57,8 +55,8 @@ class ValidationError(PlexiChatError):
 
 
 class AuthenticationError(PlexiChatError):
-    """Raised when authentication fails."""
-    pass
+    """Raised when authentication fails.
+        pass
 
 
 class AuthorizationError(PlexiChatError):
@@ -67,22 +65,22 @@ class AuthorizationError(PlexiChatError):
 
 
 class ConfigurationError(PlexiChatError):
-    """Raised when configuration is invalid."""
-    pass
+    Raised when configuration is invalid."""
+        pass
 
 
 class DatabaseError(PlexiChatError):
-    """Raised when database operations fail."""
+    """Raised when database operations fail.
     pass
 
 
 class NetworkError(PlexiChatError):
     """Raised when network operations fail."""
-    pass
+        pass
 
 
 class PluginError(PlexiChatError):
-    """Raised when plugin operations fail."""
+    Raised when plugin operations fail."""
 
     def __init__(self, message: str, plugin_name: Optional[str] = None, **kwargs):
         super().__init__(message, **kwargs)
@@ -93,8 +91,8 @@ class PluginError(PlexiChatError):
 
 
 class SecurityError(PlexiChatError):
-    """Raised when security violations occur."""
-    pass
+    """Raised when security violations occur.
+        pass
 
 
 class RateLimitError(PlexiChatError):
@@ -110,9 +108,8 @@ class RateLimitError(PlexiChatError):
 
 class ResourceNotFoundError(PlexiChatError):
     """Raised when a resource is not found."""
-
-    def __init__(self, message: str, resource_type: Optional[str] = None,
-                 resource_id: Optional[str] = None, **kwargs):
+        def __init__(self, message: str, resource_type: Optional[str] = None,
+                resource_id: Optional[str] = None, **kwargs):
         super().__init__(message, **kwargs)
         self.resource_type = resource_type
         self.resource_id = resource_id
@@ -124,16 +121,16 @@ class ResourceNotFoundError(PlexiChatError):
 
 
 class ResourceConflictError(PlexiChatError):
-    """Raised when a resource conflict occurs."""
-    pass
+    """Raised when a resource conflict occurs.
+        pass
 
 
 class QuotaExceededError(PlexiChatError):
     """Raised when quotas are exceeded."""
 
     def __init__(self, message: str, quota_type: Optional[str] = None,
-                 current_value: Optional[Any] = None,
-                 limit_value: Optional[Any] = None, **kwargs):
+                current_value: Optional[Any] = None,
+                limit_value: Optional[Any] = None, **kwargs):
         super().__init__(message, **kwargs)
         self.quota_type = quota_type
         self.current_value = current_value
@@ -149,8 +146,7 @@ class QuotaExceededError(PlexiChatError):
 
 class TimeoutError(PlexiChatError):
     """Raised when operations timeout."""
-
-    def __init__(self, message: str, timeout_seconds: Optional[float] = None, **kwargs):
+        def __init__(self, message: str, timeout_seconds: Optional[float] = None, **kwargs):
         super().__init__(message, **kwargs)
         self.timeout_seconds = timeout_seconds
 
@@ -160,8 +156,7 @@ class TimeoutError(PlexiChatError):
 
 class ServiceUnavailableError(PlexiChatError):
     """Raised when a service is unavailable."""
-
-    def __init__(self, message: str, service_name: Optional[str] = None, **kwargs):
+        def __init__(self, message: str, service_name: Optional[str] = None, **kwargs):
         super().__init__(message, **kwargs)
         self.service_name = service_name
 
@@ -171,8 +166,7 @@ class ServiceUnavailableError(PlexiChatError):
 
 class MaintenanceError(PlexiChatError):
     """Raised when system is in maintenance mode."""
-
-    def __init__(self, message: str, estimated_duration: Optional[int] = None, **kwargs):
+        def __init__(self, message: str, estimated_duration: Optional[int] = None, **kwargs):
         super().__init__(message, **kwargs)
         self.estimated_duration = estimated_duration
 
@@ -181,8 +175,8 @@ class MaintenanceError(PlexiChatError):
 
 
 class BackupError(PlexiChatError):
-    """Raised when backup operations fail."""
-    pass
+    """Raised when backup operations fail.
+        pass
 
 
 class RestoreError(PlexiChatError):
@@ -191,22 +185,22 @@ class RestoreError(PlexiChatError):
 
 
 class MonitoringError(PlexiChatError):
-    """Raised when monitoring operations fail."""
-    pass
+    Raised when monitoring operations fail."""
+        pass
 
 
 class AnalyticsError(PlexiChatError):
-    """Raised when analytics operations fail."""
+    """Raised when analytics operations fail.
     pass
 
 
 class CacheError(PlexiChatError):
     """Raised when cache operations fail."""
-    pass
+        pass
 
 
 class FileError(PlexiChatError):
-    """Raised when file operations fail."""
+    Raised when file operations fail."""
 
     def __init__(self, message: str, file_path: Optional[str] = None, **kwargs):
         super().__init__(message, **kwargs)
@@ -217,8 +211,8 @@ class FileError(PlexiChatError):
 
 
 class SerializationError(PlexiChatError):
-    """Raised when serialization/deserialization fails."""
-    pass
+    """Raised when serialization/deserialization fails.
+        pass
 
 
 class EncryptionError(PlexiChatError):
@@ -227,19 +221,18 @@ class EncryptionError(PlexiChatError):
 
 
 class CompressionError(PlexiChatError):
-    """Raised when compression/decompression fails."""
-    pass
+    Raised when compression/decompression fails."""
+        pass
 
 
 class WebSocketError(PlexiChatError):
-    """Raised when WebSocket operations fail."""
+    """Raised when WebSocket operations fail.
     pass
 
 
 class APIError(PlexiChatError):
     """Raised when API operations fail."""
-
-    def __init__(self, message: str, status_code: Optional[int] = None, **kwargs):
+        def __init__(self, message: str, status_code: Optional[int] = None, **kwargs):
         super().__init__(message, **kwargs)
         self.status_code = status_code
 
@@ -248,8 +241,8 @@ class APIError(PlexiChatError):
 
 
 class ClusterError(PlexiChatError):
-    """Raised when cluster operations fail."""
-    pass
+    """Raised when cluster operations fail.
+        pass
 
 
 class MigrationError(PlexiChatError):
@@ -258,22 +251,22 @@ class MigrationError(PlexiChatError):
 
 
 class SchedulerError(PlexiChatError):
-    """Raised when scheduler operations fail."""
-    pass
+    Raised when scheduler operations fail."""
+        pass
 
 
 class NotificationError(PlexiChatError):
-    """Raised when notification operations fail."""
+    """Raised when notification operations fail.
     pass
 
 
 class ProcessLockError(PlexiChatError):
     """Raised when unable to acquire process lock."""
-    pass
+        pass
 
 
 class StartupError(PlexiChatError):
-    """Raised when application startup fails."""
+    Raised when application startup fails."""
     pass
 
 
@@ -281,8 +274,8 @@ class StartupError(PlexiChatError):
 
 
 class LoggingError(PlexiChatError):
-    """Raised when logging operations fail."""
-    pass
+    """Raised when logging operations fail.
+        pass
 
 
 # Exception mapping for HTTP status codes
@@ -306,9 +299,9 @@ def get_exception_for_status_code(status_code: int) -> type:
 
 
 def create_exception_from_response(status_code: int, message: str,
-                                 error_code: Optional[str] = None,
-                                 details: Optional[Dict[str, Any]] = None) -> PlexiChatError:
-    """Create exception from HTTP response."""
+                                error_code: Optional[str] = None,
+                                details: Optional[Dict[str, Any]] = None) -> PlexiChatError:
+    Create exception from HTTP response."""
     exception_class = get_exception_for_status_code(status_code)
     return exception_class(message, error_code=error_code, details=details)
 

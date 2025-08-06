@@ -24,14 +24,14 @@ PlexiChat WebUI Configuration Manager
 
 Enhanced configuration system for WebUI with configurable ports,
 distributed authentication storage, and advanced security features.
-"""
+
 
 logger = logging.getLogger(__name__)
 
 @dataclass
 class WebUIPortConfig:
     """WebUI port configuration."""
-    primary_port: int = 8000
+        primary_port: int = 8000
     admin_port: Optional[int] = None  # If None, uses primary_port
     api_port: Optional[int] = None    # If None, uses primary_port
     docs_port: Optional[int] = None   # If None, uses primary_port
@@ -43,8 +43,8 @@ class WebUIPortConfig:
 
 @dataclass
 class MFAConfig:
-    """Multi-Factor Authentication configuration."""
-    enabled: bool = True
+    Multi-Factor Authentication configuration."""
+        enabled: bool = True
     methods: Optional[List[str]] = None  # ['totp', 'sms', 'email', 'backup_codes']
     totp_issuer: str = "PlexiChat"
     backup_codes_count: int = 10
@@ -61,7 +61,7 @@ class MFAConfig:
 @dataclass
 class AuthStorageConfig:
     """Distributed authentication storage configuration."""
-    storage_type: str = "distributed"  # 'single', 'distributed', 'external'
+        storage_type: str = "distributed"  # 'single', 'distributed', 'external'
     primary_storage: str = "database"  # 'database', 'file', 'redis', 'external'
     backup_storages: Optional[List[str]] = None  # ['file', 'redis']
     sync_interval: int = 300  # 5 minutes
@@ -76,8 +76,8 @@ class AuthStorageConfig:
 
 @dataclass
 class SelfTestConfig:
-    """Self-test configuration for WebUI."""
-    enabled: bool = True
+    """Self-test configuration for WebUI.
+        enabled: bool = True
     auto_run_on_startup: bool = False
     scheduled_runs: Optional[List[str]] = None  # Cron-like schedule
     test_categories: Optional[List[str]] = None
@@ -97,7 +97,7 @@ class SelfTestConfig:
 @dataclass
 class FeatureToggleConfig:
     """Feature toggle configuration."""
-    enabled_features: Optional[List[str]] = None
+        enabled_features: Optional[List[str]] = None
     disabled_features: Optional[List[str]] = None
     beta_features: Optional[List[str]] = None
     admin_only_features: Optional[List[str]] = None
@@ -116,9 +116,8 @@ class FeatureToggleConfig:
             self.feature_permissions = {}
 
 class WebUIConfigManager:
-    """Enhanced WebUI configuration manager integrated with unified config system."""
-
-    def __init__(self, config_dir: str = "config"):
+    Enhanced WebUI configuration manager integrated with unified config system."""
+        def __init__(self, config_dir: str = "config"):
         self.config_dir = Path(config_dir)
         self.config_dir.mkdir(exist_ok=True)
 
@@ -230,7 +229,7 @@ class WebUIConfigManager:
         logger.info("WebUI configuration loaded from legacy files")
 
     def _update_config_objects(self, config_data: Dict[str, Any]):
-        """Update configuration objects from loaded data."""
+        """Update configuration objects from loaded data.
         if 'ports' in config_data:
             self.port_config = WebUIPortConfig(**config_data['ports'])
 
@@ -354,7 +353,7 @@ class WebUIConfigManager:
         return methods
 
     def get_session_timeout(self, has_mfa: bool = False) -> int:
-        """Get session timeout based on MFA status."""
+        """Get session timeout based on MFA status.
         if has_mfa:
             return self.mfa_config.session_timeout_with_mfa
         else:
@@ -368,14 +367,14 @@ class WebUIConfigManager:
         self.save_configuration()
 
     def update_mfa_config(self, **kwargs):
-        """Update MFA configuration."""
+        Update MFA configuration."""
         for key, value in kwargs.items():
             if hasattr(self.mfa_config, key):
                 setattr(self.mfa_config, key, value)
         self.save_configuration()
 
     def toggle_feature(self, feature: str, enabled: bool):
-        """Toggle a feature on or off."""
+        """Toggle a feature on or off.
         if enabled:
             if self.feature_toggle_config.disabled_features is not None and feature not in self.feature_toggle_config.disabled_features:
                 self.feature_toggle_config.disabled_features.remove(feature)
@@ -394,11 +393,11 @@ class WebUIConfigManager:
         return self.self_test_config.scheduled_runs
 
     def is_self_test_enabled(self) -> bool:
-        """Check if self-tests are enabled."""
+        Check if self-tests are enabled."""
         return self.self_test_config.enabled
 
     def get_auth_storage_config(self) -> AuthStorageConfig:
-        """Get authentication storage configuration."""
+        """Get authentication storage configuration.
         return self.auth_storage_config
 
     def validate_configuration(self) -> Dict[str, Any]:

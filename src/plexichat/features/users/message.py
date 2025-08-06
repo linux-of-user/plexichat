@@ -9,7 +9,7 @@ PlexiChat Message Model
 
 Enhanced message model with comprehensive functionality and performance optimization.
 Uses EXISTING database abstraction and optimization systems.
-"""
+
 
 import logging
 from datetime import datetime
@@ -56,7 +56,7 @@ performance_logger = get_performance_logger() if get_performance_logger else Non
 
 class MessageType(str, Enum):
     """Message type enumeration."""
-    TEXT = "text"
+        TEXT = "text"
     IMAGE = "image"
     FILE = "file"
     SYSTEM = "system"
@@ -74,8 +74,7 @@ class MessageStatus(str, Enum):
 
 class Message(SQLModel, table=True):
     """Enhanced message model with comprehensive functionality."""
-
-    # Primary fields
+        # Primary fields
     id: Optional[int] = Field(default=None, primary_key=True, description="Message ID")
     content: str = Field(..., max_length=2000, description="Message content")
     message_type: MessageType = Field(default=MessageType.TEXT, description="Message type")
@@ -118,7 +117,7 @@ class Message(SQLModel, table=True):
 
 class MessageCreate(BaseModel):
     """Message creation model."""
-    content: str = Field(..., min_length=1, max_length=2000, description="Message content")
+        content: str = Field(..., min_length=1, max_length=2000, description="Message content")
     message_type: MessageType = Field(default=MessageType.TEXT, description="Message type")
     recipient_id: Optional[int] = Field(None, description="Recipient user ID")
     channel_id: Optional[int] = Field(None, description="Channel ID")
@@ -135,7 +134,7 @@ class MessageCreate(BaseModel):
 
 class MessageUpdate(BaseModel):
     """Message update model."""
-    content: Optional[str] = Field(None, min_length=1, max_length=2000, description="Updated content")
+        content: Optional[str] = Field(None, min_length=1, max_length=2000, description="Updated content")
     is_pinned: Optional[bool] = Field(None, description="Pin status")
 
     @field_validator('content')
@@ -147,7 +146,7 @@ class MessageUpdate(BaseModel):
 
 class MessageResponse(BaseModel):
     """Message response model."""
-    id: int = Field(..., description="Message ID")
+        id: int = Field(..., description="Message ID")
     content: str = Field(..., description="Message content")
     message_type: MessageType = Field(..., description="Message type")
     sender_id: int = Field(..., description="Sender user ID")
@@ -169,8 +168,7 @@ class MessageResponse(BaseModel):
 
 class MessageService:
     """Enhanced message service using EXISTING database abstraction."""
-
-    def __init__(self):
+        def __init__(self):
         try:
             from plexichat.core.database.manager import database_manager
             self.db_manager = database_manager
@@ -189,7 +187,7 @@ class MessageService:
 
     @async_track_performance("message_creation") if async_track_performance else lambda f: f
     async def create_message(self, sender_id: int, message_data: MessageCreate) -> Optional[Message]:
-        """Create new message using EXISTING database abstraction."""
+        """Create new message using EXISTING database abstraction.
         if self.db_manager:
             try:
                 import json
@@ -315,7 +313,7 @@ class MessageService:
         return None
 
     async def _update_thread_count(self, parent_id: int):
-        """Update thread count for parent message."""
+        """Update thread count for parent message.
         if self.db_manager:
             try:
                 query = """
@@ -342,7 +340,7 @@ class MessageService:
 
     @async_track_performance("message_search") if async_track_performance else lambda f: f
     async def search_messages(self, query: str, user_id: int, limit: int = 50) -> List[Message]:
-        """Search messages using EXISTING database abstraction."""
+        """Search messages using EXISTING database abstraction.
         if self.db_manager:
             try:
                 search_query = """

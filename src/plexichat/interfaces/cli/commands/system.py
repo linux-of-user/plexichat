@@ -3,7 +3,7 @@
 PlexiChat System CLI Commands
 
 Command-line interface for system management and operations.
-"""
+
 # pyright: reportArgumentType=false
 # pyright: reportCallIssue=false
 # pyright: reportAttributeAccessIssue=false
@@ -45,7 +45,7 @@ def system():
 
 @system.command()
 def status():
-    """Show comprehensive system status."""
+    Show comprehensive system status."""
     try:
         click.echo("PlexiChat System Status")
         click.echo("=" * 40)

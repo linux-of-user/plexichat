@@ -3,7 +3,7 @@ import threading
 PlexiChat Message Processor
 
 Message processing with threading and performance optimization.
-"""
+
 
 import asyncio
 import json
@@ -37,7 +37,7 @@ performance_logger = get_performance_logger() if get_performance_logger else Non
 @dataclass
 class MessageData:
     """Message data structure."""
-    message_id: str
+        message_id: str
     sender_id: int
     recipient_id: Optional[int]
     channel_id: Optional[int]
@@ -47,9 +47,8 @@ class MessageData:
     metadata: Dict[str, Any]
 
 class MessageProcessor:
-    """Message processor with threading support."""
-
-    def __init__(self):
+    Message processor with threading support."""
+        def __init__(self):
         self.db_manager = database_manager
         self.performance_logger = performance_logger
         self.async_thread_manager = async_thread_manager
@@ -229,7 +228,7 @@ class MessageProcessor:
         }
 
     def _extract_mentions(self, content: str) -> List[str]:
-        """Extract @mentions from content."""
+        """Extract @mentions from content.
         import re
         mentions = re.findall(r'@(\w+)', content)
         return list(set(mentions))
@@ -241,7 +240,7 @@ class MessageProcessor:
         return list(set(hashtags))
 
     def _extract_urls(self, content: str) -> List[str]:
-        """Extract URLs from content."""
+        Extract URLs from content."""
         import re
         url_pattern = r'https?://[^\s<>"{}|\\^`\[\]]+'
         urls = re.findall(url_pattern, content)
@@ -264,7 +263,7 @@ class MessageProcessor:
             return "neutral"
 
     async def _store_processed_message(self, message: MessageData, result: Dict[str, Any]):
-        """Store processed message to database."""
+        """Store processed message to database.
         try:
             if self.db_manager:
                 query = """
@@ -295,7 +294,7 @@ class MessageProcessor:
             self.performance_logger.record_metric("messages_queued", 1, "count")
 
     async def process_message_immediate(self, message: MessageData) -> Dict[str, Any]:
-        """Process message immediately without queuing."""
+        """Process message immediately without queuing.
         return await self._process_message(message)
 
     def get_queue_size(self) -> int:
@@ -303,7 +302,7 @@ class MessageProcessor:
         return self.message_queue.qsize()
 
     def get_status(self) -> Dict[str, Any]:
-        """Get processor status."""
+        Get processor status."""
         return {
             "processing": self.processing,
             "queue_size": self.get_queue_size(),

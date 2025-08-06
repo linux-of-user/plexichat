@@ -33,14 +33,14 @@ router = APIRouter(prefix="/api/v1/easter-eggs", tags=["easter-eggs"])
 
 class BrewRequest(BaseModel):
     """Request model for brewing beverages."""
-    beverage: str
+        beverage: str
     size: str = "medium"
     temperature: str = "hot"
     special_instructions: Optional[str] = None
 
 class FortuneResponse(BaseModel):
     """Response model for fortune cookies."""
-    fortune: str
+        fortune: str
     lucky_numbers: list[int]
     timestamp: str
 

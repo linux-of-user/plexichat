@@ -5,7 +5,7 @@ import time
 PlexiChat Messages API Router
 
 Message API endpoints with threading and performance optimization.
-"""
+
 
 import asyncio
 import logging
@@ -72,15 +72,15 @@ performance_logger = get_performance_logger() if get_performance_logger else Non
 # Pydantic models
 class MessageCreate(BaseModel):
     """Message creation model."""
-    content: str = Field(..., min_length=1, max_length=10000, description="Message content")
+        content: str = Field(..., min_length=1, max_length=10000, description="Message content")
     recipient_id: Optional[int] = Field(None, description="Recipient user ID")
     channel_id: Optional[int] = Field(None, description="Channel ID")
     message_type: str = Field(default="text", description="Message type")
     metadata: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Message metadata")
 
 class MessageResponse(BaseModel):
-    """Message response model."""
-    message_id: str
+    """Message response model.
+        message_id: str
     sender_id: int
     recipient_id: Optional[int]
     channel_id: Optional[int]
@@ -92,7 +92,7 @@ class MessageResponse(BaseModel):
 
 class MessageList(BaseModel):
     """Message list response."""
-    messages: List[MessageResponse]
+        messages: List[MessageResponse]
     total: int
     page: int
     per_page: int
@@ -353,13 +353,13 @@ def _get_messages_sync(user_id: int, channel_id: Optional[int], recipient_id: Op
         messages = []
         total = 0
 
-        return {}
+        return {
             "messages": messages,
             "total": total,
             "page": page,
             "per_page": per_page,
             "has_next": (page * per_page) < total
-        }
+        }}
     except Exception as e:
         logger.error(f"Error getting messages: {e}")
         return {"messages": [], "total": 0, "page": page, "per_page": per_page, "has_next": False}
@@ -384,7 +384,7 @@ def _delete_message_sync(message_id: str, user_id: int) -> bool:
 
 # Async versions
 async def _get_messages_async(user_id: int, channel_id: Optional[int], recipient_id: Optional[int], page: int, per_page: int) -> Dict[str, Any]:
-    """Get messages asynchronously."""
+    """Get messages asynchronously.
     return _get_messages_sync(user_id, channel_id, recipient_id, page, per_page)
 
 async def _get_message_async(message_id: str, user_id: int) -> Optional[Dict[str, Any]]:
@@ -392,5 +392,5 @@ async def _get_message_async(message_id: str, user_id: int) -> Optional[Dict[str
     return _get_message_sync(message_id, user_id)
 
 async def _delete_message_async(message_id: str, user_id: int) -> bool:
-    """Delete message asynchronously."""
+    Delete message asynchronously."""
     return _delete_message_sync(message_id, user_id)

@@ -153,7 +153,7 @@ def search_files(query: str, user_id: str, limit: int = 20, offset: int = 0) -> 
     return results[offset:offset + limit]
 
 def calculate_relevance_score(query: str, content: str) -> float:
-    """Calculate relevance score for search results."""
+    """Calculate relevance score for search results.
     if not query or not content:
         return 0.0
     
@@ -257,14 +257,14 @@ async def search(
     total_results = len(results)
     results = results[search_query.offset:search_query.offset + search_query.limit]
     
-    return {}
+    return {
         "results": results,
         "total": total_results,
         "query": search_query.query,
         "type": search_query.type,
         "limit": search_query.limit,
         "offset": search_query.offset
-    }
+    }}
 
 @router.get("/suggestions")
 async def get_search_suggestions(
@@ -311,10 +311,10 @@ async def get_search_suggestions(
         # Return empty suggestions on error
         suggestions = [{"type": "error", "text": "Search unavailable", "description": "Please try again later"}]
 
-    return {}
+    return {
         "suggestions": suggestions[:limit],
         "query": q
-    }
+    }}
 
 # Analytics endpoints
 @router.get("/analytics/overview")
@@ -339,7 +339,7 @@ async def get_analytics_overview(
         week_ago = now - (7 * 24 * 3600)
         recent_messages = [m for m in user_messages if m.get("created_at", 0) > week_ago]
 
-        return {}
+        return {
             "user_id": user_id,
             "messages_sent": messages_sent,
             "files_uploaded": files_uploaded,
@@ -347,12 +347,12 @@ async def get_analytics_overview(
             "recent_activity": {
                 "messages_this_week": len(recent_messages),
                 "files_this_week": len([f for f in user_files if f.get("created_at", 0) > week_ago])
-            },
+            }},
             "generated_at": now
         }
     except Exception as e:
         # Return default analytics on error
-        return {}
+        return {
             "user_id": user_id,
             "messages_sent": 0,
             "files_uploaded": 0,
@@ -360,7 +360,7 @@ async def get_analytics_overview(
             "recent_activity": {
                 "messages_this_week": 0,
                 "files_this_week": 0
-            },
+            }},
             "generated_at": time.time(),
             "note": "Analytics data temporarily unavailable"
         }
@@ -400,13 +400,13 @@ async def get_search_trends(
 @router.get("/status")
 async def search_status():
     """Get search system status."""
-    return {}
+    return {
         "status": "operational",
         "indexed_content": {
             "messages": len(messages_db),
             "users": len(users_db),
             "files": len(files_db)
-        },
+        }},
         "features": [
             "full_text_search",
             "user_search",

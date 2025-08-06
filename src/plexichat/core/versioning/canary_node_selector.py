@@ -24,15 +24,14 @@ Intelligent node selection for canary deployments with:
 - Health score evaluation
 - Risk assessment and mitigation
 - Custom selection strategies
-"""
+
 
 logger = logging.getLogger(__name__)
 
 
 class NodeSelectionCriteria(Enum):
     """Criteria for node selection."""
-
-    LOWEST_LOAD = "lowest_load"
+        LOWEST_LOAD = "lowest_load"
     HIGHEST_HEALTH = "highest_health"
     GEOGRAPHIC_SPREAD = "geographic_spread"
     RANDOM_SAMPLE = "random_sample"
@@ -41,7 +40,7 @@ class NodeSelectionCriteria(Enum):
 
 @dataclass
 class NodeMetrics:
-    """Node performance and health metrics."""
+    """Node performance and health metrics.
 
     cpu_usage: float = 0.0
     memory_usage: float = 0.0
@@ -58,7 +57,7 @@ class NodeMetrics:
 
     @property
     def health_score(self) -> float:
-        """Calculate overall health score (0-1, higher is better)."""
+        Calculate overall health score (0-1, higher is better)."""
         error_penalty = min(self.error_rate * 10, 0.5)  # Max 50% penalty for errors
         latency_penalty = min()
             self.network_latency / 1000, 0.3
@@ -69,9 +68,8 @@ class NodeMetrics:
 
 
 class CanaryNodeSelector:
-    """Selects optimal nodes for canary deployments."""
-
-    def __init__(self, cluster_manager=None):
+    """Selects optimal nodes for canary deployments.
+        def __init__(self, cluster_manager=None):
         self.cluster_manager = cluster_manager
         self.node_metrics: Dict[str, NodeMetrics] = {}
         self.node_history: Dict[str, List[Dict[str, Any]]] = {}
@@ -330,7 +328,7 @@ class CanaryNodeSelector:
         )
 
     async def _load_node_metrics(self):
-        """Load current node metrics."""
+        """Load current node metrics.
         # Placeholder for loading actual metrics
         # This would integrate with monitoring systems
 

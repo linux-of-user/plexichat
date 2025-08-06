@@ -41,13 +41,12 @@ from plexichat.core.config import settings
 
 
 class ChannelRepository(BaseRepository[Channel, Dict[str, Any], Dict[str, Any]]):
-    """
+    
     Channel repository with Discord-like channel management.
 
     Provides business logic for channel operations including permissions and organization.
     """
-
-    def __init__(self, session_factory=None):
+        def __init__(self, session_factory=None):
         # Create DAO instance
         dao = BaseDAO(Channel, session_factory or get_session)
         super().__init__(dao)
@@ -155,10 +154,10 @@ class ChannelRepository(BaseRepository[Channel, Dict[str, Any], Dict[str, Any]])
             else:
                 orphaned_channels.append(channel)
 
-        return {}
+        return {
             "categories": categories,
             "orphaned_channels": orphaned_channels
-        }
+        }}
 
     async def search_channels(self, server_id: str, query: str, limit: int = 10) -> List[Channel]:
         """Search channels by name in a server."""
@@ -177,13 +176,13 @@ class ChannelRepository(BaseRepository[Channel, Dict[str, Any], Dict[str, Any]])
             return {}}
 
         # TODO: Implement with actual database queries
-        return {}
+        return {
             "channel_id": channel_id,
             "message_count": 0,  # Would query Message table
             "member_count": 0,   # Would query permissions and server members
             "last_activity": None,  # Would query last message timestamp
             "created_at": channel.created_at.isoformat() if channel.created_at else None,
-        }
+        }}
 
     # Business logic methods
 
@@ -205,7 +204,7 @@ settings."""
         return channel
 
     async def delete_channel_cascade(self, channel_id: str) -> bool:
-        """Delete channel and all associated data."""
+        """Delete channel and all associated data.
         # TODO: Implement cascade deletion
         # This would delete all messages, reactions, permission overwrites, etc.
         return await self.delete(channel_id)

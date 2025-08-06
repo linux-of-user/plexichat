@@ -4,7 +4,7 @@ Basic Functionality Test for PlexiChat
 
 Tests basic functionality without complex dependencies.
 This test should always work and verify core components.
-"""
+
 
 import sys
 import os

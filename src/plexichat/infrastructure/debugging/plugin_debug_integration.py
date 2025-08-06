@@ -7,7 +7,7 @@
 Plugin Debug Integration
 
 Integration layer for debugging plugin operations and performance.
-"""
+
 
 import asyncio
 import functools
@@ -25,8 +25,7 @@ logger = logging.getLogger(__name__)
 
 class PluginDebugger:
     """Debug integration for individual plugins."""
-
-    def __init__(self, plugin_name: str):
+        def __init__(self, plugin_name: str):
         self.plugin_name = plugin_name
         self.debug_manager = get_debug_manager()
         self.session_id = None
@@ -35,7 +34,7 @@ class PluginDebugger:
         self.performance_data = {}
 
     def start_debug_session(self, metadata: Optional[Dict[str, Any]] = None):
-        """Start a debug session for this plugin."""
+        Start a debug session for this plugin."""
         session_metadata = {
             "plugin_name": self.plugin_name,
             "session_type": "plugin_debug"
@@ -74,7 +73,7 @@ class PluginDebugger:
             self.session_id = None
 
     def debug_operation(self, operation_name: str, include_profiling: bool = True):
-        """Decorator for debugging plugin operations."""
+        """Decorator for debugging plugin operations.
         def decorator(func):
             @functools.wraps(func)
             async def async_wrapper(*args, **kwargs):
@@ -96,7 +95,7 @@ class PluginDebugger:
         return decorator
 
     async def _execute_with_debug(self, func, operation_name: str, include_profiling: bool, )
-                                 is_async: bool, *args, **kwargs):
+                                is_async: bool, *args, **kwargs):
         """Execute function with debug tracking (async version)."""
         self.operation_count += 1
         operation_id = f"{self.plugin_name}.{operation_name}.{self.operation_count}"
@@ -305,17 +304,17 @@ class PluginDebugger:
                     "total_duration": sum(durations)
                 }
 
-        return {}
+        return {
             "plugin_name": self.plugin_name,
             "operations": summary,
             "total_operations": self.operation_count,
             "total_errors": self.error_count,
             "session_id": self.session_id
-        }
+        }}
 
 
 def create_plugin_debugger(plugin_name: str) -> PluginDebugger:
-    """Create a debugger instance for a plugin."""
+    """Create a debugger instance for a plugin.
     return PluginDebugger(plugin_name)
 
 
@@ -508,7 +507,7 @@ _plugin_debuggers: Dict[str, PluginDebugger] = {}
 
 
 def get_plugin_debugger(plugin_name: str) -> PluginDebugger:
-    """Get or create a debugger for a plugin."""
+    """Get or create a debugger for a plugin.
     if plugin_name not in _plugin_debuggers:
         _plugin_debuggers[plugin_name] = create_plugin_debugger(plugin_name)
     return _plugin_debuggers[plugin_name]

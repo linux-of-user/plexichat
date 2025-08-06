@@ -140,8 +140,7 @@ class TestResults(BaseModel):
 
 class SystemService:
     """Service class for system operations using EXISTING database abstraction layer."""
-
-    def __init__(self):
+        def __init__(self):
         # Use EXISTING database manager
         self.db_manager = database_manager
         self.performance_logger = performance_logger

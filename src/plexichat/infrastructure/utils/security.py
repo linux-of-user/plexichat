@@ -70,9 +70,8 @@ logger = logging.getLogger(__name__)
 performance_logger = get_performance_logger() if get_performance_logger else None
 
 class SecurityUtilities:
-    """Enhanced security utilities using EXISTING systems."""
-
-    def __init__(self):
+    """Enhanced security utilities using EXISTING systems.
+        def __init__(self):
         self.db_manager = database_manager
         self.performance_logger = performance_logger
         self.security_level = getattr(settings, 'SECURITY_LEVEL', 'STANDARD')
@@ -322,7 +321,7 @@ class SecurityUtilities:
 
     @async_track_performance("security_audit") if async_track_performance else lambda f: f
     async def log_security_event(self, event_type: str, user_id: Optional[int], details: Dict[str, Any]):
-        """Log security event using EXISTING database abstraction."""
+        """Log security event using EXISTING database abstraction.
         try:
             if self.db_manager:
                 import json
@@ -425,7 +424,7 @@ security_utils = SecurityUtilities()
 
 # Convenience functions
 def hash_password(password: str) -> str:
-    """Hash password."""
+    """Hash password.
     return security_utils.hash_password(password)
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -433,11 +432,11 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     return security_utils.verify_password(plain_password, hashed_password)
 
 def generate_secure_token(length: int = 32) -> str:
-    """Generate secure token."""
+    Generate secure token."""
     return security_utils.generate_secure_token(length)
 
 def sanitize_input(input_data: str) -> str:
-    """Sanitize user input."""
+    """Sanitize user input.
     return security_utils.sanitize_input(input_data)
 
 def encrypt_data(data: str) -> str:
@@ -445,5 +444,5 @@ def encrypt_data(data: str) -> str:
     return security_utils.encrypt_data(data)
 
 def decrypt_data(encrypted_data: str) -> str:
-    """Decrypt data."""
+    Decrypt data."""
     return security_utils.decrypt_data(encrypted_data)

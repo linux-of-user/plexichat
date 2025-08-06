@@ -8,7 +8,7 @@ PlexiChat Authentication Utilities
 
 Enhanced authentication utilities with comprehensive security and performance optimization.
 Uses EXISTING database abstraction and optimization systems.
-"""
+
 import logging
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Optional
@@ -47,8 +47,7 @@ security = HTTPBearer()
 
 class AuthenticationUtilities:
     """Enhanced authentication utilities using EXISTING systems."""
-
-    def __init__(self):
+        def __init__(self):
         self.db_manager = database_manager
         self.performance_logger = performance_logger
         self.auth_core = auth_core
@@ -184,7 +183,7 @@ auth_utils = AuthenticationUtilities()
 
 # Convenience dependency functions
 async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> Dict[str, Any]:
-    """Get current user dependency."""
+    """Get current user dependency.
     return await auth_utils.get_current_user(credentials)
 
 async def get_current_active_user(current_user: Dict[str, Any] = Depends(get_current_user)) -> Dict[str, Any]:
@@ -192,11 +191,11 @@ async def get_current_active_user(current_user: Dict[str, Any] = Depends(get_cur
     return await auth_utils.get_current_active_user(current_user)
 
 async def require_admin(current_user: Dict[str, Any] = Depends(get_current_user)) -> Dict[str, Any]:
-    """Require admin privileges dependency."""
+    Require admin privileges dependency."""
     return await auth_utils.require_admin(current_user)
 
 def require_user_or_admin(user_id: int):
-    """Create dependency that requires user to be owner or admin."""
+    """Create dependency that requires user to be owner or admin.
     async def _require_user_or_admin(current_user: Dict[str, Any] = Depends(get_current_user)) -> Dict[str, Any]:
         return await auth_utils.require_user_or_admin(user_id, current_user)
     return _require_user_or_admin
@@ -217,9 +216,8 @@ async def get_optional_user(credentials: Optional[HTTPAuthorizationCredentials] 
 
 # Rate limiting helpers
 class RateLimitChecker:
-    """Rate limiting checker using EXISTING systems."""
-
-    def __init__(self):
+    """Rate limiting checker using EXISTING systems.
+        def __init__(self):
         self.db_manager = database_manager
         self.performance_logger = performance_logger
 
@@ -229,7 +227,7 @@ class RateLimitChecker:
             try:
                 window_start = datetime.now() - timedelta(seconds=window)
 
-                query = """
+                query = 
                     SELECT COUNT(*) FROM rate_limit_log
                     WHERE user_id = ? AND action = ? AND timestamp > ?
                 """
@@ -260,7 +258,7 @@ class RateLimitChecker:
         return True  # Allow if no database
 
     async def _log_action(self, user_id: int, action: str):
-        """Log user action for rate limiting."""
+        """Log user action for rate limiting.
         if self.db_manager:
             try:
                 query = """

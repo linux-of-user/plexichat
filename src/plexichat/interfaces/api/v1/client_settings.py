@@ -136,8 +136,8 @@ config = get_client_settings_config()
 
 # Response Models
 class SettingValueResponse(BaseModel):
-    """Response for a single setting value."""
-    key: str
+    """Response for a single setting value.
+        key: str
     value: str
     type: str
     description: Optional[str] = None
@@ -147,7 +147,7 @@ class SettingValueResponse(BaseModel):
 
 class ConfigLimitsResponse(BaseModel):
     """Response for configuration limits."""
-    max_key_value_pairs: int
+        max_key_value_pairs: int
     max_key_length: int
     max_value_length: int
     max_images_per_user: int
@@ -157,7 +157,7 @@ class ConfigLimitsResponse(BaseModel):
 
 # Authentication dependency
 async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
-    """Get current authenticated user."""
+    Get current authenticated user."""
     try:
         if unified_auth_manager:
             user = await unified_auth_manager.verify_token(credentials.credentials)

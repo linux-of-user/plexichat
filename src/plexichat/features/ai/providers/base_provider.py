@@ -17,15 +17,14 @@ import aiohttp
 """
 Base AI Provider Interface
 Common interface for all AI providers with standardized methods and error handling.
-"""
+
 
 logger = logging.getLogger(__name__)
 
 
 class ProviderStatus(str, Enum):
     """Provider status."""
-
-    AVAILABLE = "available"
+        AVAILABLE = "available"
     UNAVAILABLE = "unavailable"
     RATE_LIMITED = "rate_limited"
     ERROR = "error"
@@ -35,7 +34,7 @@ class ProviderStatus(str, Enum):
 
 @dataclass
 class ProviderConfig:
-    """Base provider configuration."""
+    """Base provider configuration.
 
     name: str
     provider_type: str
@@ -56,8 +55,7 @@ class ProviderConfig:
 @dataclass
 class AIRequest:
     """Standardized AI request."""
-
-    user_id: str
+        user_id: str
     model_id: str
     prompt: str
     max_tokens: Optional[int] = None
@@ -71,9 +69,8 @@ class AIRequest:
 
 @dataclass
 class AIResponse:
-    """Standardized AI response."""
-
-    request_id: str
+    Standardized AI response."""
+        request_id: str
     model_id: str
     content: str
     usage: Dict[str, Any]
@@ -87,7 +84,7 @@ class AIResponse:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
-        return {}
+        return {
             "request_id": self.request_id,
             "model_id": self.model_id,
             "content": self.content,
@@ -99,13 +96,12 @@ class AIResponse:
             "metadata": self.metadata,
             "success": self.success,
             "error": self.error,
-        }
+        }}
 
 
 class BaseAIProvider(ABC):
-    """Base class for all AI providers."""
-
-    def __init__(self, config: ProviderConfig):
+    """Base class for all AI providers.
+        def __init__(self, config: ProviderConfig):
         self.config = config
         self.status = ProviderStatus.INITIALIZING
         self.session: Optional[aiohttp.ClientSession] = None
@@ -136,7 +132,7 @@ class BaseAIProvider(ABC):
             return False
 
     async def cleanup(self):
-        """Cleanup resources."""
+        """Cleanup resources.
         if self.session:
             await self.session.close()
         self.status = ProviderStatus.UNAVAILABLE
@@ -147,18 +143,18 @@ class BaseAIProvider(ABC):
 
     @abstractmethod
     async def generate(self, request: AIRequest) -> AIResponse:
-        """Generate AI response."""
+        Generate AI response."""
 
     @abstractmethod
     async def stream_generate(self, request: AIRequest) -> AsyncGenerator[str, None]:
-        """Generate streaming AI response."""
+        """Generate streaming AI response.
 
     @abstractmethod
     async def get_available_models(self) -> List[Dict[str, Any]]:
         """Get list of available models."""
 
     async def check_rate_limit(self, model_id: str) -> bool:
-        """Check if request is within rate limits."""
+        Check if request is within rate limits."""
         current_time = datetime.now(timezone.utc)
 
         # Simple rate limiting implementation
@@ -183,12 +179,12 @@ class BaseAIProvider(ABC):
         return True
 
     def _calculate_cost(self, model_id: str, usage: Dict[str, Any]) -> float:
-        """Calculate request cost (to be overridden by providers)."""
+        """Calculate request cost (to be overridden by providers).
         return 0.0
 
     def get_status(self) -> Dict[str, Any]:
         """Get provider status information."""
-        return {}
+        return {
             "name": self.config.name,
             "provider_type": self.config.provider_type,
             "status": self.status.value,
@@ -196,4 +192,4 @@ class BaseAIProvider(ABC):
             "base_url": self.config.base_url,
             "rate_limit_rpm": self.config.rate_limit_rpm,
             "rate_limit_tpm": self.config.rate_limit_tpm,
-        }
+        }}

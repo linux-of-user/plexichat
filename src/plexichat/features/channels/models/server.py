@@ -21,7 +21,7 @@ import time
 PlexiChat Server Model
 
 Discord-like server (guild) model with comprehensive features.
-"""
+
 
 # Initialize snowflake generator for servers
 server_snowflake = SnowflakeGenerator(datacenter_id=1, worker_id=1)
@@ -29,8 +29,7 @@ server_snowflake = SnowflakeGenerator(datacenter_id=1, worker_id=1)
 
 class VerificationLevel(IntEnum):
     """Server verification levels."""
-
-    NONE = 0
+        NONE = 0
     LOW = 1
     MEDIUM = 2
     HIGH = 3
@@ -38,7 +37,7 @@ class VerificationLevel(IntEnum):
 
 
 class DefaultMessageNotifications(IntEnum):
-    """Default message notification from plexichat.core.config import settings
+    Default message notification from plexichat.core.config import settings
     settings."""
 
     ALL_MESSAGES = 0
@@ -46,9 +45,8 @@ class DefaultMessageNotifications(IntEnum):
 
 
 class ExplicitContentFilter(IntEnum):
-    """Explicit content filter levels."""
-
-    DISABLED = 0
+    """Explicit content filter levels.
+        DISABLED = 0
     MEMBERS_WITHOUT_ROLES = 1
     ALL_MEMBERS = 2
 
@@ -228,9 +226,8 @@ class Server(SQLModel, table=True):
     # members: List["ServerMember"] = Relationship(back_populates="server")
 
     class Config:
-        """SQLModel configuration."""
-
-        arbitrary_types_allowed = True
+    """SQLModel configuration."""
+            arbitrary_types_allowed = True
         json_encoders = {datetime: lambda v: v.isoformat() if v else None}
 
     def __repr__(self) -> str:
@@ -238,7 +235,7 @@ class Server(SQLModel, table=True):
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert server to dictionary."""
-        return {}
+        return {
             "server_id": self.server_id,
             "name": self.name,
             "owner_id": self.owner_id,
@@ -259,7 +256,7 @@ class Server(SQLModel, table=True):
             "preferred_locale": self.preferred_locale,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
-        }
+        }}
 
 
 # Database indexes for performance

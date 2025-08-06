@@ -11,7 +11,7 @@ PlexiChat Features
 
 Enhanced features module with comprehensive functionality and performance optimization.
 Uses EXISTING database abstraction and optimization systems.
-"""
+
 
 import logging
 from typing import Any, Dict, List, Optional
@@ -30,12 +30,12 @@ performance_logger = get_performance_logger() if get_performance_logger else Non
 
 class FeatureManager:
     """Enhanced feature manager using EXISTING systems."""
-    def __init__(self):
+        def __init__(self):
         self.performance_logger = performance_logger
         self.enabled_features: Dict[str, bool] = {}
         self.feature_configs: Dict[str, Dict[str, Any]] = {}
     def register_feature(self, name: str, enabled: bool = True, config: Optional[Dict[str, Any]] = None):
-        """Register a feature."""
+        Register a feature."""
         try:
             self.enabled_features[name] = enabled
             self.feature_configs[name] = config or {}
@@ -45,13 +45,13 @@ class FeatureManager:
         except Exception as e:
             logger.error(f"Error registering feature {name}: {e}")
     def is_enabled(self, name: str) -> bool:
-        """Check if feature is enabled."""
+        """Check if feature is enabled.
         return self.enabled_features.get(name, False)
     def get_config(self, name: str) -> Dict[str, Any]:
         """Get feature configuration."""
         return self.feature_configs.get(name, {})
     def enable_feature(self, name: str):
-        """Enable a feature."""
+        Enable a feature."""
         if name in self.enabled_features:
             self.enabled_features[name] = True
             logger.info(f"Enabled feature: {name}")
@@ -61,7 +61,7 @@ class FeatureManager:
             self.enabled_features[name] = False
             logger.info(f"Disabled feature: {name}")
     def get_enabled_features(self) -> List[str]:
-        """Get list of enabled features."""
+        """Get list of enabled features.
         return [name for name, enabled in self.enabled_features.items() if enabled]
 
 # Global feature manager

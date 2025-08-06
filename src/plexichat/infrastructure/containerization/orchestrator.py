@@ -20,15 +20,14 @@ import subprocess
 import time
 PlexiChat Container Orchestration System
 Manages Docker containers and Kubernetes deployments
-"""
+
 
 logger = logging.getLogger(__name__)
 
 
 class ContainerStatus(Enum):
     """Container status enumeration."""
-
-    CREATING = "creating"
+        CREATING = "creating"
     RUNNING = "running"
     STOPPED = "stopped"
     FAILED = "failed"
@@ -48,8 +47,7 @@ class OrchestrationPlatform(Enum):
 @dataclass
 class ContainerConfig:
     """Container configuration."""
-
-    name: str
+        name: str
     image: str
     tag: str = "latest"
     ports: Dict[int, int] = field(default_factory=dict)  # container_port: host_port
@@ -71,8 +69,7 @@ class ContainerConfig:
 @dataclass
 class DeploymentSpec:
     """Kubernetes deployment specification."""
-
-    name: str
+        name: str
     namespace: str = "default"
     replicas: int = 1
     containers: List[ContainerConfig] = field(default_factory=list)
@@ -98,8 +95,7 @@ class ContainerOrchestrator:
     - Persistent volume management
     - Network policy enforcement
     """
-
-    def __init__():
+        def __init__():
         self, platform: OrchestrationPlatform = OrchestrationPlatform.DOCKER_COMPOSE
     ):
         self.platform = platform
@@ -548,25 +544,25 @@ class ContainerOrchestrator:
                 input=input_data.encode() if input_data else None
             )
 
-            return {}
+            return {
                 "returncode": process.returncode,
                 "stdout": stdout.decode() if stdout else "",
                 "stderr": stderr.decode() if stderr else "",
-            }
+            }}
 
         except Exception as e:
             return {"returncode": -1, "stdout": "", "stderr": str(e)}
 
     def get_orchestrator_status(self) -> Dict[str, Any]:
         """Get orchestrator status and statistics."""
-        return {}
+        return {
             "platform": self.platform.value,
             "total_containers": len(self.containers),
             "statistics": self.stats,
             "containers": list(self.containers.keys()),
             "kubernetes_namespace": self.kubernetes_namespace,
             "docker_compose_file": self.docker_compose_file,
-        }
+        }}
 
 
 # Global container orchestrator

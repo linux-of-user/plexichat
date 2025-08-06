@@ -3,7 +3,7 @@ PlexiChat Client Settings Repository
 ===================================
 
 Database repository for client settings using the DB abstraction system.
-"""
+
 
 import logging
 import os
@@ -39,9 +39,8 @@ logger = logging.getLogger(__name__)
 
 class ClientSettingsRepository(BaseRepository if BaseRepository != object else object):
     """Repository for client settings operations."""
-    
-    def __init__(self, db_manager: Optional[DatabaseManager] = None):
-        """Initialize repository."""
+        def __init__(self, db_manager: Optional[DatabaseManager] = None):
+        Initialize repository."""
         if BaseRepository != object:
             super().__init__(db_manager)
         self.db_manager = db_manager
@@ -299,27 +298,27 @@ class ClientSettingsRepository(BaseRepository if BaseRepository != object else o
                     
                     settings_by_type = {type_name: count for type_name, count in type_counts}
                 
-                return {}
+                return {
                     'total_settings': settings_count,
                     'total_images': images_count,
                     'total_storage_used_bytes': storage_used,
                     'total_storage_used_mb': round(storage_used / (1024 * 1024), 2),
                     'settings_by_type': settings_by_type
-                }
+                }}
             else:
                 return self._get_user_stats_fallback(user_id)
         except Exception as e:
             logger.error(f"Error getting user stats: {e}")
-            return {}
+            return {
                 'total_settings': 0,
                 'total_images': 0,
                 'total_storage_used_bytes': 0,
                 'total_storage_used_mb': 0.0,
-                'settings_by_type': {}
+                'settings_by_type': {}}
             }
     
     async def _check_user_limits(self, user_id: str) -> bool:
-        """Check if user can add more settings."""
+        """Check if user can add more settings.
         if not self.config:
             return True
         
@@ -336,7 +335,7 @@ class ClientSettingsRepository(BaseRepository if BaseRepository != object else o
     
     # Bulk Operations
     async def bulk_update_settings(self, user_id: str, settings: Dict[str, Any]) -> Dict[str, Any]:
-        """Bulk update multiple settings."""
+        Bulk update multiple settings."""
         try:
             updated_keys = []
             errors = []
@@ -365,26 +364,26 @@ class ClientSettingsRepository(BaseRepository if BaseRepository != object else o
                 except Exception as e:
                     errors.append({'key': key, 'error': str(e)})
 
-            return {}
+            return {
                 'success': len(errors) == 0,
                 'updated_count': len(updated_keys),
                 'failed_count': len(errors),
                 'errors': errors,
                 'updated_keys': updated_keys
-            }
+            }}
         except Exception as e:
             logger.error(f"Error in bulk update: {e}")
-            return {}
+            return {
                 'success': False,
                 'updated_count': 0,
                 'failed_count': len(settings),
-                'errors': [{'error': str(e)}],
+                'errors': [{'error': str(e)}}],
                 'updated_keys': []
             }
 
     # Fallback implementations for when DB is not available
     def _get_user_settings_fallback(self, user_id: str) -> List[ClientSettingResponse]:
-        """Fallback implementation for getting user settings."""
+        """Fallback implementation for getting user settings.
         # In-memory storage would go here
         return []
     
@@ -393,7 +392,7 @@ class ClientSettingsRepository(BaseRepository if BaseRepository != object else o
         return None
     
     def _set_setting_fallback(self, user_id: str, setting_key: str, setting_data: ClientSettingCreate) -> ClientSettingResponse:
-        """Fallback implementation for setting a value."""
+        Fallback implementation for setting a value."""
         # Create a mock response
         return ClientSettingResponse(
             user_id=user_id,
@@ -408,7 +407,7 @@ class ClientSettingsRepository(BaseRepository if BaseRepository != object else o
         )
     
     def _delete_setting_fallback(self, user_id: str, setting_key: str) -> bool:
-        """Fallback implementation for deleting a setting."""
+        """Fallback implementation for deleting a setting.
         return True
     
     def _get_user_images_fallback(self, user_id: str) -> List[ClientSettingImageResponse]:
@@ -416,11 +415,11 @@ class ClientSettingsRepository(BaseRepository if BaseRepository != object else o
         return []
     
     def _get_image_fallback(self, user_id: str, image_id: str) -> Optional[ClientSettingImageResponse]:
-        """Fallback implementation for getting an image."""
+        Fallback implementation for getting an image."""
         return None
     
     def _create_image_record_fallback(self, user_id: str, image_id: str, image_data: Dict[str, Any]) -> ClientSettingImageResponse:
-        """Fallback implementation for creating image record."""
+        """Fallback implementation for creating image record.
         return ClientSettingImageResponse(
             id=image_id,
             user_id=user_id,
@@ -444,11 +443,11 @@ class ClientSettingsRepository(BaseRepository if BaseRepository != object else o
         return True
     
     def _get_user_stats_fallback(self, user_id: str) -> Dict[str, Any]:
-        """Fallback implementation for getting user stats."""
-        return {}
+        Fallback implementation for getting user stats."""
+        return {
             'total_settings': 0,
             'total_images': 0,
             'total_storage_used_bytes': 0,
             'total_storage_used_mb': 0.0,
-            'settings_by_type': {}
+            'settings_by_type': {}}
         }

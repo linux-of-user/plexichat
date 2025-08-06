@@ -17,13 +17,12 @@ from sqlalchemy import DateTime, Index, Text
 """
 Moderation system models for PlexiChat.
 Handles user moderation, message moderation, and server-specific moderation roles.
-"""
+
 
 
 class ModerationAction(str, Enum):
     """Types of moderation actions."""
-
-    WARN = "warn"
+        WARN = "warn"
     MUTE = "mute"
     KICK = "kick"
     BAN = "ban"
@@ -47,8 +46,7 @@ class ModerationSeverity(str, Enum):
 
 class ModerationStatus(str, Enum):
     """Status of moderation actions."""
-
-    ACTIVE = "active"
+        ACTIVE = "active"
     EXPIRED = "expired"
     REVOKED = "revoked"
     APPEALED = "appealed"
@@ -96,8 +94,7 @@ class ModeratorRole(SQLModel, table=True):
 
 class ModerationLog(SQLModel, table=True):
     """Log of all moderation actions."""
-
-    __tablename__ = "moderation_logs"
+        __tablename__ = "moderation_logs"
 
     id: Optional[int] = Field(default=None, primary_key=True)
     uuid: str = Field()
@@ -155,8 +152,7 @@ class ModerationLog(SQLModel, table=True):
 
 class UserModerationStatus(SQLModel, table=True):
     """Current moderation status for users."""
-
-    __tablename__ = "user_moderation_status"
+        __tablename__ = "user_moderation_status"
 
     id: Optional[int] = Field(default=None, primary_key=True)
     user_id: int = Field(foreign_key="users_enhanced.id", unique=True, index=True)
@@ -194,8 +190,7 @@ class UserModerationStatus(SQLModel, table=True):
 
 class MessageModerationQueue(SQLModel, table=True):
     """Queue for messages requiring moderation review."""
-
-    __tablename__ = "message_moderation_queue"
+        __tablename__ = "message_moderation_queue"
 
     id: Optional[int] = Field(default=None, primary_key=True)
     message_id: int = Field(foreign_key="messages.id", unique=True, index=True)
@@ -236,8 +231,7 @@ class MessageModerationQueue(SQLModel, table=True):
 
 class AutoModerationRule(SQLModel, table=True):
     """Automated moderation rules."""
-
-    __tablename__ = "auto_moderation_rules"
+        __tablename__ = "auto_moderation_rules"
 
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str = Field(max_length=100, index=True)

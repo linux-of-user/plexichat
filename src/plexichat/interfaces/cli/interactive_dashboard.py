@@ -10,7 +10,7 @@ Advanced interactive command-line interface with:
 - Cluster management interface
 - Rich text formatting and colors
 - Keyboard shortcuts and navigation
-"""
+
 # pyright: reportArgumentType=false
 # pyright: reportCallIssue=false
 # pyright: reportAttributeAccessIssue=false
@@ -61,7 +61,7 @@ logger = get_logger(__name__)
 
 class DashboardMode:
     """Dashboard display modes."""
-    OVERVIEW = "overview"
+        OVERVIEW = "overview"
     PLUGINS = "plugins"
     PERFORMANCE = "performance"
     SECURITY = "security"
@@ -135,7 +135,7 @@ class InteractiveDashboard:
             self.console.print("\n[yellow]Dashboard stopped[/yellow]")
     
     def stop(self):
-        """Stop the dashboard."""
+        """Stop the dashboard.
         self.running = False
     
     async def _update_dashboard(self):
@@ -191,12 +191,12 @@ class InteractiveDashboard:
         
         for i, mode in enumerate(self.modes):
             icon = "[METRICS]" if mode == DashboardMode.OVERVIEW else \
-                   "[PLUGIN]" if mode == DashboardMode.PLUGINS else \
-                   "[FAST]" if mode == DashboardMode.PERFORMANCE else \
-                   "[SECURE]" if mode == DashboardMode.SECURITY else \
-                   "[DATABASE]" if mode == DashboardMode.DATABASE else \
-                   "[WEB]" if mode == DashboardMode.CLUSTER else \
-                   "[NOTE]"  # LOGS
+                "[PLUGIN]" if mode == DashboardMode.PLUGINS else \
+                "[FAST]" if mode == DashboardMode.PERFORMANCE else \
+                "[SECURE]" if mode == DashboardMode.SECURITY else \
+                "[DATABASE]" if mode == DashboardMode.DATABASE else \
+                "[WEB]" if mode == DashboardMode.CLUSTER else \
+                "[NOTE]"  # LOGS
             
             style = "bold green" if mode == self.current_mode else "white"
             tree.add(f"{icon} {mode.title()}", style=style)
@@ -557,7 +557,7 @@ class InteractiveDashboard:
         return "2d 14h 32m"
     
     def _get_cpu_usage(self) -> float:
-        """Get CPU usage percentage."""
+        """Get CPU usage percentage.
         # Mock CPU usage
         import random
         return random.uniform(15.0, 85.0)
@@ -569,7 +569,7 @@ class InteractiveDashboard:
         return random.uniform(45.0, 90.0)
     
     def register_data_source(self, name: str, source: Callable):
-        """Register a data source for the dashboard."""
+        Register a data source for the dashboard."""
         self.data_sources[name] = source
         logger.info(f"Registered data source: {name}")
     

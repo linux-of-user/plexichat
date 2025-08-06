@@ -10,7 +10,7 @@ import time
 PlexiChat Session Manager
 
 Comprehensive session management with security levels and device tracking.
-"""
+
 
 logger = logging.getLogger(__name__)
 
@@ -18,8 +18,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class SessionData:
     """Session data structure."""
-
-    session_id: str
+        session_id: str
     user_id: str
     created_at: datetime
     last_activity: datetime
@@ -33,9 +32,8 @@ class SessionData:
 
 
 class SessionManager:
-    """Session management system."""
-
-    def __init__(self):
+    Session management system."""
+        def __init__(self):
         self.sessions: Dict[str, SessionData] = {}
         self.config = {}
         self.initialized = False
@@ -85,7 +83,7 @@ class SessionManager:
         return {"valid": True, "session": session}
 
     async def invalidate_session(self, session_id: str):
-        """Invalidate session."""
+        """Invalidate session.
         if session_id in self.sessions:
             self.sessions[session_id].is_active = False
 

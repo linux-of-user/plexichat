@@ -33,7 +33,7 @@ from .base_provider import (
 """
 OpenAI Provider for PlexiChat AI Abstraction Layer
 Enhanced OpenAI integration with advanced features and error handling.
-"""
+
 
 OPENAI_AVAILABLE = openai is not None
 
@@ -43,8 +43,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class OpenAIConfig(ProviderConfig):
     """OpenAI-specific configuration."""
-
-    api_key: str
+        api_key: str
     organization: Optional[str] = None
     base_url: str = "https://api.openai.com/v1"
     max_tokens: int = 4096
@@ -69,9 +68,8 @@ class OpenAIConfig(ProviderConfig):
 
 
 class OpenAIProvider(BaseAIProvider):
-    """Enhanced OpenAI provider with comprehensive features."""
-
-    def __init__(self, config: OpenAIConfig):
+    """Enhanced OpenAI provider with comprehensive features.
+        def __init__(self, config: OpenAIConfig):
         super().__init__(config)
         self.config = config
         self.client = None
@@ -233,11 +231,11 @@ class OpenAIProvider(BaseAIProvider):
             response = await self.client.moderations.create(input=text)
             result = response.results[0]
 
-            return {}
+            return {
                 "flagged": result.flagged,
                 "categories": dict(result.categories),
                 "category_scores": dict(result.category_scores),
-            }
+            }}
 
         except Exception as e:
             logger.error(f"OpenAI content moderation failed: {e}")

@@ -24,15 +24,14 @@ Manages distributed storage across cluster nodes with:
 - Automatic failover and recovery
 - Data consistency and synchronization
 - Storage optimization and cleanup
-"""
+
 
 logger = logging.getLogger(__name__)
 
 
 class StorageNodeType(Enum):
     """Types of storage nodes."""
-
-    PRIMARY = "primary"
+        PRIMARY = "primary"
     REPLICA = "replica"
     CACHE = "cache"
     BACKUP = "backup"
@@ -50,8 +49,7 @@ class StorageStrategy(Enum):
 
 class DataConsistency(Enum):
     """Data consistency levels."""
-
-    EVENTUAL = "eventual"
+        EVENTUAL = "eventual"
     STRONG = "strong"
     WEAK = "weak"
 
@@ -77,7 +75,7 @@ class StorageNode:
 
     @property
     def usage_percentage(self) -> float:
-        """Calculate storage usage percentage."""
+        """Calculate storage usage percentage.
         if self.total_capacity_gb == 0:
             return 0.0
         return (self.used_capacity_gb / self.total_capacity_gb) * 100
@@ -93,7 +91,7 @@ class StorageNode:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
-        return {}
+        return {
             "node_id": self.node_id,
             "hostname": self.hostname,
             "ip_address": self.ip_address,
@@ -110,14 +108,13 @@ class StorageNode:
             "status": self.status,
             "is_healthy": self.is_healthy,
             "metadata": self.metadata,
-        }
+        }}
 
 
 @dataclass
 class StoredData:
-    """Represents data stored in the distributed system."""
-
-    data_id: str
+    """Represents data stored in the distributed system.
+        data_id: str
     data_type: str
     size_bytes: int
     checksum: str
@@ -131,7 +128,7 @@ class StoredData:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
-        return {}
+        return {
             "data_id": self.data_id,
             "data_type": self.data_type,
             "size_bytes": self.size_bytes,
@@ -143,13 +140,12 @@ class StoredData:
             "access_count": self.access_count,
             "consistency_level": self.consistency_level.value,
             "metadata": self.metadata,
-        }
+        }}
 
 
 class DistributedStorageManager:
-    """Manages distributed storage across cluster nodes."""
-
-    def __init__(self, cluster_manager):
+    """Manages distributed storage across cluster nodes.
+        def __init__(self, cluster_manager):
         """Initialize distributed storage manager."""
         self.cluster_manager = cluster_manager
 
@@ -468,7 +464,7 @@ class DistributedStorageManager:
         await asyncio.sleep(0.05)  # Simulate network delay
 
     def _verify_checksum(self, data: bytes, expected_checksum: str) -> bool:
-        """Verify data integrity using checksum."""
+        """Verify data integrity using checksum.
         actual_checksum = hashlib.sha256(data).hexdigest()
         return actual_checksum == expected_checksum
 
@@ -660,7 +656,7 @@ class DistributedStorageManager:
         )
         total_used = sum(node.used_capacity_gb for node in self.storage_nodes.values())
 
-        return {}
+        return {
             "total_nodes": len(self.storage_nodes),
             "healthy_nodes": len()
                 [n for n in self.storage_nodes.values() if n.is_healthy]
@@ -675,10 +671,10 @@ class DistributedStorageManager:
             "replication_factor": self.config["default_replication_factor"],
             "storage_strategy": self.config["storage_strategy"].value,
             "consistency_level": self.config["consistency_level"].value,
-        }
+        }}
 
     def get_node_details(self) -> List[Dict[str, Any]]:
-        """Get detailed information about all storage nodes."""
+        """Get detailed information about all storage nodes.
         return [node.to_dict() for node in self.storage_nodes.values()]
 
     def get_data_distribution(self) -> Dict[str, Any]:
@@ -696,7 +692,7 @@ class DistributedStorageManager:
                     node_data_counts[node_id] += 1
                     node_data_sizes[node_id] += data.size_bytes
 
-        return {}
+        return {
             "data_counts_per_node": node_data_counts,
             "data_sizes_per_node": node_data_sizes,
             "total_replicas": sum()
@@ -710,7 +706,7 @@ class DistributedStorageManager:
                 if self.stored_data
                 else 0
             ),
-        }
+        }}
 
 
 # Global distributed storage manager instance

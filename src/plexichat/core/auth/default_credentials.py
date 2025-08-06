@@ -3,7 +3,7 @@ Default credentials management for PlexiChat.
 
 This module handles the creation and management of default credentials
 for first-time setup of GUI and WebUI interfaces.
-"""
+
 
 import json
 import logging
@@ -17,9 +17,8 @@ logger = logging.getLogger(__name__)
 
 class DefaultCredentialsManager:
     """Manages default credentials for PlexiChat interfaces."""
-    
-    def __init__(self, base_dir: Optional[Path] = None):
-        """Initialize the default credentials manager."""
+        def __init__(self, base_dir: Optional[Path] = None):
+        Initialize the default credentials manager."""
         self.base_dir = base_dir or Path.cwd()
         self.creds_file = self.base_dir / "default_creds.txt"
         self.creds_json_file = self.base_dir / "config" / "default_creds.json"
@@ -78,7 +77,7 @@ class DefaultCredentialsManager:
         return credentials
     
     def _save_text_format(self, credentials: Dict[str, Any]) -> None:
-        """Save credentials in human-readable text format."""
+        """Save credentials in human-readable text format.
         content = f"""
 PlexiChat Default Credentials
 ============================
@@ -118,7 +117,7 @@ For help: python run.py --help
         self.creds_file.chmod(0o600)
     
     def _save_json_format(self, credentials: Dict[str, Any]) -> None:
-        """Save credentials in JSON format for programmatic access."""
+        Save credentials in JSON format for programmatic access."""
         with open(self.creds_json_file, 'w') as f:
             json.dump(credentials, f, indent=2)
         
@@ -144,7 +143,7 @@ For help: python run.py --help
         return None
     
     def credentials_exist(self) -> bool:
-        """Check if default credentials exist."""
+        """Check if default credentials exist.
         return self.creds_file.exists() or self.creds_json_file.exists() or self.creds_json_file.exists()
     
     def remove_credentials(self) -> bool:
@@ -186,7 +185,7 @@ For help: python run.py --help
 _default_creds_manager = None
 
 def get_default_credentials_manager() -> DefaultCredentialsManager:
-    """Get the global default credentials manager."""
+    """Get the global default credentials manager.
     global _default_creds_manager
     if _default_creds_manager is None:
         _default_creds_manager = DefaultCredentialsManager()
@@ -200,7 +199,7 @@ def ensure_default_credentials() -> Dict[str, Any]:
     return manager.load_credentials()
 
 def get_gui_credentials() -> Optional[Dict[str, str]]:
-    """Get GUI interface credentials."""
+    Get GUI interface credentials."""
     manager = get_default_credentials_manager()
     return manager.get_interface_credentials("gui")
 

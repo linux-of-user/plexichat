@@ -31,22 +31,22 @@ router = APIRouter(prefix="/rate-limits", tags=["Rate Limiting"])
 
 class AccountLimitsUpdate(BaseModel):
     """Request model for updating account type limits"""
-    requests_per_minute: int = Field(gt=0, le=10000, description="Requests per minute limit")
+        requests_per_minute: int = Field(gt=0, le=10000, description="Requests per minute limit")
     concurrent_requests: int = Field(gt=0, le=1000, description="Concurrent requests limit")
     bandwidth_per_second: int = Field(gt=0, le=1000000000, description="Bandwidth per second limit (bytes)")
 
 
 class LoadMultipliersUpdate(BaseModel):
     """Request model for updating load multipliers"""
-    low_load: float = Field(gt=0, le=10, default=1.5, description="Low load multiplier")
+        low_load: float = Field(gt=0, le=10, default=1.5, description="Low load multiplier")
     normal_load: float = Field(gt=0, le=10, default=1.0, description="Normal load multiplier")
     high_load: float = Field(gt=0, le=10, default=0.7, description="High load multiplier")
     critical_load: float = Field(gt=0, le=10, default=0.3, description="Critical load multiplier")
 
 # Pydantic models for API
 class RateLimitStats(BaseModel):
-    """Rate limiting statistics."""
-    total_requests: int
+    """Rate limiting statistics.
+        total_requests: int
     blocked_requests: int
     block_rate: float
     violations_by_strategy: Dict[str, int]
@@ -58,7 +58,7 @@ class RateLimitStats(BaseModel):
 
 class EndpointOverride(BaseModel):
     """Endpoint-specific rate limit override."""
-    path: str
+        path: str
     per_ip: Optional[int] = None
     per_user: Optional[int] = None
     per_route: Optional[int] = None
@@ -66,13 +66,13 @@ class EndpointOverride(BaseModel):
     enabled: bool = True
 
 class UserTierUpdate(BaseModel):
-    """User tier rate limit multiplier update."""
-    tier: str
+    User tier rate limit multiplier update."""
+        tier: str
     multiplier: float = Field(gt=0, le=100)
 
 class ConfigUpdate(BaseModel):
     """Rate limiting configuration update."""
-    enabled: Optional[bool] = None
+        enabled: Optional[bool] = None
     per_ip_requests_per_minute: Optional[int] = Field(None, gt=0, le=10000)
     per_user_requests_per_minute: Optional[int] = Field(None, gt=0, le=10000)
     per_route_requests_per_minute: Optional[int] = Field(None, gt=0, le=10000)
@@ -247,7 +247,7 @@ async def update_user_tier_multiplier(
         config_manager.update_user_tier_multiplier(tier_update.tier, tier_update.multiplier)
         
         logger.info(f"User tier multiplier updated by admin {current_user.get('username', 'unknown')}: "
-                   f"{tier_update.tier} = {tier_update.multiplier}")
+                f"{tier_update.tier} = {tier_update.multiplier}")
         
         return {
             "success": True,
@@ -393,7 +393,7 @@ async def update_account_type_limits(
         protection_system.update_account_limits(account_type_enum, new_limits)
 
         logger.info(f"Account limits updated by admin {current_user.get('username', 'unknown')}: "
-                   f"{account_type} = {requests_per_minute} req/min")
+                f"{account_type} = {requests_per_minute} req/min")
 
         return {
             "success": True,

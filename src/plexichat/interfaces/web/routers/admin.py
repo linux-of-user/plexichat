@@ -114,13 +114,13 @@ except ImportError as e:
     logging_system = None
 
 class AdminLoginRequest(BaseModel):
-    """Admin login request model."""
-    username: str
+    """Admin login request model.
+        username: str
     password: str
 
 class AdminCreateRequest(BaseModel):
     """Admin creation request model."""
-    username: str
+        username: str
     email: str
     password: str
     role: str = "admin"

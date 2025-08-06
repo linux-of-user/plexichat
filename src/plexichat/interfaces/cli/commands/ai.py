@@ -25,9 +25,8 @@ logger = logging.getLogger(__name__)
 
 logger = logging.getLogger(__name__)
 class AICommandLineInterface:
-    """Command-line interface for AI management."""
-
-    def __init__(self):
+    """Command-line interface for AI management.
+        def __init__(self):
         self.ai_layer = AIAbstractionLayer()
 
     async def list_models(self, provider: Optional[str] = None, status: Optional[str] = None):

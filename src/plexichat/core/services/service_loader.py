@@ -24,7 +24,7 @@ except ImportError:
 
 class ServiceState(Enum):
     """Service states."""
-    UNLOADED = "unloaded"
+        UNLOADED = "unloaded"
     LOADING = "loading"
     LOADED = "loaded"
     STARTING = "starting"
@@ -34,7 +34,7 @@ class ServiceState(Enum):
     ERROR = "error"
 
 class ServicePriority(Enum):
-    """Service loading priorities."""
+    """Service loading priorities.
     CRITICAL = 1    # Core services (logging, config)
     HIGH = 2        # Security services (auth, rate limiting)
     NORMAL = 3      # Application services (API, database)
@@ -43,7 +43,7 @@ class ServicePriority(Enum):
 @dataclass
 class ServiceDefinition:
     """Definition of a service."""
-    name: str
+        name: str
     module_path: str
     class_name: str
     priority: ServicePriority = ServicePriority.NORMAL
@@ -55,8 +55,8 @@ class ServiceDefinition:
 
 @dataclass
 class ServiceInstance:
-    """Runtime instance of a service."""
-    definition: ServiceDefinition
+    Runtime instance of a service."""
+        definition: ServiceDefinition
     instance: Optional[Any] = None
     state: ServiceState = ServiceState.UNLOADED
     load_time: Optional[float] = None
@@ -66,8 +66,7 @@ class ServiceInstance:
 
 class ServiceLoader:
     """Service loader and manager."""
-    
-    def __init__(self):
+        def __init__(self):
         self.services: Dict[str, ServiceInstance] = {}
         self.load_order: List[str] = []
         self.running = False
@@ -206,7 +205,7 @@ class ServiceLoader:
             service_instance.state = ServiceState.LOADED
             
             logger.info(f"Service {service_name} loaded successfully in {service_instance.load_time:.3f}s", 
-                       LogCategory.STARTUP)
+                    LogCategory.STARTUP)
             return True
             
         except Exception as e:
@@ -339,7 +338,7 @@ class ServiceLoader:
         logger.info("All services stopped", LogCategory.STARTUP)
     
     def get_service(self, service_name: str) -> Optional[Any]:
-        """Get a service instance."""
+        """Get a service instance.
         service_instance = self.services.get(service_name)
         if service_instance and service_instance.state == ServiceState.RUNNING:
             return service_instance.instance
@@ -363,7 +362,7 @@ class ServiceLoader:
 _global_service_loader: Optional[ServiceLoader] = None
 
 def get_service_loader() -> ServiceLoader:
-    """Get the global service loader."""
+    """Get the global service loader.
     global _global_service_loader
     if _global_service_loader is None:
         _global_service_loader = ServiceLoader()

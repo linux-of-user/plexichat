@@ -44,14 +44,14 @@ if templates_path.exists():
     templates = Jinja2Templates(directory=str(templates_path))
 
 class BackupCreateRequest(BaseModel):
-    """Backup creation request model."""
-    backup_type: str
+    """Backup creation request model.
+        backup_type: str
     name: Optional[str] = None
     include_paths: Optional[List[str]] = None
 
 class RestoreRequest(BaseModel):
     """Restore request model."""
-    backup_id: str
+        backup_id: str
     restore_path: Optional[str] = None
 
 @router.get("/", response_class=HTMLResponse)

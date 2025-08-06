@@ -28,7 +28,7 @@ Coordinates all scalability and modularity enhancements including:
 - Distributed caching
 - Container orchestration
 - Task queue management
-"""
+
 
 logger = logging.getLogger(__name__)
 
@@ -36,8 +36,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class ScalabilityMetrics:
     """Scalability metrics and KPIs."""
-
-    requests_per_second: float = 0.0
+        requests_per_second: float = 0.0
     average_response_time_ms: float = 0.0
     cache_hit_rate_percent: float = 0.0
     active_connections: int = 0
@@ -50,7 +49,7 @@ class ScalabilityMetrics:
 
 
 class ScalabilityCoordinator:
-    """
+    
     Scalability Coordinator.
 
     Integrates all scalability and modularity enhancements:
@@ -65,8 +64,7 @@ class ScalabilityCoordinator:
     9. Application Load Balancer (ALB)
     10. Global Server Load Balancing (GSLB)
     """
-
-    def __init__(self):
+        def __init__(self):
         self.initialized = False
         self.running = False
 
@@ -195,7 +193,7 @@ class ScalabilityCoordinator:
                 await self._scale_up()
                 
             elif (self.metrics.cpu_utilization_percent < 30 and
-                  self.metrics.memory_utilization_percent < 40):
+                self.metrics.memory_utilization_percent < 40):
                 
                 logger.info("Low resource utilization detected, considering scale-down")
                 await self._scale_down()
@@ -222,7 +220,7 @@ class ScalabilityCoordinator:
             logger.error(f"Error scaling down: {e}")
 
     def _register_default_task_handlers(self):
-        """Register default task handlers."""
+        """Register default task handlers.
 
         async def email_notification_handler(payload: Dict[str, Any]):
             """Handle email notification tasks."""
@@ -231,10 +229,10 @@ class ScalabilityCoordinator:
             )
             # Simulate email sending
             await asyncio.sleep(1)
-            return {}
+            return {
                 "status": "sent",
                 "timestamp": datetime.now(timezone.utc).isoformat(),
-            }
+            }}
 
         async def file_processing_handler(payload: Dict[str, Any]):
             """Handle file processing tasks."""
@@ -306,7 +304,7 @@ class ScalabilityCoordinator:
 
     def get_scalability_status(self) -> Dict[str, Any]:
         """Get current scalability system status."""
-        return {}
+        return {
             "initialized": self.initialized,
             "running": self.running,
             "start_time": self.start_time.isoformat() if self.start_time else None,
@@ -324,7 +322,7 @@ class ScalabilityCoordinator:
                 "memory_utilization_percent": self.metrics.memory_utilization_percent,
                 "error_rate_percent": self.metrics.error_rate_percent,
                 "availability_percent": self.metrics.availability_percent,
-            },
+            }},
             "components": {
                 "service_mesh": self.config["enable_service_mesh"],
                 "containerization": self.config["enable_containerization"],

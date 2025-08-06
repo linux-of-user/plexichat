@@ -16,7 +16,7 @@ PlexiChat Error Monitor
 
 Real-time error monitoring system with metrics collection,
 alerting, and health status tracking.
-"""
+
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class ErrorMetrics:
     """Error metrics for monitoring."""
-    total_errors: int = 0
+        total_errors: int = 0
     errors_by_severity: Dict[str, int] = None
     errors_by_category: Dict[str, int] = None
     errors_by_component: Dict[str, int] = None
@@ -43,8 +43,8 @@ class ErrorMetrics:
 
 @dataclass
 class HealthStatus:
-    """System health status."""
-    overall_status: str  # healthy, degraded, critical
+    System health status."""
+        overall_status: str  # healthy, degraded, critical
     error_rate: float
     critical_errors: int
     last_critical_error: Optional[datetime]
@@ -59,10 +59,9 @@ class HealthStatus:
 
 
 class AlertRule:
-    """Defines an alerting rule."""
-
-    def __init__(self, name: str, condition: Callable[[ErrorMetrics], bool],):
-                 message_template: str, cooldown_minutes: int = 30):
+    """Defines an alerting rule.
+        def __init__(self, name: str, condition: Callable[[ErrorMetrics], bool],):
+                message_template: str, cooldown_minutes: int = 30):
         self.name = name
         self.condition = condition
         self.message_template = message_template
@@ -80,16 +79,15 @@ class AlertRule:
         return datetime.now() - self.last_triggered > timedelta(minutes=self.cooldown_minutes)
 
     def trigger(self, metrics: ErrorMetrics) -> str:
-        """Trigger the alert and return the message."""
+        Trigger the alert and return the message."""
 last_triggered = datetime.now()
 datetime = datetime.now()
         return self.message_template.format(metrics=metrics)
 
 
 class ErrorMonitor:
-    """Real-time error monitoring system."""
-
-    def __init__(self):
+    """Real-time error monitoring system.
+        def __init__(self):
         self.metrics = ErrorMetrics()
         self.error_history: deque = deque(maxlen=10000)
         self.component_health: Dict[str, HealthStatus] = {}
@@ -158,7 +156,7 @@ class ErrorMonitor:
         ]
 
     async def record_error(self, error_info: Dict[str, Any]):
-        """Record an error for monitoring."""
+        """Record an error for monitoring.
         timestamp = error_info.get('timestamp', datetime.now())
         severity = error_info.get('severity', ErrorSeverity.MEDIUM)
         category = error_info.get('category', ErrorCategory.UNKNOWN)
@@ -224,7 +222,7 @@ datetime = datetime.now()
             self.metrics.average_resolution_time = total_resolution_time / len(resolved_errors)
 
     async def _check_alerts(self):
-        """Check alert rules and trigger alerts if needed."""
+        Check alert rules and trigger alerts if needed."""
         for rule in self.alert_rules:
             if rule.should_trigger(self.metrics):
                 message = rule.trigger(self.metrics)
@@ -326,7 +324,7 @@ datetime = datetime.now()
         )
 
     def register_alert_callback(self, callback: Callable):
-        """Register a callback for alert notifications."""
+        """Register a callback for alert notifications.
         self.alert_callbacks.append(callback)
 
     def add_alert_rule(self, rule: AlertRule):
@@ -334,10 +332,10 @@ datetime = datetime.now()
         self.alert_rules.append(rule)
 
     def get_statistics(self) -> Dict[str, Any]:
-        """Get comprehensive monitoring statistics."""
-        return {}
+        Get comprehensive monitoring statistics."""
+        return {
             'metrics': asdict(self.metrics),
-            'health_status': self.component_health.get('overall', {}).to_dict() if 'overall' in self.component_health else {},
+            'health_status': self.component_health.get('overall', {}}).to_dict() if 'overall' in self.component_health else {},
             'recent_errors': list(self.error_history)[-10:],
             'alert_rules_status': [
                 {

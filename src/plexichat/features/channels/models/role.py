@@ -21,7 +21,7 @@ import time
 PlexiChat Role Model
 
 Discord-like role model with comprehensive permission system.
-"""
+
 
 # Initialize snowflake generator for roles
 role_snowflake = SnowflakeGenerator(datacenter_id=1, worker_id=3)
@@ -29,8 +29,7 @@ role_snowflake = SnowflakeGenerator(datacenter_id=1, worker_id=3)
 
 class Permissions(IntFlag):
     """Permission flags for roles and channels."""
-
-    # General permissions
+        # General permissions
     CREATE_INSTANT_INVITE = 1 << 0
     KICK_MEMBERS = 1 << 1
     BAN_MEMBERS = 1 << 2
@@ -75,7 +74,7 @@ class Permissions(IntFlag):
 
 
 class Role(SQLModel, table=True):
-    """
+    
     Role model with Discord-like permission system.
 
     Represents a role within a server with specific permissions and appearance.
@@ -175,16 +174,15 @@ class Role(SQLModel, table=True):
     # permission_overwrites: List["PermissionOverwrite"] = Relationship(back_populates="role")
 
     class Config:
-        """SQLModel configuration."""
-
-        arbitrary_types_allowed = True
+    """SQLModel configuration."""
+            arbitrary_types_allowed = True
         json_encoders = {datetime: lambda v: v.isoformat() if v else None}
 
     def __repr__(self) -> str:
         return f"<Role(role_id='{self.role_id}', name='{self.name}', position={self.position})>"
 
     def has_permission(self, permission: Permissions) -> bool:
-        """Check if role has a specific permission."""
+        """Check if role has a specific permission.
         if self.permissions & Permissions.ADMINISTRATOR:
             return True
         return bool(self.permissions & permission)
@@ -194,7 +192,7 @@ class Role(SQLModel, table=True):
         self.permissions |= permission
 
     def remove_permission(self, permission: Permissions) -> None:
-        """Remove a permission from this role."""
+        Remove a permission from this role."""
         self.permissions &= ~permission
 
     def get_color_hex(self) -> str:
@@ -212,12 +210,12 @@ class Role(SQLModel, table=True):
         return self.name == "@everyone"
 
     def is_higher_than(self, other_role: "Role") -> bool:
-        """Check if this role is higher in hierarchy than another role."""
+        """Check if this role is higher in hierarchy than another role.
         return self.position > other_role.position
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert role to dictionary."""
-        return {}
+        return {
             "role_id": self.role_id,
             "server_id": self.server_id,
             "name": self.name,
@@ -232,7 +230,7 @@ class Role(SQLModel, table=True):
             "premium_subscriber": self.premium_subscriber,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
-        }
+        }}
 
 
 # Database indexes for performance

@@ -8,7 +8,7 @@ PlexiChat GUI Plugin Marketplace
 
 Advanced Tkinter interface for plugin management, marketplace, and installation.
 Provides complete plugin lifecycle management with modern UI design.
-"""
+
 
 import tkinter as tk
 from tkinter import ttk, messagebox, scrolledtext
@@ -24,8 +24,7 @@ logger = logging.getLogger(__name__)
 
 class PluginMarketplace(tk.Frame):
     """Advanced plugin marketplace interface for PlexiChat GUI."""
-    
-    def __init__(self, parent, app_instance):
+        def __init__(self, parent, app_instance):
         super().__init__(parent)
         self.app = app_instance
         self.configure(bg='#2c3e50')
@@ -60,7 +59,7 @@ class PluginMarketplace(tk.Frame):
             title_frame.pack(fill='x', pady=(0, 20))
             
             title_label = tk.Label(title_frame, text="[PLUGIN] Plugin Marketplace", 
-                                 font=("Arial", 24, "bold"), bg='#2c3e50', fg='#ecf0f1')
+                                font=("Arial", 24, "bold"), bg='#2c3e50', fg='#ecf0f1')
             title_label.pack(side='left')
             
             subtitle_label = tk.Label(title_frame, text="Discover, install, and manage PlexiChat plugins", 
@@ -69,8 +68,8 @@ class PluginMarketplace(tk.Frame):
             
             # Refresh button
             refresh_btn = tk.Button(title_frame, text="[REFRESH] Refresh", font=("Arial", 10),
-                                  bg='#3498db', fg='white', relief='flat', bd=0,
-                                  command=self.refresh_data, cursor='hand2')
+                                bg='#3498db', fg='white', relief='flat', bd=0,
+                                command=self.refresh_data, cursor='hand2')
             refresh_btn.pack(side='right', padx=(0, 10), ipady=5, ipadx=10)
             
             # Notebook for tabs
@@ -78,7 +77,7 @@ class PluginMarketplace(tk.Frame):
             style.theme_use('clam')
             style.configure('TNotebook', background='#34495e', borderwidth=0)
             style.configure('TNotebook.Tab', background='#34495e', foreground='#ecf0f1', 
-                          padding=[20, 10], font=('Arial', 11))
+                        padding=[20, 10], font=('Arial', 11))
             style.map('TNotebook.Tab', background=[('selected', '#3498db')])
             
             self.notebook = ttk.Notebook(main_frame)
@@ -110,7 +109,7 @@ class PluginMarketplace(tk.Frame):
             self.installed_content = tk.Frame(canvas, bg='#34495e')
             
             self.installed_content.bind('<Configure>', 
-                                      lambda e: canvas.configure(scrollregion=canvas.bbox('all')))
+                                    lambda e: canvas.configure(scrollregion=canvas.bbox('all')))
             
             canvas.create_window((0, 0), window=self.installed_content, anchor='nw')
             canvas.configure(yscrollcommand=scrollbar.set)
@@ -141,7 +140,7 @@ class PluginMarketplace(tk.Frame):
             
             self.repo_var = tk.StringVar(value="official")
             self.repo_combo = ttk.Combobox(repo_frame, textvariable=self.repo_var, 
-                                         state='readonly', font=("Arial", 10))
+                                        state='readonly', font=("Arial", 10))
             self.repo_combo.pack(side='left', padx=(10, 0))
             self.repo_combo.bind('<<ComboboxSelected>>', self.on_repo_changed)
             
@@ -151,7 +150,7 @@ class PluginMarketplace(tk.Frame):
             self.available_content = tk.Frame(canvas, bg='#34495e')
             
             self.available_content.bind('<Configure>', 
-                                      lambda e: canvas.configure(scrollregion=canvas.bbox('all')))
+                                    lambda e: canvas.configure(scrollregion=canvas.bbox('all')))
             
             canvas.create_window((0, 0), window=self.available_content, anchor='nw')
             canvas.configure(yscrollcommand=scrollbar.set)
@@ -182,8 +181,8 @@ class PluginMarketplace(tk.Frame):
             
             # Repository listbox
             self.repo_listbox = tk.Listbox(list_frame, bg='#2c3e50', fg='#ecf0f1', 
-                                         font=("Arial", 11), selectbackground='#3498db',
-                                         relief='flat', bd=5)
+                                        font=("Arial", 11), selectbackground='#3498db',
+                                        relief='flat', bd=5)
             self.repo_listbox.pack(fill='both', expand=True, pady=(0, 20))
             
             # Add repository section
@@ -193,22 +192,22 @@ class PluginMarketplace(tk.Frame):
             
             # Repository name
             tk.Label(add_frame, text="Name:", bg='#34495e', fg='#ecf0f1').grid(row=0, column=0, 
-                                                                              sticky='w', padx=10, pady=5)
+                                                                            sticky='w', padx=10, pady=5)
             self.repo_name_entry = tk.Entry(add_frame, bg='#2c3e50', fg='#ecf0f1', 
-                                           font=("Arial", 10), relief='flat', bd=5)
+                                        font=("Arial", 10), relief='flat', bd=5)
             self.repo_name_entry.grid(row=0, column=1, sticky='ew', padx=10, pady=5)
             
             # Repository URL
             tk.Label(add_frame, text="URL:", bg='#34495e', fg='#ecf0f1').grid(row=1, column=0, 
-                                                                             sticky='w', padx=10, pady=5)
+                                                                            sticky='w', padx=10, pady=5)
             self.repo_url_entry = tk.Entry(add_frame, bg='#2c3e50', fg='#ecf0f1', 
-                                          font=("Arial", 10), relief='flat', bd=5)
+                                        font=("Arial", 10), relief='flat', bd=5)
             self.repo_url_entry.grid(row=1, column=1, sticky='ew', padx=10, pady=5)
             
             # Add button
             add_btn = tk.Button(add_frame, text="Add Repository", font=("Arial", 10, "bold"),
-                              bg='#27ae60', fg='white', relief='flat', bd=0,
-                              command=self.add_repository, cursor='hand2')
+                            bg='#27ae60', fg='white', relief='flat', bd=0,
+                            command=self.add_repository, cursor='hand2')
             add_btn.grid(row=2, column=0, columnspan=2, pady=10, ipadx=20, ipady=5)
             
             add_frame.columnconfigure(1, weight=1)
@@ -263,8 +262,8 @@ class PluginMarketplace(tk.Frame):
             
             if not self.installed_plugins:
                 no_plugins_label = tk.Label(self.installed_content, 
-                                          text="No plugins installed", 
-                                          font=("Arial", 14), bg='#34495e', fg='#bdc3c7')
+                                        text="No plugins installed", 
+                                        font=("Arial", 14), bg='#34495e', fg='#bdc3c7')
                 no_plugins_label.pack(pady=50)
                 return
             
@@ -292,7 +291,7 @@ class PluginMarketplace(tk.Frame):
             name_label.pack(side='left')
             
             version_label = tk.Label(header_frame, text=f"v{plugin.get('version', '1.0.0')}", 
-                                   font=("Arial", 10), bg='#95a5a6', fg='white')
+                                font=("Arial", 10), bg='#95a5a6', fg='white')
             version_label.pack(side='right', padx=(10, 0))
             
             # Plugin description
@@ -312,7 +311,7 @@ class PluginMarketplace(tk.Frame):
             
             # Author
             author_label = tk.Label(meta_frame, text=f"by {plugin.get('author', 'Unknown')}", 
-                                  font=("Arial", 9), bg='#2c3e50', fg='#95a5a6')
+                                font=("Arial", 9), bg='#2c3e50', fg='#95a5a6')
             author_label.pack(side='left')
             
             # Status
@@ -320,7 +319,7 @@ class PluginMarketplace(tk.Frame):
                 status_text = "Enabled" if plugin.get('enabled', True) else "Disabled"
                 status_color = '#27ae60' if plugin.get('enabled', True) else '#e74c3c'
                 status_label = tk.Label(meta_frame, text=status_text, 
-                                      font=("Arial", 9), bg=status_color, fg='white')
+                                    font=("Arial", 9), bg=status_color, fg='white')
                 status_label.pack(side='right')
             
             # Action buttons
@@ -331,14 +330,14 @@ class PluginMarketplace(tk.Frame):
                 # Enable/Disable button
                 if plugin.get('enabled', True):
                     enable_btn = tk.Button(action_frame, text="Disable", 
-                                         font=("Arial", 9), bg='#e74c3c', fg='white',
-                                         relief='flat', bd=0, cursor='hand2',
-                                         command=lambda p=plugin: self.disable_plugin(p['name']))
+                                        font=("Arial", 9), bg='#e74c3c', fg='white',
+                                        relief='flat', bd=0, cursor='hand2',
+                                        command=lambda p=plugin: self.disable_plugin(p['name']))
                 else:
                     enable_btn = tk.Button(action_frame, text="Enable", 
-                                         font=("Arial", 9), bg='#27ae60', fg='white',
-                                         relief='flat', bd=0, cursor='hand2',
-                                         command=lambda p=plugin: self.enable_plugin(p['name']))
+                                        font=("Arial", 9), bg='#27ae60', fg='white',
+                                        relief='flat', bd=0, cursor='hand2',
+                                        command=lambda p=plugin: self.enable_plugin(p['name']))
                 enable_btn.pack(side='left', padx=(0, 10), ipady=3, ipadx=10)
                 
                 # Uninstall button
@@ -350,9 +349,9 @@ class PluginMarketplace(tk.Frame):
             else:
                 # Install button
                 install_btn = tk.Button(action_frame, text="Install", 
-                                      font=("Arial", 9), bg='#3498db', fg='white',
-                                      relief='flat', bd=0, cursor='hand2',
-                                      command=lambda p=plugin: self.install_plugin(p['name'], p.get('repository', 'official')))
+                                    font=("Arial", 9), bg='#3498db', fg='white',
+                                    relief='flat', bd=0, cursor='hand2',
+                                    command=lambda p=plugin: self.install_plugin(p['name'], p.get('repository', 'official')))
                 install_btn.pack(side='left', ipady=3, ipadx=15)
             
         except Exception as e:
@@ -389,10 +388,10 @@ class PluginMarketplace(tk.Frame):
                     return info
             
             # Fallback to basic info
-            return {}
+            return {
                 "name": plugin_dir.name,
                 "version": "unknown",
-                "description": f"Plugin: {plugin_dir.name}",
+                "description": f"Plugin: {plugin_dir.name}}",
                 "author": "Unknown",
                 "type": "utility",
                 "installed": True,
@@ -522,8 +521,8 @@ class PluginMarketplace(tk.Frame):
             
             if not self.available_plugins:
                 no_plugins_label = tk.Label(self.available_content, 
-                                          text="No plugins available in this repository", 
-                                          font=("Arial", 14), bg='#34495e', fg='#bdc3c7')
+                                        text="No plugins available in this repository", 
+                                        font=("Arial", 14), bg='#34495e', fg='#bdc3c7')
                 no_plugins_label.pack(pady=50)
                 return
             

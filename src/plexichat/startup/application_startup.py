@@ -40,8 +40,7 @@ except ImportError as e:
 
 class ApplicationStartup:
     """Manages application startup process."""
-    
-    def __init__(self):
+        def __init__(self):
         self.logger = None
         self.config = None
         self.service_loader = None
@@ -206,7 +205,7 @@ class ApplicationStartup:
             if success:
                 self.startup_stats["services_loaded"] = len(self.service_loader.services)
                 self.logger.log_startup("ServiceLoading", "SUCCESS", 
-                                       f"Loaded {self.startup_stats['services_loaded']} services")
+                                    f"Loaded {self.startup_stats['services_loaded']} services")
                 self.startup_stats["phases_completed"] += 1
                 return True
             else:
@@ -229,11 +228,11 @@ class ApplicationStartup:
             if success:
                 # Count running services
                 running_count = sum(1 for service in self.service_loader.services.values() 
-                                  if service.state.value == "running")
+                                if service.state.value == "running")
                 self.startup_stats["services_started"] = running_count
                 
                 self.logger.log_startup("ServiceStartup", "SUCCESS", 
-                                       f"Started {running_count} services")
+                                    f"Started {running_count} services")
                 self.startup_stats["phases_completed"] += 1
                 return True
             else:
@@ -269,7 +268,7 @@ class ApplicationStartup:
                 try:
                     stats = protection_service.get_comprehensive_stats()
                     self.logger.info("Protection system operational", LogCategory.STARTUP, 
-                                   {"load_level": stats["system_metrics"]["load_level"]})
+                                {"load_level": stats["system_metrics"]["load_level"]})
                 except Exception as e:
                     self.logger.warning(f"Protection system validation failed: {e}", LogCategory.STARTUP)
             
@@ -356,4 +355,6 @@ async def main():
     return 0
 
 if __name__ == "__main__":
-    sys.exit(asyncio.run(main()))
+    print("[X] This module cannot be run standalone!")
+    print("Use 'python run.py' to start PlexiChat.")
+    sys.exit(1)

@@ -12,7 +12,7 @@ Comprehensive validation functions with advanced security features:
 - Real-time threat intelligence integration
 - Advanced pattern matching and anomaly detection
 - Compliance validation (GDPR, HIPAA, SOX, etc.)
-"""
+
 
 import hashlib
 import ipaddress
@@ -71,14 +71,13 @@ SUSPICIOUS_PATTERNS = [
 
 class EnhancedValidator:
     """Enhanced validator with comprehensive security and validation features."""
-
-    def __init__(self):
+        def __init__(self):
         self.threat_patterns = [re.compile(pattern, re.IGNORECASE) for pattern in SUSPICIOUS_PATTERNS]
         self.validation_cache = {}
         self.threat_intelligence = {}
 
     def validate_required(self, value: Any, field_name: str, context: Optional[Dict[str, Any]] = None) -> None:
-        """Enhanced required field validation with context awareness."""
+        Enhanced required field validation with context awareness."""
         if value is None:
             raise ValidationError(f"{field_name} is required", field=field_name, details=context)
 
@@ -89,7 +88,7 @@ class EnhancedValidator:
             raise ValidationError(f"{field_name} cannot be empty", field=field_name, details=context)
 
     def validate_string_length(self, value: str, field_name: str, min_length: int = 0,
-                              max_length: Optional[int] = None, context: Optional[Dict[str, Any]] = None) -> None:
+                            max_length: Optional[int] = None, context: Optional[Dict[str, Any]] = None) -> None:
         """Enhanced string length validation with security checks."""
         if not isinstance(value, str):
             raise ValidationError(f"{field_name} must be a string", field=field_name, value=type(value).__name__, details=context)
@@ -116,7 +115,7 @@ class EnhancedValidator:
             )
 
     def validate_email(self, email: str, field_name: str = "email",
-                      check_disposable: bool = True, context: Optional[Dict[str, Any]] = None) -> None:
+                    check_disposable: bool = True, context: Optional[Dict[str, Any]] = None) -> None:
         """Enhanced email validation with disposable email detection and security checks."""
         if not isinstance(email, str):
             raise ValidationError(f"{field_name} must be a string", field=field_name, value=type(email).__name__)
@@ -145,7 +144,7 @@ class EnhancedValidator:
             raise ValidationError(f"Disposable email addresses are not allowed", field=field_name, value=domain)
 
     def validate_password(self, password: str, field_name: str = "password",
-                         username: Optional[str] = None, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+                        username: Optional[str] = None, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """Enhanced password validation with comprehensive security analysis."""
         if not isinstance(password, str):
             raise ValidationError(f"{field_name} must be a string", field=field_name, value=type(password).__name__)
@@ -245,7 +244,7 @@ class EnhancedValidator:
                 )
 
     def _is_suspicious_domain(self, domain: str) -> bool:
-        """Check if domain is suspicious based on threat intelligence."""
+        """Check if domain is suspicious based on threat intelligence.
         # This would integrate with real threat intelligence in production
         suspicious_domains = {
             'tempmail.com', '10minutemail.com', 'guerrillamail.com',
@@ -263,7 +262,7 @@ class EnhancedValidator:
         return domain in disposable_domains
 
     def _is_common_password(self, password: str) -> bool:
-        """Check if password is in common password list."""
+        Check if password is in common password list."""
         # This would check against a real common password database in production
         common_passwords = {
             'password', '123456', 'password123', 'admin', 'qwerty',
@@ -272,7 +271,7 @@ class EnhancedValidator:
         return password.lower() in common_passwords
 
     def _has_repeated_patterns(self, password: str) -> bool:
-        """Check for repeated patterns in password."""
+        """Check for repeated patterns in password.
         # Check for repeated characters
         for i in range(len(password) - 2):
             if password[i] == password[i+1] == password[i+2]:

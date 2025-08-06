@@ -34,14 +34,14 @@ Archive System Plugin
 
 Optional archive module for message and user versioning through shard system.
 Provides server-by-server activation and premium user permissions.
-"""
+
 
 logger = logging.getLogger(__name__)
 
 
 class ArchiveType(Enum):
     """Types of data that can be archived."""
-    MESSAGE_VERSION = "message_version"
+        MESSAGE_VERSION = "message_version"
     USER_VERSION = "user_version"
     CHANNEL_VERSION = "channel_version"
     SERVER_CONFIG_VERSION = "server_config_version"
@@ -58,8 +58,8 @@ class ArchiveAccessLevel(Enum):
 
 @dataclass
 class ArchiveEntry:
-    """Archive entry with versioning information."""
-    archive_id: str
+    """Archive entry with versioning information.
+        archive_id: str
     original_id: str  # ID of the original object
     archive_type: ArchiveType
     version_number: int
@@ -76,7 +76,7 @@ class ArchiveEntry:
 @dataclass
 class ServerArchiveConfig:
     """Server-specific archive configuration."""
-    server_id: str
+        server_id: str
     archive_enabled: bool
     enabled_types: Set[ArchiveType] = field(default_factory=set)
     retention_days: int = 365
@@ -100,8 +100,7 @@ class ArchiveSystemPlugin:
     - Configurable retention policies
     - Access control and permissions
     """
-
-    def __init__(self, data_dir: Path):
+        def __init__(self, data_dir: Path):
         from pathlib import Path
 self.data_dir = Path(data_dir)
         self.plugin_dir = self.data_dir / "plugins" / "archive_system"
@@ -157,7 +156,7 @@ self.data_dir = Path(data_dir)
         logger.info("Archive System Plugin initialized")
 
     async def _initialize_archive_database(self):
-        """Initialize the archive database."""
+        """Initialize the archive database.
         async with aiosqlite.connect(self.archive_db_path) as db:
             # Server configurations table
             await db.execute(""")
@@ -178,7 +177,7 @@ self.data_dir = Path(data_dir)
             """)
 
             # Archive entries table
-            await db.execute(""")
+            await db.execute()
                 CREATE TABLE IF NOT EXISTS archive_entries ()
                     archive_id TEXT PRIMARY KEY,
                     original_id TEXT NOT NULL,
@@ -208,7 +207,7 @@ self.data_dir = Path(data_dir)
                     ip_address TEXT,
                     user_agent TEXT
                 )
-            """)
+            )
 
             await db.commit()
 
@@ -219,12 +218,12 @@ self.data_dir = Path(data_dir)
 
             # Save to database
             async with aiosqlite.connect(self.archive_db_path) as db:
-                await db.execute(""")
+                await db.execute()
                     INSERT OR REPLACE INTO server_archive_configs
                     (server_id, archive_enabled, enabled_types, retention_days, )
-                     max_versions_per_item, premium_only_access, auto_archive_edits,
-                     auto_archive_deletions, compression_enabled, encryption_level,
-                     created_at, updated_at)
+                    max_versions_per_item, premium_only_access, auto_archive_edits,
+                    auto_archive_deletions, compression_enabled, encryption_level,
+                    created_at, updated_at)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """, ()
                     server_id,
@@ -253,9 +252,9 @@ self.data_dir = Path(data_dir)
             return False
 
     async def create_archive_version(self, original_id: str, archive_type: ArchiveType,)
-                                   server_id: str, created_by: str, data: Dict[str, Any],
-                                   change_description: str = "", access_level: ArchiveAccessLevel = ArchiveAccessLevel.PUBLIC,
-                                   tags: Optional[Set[str]] = None) -> Optional[str]:
+                                server_id: str, created_by: str, data: Dict[str, Any],
+                                change_description: str = "", access_level: ArchiveAccessLevel = ArchiveAccessLevel.PUBLIC,
+                                tags: Optional[Set[str]] = None) -> Optional[str]:
         """
         Create a new archive version of an object.
 
@@ -377,16 +376,16 @@ self.data_dir = Path(data_dir)
             return None
 
     async def get_archive_versions(self, original_id: str, archive_type: ArchiveType,)
-                                 user_id: str, is_premium: bool = False, is_admin: bool = False) -> List[ArchiveEntry]:
-        """Get all archive versions for an object with access control."""
+                                user_id: str, is_premium: bool = False, is_admin: bool = False) -> List[ArchiveEntry]:
+        """Get all archive versions for an object with access control.
         try:
             versions = []
 
             async with aiosqlite.connect(self.archive_db_path) as db:
                 async with db.execute(""")
                     SELECT archive_id, original_id, archive_type, version_number, server_id,
-                           created_at, created_by, change_description, access_level,
-                           shard_ids, metadata, tags
+                        created_at, created_by, change_description, access_level,
+                        shard_ids, metadata, tags
                     FROM archive_entries
                     WHERE original_id = ? AND archive_type = ?
                     ORDER BY version_number DESC
@@ -478,7 +477,7 @@ self.data_dir = Path(data_dir)
             return None
 
     async def _get_next_version_number(self, original_id: str, archive_type: ArchiveType) -> int:
-        """Get the next version number for an object."""
+        """Get the next version number for an object.
         try:
             async with aiosqlite.connect(self.archive_db_path) as db:
                 async with db.execute(""")
@@ -492,13 +491,13 @@ self.data_dir = Path(data_dir)
             return 1
 
     async def _store_archive_entry(self, entry: ArchiveEntry):
-        """Store archive entry in database."""
+        """Store archive entry in database.
         async with aiosqlite.connect(self.archive_db_path) as db:
             await db.execute(""")
                 INSERT INTO archive_entries
                 (archive_id, original_id, archive_type, version_number, server_id,)
-                 created_at, created_by, change_description, access_level,
-                 shard_ids, metadata, tags)
+                created_at, created_by, change_description, access_level,
+                shard_ids, metadata, tags)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, ()
                 entry.archive_id,
@@ -517,8 +516,8 @@ self.data_dir = Path(data_dir)
             await db.commit()
 
     async def _check_archive_access(self, access_level: ArchiveAccessLevel, user_id: str,)
-                                  created_by: str, is_premium: bool, is_admin: bool) -> bool:
-        """Check if user has access to archive."""
+                                created_by: str, is_premium: bool, is_admin: bool) -> bool:
+        Check if user has access to archive."""
         if access_level == ArchiveAccessLevel.PUBLIC:
             return True
         elif access_level == ArchiveAccessLevel.OWNER_ONLY:
@@ -531,13 +530,13 @@ self.data_dir = Path(data_dir)
         return False
 
     async def _get_archive_entry(self, archive_id: str) -> Optional[ArchiveEntry]:
-        """Get archive entry by ID."""
+        """Get archive entry by ID.
         try:
             async with aiosqlite.connect(self.archive_db_path) as db:
                 async with db.execute(""")
                     SELECT archive_id, original_id, archive_type, version_number, server_id,
-                           created_at, created_by, change_description, access_level,
-                           shard_ids, metadata, tags
+                        created_at, created_by, change_description, access_level,
+                        shard_ids, metadata, tags
                     FROM archive_entries WHERE archive_id = ?
                 """, (archive_id,)) as cursor:
                     row = await cursor.fetchone()
@@ -563,7 +562,7 @@ self.data_dir = Path(data_dir)
             return None
 
     async def _log_archive_access(self, archive_id: str, user_id: str, access_type: str, granted: bool):
-        """Log archive access for auditing."""
+        """Log archive access for auditing.
         try:
             async with aiosqlite.connect(self.archive_db_path) as db:
                 await db.execute(""")
@@ -579,7 +578,7 @@ self.data_dir = Path(data_dir)
             logger.error(f"Failed to log archive access: {e}")
 
     async def _cleanup_old_versions(self, original_id: str, archive_type: ArchiveType, max_versions: int):
-        """Clean up old versions beyond the maximum limit."""
+        """Clean up old versions beyond the maximum limit.
         try:
             async with aiosqlite.connect(self.archive_db_path) as db:
                 # Get versions to delete
@@ -623,13 +622,13 @@ self.data_dir = Path(data_dir)
             logger.error(f"Failed to delete archive version {archive_id}: {e}")
 
     async def _load_server_configs(self):
-        """Load server configurations from database."""
+        """Load server configurations from database.
         try:
             async with aiosqlite.connect(self.archive_db_path) as db:
                 async with db.execute(""")
                     SELECT server_id, archive_enabled, enabled_types, retention_days,
-                           max_versions_per_item, premium_only_access, auto_archive_edits,
-                           auto_archive_deletions, compression_enabled, encryption_level
+                        max_versions_per_item, premium_only_access, auto_archive_edits,
+                        auto_archive_deletions, compression_enabled, encryption_level
                     FROM server_archive_configs
                 """) as cursor:
                     async for row in cursor:
@@ -670,7 +669,7 @@ self.data_dir = Path(data_dir)
                 # Load by type
                 async with db.execute(""")
                     SELECT archive_type, COUNT(*) FROM archive_entries GROUP BY archive_type
-                """) as cursor:
+                ) as cursor:
                     async for row in cursor:
                         self.stats['archives_by_type'][row[0]] = row[1]
 
@@ -700,7 +699,7 @@ self.data_dir = Path(data_dir)
                 logger.error(f"Background cleanup task error: {e}")
 
     async def _cleanup_expired_archives(self):
-        """Clean up expired archives based on retention policies."""
+        """Clean up expired archives based on retention policies.
         try:
             for server_id, config in self.server_configs.items():
                 if not config.archive_enabled:
@@ -743,7 +742,7 @@ self.data_dir = Path(data_dir)
 
     def get_plugin_info(self) -> Dict[str, Any]:
         """Get plugin information."""
-        return {}
+        return {
             "name": "Archive System",
             "version": "1.0.0",
             "description": "Message and user versioning through shard system",
@@ -759,4 +758,4 @@ self.data_dir = Path(data_dir)
             ],
             "statistics": self.stats,
             "servers_configured": len(self.server_configs)
-        }
+        }}

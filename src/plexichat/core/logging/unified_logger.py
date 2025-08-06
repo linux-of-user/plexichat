@@ -4,7 +4,7 @@ Unified Logging System for PlexiChat
 
 ASCII-only logging system with comprehensive coverage.
 No unicode characters, proper formatting, and structured logging.
-"""
+
 
 import logging
 import logging.handlers
@@ -20,7 +20,7 @@ from enum import Enum
 
 class LogLevel(Enum):
     """Log levels for the system."""
-    DEBUG = "DEBUG"
+        DEBUG = "DEBUG"
     INFO = "INFO"
     WARNING = "WARNING"
     ERROR = "ERROR"
@@ -40,9 +40,8 @@ class LogCategory(Enum):
     STARTUP = "STARTUP"
 
 class ASCIIFormatter(logging.Formatter):
-    """Custom formatter that ensures ASCII-only output."""
-    
-    def __init__(self, include_colors=False):
+    """Custom formatter that ensures ASCII-only output.
+        def __init__(self, include_colors=False):
         self.include_colors = include_colors
         super().__init__()
     
@@ -80,8 +79,7 @@ class ASCIIFormatter(logging.Formatter):
 
 class UnifiedLogger:
     """Unified logging system for PlexiChat."""
-    
-    def __init__(self, name: str = "plexichat"):
+        def __init__(self, name: str = "plexichat"):
         self.name = name
         self.logger = logging.getLogger(name)
         self.logger.setLevel(logging.DEBUG)
@@ -154,7 +152,7 @@ class UnifiedLogger:
         self.logger.addHandler(security_handler)
     
     def _log(self, level: LogLevel, message: str, category: LogCategory = LogCategory.SYSTEM, 
-             extra_data: Optional[Dict[str, Any]] = None, exc_info: bool = False):
+            extra_data: Optional[Dict[str, Any]] = None, exc_info: bool = False):
         """Internal logging method."""
         try:
             # Update statistics
@@ -184,32 +182,32 @@ class UnifiedLogger:
             print(f"Original message: {message}", file=sys.stderr)
     
     def debug(self, message: str, category: LogCategory = LogCategory.SYSTEM, 
-              extra_data: Optional[Dict[str, Any]] = None):
-        """Log debug message."""
+            extra_data: Optional[Dict[str, Any]] = None):
+        """Log debug message.
         self._log(LogLevel.DEBUG, message, category, extra_data)
     
     def info(self, message: str, category: LogCategory = LogCategory.SYSTEM, 
-             extra_data: Optional[Dict[str, Any]] = None):
+            extra_data: Optional[Dict[str, Any]] = None):
         """Log info message."""
         self._log(LogLevel.INFO, message, category, extra_data)
     
     def warning(self, message: str, category: LogCategory = LogCategory.SYSTEM, 
                 extra_data: Optional[Dict[str, Any]] = None):
-        """Log warning message."""
+        Log warning message."""
         self._log(LogLevel.WARNING, message, category, extra_data)
     
     def error(self, message: str, category: LogCategory = LogCategory.SYSTEM, 
-              extra_data: Optional[Dict[str, Any]] = None, exc_info: bool = True):
-        """Log error message."""
+            extra_data: Optional[Dict[str, Any]] = None, exc_info: bool = True):
+        """Log error message.
         self._log(LogLevel.ERROR, message, category, extra_data, exc_info)
     
     def critical(self, message: str, category: LogCategory = LogCategory.SYSTEM, 
-                 extra_data: Optional[Dict[str, Any]] = None, exc_info: bool = True):
+                extra_data: Optional[Dict[str, Any]] = None, exc_info: bool = True):
         """Log critical message."""
         self._log(LogLevel.CRITICAL, message, category, extra_data, exc_info)
     
     def log_startup(self, component: str, status: str, details: Optional[str] = None):
-        """Log startup information."""
+        Log startup information."""
         message = f"STARTUP: {component} - {status}"
         if details:
             message += f" - {details}"
@@ -240,7 +238,7 @@ class UnifiedLogger:
         })
     
     def log_api_request(self, method: str, path: str, status_code: int, 
-                       response_time: float, client_ip: str):
+                    response_time: float, client_ip: str):
         """Log API request."""
         message = f"API: {method} {path} - {status_code} - {response_time:.3f}ms - {client_ip}"
         level = LogLevel.INFO if status_code < 400 else LogLevel.WARNING
@@ -262,7 +260,7 @@ class UnifiedLogger:
         })
     
     def get_stats(self) -> Dict[str, Any]:
-        """Get logging statistics."""
+        """Get logging statistics.
         return self.stats.copy()
     
     def flush(self):

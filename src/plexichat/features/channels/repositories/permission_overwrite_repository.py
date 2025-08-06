@@ -17,7 +17,7 @@ from ..models.role import Permissions
 PlexiChat Permission Overwrite Repository
 
 Data access layer for channel-specific permission overrides.
-"""
+
 
 
 class PermissionOverwriteRepository():
@@ -35,7 +35,7 @@ class PermissionOverwriteRepository():
         super().__init__(dao)
 
     async def find_by_channel(self, channel_id: str) -> List[PermissionOverwrite]:
-        """Find all permission overwrites for a channel."""
+        Find all permission overwrites for a channel."""
         filters = [FilterCriteria(field="channel_id", operator="eq", value=channel_id)]
         result = await self.find_all(filters=filters)
         return result.data
@@ -103,7 +103,7 @@ class PermissionOverwriteRepository():
     async def get_effective_overwrites()
         self, channel_id: str, user_id: str, role_ids: List[str]
     ) -> List[PermissionOverwrite]:
-        """Get all effective permission overwrites for a user in a channel."""
+        """Get all effective permission overwrites for a user in a channel.
         overwrites = []
 
         # Get role overwrites
@@ -149,7 +149,7 @@ class PermissionOverwriteRepository():
     async def delete_overwrite_by_target()
         self, channel_id: str, target_id: str, target_type: OverwriteType
     ) -> bool:
-        """Delete permission overwrite by target."""
+        """Delete permission overwrite by target.
         existing = await self.find_by_target(channel_id, target_id, target_type)
         if existing:
             return await self.delete(existing.overwrite_id)
@@ -166,7 +166,7 @@ class PermissionOverwriteRepository():
             return False
 
     async def clear_role_overwrites(self, role_id: str) -> bool:
-        """Clear all permission overwrites for a role across all channels."""
+        Clear all permission overwrites for a role across all channels."""
         overwrites = await self.find_role_overwrites_by_role(role_id)
         try:
             for overwrite in overwrites:
@@ -176,7 +176,7 @@ class PermissionOverwriteRepository():
             return False
 
     async def clear_user_overwrites(self, user_id: str) -> bool:
-        """Clear all permission overwrites for a user across all channels."""
+        """Clear all permission overwrites for a user across all channels.
         overwrites = await self.find_user_overwrites(user_id)
         try:
             for overwrite in overwrites:
@@ -235,7 +235,7 @@ class PermissionOverwriteRepository():
     async def calculate_permissions_for_user()
         self, channel_id: str, user_id: str, role_ids: List[str], base_permissions: int
     ) -> int:
-        """Calculate final permissions for a user in a channel."""
+        """Calculate final permissions for a user in a channel.
         # Start with base permissions from roles
         permissions = base_permissions
 

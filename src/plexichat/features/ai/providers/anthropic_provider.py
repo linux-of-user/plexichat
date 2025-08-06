@@ -34,7 +34,7 @@ from .base_provider import (
 """
 Anthropic Provider for PlexiChat AI Abstraction Layer
 Enhanced Anthropic Claude integration with advanced features.
-"""
+
 
 ANTHROPIC_AVAILABLE = anthropic is not None
 
@@ -44,8 +44,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class AnthropicConfig(ProviderConfig):
     """Anthropic-specific configuration."""
-
-    api_key: str
+        api_key: str
     base_url: str = "https://api.anthropic.com"
     max_tokens: int = 4096
     temperature: float = 0.7
@@ -66,9 +65,8 @@ class AnthropicConfig(ProviderConfig):
 
 
 class AnthropicProvider(BaseAIProvider):
-    """Enhanced Anthropic provider with comprehensive features."""
-
-    def __init__(self, config: AnthropicConfig):
+    """Enhanced Anthropic provider with comprehensive features.
+        def __init__(self, config: AnthropicConfig):
         super().__init__(config)
         self.config = config
         self.client = None

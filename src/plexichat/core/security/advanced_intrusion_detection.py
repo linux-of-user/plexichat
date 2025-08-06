@@ -9,7 +9,7 @@ Comprehensive security monitoring with:
 - Advanced logging and forensics
 - Threat intelligence integration
 - Security compliance monitoring
-"""
+
 
 import asyncio
 import time
@@ -33,7 +33,7 @@ logger = get_logger(__name__)
 
 class ThreatLevel(Enum):
     """Threat severity levels."""
-    LOW = "low"
+        LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
     CRITICAL = "critical"
@@ -58,7 +58,7 @@ class AttackType(Enum):
 
 class ResponseAction(Enum):
     """Automated response actions."""
-    LOG_ONLY = "log_only"
+        LOG_ONLY = "log_only"
     ALERT = "alert"
     RATE_LIMIT = "rate_limit"
     BLOCK_IP = "block_ip"
@@ -102,8 +102,8 @@ class SecurityEvent:
 
 @dataclass
 class BehavioralProfile:
-    """User behavioral profile for anomaly detection."""
-    user_id: str
+    """User behavioral profile for anomaly detection.
+        user_id: str
     created_at: datetime = field(default_factory=datetime.now)
     
     # Access patterns
@@ -130,8 +130,7 @@ class BehavioralProfile:
 
 class ThreatIntelligence:
     """Threat intelligence system."""
-    
-    def __init__(self):
+        def __init__(self):
         self.malicious_ips: Set[str] = set()
         self.malicious_user_agents: Set[str] = set()
         self.attack_signatures: Dict[str, List[str]] = {}
@@ -141,7 +140,7 @@ class ThreatIntelligence:
         self._load_threat_data()
     
     def _load_threat_data(self):
-        """Load initial threat intelligence data."""
+        Load initial threat intelligence data."""
         # Known malicious IPs (example data)
         self.malicious_ips.update([
             '192.168.1.100',  # Example malicious IP
@@ -189,7 +188,7 @@ class ThreatIntelligence:
         }
     
     def is_malicious_ip(self, ip: str) -> bool:
-        """Check if IP is known to be malicious."""
+        """Check if IP is known to be malicious.
         return ip in self.malicious_ips
     
     def is_malicious_user_agent(self, user_agent: str) -> bool:
@@ -198,7 +197,7 @@ class ThreatIntelligence:
         return any(malicious in user_agent_lower for malicious in self.malicious_user_agents)
     
     def detect_attack_patterns(self, text: str) -> List[Tuple[str, float]]:
-        """Detect attack patterns in text."""
+        Detect attack patterns in text."""
         detected_attacks = []
         
         for attack_type, patterns in self.attack_signatures.items():
@@ -213,8 +212,7 @@ class ThreatIntelligence:
 
 class AdvancedIntrusionDetection:
     """Advanced intrusion detection system."""
-    
-    def __init__(self):
+        def __init__(self):
         self.security_events: deque = deque(maxlen=10000)
         self.behavioral_profiles: Dict[str, BehavioralProfile] = {}
         self.threat_intelligence = ThreatIntelligence()
@@ -341,8 +339,8 @@ class AdvancedIntrusionDetection:
             return None
     
     def _create_security_event(self, threat_level: ThreatLevel, attack_type: AttackType,
-                             source_ip: str, user_id: Optional[str], description: str,
-                             raw_data: Dict[str, Any], confidence_score: float = 0.8) -> SecurityEvent:
+                            source_ip: str, user_id: Optional[str], description: str,
+                            raw_data: Dict[str, Any], confidence_score: float = 0.8) -> SecurityEvent:
         """Create a security event."""
         event_id = f"sec_{int(time.time() * 1000000)}"
         
@@ -384,7 +382,7 @@ class AdvancedIntrusionDetection:
         return event
     
     def _determine_response_actions(self, event: SecurityEvent) -> List[ResponseAction]:
-        """Determine appropriate response actions for a security event."""
+        """Determine appropriate response actions for a security event.
         actions = [ResponseAction.LOG_ONLY]
         
         if event.threat_level in [ThreatLevel.HIGH, ThreatLevel.CRITICAL]:
@@ -435,7 +433,7 @@ class AdvancedIntrusionDetection:
         logger.warning(f"Blocked user {user_id} until {block_until}")
     
     def _is_ip_blocked(self, ip: str) -> bool:
-        """Check if an IP is currently blocked."""
+        """Check if an IP is currently blocked.
         if ip in self.blocked_ips:
             if datetime.now() < self.blocked_ips[ip]:
                 return True
@@ -466,7 +464,7 @@ class AdvancedIntrusionDetection:
         return False
     
     def _update_request_tracking(self, source_ip: str, user_id: Optional[str]):
-        """Update request tracking for rate limiting."""
+        Update request tracking for rate limiting."""
         now = datetime.now()
         
         self.ip_request_counts[source_ip].append(now)
@@ -562,7 +560,7 @@ class AdvancedIntrusionDetection:
         # In a real implementation, this would trigger emergency procedures
     
     def add_response_callback(self, callback: Callable[[SecurityEvent], None]):
-        """Add callback for security events."""
+        """Add callback for security events.
         self.response_callbacks.append(callback)
     
     def get_security_summary(self) -> Dict[str, Any]:
@@ -573,7 +571,7 @@ class AdvancedIntrusionDetection:
         for event in recent_events:
             threat_counts[event.threat_level.value] += 1
         
-        return {}
+        return {
             'total_events_24h': len(recent_events),
             'threat_level_counts': dict(threat_counts),
             'blocked_ips': len(self.blocked_ips),
@@ -581,7 +579,7 @@ class AdvancedIntrusionDetection:
             'behavioral_profiles': len(self.behavioral_profiles),
             'monitoring_active': self.monitoring_active,
             'auto_block_enabled': self.config['auto_block_enabled']
-        }
+        }}
 
 
 # Global intrusion detection system

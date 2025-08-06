@@ -8,11 +8,11 @@ PlexiChat Error Handling Exceptions
 
 Unified exception classes and error codes for the PlexiChat error handling system.
 Consolidates all error types into a single, comprehensive module.
-"""
+
 
 class ErrorSeverity(Enum):
     """Error severity levels."""
-    LOW = "LOW"
+        LOW = "LOW"
     MEDIUM = "MEDIUM"
     HIGH = "HIGH"
     CRITICAL = "CRITICAL"
@@ -34,7 +34,7 @@ class ErrorCategory(Enum):
 
 class ErrorCode:
     """Error code management."""
-    def __init__(self, code: str, message: str, severity: ErrorSeverity = ErrorSeverity.MEDIUM, category: ErrorCategory = ErrorCategory.UNKNOWN):
+        def __init__(self, code: str, message: str, severity: ErrorSeverity = ErrorSeverity.MEDIUM, category: ErrorCategory = ErrorCategory.UNKNOWN):
         self.code = code
         self.message = message
         self.severity = severity
@@ -43,8 +43,8 @@ class ErrorCode:
         return f"{self.code}: {self.message}"
 
 class ErrorDetails:
-    """Detailed error information."""
-    def __init__(self, error_code: ErrorCode, context: Optional[Dict[str, Any]] = None, stack_trace: Optional[str] = None, user_id: Optional[str] = None):
+    """Detailed error information.
+        def __init__(self, error_code: ErrorCode, context: Optional[Dict[str, Any]] = None, stack_trace: Optional[str] = None, user_id: Optional[str] = None):
         self.error_id = str(uuid.uuid4())
         self.error_code = error_code
         self.context = context or {}
@@ -52,7 +52,7 @@ class ErrorDetails:
         self.user_id = user_id
         self.timestamp = datetime.now()
     def to_dict(self) -> Dict[str, Any]:
-        return {}
+        return {
             'error_id': self.error_id,
             'code': self.error_code.code,
             'message': self.error_code.message,
@@ -62,12 +62,12 @@ class ErrorDetails:
             'stack_trace': self.stack_trace,
             'user_id': self.user_id,
             'timestamp': self.timestamp.isoformat()
-        }
+        }}
 
 # Base Exception Classes
 class BaseAPIException(Exception):
     """Base exception for all API-related errors."""
-    def __init__(self, message: str, error_code: Optional[str] = None, details: Optional[Dict[str, Any]] = None, status_code: int = 500):
+        def __init__(self, message: str, error_code: Optional[str] = None, details: Optional[Dict[str, Any]] = None, status_code: int = 500):
         super().__init__(message)
         self.message = message
         self.error_code = error_code or "API_ERROR"
@@ -77,61 +77,61 @@ class BaseAPIException(Exception):
 
 class ValidationError(BaseAPIException):
     """Raised when data validation fails."""
-    def __init__(self, message: str = "Validation failed", field: Optional[str] = None, value: Optional[Any] = None, error_code: str = "VALIDATION_ERROR", status_code: int = 400):
+        def __init__(self, message: str = "Validation failed", field: Optional[str] = None, value: Optional[Any] = None, error_code: str = "VALIDATION_ERROR", status_code: int = 400):
         super().__init__(message, error_code, status_code=status_code)
         self.field = field
         self.value = value
 
 class AuthenticationError(BaseAPIException):
     """Raised when authentication fails."""
-    def __init__(self, message: str = "Authentication failed", error_code: str = "AUTH_FAILED", status_code: int = 401):
+        def __init__(self, message: str = "Authentication failed", error_code: str = "AUTH_FAILED", status_code: int = 401):
         super().__init__(message, error_code, status_code=status_code)
 
 class AuthorizationError(BaseAPIException):
     """Raised when authorization fails."""
-    def __init__(self, message: str = "Authorization failed", required_permission: Optional[str] = None, error_code: str = "AUTHZ_FAILED", status_code: int = 403):
+        def __init__(self, message: str = "Authorization failed", required_permission: Optional[str] = None, error_code: str = "AUTHZ_FAILED", status_code: int = 403):
         super().__init__(message, error_code, status_code=status_code)
         self.required_permission = required_permission
 
 class DatabaseError(BaseAPIException):
     """Raised when database operations fail."""
-    def __init__(self, message: str = "Database operation failed", operation: Optional[str] = None, table: Optional[str] = None, error_code: str = "DB_ERROR", status_code: int = 500):
+        def __init__(self, message: str = "Database operation failed", operation: Optional[str] = None, table: Optional[str] = None, error_code: str = "DB_ERROR", status_code: int = 500):
         super().__init__(message, error_code, status_code=status_code)
         self.operation = operation
         self.table = table
 
 class NetworkError(BaseAPIException):
     """Raised when network operations fail."""
-    def __init__(self, message: str = "Network operation failed", url: Optional[str] = None, timeout: bool = False, error_code: str = "NETWORK_ERROR", status_code: int = 503):
+        def __init__(self, message: str = "Network operation failed", url: Optional[str] = None, timeout: bool = False, error_code: str = "NETWORK_ERROR", status_code: int = 503):
         super().__init__(message, error_code, status_code=status_code)
         self.url = url
         self.timeout = timeout
 
 class ExternalServiceError(BaseAPIException):
     """Raised when external service calls fail."""
-    def __init__(self, message: str = "External service error", service_name: Optional[str] = None, service_status: Optional[int] = None, error_code: str = "EXTERNAL_SERVICE_ERROR", status_code: int = 502):
+        def __init__(self, message: str = "External service error", service_name: Optional[str] = None, service_status: Optional[int] = None, error_code: str = "EXTERNAL_SERVICE_ERROR", status_code: int = 502):
         super().__init__(message, error_code, status_code=status_code)
         self.service_name = service_name
         self.service_status = service_status
 
 class FileError(BaseAPIException):
     """Raised when file operations fail."""
-    def __init__(self, message: str = "File operation failed", file_path: Optional[str] = None, operation: Optional[str] = None, error_code: str = "FILE_ERROR", status_code: int = 500):
+        def __init__(self, message: str = "File operation failed", file_path: Optional[str] = None, operation: Optional[str] = None, error_code: str = "FILE_ERROR", status_code: int = 500):
         super().__init__(message, error_code, status_code=status_code)
         self.file_path = file_path
         self.operation = operation
 
 class RateLimitError(BaseAPIException):
     """Raised when rate limits are exceeded."""
-    def __init__(self, message: str = "Rate limit exceeded", limit: Optional[int] = None, window: Optional[int] = None, error_code: str = "RATE_LIMIT_ERROR", status_code: int = 429):
+        def __init__(self, message: str = "Rate limit exceeded", limit: Optional[int] = None, window: Optional[int] = None, error_code: str = "RATE_LIMIT_ERROR", status_code: int = 429):
         super().__init__(message, error_code, status_code=status_code)
         self.limit = limit
         self.window = window
 
 # Error Code Manager
 class ErrorCodeManager:
-    """Manages error codes and their details."""
-    def __init__(self):
+    """Manages error codes and their details.
+        def __init__(self):
         self.error_codes: Dict[str, ErrorCode] = {}
         self._load_default_error_codes()
     def _load_default_error_codes(self):
@@ -150,13 +150,13 @@ class ErrorCodeManager:
         for code in default_codes:
             self.error_codes[code.code] = code
     def get_error_code(self, code: str) -> Optional[ErrorCode]:
-        """Get error code by code string."""
+        """Get error code by code string.
         return self.error_codes.get(code)
     def register_error_code(self, error_code: ErrorCode):
         """Register a new error code."""
         self.error_codes[error_code.code] = error_code
     def get_all_codes(self) -> List[ErrorCode]:
-        """Get all registered error codes."""
+        Get all registered error codes."""
         return list(self.error_codes.values())
 
 # Global error code manager instance

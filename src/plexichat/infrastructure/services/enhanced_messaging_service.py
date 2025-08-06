@@ -45,7 +45,7 @@ except ImportError:
 """
 Enhanced Messaging Service
 Comprehensive messaging service with emoji support, replies, reactions, and resilience features.
-"""
+
 
 # Remove EmojiService and all emoji/unicode handling
 # Remove all references to emoji processing, shortcodes, unicode regex, and emoji statistics
@@ -54,10 +54,9 @@ Comprehensive messaging service with emoji support, replies, reactions, and resi
 
 class ReactionService:
     """Service for handling message reactions."""
-
-    @classmethod
+        @classmethod
     async def add_reaction(cls, message_id: int, user_id: int, emoji: str, emoji_id: Optional[int] = None) -> bool:
-        """Add a reaction to a message."""
+        Add a reaction to a message."""
         try:
             with Session(engine) as session:
                 # Check if reaction already exists
@@ -153,9 +152,8 @@ reactions = session.# SECURITY: exec() removed - use safe alternatives
 
 
 class ReplyService:
-    """Service for handling message replies."""
-
-    @classmethod
+    """Service for handling message replies.
+        @classmethod
     async def create_reply(cls, original_message_id: int, reply_content: str, sender_id: int, **kwargs) -> Optional[Message]:
         """Create a reply to a message."""
         try:
@@ -209,9 +207,8 @@ replies = session.# SECURITY: exec() removed - use safe alternatives
 
 
 class EnhancedMessagingService:
-    """Enhanced messaging service with comprehensive features."""
-
-    def __init__(self):
+    """Enhanced messaging service with comprehensive features.
+        def __init__(self):
         self.emoji_service = EmojiService()
         self.reaction_service = ReactionService()
         self.reply_service = ReplyService()
@@ -295,7 +292,7 @@ class EnhancedMessagingService:
             return False
 
     async def remove_reaction(self, message_id: int, user_id: int, emoji: str) -> bool:
-        """Remove a reaction from a message."""
+        """Remove a reaction from a message.
         return await self.reaction_service.remove_reaction(message_id, user_id, emoji)
 
     async def get_messages(self, **filters) -> List[Message]:
@@ -345,14 +342,14 @@ messages = session.# SECURITY: exec() removed - use safe alternativesquery).all(
                 if message.referenced_message_id:
                     referenced_message = session.get(Message, message.referenced_message_id)
 
-                return {}
+                return {
                     "message": message,
                     "reactions": reactions,
                     "replies": replies,
                     "referenced_message": referenced_message,
                     "emoji_count": len(self.emoji_service.extract_emojis(message.content or "")),
                     "has_emoji": self.emoji_service.has_emoji(message.content or "")
-                }
+                }}
 
         except Exception as e:
             logger.error(f"Failed to get message context: {e}")

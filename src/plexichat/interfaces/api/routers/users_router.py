@@ -3,7 +3,7 @@ import threading
 PlexiChat Users API Router
 
 User management API endpoints with threading and performance optimization.
-"""
+
 
 import asyncio
 import logging
@@ -84,24 +84,24 @@ performance_logger = get_performance_logger() if get_performance_logger else Non
 # Pydantic models
 class UserCreate(BaseModel):
     """User creation model."""
-    username: str = Field(..., min_length=3, max_length=50, description="Username")
+        username: str = Field(..., min_length=3, max_length=50, description="Username")
     email: EmailStr = Field(..., description="Email address")
     password: str = Field(..., min_length=8, max_length=100, description="Password")
     profile_data: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Profile data")
 
 class UserLogin(BaseModel):
     """User login model."""
-    username: str = Field(..., description="Username or email")
+        username: str = Field(..., description="Username or email")
     password: str = Field(..., description="Password")
 
 class UserUpdate(BaseModel):
     """User update model."""
-    email: Optional[EmailStr] = Field(None, description="Email address")
+        email: Optional[EmailStr] = Field(None, description="Email address")
     profile_data: Optional[Dict[str, Any]] = Field(None, description="Profile data")
 
 class UserResponse(BaseModel):
-    """User response model."""
-    id: int
+    """User response model.
+        id: int
     username: str
     email: str
     created_at: datetime
@@ -111,7 +111,7 @@ class UserResponse(BaseModel):
 
 class TokenResponse(BaseModel):
     """Token response model."""
-    access_token: str
+        access_token: str
     refresh_token: str
     token_type: str
     expires_in: int
@@ -462,7 +462,7 @@ def _check_user_exists_sync(username: str, email: str) -> bool:
         return False
 
 async def _create_user(user: UserCreate, password_hash: str) -> int:
-    """Create user in database."""
+    """Create user in database.
     try:
         if database_manager:
             query = """
@@ -489,17 +489,17 @@ def _get_user_for_login_sync(username: str) -> Optional[Dict[str, Any]]:
     """Get user for login synchronously."""
     try:
         # Placeholder implementation
-        return {}
+        return {
             "id": 1,
             "username": username,
             "password_hash": "hashed_password"
-        }
+        }}
     except Exception as e:
         logger.error(f"Error getting user for login: {e}")
         return None
 
 async def _get_user_for_login(username: str) -> Optional[Dict[str, Any]]:
-    """Get user for login asynchronously."""
+    """Get user for login asynchronously.
     return _get_user_for_login_sync(username)
 
 def _update_user_sync(user_id: int, update_data: Dict[str, Any]) -> bool:

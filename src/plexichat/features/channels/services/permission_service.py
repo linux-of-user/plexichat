@@ -15,7 +15,7 @@ from ..models.server_member import ServerMember
 PlexiChat Permission Service
 
 Core permission calculation service with Discord-like permission system.
-"""
+
 
 
 class PermissionService:
@@ -24,10 +24,9 @@ class PermissionService:
 
     Handles complex permission resolution including roles, overwrites, and hierarchy.
     """
-
-    @staticmethod
+        @staticmethod
     def calculate_base_permissions(member: ServerMember, roles: List[Role]) -> int:
-        """
+        
         Calculate base permissions from roles.
 
         Args:
@@ -72,7 +71,7 @@ class PermissionService:
 
         Returns:
             Final permission bitfield after overwrites
-        """
+        
         # Administrator bypasses all overwrites
         if base_permissions & Permissions.ADMINISTRATOR:
             return base_permissions
@@ -148,7 +147,7 @@ class PermissionService:
         permission: Permissions,
         overwrites: Optional[List[PermissionOverwrite]] = None,
     ) -> bool:
-        """
+        
         Check if member has a specific permission.
 
         Args:
@@ -183,7 +182,7 @@ class PermissionService:
 
         Returns:
             True if member has any of the permissions
-        """
+        
         final_permissions = PermissionService.calculate_permissions()
             member, roles, overwrites
         )
@@ -215,7 +214,7 @@ class PermissionService:
 
     @staticmethod
     def is_administrator(member: ServerMember, roles: List[Role]) -> bool:
-        """
+        
         Check if member has administrator permission.
 
         Args:
@@ -245,7 +244,7 @@ class PermissionService:
 
         Returns:
             True if member can manage channels
-        """
+        
         return PermissionService.has_any_permission()
             member,
             roles,
@@ -279,7 +278,7 @@ class PermissionService:
 
     @staticmethod
     def get_permission_names(permissions: int) -> List[str]:
-        """
+        
         Get list of permission names from bitfield.
 
         Args:

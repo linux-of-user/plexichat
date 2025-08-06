@@ -25,16 +25,15 @@ logger = logging.getLogger(__name__)
 
 logger = logging.getLogger(__name__)
 class UpdateCLI:
-    """CLI interface for update system."""
-
-    def __init__(self):
+    """CLI interface for update system.
+        def __init__(self):
         """Initialize update CLI."""
         self.update_system = update_system
         self.version_manager = version_manager
         self.changelog_manager = changelog_manager
 
     def create_parser(self) -> argparse.ArgumentParser:
-        """Create argument parser for update commands."""
+        Create argument parser for update commands."""
         parser = argparse.ArgumentParser(
             description="PlexiChat Update System CLI",
             formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -71,7 +70,7 @@ Examples:
 
   # Rollback last update
   plexichat update rollback
-            """
+            
         )
 
         subparsers = parser.add_subparsers(dest='command', help='Update commands')
@@ -84,19 +83,19 @@ Examples:
         # Version command
         version_parser = subparsers.add_parser('version', help='Show current version information')
         version_parser.add_argument('--detailed', action='store_true',
-                                  help='Show detailed version information')
+                                help='Show detailed version information')
 
         # Upgrade command
         upgrade_parser = subparsers.add_parser('upgrade', help='Upgrade to newer version')
         upgrade_parser.add_argument('--to', type=str, help='Target version (e.g., 0b1, 1r1)')
         upgrade_parser.add_argument('--latest', action='store_true',
-                                  help='Upgrade to latest available version')
+                                help='Upgrade to latest available version')
         upgrade_parser.add_argument('--stable', action='store_true',
-                                  help='Upgrade to latest stable version')
+                                help='Upgrade to latest stable version')
         upgrade_parser.add_argument('--force', action='store_true',
-                                  help='Force upgrade even with warnings')
+                                help='Force upgrade even with warnings')
         upgrade_parser.add_argument('--dry-run', action='store_true',
-                                  help='Show what would be done without executing')
+                                help='Show what would be done without executing')
 
         # Downgrade command
         downgrade_parser = subparsers.add_parser('downgrade', help='Downgrade to older version')
@@ -118,25 +117,25 @@ Examples:
 
         # Reinstall dependencies command
         subparsers.add_parser('reinstall-deps',
-                                               help='Reinstall all dependencies')
+                                            help='Reinstall all dependencies')
 
         # Upgrade database command
         upgrade_db_parser = subparsers.add_parser('upgrade-db',
                                                 help='Upgrade database schema only')
         upgrade_db_parser.add_argument('--to', type=str,
-                                     help='Target database version')
+                                    help='Target database version')
 
         # History command
         history_parser = subparsers.add_parser('history', help='Show update history')
         history_parser.add_argument('--limit', type=int, default=10,
-                                  help='Limit number of entries shown')
+                                help='Limit number of entries shown')
 
         # Rollback command
         rollback_parser = subparsers.add_parser('rollback', help='Rollback last update')
         rollback_parser.add_argument('--update-id', type=str,
-                                   help='Specific update ID to rollback')
+                                help='Specific update ID to rollback')
         rollback_parser.add_argument('--force', action='store_true',
-                                   help='Force rollback without confirmation')
+                                help='Force rollback without confirmation')
 
         # Status command
         subparsers.add_parser('status', help='Show update system status')
@@ -146,21 +145,21 @@ Examples:
                                                     help='Atomic upgrade with P2P distribution and canary deployment')
         atomic_upgrade_parser.add_argument('--to', type=str, help='Target version')
         atomic_upgrade_parser.add_argument('--distribution',
-                                         choices=['centralized', 'p2p-hybrid', 'p2p-only'],
-                                         default='p2p-hybrid',
-                                         help='Update distribution method')
+                                        choices=['centralized', 'p2p-hybrid', 'p2p-only'],
+                                        default='p2p-hybrid',
+                                        help='Update distribution method')
         atomic_upgrade_parser.add_argument('--deployment',
-                                         choices=['immediate', 'canary', 'blue-green', 'rolling'],
-                                         default='canary',
-                                         help='Deployment strategy')
+                                        choices=['immediate', 'canary', 'blue-green', 'rolling'],
+                                        default='canary',
+                                        help='Deployment strategy')
         atomic_upgrade_parser.add_argument('--canary-percentage', type=float, default=10.0,
-                                         help='Percentage of nodes for canary deployment')
+                                        help='Percentage of nodes for canary deployment')
         atomic_upgrade_parser.add_argument('--verification-level',
-                                         choices=['basic', 'standard', 'government', 'military'],
-                                         default='government',
-                                         help='Update verification level')
+                                        choices=['basic', 'standard', 'government', 'military'],
+                                        default='government',
+                                        help='Update verification level')
         atomic_upgrade_parser.add_argument('--live-patch', action='store_true',
-                                         help='Enable live patching if possible')
+                                        help='Enable live patching if possible')
 
         # Canary deployment command
         canary_parser = subparsers.add_parser('canary', help='Manage canary deployments')
@@ -199,12 +198,12 @@ Examples:
         # Signature verify
         signature_verify_parser = signature_subparsers.add_parser('verify', help='Verify update signatures')
         signature_verify_parser.add_argument('--update-file', type=str, required=True,
-                                           help='Update file to verify')
+                                        help='Update file to verify')
 
         # Signature keys
         signature_keys_parser = signature_subparsers.add_parser('keys', help='Manage verification keys')
         signature_keys_parser.add_argument('--list', action='store_true',
-                                         help='List loaded verification keys')
+                                        help='List loaded verification keys')
 
         return parser
 

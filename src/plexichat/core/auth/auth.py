@@ -33,21 +33,21 @@ Consolidates authentication functionality from:
 - src/plexichat/app/auth/ (advanced auth features)
 
 Provides comprehensive authentication with government-level security.
-"""
+
 
 logger = logging.getLogger(__name__)
 
 # Authentication security levels
 class SecurityLevel(Enum):
     """Security levels for authentication."""
-    BASIC = 1
+        BASIC = 1
     ENHANCED = 2
     GOVERNMENT = 3
     MILITARY = 4
     ZERO_KNOWLEDGE = 5
 
 class AuthAction(Enum):
-    """Authentication actions for audit logging."""
+    Authentication actions for audit logging."""
     LOGIN = "login"
     LOGOUT = "logout"
     PASSWORD_RESET_REQUEST = "password_reset_request"
@@ -61,8 +61,8 @@ class AuthAction(Enum):
 
 @dataclass
 class AuthAttempt:
-    """Authentication attempt record for audit logging."""
-    timestamp: datetime
+    """Authentication attempt record for audit logging.
+        timestamp: datetime
     username: str
     ip_address: str
     user_agent: str
@@ -76,7 +76,7 @@ class AuthAttempt:
 @dataclass
 class AuthSession:
     """Authentication session data."""
-    session_id: str
+        session_id: str
     username: str
     security_level: SecurityLevel
     created_at: datetime
@@ -88,7 +88,7 @@ class AuthSession:
     biometric_verified: bool = False
 
 class AuthManager:
-    """
+    
     Unified Authentication Manager
 
     Central authentication manager that coordinates all authentication
@@ -98,8 +98,7 @@ class AuthManager:
     - src/plexichat/core/auth/auth_manager.py
     - src/plexichat/app/auth/ modules
     """
-
-    def __init__(self, config_dir: str = "data/auth"):
+        def __init__(self, config_dir: str = "data/auth"):
         from pathlib import Path
         self.config_dir = Path(config_dir)
         self.config_dir.mkdir(parents=True, exist_ok=True)
@@ -260,7 +259,7 @@ class AuthManager:
         logger.warning(" Please change the default admin password immediately!")
 
     async def authenticate(self, username: str, password: str, ip_address: str,
-                          user_agent: str, security_level: SecurityLevel = SecurityLevel.BASIC) -> Tuple[bool, Optional[str], Optional[AuthSession]]:
+                        user_agent: str, security_level: SecurityLevel = SecurityLevel.BASIC) -> Tuple[bool, Optional[str], Optional[AuthSession]]:
         """
         Authenticate user with comprehensive security checks.
 
@@ -357,8 +356,7 @@ class AuthManager:
 
 class TokenManager:
     """JWT Token management for API authentication."""
-
-    def __init__(self):
+        def __init__(self):
         # Use cryptographically secure key generation
         self.secret_key = secrets.token_bytes(64)
         self.algorithm = "HS256"
@@ -367,7 +365,7 @@ class TokenManager:
         self.issued_tokens = set()  # Track issued tokens for revocation
 
     async def create_access_token(self, username: str, security_level: SecurityLevel,
-                                 user_id: str = None, scopes: List[str] = None) -> str:
+                                user_id: str = None, scopes: List[str] = None) -> str:
         """Create cryptographically secure JWT access token."""
         if not JWT_AVAILABLE:
             # Fallback to secure HMAC-based tokens
@@ -397,7 +395,7 @@ class TokenManager:
             return self._create_hmac_token(username, security_level, user_id, scopes)
 
     def _create_hmac_token(self, username: str, security_level: SecurityLevel,
-                          user_id: str = None, scopes: List[str] = None) -> str:
+                        user_id: str = None, scopes: List[str] = None) -> str:
         """Create HMAC-based token as fallback."""
         timestamp = str(int(time.time()))
         expiry = str(int(time.time()) + (self.access_token_expire_minutes * 60))
@@ -540,9 +538,8 @@ class TokenManager:
             return False
 
 class SessionManager:
-    """Session management for web authentication."""
-
-    def __init__(self, auth_manager: AuthManager):
+    """Session management for web authentication.
+        def __init__(self, auth_manager: AuthManager):
         self.auth_manager = auth_manager
 
     async def validate_session(self, session_id: str) -> Optional[AuthSession]:
@@ -564,9 +561,8 @@ class SessionManager:
         return session
 
 class PasswordManager:
-    """Password policy and management."""
-
-    def __init__(self):
+    Password policy and management."""
+        def __init__(self):
         self.min_length = 12
         self.require_uppercase = True
         self.require_lowercase = True
@@ -602,16 +598,14 @@ password_manager = PasswordManager()
 
 # Placeholder classes for additional managers (to be implemented)
 class MFAManager:
-    """Multi-factor authentication management."""
-
-class BiometricManager:
+    """Multi-factor authentication management.
+    class BiometricManager:
     """Biometric authentication management."""
 
 class OAuthManager:
-    """OAuth provider integration."""
-
-class DeviceManager:
-    """Device registration and management."""
+    OAuth provider integration."""
+    class DeviceManager:
+    """Device registration and management.
 
 class AuthAuditManager:
     """Authentication audit and compliance."""

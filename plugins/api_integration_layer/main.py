@@ -19,9 +19,7 @@ try:
 except ImportError:
     websockets_available = False
     # Fallback websockets implementation
-    class websockets:
-        class WebSocketServerProtocol:
-            pass
+    websockets = None
 try:
     from cachetools import TTLCache
     cachetools_available = True
@@ -48,10 +46,14 @@ except ImportError:
         def decorator(func):
             return func
         return decorator
-    def stop_after_attempt(n):
-        return None
-    def wait_exponential(**kwargs):
-        return None
+
+    class stop_after_attempt:
+        def __init__(self, n):
+            self.n = n
+
+    class wait_exponential:
+        def __init__(self, **kwargs):
+            self.kwargs = kwargs
 
 from fastapi import APIRouter, HTTPException, WebSocket
 from fastapi.responses import JSONResponse
@@ -63,9 +65,6 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
 from plugin_internal import PluginInterface, PluginMetadata, PluginType, ModulePermissions, ModuleCapability
 from typing import Optional
-
-from plugin_internal import *
-from plugin_internal import *
 
 logger = logging.getLogger(__name__)
 
@@ -446,7 +445,9 @@ class APIIntegrationLayerPlugin(PluginInterface):
     """API Integration Layer Plugin."""
 
     def __init__(self):
-        super().__init__("api_integration_layer", "1.0.0")
+        super().__init__("api_integration_layer", {})
+        self._config = {}
+        self.manager = None
         self.router = APIRouter()
         self.api_core = None
         self.data_dir = Path(__file__).parent / "data"
@@ -465,21 +466,12 @@ class APIIntegrationLayerPlugin(PluginInterface):
     def get_required_permissions(self) -> ModulePermissions:
         """Get required permissions."""
         return ModulePermissions(
-            capabilities=[
-                ModuleCapability("api", "API integration capabilities"),
-                ModuleCapability("network", "Network access for API calls"),
-                ModuleCapability("file_system", "File system access for caching"),
-                ModuleCapability("web_ui", "Web UI integration"),
-                ModuleCapability("database", "Database access for caching"),
-                ModuleCapability("websocket", "WebSocket support"),
-                ModuleCapability("notifications", "Notification capabilities")
-            ],
             network_access=True,
             file_system_access=True,
             database_access=True
         )
 
-    def initialize(self, config: Optional[Dict[str, Any]] = None) -> bool:
+    async def initialize(self, config: Optional[Dict[str, Any]] = None) -> bool:
         """Initialize the plugin."""
         try:
             # Update config if provided
@@ -847,6 +839,25 @@ class APIIntegrationLayerPlugin(PluginInterface):
 
         results["success"] = results["failed"] == 0
         return results
+
+    async def shutdown(self) -> bool:
+        """Shutdown the plugin."""
+        try:
+            self.logger.info("Shutting down API Integration Layer Plugin...")
+
+            # Close any open connections
+            if hasattr(self, 'manager') and self.manager:
+                if hasattr(self.manager, 'close'):
+                    await self.manager.close()
+
+            self.initialized = False
+            self.logger.info("API Integration Layer Plugin shutdown complete")
+            return True
+
+        except Exception as e:
+            self.logger.error(f"Error during shutdown: {e}")
+            self.last_error = e
+            return False
 
 
 # Plugin entry point

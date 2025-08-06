@@ -27,15 +27,14 @@ Orchestrates all system components and provides unified system management includ
 - AI coordination
 - Database abstraction
 - System resilience
-"""
+
 logger = logging.getLogger(__name__)
 
 
 @dataclass
 class SystemMetrics:
     """Overall system metrics."""
-
-    total_requests: int = 0
+        total_requests: int = 0
     successful_requests: int = 0
     failed_requests: int = 0
     average_response_time: float = 0.0
@@ -47,7 +46,7 @@ class SystemMetrics:
 
 
 class PlexiChatMasterCoordinator:
-    """
+    
     PlexiChat Master Integration Coordinator.
 
     Orchestrates all system phases and provides:
@@ -58,8 +57,7 @@ class PlexiChatMasterCoordinator:
     - Performance optimization
     - Graceful shutdown
     """
-
-    def __init__(self):
+        def __init__(self):
         self.system_name = "PlexiChat"
         self.version = "2.0.0"
         self.initialized = False
@@ -386,14 +384,14 @@ class PlexiChatMasterCoordinator:
 
     def get_system_status(self) -> Dict[str, Any]:
         """Get comprehensive system status."""
-        return {}
+        return {
             "system_info": {
                 "name": self.system_name,
                 "version": self.version,
                 "initialized": self.initialized,
                 "running": self.running,
                 "uptime_seconds": self.metrics.system_uptime,
-            },
+            }},
             "configuration": self.config,
             "statistics": self.stats,
             "metrics": {

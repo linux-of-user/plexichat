@@ -2,7 +2,7 @@
 Database Abstraction Layer Testing
 
 Tests the enhanced database abstraction layer with support for multiple database types.
-"""
+
 
 import asyncio
 import logging
@@ -26,13 +26,12 @@ logger = logging.getLogger(__name__)
 
 class DatabaseAbstractionTester:
     """Test the database abstraction layer with multiple database types."""
-
-    def __init__(self):
+        def __init__(self):
         self.db_manager = ConsolidatedDatabaseManager()
         self.test_results: Dict[str, Dict[str, Any]] = {}
 
     async def test_all_databases(self) -> Dict[str, Dict[str, Any]]:
-        """Test all supported database types."""
+        Test all supported database types."""
         print("Starting Database Abstraction Layer Testing...")
         print("=" * 60)
 
@@ -172,7 +171,7 @@ class DatabaseAbstractionTester:
             return {"success": False, "message": f"MySQL test error: {str(e)}"}
 
     async def _test_mariadb(self) -> Dict[str, Any]:
-        """Test MariaDB database."""
+        """Test MariaDB database.
         return await self._test_mysql()  # MariaDB uses same driver as MySQL
 
     async def _test_mongodb(self) -> Dict[str, Any]:
@@ -276,7 +275,7 @@ async def main():
         
         # Return appropriate exit code
         failed_tests = sum(1 for result in tester.test_results.values() 
-                          if not result.get("success") and not result.get("skipped"))
+                        if not result.get("success") and not result.get("skipped"))
         
         if failed_tests > 0:
             print(f"\n{failed_tests} tests failed!")

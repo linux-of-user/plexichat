@@ -54,7 +54,7 @@ try:
     from plexichat.infrastructure.utils.security import security_audit
 except ImportError:
     def security_audit(**kwargs):
-        """Mock security audit decorator"""
+        """Mock security audit decorator
         def decorator(func):
             return func
         return decorator
@@ -74,7 +74,7 @@ try:
     from plexichat.infrastructure.utils.rate_limiting import rate_limit
 except ImportError:
     def rate_limit(**kwargs):
-        """Mock rate limiting decorator"""
+        Mock rate limiting decorator"""
         def decorator(func):
             return func
         return decorator
@@ -210,15 +210,14 @@ class ErrorDetail(BaseModel):
 
 class AuthService:
     """Service class for authentication operations using EXISTING database abstraction layer."""
-
-    def __init__(self):
+        def __init__(self):
         # Use EXISTING database manager
         self.db_manager = database_manager
         self.performance_logger = performance_logger
 
     @async_track_performance("user_authentication") if async_track_performance else lambda f: f
     async def authenticate_user(self, username: str, password: str) -> Optional[User]:
-        """Authenticate user using EXISTING database abstraction layer."""
+        """Authenticate user using EXISTING database abstraction layer.
         if self.db_manager:
             try:
                 # Use EXISTING database manager with optimized query
@@ -270,7 +269,7 @@ class AuthService:
 
     @async_track_performance("user_lookup") if async_track_performance else lambda f: f
     async def get_user_by_id(self, user_id: int) -> Optional[User]:
-        """Get user by ID using EXISTING database abstraction layer."""
+        """Get user by ID using EXISTING database abstraction layer.
         if self.db_manager:
             try:
                 # Use EXISTING database manager with optimized query

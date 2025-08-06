@@ -223,7 +223,7 @@ if click:
 
     @cli.group()
     def server():
-        """Server management commands."""
+        """Server management commands.
         pass
 
     @server.command()
@@ -303,7 +303,7 @@ if click:
 
     @cli.group()
     def plugins():
-        """Plugin management commands."""
+        """Plugin management commands.
         pass
 
     @plugins.command()
@@ -419,7 +419,7 @@ if click:
 
     @cli.group()
     def test():
-        """Test execution commands."""
+        """Test execution commands.
         pass
 
     @test.command()

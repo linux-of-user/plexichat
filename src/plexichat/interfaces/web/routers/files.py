@@ -173,7 +173,7 @@ def sanitize_filename(filename: Optional[str]) -> str:
     return filename[:255]  # Limit length
 
 def validate_file_type(extension: str, allowed_extensions: Dict[str, str]) -> bool:
-    """Validate file type against allowed extensions"""
+    """Validate file type against allowed extensions
     return extension.lower() in allowed_extensions
 
 def scan_file_content(content: bytes, extension: str) -> bool:
@@ -197,7 +197,7 @@ def scan_file_content(content: bytes, extension: str) -> bool:
     return True
 
 def extract_metadata(content: bytes, filename: str) -> Dict[str, Any]:
-    """Extract file metadata"""
+    Extract file metadata"""
     metadata = {
         'size': len(content),
         'filename': filename,
@@ -221,8 +221,7 @@ def extract_metadata(content: bytes, filename: str) -> Dict[str, Any]:
 
 class FileService:
     """Service class for file operations using EXISTING database abstraction layer."""
-
-    def __init__(self):
+        def __init__(self):
         # Use EXISTING database manager
         self.db_manager = database_manager
         self.performance_logger = performance_logger
@@ -289,7 +288,7 @@ class FileService:
 
     @async_track_performance("file_list") if async_track_performance else lambda f: f
     async def list_files(self, user_id: int, limit: int = 50, offset: int = 0) -> List[FileRecord]:
-        """List files using EXISTING database abstraction layer."""
+        """List files using EXISTING database abstraction layer.
         if self.db_manager:
             try:
                 # Use EXISTING database manager with optimized query

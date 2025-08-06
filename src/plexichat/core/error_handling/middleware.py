@@ -24,19 +24,18 @@ PlexiChat Error Handling Middleware
 
 FastAPI middleware for comprehensive error handling, logging,
 and response formatting across the entire application.
-"""
+
 
 logger = get_logger(__name__)
 
 
 class ErrorHandlingMiddleware(BaseHTTPMiddleware):
     """Comprehensive error handling middleware for FastAPI."""
-
-    def __init__(self, app: ASGIApp,
-                 debug: bool = False,
-                 include_request_details: bool = True,
-                 log_errors: bool = True,
-                 enable_beautiful_errors: bool = True):
+        def __init__(self, app: ASGIApp,
+                debug: bool = False,
+                include_request_details: bool = True,
+                log_errors: bool = True,
+                enable_beautiful_errors: bool = True):
         super().__init__(app)
         self.debug = debug
         self.include_request_details = include_request_details
@@ -57,7 +56,7 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
         self.max_response_times = 1000  # Keep last 1000 response times
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
-        """Process request with comprehensive error handling and correlation tracking."""
+        Process request with comprehensive error handling and correlation tracking."""
         start_time = time.time()
 
         # Start correlation tracking for this request
@@ -107,7 +106,7 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
             return await self._handle_error_enhanced(request, e, correlation_id, start_time)
 
     async def _handle_error_enhanced(self, request: Request, exception: Exception,
-                                   correlation_id: str, start_time: float) -> Response:
+                                correlation_id: str, start_time: float) -> Response:
         """Handle errors using the enhanced error system."""
         response_time = time.time() - start_time
         self.error_count += 1
@@ -145,8 +144,8 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
             return await self._create_web_error_response_enhanced(error_details, request)
 
     async def _handle_error(self, request: Request, exception: Exception,
-                           request_id: str, start_time: float) -> Response:
-        """Handle errors with comprehensive logging and response formatting."""
+                        request_id: str, start_time: float) -> Response:
+        """Handle errors with comprehensive logging and response formatting.
 
         response_time = time.time() - start_time
         self.error_count += 1
@@ -171,7 +170,7 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
             return await self._create_web_error_response(error_info, request, request_id)
 
     async def _analyze_error(self, exception: Exception, request: Request,
-                           request_id: str) -> Dict[str, Any]:
+                        request_id: str) -> Dict[str, Any]:
         """Analyze the error and extract relevant information."""
 
         error_info = {
@@ -322,7 +321,7 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
             logger.error(f"Failed to record error for monitoring: {e}")
 
     def _is_api_request(self, request: Request) -> bool:
-        """Determine if request is an API request."""
+        """Determine if request is an API request.
         # Check if request is for API endpoint
         path = request.url.path
         accept_header = request.headers.get('accept', '')
@@ -335,7 +334,7 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
         )
 
     async def _create_api_error_response(self, error_info: Dict[str, Any],
-                                       request_id: str, response_time: float) -> JSONResponse:
+                                    request_id: str, response_time: float) -> JSONResponse:
         """Create JSON error response for API requests."""
 
         status_code = error_info.get('status_code', 500)
@@ -372,7 +371,7 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
         )
 
     async def _create_web_error_response(self, error_info: Dict[str, Any],
-                                       request: Request, request_id: str) -> Response:
+                                    request: Request, request_id: str) -> Response:
         """Create HTML error response for web requests."""
 
         if self.enable_beautiful_errors:
@@ -393,7 +392,7 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
             )
 
     def _track_response_time(self, response_time: float):
-        """Track response times for performance monitoring."""
+        """Track response times for performance monitoring.
         self.response_times.append(response_time)
         if len(self.response_times) > self.max_response_times:
             self.response_times.pop(0)
@@ -412,7 +411,7 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
         }
 
     def _update_error_stats_enhanced(self, error_details):
-        """Update error statistics with enhanced error details."""
+        Update error statistics with enhanced error details."""
         error_key = f"{error_details.error_type.value}:{error_details.exception_type}"
         self.error_stats[error_key] = self.error_stats.get(error_key, 0) + 1
 

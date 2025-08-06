@@ -44,8 +44,8 @@ import warnings
 
 @dataclass
 class DeviceAvailabilityStatus:
-    """Device availability information."""
-    device_id: int
+    Device availability information."""
+        device_id: int
     device_name: str
     device_type: str
     user_id: int
@@ -61,7 +61,7 @@ class DeviceAvailabilityStatus:
 @dataclass
 class ShardAvailabilityStatus:
     """Shard availability across devices."""
-    shard_id: int
+        shard_id: int
     backup_id: int
     total_assignments: int
     online_assignments: int
@@ -73,8 +73,8 @@ class ShardAvailabilityStatus:
 
 @dataclass
 class BackupCoverageReport:
-    """Overall backup coverage status."""
-    total_backups: int
+    """Overall backup coverage status.
+        total_backups: int
     fully_available_backups: int
     partially_available_backups: int
     unavailable_backups: int
@@ -89,8 +89,7 @@ class BackupCoverageReport:
 
 class BackupStatusMonitor:
     """Real-time backup status monitoring service."""
-
-    def __init__(self, session: Session):
+        def __init__(self, session: Session):
         self.session = session
         self.monitoring_active = False
         self.last_update = None
@@ -388,7 +387,7 @@ assignments = self.session.# SECURITY: exec() removed - use safe alternatives)
                         "last_seen_minutes_ago": device.last_seen_minutes_ago
                     })
 
-            return {}
+            return {
                 "network_status": status_groups,
                 "summary": {
                     "total_devices": len(device_statuses),
@@ -397,7 +396,7 @@ assignments = self.session.# SECURITY: exec() removed - use safe alternatives)
                     "unreachable_devices": len(status_groups["unreachable"]),
                     "maintenance_devices": len(status_groups["maintenance"]),
                     "network_health_percentage": (len(status_groups["online"]) / len(device_statuses) * 100) if device_statuses else 0
-                },
+                }},
                 "timestamp": datetime.now(timezone.utc).isoformat()
             }
 

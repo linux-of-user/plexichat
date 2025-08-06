@@ -2,7 +2,7 @@
 PlexiChat Cache Manager
 
 Caching system with threading and performance optimization.
-"""
+
 
 import asyncio
 import json
@@ -36,7 +36,7 @@ performance_logger = get_performance_logger() if get_performance_logger else Non
 @dataclass
 class CacheEntry:
     """Cache entry with metadata."""
-    key: str
+        key: str
     value: Any
     created_at: float
     expires_at: Optional[float]
@@ -48,20 +48,19 @@ class CacheEntry:
             self.last_accessed = self.created_at
 
     def is_expired(self) -> bool:
-        """Check if entry is expired."""
+        Check if entry is expired."""
         if self.expires_at is None:
             return False
         return time.time() > self.expires_at
 
     def touch(self):
-        """Update access information."""
+        """Update access information.
         self.access_count += 1
         self.last_accessed = time.time()
 
 class CacheManager:
     """Cache manager with threading support."""
-
-    def __init__(self, max_size: int = 10000, default_ttl: int = 3600):
+        def __init__(self, max_size: int = 10000, default_ttl: int = 3600):
         self.max_size = max_size
         self.default_ttl = default_ttl
         self.cache: Dict[str, CacheEntry] = {}
@@ -80,7 +79,7 @@ class CacheManager:
         self._start_cleanup_thread()
 
     def _start_cleanup_thread(self):
-        """Start background cleanup thread."""
+        Start background cleanup thread."""
         if not self._cleanup_running:
             self._cleanup_running = True
             cleanup_thread = threading.Thread(target=self._cleanup_loop, daemon=True)
@@ -213,7 +212,7 @@ class CacheManager:
                 self.performance_logger.record_metric("cache_cleared_entries", cleared_count, "count")
 
     def exists(self, key: str) -> bool:
-        """Check if key exists and is not expired."""
+        """Check if key exists and is not expired.
         with self.lock:
             entry = self.cache.get(key)
             if entry is None:
@@ -237,7 +236,7 @@ class CacheManager:
             return [key for key in self.cache.keys() if regex.match(key)]
 
     def get_stats(self) -> Dict[str, Any]:
-        """Get cache statistics."""
+        Get cache statistics."""
         with self.lock:
             total_requests = self.hits + self.misses
             hit_rate = (self.hits / total_requests) if total_requests > 0 else 0
@@ -253,7 +252,7 @@ class CacheManager:
             }
 
     def _estimate_memory_usage(self) -> int:
-        """Estimate memory usage in bytes."""
+        """Estimate memory usage in bytes.
         try:
             import sys
             total_size = 0
@@ -272,13 +271,13 @@ class CacheManager:
         return self.get(key, default)
 
     async def set_async(self, key: str, value: Any, ttl: Optional[int] = None) -> bool:
-        """Async set to cache."""
+        Async set to cache."""
         if self.async_thread_manager:
             return await self.async_thread_manager.run_in_thread(self.set, key, value, ttl)
         return self.set(key, value, ttl)
 
     async def delete_async(self, key: str) -> bool:
-        """Async delete from cache."""
+        """Async delete from cache.
         if self.async_thread_manager:
             return await self.async_thread_manager.run_in_thread(self.delete, key)
         return self.delete(key)
@@ -288,14 +287,13 @@ class CacheManager:
         self._cleanup_running = False
 
 class DistributedCacheManager(CacheManager):
-    """Distributed cache manager with database persistence."""
-
-    def __init__(self, max_size: int = 10000, default_ttl: int = 3600):
+    Distributed cache manager with database persistence."""
+        def __init__(self, max_size: int = 10000, default_ttl: int = 3600):
         super().__init__(max_size, default_ttl)
         self.db_manager = database_manager
 
     async def get_from_db(self, key: str) -> Optional[Any]:
-        """Get value from database cache."""
+        """Get value from database cache.
         if not self.db_manager:
             return None
 
@@ -327,7 +325,7 @@ class DistributedCacheManager(CacheManager):
             return None
 
     async def set_to_db(self, key: str, value: Any, ttl: Optional[int] = None):
-        """Set value to database cache."""
+        """Set value to database cache.
         if not self.db_manager:
             return
 
@@ -354,7 +352,7 @@ class DistributedCacheManager(CacheManager):
             logger.error(f"Error setting to database cache: {e}")
 
     async def get_distributed(self, key: str, default: Any = None) -> Any:
-        """Get from local cache, fallback to database."""
+        """Get from local cache, fallback to database.
         # Try local cache first
         value = self.get(key, None)
         if value is not None:
@@ -387,7 +385,7 @@ distributed_cache_manager = DistributedCacheManager()
 import warnings
 
 def cache_get(key: str, default: Any = None) -> Any:
-    """DEPRECATED: Use unified_cache_integration.cache_get_sync instead."""
+    DEPRECATED: Use unified_cache_integration.cache_get_sync instead."""
     warnings.warn("cache_get is deprecated. Use unified_cache_integration.cache_get_sync", DeprecationWarning)
     return cache_manager.get(key, default)
 

@@ -1,7 +1,7 @@
 """
 PlexiChat Advanced Tkinter GUI Application
 The most sophisticated and feature-rich Tkinter interface ever created.
-"""
+
 
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
@@ -49,8 +49,7 @@ class PlexiChatGUI:
     - Advanced user management
     - System monitoring and analytics
     """
-
-    def __init__(self):
+        def __init__(self):
         self.root: Optional[tk.Tk] = None
         self.current_user: Optional[Dict[str, Any]] = None
         self.is_authenticated: bool = False
@@ -82,7 +81,7 @@ class PlexiChatGUI:
         self.initialize_application()
 
     def initialize_application(self):
-        """Initialize the main application."""
+        Initialize the main application."""
         try:
             logger.info("Initializing PlexiChat Advanced GUI...")
             
@@ -195,19 +194,19 @@ class PlexiChatGUI:
         
         # Configure modern button style
         style.configure("Modern.TButton",
-                       padding=(10, 5),
-                       font=("Segoe UI", 10))
+                    padding=(10, 5),
+                    font=("Segoe UI", 10))
         
         # Configure modern frame style
         style.configure("Modern.TFrame",
-                       background="#2c3e50",
-                       relief="flat")
+                    background="#2c3e50",
+                    relief="flat")
         
         # Configure modern label style
         style.configure("Modern.TLabel",
-                       background="#2c3e50",
-                       foreground="#ecf0f1",
-                       font=("Segoe UI", 10))
+                    background="#2c3e50",
+                    foreground="#ecf0f1",
+                    font=("Segoe UI", 10))
 
     def setup_async_loop(self):
         """Setup asyncio event loop for async operations."""
@@ -479,7 +478,7 @@ class PlexiChatGUI:
             logger.error(f"Failed to handle theme change: {e}")
 
     def on_window_configure(self, event):
-        """Handle window configuration changes."""
+        """Handle window configuration changes.
         if event.widget == self.root:
             # Handle window resize, move, etc.
             pass
@@ -701,7 +700,7 @@ class PlexiChatGUI:
 
             # Command prompt label
             prompt_label = ttk.Label(input_frame, text="plexichat>",
-                                   foreground="#00ff00", background="#1e1e1e")
+                                foreground="#00ff00", background="#1e1e1e")
             prompt_label.pack(side=tk.LEFT)
 
             # Command input
@@ -826,4 +825,6 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    print("[X] This module cannot be run standalone!")
+    print("Use 'python run.py' to start PlexiChat.")
+    sys.exit(1)

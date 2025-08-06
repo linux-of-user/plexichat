@@ -10,7 +10,7 @@ PlexiChat User Models
 
 Consolidated user models with comprehensive functionality and performance optimization.
 Uses EXISTING database abstraction and optimization systems.
-"""
+
 
 import logging
 from datetime import datetime
@@ -52,7 +52,7 @@ performance_logger = get_performance_logger() if get_performance_logger else Non
 
 class UserRole(str, Enum):
     """User role enumeration."""
-    USER = "user"
+        USER = "user"
     MODERATOR = "moderator"
     ADMIN = "admin"
     SUPER_ADMIN = "super_admin"
@@ -67,7 +67,7 @@ class UserStatus(str, Enum):
 
 class OnlineStatus(str, Enum):
     """Online status enumeration."""
-    ONLINE = "online"
+        ONLINE = "online"
     AWAY = "away"
     BUSY = "busy"
     INVISIBLE = "invisible"
@@ -76,7 +76,7 @@ class OnlineStatus(str, Enum):
 # User Model
 @dataclass
 class User:
-    """Core user model. All persistent storage and API models must use the database abstraction layer or pure dataclasses, not Pydantic/SQLModel directly."""
+    """Core user model. All persistent storage and API models must use the database abstraction layer or pure dataclasses, not Pydantic/SQLModel directly.
     id: int
     username: str
     email: str
@@ -93,7 +93,7 @@ class User:
 @dataclass
 class UserProfile:
     """User profile model with extended information. Persistent storage must use the database abstraction layer."""
-    id: int
+        id: int
     user_id: int
     display_name: str = ""
     bio: str = ""
@@ -116,8 +116,8 @@ class UserProfile:
 # User Settings Model
 @dataclass
 class UserSettings:
-    """User settings and preferences. Persistent storage must use the database abstraction layer."""
-    id: int
+    """User settings and preferences. Persistent storage must use the database abstraction layer.
+        id: int
     user_id: int
     email_notifications: bool = True
     push_notifications: bool = True
@@ -136,7 +136,7 @@ class UserSettings:
 @dataclass
 class UserActivity:
     """User activity tracking. Persistent storage must use the database abstraction layer."""
-    id: int
+        id: int
     user_id: int
     activity_type: str
     description: str = ""
@@ -149,7 +149,7 @@ class UserActivity:
 @dataclass
 class UserSession:
     """User session tracking. Persistent storage must use the database abstraction layer."""
-    id: int
+        id: int
     user_id: int
     session_token: str
     ip_address: str = ""
@@ -176,14 +176,13 @@ class UserProfileCreate:
 # Service classes would be defined here for managing these models
 class UserModelService:
     """Service for managing user models using EXISTING database abstraction."""
-
-    def __init__(self):
+        def __init__(self):
         self.db_manager = database_manager
         self.performance_logger = performance_logger
 
     @async_track_performance("user_profile_creation") if async_track_performance else lambda f: f
     async def create_user_profile(self, user_id: int, profile_data: UserProfileCreate) -> Optional[UserProfile]:
-        """Create user profile using EXISTING database abstraction."""
+        """Create user profile using EXISTING database abstraction.
         if self.db_manager:
             try:
                 create_query = """

@@ -8,7 +8,7 @@ Comprehensive test for the integrated protection system including:
 - Dynamic scaling
 - Account type limits
 - Fairness algorithms
-"""
+
 
 import asyncio
 import time

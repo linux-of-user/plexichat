@@ -34,7 +34,7 @@ Dedicated cluster node for core application operations with:
 - User session management
 - Message processing and routing
 - Performance optimization for core workloads
-"""
+
 
 # Import PlexiChat components
 sys.path.append(str(from pathlib import Path))
@@ -45,7 +45,7 @@ logger = logging.getLogger(__name__)
 
 class MainNodeCapability(Enum):
     """Main node capabilities."""
-    API_PROCESSING = "api_processing"
+        API_PROCESSING = "api_processing"
     DATABASE_OPERATIONS = "database_operations"
     USER_MANAGEMENT = "user_management"
     MESSAGE_PROCESSING = "message_processing"
@@ -57,7 +57,7 @@ class MainNodeCapability(Enum):
 
 @dataclass
 class DatabaseConnection:
-    """Database connection configuration."""
+    """Database connection configuration.
     connection_id: str
     database_type: str
     connection_string: str
@@ -79,8 +79,7 @@ class MainClusterNode(BaseClusterNode):
     - Message processing and WebSocket connections
     - Plugin execution and management
     """
-
-    def __init__(self, node_id: str, cluster_config: Dict[str, Any]):
+        def __init__(self, node_id: str, cluster_config: Dict[str, Any]):
         super().__init__(node_id, cluster_config)
 
         self.node_type = "main"
@@ -172,17 +171,17 @@ class MainClusterNode(BaseClusterNode):
 
         except Exception as e:
             logger.error(f"Error processing API request {request_id}: {e}")
-            return {}
+            return {
                 'status': 'error',
                 'error': str(e),
                 'request_id': request_id
-            }
+            }}
         finally:
             # Clean up active request tracking
             self.active_requests.pop(request_id, None)
 
     async def process_message(self, message_data: Dict[str, Any]) -> bool:
-        """Queue message for processing."""
+        """Queue message for processing.
         await self.message_queue.put(message_data)
         return True
 
@@ -192,7 +191,7 @@ class MainClusterNode(BaseClusterNode):
         return True
 
     async def manage_user_session(self, session_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Manage user session on main node."""
+        Manage user session on main node."""
         session_id = session_data.get('session_id')
         action = session_data.get('action', 'create')
 
@@ -205,24 +204,24 @@ class MainClusterNode(BaseClusterNode):
                 'user_agent': session_data.get('user_agent')
             }
             self.performance_metrics['active_user_sessions'] = len(self.active_sessions)
-            return {}'status': 'created', 'session_id': session_id}
+            return {'status': 'created', 'session_id': session_id}}
 
         elif action == 'update':
             if session_id in self.active_sessions:
                 self.active_sessions[session_id]['last_activity'] = datetime.now(timezone.utc)
-                return {}'status': 'updated', 'session_id': session_id}
+                return {'status': 'updated', 'session_id': session_id}}
             else:
-                return {}'status': 'not_found', 'session_id': session_id}
+                return {'status': 'not_found', 'session_id': session_id}}
 
         elif action == 'destroy':
             if session_id in self.active_sessions:
                 del self.active_sessions[session_id]
                 self.performance_metrics['active_user_sessions'] = len(self.active_sessions)
-                return {}'status': 'destroyed', 'session_id': session_id}
+                return {'status': 'destroyed', 'session_id': session_id}}
             else:
-                return {}'status': 'not_found', 'session_id': session_id}
+                return {'status': 'not_found', 'session_id': session_id}}
 
-        return {}'status': 'invalid_action', 'action': action}
+        return {'status': 'invalid_action', 'action': action}}
 
     async def _initialize_database_connections(self):
         """Initialize database connection pools."""
@@ -241,41 +240,41 @@ class MainClusterNode(BaseClusterNode):
         logger.info(f"Initialized {len(self.database_connections)} database connections")
 
     async def _process_user_request(self, request_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Process user-related API request."""
+        """Process user-related API request.
         # Implementation would handle user operations
         self.performance_metrics['database_queries_executed'] += 1
-        return {}
+        return {
             'status': 'success',
             'data': 'User request processed',
             'node_id': self.node_id
-        }
+        }}
 
     async def _process_message_request(self, request_data: Dict[str, Any]) -> Dict[str, Any]:
         """Process message-related API request."""
         # Implementation would handle message operations
         self.performance_metrics['messages_processed'] += 1
-        return {}
+        return {
             'status': 'success',
             'data': 'Message request processed',
             'node_id': self.node_id
-        }
+        }}
 
     async def _process_plugin_request(self, request_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Process plugin-related API request."""
+        Process plugin-related API request."""
         # Implementation would handle plugin operations
-        return {}
+        return {
             'status': 'success',
             'data': 'Plugin request processed',
             'node_id': self.node_id
-        }
+        }}
 
     async def _process_generic_request(self, request_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Process generic API request."""
-        return {}
+        """Process generic API request.
+        return {
             'status': 'success',
             'data': 'Generic request processed',
             'node_id': self.node_id
-        }
+        }}
 
     def _update_request_time(self, processing_time: float):
         """Update average request processing time."""
@@ -290,7 +289,7 @@ class MainClusterNode(BaseClusterNode):
             )
 
     async def _message_processing_task(self):
-        """Background task for processing messages."""
+        Background task for processing messages."""
         while True:
             try:
                 message_data = await self.message_queue.get()
@@ -379,9 +378,9 @@ class MainClusterNode(BaseClusterNode):
 
                 # Log performance summary
                 logger.info(f"Main Node {self.node_id} - API Requests: {self.performance_metrics['api_requests_processed']}, ")
-                          f"Active Sessions: {self.performance_metrics['active_user_sessions']}, "
-                          f"Messages: {self.performance_metrics['messages_processed']}, "
-                          f"Avg Request Time: {self.performance_metrics['average_request_time']:.3f}s")
+                        f"Active Sessions: {self.performance_metrics['active_user_sessions']}, "
+                        f"Messages: {self.performance_metrics['messages_processed']}, "
+                        f"Avg Request Time: {self.performance_metrics['average_request_time']:.3f}s")
 
                 await asyncio.sleep(60)  # Update every minute
 

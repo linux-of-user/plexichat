@@ -183,15 +183,14 @@ class WebhookDelivery(BaseModel):
 
 class WebhookService:
     """Service class for webhook operations using EXISTING database abstraction layer."""
-
-    def __init__(self):
+        def __init__(self):
         # Use EXISTING database manager
         self.db_manager = database_manager
         self.performance_logger = performance_logger
 
     @async_track_performance("webhook_creation") if async_track_performance else lambda f: f
     async def create_webhook(self, webhook_data: WebhookCreate, user_id: int) -> WebhookResponse:
-        """Create webhook using EXISTING database abstraction layer."""
+        """Create webhook using EXISTING database abstraction layer.
         if self.db_manager:
             try:
                 # Create webhook
@@ -245,7 +244,7 @@ class WebhookService:
 
     @async_track_performance("webhook_list") if async_track_performance else lambda f: f
     async def list_webhooks(self, user_id: int, limit: int = 50, offset: int = 0) -> List[WebhookResponse]:
-        """List webhooks using EXISTING database abstraction layer."""
+        """List webhooks using EXISTING database abstraction layer.
         if self.db_manager:
             try:
                 query = """
@@ -286,7 +285,7 @@ class WebhookService:
 
     @async_track_performance("webhook_trigger") if async_track_performance else lambda f: f
     async def trigger_webhook(self, webhook_id: int, event: WebhookEvent) -> bool:
-        """Trigger webhook delivery using EXISTING database abstraction layer."""
+        """Trigger webhook delivery using EXISTING database abstraction layer.
         if self.db_manager:
             try:
                 # Get webhook details

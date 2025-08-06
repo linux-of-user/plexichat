@@ -38,8 +38,7 @@ logger = logging.getLogger(__name__)
 
 class AICoordinator:
     """Central coordinator for all AI features."""
-
-    def __init__(self):
+        def __init__(self):
         self.provider_manager = ai_provider_manager
         self.moderation_engine = content_moderation_engine
         self.assistant = intelligent_assistant
@@ -207,14 +206,14 @@ class AICoordinator:
 
             self.usage_analytics["moderation_checks"] += 1
 
-            return {}
+            return {
                 "success": True,
                 "moderation": enhanced_scores,
                 "sentiment": sentiment_result,
                 "language": language_result,
                 "context_applied": bool(context),
                 "recommendation": "allow" if enhanced_scores.overall_score < 0.5 else "review"
-            }
+            }}
 
         except Exception as e:
             logger.error(f"Smart content moderation failed: {e}")
@@ -276,7 +275,7 @@ class AICoordinator:
             # Select best model
             best_model = max(model_scores, key=model_scores.get)
 
-            return {}
+            return {
                 "success": True,
                 "selected_model": best_model,
                 "score": model_scores[best_model],
@@ -286,7 +285,7 @@ class AICoordinator:
                     "content_length": content_length,
                     "quality_requirement": quality_requirement,
                     "selection_factors": requirements
-                }
+                }}
             }
 
         except Exception as e:
@@ -494,7 +493,7 @@ class AICoordinator:
         # Generate summary
         summary_result = await self.summarizer.summarize_text(combined_text)
 
-        return {}
+        return {
             "success": True,
             "insights": {
                 "message_count": len(messages),
@@ -504,30 +503,30 @@ class AICoordinator:
                 "conversation_summary": summary_result.summary,
                 "key_topics": summary_result.topics,
                 "engagement_level": self._calculate_engagement_level(messages)
-            }
+            }}
         }
 
     async def _analyze_user_behavior(self, user_data: Dict[str, Any]) -> Dict[str, Any]:
         """Analyze user behavior patterns."""
         # Placeholder for user behavior analysis
-        return {}
+        return {
             "success": True,
             "insights": {
                 "activity_pattern": "high_engagement",
                 "preferred_topics": ["technology", "business"],
                 "communication_style": "professional",
                 "sentiment_trend": "positive"
-            }
+            }}
         }
 
     async def _analyze_content_trends(self, content_data: Dict[str, Any]) -> Dict[str, Any]:
         """Analyze content trends and patterns."""
         # Placeholder for content trend analysis
-        return {}
+        return {
             "success": True,
             "insights": {
                 "trending_topics": ["AI", "technology", "collaboration"],
-                "sentiment_distribution": {"positive": 0.6, "neutral": 0.3, "negative": 0.1},
+                "sentiment_distribution": {"positive": 0.6, "neutral": 0.3, "negative": 0.1}},
                 "engagement_metrics": {"high": 0.4, "medium": 0.4, "low": 0.2},
                 "content_quality_score": 0.85
             }
@@ -584,13 +583,13 @@ class AICoordinator:
         available_models = sum(1 for m in self.provider_manager.models.values() if m.is_available)
         total_models = len(self.provider_manager.models)
 
-        return {}
+        return {
             "ai_system": {
                 "models": {
                     "total": total_models,
                     "available": available_models,
                     "availability_rate": (available_models / total_models * 100) if total_models > 0 else 0
-                },
+                }},
                 "features": {
                     "auto_moderation": self.auto_moderation_enabled,
                     "auto_translation": self.auto_translation_enabled,

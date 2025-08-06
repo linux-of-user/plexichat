@@ -13,7 +13,7 @@ Desktop GUI version of the database setup wizard using tkinter with:
 - Connection testing
 - Progress tracking
 - Help and documentation
-"""
+
 
 import tkinter as tk
 from tkinter import ttk, messagebox, scrolledtext
@@ -29,8 +29,7 @@ from plexichat.interfaces.web.components.enhanced_database_wizard import (
 
 class DatabaseSetupGUI:
     """GUI Database Setup Wizard."""
-
-    def __init__(self, root: tk.Tk):
+        def __init__(self, root: tk.Tk):
         self.root = root
         self.wizard = EnhancedDatabaseWizard()
         self.current_step_frame = None
@@ -40,7 +39,7 @@ class DatabaseSetupGUI:
         self.start_wizard()
 
     def setup_main_window(self):
-        """Setup main window properties."""
+        Setup main window properties."""
         self.root.title("PlexiChat Database Setup Wizard")
         self.root.geometry("900x700")
         self.root.resizable(True, True)
@@ -340,7 +339,7 @@ Estimated time: 10-30 minutes depending on complexity."""
         self.db_info_text.config(state='disabled')
 
     def clear_content(self):
-        """Clear current content frame."""
+        """Clear current content frame.
         for widget in self.content_frame.winfo_children():
             widget.destroy()
 
@@ -351,7 +350,7 @@ Estimated time: 10-30 minutes depending on complexity."""
         self.progress_label.config(text=f"Step {current} of {total}")
 
     def go_next(self):
-        """Go to next step."""
+        """Go to next step.
         current_step = self.wizard.progress.current_step
 
         if current_step == WizardStep.WELCOME:
@@ -368,7 +367,7 @@ Estimated time: 10-30 minutes depending on complexity."""
         pass
 
     def cancel_wizard(self):
-        """Cancel the wizard."""
+        Cancel the wizard."""
         if messagebox.askyesno("Cancel Setup", "Are you sure you want to cancel the database setup?"):
             self.root.quit()
 

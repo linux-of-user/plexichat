@@ -17,13 +17,12 @@ from sqlalchemy import DateTime, Index, Text
 """
 Advanced moderation models with AI-powered capabilities and human review system.
 Supports fine-grained access control and configurable moderation endpoints.
-"""
+
 
 
 class ModerationAction(str, Enum):
     """Types of moderation actions."""
-
-    APPROVE = "approve"
+        APPROVE = "approve"
     REJECT = "reject"
     FLAG = "flag"
     WARN = "warn"
@@ -46,8 +45,7 @@ class ModerationSeverity(str, Enum):
 
 class ModerationStatus(str, Enum):
     """Status of moderation items."""
-
-    PENDING = "pending"
+        PENDING = "pending"
     IN_REVIEW = "in_review"
     APPROVED = "approved"
     REJECTED = "rejected"
@@ -69,8 +67,7 @@ class ModerationSource(str, Enum):
 
 class AIModelProvider(str, Enum):
     """AI model providers for moderation."""
-
-    OPENAI = "openai"
+        OPENAI = "openai"
     ANTHROPIC = "anthropic"
     GOOGLE = "google"
     HUGGINGFACE = "huggingface"
@@ -144,8 +141,7 @@ class ModerationConfiguration(SQLModel, table=True):
 
 class ModerationItem(SQLModel, table=True):
     """Items requiring moderation review."""
-
-    __tablename__ = "moderation_items"
+        __tablename__ = "moderation_items"
 
     id: Optional[int] = Field(default=None, primary_key=True)
     uuid: str = Field()
@@ -218,8 +214,7 @@ class ModerationItem(SQLModel, table=True):
 
 class ModerationRule(SQLModel, table=True):
     """Custom moderation rules and filters."""
-
-    __tablename__ = "moderation_rules"
+        __tablename__ = "moderation_rules"
 
     id: Optional[int] = Field(default=None, primary_key=True)
     uuid: str = Field()
@@ -268,8 +263,7 @@ class ModerationRule(SQLModel, table=True):
 
 class ModerationAppeal(SQLModel, table=True):
     """Appeals for moderation decisions."""
-
-    __tablename__ = "moderation_appeals"
+        __tablename__ = "moderation_appeals"
 
     id: Optional[int] = Field(default=None, primary_key=True)
     uuid: str = Field()
@@ -300,8 +294,7 @@ class ModerationAppeal(SQLModel, table=True):
 
 class AIModelEndpoint(SQLModel, table=True):
     """AI model endpoints for moderation."""
-
-    __tablename__ = "ai_model_endpoints"
+        __tablename__ = "ai_model_endpoints"
 
     id: Optional[int] = Field(default=None, primary_key=True)
     uuid: str = Field()
@@ -353,8 +346,7 @@ class AIModelEndpoint(SQLModel, table=True):
 
 class ModerationWorkflow(SQLModel, table=True):
     """Moderation workflow definitions."""
-
-    __tablename__ = "moderation_workflows"
+        __tablename__ = "moderation_workflows"
 
     id: Optional[int] = Field(default=None, primary_key=True)
     uuid: str = Field()

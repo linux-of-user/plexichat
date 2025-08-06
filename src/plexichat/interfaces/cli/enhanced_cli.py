@@ -13,7 +13,7 @@ Comprehensive CLI enhancement with:
 - Plugin command integration
 - Advanced argument parsing
 - Beautiful output formatting
-"""
+
 
 import sys
 import os
@@ -36,7 +36,7 @@ if src_path not in sys.path:
 # Color system for beautiful output
 class CLIColors:
     """Enhanced color system for CLI output."""
-    RESET = '\033[0m'
+        RESET = '\033[0m'
     BOLD = '\033[1m'
     DIM = '\033[2m'
     
@@ -71,7 +71,7 @@ class CLIColors:
 
 @dataclass
 class CLICommand:
-    """Enhanced CLI command definition."""
+    """Enhanced CLI command definition.
     name: str
     description: str
     category: str
@@ -88,8 +88,7 @@ class CLICommand:
 
 class EnhancedCLISystem:
     """Enhanced CLI system with comprehensive command management."""
-    
-    def __init__(self):
+        def __init__(self):
         self.commands: Dict[str, CLICommand] = {}
         self.categories: Dict[str, List[str]] = {}
         self.aliases: Dict[str, str] = {}
@@ -129,7 +128,7 @@ class EnhancedCLISystem:
         self._register_enhanced_commands()
     
     def _register_enhanced_commands(self):
-        """Register all enhanced CLI commands."""
+        Register all enhanced CLI commands."""
         
         # System Commands
         self.register_command(CLICommand(
@@ -988,7 +987,7 @@ class EnhancedCLISystem:
         ))
     
     def register_command(self, command: CLICommand):
-        """Register a new CLI command."""
+        """Register a new CLI command.
         self.commands[command.name] = command
         
         # Add to category
@@ -1027,7 +1026,7 @@ class EnhancedCLISystem:
                 del self.aliases[alias]
 
     def get_command(self, name: str) -> Optional[CLICommand]:
-        """Get command by name or alias."""
+        Get command by name or alias."""
         # Check direct name first
         if name in self.commands:
             return self.commands[name]
@@ -1039,7 +1038,7 @@ class EnhancedCLISystem:
         return None
     
     def show_help(self, command_name: Optional[str] = None):
-        """Show help information."""
+        """Show help information.
         if command_name:
             self._show_command_help(command_name)
         else:

@@ -4,7 +4,7 @@ Encryption Manager for Distributed Backup System
 
 Handles individual shard encryption with unique keys per shard.
 Provides quantum-resistant encryption options and key management.
-"""
+
 
 import base64
 import hashlib
@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 
 class EncryptionAlgorithm(Enum):
     """Supported encryption algorithms."""
-    AES_256_GCM = "aes-256-gcm"
+        AES_256_GCM = "aes-256-gcm"
     AES_256_CBC = "aes-256-cbc"
     CHACHA20_POLY1305 = "chacha20-poly1305"
     FERNET = "fernet"
@@ -47,8 +47,8 @@ class KeyDerivationMethod(Enum):
 
 @dataclass
 class EncryptionKey:
-    """Encryption key information."""
-    key_id: str
+    """Encryption key information.
+        key_id: str
     algorithm: EncryptionAlgorithm
     key_data: bytes
     salt: bytes
@@ -69,8 +69,8 @@ class EncryptionKey:
 
 @dataclass
 class EncryptedData:
-    """Encrypted data with metadata."""
-    data: bytes
+    """Encrypted data with metadata.
+        data: bytes
     key_id: str
     algorithm: EncryptionAlgorithm
     nonce: Optional[bytes] = None
@@ -79,8 +79,7 @@ class EncryptedData:
 
 class EncryptionManager:
     """Manages encryption and decryption of individual shards."""
-    
-    def __init__(self, key_storage_dir: Path, master_password: Optional[str] = None):
+        def __init__(self, key_storage_dir: Path, master_password: Optional[str] = None):
         self.key_storage_dir = Path(key_storage_dir)
         self.key_storage_dir.mkdir(parents=True, exist_ok=True)
         
@@ -98,7 +97,7 @@ class EncryptionManager:
             logger.warning("Cryptography library not available, using basic encryption")
     
     def _generate_master_password(self) -> str:
-        """Generate a secure master password."""
+        """Generate a secure master password.
         return base64.urlsafe_b64encode(secrets.token_bytes(32)).decode('utf-8')
     
     def _derive_key(self, password: str, salt: bytes, algorithm: EncryptionAlgorithm) -> bytes:
@@ -129,7 +128,7 @@ class EncryptionManager:
         return kdf.derive(password.encode())
     
     def generate_shard_key(self, shard_id: str, algorithm: Optional[EncryptionAlgorithm] = None) -> EncryptionKey:
-        """Generate a unique encryption key for a shard."""
+        Generate a unique encryption key for a shard."""
         algorithm = algorithm or self.default_algorithm
         
         # Generate unique salt for this shard
@@ -208,7 +207,7 @@ class EncryptionManager:
             raise
     
     def _encrypt_aes_gcm(self, data: bytes, key: EncryptionKey) -> EncryptedData:
-        """Encrypt using AES-256-GCM."""
+        """Encrypt using AES-256-GCM.
         cipher = Cipher(
             algorithms.AES(key.key_data),
             modes.GCM(key.nonce),
@@ -236,7 +235,7 @@ class EncryptionManager:
         return decryptor.update(encrypted_data.data) + decryptor.finalize()
     
     def _encrypt_fernet(self, data: bytes, key: EncryptionKey) -> EncryptedData:
-        """Encrypt using Fernet (symmetric encryption)."""
+        Encrypt using Fernet (symmetric encryption)."""
         fernet_key = base64.urlsafe_b64encode(key.key_data)
         f = Fernet(fernet_key)
         ciphertext = f.encrypt(data)
@@ -248,7 +247,7 @@ class EncryptionManager:
         )
     
     def _decrypt_fernet(self, encrypted_data: EncryptedData, key: EncryptionKey) -> bytes:
-        """Decrypt using Fernet."""
+        """Decrypt using Fernet.
         fernet_key = base64.urlsafe_b64encode(key.key_data)
         f = Fernet(fernet_key)
         return f.decrypt(encrypted_data.data)
@@ -259,7 +258,7 @@ class EncryptionManager:
         return bytes(data[i] ^ key[i % key_len] for i in range(len(data)))
     
     def _xor_decrypt(self, data: bytes, key: bytes) -> bytes:
-        """Simple XOR decryption fallback."""
+        Simple XOR decryption fallback."""
         return self._xor_encrypt(data, key)  # XOR is symmetric
     
     def _save_key(self, key: EncryptionKey):
@@ -309,7 +308,7 @@ class EncryptionManager:
         return old_key_count
     
     def get_key_info(self, key_id: str) -> Optional[Dict[str, Any]]:
-        """Get key information (without sensitive data)."""
+        """Get key information (without sensitive data).
         key = self.keys.get(key_id)
         return key.to_dict() if key else None
     

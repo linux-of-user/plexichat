@@ -24,31 +24,28 @@ BANNED = "banned"
 
 from pydantic import BaseModel, EmailStr
 
-"""User API schemas."""
+"""User API schemas.
 
 
 class UserCreate(BaseModel):
     """Schema for creating a user."""
-
-username: str
+    username: str
 email: EmailStr
 password: str
 role: UserRole = UserRole.USER
 
 
 class UserUpdate(BaseModel):
-    """Schema for updating a user."""
-
-username: Optional[str] = None
+    Schema for updating a user."""
+    username: Optional[str] = None
 email: Optional[EmailStr] = None
 role: Optional[UserRole] = None
 status: Optional[UserStatus] = None
 
 
 class UserResponse(BaseModel):
-    """Schema for user API responses."""
-
-id: str
+    """Schema for user API responses.
+    id: str
 username: str
 email: EmailStr
 role: UserRole
@@ -59,8 +56,7 @@ last_login: Optional[str] = None
 
 class UserProfileUpdate(BaseModel):
     """Schema for updating user profile."""
-
-display_name: Optional[str] = None
+    display_name: Optional[str] = None
 bio: Optional[str] = None
 avatar_url: Optional[str] = None
 timezone: Optional[str] = None

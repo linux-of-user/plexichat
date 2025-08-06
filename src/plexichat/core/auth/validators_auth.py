@@ -8,8 +8,8 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class ValidationResult:
-    """Validation result."""
-    valid: bool
+    """Validation result.
+        valid: bool
     errors: List[str]
     warnings: List[str]
     score: Optional[float] = None
@@ -29,9 +29,8 @@ def get_input_validator():
     return SimpleInputValidator()
 
 class PasswordValidator:
-    """Password strength and policy validator - Enhanced with unified validation."""
-
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+    Password strength and policy validator - Enhanced with unified validation."""
+        def __init__(self, config: Optional[Dict[str, Any]] = None):
         self.config = config or {}
         self.input_validator = get_input_validator()
 
@@ -204,9 +203,8 @@ class PasswordValidator:
         return suggestions
 
 class TokenValidator:
-    """JWT token validator."""
-
-    def __init__(self, config: Dict[str, Any] = None):
+    """JWT token validator.
+        def __init__(self, config: Dict[str, Any] = None):
         self.config = config or {}
 
     def validate_token_format(self, token: str) -> ValidationResult:
@@ -276,9 +274,8 @@ class TokenValidator:
         )
 
 class BiometricValidator:
-    """Biometric data validator."""
-
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+    """Biometric data validator.
+        def __init__(self, config: Optional[Dict[str, Any]] = None):
         self.config = config or {}
 
     def validate_biometric_data(self, biometric_data: bytes, biometric_type: str) -> ValidationResult:
@@ -313,7 +310,7 @@ class BiometricValidator:
         return result
 
     def _validate_fingerprint(self, data: bytes) -> ValidationResult:
-        """Validate fingerprint data."""
+        """Validate fingerprint data.
         # Simplified validation
         return ValidationResult(valid=True, errors=[], warnings=[])
 
@@ -323,6 +320,6 @@ class BiometricValidator:
         return ValidationResult(valid=True, errors=[], warnings=[])
 
     def _validate_voice(self, data: bytes) -> ValidationResult:
-        """Validate voice data."""
+        Validate voice data."""
         # Simplified validation
         return ValidationResult(valid=True, errors=[], warnings=[])

@@ -24,14 +24,13 @@ import socket
 import time
 Peer-to-peer messaging service with database fallback.
 Enables messaging when database is unavailable using server as proxy.
-"""
+
 
 
 @dataclass
 class P2PMessage:
     """Peer-to-peer message structure."""
-
-    id: str
+        id: str
     sender_id: int
     recipient_id: int
     content: str
@@ -56,9 +55,8 @@ class P2PMessage:
 
 @dataclass
 class PeerConnection:
-    """Peer connection information."""
-
-    peer_id: int
+    """Peer connection information.
+        peer_id: int
     connection_id: str
     websocket: Any
     last_seen: datetime
@@ -72,8 +70,7 @@ class PeerConnection:
 
 class MessageCache:
     """Secure message cache for offline storage."""
-
-    def __init__(self):
+        def __init__(self):
         self.cache: Dict[str, P2PMessage] = {}
         self.encryption_key = Fernet.generate_key()
         self.cipher = Fernet(self.encryption_key)
@@ -97,7 +94,7 @@ class MessageCache:
             return False
 
     def get_messages_for_user(self, user_id: int) -> List[P2PMessage]:
-        """Get cached messages for a user."""
+        """Get cached messages for a user.
         return [
             msg
             for msg in self.cache.values()
@@ -113,11 +110,11 @@ class MessageCache:
         return False
 
     def get_pending_database_sync(self) -> List[P2PMessage]:
-        """Get messages pending database synchronization."""
+        Get messages pending database synchronization."""
         return list(self.cache.values())
 
     def clear_synced_messages(self, message_ids: List[str]):
-        """Clear messages that have been synced to database."""
+        """Clear messages that have been synced to database.
         for msg_id in message_ids:
             self.cache.pop(msg_id, None)
         self._save_to_disk()
@@ -132,7 +129,7 @@ class MessageCache:
             del self.cache[sorted_messages[i][0]]
 
     def _save_to_disk(self):
-        """Save cache to encrypted file."""
+        Save cache to encrypted file."""
         try:
             cache_data = {msg_id: msg.to_dict() for msg_id, msg in self.cache.items()}
 
@@ -168,9 +165,8 @@ class MessageCache:
 
 
 class P2PMessagingService:
-    """Peer-to-peer messaging service with database fallback."""
-
-    def __init__(self):
+    """Peer-to-peer messaging service with database fallback.
+        def __init__(self):
         self.peers: Dict[int, PeerConnection] = {}
         self.message_cache = MessageCache()
         self.database_available = True
@@ -472,7 +468,7 @@ class P2PMessagingService:
 
     def get_network_status(self) -> Dict[str, Any]:
         """Get P2P network status."""
-        return {}
+        return {
             "connected_peers": len(self.peers),
             "online_peers": sum(1 for p in self.peers.values() if p.is_online),
             "cached_messages": len(self.message_cache.cache),
@@ -480,7 +476,7 @@ class P2PMessagingService:
             "total_queued_messages": sum()
                 len(p.message_queue) for p in self.peers.values()
             ),
-        }
+        }}
 
 
 # Global service instance

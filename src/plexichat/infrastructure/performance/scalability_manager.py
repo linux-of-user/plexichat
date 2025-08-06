@@ -3,7 +3,7 @@ Scalability Management System
 
 Comprehensive scalability management with horizontal scaling, load balancing,
 capacity planning, and auto-scaling for optimal system performance.
-"""
+
 
 import asyncio
 import logging
@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class NodeMetrics:
     """Metrics for a single node."""
-    node_id: str
+        node_id: str
     cpu_usage: float = 0.0
     memory_usage: float = 0.0
     disk_usage: float = 0.0
@@ -36,8 +36,8 @@ class NodeMetrics:
 
 @dataclass
 class LoadBalancerConfig:
-    """Load balancer configuration."""
-    algorithm: str = "round_robin"  # round_robin, least_connections, weighted_round_robin, ip_hash
+    Load balancer configuration."""
+        algorithm: str = "round_robin"  # round_robin, least_connections, weighted_round_robin, ip_hash
     health_check_interval: int = 30
     health_check_timeout: int = 5
     max_retries: int = 3
@@ -47,8 +47,8 @@ class LoadBalancerConfig:
 
 @dataclass
 class AutoScalingConfig:
-    """Auto-scaling configuration."""
-    enabled: bool = True
+    """Auto-scaling configuration.
+        enabled: bool = True
     min_nodes: int = 2
     max_nodes: int = 10
     scale_up_threshold: float = 0.8
@@ -60,8 +60,7 @@ class AutoScalingConfig:
 
 class LoadBalancer:
     """Advanced load balancer with multiple algorithms."""
-
-    def __init__(self, config: LoadBalancerConfig):
+        def __init__(self, config: LoadBalancerConfig):
         self.config = config
         self.nodes: Dict[str, NodeMetrics] = {}
         self.healthy_nodes: Set[str] = set()
@@ -70,7 +69,7 @@ class LoadBalancer:
         self.request_counts: Dict[str, int] = defaultdict(int)
 
     def add_node(self, node_id: str, initial_metrics: Optional[NodeMetrics] = None):
-        """Add a node to the load balancer."""
+        Add a node to the load balancer."""
         if initial_metrics:
             self.nodes[node_id] = initial_metrics
         else:
@@ -95,7 +94,7 @@ class LoadBalancer:
         logger.info(f"[SCALE] Removed node from load balancer: {node_id}")
 
     def update_node_metrics(self, node_id: str, metrics: NodeMetrics):
-        """Update metrics for a node."""
+        """Update metrics for a node.
         if node_id in self.nodes:
             self.nodes[node_id] = metrics
 
@@ -130,7 +129,7 @@ class LoadBalancer:
             return self._round_robin_selection()
 
     def _round_robin_selection(self) -> str:
-        """Round-robin node selection."""
+        """Round-robin node selection.
         healthy_nodes_list = list(self.healthy_nodes)
         if not healthy_nodes_list:
             return None
@@ -156,7 +155,7 @@ class LoadBalancer:
         return selected_node
 
     def _weighted_round_robin_selection(self) -> str:
-        """Weighted round-robin based on node health scores."""
+        Weighted round-robin based on node health scores."""
         if not self.healthy_nodes:
             return None
 
@@ -185,7 +184,7 @@ class LoadBalancer:
         return list(self.healthy_nodes)[0]
 
     def _ip_hash_selection(self, client_ip: Optional[str]) -> str:
-        """Select node based on client IP hash."""
+        """Select node based on client IP hash.
         if not client_ip or not self.healthy_nodes:
             return self._round_robin_selection()
 
@@ -199,7 +198,7 @@ class LoadBalancer:
         self.request_counts[node_id] += 1
 
     def get_load_distribution(self) -> Dict[str, Any]:
-        """Get current load distribution across nodes."""
+        Get current load distribution across nodes."""
         total_requests = sum(self.request_counts.values())
 
         distribution = {}
@@ -216,9 +215,8 @@ class LoadBalancer:
 
 
 class AutoScaler:
-    """Auto-scaling system for horizontal scaling."""
-
-    def __init__(self, config: AutoScalingConfig):
+    """Auto-scaling system for horizontal scaling.
+        def __init__(self, config: AutoScalingConfig):
         self.config = config
         self.metrics_history: deque = deque(maxlen=100)
         self.last_scale_up = datetime.min
@@ -233,7 +231,7 @@ class AutoScaler:
         })
 
     def should_scale_up(self) -> bool:
-        """Determine if cluster should scale up."""
+        Determine if cluster should scale up."""
         if not self.config.enabled:
             return False
 
@@ -259,7 +257,7 @@ class AutoScaler:
         return avg_load > self.config.scale_up_threshold
 
     def should_scale_down(self) -> bool:
-        """Determine if cluster should scale down."""
+        """Determine if cluster should scale down.
         if not self.config.enabled:
             return False
 
@@ -296,7 +294,7 @@ class AutoScaler:
         return recent_metrics
 
     def _get_current_node_count(self) -> int:
-        """Get current number of nodes."""
+        Get current number of nodes."""
         if self.metrics_history:
             latest = self.metrics_history[-1]
             return latest['metrics'].get('node_count', 1)
@@ -320,9 +318,8 @@ class AutoScaler:
 
 
 class CapacityPlanner:
-    """Capacity planning system for predictive scaling."""
-
-    def __init__(self):
+    """Capacity planning system for predictive scaling.
+        def __init__(self):
         self.usage_history: deque = deque(maxlen=1000)
         self.growth_trends: Dict[str, float] = {}
         self.seasonal_patterns: Dict[str, List[float]] = {}
@@ -335,7 +332,7 @@ class CapacityPlanner:
         })
 
     def analyze_growth_trends(self) -> Dict[str, float]:
-        """Analyze growth trends in resource usage."""
+        Analyze growth trends in resource usage."""
         if len(self.usage_history) < 10:
             return {}}
 
@@ -361,7 +358,7 @@ class CapacityPlanner:
         return trends
 
     def _calculate_linear_trend(self, x_values: List[float], y_values: List[float]) -> float:
-        """Calculate linear trend slope."""
+        """Calculate linear trend slope.
         if len(x_values) != len(y_values) or len(x_values) < 2:
             return 0.0
 
@@ -401,7 +398,7 @@ class CapacityPlanner:
         return predictions
 
     def get_capacity_recommendations(self) -> List[str]:
-        """Get capacity planning recommendations."""
+        Get capacity planning recommendations."""
         recommendations = []
 
         predictions = self.predict_capacity_needs(30)
@@ -430,8 +427,7 @@ class CapacityPlanner:
 
 class ScalabilityManager:
     """Main scalability management system."""
-
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+        def __init__(self, config: Optional[Dict[str, Any]] = None):
         self.config = config or {}
 
         # Components
@@ -597,12 +593,12 @@ class ScalabilityManager:
 
     def get_scalability_stats(self) -> Dict[str, Any]:
         """Get comprehensive scalability statistics."""
-        return {}
+        return {
             'cluster': {
                 'total_nodes': len(self.load_balancer.nodes),
                 'healthy_nodes': len(self.load_balancer.healthy_nodes),
                 'current_metrics': self.cluster_metrics
-            },
+            }},
             'load_balancer': {
                 'algorithm': self.load_balancer.config.algorithm,
                 'load_distribution': self.load_balancer.get_load_distribution(),

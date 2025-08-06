@@ -20,13 +20,13 @@ from pathlib import Path
 import time
 AI Moderation Feedback Collector
 Collects and processes user feedback for improving moderation accuracy.
-"""
+
 
 logger = logging.getLogger(__name__)
 
 class FeedbackType(str, Enum):
     """Type of feedback."""
-    CORRECTION = "correction"
+        CORRECTION = "correction"
     CONFIRMATION = "confirmation"
     REPORT = "report"
     APPEAL = "appeal"
@@ -40,8 +40,8 @@ class FeedbackSource(str, Enum):
 
 @dataclass
 class ModerationFeedback:
-    """Moderation feedback data."""
-    content_id: str
+    """Moderation feedback data.
+        content_id: str
     user_id: str
     feedback_type: FeedbackType
     source: FeedbackSource
@@ -57,7 +57,7 @@ class ModerationFeedback:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
-        return {}
+        return {
             "content_id": self.content_id,
             "user_id": self.user_id,
             "feedback_type": self.feedback_type.value,
@@ -71,12 +71,11 @@ class ModerationFeedback:
             "metadata": self.metadata,
             "created_at": self.created_at.isoformat(),
             "processed": self.processed
-        }
+        }}
 
 class FeedbackCollector:
     """Collects and processes moderation feedback."""
-
-    def __init__(self, data_path: str = "data/moderation_feedback"):
+        def __init__(self, data_path: str = "data/moderation_feedback"):
         self.data_path = Path(data_path)
         self.data_path.mkdir(parents=True, exist_ok=True)
 
@@ -86,7 +85,7 @@ class FeedbackCollector:
         self._init_database()
 
     def _init_database(self):
-        """Initialize feedback database."""
+        """Initialize feedback database.
         # Use FeedbackDataService for all DB initialization and CRUD
         from src.plexichat.features.ai.moderation.feedback_data_service import FeedbackDataService
         self.feedback_service = FeedbackDataService()

@@ -20,7 +20,7 @@ import time
 PlexiChat Message Model
 
 Enhanced message model with Discord-like features including embeds, attachments, and replies.
-"""
+
 
 # Initialize snowflake generator for messages
 message_snowflake = SnowflakeGenerator(datacenter_id=1, worker_id=5)
@@ -28,8 +28,7 @@ message_snowflake = SnowflakeGenerator(datacenter_id=1, worker_id=5)
 
 class MessageFlags(IntFlag):
     """Message flags for special message types."""
-
-    CROSSPOSTED = 1 << 0
+        CROSSPOSTED = 1 << 0
     IS_CROSSPOST = 1 << 1
     SUPPRESS_EMBEDS = 1 << 2
     SOURCE_MESSAGE_DELETED = 1 << 3
@@ -42,7 +41,7 @@ class MessageFlags(IntFlag):
 
 
 class MessageType(int):
-    """Message types."""
+    Message types."""
 
     DEFAULT = 0
     RECIPIENT_ADD = 1
@@ -76,8 +75,7 @@ class Message(SQLModel, table=True):
 
     Supports rich content, embeds, attachments, replies, and reactions.
     """
-
-    __tablename__ = "messages"
+        __tablename__ = "messages"
 
     # Primary identification
     message_id: str = Field(
@@ -202,9 +200,8 @@ class Message(SQLModel, table=True):
     # reply_to: Optional["Message"] = Relationship()
 
     class Config:
-        """SQLModel configuration."""
-
-        arbitrary_types_allowed = True
+    """SQLModel configuration."""
+            arbitrary_types_allowed = True
         # Note: json_encoders is deprecated in Pydantic v2
         # Use model_serializer or field serializers instead if needed
 
@@ -215,7 +212,7 @@ class Message(SQLModel, table=True):
         return f"<Message(message_id='{self.message_id}', author_id='{self.author_id}', content='{content_preview}')>"
 
     def has_flag(self, flag: MessageFlags) -> bool:
-        """Check if message has a specific flag."""
+        """Check if message has a specific flag.
         return bool(self.flags & flag)
 
     def add_flag(self, flag: MessageFlags) -> None:
@@ -223,11 +220,11 @@ class Message(SQLModel, table=True):
         self.flags |= flag
 
     def remove_flag(self, flag: MessageFlags) -> None:
-        """Remove a flag from the message."""
+        Remove a flag from the message."""
         self.flags &= ~flag
 
     def is_reply(self) -> bool:
-        """Check if this message is a reply."""
+        """Check if this message is a reply.
         return self.reply_to_message_id is not None
 
     def is_system_message(self) -> bool:
@@ -235,12 +232,12 @@ class Message(SQLModel, table=True):
         return self.type != MessageType.DEFAULT
 
     def is_edited(self) -> bool:
-        """Check if this message has been edited."""
+        Check if this message has been edited."""
         return self.edited_timestamp is not None
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert message to dictionary."""
-        return {}
+        return {
             "message_id": self.message_id,
             "channel_id": self.channel_id,
             "author_id": self.author_id,
@@ -257,7 +254,7 @@ class Message(SQLModel, table=True):
             "edited_timestamp": ()
                 self.edited_timestamp.isoformat() if self.edited_timestamp else None
             ),
-        }
+        }}
 
 
 # Database indexes for performance

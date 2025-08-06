@@ -29,14 +29,14 @@ Intelligent Node Manager
 
 Manages cluster nodes with intelligent distribution, automatic scaling,
 and performance optimization for tangible performance gains.
-"""
+
 
 logger = logging.getLogger(__name__)
 
 
 class NodeCapability(Enum):
     """Node capabilities."""
-    MESSAGING = "messaging"
+        MESSAGING = "messaging"
     BACKUP = "backup"
     CLUSTERING = "clustering"
     LOAD_BALANCING = "load_balancing"
@@ -56,8 +56,8 @@ class ScalingAction(Enum):
 
 @dataclass
 class NodePerformanceProfile:
-    """Node performance profile."""
-    node_id: str
+    """Node performance profile.
+        node_id: str
     cpu_efficiency: float
     memory_efficiency: float
     network_efficiency: float
@@ -72,7 +72,7 @@ class NodePerformanceProfile:
 @dataclass
 class ScalingDecision:
     """Auto-scaling decision."""
-    decision_id: str
+        decision_id: str
     action: ScalingAction
     reason: str
     target_nodes: int
@@ -85,7 +85,7 @@ class ScalingDecision:
 
 
 class IntelligentNodeManager:
-    """
+    
     Intelligent Node Manager
 
     Provides intelligent node management with:
@@ -96,8 +96,7 @@ class IntelligentNodeManager:
     - Health monitoring and recovery
     - Resource optimization for maximum performance gains
     """
-
-    def __init__(self, cluster_manager):
+        def __init__(self, cluster_manager):
         """Initialize the intelligent node manager."""
         self.cluster_manager = cluster_manager
         self.node_profiles: Dict[str, NodePerformanceProfile] = {}
@@ -129,7 +128,7 @@ class IntelligentNodeManager:
         logger.info("Node Manager initialized successfully")
 
     async def _load_node_profiles(self):
-        """Load existing node performance profiles."""
+        """Load existing node performance profiles.
         # In a real implementation, this would load from database
         # For now, we'll create profiles for existing nodes
         for node_id, node in self.cluster_manager.cluster_nodes.items():
@@ -192,13 +191,13 @@ class IntelligentNodeManager:
 
         total_nodes = len(self.cluster_manager.cluster_nodes)
         active_nodes = len([n for n in self.cluster_manager.cluster_nodes.values())
-                           if n.status == NodeStatus.ONLINE])
+                        if n.status == NodeStatus.ONLINE])
 
         # Calculate cluster efficiency
         if self.node_profiles:
             average_score = sum(p.overall_score for p in self.node_profiles.values()) / len(self.node_profiles)
             logger.info(f"Cluster analysis: {active_nodes}/{total_nodes} nodes active, ")
-                       f"average performance score: {average_score:.2f}")
+                    f"average performance score: {average_score:.2f}")
 
         # Check if cluster size is optimal
         if active_nodes < MINIMUM_CLUSTER_SIZE:
@@ -277,14 +276,14 @@ class IntelligentNodeManager:
         # Calculate variance
         variance = sum((load - average_load) ** 2 for load in loads) / len(loads)
 
-        return {}
+        return {
             "total_load": total_load,
             "average_load": average_load,
             "load_variance": variance,
             "min_load": min(loads),
             "max_load": max(loads),
             "load_distribution": loads
-        }
+        }}
 
     async def make_scaling_decision(self) -> Optional[ScalingDecision]:
         """Make intelligent auto-scaling decision."""
@@ -300,7 +299,7 @@ class IntelligentNodeManager:
 
         # Analyze current cluster state
         active_nodes = len([n for n in self.cluster_manager.cluster_nodes.values())
-                           if n.status == NodeStatus.ONLINE])
+                        if n.status == NodeStatus.ONLINE])
 
         workload_analysis = await self._analyze_workload_distribution()
         average_load = workload_analysis["average_load"]
@@ -345,7 +344,7 @@ class IntelligentNodeManager:
         if decision and decision.confidence >= self.min_confidence_threshold:
             self.scaling_history.append(decision)
             logger.info(f"Scaling decision made: {decision.action.value} to {decision.target_nodes} nodes ")
-                       f"(confidence: {decision.confidence:.2f})")
+                    f"(confidence: {decision.confidence:.2f})")
             return decision
 
         return None
@@ -474,7 +473,7 @@ class IntelligentNodeManager:
                 logger.error(f"Performance profiling task error: {e}")
 
     async def _update_node_profiles(self):
-        """Update node performance profiles."""
+        """Update node performance profiles.
         for node_id in list(self.node_profiles.keys()):
             if node_id not in self.cluster_manager.cluster_nodes:
                 # Remove profiles for nodes that no longer exist

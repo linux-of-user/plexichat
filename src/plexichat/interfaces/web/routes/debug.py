@@ -39,7 +39,7 @@ templates = Jinja2Templates(directory="src/plexichat/interfaces/web/templates")
 
 class DebugQuery(BaseModel):
     """Debug query parameters."""
-    level: Optional[str] = None
+        level: Optional[str] = None
     source: Optional[str] = None
     limit: int = 100
     start_time: Optional[str] = None

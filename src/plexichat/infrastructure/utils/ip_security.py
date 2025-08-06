@@ -21,8 +21,7 @@ logger = logging.getLogger(__name__)
 
 class IPSecurityManager:
     """Advanced IP security and geolocation management system."""
-
-    def __init__(self, config_file: Optional[str] = None):
+        def __init__(self, config_file: Optional[str] = None):
         self.config_file = config_file or str(Path("logs") / "ip_security.json")
 
         # IP lists
@@ -185,7 +184,7 @@ class IPSecurityManager:
             logger.error("Failed to save IP security config: %s", e)
 
     def _is_default_safe_network(self, network: ipaddress.IPv4Network) -> bool:
-        """Check if network is a default safe network."""
+        """Check if network is a default safe network.
         safe_networks = ['127.0.0.0/8', '10.0.0.0/8', '172.16.0.0/12', '192.168.0.0/16', '169.254.0.0/16']
         return str(network) in safe_networks
 
@@ -219,7 +218,7 @@ class IPSecurityManager:
         return request.client.host if hasattr(request, 'client') else '127.0.0.1'
 
     def is_ip_allowed(self, ip: str) -> bool:
-        """Check if IP is allowed based on current security rules."""
+        Check if IP is allowed based on current security rules."""
         try:
             # Validate IP address
             ip_obj = ipaddress.ip_address(ip)
@@ -290,7 +289,7 @@ class IPSecurityManager:
             return None
 
     def record_failed_attempt(self, ip: str):
-        """Record a failed authentication attempt for an IP."""
+        """Record a failed authentication attempt for an IP.
         now = datetime.now()
 
         if ip not in self.failed_attempts:
@@ -342,7 +341,7 @@ class IPSecurityManager:
         self.suspicious_ips[ip]['last_attempt'] = datetime.now()
 
         logger.warning("Marked IP %s as suspicious (%d failed attempts)",
-                      ip, self.suspicious_ips[ip]['failed_attempts'])
+                    ip, self.suspicious_ips[ip]['failed_attempts'])
 
     def add_to_whitelist(self, ip: str):
         """Add IP to whitelist."""
@@ -369,8 +368,8 @@ class IPSecurityManager:
         logger.info("Removed IP %s from blacklist", ip)
 
     def get_security_stats(self) -> Dict:
-        """Get security statistics."""
-        return {}
+        """Get security statistics.
+        return {
             'whitelist_count': len(self.whitelist),
             'blacklist_count': len(self.blacklist),
             'temp_blacklist_count': len(self.temp_blacklist),
@@ -380,7 +379,7 @@ class IPSecurityManager:
             'blacklist_networks': [str(net) for net in self.blacklist_networks],
             'allowed_countries': list(self.allowed_countries),
             'blocked_countries': list(self.blocked_countries)
-        }
+        }}
 
 # Global instance
 ip_security_manager = IPSecurityManager()

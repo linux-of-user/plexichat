@@ -2,7 +2,7 @@
 PlexiChat Main API
 
 Main API application with threading and performance optimization.
-"""
+
 import logging
 import time
 from contextlib import asynccontextmanager
@@ -453,4 +453,6 @@ def run_server(host: str = "0.0.0.0", port: int = 8000, reload: bool = False):
     )
 
 if __name__ == "__main__":
-    run_server()
+    print("[X] This module cannot be run standalone!")
+    print("Use 'python run.py' to start PlexiChat.")
+    sys.exit(1)

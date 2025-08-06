@@ -5,13 +5,12 @@ from typing import Any, Dict, Optional
 PlexiChat Authentication Exceptions
 
 Custom exception classes for authentication and authorization errors.
-"""
+
 
 
 class AuthenticationError(Exception):
     """Base authentication error."""
-
-    def __init__(
+        def __init__(
         self,
         message: str,
         error_code: Optional[str] = None,
@@ -25,8 +24,7 @@ class AuthenticationError(Exception):
 
 class AuthorizationError(Exception):
     """Authorization/permission error."""
-
-    def __init__(
+        def __init__(
         self,
         message: str,
         error_code: Optional[str] = None,
@@ -40,8 +38,7 @@ class AuthorizationError(Exception):
 
 class MFAError(Exception):
     """Multi-factor authentication error."""
-
-    def __init__(
+        def __init__(
         self,
         message: str,
         error_code: Optional[str] = None,
@@ -55,8 +52,7 @@ class MFAError(Exception):
 
 class TokenError(Exception):
     """Token-related error."""
-
-    def __init__(
+        def __init__(
         self,
         message: str,
         error_code: Optional[str] = None,
@@ -70,8 +66,7 @@ class TokenError(Exception):
 
 class SessionError(Exception):
     """Session-related error."""
-
-    def __init__(
+        def __init__(
         self,
         message: str,
         error_code: Optional[str] = None,
@@ -85,8 +80,7 @@ class SessionError(Exception):
 
 class PasswordError(Exception):
     """Password-related error."""
-
-    def __init__(
+        def __init__(
         self,
         message: str,
         error_code: Optional[str] = None,
@@ -100,8 +94,7 @@ class PasswordError(Exception):
 
 class BiometricError(Exception):
     """Biometric authentication error."""
-
-    def __init__(
+        def __init__(
         self,
         message: str,
         error_code: Optional[str] = None,
@@ -115,8 +108,7 @@ class BiometricError(Exception):
 
 class DeviceError(Exception):
     """Device-related error."""
-
-    def __init__(
+        def __init__(
         self,
         message: str,
         error_code: Optional[str] = None,
@@ -130,8 +122,7 @@ class DeviceError(Exception):
 
 class OAuthError(Exception):
     """OAuth-related error."""
-
-    def __init__(
+        def __init__(
         self,
         message: str,
         error_code: Optional[str] = None,
@@ -145,8 +136,7 @@ class OAuthError(Exception):
 
 class RateLimitError(Exception):
     """Rate limiting error."""
-
-    def __init__(
+        def __init__(
         self,
         message: str,
         error_code: Optional[str] = None,
@@ -160,8 +150,7 @@ class RateLimitError(Exception):
 
 class AccountLockError(Exception):
     """Account locked error."""
-
-    def __init__(
+        def __init__(
         self,
         message: str,
         error_code: Optional[str] = None,

@@ -23,11 +23,11 @@ except ImportError:
 """
 Advanced Analytics Engine
 Comprehensive analytics, reporting, and monitoring system.
-"""
+
 
 class EventType(Enum):
     """Analytics event types."""
-    USER_LOGIN = "user_login"
+        USER_LOGIN = "user_login"
     USER_LOGOUT = "user_logout"
     USER_REGISTER = "user_register"
     MESSAGE_SENT = "message_sent"
@@ -41,7 +41,7 @@ class EventType(Enum):
 
 @dataclass
 class AnalyticsEvent:
-    """Represents an analytics event."""
+    """Represents an analytics event.
     event_type: EventType
     timestamp: datetime
     user_id: Optional[int] = None
@@ -55,16 +55,15 @@ class AnalyticsEvent:
 @dataclass
 class MetricSnapshot:
     """Represents a metric snapshot."""
-    name: str
+        name: str
     value: Union[int, float]
     unit: str
     timestamp: datetime
     tags: Dict[str, str] = field(default_factory=dict)
 
 class RealTimeMetrics:
-    """Real-time metrics collector."""
-
-    def __init__(self, window_size: int = 300):  # 5 minutes
+    Real-time metrics collector."""
+        def __init__(self, window_size: int = 300):  # 5 minutes
         self.window_size = window_size
         self.metrics: Dict[str, deque] = defaultdict(lambda: deque(maxlen=window_size))
         self.counters: Dict[str, int] = defaultdict(int)
@@ -73,7 +72,7 @@ class RealTimeMetrics:
         self.lock = threading.Lock()
 
     def increment_counter(self, name: str, value: int = 1, tags: Dict[str, str] = None):
-        """Increment a counter metric."""
+        """Increment a counter metric.
         with self.lock:
             key = self._make_key(name, tags)
             self.counters[key] += value
@@ -85,7 +84,7 @@ class RealTimeMetrics:
             self.gauges[key] = value
 
     def record_histogram(self, name: str, value: float, tags: Dict[str, str] = None):
-        """Record a histogram value."""
+        Record a histogram value."""
         with self.lock:
             key = self._make_key(name, tags)
             self.histograms[key].append(value)
@@ -106,7 +105,7 @@ class RealTimeMetrics:
         return f"{name}[{tag_str}]"
 
     def get_counter(self, name: str, tags: Dict[str, str] = None) -> int:
-        """Get counter value."""
+        """Get counter value.
         key = self._make_key(name, tags)
         return self.counters.get(key, 0)
 
@@ -116,7 +115,7 @@ class RealTimeMetrics:
         return self.gauges.get(key, 0.0)
 
     def get_histogram_stats(self, name: str, tags: Dict[str, str] = None) -> Dict[str, float]:
-        """Get histogram statistics."""
+        Get histogram statistics."""
         key = self._make_key(name, tags)
         values = self.histograms.get(key, [])
 
@@ -126,7 +125,7 @@ class RealTimeMetrics:
         sorted_values = sorted(values)
         count = len(sorted_values)
 
-        return {}
+        return {
             "count": count,
             "min": min(sorted_values),
             "max": max(sorted_values),
@@ -134,12 +133,11 @@ class RealTimeMetrics:
             "p50": sorted_values[int(count * 0.5)] if count > 0 else 0,
             "p95": sorted_values[int(count * 0.95)] if count > 0 else 0,
             "p99": sorted_values[int(count * 0.99)] if count > 0 else 0
-        }
+        }}
 
 class AnalyticsCollector:
     """Collects and processes analytics events."""
-
-    def __init__(self):
+        def __init__(self):
         self.events: deque = deque(maxlen=10000)  # Keep last 10k events
         self.metrics = RealTimeMetrics()
         self.session_data: Dict[str, Dict[str, Any]] = {}
@@ -253,7 +251,7 @@ datetime.utcnow()
             if (now - event.timestamp).total_seconds() < 600
         )
 
-        return {}
+        return {
             "timestamp": now.isoformat(),
             "active_sessions": active_sessions,
             "total_sessions": len(self.session_data),
@@ -262,7 +260,7 @@ datetime.utcnow()
             "api_requests": self.metrics.get_counter("api.requests.total"),
             "errors": self.metrics.get_counter("errors.total"),
             "request_timing": self.metrics.get_histogram_stats("api.request.duration")
-        }
+        }}
 
     def get_endpoint_analytics(self, limit: int = 20) -> List[Dict[str, Any]]:
         """Get endpoint analytics."""
@@ -308,19 +306,18 @@ datetime.utcnow()
         for event in user_events:
             event_types[event.event_type.value] += 1
 
-        return {}
+        return {
             "user_id": user_id,
             "total_events": len(user_events),
             "sessions": len(user_sessions),
             "first_activity": first_event.timestamp.isoformat(),
             "last_activity": last_event.timestamp.isoformat(),
             "event_breakdown": dict(event_types)
-        }
+        }}
 
 class AnalyticsDashboard:
-    """Analytics dashboard data provider."""
-
-    def __init__(self, collector: AnalyticsCollector):
+    """Analytics dashboard data provider.
+        def __init__(self, collector: AnalyticsCollector):
         self.collector = collector
 
     async def get_dashboard_data(self) -> Dict[str, Any]:
@@ -348,14 +345,14 @@ datetime.utcnow()
         for event in events_last_day:
             event_breakdown[event.event_type.value] += 1
 
-        return {}
+        return {
             "overview": {
                 "total_events": len(self.collector.events),
                 "active_sessions": self.collector.get_real_time_stats()["active_sessions"],
                 "unique_users_hour": unique_users_hour,
                 "unique_users_day": unique_users_day,
                 "unique_users_week": unique_users_week
-            },
+            }},
             "activity": {
                 "events_last_hour": len(events_last_hour),
                 "events_last_day": len(events_last_day),
@@ -369,12 +366,12 @@ datetime.utcnow()
 
     async def get_performance_metrics(self) -> Dict[str, Any]:
         """Get performance metrics."""
-        return {}
+        return {
             "api_timing": self.collector.metrics.get_histogram_stats("api.request.duration"),
             "error_rate": self._calculate_error_rate(),
             "throughput": self._calculate_throughput(),
             "response_codes": self._get_response_code_breakdown()
-        }
+        }}
 
     def _calculate_error_rate(self) -> float:
         """Calculate error rate."""
@@ -405,26 +402,25 @@ datetime.utcnow()
             if event.event_type == EventType.API_REQUEST and event.timestamp >= last_hour
         )
 
-        return {}
+        return {
             "requests_per_minute": requests_last_minute,
             "requests_per_hour": requests_last_hour
-        }
+        }}
 
     def _get_response_code_breakdown(self) -> Dict[str, int]:
         """Get response code breakdown."""
         # This would need to be tracked in events
         # For now, return placeholder data
-        return {}
+        return {
             "2xx": 0,
             "3xx": 0,
             "4xx": 0,
             "5xx": 0
-        }
+        }}
 
 class AnalyticsEngine:
-    """Main analytics engine."""
-
-    def __init__(self):
+    """Main analytics engine.
+        def __init__(self):
         self.collector = AnalyticsCollector()
         self.dashboard = AnalyticsDashboard(self.collector)
         self.enabled = getattr(settings, 'ANALYTICS_ENABLED', True)
@@ -444,9 +440,9 @@ datetime.utcnow(),
         await self.collector.track_event(event)
 
     async def track_api_request(self, endpoint: str, method: str, status_code: int,)
-                              duration_ms: float, user_id: Optional[int] = None,
-                              session_id: Optional[str] = None, ip_address: Optional[str] = None):
-        """Track API request."""
+                            duration_ms: float, user_id: Optional[int] = None,
+                            session_id: Optional[str] = None, ip_address: Optional[str] = None):
+        Track API request."""
         await self.track_event()
             EventType.API_REQUEST,
             endpoint=f"{method} {endpoint}",
@@ -458,7 +454,7 @@ datetime.utcnow(),
         )
 
     async def track_user_action(self, action: str, user_id: int,)
-                              session_id: Optional[str] = None, **data):
+                            session_id: Optional[str] = None, **data):
         """Track user action."""
         event_type_map = {
             "login": EventType.USER_LOGIN,
@@ -479,7 +475,7 @@ datetime.utcnow(),
         )
 
     async def get_analytics_data(self) -> Dict[str, Any]:
-        """Get comprehensive analytics data."""
+        """Get comprehensive analytics data.
         return await self.dashboard.get_dashboard_data()
 
     async def get_user_analytics(self, user_id: int) -> Dict[str, Any]:

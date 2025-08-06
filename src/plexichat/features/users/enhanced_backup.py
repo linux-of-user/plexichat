@@ -17,13 +17,12 @@ from sqlalchemy import DateTime, Index, Text
 """
 Enhanced government-level secure backup system models.
 Handles distributed sharding, redundancy tracking, and secure recovery.
-"""
+
 
 
 class BackupType(str, Enum):
     """Types of backups."""
-
-    FULL = "full"
+        FULL = "full"
     INCREMENTAL = "incremental"
     DIFFERENTIAL = "differential"
     EMERGENCY = "emergency"
@@ -44,8 +43,7 @@ class BackupStatus(str, Enum):
 
 class ShardStatus(str, Enum):
     """Shard status types."""
-
-    CREATED = "created"
+        CREATED = "created"
     ENCRYPTED = "encrypted"
     DISTRIBUTED = "distributed"
     VERIFIED = "verified"
@@ -65,8 +63,7 @@ TOP_SECRET =os.getenv("SECRET_KEY", "")
 
 class EnhancedBackup(SQLModel, table=True):
     """Enhanced backup record with government-level security."""
-
-    __tablename__ = "enhanced_backups"
+        __tablename__ = "enhanced_backups"
 
     id: Optional[int] = Field(default=None, primary_key=True)
     uuid: str = Field()
@@ -150,8 +147,7 @@ class EnhancedBackup(SQLModel, table=True):
 
 class EnhancedBackupShard(SQLModel, table=True):
     """Enhanced backup shard with comprehensive tracking."""
-
-    __tablename__ = "enhanced_backup_shards"
+        __tablename__ = "enhanced_backup_shards"
 
     id: Optional[int] = Field(default=None, primary_key=True)
     uuid: str = Field()
@@ -204,8 +200,7 @@ class EnhancedBackupShard(SQLModel, table=True):
 
 class ShardDistribution(SQLModel, table=True):
     """Tracks where each shard is distributed."""
-
-    __tablename__ = "shard_distributions"
+        __tablename__ = "shard_distributions"
 
     id: Optional[int] = Field(default=None, primary_key=True)
 
@@ -256,8 +251,7 @@ class ShardDistribution(SQLModel, table=True):
 
 class BackupNode(SQLModel, table=True):
     """Dedicated backup storage nodes."""
-
-    __tablename__ = "backup_nodes"
+        __tablename__ = "backup_nodes"
 
     id: Optional[int] = Field(default=None, primary_key=True)
     uuid: str = Field()
@@ -311,8 +305,7 @@ class BackupNode(SQLModel, table=True):
 
 class UserBackupQuota(SQLModel, table=True):
     """User backup storage quotas and usage tracking."""
-
-    __tablename__ = "user_backup_quotas"
+        __tablename__ = "user_backup_quotas"
 
     id: Optional[int] = Field(default=None, primary_key=True)
     user_id: int = Field(foreign_key="users_enhanced.id", unique=True, index=True)
@@ -347,8 +340,7 @@ class UserBackupQuota(SQLModel, table=True):
 
 class BackupRecoveryLog(SQLModel, table=True):
     """Log of backup recovery operations."""
-
-    __tablename__ = "backup_recovery_logs"
+        __tablename__ = "backup_recovery_logs"
 
     id: Optional[int] = Field(default=None, primary_key=True)
     uuid: str = Field()

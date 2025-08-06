@@ -4,7 +4,7 @@ import threading
 PlexiChat Notification Manager
 
 Notification management with threading and performance optimization.
-"""
+
 
 import asyncio
 import json
@@ -50,7 +50,7 @@ performance_logger = get_performance_logger() if get_performance_logger else Non
 
 class NotificationType(Enum):
     """Notification types."""
-    MESSAGE = "message"
+        MESSAGE = "message"
     MENTION = "mention"
     FRIEND_REQUEST = "friend_request"
     SYSTEM = "system"
@@ -67,8 +67,8 @@ class NotificationPriority(Enum):
 
 @dataclass
 class Notification:
-    """Notification data structure."""
-    notification_id: str
+    """Notification data structure.
+        notification_id: str
     user_id: int
     notification_type: NotificationType
     title: str
@@ -81,8 +81,7 @@ class Notification:
 
 class NotificationManager:
     """Notification manager with threading support."""
-
-    def __init__(self):
+        def __init__(self):
         self.db_manager = database_manager
         self.performance_logger = performance_logger
         self.async_thread_manager = async_thread_manager
@@ -100,7 +99,7 @@ class NotificationManager:
         self.notifications_expired = 0
 
     async def start_processing(self):
-        """Start notification processing loop."""
+        Start notification processing loop."""
         if self.processing:
             return
 
@@ -296,7 +295,7 @@ class NotificationManager:
             return {"notifications_enabled": True}
 
     async def _store_notification(self, notification: Notification):
-        """Store notification in database."""
+        """Store notification in database.
         try:
             if self.db_manager:
                 query = """
@@ -375,7 +374,7 @@ class NotificationManager:
             raise
 
     async def mark_as_read(self, notification_id: str, user_id: int) -> bool:
-        """Mark notification as read."""
+        """Mark notification as read.
         try:
             if self.db_manager:
                 query = """
@@ -403,15 +402,15 @@ class NotificationManager:
             return False
 
     async def get_user_notifications(self, user_id: int, limit: int = 50, )
-                                   unread_only: bool = False) -> List[Dict[str, Any]]:
-        """Get user notifications."""
+                                unread_only: bool = False) -> List[Dict[str, Any]]:
+        """Get user notifications.
         try:
             if not self.db_manager:
                 return []
 
             query = """
                 SELECT notification_id, notification_type, title, message,
-                       priority, created_at, read_at, data
+                    priority, created_at, read_at, data
                 FROM notifications
                 WHERE user_id = ? AND (expires_at IS NULL OR expires_at > ?)
             """
@@ -449,7 +448,7 @@ class NotificationManager:
             return []
 
     async def get_unread_count(self, user_id: int) -> int:
-        """Get unread notification count for user."""
+        """Get unread notification count for user.
         try:
             if not self.db_manager:
                 return 0
@@ -525,7 +524,7 @@ async def send_notification(user_id: int, notification_type: str, title: str, me
     )
 
 async def mark_notification_read(notification_id: str, user_id: int) -> bool:
-    """Mark notification as read using global manager."""
+    """Mark notification as read using global manager.
     return await notification_manager.mark_as_read(notification_id, user_id)
 
 async def get_notifications(user_id: int, limit: int = 50, unread_only: bool = False) -> List[Dict[str, Any]]:
@@ -533,5 +532,5 @@ async def get_notifications(user_id: int, limit: int = 50, unread_only: bool = F
     return await notification_manager.get_user_notifications(user_id, limit, unread_only)
 
 async def get_unread_notification_count(user_id: int) -> int:
-    """Get unread count using global manager."""
+    Get unread count using global manager."""
     return await notification_manager.get_unread_count(user_id)

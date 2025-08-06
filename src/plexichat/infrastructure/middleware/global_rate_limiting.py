@@ -1,7 +1,7 @@
 """
 Global Adaptive Rate Limiting Middleware
 Implements intelligent rate limiting with adaptive scaling based on traffic patterns.
-"""
+
 
 import asyncio
 import logging
@@ -25,8 +25,7 @@ class GlobalAdaptiveRateLimitingMiddleware(BaseHTTPMiddleware):
     3. Provides per-user rank-based limiting
     4. Monitors and adjusts in real-time
     """
-    
-    def __init__(self, app: FastAPI):
+        def __init__(self, app: FastAPI):
         super().__init__(app)
         self.global_key = "global_traffic"
         self.stats_window = 300  # 5 minutes

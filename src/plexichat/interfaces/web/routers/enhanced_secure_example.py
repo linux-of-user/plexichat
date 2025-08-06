@@ -102,11 +102,11 @@ async def get_public_info(request: Request):
             tags=["public", "info"]
         )
     
-    return {}
+    return {
         "message": "This is public information",
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "features": ["enhanced_security", "comprehensive_logging", "rate_limiting"]
-    }
+    }}
 
 
 # Basic authenticated endpoint
@@ -142,10 +142,10 @@ async def get_user_profile(request: Request, current_user: Dict = None):
                 "permissions": current_user.get("permissions", [])
             }
             
-            return {}
+            return {
                 "profile": profile_data,
                 "timestamp": datetime.now(timezone.utc).isoformat()
-            }
+            }}
     
     return {"error": "Logging system not available"}
 
@@ -196,12 +196,12 @@ async def create_user(
             tags=["user_created", "success"]
         )
     
-    return {}
+    return {
         "message": "User created successfully",
         "user_id": new_user_id,
         "created_by": current_user.get("username"),
         "timestamp": datetime.now(timezone.utc).isoformat()
-    }
+    }}
 
 
 # Admin endpoint with elevated permissions
@@ -274,13 +274,13 @@ async def update_system_config(
             tags=["system_config", "critical_change"]
         )
     
-    return {}
+    return {
         "message": "System configuration updated",
         "key": config_data.key,
         "category": config_data.category,
         "updated_by": current_user.get("username"),
         "timestamp": datetime.now(timezone.utc).isoformat()
-    }
+    }}
 
 
 # Performance monitoring endpoint
@@ -341,13 +341,13 @@ async def list_messages(
             tags=["performance", "database_query"]
         )
         
-        return {}
+        return {
             "messages": messages,
             "total_count": 1000,  # Simulated total
             "limit": limit,
             "offset": offset,
             "has_more": offset + len(messages) < 1000
-        }
+        }}
 
 
 # File upload endpoint with security validation
@@ -381,12 +381,12 @@ async def upload_file(
     # Simulate file processing
     file_id = f"file_{int(datetime.now().timestamp())}"
     
-    return {}
+    return {
         "message": "File uploaded successfully",
         "file_id": file_id,
         "uploaded_by": current_user.get("username"),
         "timestamp": datetime.now(timezone.utc).isoformat()
-    }
+    }}
 
 
 # Health check endpoint for monitoring

@@ -19,7 +19,7 @@ import time
 PlexiChat Comment Model
 
 Reddit-like comment model for posts with threading support.
-"""
+
 
 # Initialize snowflake generator for comments
 comment_snowflake = SnowflakeGenerator(datacenter_id=2, worker_id=3)
@@ -31,8 +31,7 @@ class Comment(SQLModel, table=True):
 
     Supports threaded comments with voting and moderation.
     """
-
-    __tablename__ = "comments"
+        __tablename__ = "comments"
 
     # Primary identification
     comment_id: str = Field()
@@ -109,9 +108,8 @@ class Comment(SQLModel, table=True):
     # replies: List["Comment"] = Relationship(back_populates="parent")
 
     class Config:
-        """SQLModel configuration."""
-
-        arbitrary_types_allowed = True
+    """SQLModel configuration."""
+            arbitrary_types_allowed = True
         json_encoders = {datetime: lambda v: v.isoformat() if v else None}
 
     def __repr__(self) -> str:
@@ -121,7 +119,7 @@ class Comment(SQLModel, table=True):
         return f"<Comment(comment_id='{self.comment_id}', content='{content_preview}', depth={self.depth})>"
 
     def get_score(self) -> int:
-        """Get the comment score (upvotes - downvotes)."""
+        """Get the comment score (upvotes - downvotes).
         return self.upvote_count - self.downvote_count
 
     def get_upvote_ratio(self) -> float:
@@ -132,11 +130,11 @@ class Comment(SQLModel, table=True):
         return self.upvote_count / total_votes
 
     def is_top_level(self) -> bool:
-        """Check if this is a top-level comment."""
+        Check if this is a top-level comment."""
         return self.parent_comment_id is None
 
     def is_reply(self) -> bool:
-        """Check if this is a reply to another comment."""
+        """Check if this is a reply to another comment.
         return self.parent_comment_id is not None
 
     def is_deleted(self) -> bool:
@@ -144,11 +142,11 @@ class Comment(SQLModel, table=True):
         return self.deleted
 
     def is_removed(self) -> bool:
-        """Check if comment is removed."""
+        Check if comment is removed."""
         return self.removed
 
     def is_visible(self) -> bool:
-        """Check if comment is visible (not deleted or removed)."""
+        """Check if comment is visible (not deleted or removed).
         return not (self.deleted or self.removed)
 
     def to_dict(self) -> Dict[str, Any]:

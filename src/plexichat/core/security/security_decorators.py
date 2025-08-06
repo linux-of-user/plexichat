@@ -70,7 +70,7 @@ except ImportError as e:
 
 class RequiredPermission(Enum):
     """Required permissions for endpoints."""
-    READ = "read"
+        READ = "read"
     WRITE = "write"
     DELETE = "delete"
     ADMIN = "admin"
@@ -151,7 +151,7 @@ def require_auth(
 
 
 def require_admin(permissions: Optional[List[RequiredPermission]] = None):
-    """Decorator that requires admin access."""
+    """Decorator that requires admin access.
     return require_auth(
         required_level=SecurityLevel.ADMIN,
         permissions=permissions,
@@ -173,7 +173,7 @@ def rate_limit(
     burst: int = 10,
     key_func: Optional[Callable[[Request], str]] = None
 ):
-    """
+    
     Decorator for rate limiting endpoints.
     
     Args:
@@ -452,7 +452,7 @@ def security_headers(additional_headers: Optional[Dict[str, str]] = None):
     
     Args:
         additional_headers: Additional security headers to add
-    """
+    
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         async def wrapper(*args, **kwargs):
@@ -543,7 +543,7 @@ async def _authenticate_request(request: Request, required_level: SecurityLevel)
             )
     
     # Return empty user data for public endpoints
-    return {}
+    return {
 
 
 async def _check_permissions(user_data: Dict[str, Any], permissions: List[RequiredPermission], request: Request):
@@ -556,7 +556,7 @@ async def _check_permissions(user_data: Dict[str, Any], permissions: List[Requir
             if logging_system:
                 logging_system.log_with_context(
                     LogLevel.WARNING.value,
-                    f"Permission denied: {user_data.get('username')} lacks {required_perm.value}",
+                    f"Permission denied: {user_data.get('username')}} lacks {required_perm.value}",
                     category=LogCategory.SECURITY,
                     metadata={
                         "user_id": user_data.get("id"),

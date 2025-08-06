@@ -64,8 +64,7 @@ optimization_engine = PerformanceOptimizationEngine() if PerformanceOptimization
 
 class WebService:
     """Service class for web operations using EXISTING database abstraction layer."""
-
-    def __init__(self):
+        def __init__(self):
         # Use EXISTING database manager
         self.db_manager = database_manager
         self.performance_logger = performance_logger
@@ -130,7 +129,7 @@ class WebService:
                             if result:
                                 dashboard_data["recent_activity"] = [
                                     {"content": row[0][:50] + "..." if len(row[0]) > 50 else row[0],
-                                     "timestamp": row[1]}
+                                    "timestamp": row[1]}
                                     for row in result
                                 ]
                     else:
@@ -146,7 +145,7 @@ class WebService:
                         if result:
                             dashboard_data["recent_activity"] = [
                                 {"content": row[0][:50] + "..." if len(row[0]) > 50 else row[0],
-                                 "timestamp": row[1]}
+                                "timestamp": row[1]}
                                 for row in result
                             ]
 

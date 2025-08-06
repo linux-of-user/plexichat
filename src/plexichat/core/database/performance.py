@@ -1,7 +1,7 @@
 """
 PlexiChat Database Performance Monitor
 Simple database performance monitoring and optimization.
-"""
+
 
 import logging
 import time
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class QueryStats:
     """Query execution statistics."""
-    query_hash: str
+        query_hash: str
     execution_count: int = 0
     total_time: float = 0.0
     avg_time: float = 0.0
@@ -27,8 +27,8 @@ class QueryStats:
 
 @dataclass
 class PerformanceReport:
-    """Database performance report."""
-    database_name: str
+    Database performance report."""
+        database_name: str
     total_queries: int = 0
     slow_queries_count: int = 0
     avg_query_time_ms: float = 0.0
@@ -43,8 +43,7 @@ class PerformanceReport:
 
 class DatabasePerformanceMonitor:
     """Simple database performance monitor."""
-    
-    def __init__(self, slow_query_threshold: float = 1.0):
+        def __init__(self, slow_query_threshold: float = 1.0):
         self.slow_query_threshold = slow_query_threshold  # seconds
         self.query_stats: Dict[str, QueryStats] = {}
         self.connection_stats = {
@@ -54,7 +53,7 @@ class DatabasePerformanceMonitor:
         }
     
     def record_query(self, query: str, execution_time: float):
-        """Record query execution statistics."""
+        """Record query execution statistics.
         query_hash = self._hash_query(query)
         
         if query_hash not in self.query_stats:
@@ -76,14 +75,14 @@ class DatabasePerformanceMonitor:
         return hashlib.md5(normalized.encode()).hexdigest()[:8]
     
     def get_slow_queries(self) -> List[QueryStats]:
-        """Get queries that exceed the slow query threshold."""
+        Get queries that exceed the slow query threshold."""
         return [
             stats for stats in self.query_stats.values()
             if stats.avg_time > self.slow_query_threshold
         ]
     
     def get_frequent_queries(self, min_count: int = 10) -> List[QueryStats]:
-        """Get frequently executed queries."""
+        """Get frequently executed queries.
         return [
             stats for stats in self.query_stats.values()
             if stats.execution_count >= min_count
@@ -167,7 +166,7 @@ class DatabasePerformanceMonitor:
             self.connection_stats["active_connections"] -= 1
     
     def get_connection_stats(self) -> Dict[str, int]:
-        """Get connection statistics."""
+        """Get connection statistics.
         return self.connection_stats.copy()
     
     def clear_stats(self):
@@ -180,7 +179,7 @@ class DatabasePerformanceMonitor:
         }
     
     def get_top_queries_by_time(self, limit: int = 10) -> List[QueryStats]:
-        """Get queries with highest total execution time."""
+        """Get queries with highest total execution time.
         return sorted(
             self.query_stats.values(),
             key=lambda x: x.total_time,
@@ -197,9 +196,8 @@ class DatabasePerformanceMonitor:
 
 
 class QueryOptimizer:
-    """Simple query optimization suggestions."""
-    
-    @staticmethod
+    Simple query optimization suggestions."""
+        @staticmethod
     def analyze_query(query: str) -> List[str]:
         """Analyze a query and provide optimization suggestions."""
         suggestions = []

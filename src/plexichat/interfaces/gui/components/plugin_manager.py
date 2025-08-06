@@ -1,7 +1,7 @@
 """
 Advanced Plugin Manager for PlexiChat GUI
 Supports custom plugin language and dynamic UI generation.
-"""
+
 
 import tkinter as tk
 from tkinter import ttk
@@ -23,8 +23,7 @@ class PluginLanguageParser:
     Custom language parser for PlexiChat plugins.
     Allows plugins to define UI using a simple, declarative language.
     """
-    
-    def __init__(self):
+        def __init__(self):
         self.widgets = {
             'frame': self.create_frame,
             'label': self.create_label,
@@ -50,7 +49,7 @@ class PluginLanguageParser:
         }
 
     def parse_ui_definition(self, ui_def: Dict[str, Any], parent: tk.Widget) -> tk.Widget:
-        """Parse UI definition and create widgets."""
+        Parse UI definition and create widgets."""
         try:
             widget_type = ui_def.get('type', 'frame')
             widget_config = ui_def.get('config', {})
@@ -74,7 +73,7 @@ class PluginLanguageParser:
             return ttk.Frame(parent)
 
     def create_widget(self, widget_type: str, parent: tk.Widget, config: Dict[str, Any]) -> tk.Widget:
-        """Create a widget of the specified type."""
+        """Create a widget of the specified type.
         creator = self.widgets.get(widget_type, self.create_frame)
         return creator(parent, config)
 
@@ -144,9 +143,8 @@ class PluginLanguageParser:
 
 
 class Plugin:
-    """Base plugin class."""
-    
-    def __init__(self, name: str, version: str = "1.0.0"):
+    Base plugin class."""
+        def __init__(self, name: str, version: str = "1.0.0"):
         self.name = name
         self.version = version
         self.enabled = True
@@ -154,7 +152,7 @@ class Plugin:
         self.app_instance = None
 
     def initialize(self, app_instance):
-        """Initialize the plugin."""
+        """Initialize the plugin.
         self.app_instance = app_instance
 
     def create_ui(self, parent: tk.Widget) -> Optional[tk.Widget]:
@@ -162,11 +160,11 @@ class Plugin:
         return None
 
     def on_theme_change(self, theme_name: str, theme_data: Dict[str, Any]):
-        """Handle theme change."""
+        Handle theme change."""
         pass
 
     def cleanup(self):
-        """Cleanup plugin resources."""
+        """Cleanup plugin resources.
         pass
 
 
@@ -182,8 +180,7 @@ class PluginManager:
     - Plugin security
     - Plugin marketplace integration
     """
-
-    def __init__(self, app_instance):
+        def __init__(self, app_instance):
         self.app = app_instance
         self.plugins: Dict[str, Plugin] = {}
         self.plugin_uis: Dict[str, tk.Widget] = {}
@@ -335,7 +332,7 @@ class PluginManager:
             return None
 
     def get_plugin(self, name: str) -> Optional[Plugin]:
-        """Get a plugin by name."""
+        """Get a plugin by name.
         return self.plugins.get(name)
 
     def get_plugin_list(self) -> List[str]:
@@ -343,13 +340,13 @@ class PluginManager:
         return list(self.plugins.keys())
 
     def enable_plugin(self, name: str):
-        """Enable a plugin."""
+        Enable a plugin."""
         plugin = self.plugins.get(name)
         if plugin:
             plugin.enabled = True
 
     def disable_plugin(self, name: str):
-        """Disable a plugin."""
+        """Disable a plugin.
         plugin = self.plugins.get(name)
         if plugin:
             plugin.enabled = False
@@ -373,9 +370,8 @@ class PluginManager:
 
 
 class DeclarativePlugin(Plugin):
-    """Plugin created from declarative UI definition."""
-    
-    def __init__(self, name: str, version: str, ui_definition: Dict[str, Any]):
+    """Plugin created from declarative UI definition.
+        def __init__(self, name: str, version: str, ui_definition: Dict[str, Any]):
         super().__init__(name, version)
         self.ui_definition = ui_definition
 
@@ -393,9 +389,9 @@ class DeclarativePlugin(Plugin):
 
 def create_example_chat_plugin():
     """Example of how a chat plugin would be defined."""
-    return {}
+    return {
         "type": "frame",
-        "config": {"padding": 10},
+        "config": {"padding": 10}},
         "layout": {"type": "pack", "options": {"fill": "both", "expand": True}},
         "children": [
             {
@@ -430,9 +426,9 @@ def create_example_chat_plugin():
 
 def create_example_dashboard_plugin():
     """Example of how a dashboard plugin would be defined."""
-    return {}
+    return {
         "type": "notebook",
-        "layout": {"type": "pack", "options": {"fill": "both", "expand": True}},
+        "layout": {"type": "pack", "options": {"fill": "both", "expand": True}}},
         "children": [
             {
                 "type": "frame",

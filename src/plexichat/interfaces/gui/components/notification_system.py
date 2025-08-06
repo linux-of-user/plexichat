@@ -1,7 +1,7 @@
 """
 Advanced Notification System for PlexiChat GUI
 Provides sophisticated notification management with animations and customization.
-"""
+
 
 import tkinter as tk
 from tkinter import ttk
@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 class NotificationType(Enum):
     """Notification types."""
-    INFO = "info"
+        INFO = "info"
     SUCCESS = "success"
     WARNING = "warning"
     ERROR = "error"
@@ -27,7 +27,7 @@ class NotificationType(Enum):
 
 
 class NotificationPriority(Enum):
-    """Notification priorities."""
+    """Notification priorities.
     LOW = 1
     NORMAL = 2
     HIGH = 3
@@ -36,10 +36,9 @@ class NotificationPriority(Enum):
 
 class Notification:
     """Individual notification object."""
-    
-    def __init__(self, title: str, message: str, notification_type: NotificationType = NotificationType.INFO,
-                 priority: NotificationPriority = NotificationPriority.NORMAL, duration: int = 5000,
-                 actions: Optional[List[Dict[str, Any]]] = None, data: Optional[Dict[str, Any]] = None):
+        def __init__(self, title: str, message: str, notification_type: NotificationType = NotificationType.INFO,
+                priority: NotificationPriority = NotificationPriority.NORMAL, duration: int = 5000,
+                actions: Optional[List[Dict[str, Any]]] = None, data: Optional[Dict[str, Any]] = None):
         self.id = f"notif_{int(time.time() * 1000)}"
         self.title = title
         self.message = message
@@ -70,8 +69,7 @@ class NotificationSystem:
     - Do not disturb mode
     - Custom positioning
     """
-
-    def __init__(self, root: tk.Tk):
+        def __init__(self, root: tk.Tk):
         self.root = root
         self.enabled = True
         self.do_not_disturb = False
@@ -99,8 +97,8 @@ class NotificationSystem:
         self.start_notification_processor()
 
     def show_notification(self, title: str, message: str, notification_type: str = "info",
-                         priority: str = "normal", duration: int = None, actions: List[Dict[str, Any]] = None,
-                         data: Dict[str, Any] = None) -> str:
+                        priority: str = "normal", duration: int = None, actions: List[Dict[str, Any]] = None,
+                        data: Dict[str, Any] = None) -> str:
         """Show a notification."""
         try:
             if not self.enabled:
@@ -190,7 +188,7 @@ class NotificationSystem:
             logger.error(f"Failed to process notification: {e}")
 
     def should_show_notification(self, notification: Notification) -> bool:
-        """Check if notification should be shown."""
+        """Check if notification should be shown.
         if not self.enabled:
             return False
         
@@ -361,7 +359,7 @@ class NotificationSystem:
             logger.error(f"Failed to bind toast events: {e}")
 
     def get_all_children(self, widget: tk.Widget) -> List[tk.Widget]:
-        """Get all child widgets recursively."""
+        """Get all child widgets recursively.
         children = [widget]
         for child in widget.winfo_children():
             children.extend(self.get_all_children(child))
@@ -519,7 +517,7 @@ class NotificationSystem:
             logger.error(f"Failed to clear all notifications: {e}")
 
     def set_enabled(self, enabled: bool):
-        """Enable or disable notifications."""
+        """Enable or disable notifications.
         self.enabled = enabled
 
     def set_do_not_disturb(self, enabled: bool):
@@ -527,11 +525,11 @@ class NotificationSystem:
         self.do_not_disturb = enabled
 
     def set_sound_enabled(self, enabled: bool):
-        """Enable or disable notification sounds."""
+        Enable or disable notification sounds."""
         self.sound_enabled = enabled
 
     def register_callback(self, callback: Callable):
-        """Register a callback for notification events."""
+        """Register a callback for notification events.
         self.notification_callbacks.append(callback)
 
     def notify_callbacks(self, notification: Notification):
@@ -543,7 +541,7 @@ class NotificationSystem:
                 logger.error(f"Notification callback error: {e}")
 
     def get_notification_history(self) -> List[Notification]:
-        """Get notification history."""
+        """Get notification history.
         return self.notification_history.copy()
 
     def get_active_notifications(self) -> List[Notification]:
@@ -551,7 +549,7 @@ class NotificationSystem:
         return self.active_notifications.copy()
 
     def cleanup(self):
-        """Cleanup notification system."""
+        Cleanup notification system."""
         try:
             self.clear_all_notifications()
             

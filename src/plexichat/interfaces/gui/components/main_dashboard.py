@@ -1,7 +1,7 @@
 """
 Main Dashboard Component for PlexiChat GUI
 Central hub with tabs, widgets, and plugin integration.
-"""
+
 
 import tkinter as tk
 from tkinter import ttk, messagebox
@@ -27,8 +27,7 @@ class MainDashboard(ttk.Frame):
     - Real-time updates
     - Customizable layouts
     """
-
-    def __init__(self, parent, app_instance):
+        def __init__(self, parent, app_instance):
         super().__init__(parent, style="Modern.TFrame")
         self.app = app_instance
         self.parent = parent
@@ -748,7 +747,7 @@ Command Line: {' '.join(proc.cmdline()) if proc.cmdline() else 'N/A'}
             logger.error(f"Failed to create network interfaces display: {e}")
 
     def create_network_stats_display(self, parent):
-        """Create network statistics display."""
+        """Create network statistics display.
         try:
             import psutil
 
@@ -1683,7 +1682,7 @@ Drops Out: {stats.dropout}"""
             return "Unknown"
 
     def get_active_users_count(self) -> int:
-        """Get active users count."""
+        """Get active users count.
         try:
             # This would integrate with actual user session management
             return 42  # Placeholder
@@ -1699,7 +1698,7 @@ Drops Out: {stats.dropout}"""
             return 0
 
     def get_database_status(self) -> str:
-        """Get database status."""
+        Get database status."""
         try:
             # This would check actual database connection
             return "Online"
@@ -2354,13 +2353,13 @@ External Services: {integration_status['external_services']}"""
         """Get configuration system status."""
         try:
             # This would integrate with actual config system
-            return {}
+            return {
                 "available": True,
                 "files_count": 12,
                 "active_settings": 156,
                 "environment": "production",
                 "last_modified": "2024-01-20 15:30:00"
-            }
+            }}
         except Exception as e:
             logger.error(f"Failed to get config status: {e}")
             return {"available": False, "files_count": 0, "active_settings": 0, "environment": "unknown", "last_modified": "unknown"}
@@ -2369,13 +2368,13 @@ External Services: {integration_status['external_services']}"""
         """Get database core status."""
         try:
             # This would integrate with actual database system
-            return {}
+            return {
                 "available": True,
                 "connections": 15,
                 "type": "PostgreSQL",
                 "schema_version": "1.2.3",
                 "performance": "Excellent"
-            }
+            }}
         except Exception as e:
             logger.error(f"Failed to get database core status: {e}")
             return {"available": False, "connections": 0, "type": "unknown", "schema_version": "unknown", "performance": "unknown"}
@@ -2384,13 +2383,13 @@ External Services: {integration_status['external_services']}"""
         """Get authentication core status."""
         try:
             # This would integrate with actual auth system
-            return {}
+            return {
                 "available": True,
                 "active_sessions": 42,
                 "auth_methods": ["password", "2fa", "oauth"],
                 "security_level": "GOVERNMENT",
                 "token_expiry": "8 hours"
-            }
+            }}
         except Exception as e:
             logger.error(f"Failed to get auth core status: {e}")
             return {"available": False, "active_sessions": 0, "auth_methods": [], "security_level": "unknown", "token_expiry": "unknown"}
@@ -2399,13 +2398,13 @@ External Services: {integration_status['external_services']}"""
         """Get logging core status."""
         try:
             # This would integrate with actual logging system
-            return {}
+            return {
                 "available": True,
                 "log_level": "INFO",
                 "log_files": 8,
                 "total_size": "2.3 GB",
                 "handlers": 5
-            }
+            }}
         except Exception as e:
             logger.error(f"Failed to get logging core status: {e}")
             return {"available": False, "log_level": "unknown", "log_files": 0, "total_size": "unknown", "handlers": 0}
@@ -2414,13 +2413,13 @@ External Services: {integration_status['external_services']}"""
         """Get exception handling status."""
         try:
             # This would integrate with actual exception system
-            return {}
+            return {
                 "available": True,
                 "recent_count": 3,
                 "error_rate": 0.02,
                 "critical_count": 0,
                 "last_error": "2 hours ago"
-            }
+            }}
         except Exception as e:
             logger.error(f"Failed to get exception core status: {e}")
             return {"available": False, "recent_count": 0, "error_rate": 0, "critical_count": 0, "last_error": "unknown"}
@@ -2429,13 +2428,13 @@ External Services: {integration_status['external_services']}"""
         """Get messaging core status."""
         try:
             # This would integrate with actual messaging system
-            return {}
+            return {
                 "available": True,
                 "active_channels": 25,
                 "messages_per_hour": 1250,
                 "queue_size": 12,
                 "websocket_connections": 89
-            }
+            }}
         except Exception as e:
             logger.error(f"Failed to get messaging core status: {e}")
             return {"available": False, "active_channels": 0, "messages_per_hour": 0, "queue_size": 0, "websocket_connections": 0}
@@ -2444,13 +2443,13 @@ External Services: {integration_status['external_services']}"""
         """Get integration core status."""
         try:
             # This would integrate with actual integration system
-            return {}
+            return {
                 "available": True,
                 "active_integrations": 8,
                 "api_endpoints": 45,
                 "webhooks": 12,
                 "external_services": 6
-            }
+            }}
         except Exception as e:
             logger.error(f"Failed to get integration core status: {e}")
             return {"available": False, "active_integrations": 0, "api_endpoints": 0, "webhooks": 0, "external_services": 0}
@@ -3387,7 +3386,7 @@ Documentation: https://docs.plexichat.com/plugins/{plugin_name.lower().replace('
             ttk.Label(basic_frame, text="Plugin Type:", font=("Segoe UI", 10, "bold")).pack(anchor=tk.W, padx=20, pady=(10, 5))
             plugin_type_var = tk.StringVar(value="chat")
             plugin_type_combo = ttk.Combobox(basic_frame, textvariable=plugin_type_var,
-                                           values=["chat", "ai", "security", "utilities", "integrations", "themes", "analytics"])
+                                        values=["chat", "ai", "security", "utilities", "integrations", "themes", "analytics"])
             plugin_type_combo.pack(anchor=tk.W, padx=20, pady=(0, 10))
 
             # Author info
@@ -3454,7 +3453,7 @@ Documentation: https://docs.plexichat.com/plugins/{plugin_name.lower().replace('
             logger.error(f"Failed to apply theme to dashboard: {e}")
 
     def get_tab(self, name: str) -> Optional[tk.Widget]:
-        """Get a tab by name."""
+        """Get a tab by name.
         return self.tabs.get(name)
 
     def switch_to_tab(self, name: str):
@@ -3572,14 +3571,14 @@ Documentation: https://docs.plexichat.com/plugins/{plugin_name.lower().replace('
             fallback_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
 
             ttk.Label(fallback_frame,
-                     text="CLI Terminal Not Available",
-                     style="Modern.TLabel",
-                     font=('Arial', 16, 'bold')).pack(pady=20)
+                    text="CLI Terminal Not Available",
+                    style="Modern.TLabel",
+                    font=('Arial', 16, 'bold')).pack(pady=20)
 
             ttk.Label(fallback_frame,
-                     text="The CLI terminal component could not be loaded.\nPlease check the installation and try again.",
-                     style="Modern.TLabel",
-                     justify=tk.CENTER).pack(pady=10)
+                    text="The CLI terminal component could not be loaded.\nPlease check the installation and try again.",
+                    style="Modern.TLabel",
+                    justify=tk.CENTER).pack(pady=10)
 
             # Add manual CLI execution option
             manual_frame = ttk.LabelFrame(fallback_frame, text="Manual CLI Execution", style="Modern.TLabelframe")
@@ -3632,8 +3631,8 @@ Documentation: https://docs.plexichat.com/plugins/{plugin_name.lower().replace('
                         messagebox.showerror("Error", f"Failed to execute command: {e}")
 
             ttk.Button(command_frame, text="Execute",
-                      command=execute_manual_command,
-                      style="Modern.TButton").pack(side=tk.RIGHT, padx=(10, 0))
+                    command=execute_manual_command,
+                    style="Modern.TButton").pack(side=tk.RIGHT, padx=(10, 0))
 
             # Add common commands
             common_frame = ttk.LabelFrame(fallback_frame, text="Common Commands", style="Modern.TLabelframe")
@@ -3657,12 +3656,12 @@ Documentation: https://docs.plexichat.com/plugins/{plugin_name.lower().replace('
 
                 def make_command_handler(command):
                     return lambda: (command_entry.delete(0, tk.END),
-                                  command_entry.insert(0, command),
-                                  execute_manual_command())
+                                command_entry.insert(0, command),
+                                execute_manual_command())
 
                 ttk.Button(commands_grid, text=label,
-                          command=make_command_handler(cmd),
-                          style="Modern.TButton").grid(row=row, column=col, padx=5, pady=5, sticky="ew")
+                        command=make_command_handler(cmd),
+                        style="Modern.TButton").grid(row=row, column=col, padx=5, pady=5, sticky="ew")
 
             # Configure grid weights
             for i in range(3):
@@ -3677,14 +3676,14 @@ Documentation: https://docs.plexichat.com/plugins/{plugin_name.lower().replace('
             error_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
 
             ttk.Label(error_frame,
-                     text="Error Creating CLI Terminal",
-                     style="Modern.TLabel",
-                     font=('Arial', 16, 'bold')).pack(pady=20)
+                    text="Error Creating CLI Terminal",
+                    style="Modern.TLabel",
+                    font=('Arial', 16, 'bold')).pack(pady=20)
 
             ttk.Label(error_frame,
-                     text=f"An error occurred while creating the CLI terminal:\n{str(e)}",
-                     style="Modern.TLabel",
-                     justify=tk.CENTER).pack(pady=10)
+                    text=f"An error occurred while creating the CLI terminal:\n{str(e)}",
+                    style="Modern.TLabel",
+                    justify=tk.CENTER).pack(pady=10)
 
             return error_frame
 
@@ -3702,18 +3701,18 @@ Documentation: https://docs.plexichat.com/plugins/{plugin_name.lower().replace('
             header_frame.pack(fill=tk.X, padx=10, pady=10)
 
             ttk.Label(header_frame, text="[CLIPBOARD] Logs & Analytics",
-                     font=("Segoe UI", 16, "bold"), style="Modern.TLabel").pack(side=tk.LEFT)
+                    font=("Segoe UI", 16, "bold"), style="Modern.TLabel").pack(side=tk.LEFT)
 
             # Controls
             controls_frame = ttk.Frame(header_frame)
             controls_frame.pack(side=tk.RIGHT)
 
             ttk.Button(controls_frame, text="[REFRESH] Refresh",
-                      command=self.refresh_logs, style="Modern.TButton").pack(side=tk.LEFT, padx=2)
+                    command=self.refresh_logs, style="Modern.TButton").pack(side=tk.LEFT, padx=2)
             ttk.Button(controls_frame, text="[CLEAN] Clear",
-                      command=self.clear_log_display, style="Modern.TButton").pack(side=tk.LEFT, padx=2)
+                    command=self.clear_log_display, style="Modern.TButton").pack(side=tk.LEFT, padx=2)
             ttk.Button(controls_frame, text="[SAVE] Export",
-                      command=self.export_logs, style="Modern.TButton").pack(side=tk.LEFT, padx=2)
+                    command=self.export_logs, style="Modern.TButton").pack(side=tk.LEFT, padx=2)
 
             # Log level filter
             filter_frame = ttk.Frame(main_frame, style="Modern.TFrame")
@@ -3724,14 +3723,14 @@ Documentation: https://docs.plexichat.com/plugins/{plugin_name.lower().replace('
             self.log_level_var = tk.StringVar(value="ALL")
             log_levels = ["ALL", "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
             log_level_combo = ttk.Combobox(filter_frame, textvariable=self.log_level_var,
-                                         values=log_levels, state="readonly", width=10)
+                                        values=log_levels, state="readonly", width=10)
             log_level_combo.pack(side=tk.LEFT, padx=(5, 10))
             log_level_combo.bind("<<ComboboxSelected>>", lambda e: self.filter_logs())
 
             # Auto-refresh checkbox
             self.auto_refresh_var = tk.BooleanVar(value=True)
             ttk.Checkbutton(filter_frame, text="Auto-refresh",
-                           variable=self.auto_refresh_var, style="Modern.TCheckbutton").pack(side=tk.LEFT, padx=10)
+                        variable=self.auto_refresh_var, style="Modern.TCheckbutton").pack(side=tk.LEFT, padx=10)
 
             # Log display area
             log_frame = ttk.Frame(main_frame, style="Modern.TFrame")
@@ -3742,7 +3741,7 @@ Documentation: https://docs.plexichat.com/plugins/{plugin_name.lower().replace('
             text_frame.pack(fill=tk.BOTH, expand=True)
 
             self.log_text = tk.Text(text_frame, wrap=tk.WORD, font=("Consolas", 10),
-                                   bg="#1a1a2e", fg="#ffffff", insertbackground="#ffffff")
+                                bg="#1a1a2e", fg="#ffffff", insertbackground="#ffffff")
 
             scrollbar = ttk.Scrollbar(text_frame, orient=tk.VERTICAL, command=self.log_text.yview)
             self.log_text.configure(yscrollcommand=scrollbar.set)
@@ -3767,7 +3766,7 @@ Documentation: https://docs.plexichat.com/plugins/{plugin_name.lower().replace('
             # Create statistics labels
             self.stats_labels = {}
             stats_items = [("Total Logs", "total"), ("Errors", "error"), ("Warnings", "warning"),
-                          ("Info", "info"), ("Debug", "debug")]
+                        ("Info", "info"), ("Debug", "debug")]
 
             for i, (label, key) in enumerate(stats_items):
                 ttk.Label(stats_grid, text=f"{label}:", style="Modern.TLabel").grid(row=0, column=i*2, sticky="w", padx=(0, 5))
@@ -3795,10 +3794,10 @@ Documentation: https://docs.plexichat.com/plugins/{plugin_name.lower().replace('
             error_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
 
             ttk.Label(error_frame, text="Error Creating Logs & Analytics",
-                     style="Modern.TLabel", font=('Arial', 16, 'bold')).pack(pady=20)
+                    style="Modern.TLabel", font=('Arial', 16, 'bold')).pack(pady=20)
 
             ttk.Label(error_frame, text=f"An error occurred:\n{str(e)}",
-                     style="Modern.TLabel", justify=tk.CENTER).pack(pady=10)
+                    style="Modern.TLabel", justify=tk.CENTER).pack(pady=10)
 
             return error_frame
 
@@ -3843,7 +3842,7 @@ Documentation: https://docs.plexichat.com/plugins/{plugin_name.lower().replace('
             logger.error(f"Failed to load logs: {e}")
 
     def extract_log_level(self, line):
-        """Extract log level from log line."""
+        """Extract log level from log line.
         levels = ['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG']
         for level in levels:
             if level in line.upper():
@@ -3891,7 +3890,7 @@ Documentation: https://docs.plexichat.com/plugins/{plugin_name.lower().replace('
 
             if level_filter != "ALL":
                 filtered_entries = [entry for entry in self.log_entries
-                                  if entry['level'] == level_filter]
+                                if entry['level'] == level_filter]
 
             # Display filtered entries
             for entry in filtered_entries[:500]:  # Limit display for performance
@@ -3930,7 +3929,7 @@ Documentation: https://docs.plexichat.com/plugins/{plugin_name.lower().replace('
             logger.error(f"Failed to update log statistics: {e}")
 
     def refresh_logs(self):
-        """Refresh log display."""
+        """Refresh log display.
         self.load_logs()
 
     def clear_log_display(self):
@@ -3944,7 +3943,7 @@ Documentation: https://docs.plexichat.com/plugins/{plugin_name.lower().replace('
             logger.error(f"Failed to clear log display: {e}")
 
     def filter_logs(self):
-        """Filter logs based on selected level."""
+        """Filter logs based on selected level.
         self.update_log_display()
 
     def export_logs(self):

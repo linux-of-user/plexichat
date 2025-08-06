@@ -33,11 +33,11 @@ from sqlalchemy.orm import sessionmaker
 """
 Multi-Node Clustering System for PlexiChat
 Distributed architecture with load balancing and intelligent request routing.
-"""
+
 
 class NodeRole(Enum):
     """Node roles in the cluster."""
-    MASTER = "master"
+        MASTER = "master"
     WORKER = "worker"
     BACKUP = "backup"
     LOAD_BALANCER = "load_balancer"
@@ -53,7 +53,7 @@ class NodeStatus(Enum):
 
 class LoadBalanceStrategy(Enum):
     """Load balancing strategies."""
-    ROUND_ROBIN = "round_robin"
+        ROUND_ROBIN = "round_robin"
     LEAST_CONNECTIONS = "least_connections"
     WEIGHTED_ROUND_ROBIN = "weighted_round_robin"
     RESOURCE_BASED = "resource_based"
@@ -61,7 +61,7 @@ class LoadBalanceStrategy(Enum):
 
 @dataclass
 class NodeInfo:
-    """Information about a cluster node."""
+    """Information about a cluster node.
     node_id: str
     hostname: str
     ip_address: str
@@ -83,7 +83,7 @@ class NodeInfo:
 @dataclass
 class ClusterConfig:
     """Cluster configuration."""
-    cluster_id: str
+        cluster_id: str
     cluster_name: str
     master_nodes: List[str]
     total_nodes: int
@@ -96,9 +96,8 @@ class ClusterConfig:
     min_nodes: int
 
 class NodeManager:
-    """Manages cluster nodes and load balancing."""
-
-    def __init__(self, node_id: Optional[str] = None, role: NodeRole = NodeRole.WORKER):
+    Manages cluster nodes and load balancing."""
+        def __init__(self, node_id: Optional[str] = None, role: NodeRole = NodeRole.WORKER):
         self.logger = logging.getLogger(__name__)
 
         # Node identity
@@ -144,7 +143,7 @@ class NodeManager:
     def _get_server_info(self) -> Dict[str, Any]:
         """Get current server information."""
         try:
-            return {}
+            return {
                 "hostname": socket.gethostname(),
                 "ip_address": socket.gethostbyname(socket.gethostname()),
                 "port": 8000,  # Default port
@@ -156,10 +155,10 @@ psutil = psutil.virtual_memory().total,
 psutil = psutil.disk_usage('/').total,
                 "platform": import psutil
 psutil = psutil.LINUX if hasattr(psutil, 'LINUX') else "unknown"
-            }
+            }}
         except Exception as e:
             self.logger.error(f"Failed to get server info: {e}")
-            return {}
+            return {
                 "hostname": "unknown",
                 "ip_address": "127.0.0.1",
                 "port": 8000,
@@ -167,7 +166,7 @@ psutil = psutil.LINUX if hasattr(psutil, 'LINUX') else "unknown"
                 "memory_total": 1024*1024*1024,
                 "disk_total": 10*1024*1024*1024,
                 "platform": "unknown"
-            }
+            }}
 
     def _load_cluster_config(self) -> ClusterConfig:
         """Load cluster configuration."""
@@ -232,7 +231,7 @@ Path("config/cluster.json")
             self.logger.error(f"Failed to initialize cluster database: {e}")
 
     def _create_cluster_tables(self):
-        """Create database tables for cluster management."""
+        """Create database tables for cluster management.
         Base = declarative_base()
 
         class ClusterNode(Base):
@@ -363,8 +362,8 @@ Path("config/cluster.json")
             self.cluster_nodes[node_id] = NodeInfo(**node_data)
 
     async def select_target_node(self, request: Optional[Request] = None,)
-                               service_type: str = "api") -> Optional[NodeInfo]:
-        """Select the best target node for a request."""
+                            service_type: str = "api") -> Optional[NodeInfo]:
+        """Select the best target node for a request.
         available_nodes = [
             node for node in self.cluster_nodes.values()
             if node.status == NodeStatus.ONLINE and service_type in node.capabilities
@@ -394,11 +393,11 @@ Path("config/cluster.json")
         return node
 
     def _least_connections_selection(self, nodes: List[NodeInfo]) -> NodeInfo:
-        """Select node with least active connections."""
+        Select node with least active connections."""
         return min(nodes, key=lambda n: n.active_connections)
 
     def _resource_based_selection(self, nodes: List[NodeInfo]) -> NodeInfo:
-        """Select node based on resource utilization."""
+        """Select node based on resource utilization.
         def calculate_load_score(node: NodeInfo) -> float:
             # Lower score is better
             cpu_weight = 0.4
@@ -413,9 +412,9 @@ Path("config/cluster.json")
             latency_score = min(node.network_latency / 1000.0, 1.0)
 
             return (cpu_score * cpu_weight +
-                   memory_score * memory_weight +
-                   connection_score * connections_weight +
-                   latency_score * latency_weight)
+                memory_score * memory_weight +
+                connection_score * connections_weight +
+                latency_score * latency_weight)
 
         return min(nodes, key=calculate_load_score)
 
@@ -479,19 +478,19 @@ Path("config/cluster.json")
                     # Get response data
                     response_data = await response.text()
 
-                    return {}
+                    return {
                         "status_code": response.status,
                         "headers": dict(response.headers),
                         "body": response_data,
                         "response_time": response_time
-                    }
+                    }}
 
         except Exception as e:
             self.logger.error(f"Failed to forward request to {target_node.node_id}: {e}")
             raise HTTPException(status_code=502, detail=f"Failed to forward request: {e}")
 
     def _update_node_metrics(self, node_id: str, response_time: float):
-        """Update node performance metrics."""
+        """Update node performance metrics.
         if node_id not in self.response_times:
             self.response_times[node_id] = deque(maxlen=100)
 
@@ -597,7 +596,7 @@ psutil = psutil.disk_usage('/').percent,
                 self.logger.error(f"Failed to check health of node {node_id}: {e}")
 
     def _cleanup_metrics(self):
-        """Clean up old metrics data."""
+        """Clean up old metrics data.
         # Clean up old response times
         for node_id in list(self.response_times.keys()):
             if len(self.response_times[node_id]) == 0:
@@ -611,7 +610,7 @@ psutil = psutil.disk_usage('/').percent,
         """Get comprehensive cluster status."""
         online_nodes = sum(1 for node in self.cluster_nodes.values() if node.status == NodeStatus.ONLINE)
 
-        return {}
+        return {
             "cluster_id": self.config.cluster_id,
             "cluster_name": self.config.cluster_name,
             "current_node": self.node_id,
@@ -632,7 +631,7 @@ psutil = psutil.disk_usage('/').percent,
                     "memory_usage": node.memory_usage,
                     "active_connections": node.active_connections,
                     "last_heartbeat": node.last_heartbeat.isoformat()
-                }
+                }}
                 for node_id, node in self.cluster_nodes.items()
             }
         }
@@ -769,9 +768,10 @@ async def set_load_balance_strategy(strategy: str, node_mgr: NodeManager = Depen
 
     except ValueError:
         valid_strategies = [s.value for s in LoadBalanceStrategy]
-        raise HTTPException()
+        raise HTTPException(
             status_code=400,
             detail=f"Invalid strategy. Valid options: {valid_strategies}"
+        
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to set strategy: {e}")
@@ -842,8 +842,7 @@ async def proxy_request(path: str, request: Request, node_mgr: NodeManager = Dep
 # Load balancing middleware
 class LoadBalancingMiddleware:
     """Middleware for automatic load balancing."""
-
-    def __init__(self, app, node_manager: NodeManager):
+        def __init__(self, app, node_manager: NodeManager):
         self.app = app
         self.node_manager = node_manager
 

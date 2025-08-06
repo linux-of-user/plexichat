@@ -2,7 +2,7 @@
 CLI Terminal Component for PlexiChat GUI
 
 Integrates the enhanced CLI system into the GUI with a full-featured terminal interface.
-"""
+
 
 import tkinter as tk
 from tkinter import ttk, scrolledtext, font, messagebox
@@ -38,8 +38,7 @@ class CLITerminal(ttk.Frame):
     - Command shortcuts and aliases
     - Export/import command history
     """
-    
-    def __init__(self, parent, **kwargs):
+        def __init__(self, parent, **kwargs):
         super().__init__(parent, **kwargs)
         
         self.parent = parent
@@ -85,18 +84,18 @@ class CLITerminal(ttk.Frame):
         header_frame.grid(row=0, column=0, sticky="ew", pady=(0, 5))
         
         ttk.Label(header_frame, text="PlexiChat CLI Terminal", 
-                 font=('Consolas', 12, 'bold')).pack(side=tk.LEFT)
+                font=('Consolas', 12, 'bold')).pack(side=tk.LEFT)
         
         # Terminal controls
         controls_frame = ttk.Frame(header_frame)
         controls_frame.pack(side=tk.RIGHT)
         
         ttk.Button(controls_frame, text="Clear", 
-                  command=self.clear_terminal, width=8).pack(side=tk.LEFT, padx=2)
+                command=self.clear_terminal, width=8).pack(side=tk.LEFT, padx=2)
         ttk.Button(controls_frame, text="History", 
-                  command=self.show_history, width=8).pack(side=tk.LEFT, padx=2)
+                command=self.show_history, width=8).pack(side=tk.LEFT, padx=2)
         ttk.Button(controls_frame, text="Help", 
-                  command=self.show_help, width=8).pack(side=tk.LEFT, padx=2)
+                command=self.show_help, width=8).pack(side=tk.LEFT, padx=2)
         
         # Terminal output area
         terminal_frame = ttk.Frame(main_frame)
@@ -126,8 +125,8 @@ class CLITerminal(ttk.Frame):
         
         # Prompt label
         self.prompt_label = ttk.Label(input_frame, text="plexichat>", 
-                                     foreground=self.colors['prompt'],
-                                     font=('Consolas', 10, 'bold'))
+                                    foreground=self.colors['prompt'],
+                                    font=('Consolas', 10, 'bold'))
         self.prompt_label.grid(row=0, column=0, padx=(0, 5))
         
         # Command entry
@@ -141,7 +140,7 @@ class CLITerminal(ttk.Frame):
         
         # Execute button
         ttk.Button(input_frame, text="Execute", 
-                  command=self.execute_command, width=10).grid(row=0, column=2, padx=(5, 0))
+                command=self.execute_command, width=10).grid(row=0, column=2, padx=(5, 0))
     
     def setup_text_tags(self):
         """Setup text tags for syntax highlighting."""
@@ -154,7 +153,7 @@ class CLITerminal(ttk.Frame):
         self.output_text.tag_configure("info", foreground=self.colors['info'], font=('Consolas', 10, 'bold'))
     
     def setup_bindings(self):
-        """Setup keyboard bindings."""
+        """Setup keyboard bindings.
         self.command_entry.bind('<Return>', lambda e: self.execute_command())
         self.command_entry.bind('<Up>', self.history_up)
         self.command_entry.bind('<Down>', self.history_down)
@@ -164,7 +163,7 @@ class CLITerminal(ttk.Frame):
     
     def display_welcome(self):
         """Display welcome message."""
-        welcome_text = f"""
+        welcome_text = f
 PlexiChat Enhanced CLI Terminal
 ==============================
 Welcome to the PlexiChat command-line interface!
@@ -181,7 +180,7 @@ System ready.
         self.append_output("plexichat> ", "prompt")
     
     def append_output(self, text: str, tag: str = "output"):
-        """Append text to the output area with specified tag."""
+        """Append text to the output area with specified tag.
         self.output_text.config(state=tk.NORMAL)
         self.output_text.insert(tk.END, text, tag)
         self.output_text.config(state=tk.DISABLED)
@@ -295,7 +294,7 @@ System ready.
             self.after(0, lambda: self.append_output(f"Subprocess error: {str(e)}\n", "error"))
 
     def _show_cli_help(self):
-        """Show CLI help information."""
+        """Show CLI help information.
         help_text = """
 Available Commands:
 ==================
@@ -360,7 +359,7 @@ Usage Examples:
         self.after(0, lambda: self.append_output(history_text, "info"))
 
     def history_up(self, event):
-        """Navigate up in command history."""
+        """Navigate up in command history.
         if not self.command_history:
             return
 
@@ -389,7 +388,7 @@ Usage Examples:
             self.command_entry.insert(0, self.current_command)
 
     def auto_complete(self, event):
-        """Auto-complete command."""
+        Auto-complete command."""
         current_text = self.command_entry.get()
         if not current_text:
             return
@@ -421,7 +420,7 @@ Usage Examples:
             self.append_output("plexichat> ", "prompt")
 
     def clear_terminal(self):
-        """Clear the terminal output."""
+        """Clear the terminal output.
         self.output_text.config(state=tk.NORMAL)
         self.output_text.delete(1.0, tk.END)
         self.output_text.config(state=tk.DISABLED)
@@ -469,7 +468,7 @@ Usage Examples:
         ttk.Button(button_frame, text="Close", command=history_window.destroy).pack(side=tk.RIGHT)
 
     def show_help(self):
-        """Show help in a popup."""
+        """Show help in a popup.
         help_text = """
 PlexiChat CLI Terminal Help
 ===========================

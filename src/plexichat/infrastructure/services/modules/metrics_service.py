@@ -71,8 +71,7 @@ SERVICE_METADATA = {
 
 class MetricsService:
     """System metrics collection service."""
-
-    def __init__(self, Optional):
+        def __init__():
         self.config = SERVICE_METADATA["config"]
         self.metrics_data = defaultdict(lambda: deque(maxlen=2880))  # 24h at 30s intervals
         self.alert_callbacks = []
@@ -181,13 +180,13 @@ class MetricsService:
 psutil = psutil.boot_time(), timezone.utc)
             uptime = (datetime.now(timezone.utc) - boot_time).total_seconds()
 
-            return {}
+            return {
                 "uptime_seconds": uptime,
                 "load_average_1m": import psutil
 psutil = psutil.getloadavg()[0] if hasattr(psutil, 'getloadavg') else 0,
                 "process_count": len(import psutil)
 psutil = psutil.pids())
-            }
+            }}
         except Exception as e:
             self.logger.warning(f"Failed to collect system metrics: {e}")
             return {}}
@@ -233,7 +232,7 @@ psutil = psutil.virtual_memory()
             swap = import psutil
 psutil = psutil.swap_memory()
 
-            return {}
+            return {
                 "total_bytes": memory.total,
                 "available_bytes": memory.available,
                 "used_bytes": memory.used,
@@ -241,7 +240,7 @@ psutil = psutil.swap_memory()
                 "swap_total_bytes": swap.total,
                 "swap_used_bytes": swap.used,
                 "swap_percent": swap.percent
-            }
+            }}
 
         except Exception as e:
             self.logger.warning(f"Failed to collect memory metrics: {e}")
@@ -288,7 +287,7 @@ psutil = psutil.net_io_counters()
             if not net_io:
                 return {}}
 
-            return {}
+            return {
                 "bytes_sent": net_io.bytes_sent,
                 "bytes_recv": net_io.bytes_recv,
                 "packets_sent": net_io.packets_sent,
@@ -297,7 +296,7 @@ psutil = psutil.net_io_counters()
                 "errors_out": net_io.errout,
                 "drops_in": net_io.dropin,
                 "drops_out": net_io.dropout
-            }
+            }}
 
         except Exception as e:
             self.logger.warning(f"Failed to collect network metrics: {e}")
@@ -312,13 +311,13 @@ psutil = psutil.Process()
             memory_info = current_process.memory_info()
             cpu_percent = current_process.cpu_percent()
 
-            return {}
+            return {
                 "memory_rss_bytes": memory_info.rss,
                 "memory_vms_bytes": memory_info.vms,
                 "cpu_percent": cpu_percent,
                 "num_threads": current_process.num_threads(),
                 "num_fds": current_process.num_fds() if hasattr(current_process, 'num_fds') else 0
-            }
+            }}
 
         except Exception as e:
             self.logger.warning(f"Failed to collect process metrics: {e}")
@@ -395,7 +394,7 @@ psutil = psutil.Process()
                 data_points.popleft()
 
     def register_alert_callback(self, callback: Callable):
-        """Register an alert callback function."""
+        """Register an alert callback function.
         self.alert_callbacks.append(callback)
 
     def unregister_alert_callback(self, callback: Callable):
@@ -404,7 +403,7 @@ psutil = psutil.Process()
             self.alert_callbacks.remove(callback)
 
     def get_metric(self, metric_name: str, hours: int = 1) -> List[Dict[str, Any]]:
-        """Get metric data for the specified time period."""
+        Get metric data for the specified time period."""
         if metric_name not in self.metrics_data:
             return []
 
@@ -434,13 +433,13 @@ psutil = psutil.Process()
 
         values = [point["value"] for point in data]
 
-        return {}
+        return {
             "min": min(values),
             "max": max(values),
             "avg": sum(values) / len(values),
             "count": len(values),
             "latest": values[-1]
-        }
+        }}
 
     async def health_check(self) -> Dict[str, Any]:
         """Perform health check."""
@@ -464,7 +463,7 @@ psutil = psutil.Process()
 
             overall_health = collection_running and data_fresh and cpu_ok and memory_ok
 
-            return {}
+            return {
                 "status": "healthy" if overall_health else "unhealthy",
                 "collection_running": collection_running,
                 "data_fresh": data_fresh,
@@ -472,18 +471,18 @@ psutil = psutil.Process()
                 "memory_ok": memory_ok,
                 "metrics_count": len(self.metrics_data),
                 "latest_metrics": latest_metrics
-            }
+            }}
 
         except Exception as e:
-            return {}
+            return {
                 "status": "error",
                 "error": str(e)
-            }
+            }}
 
 
 # Create service instance
 def create_service():
-    """Create metrics service instance."""
+    """Create metrics service instance.
     return MetricsService()
 
 

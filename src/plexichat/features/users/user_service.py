@@ -19,21 +19,20 @@ class UserCreate:
     role: str
 class UserUpdate:
     def dict(self, exclude_unset=True):
-        return {}
+        return {
 
-"""User business logic service."""
+"""User business logic service.
 logger = logging.getLogger(__name__)
 
 class UserManagementService:
     """User management service."""
-
-    def __init__(self):
-        self.users = {}  # In-memory storage for now
+        def __init__(self):
+        self.users = {}}  # In-memory storage for now
         self.profiles = {}
         self.preferences = {}
 
     async def create_user(self, user_data: UserCreate) -> User:
-        """Create a new user."""
+        Create a new user."""
         user_id = f"user_{len(self.users) + 1}"
         user = User(
             id=user_id,
@@ -47,7 +46,7 @@ class UserManagementService:
         return user
 
     async def get_user(self, user_id: str) -> Optional[User]:
-        """Get user by ID."""
+        """Get user by ID.
         return self.users.get(user_id)
 
     async def get_user_by_username(self, username: str) -> Optional[User]:
@@ -58,7 +57,7 @@ class UserManagementService:
         return None
 
     async def update_user(self, user_id: str, user_data: UserUpdate) -> Optional[User]:
-        """Update user."""
+        Update user."""
         user = self.users.get(user_id)
         if not user:
             return None

@@ -1,7 +1,7 @@
 """
 Advanced CLI log management commands.
 Provides comprehensive log viewing, filtering, and management from command line.
-"""
+
 # pyright: reportArgumentType=false
 # pyright: reportCallIssue=false
 # pyright: reportAttributeAccessIssue=false
@@ -29,8 +29,7 @@ sys.path.append(str(Path(__file__).parent.parent))
 logger = logging.getLogger(__name__)
 class LogCLI:
     """Advanced CLI for log management."""
-
-    def __init__(self):
+        def __init__(self):
         self.log_manager = log_manager
         self.colors = {
             'ERROR': '\033[91m',    # Red
@@ -45,7 +44,7 @@ class LogCLI:
         }
 
     def create_parser(self) -> argparse.ArgumentParser:
-        """Create argument parser for log commands."""
+        Create argument parser for log commands."""
         parser = argparse.ArgumentParser(
             description="PlexiChat Advanced Log Management CLI",
             formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -128,7 +127,7 @@ Examples:
         return parser
 
     def run(self, args: List[str]):
-        """Run CLI command."""
+        Run CLI command."""
         parser = self.create_parser()
         parsed_args = parser.parse_args(args)
 
@@ -192,7 +191,7 @@ Examples:
 
             color = self.colors['CYAN'] if log_file.is_archived else self.colors['GREEN']
             logger.info(f"{color}{log_file.filename:<30}{self.colors['RESET']} "
-                  f"{size_str:<10} {log_file.entry_count:<8} {modified_str:<20} {type_str:<8}")
+                f"{size_str:<10} {log_file.entry_count:<8} {modified_str:<20} {type_str:<8}")
 
         logger.info(f"\nTotal: {len(log_files)} files")
 
@@ -440,9 +439,9 @@ Examples:
             )
 
         logger.info(f"{timestamp_color}{timestamp}{reset} "
-              f"{level_color}[{entry.level:<7}]{reset} "
-              f"{module_color}{entry.module:<20}{reset} "
-              f"{message}")
+            f"{level_color}[{entry.level:<7}]{reset} "
+            f"{module_color}{entry.module:<20}{reset} "
+            f"{message}")
 
     def print_header(self, text: str):
         """Print a formatted header."""

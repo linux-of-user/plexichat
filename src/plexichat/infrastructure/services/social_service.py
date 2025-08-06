@@ -19,11 +19,11 @@ from plexichat.core.config import settings
 """
 Comprehensive Social & Friends System for PlexiChat.
 Implements friend requests, friend lists, social features, and peer-to-peer messaging.
-"""
+
 
 class FriendshipStatus(Enum):
     """Status of friendship between users."""
-    PENDING = "pending"          # Friend request sent, awaiting response
+        PENDING = "pending"          # Friend request sent, awaiting response
     ACCEPTED = "accepted"        # Friends
     BLOCKED = "blocked"          # User blocked
     DECLINED = "declined"        # Friend request declined
@@ -44,7 +44,7 @@ class SocialActivityType(Enum):
 
 class UserStatus(Enum):
     """User online status."""
-    ONLINE = "online"
+        ONLINE = "online"
     AWAY = "away"
     BUSY = "busy"
     INVISIBLE = "invisible"
@@ -53,7 +53,7 @@ class UserStatus(Enum):
 
 @dataclass
 class Friendship:
-    """Represents a friendship or friend request."""
+    """Represents a friendship or friend request.
     friendship_id: str
     requester_id: int
     recipient_id: int
@@ -67,7 +67,7 @@ class Friendship:
 @dataclass
 class UserProfile:
     """Extended user profile for social features."""
-    user_id: int
+        user_id: int
     display_name: str
     bio: Optional[str] = None
     status: UserStatus = UserStatus.OFFLINE
@@ -99,8 +99,8 @@ datetime = datetime.now()
 
 @dataclass
 class SocialActivity:
-    """Represents a social activity/event."""
-    activity_id: str
+    """Represents a social activity/event.
+        activity_id: str
     user_id: int
     activity_type: SocialActivityType
     target_user_id: Optional[int] = None
@@ -115,8 +115,7 @@ datetime = datetime.now()
 
 class SocialService:
     """Comprehensive social and friends service."""
-
-    def __init__(self):
+        def __init__(self):
         self.friendships: Dict[str, Friendship] = {}
         self.user_profiles: Dict[int, UserProfile] = {}
         self.social_activities: Dict[str, SocialActivity] = {}
@@ -200,7 +199,7 @@ settings.update(privacy_settings)
             raise
 
     def get_user_profile(self, user_id: int) -> Optional[UserProfile]:
-        """Get a user's profile."""
+        """Get a user's profile.
         return self.user_profiles.get(user_id)
 
     def update_user_status():
@@ -465,7 +464,7 @@ datetime = datetime.now()
             return False
 
     def is_user_blocked(self, user_id: int, other_user_id: int) -> bool:
-        """Check if a user is blocked by another user."""
+        """Check if a user is blocked by another user.
         return ()
             other_user_id in self.blocked_users.get(user_id, set()) or
             user_id in self.blocked_users.get(other_user_id, set())
@@ -478,7 +477,7 @@ datetime = datetime.now()
         return friendship is not None and friendship.status == FriendshipStatus.ACCEPTED
 
     def get_friends_list(self, user_id: int) -> List[Dict[str, Any]]:
-        """Get a user's friends list."""
+        Get a user's friends list."""
         friends = []
 
         for friendship in self.friendships.values():
@@ -540,10 +539,10 @@ datetime = datetime.now()
                     "received_at": friendship.created_at.isoformat()
                 })
 
-        return {}
+        return {
             "sent": sent_requests,
             "received": received_requests
-        }
+        }}
 
     def _log_activity():
         self,
@@ -670,7 +669,7 @@ datetime = datetime.now()
                 activity_type = activity.activity_type.value
                 activity_counts[activity_type] = activity_counts.get(activity_type, 0) + 1
 
-            return {}
+            return {
                 "total_users": total_users,
                 "online_users": online_users,
                 "total_friendships": total_friendships,
@@ -678,7 +677,7 @@ datetime = datetime.now()
                 "total_blocked_users": sum(len(blocked_set) for blocked_set in self.blocked_users.values()),
                 "activity_counts": activity_counts,
                 "last_updated": datetime.now().isoformat()
-            }
+            }}
 
         except Exception as e:
             logger.error(f"Failed to get social statistics: {e}")

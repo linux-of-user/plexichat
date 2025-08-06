@@ -63,14 +63,14 @@ PlexiChat Plugin Marketplace Service
 
 Comprehensive plugin marketplace with discovery, ratings, reviews, categories,
 external service integrations, and developer tools.
-"""
+
 
 logger = get_logger(__name__)
 
 
 class WebhookEvent(Enum):
     """Webhook event types for marketplace notifications."""
-    PLUGIN_PUBLISHED = "plugin.published"
+        PLUGIN_PUBLISHED = "plugin.published"
     PLUGIN_UPDATED = "plugin.updated"
     PLUGIN_INSTALLED = "plugin.installed"
     PLUGIN_DELETED = "plugin.deleted"
@@ -82,7 +82,7 @@ class WebhookEvent(Enum):
 
 @dataclass
 class WebhookEndpoint:
-    """Webhook endpoint configuration."""
+    """Webhook endpoint configuration.
     endpoint_id: str
     url: str
     secret: str
@@ -97,7 +97,7 @@ class WebhookEndpoint:
 @dataclass
 class WebhookDelivery:
     """Webhook delivery attempt record."""
-    delivery_id: str
+        delivery_id: str
     endpoint_id: str
     event: WebhookEvent
     payload: Dict[str, Any]
@@ -109,8 +109,8 @@ class WebhookDelivery:
 
 
 class PluginCategory(Enum):
-    """Plugin categories for marketplace organization."""
-    COMMUNICATION = "communication"
+    Plugin categories for marketplace organization."""
+        COMMUNICATION = "communication"
     SECURITY = "security"
     PRODUCTIVITY = "productivity"
     ENTERTAINMENT = "entertainment"
@@ -125,7 +125,7 @@ class PluginCategory(Enum):
 
 
 class PluginRating(Enum):
-    """Plugin rating levels."""
+    """Plugin rating levels.
     ONE_STAR = 1
     TWO_STAR = 2
     THREE_STAR = 3
@@ -136,7 +136,7 @@ class PluginRating(Enum):
 @dataclass
 class PluginMarketplaceInfo:
     """Extended plugin information for marketplace."""
-    plugin_id: str
+        plugin_id: str
     name: str
     version: str
     description: str
@@ -183,8 +183,8 @@ class PluginMarketplaceInfo:
 
 @dataclass
 class PluginReview:
-    """Plugin review information."""
-    review_id: str
+    """Plugin review information.
+        review_id: str
     plugin_id: str
     user_id: str
     username: str
@@ -200,7 +200,7 @@ class PluginReview:
 @dataclass
 class PluginDeveloper:
     """Plugin developer information."""
-    developer_id: str
+        developer_id: str
     username: str
     email: str
     display_name: str
@@ -215,9 +215,8 @@ class PluginDeveloper:
 
 
 class PluginMarketplaceService:
-    """Comprehensive plugin marketplace service."""
-
-    def __init__(self, config: Dict[str, Any] = None):
+    Comprehensive plugin marketplace service."""
+        def __init__(self, config: Dict[str, Any] = None):
         self.config = config or self._load_default_config()
         from pathlib import Path
 self.data_dir = Path(self.config.get("data_dir", "data/plugin_marketplace"))
@@ -257,7 +256,7 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
 
     def _load_default_config(self) -> Dict[str, Any]:
         """Load default marketplace configuration."""
-        return {}
+        return {
             "data_dir": "data/plugin_marketplace",
             "cache_dir": "data/plugin_marketplace/cache",
             "cache_ttl": 3600,  # 1 hour
@@ -269,7 +268,7 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
                     "url": "https://plugins.plexichat.example.com/api/v1",
                     "trusted": True,
                     "enabled": True
-                }
+                }}
             ],
             "webhook_endpoints": {
                 "plugin_published": "/webhooks/plugin/published",
@@ -310,8 +309,8 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
             return False
 
     async def search_plugins(self, query: str = "", category: Optional[PluginCategory] = None,)
-                           tags: Optional[List[str]] = None, sort_by: str = "relevance",
-                           limit: int = 20, offset: int = 0) -> Dict[str, Any]:
+                        tags: Optional[List[str]] = None, sort_by: str = "relevance",
+                        limit: int = 20, offset: int = 0) -> Dict[str, Any]:
         """Search plugins in the marketplace."""
         try:
             # Create cache key
@@ -361,11 +360,11 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
 
         except Exception as e:
             logger.error(f"Plugin search failed: {e}")
-            return {}
+            return {
                 "plugins": [],
                 "total_count": 0,
                 "error": str(e)
-            }
+            }}
 
     async def get_plugin_details(self, plugin_id: str) -> Optional[Dict[str, Any]]:
         """Get detailed information about a specific plugin."""
@@ -485,11 +484,11 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
                 "timestamp": review.created_at.isoformat()
             })
 
-            return {}
+            return {
                 "success": True,
                 "review_id": review.review_id,
                 "message": "Review added successfully"
-            }
+            }}
 
         except Exception as e:
             logger.error(f"Failed to add review: {e}")
@@ -498,17 +497,17 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
     async def get_marketplace_statistics(self) -> Dict[str, Any]:
         """Get marketplace statistics."""
         await self._update_statistics()
-        return {}
+        return {
             "statistics": self.stats,
             "categories": await self.get_categories(),
             "recent_plugins": await self._get_recent_plugins(5),
             "top_rated": await self._get_top_rated_plugins(5),
             "most_downloaded": await self._get_most_downloaded_plugins(5)
-        }
+        }}
 
     def _matches_search_criteria(self, plugin: PluginMarketplaceInfo, query: str,):
                                 category: Optional[PluginCategory], tags: List[str]) -> bool:
-        """Check if plugin matches search criteria."""
+        """Check if plugin matches search criteria.
         # Category filter
         if category and plugin.category != category:
             return False
@@ -544,7 +543,7 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
 
     def _plugin_to_dict(self, plugin: PluginMarketplaceInfo) -> Dict[str, Any]:
         """Convert plugin info to dictionary."""
-        return {}
+        return {
             "plugin_id": plugin.plugin_id,
             "name": plugin.name,
             "version": plugin.version,
@@ -576,11 +575,11 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
             "checksum": plugin.checksum,
             "security_scan_passed": plugin.security_scan_passed,
             "security_scan_date": plugin.security_scan_date.isoformat() if plugin.security_scan_date else None
-        }
+        }}
 
     def _review_to_dict(self, review: PluginReview) -> Dict[str, Any]:
         """Convert review to dictionary."""
-        return {}
+        return {
             "review_id": review.review_id,
             "plugin_id": review.plugin_id,
             "user_id": review.user_id,
@@ -592,11 +591,11 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
             "created_at": review.created_at.isoformat(),
             "updated_at": review.updated_at.isoformat(),
             "verified_purchase": review.verified_purchase
-        }
+        }}
 
     def _developer_to_dict(self, developer: PluginDeveloper) -> Dict[str, Any]:
         """Convert developer to dictionary."""
-        return {}
+        return {
             "developer_id": developer.developer_id,
             "username": developer.username,
             "display_name": developer.display_name,
@@ -608,10 +607,10 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
             "total_downloads": developer.total_downloads,
             "average_rating": developer.average_rating,
             "created_at": developer.created_at.isoformat()
-        }
+        }}
 
     def _find_developer_by_plugin(self, plugin_id: str) -> Optional[PluginDeveloper]:
-        """Find developer by plugin ID."""
+        """Find developer by plugin ID.
         if plugin_id not in self.plugins:
             return None
 
@@ -733,11 +732,11 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
                     temp_file.unlink(missing_ok=True)
                     return {"success": False, "error": "Checksum verification failed"}
 
-            return {}
+            return {
                 "success": True,
                 "file_path": temp_file,
                 "message": "Plugin downloaded successfully"
-            }
+            }}
 
         except Exception as e:
             logger.error(f"Failed to download plugin: {e}")
@@ -1080,12 +1079,12 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
 
             logger.info(f" Registered webhook endpoint: {url}")
 
-            return {}
+            return {
                 "success": True,
                 "endpoint_id": endpoint_id,
                 "secret": webhook_secret,
                 "events": [event.value for event in valid_events]
-            }
+            }}
 
         except Exception as e:
             logger.error(f"Failed to register webhook: {e}")
@@ -1242,7 +1241,7 @@ _marketplace_service: Optional[PluginMarketplaceService] = None
 
 
 def get_plugin_marketplace_service() -> PluginMarketplaceService:
-    """Get the global plugin marketplace service instance."""
+    """Get the global plugin marketplace service instance.
     global _marketplace_service
     if _marketplace_service is None:
         _marketplace_service = PluginMarketplaceService()

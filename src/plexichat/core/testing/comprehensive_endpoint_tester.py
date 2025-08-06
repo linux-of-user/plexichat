@@ -11,7 +11,7 @@ Provides systematic testing of all API endpoints with:
 - Error handling verification
 - Authentication and authorization testing
 - Real-time monitoring and reporting
-"""
+
 
 import asyncio
 import json
@@ -32,7 +32,7 @@ logger = get_logger(__name__)
 
 class TestType(Enum):
     """Types of endpoint tests."""
-    FUNCTIONAL = "functional"
+        FUNCTIONAL = "functional"
     SECURITY = "security"
     PERFORMANCE = "performance"
     VALIDATION = "validation"
@@ -55,7 +55,7 @@ class TestStatus(Enum):
 @dataclass
 class EndpointInfo:
     """Information about an API endpoint."""
-    path: str
+        path: str
     method: str
     description: str = ""
     parameters: Dict[str, Any] = field(default_factory=dict)
@@ -76,7 +76,7 @@ class EndpointInfo:
 @dataclass
 class TestResult:
     """Result of an endpoint test."""
-    test_id: str
+        test_id: str
     endpoint: EndpointInfo
     test_type: TestType
     status: TestStatus
@@ -112,7 +112,7 @@ class TestResult:
     performance_issues: List[str] = field(default_factory=list)
     
     def finish(self, status: TestStatus, error_message: str = ""):
-        """Mark test as finished."""
+        """Mark test as finished.
         self.end_time = datetime.now()
         self.status = status
         self.error_message = error_message
@@ -123,13 +123,12 @@ class TestResult:
 
 class EndpointDiscovery:
     """Automatic endpoint discovery system."""
-    
-    def __init__(self, base_url: str):
+        def __init__(self, base_url: str):
         self.base_url = base_url.rstrip('/')
         self.discovered_endpoints: Dict[str, EndpointInfo] = {}
         
     async def discover_endpoints(self) -> List[EndpointInfo]:
-        """Discover all available endpoints."""
+        Discover all available endpoints."""
         endpoints = []
         
         # Try to get OpenAPI/Swagger documentation
@@ -268,7 +267,7 @@ class EndpointDiscovery:
         return endpoints
     
     async def _discover_from_routes(self) -> List[EndpointInfo]:
-        """Discover endpoints from application routes."""
+        """Discover endpoints from application routes.
         # This would integrate with the FastAPI app to get actual routes
         # For now, return empty list
         return []
@@ -288,9 +287,8 @@ class EndpointDiscovery:
 
 
 class ComprehensiveEndpointTester:
-    """Comprehensive endpoint testing system."""
-    
-    def __init__(self, base_url: str):
+    Comprehensive endpoint testing system."""
+        def __init__(self, base_url: str):
         self.base_url = base_url.rstrip('/')
         self.discovery = EndpointDiscovery(base_url)
         self.test_results: List[TestResult] = []
@@ -414,7 +412,7 @@ class ComprehensiveEndpointTester:
             logger.warning(f"Authentication setup error: {e}")
     
     async def _run_functional_tests(self, endpoints: List[EndpointInfo]) -> List[TestResult]:
-        """Run functional tests on endpoints."""
+        """Run functional tests on endpoints.
         results = []
         
         for endpoint in endpoints:
@@ -495,7 +493,7 @@ class ComprehensiveEndpointTester:
         return test_result
     
     def _get_test_data_for_endpoint(self, endpoint: EndpointInfo) -> Optional[Dict]:
-        """Get appropriate test data for an endpoint."""
+        """Get appropriate test data for an endpoint.
         if endpoint.method == 'GET' or endpoint.method == 'DELETE':
             return None
         
@@ -531,7 +529,7 @@ class ComprehensiveEndpointTester:
             return None
     
     async def _run_security_tests(self, endpoints: List[EndpointInfo]) -> List[TestResult]:
-        """Run security tests on endpoints."""
+        Run security tests on endpoints."""
         results = []
         
         # Test common security vulnerabilities
@@ -668,7 +666,7 @@ class ComprehensiveEndpointTester:
         return test_result
     
     async def _run_performance_tests(self, endpoints: List[EndpointInfo]) -> List[TestResult]:
-        """Run performance tests on endpoints."""
+        """Run performance tests on endpoints.
         results = []
         
         for endpoint in endpoints:
@@ -736,7 +734,7 @@ class ComprehensiveEndpointTester:
         return test_result
     
     async def _run_validation_tests(self, endpoints: List[EndpointInfo]) -> List[TestResult]:
-        """Run input validation tests on endpoints."""
+        """Run input validation tests on endpoints.
         results = []
         
         for endpoint in endpoints:
@@ -829,7 +827,7 @@ class ComprehensiveEndpointTester:
         for result in test_results:
             performance_issues.extend(result.performance_issues)
         
-        return {}
+        return {
             'summary': {
                 'total_endpoints': len(endpoints),
                 'total_tests': total_tests,
@@ -838,7 +836,7 @@ class ComprehensiveEndpointTester:
                 'error': error_tests,
                 'skipped': skipped_tests,
                 'success_rate': (passed_tests / total_tests * 100) if total_tests > 0 else 0
-            },
+            }},
             'results_by_type': results_by_type,
             'performance': {
                 'average_response_time_ms': avg_response_time,

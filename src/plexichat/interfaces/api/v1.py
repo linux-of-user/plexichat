@@ -160,12 +160,12 @@ async def admin_list_users():
 @v1_router.get("/admin/stats")
 async def admin_stats():
     """Admin endpoint for system statistics."""
-    return {}
+    return {
         "total_users": len(users_db),
         "total_messages": len(messages_db),
         "total_files": len(files_db),
         "system_status": "healthy"
-    }
+    }}
 
 @v1_router.delete("/admin/users/{user_id}")
 async def admin_delete_user(user_id: int):
@@ -278,12 +278,12 @@ async def admin_list_users_root():
 @root_router.get("/admin/stats")
 async def admin_stats_root():
     """Admin endpoint for system statistics at root level."""
-    return {}
+    return {
         "total_users": len(users_db),
         "total_messages": len(messages_db),
         "total_files": len(files_db),
         "system_status": "healthy"
-    }
+    }}
 
 @root_router.delete("/admin/users/{user_id}")
 async def admin_delete_user_root(user_id: int):

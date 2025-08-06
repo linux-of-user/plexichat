@@ -2,7 +2,7 @@
 PlexiChat WebUI Main Entry Point
 
 This module provides the main entry point for the PlexiChat WebUI server.
-"""
+
 
 import logging
 import sys
@@ -76,20 +76,6 @@ def run_webui_server(host: str = "0.0.0.0", port: int = 8080, reload: bool = Fal
         return False
 
 if __name__ == "__main__":
-    import argparse
-    
-    parser = argparse.ArgumentParser(description="PlexiChat WebUI Server")
-    parser.add_argument("--host", default="0.0.0.0", help="Host to bind to")
-    parser.add_argument("--port", type=int, default=8080, help="Port to bind to")
-    parser.add_argument("--reload", action="store_true", help="Enable auto-reload")
-    
-    args = parser.parse_args()
-    
-    success = run_webui_server(
-        host=args.host,
-        port=args.port,
-        reload=args.reload
-    )
-    
-    if not success:
-        sys.exit(1)
+    print("[X] This module cannot be run standalone!")
+    print("Use 'python run.py' to start PlexiChat.")
+    sys.exit(1)

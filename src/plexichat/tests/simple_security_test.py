@@ -3,7 +3,7 @@
 Simple Security Test for PlexiChat
 
 Basic security validation without external dependencies.
-"""
+
 
 import sys
 import os

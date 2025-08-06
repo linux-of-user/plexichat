@@ -37,14 +37,14 @@ Features:
 - Token and authentication data validation
 - Biometric data validation
 - Universal API entry point validation
-"""
+
 
 logger = get_logger(__name__)
 
 
 class InputType(Enum):
     """Input data types for validation."""
-    TEXT = "text"
+        TEXT = "text"
     HTML = "html"
     EMAIL = "email"
     URL = "url"
@@ -64,7 +64,7 @@ class InputType(Enum):
 
 
 class ValidationLevel(Enum):
-    """Validation security levels."""
+    """Validation security levels.
     BASIC = 1      # Basic checks only
     STANDARD = 2   # Standard security
     STRICT = 3     # High security
@@ -73,7 +73,7 @@ class ValidationLevel(Enum):
 
 class ThreatType(Enum):
     """Types of detected threats."""
-    SQL_INJECTION = "sql_injection"
+        SQL_INJECTION = "sql_injection"
     XSS = "xss"
     PATH_TRAVERSAL = "path_traversal"
     COMMAND_INJECTION = "command_injection"
@@ -85,7 +85,7 @@ class ThreatType(Enum):
 
 @dataclass
 class ValidationResult:
-    """Comprehensive validation result."""
+    """Comprehensive validation result.
     original_value: Any
     sanitized_value: Any
     is_valid: bool
@@ -116,7 +116,7 @@ class ValidationResult:
 @dataclass
 class PasswordValidationResult(ValidationResult):
     """Password-specific validation result."""
-    strength_score: float = 0.0
+        strength_score: float = 0.0
     strength_level: str = "weak"
     requirements_met: Dict[str, bool] = field(default_factory=dict)
     suggestions: List[str] = field(default_factory=list)
@@ -129,8 +129,7 @@ class UnifiedInputValidator:
     Consolidates all input validation and sanitization functionality with
     comprehensive threat detection and multi-level security policies.
     """
-
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+        def __init__(self, config: Optional[Dict[str, Any]] = None):
         # Use attribute access or the correct method to get input_validation config
         plexi_config = get_config()
         self.config = config or getattr(plexi_config, "input_validation", {})
@@ -506,7 +505,7 @@ class UnifiedInputValidator:
         )
 
     def validate_dict(self, data: Dict[str, Any], field_types: Dict[str, InputType], level: ValidationLevel = ValidationLevel.STANDARD) -> Dict[str, ValidationResult]:
-        """Validate all fields in a dictionary."""
+        """Validate all fields in a dictionary.
         results = {}
 
         for field, value in data.items():
@@ -530,7 +529,7 @@ class UnifiedInputValidator:
             return email, False
 
     def _validate_url(self, url: str) -> Tuple[str, bool]:
-        """Validate and sanitize URL."""
+        Validate and sanitize URL."""
         try:
             # Basic URL validation
             url_pattern = r'^https?://[^\s/$.?#].[^\s]*$'
@@ -541,7 +540,7 @@ class UnifiedInputValidator:
             return url, False
 
     def _validate_json(self, json_str: str) -> Tuple[str, bool]:
-        """Validate and sanitize JSON."""
+        """Validate and sanitize JSON.
         try:
             parsed = json.loads(json_str)
             return json.dumps(parsed, separators=(',', ':')), True
@@ -563,7 +562,7 @@ class UnifiedInputValidator:
             return path, False
 
     def _detect_sql_injection(self, value: str) -> bool:
-        """Detect SQL injection patterns."""
+        Detect SQL injection patterns."""
         for pattern in self._compiled_patterns.get("sql_injection", []):
             if pattern.search(value):
                 return True

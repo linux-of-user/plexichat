@@ -52,31 +52,31 @@ router = APIRouter(prefix="/api/cache", tags=["Multi-Tier Cache"])
 
 class CacheSetRequest(BaseModel):
     """Request model for setting cache values."""
-    value: Any = Field(..., description="Value to cache")
+        value: Any = Field(..., description="Value to cache")
     ttl_seconds: Optional[int] = Field(None, description="Time to live in seconds")
     priority: Optional[str] = Field("normal", description="Cache priority (low, normal, high, critical)")
     headers: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Additional headers")
 
 class CacheResponse(BaseModel):
     """Response model for cache operations."""
-    success: bool = Field(..., description="Operation success status")
+        success: bool = Field(..., description="Operation success status")
     message: str = Field(..., description="Response message")
     data: Optional[Any] = Field(None, description="Response data")
     timestamp: str = Field(..., description="Response timestamp")
 
 class CacheClearRequest(BaseModel):
     """Request model for clearing cache."""
-    tier: Optional[str] = Field(None, description="Specific tier to clear (l1_memory, l2_redis, l3_memcached, l4_cdn)")
+        tier: Optional[str] = Field(None, description="Specific tier to clear (l1_memory, l2_redis, l3_memcached, l4_cdn)")
     confirm: bool = Field(False, description="Confirmation flag for destructive operation")
 
 class CacheWarmRequest(BaseModel):
     """Request model for cache warming."""
-    patterns: Optional[List[str]] = Field(None, description="Specific patterns to warm")
+        patterns: Optional[List[str]] = Field(None, description="Specific patterns to warm")
     force: bool = Field(False, description="Force warming even if recently completed")
 
 class CacheInvalidateRequest(BaseModel):
     """Request model for cache invalidation."""
-    patterns: List[str] = Field(..., description="Patterns to invalidate")
+        patterns: List[str] = Field(..., description="Patterns to invalidate")
     cascade: bool = Field(True, description="Cascade invalidation to related keys")
 
 
@@ -95,8 +95,8 @@ async def get_cache_status(current_user: Dict = Depends(require_auth)):
 
         stats = await cache_manager.get_stats()
 
-        return {}
-            "status": "healthy" if stats.get("availability", {}).get("l1_memory", False) else "degraded",
+        return {
+            "status": "healthy" if stats.get("availability", {}}).get("l1_memory", False) else "degraded",
             "initialized": cache_manager.initialized,
             "statistics": stats,
             "timestamp": "2025-01-07T12:00:00Z"
@@ -132,10 +132,10 @@ async def get_cache_stats()
             if not tier_stats:
                 raise HTTPException(status_code=404, detail=f"Tier '{tier}' not found")
 
-            return {}
+            return {
                 "tier": tier,
                 "statistics": tier_stats,
-                "availability": stats.get("availability", {}).get(tier, False),
+                "availability": stats.get("availability", {}}).get(tier, False),
                 "timestamp": "2025-01-07T12:00:00Z"
             }
 
@@ -183,12 +183,12 @@ async def get_cached_value()
         if value is None and default is None:
             raise HTTPException(status_code=404, detail=f"Key '{key}' not found in cache")
 
-        return {}
+        return {
             "key": key,
             "value": value,
             "found": value is not None,
             "timestamp": "2025-01-07T12:00:00Z"
-        }
+        }}
 
     except HTTPException:
         raise
@@ -302,10 +302,11 @@ async def clear_cache()
     """
     try:
         if not request.confirm:
-            raise HTTPException()
-                status_code=400,
-                detail="Confirmation required for destructive cache clear operation"
-            )
+            raise HTTPException(
+            status_code=400,
+            detail="Confirmation required for destructive cache clear operation"
+            
+        )
 
         cache_manager = get_cache_manager()
 
@@ -374,13 +375,13 @@ async def get_cache_health(current_user: Dict = Depends(require_auth)):
         else:
             health_status = "healthy"
 
-        return {}
+        return {
             "status": health_status,
             "initialized": cache_manager.initialized,
             "tier_availability": availability,
             "healthy_tiers": healthy_tiers,
             "total_tiers": total_tiers,
-            "global_stats": stats.get("global", {}),
+            "global_stats": stats.get("global", {}}),
             "timestamp": "2025-01-07T12:00:00Z"
         }
 
@@ -440,9 +441,9 @@ async def get_cache_config(current_user: Dict = Depends(from plexichat.infrastru
         stats = await cache_manager.get_stats()
         config = stats.get("configuration", {})
 
-        return {}
+        return {
             "configuration": config,
-            "availability": stats.get("availability", {}),
+            "availability": stats.get("availability", {}}),
             "timestamp": "2025-01-07T12:00:00Z"
         }
 

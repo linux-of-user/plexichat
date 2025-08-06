@@ -48,8 +48,8 @@ from netlink.app.models.device_management import ()
 
 @dataclass
 class DeviceScore:
-    """Scoring information for device selection."""
-    device_id: int
+    Scoring information for device selection."""
+        device_id: int
     total_score: float
     reliability_score: float
     performance_score: float
@@ -62,8 +62,8 @@ class DeviceScore:
 
 @dataclass
 class ShardPlacementPlan:
-    """Plan for placing a shard across multiple devices."""
-    shard_id: int
+    """Plan for placing a shard across multiple devices.
+        shard_id: int
     target_devices: List[DeviceScore]
     redundancy_achieved: int
     geographic_distribution: bool
@@ -73,8 +73,7 @@ class ShardPlacementPlan:
 
 class IntelligentShardDistribution:
     """Advanced shard distribution service with intelligent placement algorithms."""
-
-    def __init__(self, session: Session):
+        def __init__(self, session: Session):
         self.session = session
         self.default_strategy = self._get_default_strategy()
 
@@ -202,7 +201,7 @@ recent_report = self.session.# SECURITY: exec() removed - use safe alternatives)
         devices: List[StorageDevice],
         strategy: ShardDistributionStrategy
     ) -> List[DeviceScore]:
-        """Score devices for optimal shard placement."""
+        """Score devices for optimal shard placement.
         device_scores = []
 
         # Get backup owner information
@@ -398,7 +397,7 @@ recent_report = self.session.# SECURITY: exec() removed - use safe alternatives)
         shard: EnhancedBackupShard,
         backup: EnhancedBackup
     ) -> List[Message]:
-        """Get messages that are contained in this shard (simplified)."""
+        """Get messages that are contained in this shard (simplified).
         # This is a simplified implementation
         # In practice, you'd need to track which messages are in which shards
         return []
@@ -414,12 +413,12 @@ recent_report = self.session.# SECURITY: exec() removed - use safe alternatives)
         backup: EnhancedBackup,
         devices: List[DeviceScore]
     ) -> bool:
-        """Check if user preferences are satisfied."""
+        Check if user preferences are satisfied."""
         # Simplified implementation
         return True
 
     async def _calculate_placement_reliability(self, devices: List[DeviceScore]) -> float:
-        """Calculate overall reliability of the placement."""
+        """Calculate overall reliability of the placement.
         if not devices:
             return 0.0
 

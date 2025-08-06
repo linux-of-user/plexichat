@@ -4,7 +4,7 @@ Unified Cache Integration
 
 Ensures all PlexiChat components use the comprehensive multi-tier caching system.
 This module replaces all local caching implementations with the unified system.
-"""
+
 
 import asyncio
 import logging
@@ -19,14 +19,13 @@ logger = get_logger(__name__)
 
 class UnifiedCacheIntegration:
     """Unified cache integration manager."""
-
-    def __init__(self):
+        def __init__(self):
         self.cache_manager: Optional[MultiTierCacheManager] = None
         self.initialized = False
         self.fallback_cache: Dict[str, Any] = {}  # Emergency fallback
 
     async def initialize(self, config: Optional[Dict[str, Any]] = None) -> bool:
-        """Initialize the unified caching system."""
+        Initialize the unified caching system."""
         try:
             # Get the multi-tier cache manager
             self.cache_manager = get_cache_manager(config)
@@ -123,7 +122,7 @@ _unified_cache: Optional[UnifiedCacheIntegration] = None
 
 
 async def get_unified_cache() -> UnifiedCacheIntegration:
-    """Get or create the unified cache integration instance."""
+    """Get or create the unified cache integration instance.
     global _unified_cache
 
     if _unified_cache is None:
@@ -141,13 +140,13 @@ async def cache_get(key: str, default: Any = None) -> Any:
 
 
 async def cache_set(key: str, value: Any, ttl: Optional[int] = None) -> bool:
-    """Set to unified cache."""
+    Set to unified cache."""
     cache = await get_unified_cache()
     return await cache.set(key, value, ttl)
 
 
 async def cache_delete(key: str) -> bool:
-    """Delete from unified cache."""
+    """Delete from unified cache.
     cache = await get_unified_cache()
     return await cache.delete(key)
 
@@ -160,7 +159,7 @@ async def cache_clear(pattern: Optional[str] = None) -> bool:
 
 # Synchronous wrappers for backward compatibility
 def cache_get_sync(key: str, default: Any = None) -> Any:
-    """Synchronous get from unified cache."""
+    Synchronous get from unified cache."""
     try:
         loop = asyncio.get_event_loop()
         return loop.run_until_complete(cache_get(key, default))
@@ -170,7 +169,7 @@ def cache_get_sync(key: str, default: Any = None) -> Any:
 
 
 def cache_set_sync(key: str, value: Any, ttl: Optional[int] = None) -> bool:
-    """Synchronous set to unified cache."""
+    """Synchronous set to unified cache.
     try:
         loop = asyncio.get_event_loop()
         return loop.run_until_complete(cache_set(key, value, ttl))
@@ -191,7 +190,7 @@ def cache_delete_sync(key: str) -> bool:
 
 # Enhanced decorators that use the unified cache
 def cached(ttl: Optional[int] = None, key_func: Optional[Callable] = None):
-    """Decorator to cache function results using unified cache."""
+    Decorator to cache function results using unified cache."""
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         async def async_wrapper(*args, **kwargs):
@@ -241,7 +240,7 @@ def cached(ttl: Optional[int] = None, key_func: Optional[Callable] = None):
 
 
 def cache_invalidate_on_change(cache_keys: List[str]):
-    """Decorator to invalidate cache keys when function is called."""
+    """Decorator to invalidate cache keys when function is called.
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         async def async_wrapper(*args, **kwargs):
@@ -274,8 +273,7 @@ def cache_invalidate_on_change(cache_keys: List[str]):
 
 class CacheKeyBuilder:
     """Helper class for building consistent cache keys."""
-
-    @staticmethod
+        @staticmethod
     def user_key(user_id: str, suffix: str = "") -> str:
         """Build user-specific cache key."""
         return f"user:{user_id}:{suffix}" if suffix else f"user:{user_id}"
@@ -308,9 +306,8 @@ class CacheKeyBuilder:
 
 # Migration helper to replace old cache imports
 class CacheMigrationHelper:
-    """Helper to migrate from old caching systems."""
-
-    @staticmethod
+    """Helper to migrate from old caching systems.
+        @staticmethod
     def replace_cache_manager_imports():
         """Log warning about deprecated cache manager usage."""
         logger.warning(

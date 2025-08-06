@@ -30,14 +30,14 @@ Advanced service mesh implementation with:
 - Observability and distributed tracing
 - Circuit breaking and fault injection
 - Canary deployments and A/B testing
-"""
+
 
 logger = logging.getLogger(__name__)
 
 
 class ServiceMeshType(Enum):
     """Supported service mesh implementations."""
-    ISTIO = "istio"
+        ISTIO = "istio"
     LINKERD = "linkerd"
     CONSUL_CONNECT = "consul_connect"
     ENVOY = "envoy"
@@ -56,7 +56,7 @@ class TrafficPolicy(Enum):
 
 class SecurityPolicy(Enum):
     """Security policies for service communication."""
-    MTLS_STRICT = "mtls_strict"
+        MTLS_STRICT = "mtls_strict"
     MTLS_PERMISSIVE = "mtls_permissive"
     PLAINTEXT = "plaintext"
     JWT_VALIDATION = "jwt_validation"
@@ -84,8 +84,8 @@ class ServiceEndpoint:
 
 @dataclass
 class TrafficRule:
-    """Traffic routing rule."""
-    rule_id: str
+    """Traffic routing rule.
+        rule_id: str
     source_service: str
     destination_service: str
     match_conditions: Dict[str, Any]  # headers, path, method, etc.
@@ -96,13 +96,13 @@ class TrafficRule:
 
     def to_istio_config(self) -> Dict[str, Any]:
         """Convert to Istio VirtualService configuration."""
-        return {}
+        return {
             "apiVersion": "networking.istio.io/v1beta1",
             "kind": "VirtualService",
             "metadata": {
                 "name": self.rule_id,
                 "namespace": "default"
-            },
+            }},
             "spec": {
                 "hosts": [self.destination_service],
                 "http": [{
@@ -118,8 +118,8 @@ class TrafficRule:
 
 @dataclass
 class SecurityRule:
-    """Security policy rule."""
-    rule_id: str
+    """Security policy rule.
+        rule_id: str
     source_services: List[str]
     destination_service: str
     allowed_methods: List[str]
@@ -128,13 +128,13 @@ class SecurityRule:
 
     def to_istio_config(self) -> Dict[str, Any]:
         """Convert to Istio AuthorizationPolicy configuration."""
-        return {}
+        return {
             "apiVersion": "security.istio.io/v1beta1",
             "kind": "AuthorizationPolicy",
             "metadata": {
                 "name": self.rule_id,
                 "namespace": "default"
-            },
+            }},
             "spec": {
                 "selector": {
                     "matchLabels": {
@@ -151,9 +151,8 @@ class SecurityRule:
 
 
 class ServiceMeshManager:
-    """Manages service mesh infrastructure and policies."""
-
-    def __init__(self, mesh_type: ServiceMeshType = ServiceMeshType.NATIVE):
+    """Manages service mesh infrastructure and policies.
+        def __init__(self, mesh_type: ServiceMeshType = ServiceMeshType.NATIVE):
         self.mesh_type = mesh_type
         self.services: Dict[str, ServiceEndpoint] = {}
         self.traffic_rules: Dict[str, TrafficRule] = {}
@@ -218,7 +217,7 @@ Path(f"config/service_mesh_{self.mesh_type.value}.yaml")
             }
 
     async def _setup_mesh_infrastructure(self):
-        """Setup service mesh infrastructure."""
+        """Setup service mesh infrastructure.
         if self.mesh_type == ServiceMeshType.ISTIO:
             await self._setup_istio()
         elif self.mesh_type == ServiceMeshType.LINKERD:
@@ -339,7 +338,7 @@ Path(f"config/service_mesh_{self.mesh_type.value}.yaml")
             return False
 
     async def enable_canary_deployment(self, service_name: str, canary_version: str,)
-                                     traffic_percentage: float) -> bool:
+                                    traffic_percentage: float) -> bool:
         """Enable canary deployment for service."""
         try:
             # Create traffic splitting rule
@@ -364,9 +363,9 @@ Path(f"config/service_mesh_{self.mesh_type.value}.yaml")
             return False
 
     async def configure_circuit_breaker(self, service_name: str,)
-                                      failure_threshold: int = 5,
-                                      timeout_seconds: int = 30,
-                                      recovery_time_seconds: int = 60) -> bool:
+                                    failure_threshold: int = 5,
+                                    timeout_seconds: int = 30,
+                                    recovery_time_seconds: int = 60) -> bool:
         """Configure circuit breaker for service."""
         try:
             circuit_breaker_config = {
@@ -413,8 +412,8 @@ Path(f"config/service_mesh_{self.mesh_type.value}.yaml")
             return False
 
     async def inject_fault(self, service_name: str, fault_type: str,)
-                         percentage: float, delay_ms: Optional[int] = None,
-                         abort_code: Optional[int] = None) -> bool:
+                        percentage: float, delay_ms: Optional[int] = None,
+                        abort_code: Optional[int] = None) -> bool:
         """Inject fault for testing resilience."""
         try:
             fault_config = {}
@@ -458,9 +457,9 @@ Path(f"config/service_mesh_{self.mesh_type.value}.yaml")
 
         # Calculate derived metrics
         success_rate = (metrics.get("successful_requests", 0) /)
-                       max(metrics.get("total_requests", 1), 1)) * 100
+                    max(metrics.get("total_requests", 1), 1)) * 100
 
-        return {}
+        return {
             "service_name": service_name,
             "total_requests": metrics.get("total_requests", 0),
             "successful_requests": metrics.get("successful_requests", 0),
@@ -471,7 +470,7 @@ Path(f"config/service_mesh_{self.mesh_type.value}.yaml")
             "p99_latency_ms": metrics.get("p99_latency_ms", 0),
             "throughput_rps": metrics.get("throughput_rps", 0),
             "error_rate_percent": metrics.get("error_rate_percent", 0),
-            "circuit_breaker_state": self.circuit_breakers.get(service_name, {}).get("state", "N/A")
+            "circuit_breaker_state": self.circuit_breakers.get(service_name, {}}).get("state", "N/A")
         }
 
     async def get_mesh_topology(self) -> Dict[str, Any]:
@@ -553,7 +552,7 @@ Path(f"config/service_mesh_{self.mesh_type.value}.yaml")
         }
 
     async def _start_background_tasks(self):
-        """Start background monitoring tasks."""
+        """Start background monitoring tasks.
         asyncio.create_task(self._metrics_collection_task())
         asyncio.create_task(self._circuit_breaker_monitoring_task())
         asyncio.create_task(self._trace_collection_task())

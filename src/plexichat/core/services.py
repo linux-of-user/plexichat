@@ -1,7 +1,7 @@
 """
 PlexiChat Service Manager
 Consolidated service management for the entire application.
-"""
+
 
 import asyncio
 import logging
@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 class ServiceStatus(Enum):
     """Service status enumeration."""
-    STOPPED = "stopped"
+        STOPPED = "stopped"
     STARTING = "starting"
     RUNNING = "running"
     STOPPING = "stopping"
@@ -23,7 +23,7 @@ class ServiceStatus(Enum):
 
 
 class BaseService(ABC):
-    """Base service class."""
+    """Base service class.
     
     def __init__(self, name: str):
         self.name = name
@@ -38,26 +38,25 @@ class BaseService(ABC):
     
     @abstractmethod
     async def stop(self) -> bool:
-        """Stop the service."""
+        Stop the service."""
         pass
     
     @abstractmethod
     async def health_check(self) -> bool:
-        """Check service health."""
+        """Check service health.
         pass
 
 
 class ServiceManager:
     """Manages all services in the application."""
-    
-    def __init__(self):
+        def __init__(self):
         self.services: Dict[str, BaseService] = {}
         self.startup_order: List[str] = []
         self.shutdown_order: List[str] = []
         self._lock = asyncio.Lock()
     
     def register_service(self, service: BaseService, dependencies: Optional[List[str]] = None):
-        """Register a service with optional dependencies."""
+        Register a service with optional dependencies."""
         self.services[service.name] = service
         if dependencies:
             service.dependencies.update(dependencies)
@@ -217,7 +216,7 @@ class ServiceManager:
         }
     
     def get_service(self, name: str) -> Optional[BaseService]:
-        """Get a service by name."""
+        """Get a service by name.
         return self.services.get(name)
 
 
@@ -228,8 +227,7 @@ service_manager = ServiceManager()
 # Example service implementations
 class DatabaseService(BaseService):
     """Database service implementation."""
-    
-    def __init__(self):
+        def __init__(self):
         super().__init__("database")
     
     async def start(self) -> bool:
@@ -251,8 +249,7 @@ class DatabaseService(BaseService):
 
 class WebService(BaseService):
     """Web service implementation."""
-    
-    def __init__(self):
+        def __init__(self):
         super().__init__("web")
         self.dependencies.add("database")
     

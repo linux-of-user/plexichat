@@ -46,8 +46,8 @@ ai_layer = AIAbstractionLayer()
 
 # API Models
 class AIRequestModel(BaseModel):
-    """API model for AI requests."""
-    user_id: str
+    API model for AI requests."""
+        user_id: str
     model_id: str
     prompt: str
     max_tokens: Optional[int] = None
@@ -61,8 +61,8 @@ class AIRequestModel(BaseModel):
     timeout_seconds: int = Field(default=30, ge=5, le=300)
 
 class AIResponseModel(BaseModel):
-    """API model for AI responses."""
-    request_id: str
+    """API model for AI responses.
+        request_id: str
     model_id: str
     content: str
     usage: Dict[str, int]
@@ -78,7 +78,7 @@ class AIResponseModel(BaseModel):
 
 class ModelConfigModel(BaseModel):
     """API model for model configuration."""
-    id: str
+        id: str
     name: str
     provider: AIProvider
     capabilities: List[ModelCapability]
@@ -94,8 +94,8 @@ class ModelConfigModel(BaseModel):
     custom_endpoint: Optional[str] = None
 
 class ProviderConfigModel(BaseModel):
-    """API model for provider configuration."""
-    provider: AIProvider
+    API model for provider configuration."""
+        provider: AIProvider
     api_key: Optional[str] = None
     base_url: Optional[str] = None
     enabled: bool = True
@@ -104,14 +104,14 @@ class ProviderConfigModel(BaseModel):
     max_retries: int = Field(default=3, ge=0, le=10)
 
 class UserPermissionModel(BaseModel):
-    """API model for user permissions."""
-    user_id: str
+    """API model for user permissions.
+        user_id: str
     model_id: str
     capabilities: List[ModelCapability]
 
 class HealthCheckResponse(BaseModel):
     """API model for health check response."""
-    overall_status: str
+        overall_status: str
     total_models: int
     available_models: int
     unavailable_models: int

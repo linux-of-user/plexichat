@@ -56,9 +56,8 @@ def print_header(text: str):
     print_colored(f"{'='*50}", Colors.CYAN)
 
 class CleanShutdown:
-    """Clean shutdown manager for PlexiChat."""
-
-    def __init__(self):
+    """Clean shutdown manager for PlexiChat.
+        def __init__(self):
         self.processes_found = []
         self.ports_to_check = [8000, 8001, 8080, 3000]  # Common ports
 

@@ -19,14 +19,14 @@ PlexiChat Decentralized Identity & Self-Sovereign Identity (SSI) System
 
 Implements verifiable credentials, decentralized identifiers (DIDs),
 and Zero-Trust Network Access (ZTNA) for all PlexiChat resources.
-"""
+
 
 logger = logging.getLogger(__name__)
 
 
 class CredentialType(Enum):
     """Types of verifiable credentials."""
-    IDENTITY = "identity"
+        IDENTITY = "identity"
     AUTHORIZATION = "authorization"
     CERTIFICATION = "certification"
     MEMBERSHIP = "membership"
@@ -36,7 +36,7 @@ class CredentialType(Enum):
 
 
 class TrustLevel(Enum):
-    """Trust levels for Zero-Trust Network Access."""
+    """Trust levels for Zero-Trust Network Access.
     UNTRUSTED = 0
     LOW = 1
     MEDIUM = 2
@@ -47,29 +47,29 @@ class TrustLevel(Enum):
 @dataclass
 class DecentralizedIdentifier:
     """Decentralized Identifier (DID) implementation."""
-    method: str
+        method: str
     identifier: str
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
     @property
     def did(self) -> str:
-        """Full DID string."""
+        Full DID string."""
         return f"did:{self.method}:{self.identifier}"
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
-        return {}
+        return {
             "did": self.did,
             "method": self.method,
             "identifier": self.identifier,
             "created_at": self.created_at.isoformat()
-        }
+        }}
 
 
 @dataclass
 class VerifiableCredential:
-    """W3C Verifiable Credential implementation."""
-    id: str
+    """W3C Verifiable Credential implementation.
+        id: str
     type: List[str]
     issuer: str
     issuance_date: datetime
@@ -85,7 +85,7 @@ class VerifiableCredential:
         return True
 
     def to_dict(self) -> Dict[str, Any]:
-        """Convert to W3C VC format."""
+        Convert to W3C VC format."""
         vc = {
             "@context": [
                 "https://www.w3.org/2018/credentials/v1",
@@ -107,8 +107,8 @@ class VerifiableCredential:
 
 @dataclass
 class ZeroTrustPolicy:
-    """Zero-Trust Network Access policy."""
-    policy_id: str
+    """Zero-Trust Network Access policy.
+        policy_id: str
     resource: str
     required_credentials: List[str]
     min_trust_level: TrustLevel
@@ -153,8 +153,7 @@ datetime = datetime.now().hour
 
 class DIDManager:
     """Manages Decentralized Identifiers."""
-
-    def __init__(self):
+        def __init__(self):
         self.method = "plexichat"
         self.dids: Dict[str, DecentralizedIdentifier] = {}
         self.did_documents: Dict[str, Dict[str, Any]] = {}
@@ -200,7 +199,7 @@ class DIDManager:
         return did
 
     def resolve_did(self, did: str) -> Optional[Dict[str, Any]]:
-        """Resolve DID to DID Document."""
+        """Resolve DID to DID Document.
         return self.did_documents.get(did)
 
     def _generate_public_key(self) -> str:
@@ -209,9 +208,8 @@ class DIDManager:
 
 
 class CredentialIssuer:
-    """Issues and manages verifiable credentials."""
-
-    def __init__(self, issuer_did: str):
+    Issues and manages verifiable credentials."""
+        def __init__(self, issuer_did: str):
         self.issuer_did = issuer_did
         self.issued_credentials: Dict[str, VerifiableCredential] = {}
         self.revoked_credentials: Set[str] = set()
@@ -249,7 +247,7 @@ class CredentialIssuer:
         return False
 
     def is_revoked(self, credential_id: str) -> bool:
-        """Check if credential is revoked."""
+        """Check if credential is revoked.
         return credential_id in self.revoked_credentials
 
     def _create_proof(self, credential_id: str, subject_did: str, claims: Dict[str, Any]) -> Dict[str, Any]:
@@ -259,19 +257,18 @@ class CredentialIssuer:
             f"{credential_id}{subject_did}{json.dumps(claims, sort_keys=True)}".encode()
         ).hexdigest()
 
-        return {}
+        return {
             "type": "Ed25519Signature2020",
             "created": datetime.now(timezone.utc).isoformat(),
-            "verificationMethod": f"{self.issuer_did}#key-1",
+            "verificationMethod": f"{self.issuer_did}}#key-1",
             "proofPurpose": "assertionMethod",
             "proofValue": proof_value
         }
 
 
 class ZeroTrustAccessManager:
-    """Zero-Trust Network Access management."""
-
-    def __init__(self):
+    """Zero-Trust Network Access management.
+        def __init__(self):
         self.policies: Dict[str, ZeroTrustPolicy] = {}
         self.trust_scores: Dict[str, float] = {}
         self.access_logs: List[Dict[str, Any]] = []
@@ -316,8 +313,8 @@ class ZeroTrustAccessManager:
         self.policies["sensitive_operations"] = sensitive_policy
 
     def evaluate_access(self, user_did: str, resource: str,):
-                       credentials: List[VerifiableCredential],
-                       context: Dict[str, Any]) -> Dict[str, Any]:
+                    credentials: List[VerifiableCredential],
+                    context: Dict[str, Any]) -> Dict[str, Any]:
         """Evaluate access request using Zero-Trust principles."""
         # Find applicable policy
         applicable_policy = None
@@ -327,11 +324,11 @@ class ZeroTrustAccessManager:
                 break
 
         if not applicable_policy:
-            return {}
+            return {
                 "access_granted": False,
                 "reason": "No applicable policy found",
                 "policy_id": None
-            }
+            }}
 
         # Get user trust score
         trust_score = self.trust_scores.get(user_did, 0.0)
@@ -354,12 +351,12 @@ class ZeroTrustAccessManager:
         # Update trust score based on behavior
         self._update_trust_score(user_did, access_granted, context)
 
-        return {}
+        return {
             "access_granted": access_granted,
             "policy_id": applicable_policy.policy_id,
             "trust_score": trust_score,
             "required_credentials": applicable_policy.required_credentials
-        }
+        }}
 
     def _resource_matches(self, resource: str, pattern: str) -> bool:
         """Check if resource matches policy pattern."""
@@ -402,8 +399,7 @@ class ZeroTrustAccessManager:
 
 class DecentralizedIdentityManager:
     """Main decentralized identity management system."""
-
-    def __init__(self):
+        def __init__(self):
         self.did_manager = DIDManager()
         self.credential_issuer = CredentialIssuer("did:plexichat:system")
         self.ztna_manager = ZeroTrustAccessManager()
@@ -436,11 +432,11 @@ class DecentralizedIdentityManager:
 
         logger.info(f"Created decentralized identity for user: {user_id}")
 
-        return {}
+        return {
             "did": did.did,
             "identity_credential": identity_credential.to_dict(),
             "did_document": self.did_manager.resolve_did(did.did)
-        }
+        }}
 
     def verify_access(self, user_id: str, resource: str, context: Dict[str, Any]) -> Dict[str, Any]:
         """Verify access using Zero-Trust principles."""
@@ -463,14 +459,14 @@ class DecentralizedIdentityManager:
 
     def get_identity_status(self) -> Dict[str, Any]:
         """Get decentralized identity system status."""
-        return {}
+        return {
             "decentralized_identity": {
                 "total_dids": len(self.did_manager.dids),
                 "total_credentials": len(self.credential_issuer.issued_credentials),
                 "revoked_credentials": len(self.credential_issuer.revoked_credentials),
                 "ztna_policies": len(self.ztna_manager.policies),
                 "user_identities": len(self.user_identities)
-            }
+            }}
         }
 
 

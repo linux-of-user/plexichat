@@ -29,14 +29,13 @@ Features:
 - Profile-based configurations
 - Configuration validation
 - Settings export/import
-"""
+
 
 
 @dataclass
 class LoggingConfig:
     """Comprehensive logging configuration."""
-
-    # General settings
+        # General settings
     directory: str = "logs"
     level: str = "INFO"
     buffer_size: int = 10000
@@ -113,7 +112,7 @@ class LoggingConfig:
     flush_interval: float = 1.0
 
     def __post_init__(self):
-        """Validate configuration after initialization."""
+        """Validate configuration after initialization.
         self._validate_config()
 
     def _validate_config(self):
@@ -177,7 +176,7 @@ class LoggingConfig:
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "LoggingConfig":
-        """Create configuration from dictionary."""
+        """Create configuration from dictionary.
         # Filter out unknown fields
         valid_fields = {field.name for field in cls.__dataclass_fields__.values()}
         filtered_data = {k: v for k, v in data.items() if k in valid_fields}
@@ -192,15 +191,14 @@ class LoggingConfig:
 
 
 class ConfigurationManager:
-    """Manage logging configuration with environment overrides."""
-
-    def __init__(self, config_file: Optional[Path] = None):
+    Manage logging configuration with environment overrides."""
+        def __init__(self, config_file: Optional[Path] = None):
         self.config_file = config_file
         self._config = None
         self._load_config()
 
     def _load_config(self):
-        """Load configuration from file and environment."""
+        """Load configuration from file and environment.
         # Start with default configuration
         config_data = {}
 
@@ -308,7 +306,7 @@ class ConfigurationManager:
 
     @property
     def config(self) -> LoggingConfig:
-        """Get current configuration."""
+        """Get current configuration.
         return self._config
 
     def reload(self):
@@ -394,7 +392,7 @@ _config_manager = None
 
 
 def get_logging_config(config_file: Optional[Path] = None) -> LoggingConfig:
-    """Get the global logging configuration."""
+    """Get the global logging configuration.
     global _config_manager
     if _config_manager is None:
         _config_manager = ConfigurationManager(config_file)
@@ -409,7 +407,7 @@ def reload_logging_config():
 
 
 def set_logging_profile(profile: str):
-    """Set logging configuration to a specific profile."""
+    Set logging configuration to a specific profile."""
     global _config_manager
     if _config_manager is None:
         _config_manager = ConfigurationManager()

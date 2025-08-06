@@ -42,7 +42,7 @@ if templates_path.exists():
 
 class ConfigUpdateRequest(BaseModel):
     """Configuration update request model."""
-    field_path: str
+        field_path: str
     value: Any
     restart_required: bool = False
 

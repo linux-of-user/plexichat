@@ -29,7 +29,7 @@ class EnhancedLogicEngine:
         return []
     
     def get_rule_status(self, rule_id):
-        return {}'error': 'Not implemented'}
+        return {'error': 'Not implemented'}}
     
     def add_rule(self, rule):
         return True
@@ -53,7 +53,7 @@ class EnhancedLogicEngine:
         self._running = False
     
     def get_execution_logs(self, execution_id):
-        return {}'error': 'Not implemented'}
+        return {'error': 'Not implemented'}}
     
     def export_config(self):
         return {}}
@@ -106,9 +106,8 @@ class MockExecution:
 
 logger = logging.getLogger(__name__)
 class AutomationCLI:
-    """CLI interface for automation and logic engine."""
-
-    def __init__(self, logic_engine: Optional[EnhancedLogicEngine] = None):
+    """CLI interface for automation and logic engine.
+        def __init__(self, logic_engine: Optional[EnhancedLogicEngine] = None):
         self.logic_engine = logic_engine or EnhancedLogicEngine()
         self.colors = {
             'red': '\033[91m',
@@ -159,7 +158,7 @@ class AutomationCLI:
             self.show_automation_help()
 
     def show_automation_help(self):
-        """Show automation help."""
+        """Show automation help.
         help_text = f"""
 {self.colorize(' PlexiChat Automation System', 'cyan')}
 {self.colorize('=' * 50, 'cyan')}
@@ -190,7 +189,7 @@ class AutomationCLI:
         logger.info(help_text)
 
     async def cmd_automation_list(self, args: List[str]):
-        """List all automation rules."""
+        List all automation rules."""
         rules = self.logic_engine.list_rules()
 
         if not rules:

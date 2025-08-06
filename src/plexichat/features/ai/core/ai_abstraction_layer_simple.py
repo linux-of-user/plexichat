@@ -9,7 +9,7 @@ Simplified AI Abstraction Layer for PlexiChat
 =============================================
 
 A simplified version that works without syntax errors.
-"""
+
 
 import asyncio
 import hashlib
@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 
 class AIProvider(str, Enum):
     """Supported AI providers."""
-    OPENAI = "openai"
+        OPENAI = "openai"
     ANTHROPIC = "anthropic"
     GOOGLE = "google"
     COHERE = "cohere"
@@ -64,7 +64,7 @@ class ModelCapability(str, Enum):
 
 class ModelStatus(str, Enum):
     """Model availability status."""
-    AVAILABLE = "available"
+        AVAILABLE = "available"
     UNAVAILABLE = "unavailable"
     RATE_LIMITED = "rate_limited"
     ERROR = "error"
@@ -72,7 +72,7 @@ class ModelStatus(str, Enum):
 
 @dataclass
 class AIModel:
-    """AI model configuration."""
+    """AI model configuration.
     id: str
     name: str
     provider: AIProvider
@@ -103,7 +103,7 @@ class AIModel:
 @dataclass
 class AIRequest:
     """AI request structure."""
-    user_id: str
+        user_id: str
     model_id: str
     prompt: str
     max_tokens: Optional[int] = None
@@ -127,8 +127,8 @@ class AIRequest:
 
 @dataclass
 class AIResponse:
-    """AI response structure."""
-    request_id: str
+    """AI response structure.
+        request_id: str
     model_id: str
     content: str
     usage: Dict[str, int]
@@ -145,21 +145,20 @@ class AIResponse:
 
 class AIAccessControl:
     """AI access control and rate limiting."""
-
-    def __init__(self):
+        def __init__(self):
         self.user_permissions: Dict[str, Dict[str, List[ModelCapability]]] = {}
         self.rate_limits: Dict[str, Dict[str, List[float]]] = {}
         self.usage_tracking: Dict[str, Dict[str, Dict[str, Any]]] = {}
         self.admin_users: List[str] = []
 
     def add_user_permission(self, user_id: str, model_id: str, capabilities: List[ModelCapability]):
-        """Add user permission for specific model and capabilities."""
+        Add user permission for specific model and capabilities."""
         if user_id not in self.user_permissions:
             self.user_permissions[user_id] = {}
         self.user_permissions[user_id][model_id] = capabilities
 
     def check_user_permission(self, user_id: str, model_id: str, capability: ModelCapability) -> bool:
-        """Check if user has permission for model and capability."""
+        """Check if user has permission for model and capability.
         if user_id in self.admin_users:
             return True
 
@@ -190,7 +189,7 @@ class AIAccessControl:
         return True
 
     def record_usage(self, user_id: str, model_id: str, tokens: int, cost: float):
-        """Record usage for billing and analytics."""
+        Record usage for billing and analytics."""
         if user_id not in self.usage_tracking:
             self.usage_tracking[user_id] = {}
         if model_id not in self.usage_tracking[user_id]:
@@ -207,8 +206,7 @@ class AIAccessControl:
 
 class AIAbstractionLayer:
     """Simplified AI abstraction layer."""
-
-    def __init__(self, config_path: str = "config/ai_config.json"):
+        def __init__(self, config_path: str = "config/ai_config.json"):
         self.config_path = Path(config_path)
         self.config = {}
         self.models: Dict[str, AIModel] = {}

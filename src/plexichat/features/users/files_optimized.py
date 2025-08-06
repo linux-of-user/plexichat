@@ -12,7 +12,7 @@ PlexiChat File Model
 
 Enhanced file model with comprehensive functionality and performance optimization.
 Uses EXISTING database abstraction and optimization systems.
-"""
+
 
 import logging
 import os
@@ -59,7 +59,7 @@ performance_logger = get_performance_logger() if get_performance_logger else Non
 
 class FileType(str, Enum):
     """File type enumeration."""
-    IMAGE = "image"
+        IMAGE = "image"
     DOCUMENT = "document"
     VIDEO = "video"
     AUDIO = "audio"
@@ -77,8 +77,7 @@ class FileStatus(str, Enum):
 
 class FileRecord(SQLModel, table=True):
     """Enhanced file record model."""
-
-    # Primary fields
+        # Primary fields
     id: Optional[int] = Field(default=None, primary_key=True, description="File ID")
     filename: str = Field(..., max_length=255, description="Original filename")
     file_path: str = Field(..., description="File storage path")
@@ -119,7 +118,7 @@ class FileRecord(SQLModel, table=True):
 
 class FileUpload(BaseModel):
     """File upload model."""
-    filename: str = Field(..., min_length=1, max_length=255, description="Original filename")
+        filename: str = Field(..., min_length=1, max_length=255, description="Original filename")
     content_type: Optional[str] = Field(None, description="MIME content type")
     description: Optional[str] = Field(None, max_length=500, description="File description")
     tags: Optional[List[str]] = Field(None, description="File tags")
@@ -148,7 +147,7 @@ class FileUpload(BaseModel):
 
 class FileUpdate(BaseModel):
     """File update model."""
-    filename: Optional[str] = Field(None, min_length=1, max_length=255, description="Updated filename")
+        filename: Optional[str] = Field(None, min_length=1, max_length=255, description="Updated filename")
     description: Optional[str] = Field(None, max_length=500, description="Updated description")
     tags: Optional[List[str]] = Field(None, description="Updated tags")
     is_public: Optional[bool] = Field(None, description="Updated public access flag")
@@ -166,7 +165,7 @@ class FileUpdate(BaseModel):
 
 class FileResponse(BaseModel):
     """File response model."""
-    id: int = Field(..., description="File ID")
+        id: int = Field(..., description="File ID")
     filename: str = Field(..., description="Original filename")
     file_size: int = Field(..., description="File size in bytes")
     content_type: str = Field(..., description="MIME content type")
@@ -183,15 +182,14 @@ class FileResponse(BaseModel):
 
 class FileService:
     """Enhanced file service using EXISTING database abstraction."""
-
-    def __init__(self):
+        def __init__(self):
         self.db_manager = database_manager
         self.performance_logger = performance_logger
         self.upload_dir = Path("uploads")
         self.upload_dir.mkdir(exist_ok=True)
 
     def _get_file_type(self, content_type: str) -> FileType:
-        """Determine file type from content type."""
+        """Determine file type from content type.
         if content_type.startswith('image/'):
             return FileType.IMAGE
         elif content_type.startswith('video/'):
@@ -364,7 +362,7 @@ class FileService:
 
     @async_track_performance("file_download") if async_track_performance else lambda f: f
     async def increment_download_count(self, file_id: int):
-        """Increment file download count."""
+        """Increment file download count.
         if self.db_manager:
             try:
                 query = """

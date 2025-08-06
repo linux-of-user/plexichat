@@ -44,9 +44,8 @@ class UserProfile:
 # User Settings Model
 @dataclass
 class UserSettings:
-    """User settings and preferences."""
-
-    id: int
+    """User settings and preferences.
+        id: int
     user_id: int
 
     # Notification settings
@@ -75,8 +74,7 @@ class UserSettings:
 @dataclass
 class UserActivity:
     """User activity tracking."""
-
-    id: int
+        id: int
     user_id: int
 
     # Activity details
@@ -95,8 +93,7 @@ class UserActivity:
 @dataclass
 class UserSession:
     """User session tracking."""
-
-    id: int
+        id: int
     user_id: int
     session_token: str
     ip_address: str = ""
@@ -111,7 +108,7 @@ class UserSession:
 # Remove all remaining Pydantic BaseModel and Field usage from API models.
 class UserProfileCreate:
     """User profile creation model."""
-    def __init__(self, display_name: Optional[str] = None, bio: Optional[str] = None, location: Optional[str] = None, website: Optional[str] = None, theme: str = "light", language: str = "en", timezone: Optional[str] = None):
+        def __init__(self, display_name: Optional[str] = None, bio: Optional[str] = None, location: Optional[str] = None, website: Optional[str] = None, theme: str = "light", language: str = "en", timezone: Optional[str] = None):
         self.display_name = display_name
         self.bio = bio
         self.location = location
@@ -121,8 +118,8 @@ class UserProfileCreate:
         self.timezone = timezone
 
 class UserProfileUpdate:
-    """User profile update model."""
-    def __init__(self, display_name: Optional[str] = None, bio: Optional[str] = None, location: Optional[str] = None, website: Optional[str] = None, avatar_url: Optional[str] = None, banner_url: Optional[str] = None, theme: Optional[str] = None, language: Optional[str] = None, timezone: Optional[str] = None):
+    """User profile update model.
+        def __init__(self, display_name: Optional[str] = None, bio: Optional[str] = None, location: Optional[str] = None, website: Optional[str] = None, avatar_url: Optional[str] = None, banner_url: Optional[str] = None, theme: Optional[str] = None, language: Optional[str] = None, timezone: Optional[str] = None):
         self.display_name = display_name
         self.bio = bio
         self.location = location
@@ -135,7 +132,7 @@ class UserProfileUpdate:
 
 class UserSettingsUpdate:
     """User settings update model."""
-    def __init__(self, email_notifications: Optional[bool] = None, push_notifications: Optional[bool] = None, desktop_notifications: Optional[bool] = None, message_preview: Optional[bool] = None, read_receipts: Optional[bool] = None, typing_indicators: Optional[bool] = None, auto_play_media: Optional[bool] = None, show_nsfw_content: Optional[bool] = None):
+        def __init__(self, email_notifications: Optional[bool] = None, push_notifications: Optional[bool] = None, desktop_notifications: Optional[bool] = None, message_preview: Optional[bool] = None, read_receipts: Optional[bool] = None, typing_indicators: Optional[bool] = None, auto_play_media: Optional[bool] = None, show_nsfw_content: Optional[bool] = None):
         self.email_notifications = email_notifications
         self.push_notifications = push_notifications
         self.desktop_notifications = desktop_notifications
@@ -146,8 +143,8 @@ class UserSettingsUpdate:
         self.show_nsfw_content = show_nsfw_content
 
 class UserProfileResponse:
-    """User profile response model."""
-    def __init__(self, id: int, user_id: int, display_name: Optional[str] = None, bio: Optional[str] = None, location: Optional[str] = None, website: Optional[str] = None, avatar_url: Optional[str] = None, banner_url: Optional[str] = None, theme: str = "light", language: str = "en", timezone: Optional[str] = None, created_at: datetime = datetime.now()):
+    User profile response model."""
+        def __init__(self, id: int, user_id: int, display_name: Optional[str] = None, bio: Optional[str] = None, location: Optional[str] = None, website: Optional[str] = None, avatar_url: Optional[str] = None, banner_url: Optional[str] = None, theme: str = "light", language: str = "en", timezone: Optional[str] = None, created_at: datetime = datetime.now()):
         self.id = id
         self.user_id = user_id
         self.display_name = display_name
@@ -162,7 +159,7 @@ class UserProfileResponse:
         self.created_at = created_at
 
     def to_dict(self):
-        return {}
+        return {
             "id": self.id,
             "user_id": self.user_id,
             "display_name": self.display_name,
@@ -175,11 +172,11 @@ class UserProfileResponse:
             "language": self.language,
             "timezone": self.timezone,
             "created_at": self.created_at
-        }
+        }}
 
 class UserSettingsResponse:
     """User settings response model."""
-    def __init__(self, id: int, user_id: int, email_notifications: bool, push_notifications: bool, desktop_notifications: bool, message_preview: bool, read_receipts: bool, typing_indicators: bool, two_factor_enabled: bool, auto_play_media: bool, show_nsfw_content: bool, created_at: datetime = datetime.now()):
+        def __init__(self, id: int, user_id: int, email_notifications: bool, push_notifications: bool, desktop_notifications: bool, message_preview: bool, read_receipts: bool, typing_indicators: bool, two_factor_enabled: bool, auto_play_media: bool, show_nsfw_content: bool, created_at: datetime = datetime.now()):
         self.id = id
         self.user_id = user_id
         self.email_notifications = email_notifications
@@ -194,7 +191,7 @@ class UserSettingsResponse:
         self.created_at = created_at
 
     def to_dict(self):
-        return {}
+        return {
             "id": self.id,
             "user_id": self.user_id,
             "email_notifications": self.email_notifications,
@@ -207,27 +204,27 @@ class UserSettingsResponse:
             "auto_play_media": self.auto_play_media,
             "show_nsfw_content": self.show_nsfw_content,
             "created_at": self.created_at
-        }
+        }}
 
 class UserActivityResponse:
     """User activity response model."""
-    def __init__(self, id: int, activity_type: str, description: Optional[str] = None, timestamp: datetime = datetime.now()):
+        def __init__(self, id: int, activity_type: str, description: Optional[str] = None, timestamp: datetime = datetime.now()):
         self.id = id
         self.activity_type = activity_type
         self.description = description
         self.timestamp = timestamp
 
     def to_dict(self):
-        return {}
+        return {
             "id": self.id,
             "activity_type": self.activity_type,
             "description": self.description,
             "timestamp": self.timestamp
-        }
+        }}
 
 class UserSessionResponse:
     """User session response model."""
-    def __init__(self, id: int, device_info: Optional[str] = None, ip_address: Optional[str] = None, online_status: str = "offline", created_at: datetime = datetime.now(), last_activity: datetime = datetime.now()):
+        def __init__(self, id: int, device_info: Optional[str] = None, ip_address: Optional[str] = None, online_status: str = "offline", created_at: datetime = datetime.now(), last_activity: datetime = datetime.now()):
         self.id = id
         self.device_info = device_info
         self.ip_address = ip_address
@@ -236,26 +233,25 @@ class UserSessionResponse:
         self.last_activity = last_activity
 
     def to_dict(self):
-        return {}
+        return {
             "id": self.id,
             "device_info": self.device_info,
             "ip_address": self.ip_address,
             "online_status": self.online_status,
             "created_at": self.created_at,
             "last_activity": self.last_activity
-        }
+        }}
 
 # Service classes would be defined here for managing these models
 class UserModelService:
     """Service for managing user models using EXISTING database abstraction."""
-
-    def __init__(self):
+        def __init__(self):
         self.db_manager = database_manager
         self.performance_logger = performance_logger
 
     @async_track_performance("user_profile_creation") if async_track_performance else lambda f: f
     async def create_user_profile(self, user_id: int, profile_data: UserProfileCreate) -> Optional[UserProfile]:
-        """Create user profile using EXISTING database abstraction."""
+        """Create user profile using EXISTING database abstraction.
         if self.db_manager:
             try:
                 create_query = """

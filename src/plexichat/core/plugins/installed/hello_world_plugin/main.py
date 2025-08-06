@@ -29,7 +29,7 @@ class HelloWorldPlugin(PluginInterface):
     """
     Example Hello World plugin for PlexiChat.
     """
-    def __init__(self):
+        def __init__(self):
         super().__init__(name="HelloWorldPlugin", version="1.0.0")
         self.router = router
 
@@ -38,9 +38,9 @@ class HelloWorldPlugin(PluginInterface):
         return True
 
     def get_metadata(self):
-        return {}
+        return {
             "name": "Hello World Plugin",
             "version": "1.0.0",
             "description": "A simple Hello World plugin for demonstration.",
             "plugin_type": "utility"
-        }
+        }}

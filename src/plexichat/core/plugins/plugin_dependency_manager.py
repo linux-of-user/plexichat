@@ -9,7 +9,7 @@ Advanced dependency management for plugins with:
 - Dependency caching and optimization
 - Security scanning of dependencies
 - Performance monitoring of dependency loading
-"""
+
 
 import subprocess
 import sys
@@ -40,7 +40,7 @@ logger = get_logger(__name__)
 @dataclass
 class DependencyInfo:
     """Information about a dependency."""
-    name: str
+        name: str
     version: Optional[str] = None
     required_version: Optional[str] = None
     installed: bool = False
@@ -62,8 +62,8 @@ class DependencyInfo:
 
 @dataclass
 class PluginDependencies:
-    """Dependencies for a specific plugin."""
-    plugin_name: str
+    """Dependencies for a specific plugin.
+        plugin_name: str
     required_dependencies: List[str] = field(default_factory=list)
     optional_dependencies: List[str] = field(default_factory=list)
     installed_dependencies: Set[str] = field(default_factory=set)
@@ -77,8 +77,7 @@ class PluginDependencies:
 
 class PluginDependencyManager:
     """Advanced plugin dependency management system."""
-    
-    def __init__(self):
+        def __init__(self):
         self.dependencies: Dict[str, DependencyInfo] = {}
         self.plugin_dependencies: Dict[str, PluginDependencies] = {}
         self.installation_cache: Dict[str, bool] = {}
@@ -98,7 +97,7 @@ class PluginDependencyManager:
         logger.info("Plugin dependency manager initialized")
     
     def _get_package_mapping(self) -> Dict[str, str]:
-        """Get mapping from import names to package names."""
+        """Get mapping from import names to package names.
         return {
             # Common mappings
             'pydantic': 'pydantic',
@@ -152,7 +151,7 @@ class PluginDependencyManager:
         }
     
     async def analyze_plugin_dependencies(self, plugin_path: Path) -> PluginDependencies:
-        """Analyze dependencies for a plugin."""
+        Analyze dependencies for a plugin."""
         plugin_name = plugin_path.name
         
         with self._lock:
@@ -207,7 +206,7 @@ class PluginDependencyManager:
         return dependencies
     
     def _extract_imports(self, content: str) -> List[str]:
-        """Extract import statements from Python code."""
+        """Extract import statements from Python code.
         imports = []
         
         try:
@@ -268,7 +267,7 @@ class PluginDependencyManager:
             return False
     
     async def install_plugin_dependencies(self, plugin_name: str, force_reinstall: bool = False) -> bool:
-        """Install all dependencies for a plugin."""
+        Install all dependencies for a plugin."""
         dependencies = self.plugin_dependencies.get(plugin_name)
         if not dependencies:
             logger.warning(f"No dependency information found for plugin {plugin_name}")
@@ -431,7 +430,7 @@ class PluginDependencyManager:
             logger.error(f"Error updating dependency info for {dependency}: {e}")
     
     def get_dependency_status(self, plugin_name: str) -> Dict[str, Any]:
-        """Get dependency status for a plugin."""
+        """Get dependency status for a plugin.
         dependencies = self.plugin_dependencies.get(plugin_name)
         if not dependencies:
             return {'status': 'unknown', 'message': 'No dependency information available'}
@@ -477,7 +476,7 @@ class PluginDependencyManager:
         }
     
     async def cleanup_unused_dependencies(self) -> int:
-        """Clean up dependencies that are no longer used by any plugins."""
+        Clean up dependencies that are no longer used by any plugins."""
         removed_count = 0
         
         try:

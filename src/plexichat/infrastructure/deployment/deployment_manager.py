@@ -4,7 +4,7 @@ Deployment Management System
 
 Comprehensive deployment automation with documentation generation,
 monitoring setup, disaster recovery, and production deployment.
-"""
+
 
 import asyncio
 import logging
@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class DeploymentConfig:
     """Deployment configuration."""
-    environment: str
+        environment: str
     version: str
     docker_image: str
     replicas: int = 3
@@ -39,8 +39,8 @@ class DeploymentConfig:
 
 @dataclass
 class DeploymentResult:
-    """Deployment execution result."""
-    deployment_id: str
+    """Deployment execution result.
+        deployment_id: str
     environment: str
     version: str
     status: str  # success, failed, rollback
@@ -55,8 +55,7 @@ class DeploymentResult:
 
 class DocumentationGenerator:
     """Automatic documentation generation."""
-
-    def __init__(self, output_dir: str = "docs"):
+        def __init__(self, output_dir: str = "docs"):
         self.output_dir = output_dir
         self.templates_dir = os.path.join(output_dir, "templates")
 
@@ -161,7 +160,7 @@ class DocumentationGenerator:
             yaml.dump(openapi_spec, f, default_flow_style=False)
 
     async def _generate_api_reference(self):
-        """Generate API reference documentation."""
+        """Generate API reference documentation.
         api_reference = """# PlexiChat API Reference
 
 ## Authentication
@@ -238,7 +237,7 @@ Send a new message.
             f.write(api_reference)
 
     async def _generate_sdk_docs(self):
-        """Generate SDK documentation."""
+        """Generate SDK documentation.
         sdk_docs = """# PlexiChat SDK Documentation
 
 ## Installation
@@ -428,9 +427,8 @@ kubectl cp app-pod:/app/uploads ./uploads-backup
 
 
 class ContainerManager:
-    """Docker container management."""
-
-    def __init__(self):
+    """Docker container management.
+        def __init__(self):
         self.docker_available = self._check_docker_availability()
 
     def _check_docker_availability(self) -> bool:
@@ -442,7 +440,7 @@ class ContainerManager:
             return False
 
     async def build_image(self, image_name: str, tag: str = "latest",
-                         dockerfile_path: str = "Dockerfile") -> bool:
+                        dockerfile_path: str = "Dockerfile") -> bool:
         """Build Docker image."""
         if not self.docker_available:
             logger.error("Docker is not available")
@@ -507,9 +505,8 @@ class ContainerManager:
 
 
 class KubernetesDeployer:
-    """Kubernetes deployment manager."""
-
-    def __init__(self):
+    """Kubernetes deployment manager.
+        def __init__(self):
         self.kubectl_available = self._check_kubectl_availability()
 
     def _check_kubectl_availability(self) -> bool:
@@ -732,9 +729,8 @@ class KubernetesDeployer:
 
 
 class DeploymentManager:
-    """Main deployment management system."""
-
-    def __init__(self):
+    """Main deployment management system.
+        def __init__(self):
         self.documentation_generator = DocumentationGenerator()
         self.container_manager = ContainerManager()
         self.kubernetes_deployer = KubernetesDeployer()
@@ -791,7 +787,7 @@ class DeploymentManager:
             return failed_result
 
     def get_deployment_status(self, environment: str) -> Optional[DeploymentResult]:
-        """Get latest deployment status for environment."""
+        """Get latest deployment status for environment.
         env_deployments = [
             d for d in self.deployment_history
             if d.environment == environment

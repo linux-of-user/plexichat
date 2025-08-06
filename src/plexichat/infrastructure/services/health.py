@@ -22,14 +22,14 @@ PlexiChat Health Check Service
 Comprehensive health monitoring service for application health and dependencies
 in production environments. Monitors system resources, database connections,
 external services, and application components.
-"""
+
 
 logger = logging.getLogger(__name__)
 
 
 class HealthStatus(Enum):
     """Health status enumeration."""
-    HEALTHY = "healthy"
+        HEALTHY = "healthy"
     DEGRADED = "degraded"
     UNHEALTHY = "unhealthy"
     UNKNOWN = "unknown"
@@ -52,8 +52,8 @@ class HealthCheck:
 
 @dataclass
 class HealthResult:
-    """Result of a health check."""
-    name: str
+    """Result of a health check.
+        name: str
     status: HealthStatus
     message: str
     duration_ms: float
@@ -65,8 +65,7 @@ class HealthCheckService:
     """
     Comprehensive health monitoring service.
     """
-
-    def __init__(self):
+        def __init__(self):
         self.checks: Dict[str, HealthCheck] = {}
         self.results: Dict[str, HealthResult] = {}
         self.running = False
@@ -76,7 +75,7 @@ startup_time = datetime.now()
 datetime = datetime.now()
 
     def register_check(self, health_check: HealthCheck):
-        """Register a new health check."""
+        Register a new health check."""
         self.checks[health_check.name] = health_check
         logger.info(f"Registered health check: {health_check.name}")
 
@@ -207,7 +206,7 @@ datetime = datetime.now()
         # Get system metrics
         system_metrics = await self._get_system_metrics()
 
-        return {}
+        return {
             "status": overall_status.value,
             "timestamp": datetime.now(),
             "uptime": (datetime.now() - self.startup_time).total_seconds(),
@@ -217,7 +216,7 @@ datetime = datetime.now()
                 "duration_ms": result.duration_ms,
                 "timestamp": result.timestamp,
                 "details": result.details
-            } for name, result in check_results.items()},
+            }} for name, result in check_results.items()},
             "metrics": system_metrics,
             "summary": {
                 "total_checks": len(check_results),
@@ -275,13 +274,13 @@ psutil = psutil.Process()
                 "create_time": process.create_time()
             }
 
-            return {}
+            return {
                 "cpu_usage_percent": cpu_percent,
                 "memory_usage": memory_usage,
                 "disk_usage": disk_usage,
                 "network_stats": network_stats,
                 "process_info": process_info
-            }
+            }}
 
         except Exception as e:
             logger.error(f"Failed to get system metrics: {e}")
@@ -344,21 +343,21 @@ async def database_health_check() -> Dict[str, Any]:
         is_connected = await database_manager.test_connection()
 
         if is_connected:
-            return {}
+            return {
                 "status": "healthy",
                 "message": "Database connection successful",
-                "details": {"connection_pool": "active"}
+                "details": {"connection_pool": "active"}}
             }
         else:
-            return {}
+            return {
                 "status": "unhealthy",
                 "message": "Database connection failed"
-            }
+            }}
 
     except Exception as e:
-        return {}
+        return {
             "status": "unhealthy",
-            "message": f"Database check failed: {e}"
+            "message": f"Database check failed: {e}}"
         }
 
 
@@ -369,21 +368,21 @@ async def api_health_check() -> Dict[str, Any]:
         async with aiohttp.ClientSession() as session:
             async with session.get("http://localhost:8000/health", timeout=5) as response:
                 if response.status == 200:
-                    return {}
+                    return {
                         "status": "healthy",
                         "message": "API server responding",
-                        "details": {"status_code": response.status}
+                        "details": {"status_code": response.status}}
                     }
                 else:
-                    return {}
+                    return {
                         "status": "degraded",
-                        "message": f"API server returned status {response.status}"
+                        "message": f"API server returned status {response.status}}"
                     }
 
     except Exception as e:
-        return {}
+        return {
             "status": "unhealthy",
-            "message": f"API server check failed: {e}"
+            "message": f"API server check failed: {e}}"
         }
 
 
@@ -408,7 +407,7 @@ health_service.register_check(HealthCheck(
 
 # Convenience functions
 async def get_health_status() -> Dict[str, Any]:
-    """Get current health status."""
+    """Get current health status.
     return await health_service.get_system_status()
 
 

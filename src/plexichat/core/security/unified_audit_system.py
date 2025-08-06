@@ -40,14 +40,14 @@ Features:
 - Centralized security event management
 - Automated incident response
 - Multi-node security coordination
-"""
+
 
 logger = get_logger(__name__)
 
 
 class SecurityEventType(Enum):
     """Types of security events."""
-    AUTHENTICATION_SUCCESS = "authentication_success"
+        AUTHENTICATION_SUCCESS = "authentication_success"
     AUTHENTICATION_FAILURE = "authentication_failure"
     AUTHORIZATION_FAILURE = "authorization_failure"
     LOGIN_SUCCESS = "login_success"
@@ -82,7 +82,7 @@ class SecurityEventType(Enum):
 
 
 class SecuritySeverity(Enum):
-    """Security event severity levels."""
+    """Security event severity levels.
     DEBUG = 0
     INFO = 1
     NOTICE = 2
@@ -95,7 +95,7 @@ class SecuritySeverity(Enum):
 
 class ThreatLevel(Enum):
     """Threat severity levels."""
-    LOW = 1
+        LOW = 1
     MEDIUM = 2
     HIGH = 3
     CRITICAL = 4
@@ -103,7 +103,7 @@ class ThreatLevel(Enum):
 
 @dataclass
 class SecurityEvent:
-    """Comprehensive security event structure."""
+    Comprehensive security event structure."""
     event_id: str
     event_type: SecurityEventType
     timestamp: datetime
@@ -140,7 +140,7 @@ class SecurityEvent:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for serialization."""
-        return {}
+        return {
             "event_id": self.event_id,
             "event_type": self.event_type.value,
             "timestamp": self.timestamp.isoformat(),
@@ -160,13 +160,13 @@ class SecurityEvent:
             "parent_event_id": self.parent_event_id,
             "compliance_tags": self.compliance_tags,
             "retention_period_days": self.retention_period_days
-        }
+        }}
 
 
 @dataclass
 class AuditBlock:
     """Blockchain block for audit trail."""
-    index: int
+        index: int
     timestamp: float
     events: List[SecurityEvent]
     previous_hash: str
@@ -198,8 +198,7 @@ class AuditBlock:
 
 class TamperResistantLogger:
     """Tamper-resistant logging with HMAC integrity verification."""
-
-    def __init__(self, log_file: Path, secret_key: bytes):
+        def __init__(self, log_file: Path, secret_key: bytes):
         self.log_file = log_file
         self.secret_key = secret_key
         self.lock = threading.RLock()
@@ -355,9 +354,8 @@ class TamperResistantLogger:
 
 
 class AuditBlockchain:
-    """Blockchain for immutable audit trails."""
-
-    def __init__(self, difficulty: int = 4):
+    """Blockchain for immutable audit trails.
+        def __init__(self, difficulty: int = 4):
         self.chain: List[AuditBlock] = []
         self.pending_events: List[SecurityEvent] = []
         self.difficulty = difficulty
@@ -380,7 +378,7 @@ class AuditBlockchain:
         logger.info("Audit blockchain genesis block created")
 
     def add_audit_event(self, event: SecurityEvent):
-        """Add an audit event to the blockchain."""
+        """Add an audit event to the blockchain.
         with self.lock:
             self.pending_events.append(event)
 
@@ -411,7 +409,7 @@ class AuditBlockchain:
         logger.info(f"New audit block created: {new_block.index}")
 
     def is_chain_valid(self) -> bool:
-        """Validate the blockchain integrity."""
+        """Validate the blockchain integrity.
         for i in range(1, len(self.chain)):
             current_block = self.chain[i]
             previous_block = self.chain[i - 1]
@@ -443,7 +441,7 @@ class AuditBlockchain:
         return matching_events
 
     def _event_matches_criteria(self, event: SecurityEvent, criteria: Dict[str, Any]) -> bool:
-        """Check if event matches search criteria."""
+        Check if event matches search criteria."""
         for key, value in criteria.items():
             if key == "event_type" and event.event_type != value:
                 return False
@@ -464,14 +462,14 @@ class AuditBlockchain:
         """Get blockchain statistics."""
         total_events = sum(len(block.events) for block in self.chain)
 
-        return {}
+        return {
             "total_blocks": len(self.chain),
             "total_events": total_events,
             "pending_events": len(self.pending_events),
             "chain_valid": self.is_chain_valid(),
             "difficulty": self.difficulty,
             "last_block_hash": self.chain[-1].hash if self.chain else None
-        }
+        }}
 
 
 class UnifiedAuditSystem:
@@ -481,8 +479,7 @@ class UnifiedAuditSystem:
     Consolidates all audit logging and monitoring functionality with
     immutable blockchain-based trails and comprehensive security monitoring.
     """
-
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+        def __init__(self, config: Optional[Dict[str, Any]] = None):
         self.config = config or get_config().get("audit", {})
         self.initialized = False
 
@@ -545,19 +542,19 @@ Path(self.config.get("log_directory", "logs/security"))
             return False
 
     def log_security_event(self,):
-                          event_type: SecurityEventType,
-                          description: str,
-                          severity: SecuritySeverity = SecuritySeverity.INFO,
-                          threat_level: ThreatLevel = ThreatLevel.LOW,
-                          user_id: Optional[str] = None,
-                          session_id: Optional[str] = None,
-                          source_ip: Optional[str] = None,
-                          user_agent: Optional[str] = None,
-                          resource: Optional[str] = None,
-                          action: Optional[str] = None,
-                          details: Optional[Dict[str, Any]] = None,
-                          correlation_id: Optional[str] = None,
-                          compliance_tags: Optional[List[str]] = None) -> str:
+                        event_type: SecurityEventType,
+                        description: str,
+                        severity: SecuritySeverity = SecuritySeverity.INFO,
+                        threat_level: ThreatLevel = ThreatLevel.LOW,
+                        user_id: Optional[str] = None,
+                        session_id: Optional[str] = None,
+                        source_ip: Optional[str] = None,
+                        user_agent: Optional[str] = None,
+                        resource: Optional[str] = None,
+                        action: Optional[str] = None,
+                        details: Optional[Dict[str, Any]] = None,
+                        correlation_id: Optional[str] = None,
+                        compliance_tags: Optional[List[str]] = None) -> str:
         """Log a security event to the unified audit system."""
 
         event_id = str(uuid.uuid4())
@@ -600,7 +597,7 @@ Path(self.config.get("log_directory", "logs/security"))
         return event_id
 
     def search_audit_trail(self, criteria: Dict[str, Any]) -> List[Dict[str, Any]]:
-        """Search audit trail with comprehensive criteria."""
+        """Search audit trail with comprehensive criteria.
         events = self.blockchain.search_events(criteria)
         return [event.to_dict() for event in events]
 
@@ -620,23 +617,23 @@ Path(self.config.get("log_directory", "logs/security"))
         # Sort by timestamp
         events.sort(key=lambda e: e.timestamp)
 
-        return {}
+        return {
             "correlation_id": correlation_id,
             "total_events": len(events),
             "timeline": [event.to_dict() for event in events],
             "generated_at": datetime.now(timezone.utc).isoformat()
-        }
+        }}
 
     def verify_audit_integrity(self) -> Dict[str, Any]:
         """Verify the integrity of all audit systems."""
         blockchain_valid = self.blockchain.is_chain_valid()
         tamper_log_result = self.tamper_logger.verify_integrity()
 
-        return {}
+        return {
             "blockchain_integrity": {
                 "valid": blockchain_valid,
                 "stats": self.blockchain.get_blockchain_stats()
-            },
+            }},
             "tamper_resistant_log": tamper_log_result,
             "overall_integrity": blockchain_valid and tamper_log_result.get("verified", False)
         }
@@ -666,12 +663,12 @@ Path(self.config.get("log_directory", "logs/security"))
         security_events = len([e for e in events if e.threat_level.value >= ThreatLevel.MEDIUM.value])
         critical_events = len([e for e in events if e.severity.value >= SecuritySeverity.CRITICAL.value])
 
-        return {}
+        return {
             "compliance_standard": compliance_standard,
             "report_period": {
                 "start": start_date.isoformat(),
                 "end": end_date.isoformat()
-            },
+            }},
             "summary": {
                 "total_events": total_events,
                 "security_events": security_events,
@@ -715,9 +712,9 @@ Path(self.config.get("log_directory", "logs/security"))
                 self._trigger_alert(event, f"Brute force attack detected: {recent_failures} failed logins")
 
     def _count_recent_events(self,):
-                           event_type: SecurityEventType,
-                           source_ip: Optional[str],
-                           time_window: timedelta) -> int:
+                        event_type: SecurityEventType,
+                        source_ip: Optional[str],
+                        time_window: timedelta) -> int:
         """Count recent events of specific type."""
         cutoff_time = datetime.now(timezone.utc) - time_window
 
@@ -759,7 +756,7 @@ Path(self.config.get("log_directory", "logs/security"))
         logger.critical(f" SECURITY ALERT: {message}")
 
     def _add_to_correlation(self, correlation_id: str, event_id: str):
-        """Add event to correlation map."""
+        """Add event to correlation map.
         with self._lock:
             if correlation_id not in self.correlation_map:
                 self.correlation_map[correlation_id] = []
@@ -835,20 +832,20 @@ Path(self.config.get("log_directory", "logs/security"))
 
     async def _collect_current_metrics(self) -> Dict[str, Any]:
         """Collect current system metrics."""
-        return {}
+        return {
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "total_events": sum(self.event_counters.values()),
             "blockchain_blocks": len(self.blockchain.chain),
             "pending_events": len(self.blockchain.pending_events),
             "active_correlations": len(self.correlation_map),
             "system_health": "healthy"  # Placeholder
-        }
+        }}
 
     def get_status(self) -> Dict[str, Any]:
         """Get comprehensive audit system status."""
         blockchain_stats = self.blockchain.get_blockchain_stats()
 
-        return {}
+        return {
             "initialized": self.initialized,
             "monitoring_active": self.monitoring_active,
             "blockchain": blockchain_stats,
@@ -858,7 +855,7 @@ Path(self.config.get("log_directory", "logs/security"))
             "tamper_resistant_log": {
                 "file_exists": self.tamper_logger.log_file.exists(),
                 "sequence_number": self.tamper_logger.sequence_number
-            }
+            }}
         }
 
 

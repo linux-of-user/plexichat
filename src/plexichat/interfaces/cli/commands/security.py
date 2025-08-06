@@ -29,8 +29,7 @@ from plexichat.app.security.rate_limiter import (
 logger = logging.getLogger(__name__)
 class SecurityCLI:
     """CLI for security management."""
-
-    def __init__(self):
+        def __init__(self):
         self.rate_limiter = ComprehensiveRateLimiter()
         self.permission_manager = PermissionManager()
 
@@ -163,8 +162,8 @@ class SecurityCLI:
                 logger.info(f"   {ip} - until {until_dt.strftime('%Y-%m-%d %H:%M:%S')}")
 
         if not any([self.rate_limiter.tracker.banned_ips,
-                   self.rate_limiter.tracker.banned_users,
-                   self.rate_limiter.tracker.quarantined_ips]):
+                self.rate_limiter.tracker.banned_users,
+                self.rate_limiter.tracker.quarantined_ips]):
             self.print_colored("No banned or quarantined entities.", "green")
 
     async def unban_ip(self, ip: str) -> None:

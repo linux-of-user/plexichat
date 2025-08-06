@@ -19,7 +19,7 @@ from typing import Any, Dict, List, Optional
 """
 AI Analytics and Monitoring Engine
 Comprehensive monitoring, analytics, and alerting system for AI operations.
-"""
+
 
 logger = logging.getLogger(__name__)
 
@@ -27,8 +27,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class UsageMetric:
     """Usage metric data structure."""
-
-    timestamp: datetime
+        timestamp: datetime
     user_id: str
     model_id: str
     provider: str
@@ -43,9 +42,8 @@ class UsageMetric:
 
 @dataclass
 class PerformanceMetric:
-    """Performance metric data structure."""
-
-    timestamp: datetime
+    Performance metric data structure."""
+        timestamp: datetime
     model_id: str
     provider: str
     latency_ms: int
@@ -56,9 +54,8 @@ class PerformanceMetric:
 
 @dataclass
 class CostMetric:
-    """Cost tracking metric."""
-
-    timestamp: datetime
+    """Cost tracking metric.
+        timestamp: datetime
     user_id: str
     model_id: str
     provider: str
@@ -70,8 +67,7 @@ class CostMetric:
 @dataclass
 class AlertRule:
     """Alert rule configuration."""
-
-    id: str
+        id: str
     name: str
     condition: str  # Python expression
     threshold: float
@@ -82,9 +78,8 @@ class AlertRule:
 
 
 class AIAnalyticsEngine:
-    """AI analytics and monitoring engine."""
-
-    def __init__(self, db_path: str = "data/ai_analytics.db"):
+    AI analytics and monitoring engine."""
+        def __init__(self, db_path: str = "data/ai_analytics.db"):
         self.db_path = db_path
         self.usage_buffer = deque(maxlen=10000)  # In-memory buffer for recent metrics
         self.performance_buffer = deque(maxlen=10000)
@@ -99,7 +94,7 @@ class AIAnalyticsEngine:
         self._load_alert_rules()
 
     def _init_database(self):
-        """Initialize analytics database."""
+        """Initialize analytics database.
         # Use AnalyticsDataService for all DB initialization and CRUD
         from src.plexichat.features.ai.monitoring.analytics_data_service import AnalyticsDataService
         self.analytics_service = AnalyticsDataService()
@@ -121,7 +116,7 @@ class AIAnalyticsEngine:
             logger.error(f"Failed to load alert rules: {e}")
 
     def record_usage(self, metric: UsageMetric):
-        """Record usage metric."""
+        """Record usage metric.
         with self._lock:
             self.usage_buffer.append(metric)
             # Replace all direct sqlite3.connect and cursor.execute usage with calls to AnalyticsDataService for analytics data management.
@@ -137,7 +132,7 @@ class AIAnalyticsEngine:
             self.performance_buffer.append(metric)
 
     async def flush_metrics(self):
-        """Flush buffered metrics to database."""
+        Flush buffered metrics to database."""
         try:
             with self._lock:
                 usage_metrics = list(self.usage_buffer)

@@ -8,7 +8,7 @@ import urllib.parse
 WebUI Renderer for GUI
 
 Renders WebUI pages within the desktop GUI application using embedded web browser.
-"""
+
 
 import asyncio
 import json
@@ -40,8 +40,7 @@ logger = logging.getLogger(__name__)
 
 class WebUIRenderer:
     """Renders WebUI pages in the desktop GUI."""
-
-    def __init__(self, base_url: str = "http://localhost:8000"):
+        def __init__(self, base_url: str = "http://localhost:8000"):
         self.base_url = base_url
         self.webview_windows: Dict[str, Any] = {}
         self.qt_widgets: Dict[str, Any] = {}
@@ -115,7 +114,7 @@ class WebUIRenderer:
             return None
 
     def create_plugin_window(self, plugin_name: str, page_path: str,
-                           width: int = 1200, height: int = 800) -> bool:
+                        width: int = 1200, height: int = 800) -> bool:
         """Create a standalone window for a plugin page."""
         try:
             page_url = urljoin(self.base_url, page_path)
@@ -367,7 +366,7 @@ class WebUIRenderer:
             return None
 
     def get_available_pages(self) -> Dict[str, List[Dict[str, str]]]:
-        """Get all available plugin pages."""
+        """Get all available plugin pages.
         return self.plugin_pages
 
     def close_window(self, window_id: str) -> bool:

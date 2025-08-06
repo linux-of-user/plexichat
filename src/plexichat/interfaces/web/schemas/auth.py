@@ -3,7 +3,7 @@
 import time
 Authentication schemas for PlexiChat API.
 Enhanced with comprehensive validation and security.
-"""
+
 
 from datetime import datetime
 from typing import Optional
@@ -12,7 +12,7 @@ from pydantic import BaseModel, Field, validator
 
 class LoginRequest(BaseModel):
     """Login request schema."""
-    username: str = Field(..., min_length=3, max_length=50, description="Username")
+        username: str = Field(..., min_length=3, max_length=50, description="Username")
     password: str = Field(..., min_length=6, max_length=100, description="Password")
 
     @validator('username')
@@ -24,7 +24,7 @@ class LoginRequest(BaseModel):
 
 class TokenResponse(BaseModel):
     """Token response schema."""
-    access_token: str = Field(..., description="JWT access token")
+        access_token: str = Field(..., description="JWT access token")
     token_type: str = Field(default="bearer", description="Token type")
     expires_in: int = Field(..., description="Token expiration time in seconds")
     refresh_token: Optional[str] = Field(None, description="Refresh token")
@@ -32,7 +32,7 @@ class TokenResponse(BaseModel):
 
 class UserInfo(BaseModel):
     """User information schema."""
-    id: int = Field(..., description="User ID")
+        id: int = Field(..., description="User ID")
     username: str = Field(..., description="Username")
     email: str = Field(..., description="Email address")
     is_active: bool = Field(..., description="User active status")
@@ -43,12 +43,12 @@ class UserInfo(BaseModel):
 
 class RefreshTokenRequest(BaseModel):
     """Refresh token request schema."""
-    refresh_token: str = Field(..., description="Refresh token")
+        refresh_token: str = Field(..., description="Refresh token")
 
 
 class PasswordChangeRequest(BaseModel):
     """Password change request schema."""
-    current_password: str = Field(..., min_length=6, description="Current password")
+        current_password: str = Field(..., min_length=6, description="Current password")
     new_password: str = Field(..., min_length=6, max_length=100, description="New password")
     confirm_password: str = Field(..., description="Password confirmation")
 
@@ -61,5 +61,5 @@ class PasswordChangeRequest(BaseModel):
 
 class LogoutResponse(BaseModel):
     """Logout response schema."""
-    message: str = Field(default="Successfully logged out", description="Logout message")
+        message: str = Field(default="Successfully logged out", description="Logout message")
     timestamp: datetime = Field(default_factory=datetime.now, description="Logout timestamp")

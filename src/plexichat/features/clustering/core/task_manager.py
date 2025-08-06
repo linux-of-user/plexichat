@@ -26,15 +26,14 @@ Provides comprehensive task management with:
 - Resource-aware task assignment
 - Task monitoring and recovery
 - Cross-node task coordination
-"""
+
 
 logger = logging.getLogger(__name__)
 
 
 class TaskStatus(Enum):
     """Task execution status."""
-
-    PENDING = "pending"
+        PENDING = "pending"
     ASSIGNED = "assigned"
     RUNNING = "running"
     COMPLETED = "completed"
@@ -44,7 +43,7 @@ class TaskStatus(Enum):
 
 
 class TaskPriority(Enum):
-    """Task priority levels."""
+    """Task priority levels.
 
     LOW = 1
     NORMAL = 2
@@ -55,8 +54,7 @@ class TaskPriority(Enum):
 
 class TaskType(Enum):
     """Types of tasks that can be executed."""
-
-    BACKUP_OPERATION = "backup_operation"
+        BACKUP_OPERATION = "backup_operation"
     ANTIVIRUS_SCAN = "antivirus_scan"
     DATA_PROCESSING = "data_processing"
     MAINTENANCE = "maintenance"
@@ -68,7 +66,7 @@ class TaskType(Enum):
 
 @dataclass
 class ClusterTask:
-    """Represents a task in the cluster."""
+    """Represents a task in the cluster.
 
     task_id: str
     task_type: TaskType
@@ -95,8 +93,7 @@ class ClusterTask:
 @dataclass
 class TaskMetrics:
     """Task execution metrics."""
-
-    total_tasks: int = 0
+        total_tasks: int = 0
     pending_tasks: int = 0
     running_tasks: int = 0
     completed_tasks: int = 0
@@ -111,7 +108,7 @@ class TaskMetrics:
 
 
 class AdvancedTaskManager:
-    """
+    
     Advanced Task Manager for PlexiChat Clustering
 
     Provides comprehensive task management capabilities:
@@ -121,8 +118,7 @@ class AdvancedTaskManager:
     - Task monitoring and automatic recovery
     - Cross-node task coordination and load balancing
     """
-
-    def __init__(self, cluster_manager):
+        def __init__(self, cluster_manager):
         self.cluster_manager = cluster_manager
         self.tasks: Dict[str, ClusterTask] = {}
         self.task_queue: List[str] = []  # Task IDs sorted by priority
@@ -172,7 +168,7 @@ class AdvancedTaskManager:
                     max_retries INTEGER DEFAULT 3,
                     timeout_seconds INTEGER DEFAULT 300
                 )
-            """
+            
             )
             await db.commit()
 
@@ -217,7 +213,7 @@ class AdvancedTaskManager:
         logger.info(f" Loaded {len(self.tasks)} tasks from database")
 
     def _start_background_tasks(self):
-        """Start background monitoring tasks."""
+        """Start background monitoring tasks.
         # Task scheduler
         task = asyncio.create_task(self._task_scheduler_loop())
         self.background_tasks.add(task)
@@ -267,7 +263,7 @@ class AdvancedTaskManager:
         return task_id
 
     def _add_to_queue(self, task_id: str):
-        """Add task to priority queue."""
+        """Add task to priority queue.
         task = self.tasks[task_id]
 
         # Insert based on priority (higher priority first)
@@ -293,7 +289,7 @@ class AdvancedTaskManager:
                 await asyncio.sleep(10)
 
     async def _schedule_pending_tasks(self):
-        """Schedule pending tasks to available nodes."""
+        """Schedule pending tasks to available nodes.
         if not self.task_queue:
             return
 
@@ -343,7 +339,7 @@ class AdvancedTaskManager:
         )
 
     def _node_meets_requirements(self, node: Any, requirements: Dict[str, Any]) -> bool:
-        """Check if a node meets task requirements."""
+        Check if a node meets task requirements."""
         # Check CPU requirements
         if "min_cpu_cores" in requirements:
             if node.cpu_cores < requirements["min_cpu_cores"]:
@@ -397,7 +393,7 @@ class AdvancedTaskManager:
             await self._update_task_in_db(task)
 
     async def _send_task_to_node(self, task: ClusterTask, node: Any):
-        """Send task to node for execution."""
+        """Send task to node for execution.
         # This would be implemented based on the communication protocol
         # For now, we'll simulate the task execution
 
@@ -478,7 +474,7 @@ class AdvancedTaskManager:
                 await asyncio.sleep(60)
 
     async def _update_metrics(self):
-        """Update task execution metrics."""
+        """Update task execution metrics.
         total_tasks = len(self.tasks)
         pending_tasks = sum()
             1 for task in self.tasks.values() if task.status == TaskStatus.PENDING
@@ -531,11 +527,11 @@ class AdvancedTaskManager:
 
         async with aiosqlite.connect(self.db_path) as db:
             await db.execute()
-                """
+                
                 INSERT OR REPLACE INTO tasks
                 (task_id, task_type, priority, payload, requirements, status, assigned_node,)
-                 created_at, assigned_at, started_at, completed_at, result, error,
-                 retry_count, max_retries, timeout_seconds)
+                created_at, assigned_at, started_at, completed_at, result, error,
+                retry_count, max_retries, timeout_seconds)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
                 ()
@@ -560,7 +556,7 @@ class AdvancedTaskManager:
             await db.commit()
 
     async def _update_task_in_db(self, task: ClusterTask):
-        """Update task in database."""
+        """Update task in database.
         await self._save_task_to_db(task)
 
     async def get_task_status(self, task_id: str) -> Optional[Dict[str, Any]]:
@@ -569,7 +565,7 @@ class AdvancedTaskManager:
         if not task:
             return None
 
-        return {}
+        return {
             "task_id": task.task_id,
             "task_type": task.task_type.value,
             "priority": task.priority.value,
@@ -585,11 +581,11 @@ class AdvancedTaskManager:
             "error": task.error,
             "retry_count": task.retry_count,
             "max_retries": task.max_retries,
-        }
+        }}
 
     async def get_cluster_task_metrics(self) -> Dict[str, Any]:
         """Get comprehensive task metrics for the cluster."""
-        return {}
+        return {
             "total_tasks": self.metrics.total_tasks,
             "pending_tasks": self.metrics.pending_tasks,
             "running_tasks": self.metrics.running_tasks,
@@ -599,7 +595,7 @@ class AdvancedTaskManager:
             "success_rate": self.metrics.success_rate,
             "last_updated": self.metrics.last_updated.isoformat(),
             "queue_length": len(self.task_queue),
-        }
+        }}
 
     async def cancel_task(self, task_id: str) -> bool:
         """Cancel a task."""

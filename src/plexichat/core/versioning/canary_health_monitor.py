@@ -32,14 +32,14 @@ Real-time health monitoring for canary deployments with:
 - Performance regression detection
 - Automatic rollback triggers
 - Custom metric collection
-"""
+
 
 logger = logging.getLogger(__name__)
 
 
 class AlertSeverity(Enum):
     """Alert severity levels."""
-    INFO = "info"
+        INFO = "info"
     WARNING = "warning"
     ERROR = "error"
     CRITICAL = "critical"
@@ -55,8 +55,8 @@ class MetricTrend(Enum):
 
 @dataclass
 class HealthAlert:
-    """Health monitoring alert."""
-    alert_id: str
+    """Health monitoring alert.
+        alert_id: str
     node_id: str
     severity: AlertSeverity
     message: str
@@ -68,7 +68,7 @@ class HealthAlert:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert alert to dictionary."""
-        return {}
+        return {
             "alert_id": self.alert_id,
             "node_id": self.node_id,
             "severity": self.severity.value,
@@ -78,13 +78,13 @@ class HealthAlert:
             "threshold": self.threshold,
             "timestamp": self.timestamp.isoformat(),
             "acknowledged": self.acknowledged
-        }
+        }}
 
 
 @dataclass
 class MetricHistory:
-    """Historical metric data for trend analysis."""
-    metric_name: str
+    """Historical metric data for trend analysis.
+        metric_name: str
     values: List[float] = field(default_factory=list)
     timestamps: List[datetime] = field(default_factory=list)
     max_history_size: int = 100
@@ -103,7 +103,7 @@ class MetricHistory:
             self.timestamps.pop(0)
 
     def get_trend(self, window_size: int = 10) -> MetricTrend:
-        """Analyze metric trend."""
+        Analyze metric trend."""
         if len(self.values) < window_size:
             return MetricTrend.STABLE
 
@@ -129,7 +129,7 @@ class MetricHistory:
             return MetricTrend.STABLE
 
     def get_average(self, window_size: int = 10) -> float:
-        """Get average value over window."""
+        """Get average value over window.
         if not self.values:
             return 0.0
 
@@ -150,9 +150,8 @@ class MetricHistory:
 
 
 class CanaryHealthMonitor:
-    """Monitors health of canary deployments in real-time."""
-
-    def __init__(self):
+    Monitors health of canary deployments in real-time."""
+        def __init__(self):
         self.monitoring_tasks: Dict[str, asyncio.Task] = {}
         self.metric_history: Dict[str, Dict[str, MetricHistory]] = {}  # node_id -> metric_name -> history
         self.active_alerts: Dict[str, HealthAlert] = {}
@@ -173,8 +172,8 @@ class CanaryHealthMonitor:
         logger.info("Canary health monitor initialized")
 
     async def start_monitoring(self, nodes: List[CanaryNode],)
-                             health_checks: List[HealthCheck],
-                             duration_minutes: int = 30) -> str:
+                            health_checks: List[HealthCheck],
+                            duration_minutes: int = 30) -> str:
         """Start monitoring canary nodes."""
         monitoring_id = f"monitor_{int(datetime.now().timestamp())}"
 
@@ -203,7 +202,7 @@ class CanaryHealthMonitor:
             logger.info(f"Stopped monitoring: {monitoring_id}")
 
     async def _monitor_nodes(self, monitoring_id: str, nodes: List[CanaryNode],)
-                           health_checks: List[HealthCheck], duration_minutes: int):
+                        health_checks: List[HealthCheck], duration_minutes: int):
         """Monitor nodes for specified duration."""
         end_time = datetime.now(timezone.utc) + timedelta(minutes=duration_minutes)
 
@@ -291,7 +290,7 @@ datetime = datetime.now()
             return 0.0
 
     async def _check_performance_metrics(self, node: CanaryNode, check: HealthCheck) -> Optional[float]:
-        """Check performance metrics."""
+        """Check performance metrics.
         # Placeholder for performance metrics collection
         # This would integrate with monitoring systems like Prometheus
         return 0.5  # Simulate good performance
@@ -302,12 +301,12 @@ datetime = datetime.now()
         return 0.1  # Simulate low error rate
 
     async def _check_response_time(self, node: CanaryNode, check: HealthCheck) -> Optional[float]:
-        """Check response time."""
+        Check response time."""
         # Placeholder for response time collection
         return 150.0  # Simulate good response time
 
     async def _check_resource_usage(self, node: CanaryNode, check: HealthCheck) -> Optional[float]:
-        """Check resource usage."""
+        """Check resource usage.
         # Placeholder for resource usage collection
         return 0.3  # Simulate moderate resource usage
 
@@ -322,7 +321,7 @@ datetime = datetime.now()
         self.metric_history[node_id][metric_name].add_value(value)
 
     def _is_anomalous_value(self, node_id: str, metric_name: str, value: float) -> bool:
-        """Check if value is anomalous."""
+        Check if value is anomalous."""
         if node_id not in self.metric_history or metric_name not in self.metric_history[node_id]:
             return False
 
@@ -372,7 +371,7 @@ datetime = datetime.now()
         self.last_alert_times[alert_key] = datetime.now(timezone.utc)
 
     def _is_alert_in_cooldown(self, alert_key: str) -> bool:
-        """Check if alert is in cooldown period."""
+        """Check if alert is in cooldown period.
         if alert_key not in self.last_alert_times:
             return False
 
@@ -395,7 +394,7 @@ datetime = datetime.now()
                 logger.error(f"Alert callback failed: {e}")
 
     def register_alert_callback(self, callback: Callable[[HealthAlert], None]):
-        """Register alert callback."""
+        """Register alert callback.
         self.alert_callbacks.append(callback)
 
     def get_node_metrics(self, node_id: str) -> Dict[str, Any]:
@@ -415,7 +414,7 @@ datetime = datetime.now()
         return metrics
 
     def get_active_alerts(self, node_id: Optional[str] = None) -> List[HealthAlert]:
-        """Get active alerts."""
+        """Get active alerts.
         alerts = list(self.active_alerts.values())
 
         if node_id:

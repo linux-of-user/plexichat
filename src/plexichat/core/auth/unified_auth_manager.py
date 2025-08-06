@@ -50,14 +50,14 @@ Features:
 - Audit logging and compliance
 - Admin account management
 - Zero-trust security architecture
-"""
+
 
 logger = get_logger(__name__)
 
 
 class AuthenticationMethod(Enum):
     """Authentication methods."""
-    PASSWORD = "password"
+        PASSWORD = "password"
     MFA_TOTP = "mfa_totp"
     MFA_SMS = "mfa_sms"
     MFA_EMAIL = "mfa_email"
@@ -72,7 +72,7 @@ API_KEY = os.getenv("API_KEY", "")
 
 
 class SecurityLevel(Enum):
-    """Security levels for authentication."""
+    """Security levels for authentication.
     PUBLIC = 0      # No authentication required
     BASIC = 1       # Basic password authentication
     ENHANCED = 2    # Password + device verification
@@ -84,7 +84,7 @@ class SecurityLevel(Enum):
 
 class AuthenticationResult(Enum):
     """Authentication result types."""
-    SUCCESS = "success"
+        SUCCESS = "success"
     INVALID_CREDENTIALS = "invalid_credentials"
     MFA_REQUIRED = "mfa_required"
     ACCOUNT_LOCKED = "account_locked"
@@ -96,7 +96,7 @@ class AuthenticationResult(Enum):
 
 @dataclass
 class AuthenticationRequest:
-    """Comprehensive authentication request."""
+    """Comprehensive authentication request.
     # Primary credentials
     username: Optional[str] = None
     password: Optional[str] = None
@@ -132,7 +132,7 @@ class AuthenticationRequest:
 @dataclass
 class AuthenticationResponse:
     """Comprehensive authentication response."""
-    # Result information
+        # Result information
     result: AuthenticationResult
     success: bool
     user_id: Optional[str] = None
@@ -173,8 +173,8 @@ class AuthenticationResponse:
 
 @dataclass
 class SessionData:
-    """Session data structure."""
-    session_id: str
+    """Session data structure.
+        session_id: str
     user_id: str
     created_at: datetime
     last_activity: datetime
@@ -193,7 +193,7 @@ class SessionData:
 @dataclass
 class TokenData:
     """Token data structure."""
-    token_id: str
+        token_id: str
     user_id: str
     session_id: Optional[str]
     token_type: str  # access, refresh, api_key
@@ -207,14 +207,13 @@ class TokenData:
 
 
 class UnifiedAuthManager:
-    """
+    
     Unified Authentication Manager - Single Source of Truth
 
     Orchestrates all authentication methods through a single secure flow,
     providing comprehensive session management, token handling, and security.
     """
-
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+        def __init__(self, config: Optional[Dict[str, Any]] = None):
         self.config = config or getattr(get_config(), "authentication", {})
         self.initialized = False
 
@@ -676,7 +675,7 @@ class UnifiedAuthManager:
         return "Admin123!@#" + secrets.token_urlsafe(8)
 
     def _hash_password(self, password: str) -> str:
-        """Hash password using secure method."""
+        """Hash password using secure method.
         return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
     def _verify_password(self, password: str, password_hash: str) -> bool:
@@ -684,7 +683,7 @@ class UnifiedAuthManager:
         return bcrypt.checkpw(password.encode('utf-8'), password_hash.encode('utf-8'))
 
     async def get_status(self) -> Dict[str, Any]:
-        """Get comprehensive authentication system status."""
+        Get comprehensive authentication system status."""
         active_sessions = len([s for s in (await self.storage.get_all_sessions()) if s.get("is_active")])
         valid_tokens = len([t for t in (await self.storage.get_all_tokens()) if not t.get("is_revoked")])
 
@@ -704,16 +703,16 @@ class UnifiedAuthManager:
 
     # Private helper methods (stubs for now)
     async def _load_persistent_data(self):
-        """Load persistent authentication data."""
+        """Load persistent authentication data.
 
     async def _cleanup_expired_sessions(self):
         """Clean up expired sessions."""
 
     async def _cleanup_expired_tokens(self):
-        """Clean up expired tokens."""
+        Clean up expired tokens."""
 
     async def _is_rate_limited(self, request: AuthenticationRequest) -> bool:
-        """Check if request is rate limited."""
+        """Check if request is rate limited.
         return False
 
     async def _is_account_locked(self, username: str) -> bool:
@@ -721,7 +720,7 @@ class UnifiedAuthManager:
         return False
 
     async def _assess_risk(self, request: AuthenticationRequest) -> float:
-        """Assess authentication risk."""
+        Assess authentication risk."""
         return 0.0
 
     async def _authenticate_primary(self, request: AuthenticationRequest) -> AuthenticationResponse:
@@ -734,18 +733,18 @@ class UnifiedAuthManager:
         )
 
     async def _record_failed_attempt(self, request: AuthenticationRequest):
-        """Record failed authentication attempt."""
+        """Record failed authentication attempt.
 
     async def _get_user_required_security_level(self, user_id: str) -> SecurityLevel:
         """Get required security level for user."""
         return SecurityLevel.BASIC
 
     async def _is_device_trusted(self, request: AuthenticationRequest) -> bool:
-        """Check if device is trusted."""
+        Check if device is trusted."""
         return False
 
     async def _get_available_mfa_methods(self, user_id: str) -> List[str]:
-        """Get available MFA methods for user."""
+        """Get available MFA methods for user.
         return []
 
     async def _verify_mfa(self, request: AuthenticationRequest) -> bool:
@@ -753,7 +752,7 @@ class UnifiedAuthManager:
         return False
 
     async def _create_session(self, user_id: str, request: AuthenticationRequest) -> str:
-        """Create authentication session."""
+        Create authentication session."""
         return f"session_{user_id}"
 
     async def _generate_access_token(self, user_id: str, session_id: str, security_level: SecurityLevel) -> str:
@@ -765,20 +764,20 @@ class UnifiedAuthManager:
         return f"refresh_token_{user_id}"
 
     async def _handle_device_trust(self, request: AuthenticationRequest):
-        """Handle device trust logic."""
+        """Handle device trust logic.
 
     async def _clear_failed_attempts(self, username: str):
         """Clear failed authentication attempts."""
 
     async def _log_auth_success(self, user_id: str, session_id: str, request: AuthenticationRequest):
-        """Log successful authentication."""
+        Log successful authentication."""
 
     async def _get_user_info(self, user_id: str) -> Dict[str, Any]:
         """Get user information."""
         return {"user_id": user_id}
 
     async def _get_user_permissions(self, user_id: str) -> List[str]:
-        """Get user permissions."""
+        """Get user permissions.
         return []
 
     async def _log_auth_error(self, audit_id: str, request: AuthenticationRequest, error: str):
@@ -790,7 +789,7 @@ _unified_auth_manager: Optional[UnifiedAuthManager] = None
 
 
 def get_unified_auth_manager() -> UnifiedAuthManager:
-    """Get the global unified authentication manager instance."""
+    Get the global unified authentication manager instance."""
     global _unified_auth_manager
     if _unified_auth_manager is None:
         _unified_auth_manager = UnifiedAuthManager()

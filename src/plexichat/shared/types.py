@@ -12,7 +12,7 @@ Comprehensive type definitions with advanced features:
 - Performance monitoring types
 - Compliance and audit types
 - Edge computing and distributed system types
-"""
+
 # pyright: reportArgumentType=false
 # pyright: reportCallIssue=false
 # pyright: reportAttributeAccessIssue=false
@@ -218,40 +218,37 @@ V = TypeVar('V')
 @runtime_checkable
 class Serializable(Protocol):
     """Protocol for objects that can be serialized."""
-
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert object to dictionary."""
+        def to_dict(self) -> Dict[str, Any]:
+        Convert object to dictionary."""
         ...
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'Serializable':
-        """Create object from dictionary."""
+        """Create object from dictionary.
         ...
 
 
 @runtime_checkable
 class Configurable(Protocol):
     """Protocol for configurable objects."""
-
-    def configure(self, config: ConfigDict) -> None:
-        """Configure the object with given configuration."""
+        def configure(self, config: ConfigDict) -> None:
+        Configure the object with given configuration."""
         ...
 
     def get_config(self) -> ConfigDict:
-        """Get current configuration."""
+        """Get current configuration.
         ...
 
 
 @runtime_checkable
 class Lifecycle(Protocol):
     """Protocol for objects with lifecycle management."""
-
-    async def initialize(self) -> bool:
-        """Initialize the object."""
+        async def initialize(self) -> bool:
+        Initialize the object."""
         ...
 
     async def start(self) -> None:
-        """Start the object."""
+        """Start the object.
         ...
 
     async def stop(self) -> None:
@@ -259,25 +256,23 @@ class Lifecycle(Protocol):
         ...
 
     async def shutdown(self) -> None:
-        """Shutdown the object."""
+        Shutdown the object."""
         ...
 
 
 @runtime_checkable
 class Healthcheck(Protocol):
-    """Protocol for objects that can report health status."""
-
-    async def health_check(self) -> Dict[str, Any]:
+    """Protocol for objects that can report health status.
+        async def health_check(self) -> Dict[str, Any]:
         """Perform health check and return status."""
         ...
 
 
 @runtime_checkable
 class Cacheable(Protocol):
-    """Protocol for cacheable objects."""
-
-    def cache_key(self) -> str:
-        """Get cache key for this object."""
+    Protocol for cacheable objects."""
+        def cache_key(self) -> str:
+        """Get cache key for this object.
         ...
 
     def cache_ttl(self) -> int:
@@ -287,10 +282,9 @@ class Cacheable(Protocol):
 
 @runtime_checkable
 class Validatable(Protocol):
-    """Protocol for validatable objects."""
-
-    def validate(self) -> List[str]:
-        """Validate object and return list of errors."""
+    Protocol for validatable objects."""
+        def validate(self) -> List[str]:
+        """Validate object and return list of errors.
         ...
 
     def is_valid(self) -> bool:
@@ -300,10 +294,9 @@ class Validatable(Protocol):
 
 @runtime_checkable
 class Auditable(Protocol):
-    """Protocol for auditable objects."""
-
-    def audit_info(self) -> Dict[str, Any]:
-        """Get audit information."""
+    Protocol for auditable objects."""
+        def audit_info(self) -> Dict[str, Any]:
+        """Get audit information.
         ...
 
 # Enhanced Protocol Definitions for Advanced Features
@@ -311,21 +304,21 @@ class Auditable(Protocol):
 @runtime_checkable
 class Encryptable(Protocol):
     """Protocol for objects that can be encrypted."""
-    def encrypt(self, key: bytes) -> bytes: ...
+        def encrypt(self, key: bytes) -> bytes: ...
     def decrypt(self, encrypted_data: bytes, key: bytes) -> 'Encryptable': ...
 
 @runtime_checkable
 class DatabaseEntity(Protocol):
-    """Protocol for database entities."""
-    def to_db_dict(self) -> Dict[str, Any]: ...
+    Protocol for database entities."""
+        def to_db_dict(self) -> Dict[str, Any]: ...
     @classmethod
     def from_db_dict(cls, data: Dict[str, Any]) -> 'DatabaseEntity': ...
     def primary_key(self) -> str: ...
 
 @runtime_checkable
 class PluginInterface(Protocol):
-    """Enhanced protocol for plugin interfaces."""
-    def initialize(self, config: JSONObject) -> Awaitable[bool]: ...
+    """Enhanced protocol for plugin interfaces.
+        def initialize(self, config: JSONObject) -> Awaitable[bool]: ...
     def execute(self, command: str, args: JSONObject) -> Awaitable[JSONObject]: ...
     def cleanup(self) -> Awaitable[None]: ...
     def health_check(self) -> Awaitable[bool]: ...
@@ -333,14 +326,14 @@ class PluginInterface(Protocol):
 @runtime_checkable
 class AIModelInterface(Protocol):
     """Protocol for AI model interfaces."""
-    def predict(self, input_data: Any) -> Awaitable[Dict[str, Any]]: ...
+        def predict(self, input_data: Any) -> Awaitable[Dict[str, Any]]: ...
     def train(self, training_data: List[Dict[str, Any]]) -> Awaitable[bool]: ...
     def evaluate(self, test_data: List[Dict[str, Any]]) -> Awaitable[Dict[str, float]]: ...
 
 @runtime_checkable
 class SecurityProvider(Protocol):
-    """Protocol for security providers."""
-    def authenticate(self, credentials: JSONObject) -> Awaitable[Optional[UserId]]: ...
+    Protocol for security providers."""
+        def authenticate(self, credentials: JSONObject) -> Awaitable[Optional[UserId]]: ...
     def authorize(self, user_id: UserId, resource: str, action: str) -> Awaitable[bool]: ...
     def encrypt_data(self, data: bytes, context: JSONObject) -> Awaitable[bytes]: ...
     def decrypt_data(self, encrypted_data: bytes, context: JSONObject) -> Awaitable[bytes]: ...
@@ -349,7 +342,7 @@ class SecurityProvider(Protocol):
 
 class SecurityLevel(Enum):
     """Enhanced security levels with quantum readiness."""
-    BASIC = "basic"
+        BASIC = "basic"
     STANDARD = "standard"
     HIGH = "high"
     MAXIMUM = "maximum"
@@ -368,8 +361,8 @@ class NodeStatus(Enum):
     DECOMMISSIONED = "decommissioned"
 
 class TaskPriority(IntEnum):
-    """Task priority levels with numeric values."""
-    LOWEST = 1
+    """Task priority levels with numeric values.
+        LOWEST = 1
     LOW = 2
     NORMAL = 3
     HIGH = 4
@@ -388,7 +381,7 @@ class EventSeverity(Enum):
 
 class EncryptionAlgorithm(Enum):
     """Supported encryption algorithms."""
-    AES_256_GCM = "aes_256_gcm"
+        AES_256_GCM = "aes_256_gcm"
     CHACHA20_POLY1305 = "chacha20_poly1305"
     RSA_4096 = "rsa_4096"
     ECDSA_P384 = "ecdsa_p384"
@@ -407,7 +400,7 @@ class DatabaseEngine(Enum):
 
 class MessageType(Enum):
     """Enhanced message types for communication."""
-    TEXT = "text"
+        TEXT = "text"
     IMAGE = "image"
     VIDEO = "video"
     AUDIO = "audio"
@@ -419,7 +412,7 @@ class MessageType(Enum):
     BLOCKCHAIN_VERIFIED = "blockchain_verified"
 
 class PermissionLevel(IntFlag):
-    """Permission levels using flags for combination."""
+    """Permission levels using flags for combination.
     NONE = 0
     READ = 1
     WRITE = 2
@@ -433,7 +426,7 @@ class PermissionLevel(IntFlag):
 
 class UserProfileData(TypedDict):
     """Typed dictionary for user profile data."""
-    user_id: UserId
+        user_id: UserId
     username: str
     email: str
     display_name: Optional[str]
@@ -449,8 +442,8 @@ class UserProfileData(TypedDict):
     verification_status: Dict[str, bool]
 
 class MessageData(TypedDict):
-    """Typed dictionary for message data."""
-    message_id: MessageId
+    Typed dictionary for message data."""
+        message_id: MessageId
     channel_id: ChannelId
     user_id: UserId
     content: str
@@ -465,8 +458,8 @@ class MessageData(TypedDict):
     encryption_info: Optional[JSONObject]
 
 class NodeMetrics(TypedDict):
-    """Typed dictionary for node performance metrics."""
-    node_id: NodeId
+    """Typed dictionary for node performance metrics.
+        node_id: NodeId
     timestamp: datetime
     cpu_usage: float
     memory_usage: int
@@ -481,7 +474,7 @@ class NodeMetrics(TypedDict):
 
 class SecurityEvent(TypedDict):
     """Typed dictionary for security events."""
-    event_id: EventId
+        event_id: EventId
     event_type: str
     severity: str
     timestamp: datetime
@@ -496,8 +489,8 @@ class SecurityEvent(TypedDict):
 
 # Advanced generic types for collections and operations
 class Result(Generic[T]):
-    """Result type for operations that can succeed or fail."""
-    def __init__(self, value: Optional[T] = None, error: Optional[Exception] = None):
+    Result type for operations that can succeed or fail."""
+        def __init__(self, value: Optional[T] = None, error: Optional[Exception] = None):
         self._value = value
         self._error = error
 
@@ -520,8 +513,8 @@ class Result(Generic[T]):
         return self._error
 
 class Page(Generic[T]):
-    """Generic pagination container."""
-    def __init__(self, items: List[T], total: int, page: int, size: int):
+    """Generic pagination container.
+        def __init__(self, items: List[T], total: int, page: int, size: int):
         self.items = items
         self.total = total
         self.page = page
@@ -542,18 +535,17 @@ class Page(Generic[T]):
 
 class Optional(Generic[T]):
     """Optional container that can hold a value or be empty."""
-
-    def __init__(self, value: Optional[T] = None):
+        def __init__(self, value: Optional[T] = None):
         self._value = value
 
     @property
     def is_present(self) -> bool:
-        """Check if value is present."""
+        Check if value is present."""
         return self._value is not None
 
     @property
     def is_empty(self) -> bool:
-        """Check if value is empty."""
+        """Check if value is empty.
         return self._value is None
 
     @property
@@ -564,7 +556,7 @@ class Optional(Generic[T]):
         return self._value
 
     def get_or_default(self, default: T) -> T:
-        """Get value or return default."""
+        """Get value or return default.
         return self._value if self._value is not None else default
 
     @classmethod
@@ -574,7 +566,7 @@ class Optional(Generic[T]):
 
     @classmethod
     def empty(cls) -> 'Optional[T]':
-        """Create empty optional."""
+        Create empty optional."""
         return cls()
 
 

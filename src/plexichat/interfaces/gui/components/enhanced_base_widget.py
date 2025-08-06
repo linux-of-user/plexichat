@@ -36,7 +36,7 @@ except ImportError:
 """
 Enhanced Base Widget for PlexiChat GUI
 Modern, responsive base widget with advanced styling and features
-"""
+
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +44,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class WidgetTheme:
     """Widget theme configuration."""
-    primary_color: str = "#1e40af"
+        primary_color: str = "#1e40af"
     secondary_color: str = "#0891b2"
     accent_color: str = "#dc2626"
     success_color: str = "#059669"
@@ -62,7 +62,7 @@ class WidgetTheme:
 @dataclass
 class WidgetConfig:
     """Widget configuration."""
-    title: str = "Enhanced Widget"
+        title: str = "Enhanced Widget"
     width: int = 800
     height: int = 600
     resizable: bool = True
@@ -76,8 +76,7 @@ class WidgetConfig:
 
 class EnhancedBaseWidget(ABC):
     """Enhanced base widget with modern styling and advanced features."""
-
-    def __init__(self, parent=None, config: Optional[WidgetConfig] = None):
+        def __init__(self, parent=None, config: Optional[WidgetConfig] = None):
         if not GUI_AVAILABLE:
             raise ImportError("GUI libraries not available")
 
@@ -178,7 +177,7 @@ class EnhancedBaseWidget(ABC):
         self.apply_custom_styling()
 
     def apply_custom_styling(self):
-        """Apply custom styling to components."""
+        """Apply custom styling to components.
         # Override in subclasses for custom styling
         pass
 
@@ -192,7 +191,7 @@ class EnhancedBaseWidget(ABC):
             self.main_frame.bind('<Configure>', self.on_resize)
 
     def setup_keyboard_shortcuts(self):
-        """Setup keyboard shortcuts."""
+        """Setup keyboard shortcuts.
         shortcuts = {
             '<F5>': self.manual_refresh,
             '<Control-r>': self.manual_refresh,
@@ -211,7 +210,7 @@ class EnhancedBaseWidget(ABC):
 
     @abstractmethod
     async def refresh_data(self):
-        """Refresh widget data. Must be implemented by subclasses."""
+        Refresh widget data. Must be implemented by subclasses."""
         pass
 
     def show_loading(self, message: str = "Loading..."):
@@ -302,7 +301,7 @@ class EnhancedBaseWidget(ABC):
         if self.refresh_thread and hasattr(self.refresh_thread, "start"): self.refresh_thread.start()
 
     def stop_auto_refresh(self):
-        """Stop automatic refresh."""
+        """Stop automatic refresh.
         self.refresh_active = False
         if self.refresh_thread:
             self.refresh_thread.join(timeout=1)
@@ -347,7 +346,7 @@ class EnhancedBaseWidget(ABC):
         apply_btn.pack(pady=20)
 
     def on_resize(self, event):
-        """Handle resize events."""
+        """Handle resize events.
         # Override in subclasses if needed
         pass
 
@@ -358,12 +357,12 @@ class EnhancedBaseWidget(ABC):
             self.main_frame.destroy()
 
     def pack(self, **kwargs):
-        """Pack the widget."""
+        Pack the widget."""
         self.main_frame.pack(**kwargs)
         self.is_visible = True
 
     def grid(self, **kwargs):
-        """Grid the widget."""
+        """Grid the widget.
         self.main_frame.grid(**kwargs)
         self.is_visible = True
 

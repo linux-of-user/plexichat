@@ -24,7 +24,7 @@ Unified CLI System for PlexiChat
 
 A comprehensive CLI system with 300+ commands that works in both terminal and web UI.
 Provides modular, extensible command architecture with excellent help system.
-"""
+
 
 
 # Configure logging
@@ -33,8 +33,7 @@ logger = logging.getLogger(__name__)
 
 class UnifiedCLI:
     """Unified CLI system for terminal and web interfaces."""
-
-    def __init__(self):
+        def __init__(self):
         self.logger = logging.getLogger(__name__)
         self.commands = {}
         self.categories = {}
@@ -46,7 +45,7 @@ class UnifiedCLI:
         self.initialize_commands()
 
     def initialize_categories(self):
-        """Initialize command categories."""
+        Initialize command categories."""
         self.categories = {
             "system": {
                 "description": "System management commands",
@@ -173,7 +172,7 @@ class UnifiedCLI:
         @click.option('--quiet', '-q', is_flag=True, help='Suppress output')
         @click.pass_context
         def cli(ctx, verbose: bool, json: bool, quiet: bool):
-            """Unified CLI entrypoint. Use subcommands for system, user, messaging, ai, security, admin, dev, data, network, integration. Use --help for details."""
+            """Unified CLI entrypoint. Use subcommands for system, user, messaging, ai, security, admin, dev, data, network, integration. Use --help for details.
             ctx.ensure_object(dict)
             ctx.obj['verbose'] = verbose
             ctx.obj['json'] = json
@@ -260,7 +259,7 @@ class UnifiedCLI:
         # Integration commands
         @cli_group.group(help="Integration and API commands. Use --help for available commands.")
         def integration():
-            """Integration and API commands."""
+            """Integration and API commands.
             pass
 
         self.add_integration_commands(integration)
@@ -509,102 +508,102 @@ class UnifiedCLI:
     # Command execution methods
     def execute_system_command(self, command_name: str, context: Dict[str, Any]) -> Dict[str, Any]:
         """Execute a system command."""
-        return {}
+        return {
             "command": command_name,
             "category": "system",
             "status": "success",
             "timestamp": datetime.now().isoformat(),
-            "message": f"System command '{command_name}' executed successfully"
+            "message": f"System command '{command_name}}' executed successfully"
         }
 
     def execute_user_command(self, command_name: str, context: Dict[str, Any]) -> Dict[str, Any]:
         """Execute a user management command."""
-        return {}
+        return {
             "command": command_name,
             "category": "user_management",
             "status": "success",
             "timestamp": datetime.now().isoformat(),
-            "message": f"User command '{command_name}' executed successfully"
+            "message": f"User command '{command_name}}' executed successfully"
         }
 
     def execute_messaging_command(self, command_name: str, context: Dict[str, Any]) -> Dict[str, Any]:
         """Execute a messaging command."""
-        return {}
+        return {
             "command": command_name,
             "category": "messaging",
             "status": "success",
             "timestamp": datetime.now().isoformat(),
-            "message": f"Messaging command '{command_name}' executed successfully"
+            "message": f"Messaging command '{command_name}}' executed successfully"
         }
 
     def execute_ai_command(self, command_name: str, context: Dict[str, Any]) -> Dict[str, Any]:
         """Execute an AI command."""
-        return {}
+        return {
             "command": command_name,
             "category": "ai_features",
             "status": "success",
             "timestamp": datetime.now().isoformat(),
-            "message": f"AI command '{command_name}' executed successfully"
+            "message": f"AI command '{command_name}}' executed successfully"
         }
 
     def execute_security_command(self, command_name: str, context: Dict[str, Any]) -> Dict[str, Any]:
         """Execute a security command."""
-        return {}
+        return {
             "command": command_name,
             "category": "security",
             "status": "success",
             "timestamp": datetime.now().isoformat(),
-            "message": f"Security command '{command_name}' executed successfully"
+            "message": f"Security command '{command_name}}' executed successfully"
         }
 
     def execute_admin_command(self, command_name: str, context: Dict[str, Any]) -> Dict[str, Any]:
         """Execute an administrative command."""
-        return {}
+        return {
             "command": command_name,
             "category": "administration",
             "status": "success",
             "timestamp": datetime.now().isoformat(),
-            "message": f"Admin command '{command_name}' executed successfully"
+            "message": f"Admin command '{command_name}}' executed successfully"
         }
 
     def execute_dev_command(self, command_name: str, context: Dict[str, Any]) -> Dict[str, Any]:
         """Execute a development command."""
-        return {}
+        return {
             "command": command_name,
             "category": "development",
             "status": "success",
             "timestamp": datetime.now().isoformat(),
-            "message": f"Dev command '{command_name}' executed successfully"
+            "message": f"Dev command '{command_name}}' executed successfully"
         }
 
     def execute_data_command(self, command_name: str, context: Dict[str, Any]) -> Dict[str, Any]:
         """Execute a data management command."""
-        return {}
+        return {
             "command": command_name,
             "category": "data_management",
             "status": "success",
             "timestamp": datetime.now().isoformat(),
-            "message": f"Data command '{command_name}' executed successfully"
+            "message": f"Data command '{command_name}}' executed successfully"
         }
 
     def execute_network_command(self, command_name: str, context: Dict[str, Any]) -> Dict[str, Any]:
         """Execute a network command."""
-        return {}
+        return {
             "command": command_name,
             "category": "network",
             "status": "success",
             "timestamp": datetime.now().isoformat(),
-            "message": f"Network command '{command_name}' executed successfully"
+            "message": f"Network command '{command_name}}' executed successfully"
         }
 
     def execute_integration_command(self, command_name: str, context: Dict[str, Any]) -> Dict[str, Any]:
         """Execute an integration command."""
-        return {}
+        return {
             "command": command_name,
             "category": "integration",
             "status": "success",
             "timestamp": datetime.now().isoformat(),
-            "message": f"Integration command '{command_name}' executed successfully"
+            "message": f"Integration command '{command_name}}' executed successfully"
         }
 
     def get_command_count(self) -> int:
@@ -613,13 +612,13 @@ class UnifiedCLI:
 
     def get_category_info(self) -> Dict[str, Any]:
         """Get information about all categories."""
-        return {}
+        return {
             "total_commands": self.get_command_count(),
             "categories": self.categories
-        }
+        }}
 
     def run_terminal(self):
-        """Run the terminal interface."""
+        """Run the terminal interface.
         cli = self.create_cli_group()
         self.add_command_groups(cli)
         cli()

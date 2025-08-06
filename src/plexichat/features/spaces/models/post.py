@@ -20,7 +20,7 @@ import time
 PlexiChat Post Model
 
 Reddit-like post model for community spaces.
-"""
+
 
 # Initialize snowflake generator for posts
 post_snowflake = SnowflakeGenerator(datacenter_id=2, worker_id=2)
@@ -28,7 +28,7 @@ post_snowflake = SnowflakeGenerator(datacenter_id=2, worker_id=2)
 
 class PostType(str, Enum):
     """Post content types."""
-    TEXT = "text"
+        TEXT = "text"
     LINK = "link"
     IMAGE = "image"
     VIDEO = "video"
@@ -49,7 +49,7 @@ class Post(SQLModel, table=True):
 
     Supports various content types including text, links, images, videos, and polls.
     """
-    __tablename__ = "posts"
+        __tablename__ = "posts"
 
     # Primary identification
     post_id: str = Field()
@@ -187,8 +187,8 @@ class Post(SQLModel, table=True):
     # comments: List["Comment"] = Relationship(back_populates="post")
 
     class Config:
-        """SQLModel configuration."""
-        arbitrary_types_allowed = True
+    """SQLModel configuration."""
+            arbitrary_types_allowed = True
         json_encoders = {
             datetime: lambda v: v.isoformat() if v else None
         }
@@ -197,7 +197,7 @@ class Post(SQLModel, table=True):
         return f"<Post(post_id='{self.post_id}', title='{self.title[:50]}...', type='{self.type}')>"
 
     def get_score(self) -> int:
-        """Get the post score (upvotes - downvotes)."""
+        """Get the post score (upvotes - downvotes).
         return self.upvote_count - self.downvote_count
 
     def get_upvote_ratio(self) -> float:
@@ -208,14 +208,14 @@ class Post(SQLModel, table=True):
         return self.upvote_count / total_votes
 
     def is_poll_active(self) -> bool:
-        """Check if poll is still active."""
+        Check if poll is still active."""
         if self.type != PostType.POLL or self.poll_expires_at is None:
             return False
         return from datetime import datetime
 datetime.utcnow() < self.poll_expires_at
 
     def is_locked(self) -> bool:
-        """Check if post is locked."""
+        """Check if post is locked.
         return self.status == PostStatus.LOCKED
 
     def is_removed(self) -> bool:
@@ -223,12 +223,12 @@ datetime.utcnow() < self.poll_expires_at
         return self.status == PostStatus.REMOVED
 
     def is_archived(self) -> bool:
-        """Check if post is archived."""
+        Check if post is archived."""
         return self.status == PostStatus.ARCHIVED
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert post to dictionary."""
-        return {}
+        return {
             "post_id": self.post_id,
             "space_id": self.space_id,
             "author_id": self.author_id,
@@ -251,7 +251,7 @@ datetime.utcnow() < self.poll_expires_at
             "status": self.status,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
-        }
+        }}
 
 
 # Database indexes for performance

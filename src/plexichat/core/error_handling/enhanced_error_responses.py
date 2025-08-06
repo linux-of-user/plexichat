@@ -2,7 +2,7 @@
 """
 Enhanced Error Response System
 Provides comprehensive, descriptive error messages with proper HTTP status codes
-"""
+
 
 import traceback
 import logging
@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 class ErrorCategory(str, Enum):
     """Error categories for better classification."""
-    AUTHENTICATION = "authentication"
+        AUTHENTICATION = "authentication"
     AUTHORIZATION = "authorization"
     VALIDATION = "validation"
     RATE_LIMITING = "rate_limiting"
@@ -41,7 +41,7 @@ class ErrorSeverity(str, Enum):
 @dataclass
 class ErrorDetail:
     """Detailed error information."""
-    field: Optional[str] = None
+        field: Optional[str] = None
     message: str = ""
     code: Optional[str] = None
     value: Optional[Any] = None
@@ -49,8 +49,8 @@ class ErrorDetail:
 
 @dataclass
 class ErrorContext:
-    """Additional context for errors."""
-    user_id: Optional[str] = None
+    """Additional context for errors.
+        user_id: Optional[str] = None
     session_id: Optional[str] = None
     request_id: Optional[str] = None
     endpoint: Optional[str] = None
@@ -62,7 +62,7 @@ class ErrorContext:
 @dataclass
 class EnhancedErrorResponse:
     """Enhanced error response structure."""
-    success: bool = False
+        success: bool = False
     error: str = ""
     message: str = ""
     category: ErrorCategory = ErrorCategory.SERVER_ERROR
@@ -83,9 +83,8 @@ class EnhancedErrorResponse:
             self.suggestions = []
 
 class EnhancedErrorHandler:
-    """Enhanced error handler with descriptive messages."""
-    
-    def __init__(self, debug_mode: bool = False, include_traceback: bool = False):
+    """Enhanced error handler with descriptive messages.
+        def __init__(self, debug_mode: bool = False, include_traceback: bool = False):
         self.debug_mode = debug_mode
         self.include_traceback = include_traceback
         self.error_mappings = self._initialize_error_mappings()
@@ -830,7 +829,7 @@ def check_for_teapot_condition(request_content: str, endpoint: str, headers: dic
 
     This is a very specific check to ensure the 418 error only appears
     as an Easter egg and doesn't disrupt normal operations.
-    """
+    
     # Very specific conditions that are unlikely to occur in normal use
     special_header = headers.get('X-Brew-Coffee', '').lower()
     coffee_request = 'coffee' in request_content.lower()

@@ -16,7 +16,7 @@ import http.client
 PlexiChat Authentication Middleware
 
 Middleware for web frameworks to handle authentication automatically.
-"""
+
 
 logger = logging.getLogger(__name__)
 
@@ -27,8 +27,7 @@ class AuthenticationMiddleware:
 
     Automatically handles token extraction, validation, and context injection.
     """
-
-    def __init__(self, app: Callable, config: Optional[Dict[str, Any]] = None):
+        def __init__(self, app: Callable, config: Optional[Dict[str, Any]] = None):
         self.app = app
         self.config = config or {}
 
@@ -100,9 +99,8 @@ class AuthenticationMiddleware:
 
 
 class FlaskAuthMiddleware:
-    """Authentication middleware for Flask applications."""
-
-    def __init__(self, app, config: Optional[Dict[str, Any]] = None):
+    """Authentication middleware for Flask applications.
+        def __init__(self, app, config: Optional[Dict[str, Any]] = None):
         self.app = app
         self.config = config or {}
 
@@ -148,9 +146,8 @@ class FlaskAuthMiddleware:
 
 
 class FastAPIAuthMiddleware:
-    """Authentication middleware for FastAPI applications."""
-
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+    """Authentication middleware for FastAPI applications.
+        def __init__(self, config: Optional[Dict[str, Any]] = None):
         self.config = config or {}
 
     async def __call__(self, request, call_next):

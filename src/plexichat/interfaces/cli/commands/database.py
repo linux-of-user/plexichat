@@ -47,7 +47,7 @@ logger = logging.getLogger(__name__)
 @click.group(name="db-perf")
 @click.pass_context
 def database_performance_cli(ctx):
-    """Database Performance Optimization Commands."""
+    """Database Performance Optimization Commands.
     ctx.ensure_object(dict)
     ctx.obj['config'] = ConfigManager()
 
@@ -273,7 +273,7 @@ def monitor(ctx, database: str, interval: int, duration: int, threshold: float):
 
                 # Show recent slow queries
                 slow_queries = [q for q in performance_monitor.slow_queries
-                              if q["execution_time_ms"] > threshold]
+                            if q["execution_time_ms"] > threshold]
 
                 if slow_queries:
                     click.echo(f"\n Recent Slow Queries (>{threshold}ms):")

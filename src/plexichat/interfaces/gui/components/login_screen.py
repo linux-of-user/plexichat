@@ -1,7 +1,7 @@
 """
 Modern Glassmorphic Login Screen for PlexiChat GUI
 Features stunning glassmorphism, dark/light modes, and premium UX design.
-"""
+
 
 import tkinter as tk
 from tkinter import ttk, messagebox
@@ -43,8 +43,7 @@ class LoginScreen(tk.Frame):
     - Premium button design with hover effects
     - Responsive layout and professional typography
     """
-
-    def __init__(self, parent, app_instance):
+        def __init__(self, parent, app_instance):
         super().__init__(parent)
         self.app = app_instance
         self.parent = parent
@@ -78,7 +77,7 @@ class LoginScreen(tk.Frame):
         self.setup_modern_interface()
 
     def get_bg_color(self):
-        """Get appropriate background color based on theme."""
+        """Get appropriate background color based on theme.
         return '#1a1a2e' if self.dark_mode.get() else '#f8fafc'
 
     def setup_modern_interface(self):
@@ -355,7 +354,7 @@ class LoginScreen(tk.Frame):
             logger.error(f"Failed to draw modern toggle: {e}")
 
     def on_toggle_hover(self, is_hover):
-        """Handle toggle hover effects."""
+        """Handle toggle hover effects.
         self.draw_modern_toggle(hover=is_hover)
 
     def animate_theme_toggle(self):
@@ -575,9 +574,9 @@ class LoginScreen(tk.Frame):
         try:
             # Main rectangles
             canvas.create_rectangle(x1 + radius, y1, x2 - radius, y2, 
-                                  fill=color, outline='')
+                                fill=color, outline='')
             canvas.create_rectangle(x1, y1 + radius, x2, y2 - radius, 
-                                  fill=color, outline='')
+                                fill=color, outline='')
             
             # Corner arcs
             canvas.create_arc(x1, y1, x1 + 2*radius, y1 + 2*radius,
@@ -597,13 +596,13 @@ class LoginScreen(tk.Frame):
         try:
             # Border lines
             canvas.create_line(x1 + radius, y1, x2 - radius, y1, 
-                             fill=color, width=1)
+                            fill=color, width=1)
             canvas.create_line(x1 + radius, y2, x2 - radius, y2, 
-                             fill=color, width=1)
+                            fill=color, width=1)
             canvas.create_line(x1, y1 + radius, x1, y2 - radius, 
-                             fill=color, width=1)
+                            fill=color, width=1)
             canvas.create_line(x2, y1 + radius, x2, y2 - radius, 
-                             fill=color, width=1)
+                            fill=color, width=1)
             
             # Corner arcs
             canvas.create_arc(x1, y1, x1 + 2*radius, y1 + 2*radius,
@@ -1232,7 +1231,7 @@ class LoginScreen(tk.Frame):
             self.system_status_text.set("? Status unavailable")
 
     def check_network_status(self):
-        """Check network connectivity."""
+        """Check network connectivity.
         try:
             import socket
             socket.gethostbyname('google.com')
@@ -1267,7 +1266,7 @@ class LoginScreen(tk.Frame):
             logger.error(f"Failed to save theme preference: {e}")
 
     def show_password_reset_info(self, event=None):
-        """Show password reset information."""
+        """Show password reset information.
         try:
             reset_info = """Password Reset Instructions:
 
@@ -1365,7 +1364,7 @@ Note: You must have access to the command line to reset your password."""
 
     def create_success_response(self, username: str) -> Dict[str, Any]:
         """Create successful authentication response."""
-        return {}
+        return {
             "success": True,
             "user": {
                 "id": "admin",
@@ -1376,7 +1375,7 @@ Note: You must have access to the command line to reset your password."""
                 "profile": {
                     "display_name": "Server Administrator",
                     "theme": "dark_modern" if self.dark_mode.get() else "light_modern"
-                }
+                }}
             },
             "token": self.generate_secure_token(username),
             "expires": (datetime.now() + timedelta(hours=8)).isoformat()
@@ -1398,10 +1397,10 @@ Note: You must have access to the command line to reset your password."""
                         with open(creds_file, 'r') as f:
                             data = json.load(f)
                             admin_creds = data.get('admin', {})
-                            return {}
+                            return {
                                 "username": admin_creds.get("username", "admin"),
                                 "password": admin_creds.get("password", "admin123")
-                            }
+                            }}
                     else:
                         with open(creds_file, 'r') as f:
                             content = f.read()

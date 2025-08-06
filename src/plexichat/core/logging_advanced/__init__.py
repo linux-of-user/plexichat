@@ -178,7 +178,6 @@ class LogEntry:
 
 class LogBuffer:
     """Thread-safe circular buffer for log entries."""
-
     def __init__(self, max_size: int = 10000):
         self.max_size = max_size
         self.buffer = deque(maxlen=max_size)
@@ -224,7 +223,6 @@ class LogBuffer:
 
 class PerformanceTracker:
     """Performance tracking for logging operations."""
-
     def __init__(self):
         self.metrics = defaultdict(list)
         self.lock = threading.RLock()
@@ -247,7 +245,13 @@ class PerformanceTracker:
         with self.lock:
             if operation:
                 if operation not in self.metrics:
-                    return {}
+                    return {
+                        "count": 0,
+                        "avg": 0,
+                        "min": 0,
+                        "max": 0,
+                        "recent": []
+                    }
 
                 durations = [m["duration"] for m in self.metrics[operation]]
                 return {
@@ -306,7 +310,6 @@ class StructuredFormatter(logging.Formatter):
 
 class ColorizedFormatter(logging.Formatter):
     """Colorized console formatter."""
-
     COLORS = {
         'TRACE': '\033[90m',      # Dark gray
         'DEBUG': '\033[36m',      # Cyan
@@ -342,7 +345,6 @@ class ColorizedFormatter(logging.Formatter):
 
 class CompressingRotatingFileHandler(logging.handlers.RotatingFileHandler):
     """Rotating file handler with compression."""
-
     def doRollover(self):
         """Perform rollover with compression."""
         super().doRollover()
@@ -360,7 +362,6 @@ class CompressingRotatingFileHandler(logging.handlers.RotatingFileHandler):
 
 class LoggingManager:
     """Comprehensive logging manager for PlexiChat."""
-
     def __init__(self):
         self.config = get_config()
         # Safe config access with fallbacks
@@ -631,7 +632,10 @@ class LoggingManager:
         """Get performance summary if available."""
         if hasattr(self, 'performance_logger'):
             return self.performance_logger.get_performance_summary()
-        return {}
+        return {
+            "performance_monitoring": "disabled",
+            "message": "Performance logger not available"
+        }
 
     def shutdown(self):
         """Shutdown logging system."""

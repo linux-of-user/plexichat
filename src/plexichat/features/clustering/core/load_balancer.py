@@ -34,7 +34,7 @@ Enhanced load balancing system with:
 - Integration with unified security architecture
 - Advanced health checking and circuit breakers
 - Multi-dimensional load metrics
-"""
+
 
 # Import unified security architecture
 
@@ -44,8 +44,7 @@ logger = logging.getLogger(__name__)
 
 class TrafficType(Enum):
     """Types of traffic for specialized routing."""
-
-    HTTP_REQUEST = "http_request"
+        HTTP_REQUEST = "http_request"
     WEBSOCKET = "websocket"
     API_CALL = "api_call"
     FILE_UPLOAD = "file_upload"
@@ -55,7 +54,7 @@ class TrafficType(Enum):
 
 @dataclass
 class LoadBalancingRule:
-    """Load balancing rule."""
+    """Load balancing rule.
 
     rule_id: str
     name: str
@@ -73,8 +72,7 @@ class LoadBalancingRule:
 @dataclass
 class TrafficMetrics:
     """Traffic metrics for load balancing decisions."""
-
-    node_id: str
+        node_id: str
     timestamp: datetime
     requests_per_second: float
     average_response_time_ms: float
@@ -88,9 +86,8 @@ class TrafficMetrics:
 
 @dataclass
 class LoadBalancingDecision:
-    """Load balancing decision."""
-
-    decision_id: str
+    Load balancing decision."""
+        decision_id: str
     request_id: str
     traffic_type: TrafficType
     selected_node_id: str
@@ -114,9 +111,8 @@ class SmartLoadBalancer:
     - Health-based routing decisions
     - Performance monitoring and analytics
     - Automatic failover handling
-    """
-
-    def __init__(self, cluster_manager):
+    
+        def __init__(self, cluster_manager):
         """Initialize the smart load balancer."""
         self.cluster_manager = cluster_manager
         self.load_balancing_rules: Dict[str, LoadBalancingRule] = {}
@@ -210,7 +206,7 @@ class SmartLoadBalancer:
             logger.debug(f"Created load balancing rule: {rule.name}")
 
     async def _initialize_traffic_monitoring(self):
-        """Initialize traffic monitoring for all nodes."""
+        """Initialize traffic monitoring for all nodes.
         for node_id in self.cluster_manager.cluster_nodes.keys():
             self.traffic_metrics[node_id] = []
 
@@ -324,7 +320,7 @@ class SmartLoadBalancer:
         return None
 
     def _get_available_nodes(self) -> List[str]:
-        """Get list of available nodes for load balancing."""
+        """Get list of available nodes for load balancing.
         available_nodes = []
 
         for node_id, node in self.cluster_manager.cluster_nodes.items():
@@ -366,7 +362,7 @@ class SmartLoadBalancer:
             return self._round_robin_selection(available_nodes)
 
     def _round_robin_selection(self, available_nodes: List[str]) -> str:
-        """Round-robin node selection."""
+        Round-robin node selection."""
         if not available_nodes:
             return available_nodes[0] if available_nodes else ""
 
@@ -513,7 +509,7 @@ class SmartLoadBalancer:
     def _calculate_decision_confidence():
         self, selected_node: str, available_nodes: List[str]
     ) -> float:
-        """Calculate confidence in the load balancing decision."""
+        """Calculate confidence in the load balancing decision.
         if not available_nodes or len(available_nodes) == 1:
             return 1.0
 
@@ -636,13 +632,13 @@ class SmartLoadBalancer:
     def get_load_balancing_statistics(self) -> Dict[str, Any]:
         """Get comprehensive load balancing statistics."""
         if not self.recent_decisions:
-            return {}
+            return {
                 "total_requests": self.total_requests,
                 "successful_requests": self.successful_requests,
                 "success_rate": 0.0,
                 "average_response_time_ms": 0.0,
                 "load_distribution_efficiency": self.load_distribution_efficiency,
-            }
+            }}
 
         # Calculate statistics from recent decisions
         strategy_usage = {}
@@ -669,7 +665,7 @@ class SmartLoadBalancer:
         # Calculate success rate
         success_rate = (self.successful_requests / max(1, self.total_requests)) * 100
 
-        return {}
+        return {
             "total_requests": self.total_requests,
             "successful_requests": self.successful_requests,
             "success_rate": success_rate,
@@ -683,7 +679,7 @@ class SmartLoadBalancer:
             ),
             "total_rules": len(self.load_balancing_rules),
             "nodes_with_metrics": len(self.traffic_metrics),
-        }
+        }}
 
     async def _load_balancing_optimization_task(self):
         """Background task for load balancing optimization."""

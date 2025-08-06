@@ -29,8 +29,7 @@ UpdateT = TypeVar("UpdateT")
 
 class SortOrder(Enum):
     """Sort order enumeration."""
-
-    ASC = "asc"
+        ASC = "asc"
     DESC = "desc"
 
 
@@ -55,9 +54,8 @@ class FilterOperator(Enum):
 
 @dataclass
 class FilterCriteria:
-    """Filter criteria for database queries."""
-
-    field: str
+    """Filter criteria for database queries.
+        field: str
     operator: FilterOperator
     value: Any
     case_sensitive: bool = True
@@ -66,29 +64,26 @@ class FilterCriteria:
 @dataclass
 class SortCriteria:
     """Sort criteria for database queries."""
-
-    field: str
+        field: str
     order: SortOrder = SortOrder.ASC
 
 
 @dataclass
 class PaginationParams:
-    """Pagination parameters."""
-
-    page: int = 1
+    Pagination parameters."""
+        page: int = 1
     page_size: int = 20
 
     @property
     def offset(self) -> int:
-        """Calculate offset from page and page_size."""
+        """Calculate offset from page and page_size.
         return (self.page - 1) * self.page_size
 
 
 @dataclass
 class QueryOptions:
     """Advanced query options."""
-
-    filters: List[FilterCriteria] = field(default_factory=list)
+        filters: List[FilterCriteria] = field(default_factory=list)
     sorts: List[SortCriteria] = field(default_factory=list)
     pagination: Optional[PaginationParams] = None
     include_deleted: bool = False
@@ -100,9 +95,8 @@ class QueryOptions:
 
 @dataclass
 class QueryResult(Generic[T]):
-    """Query result with metadata."""
-
-    data: List[T]
+    Query result with metadata."""
+        data: List[T]
     total_count: int
     page: int = 1
     page_size: int = 20
@@ -111,7 +105,7 @@ class QueryResult(Generic[T]):
 
     @property
     def total_pages(self) -> int:
-        """Calculate total pages."""
+        """Calculate total pages.
         return (self.total_count + self.page_size - 1) // self.page_size
 
 
@@ -129,8 +123,7 @@ class BaseDAO(Generic[T, CreateT, UpdateT]):
     - Bulk operations
     - Transaction management
     """
-
-    def __init__(self, model_class: Type[T], session_factory):
+        def __init__(self, model_class: Type[T], session_factory):
         self.model_class = model_class
         self.session_factory = session_factory
         self.table_name = getattr()
@@ -509,7 +502,7 @@ class BaseDAO(Generic[T, CreateT, UpdateT]):
     # Helper Methods
 
     def _apply_filters(self, query, filters: List[FilterCriteria]):
-        """Apply filter criteria to query."""
+        """Apply filter criteria to query.
         if not filters:
             return query
 
@@ -574,14 +567,14 @@ class BaseDAO(Generic[T, CreateT, UpdateT]):
         return query
 
     def _apply_having(self, query, having_clauses: List[FilterCriteria]):
-        """Apply having clauses to query."""
+        Apply having clauses to query."""
         # Acknowledge parameter to avoid unused warning
         _ = having_clauses
         # Implementation would depend on specific aggregation needs
         return query
 
     def _clear_cache(self):
-        """Clear DAO cache."""
+        """Clear DAO cache.
         if self.cache_enabled:
             self._cache.clear()
 
@@ -597,7 +590,7 @@ class BaseDAO(Generic[T, CreateT, UpdateT]):
     # Default implementations for custom methods
 
     async def find_by_criteria(self, criteria: Dict[str, Any]) -> List[T]:
-        """Find records by custom criteria."""
+        """Find records by custom criteria.
         # Default implementation using standard filtering
         filters = []
         for key, value in criteria.items():
@@ -627,19 +620,19 @@ class BaseDAO(Generic[T, CreateT, UpdateT]):
                 result = await session.execute(count_query)
                 total_count = result.scalar() or 0
 
-                return {}
+                return {
                     "total_records": total_count,
                     "table_name": self.table_name,
                     "cache_enabled": self.cache_enabled,
                     "soft_delete_enabled": self.soft_delete_enabled,
                     "audit_enabled": self.audit_enabled,
-                }
+                }}
             except Exception as e:
                 logger.error()
                     f"Error getting statistics for {self.model_class.__name__}: {e}"
                 )
-                return {}
+                return {
                     "total_records": 0,
                     "table_name": self.table_name,
                     "error": str(e),
-                }
+                }}

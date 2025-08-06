@@ -49,8 +49,7 @@ logger = logging.getLogger(__name__)
 
 class AIProvidersPlugin(PluginInterface):
     """AI Providers Plugin with local inference capabilities."""
-
-    def __init__(self):
+        def __init__(self):
         super().__init__("ai_providers", "1.0.0")
 
         # Providers (to be implemented)
@@ -84,7 +83,7 @@ class AIProvidersPlugin(PluginInterface):
         )
 
     def get_required_permissions(self) -> ModulePermissions:
-        """Get required permissions."""
+        """Get required permissions.
         return ModulePermissions()
             capabilities=[
                 ModuleCapability.AI_ACCESS,

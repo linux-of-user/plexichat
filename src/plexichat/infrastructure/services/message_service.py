@@ -37,12 +37,11 @@ except ImportError:
 import time
 Enhanced message service with file attachment and permission handling.
 Validates file access when creating messages with embedded files.
-"""
+
 
 class MessageService:
     """Service for handling messages with file attachments and permissions."""
-
-    def __init__(self, session: Session):
+        def __init__(self, session: Session):
         self.session = session
         self.file_permission_service = FilePermissionService(session)
 
@@ -60,7 +59,7 @@ class MessageService:
         ip_address: Optional[str] = None,
         user_agent: Optional[str] = None
     ) -> Message:
-        """
+        
         Create a message with file attachments, validating file permissions.
         """
         try:

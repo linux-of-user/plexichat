@@ -1,7 +1,7 @@
 """
 PlexiChat Core Exceptions
 Essential exception classes for the entire application.
-"""
+
 
 import logging
 from datetime import datetime
@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 class ErrorSeverity:
     """Error severity levels."""
-    LOW = "low"
+        LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
     CRITICAL = "critical"
@@ -31,9 +31,8 @@ class ErrorCategory:
 
 
 class BaseAPIException(Exception):
-    """Base exception for all API errors."""
-    
-    def __init__(self, message: str, code: str = None, details: Dict[str, Any] = None):
+    """Base exception for all API errors.
+        def __init__(self, message: str, code: str = None, details: Dict[str, Any] = None):
         super().__init__(message)
         self.message = message
         self.code = code or self.__class__.__name__
@@ -56,8 +55,7 @@ class BaseAPIException(Exception):
 
 class AuthenticationError(BaseAPIException):
     """Authentication failed."""
-    
-    def __init__(self, message: str = "Authentication failed", **kwargs):
+        def __init__(self, message: str = "Authentication failed", **kwargs):
         super().__init__(message, **kwargs)
         self.severity = ErrorSeverity.HIGH
         self.category = ErrorCategory.AUTH
@@ -65,8 +63,7 @@ class AuthenticationError(BaseAPIException):
 
 class AuthorizationError(BaseAPIException):
     """Authorization failed."""
-    
-    def __init__(self, message: str = "Access denied", **kwargs):
+        def __init__(self, message: str = "Access denied", **kwargs):
         super().__init__(message, **kwargs)
         self.severity = ErrorSeverity.HIGH
         self.category = ErrorCategory.AUTH
@@ -74,8 +71,7 @@ class AuthorizationError(BaseAPIException):
 
 class ValidationError(BaseAPIException):
     """Data validation failed."""
-    
-    def __init__(self, message: str = "Validation failed", field: str = None, **kwargs):
+        def __init__(self, message: str = "Validation failed", field: str = None, **kwargs):
         super().__init__(message, **kwargs)
         self.field = field
         self.severity = ErrorSeverity.MEDIUM
@@ -86,8 +82,7 @@ class ValidationError(BaseAPIException):
 
 class DatabaseError(BaseAPIException):
     """Database operation failed."""
-    
-    def __init__(self, message: str = "Database error", **kwargs):
+        def __init__(self, message: str = "Database error", **kwargs):
         super().__init__(message, **kwargs)
         self.severity = ErrorSeverity.HIGH
         self.category = ErrorCategory.DATABASE
@@ -95,8 +90,7 @@ class DatabaseError(BaseAPIException):
 
 class NetworkError(BaseAPIException):
     """Network operation failed."""
-    
-    def __init__(self, message: str = "Network error", **kwargs):
+        def __init__(self, message: str = "Network error", **kwargs):
         super().__init__(message, **kwargs)
         self.severity = ErrorSeverity.MEDIUM
         self.category = ErrorCategory.NETWORK
@@ -104,8 +98,7 @@ class NetworkError(BaseAPIException):
 
 class FileError(BaseAPIException):
     """File operation failed."""
-    
-    def __init__(self, message: str = "File error", **kwargs):
+        def __init__(self, message: str = "File error", **kwargs):
         super().__init__(message, **kwargs)
         self.severity = ErrorSeverity.MEDIUM
         self.category = ErrorCategory.FILE
@@ -113,8 +106,7 @@ class FileError(BaseAPIException):
 
 class ExternalServiceError(BaseAPIException):
     """External service error."""
-    
-    def __init__(self, message: str = "External service error", service: str = None, **kwargs):
+        def __init__(self, message: str = "External service error", service: str = None, **kwargs):
         super().__init__(message, **kwargs)
         self.service = service
         self.severity = ErrorSeverity.MEDIUM
@@ -125,8 +117,7 @@ class ExternalServiceError(BaseAPIException):
 
 class RateLimitError(BaseAPIException):
     """Rate limit exceeded."""
-    
-    def __init__(self, message: str = "Rate limit exceeded", limit: int = None, **kwargs):
+        def __init__(self, message: str = "Rate limit exceeded", limit: int = None, **kwargs):
         super().__init__(message, **kwargs)
         self.limit = limit
         self.severity = ErrorSeverity.MEDIUM
@@ -137,8 +128,7 @@ class RateLimitError(BaseAPIException):
 
 class ConfigurationError(BaseAPIException):
     """Configuration error."""
-    
-    def __init__(self, message: str = "Configuration error", **kwargs):
+        def __init__(self, message: str = "Configuration error", **kwargs):
         super().__init__(message, **kwargs)
         self.severity = ErrorSeverity.HIGH
         self.category = ErrorCategory.SYSTEM
@@ -146,8 +136,7 @@ class ConfigurationError(BaseAPIException):
 
 class ProcessLockError(BaseAPIException):
     """Process lock error."""
-    
-    def __init__(self, message: str = "Process lock error", **kwargs):
+        def __init__(self, message: str = "Process lock error", **kwargs):
         super().__init__(message, **kwargs)
         self.severity = ErrorSeverity.HIGH
         self.category = ErrorCategory.SYSTEM
@@ -155,8 +144,7 @@ class ProcessLockError(BaseAPIException):
 
 class StartupError(BaseAPIException):
     """Startup error."""
-    
-    def __init__(self, message: str = "Startup error", **kwargs):
+        def __init__(self, message: str = "Startup error", **kwargs):
         super().__init__(message, **kwargs)
         self.severity = ErrorSeverity.CRITICAL
         self.category = ErrorCategory.SYSTEM

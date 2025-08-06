@@ -3,7 +3,7 @@
 PlexiChat Backup CLI Commands
 
 Command-line interface for backup management and operations.
-"""
+
 
 import asyncio
 import click
@@ -38,7 +38,7 @@ def backup():
 @click.option('--include-logs', '-l', is_flag=True, help='Include log files in backup')
 @click.option('--compress', '-c', is_flag=True, help='Compress backup files')
 def create(output_dir: str, include_files: bool, include_logs: bool, compress: bool):
-    """Create a full system backup."""
+    Create a full system backup."""
     try:
         output_path = Path(output_dir)
         output_path.mkdir(parents=True, exist_ok=True)

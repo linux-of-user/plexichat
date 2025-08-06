@@ -18,15 +18,14 @@ import aiohttp
 import http.client
 PlexiChat Microservices Service Registry
 Manages service discovery, registration, and health monitoring
-"""
+
 
 logger = logging.getLogger(__name__)
 
 
 class ServiceStatus(Enum):
     """Service status enumeration."""
-
-    STARTING = "starting"
+        STARTING = "starting"
     HEALTHY = "healthy"
     DEGRADED = "degraded"
     UNHEALTHY = "unhealthy"
@@ -57,8 +56,7 @@ class ServiceType(Enum):
 @dataclass
 class ServiceEndpoint:
     """Service endpoint definition."""
-
-    service_id: str
+        service_id: str
     service_name: str
     service_type: ServiceType
     host: str
@@ -90,7 +88,7 @@ class ServiceEndpoint:
         return f"{self.base_url}{self.health_check_url}"
 
     def is_healthy(self) -> bool:
-        """Check if service is considered healthy."""
+        """Check if service is considered healthy.
         return self.status == ServiceStatus.HEALTHY and self.consecutive_failures < 3
 
     def to_dict(self) -> Dict[str, Any]:
@@ -119,8 +117,7 @@ class ServiceRegistry:
     - Event-driven notifications
     - Distributed consensus for HA
     """
-
-    def __init__(self):
+        def __init__(self):
         self.services: Dict[str, ServiceEndpoint] = {}
         self.service_groups: Dict[ServiceType, List[str]] = {}
         self.health_check_interval = 30  # seconds
@@ -242,7 +239,7 @@ class ServiceRegistry:
         tags: Optional[Set[str]] = None,
         healthy_only: bool = True,
     ) -> List[ServiceEndpoint]:
-        """Discover services by type and tags."""
+        """Discover services by type and tags.
         services = []
 
         for service in self.services.values():
@@ -270,14 +267,14 @@ class ServiceRegistry:
         return self.services.get(service_id)
 
     async def get_service_by_name(self, service_name: str) -> Optional[ServiceEndpoint]:
-        """Get a service by name."""
+        Get a service by name."""
         for service in self.services.values():
             if service.service_name == service_name:
                 return service
         return None
 
     async def update_service_heartbeat(self, service_id: str) -> bool:
-        """Update service heartbeat."""
+        """Update service heartbeat.
         if service_id in self.services:
             self.services[service_id].last_heartbeat = datetime.now(timezone.utc)
             return True
@@ -296,7 +293,7 @@ class ServiceRegistry:
                 await asyncio.sleep(5)  # Brief pause before retrying
 
     async def _perform_health_checks(self):
-        """Perform health checks on all registered services."""
+        """Perform health checks on all registered services.
         if not self.services:
             return
 
@@ -413,7 +410,7 @@ class ServiceRegistry:
                     logger.error(f"Event callback error for {event_type}: {e}")
 
     def add_event_listener(self, event_type: str, callback: callable):
-        """Add event listener."""
+        """Add event listener.
         if event_type not in self.event_callbacks:
             self.event_callbacks[event_type] = []
         self.event_callbacks[event_type].append(callback)
@@ -433,13 +430,13 @@ class ServiceRegistry:
                 "unhealthy": len(service_ids) - healthy_count,
             }
 
-        return {}
+        return {
             "running": self.running,
             "statistics": self.stats,
             "service_types": service_types_count,
             "health_check_interval": self.health_check_interval,
             "last_updated": datetime.now(timezone.utc).isoformat(),
-        }
+        }}
 
 
 # Global service registry instance

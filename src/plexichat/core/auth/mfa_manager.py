@@ -31,7 +31,7 @@ from plexichat.app.logger_config import logger  # type: ignore
 import time
 Advanced 2FA System for PlexiChat
 Comprehensive two-factor authentication with multiple methods and security features.
-"""
+
 
 try:
     from plexichat.app.logger_config import get_logger
@@ -43,7 +43,7 @@ except ImportError:
 
 class TwoFactorMethod:
     """2FA method constants."""
-    TOTP = "totp"
+        TOTP = "totp"
     SMS = "sms"
     EMAIL = "email"
     BACKUP_CODES = "backup_codes"
@@ -51,7 +51,7 @@ class TwoFactorMethod:
 
 
 class TwoFactorConfig(BaseModel):
-    """2FA configuration for a user."""
+    """2FA configuration for a user.
     user_id: int
     enabled: bool = False
     enabled_methods: List[str] = []
@@ -68,8 +68,7 @@ class TwoFactorConfig(BaseModel):
 
 class Advanced2FASystem:
     """Advanced 2FA system with multiple authentication methods."""
-
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+        def __init__(self, config: Optional[Dict[str, Any]] = None):
         self.config = config or {}
         self.encryption_key = self._get_or_create_encryption_key()
         self.cipher = Fernet(self.encryption_key)
@@ -134,7 +133,7 @@ class Advanced2FASystem:
         return codes
 
     def hash_backup_code(self, code: str) -> str:
-        """Hash backup code for secure storage."""
+        """Hash backup code for secure storage.
         return hashlib.sha256(code.encode()).hexdigest()
 
     def initiate_2fa_setup(self, user_id: int, user_email: str, methods: List[str]) -> Dict[str, Any]:

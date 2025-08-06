@@ -23,14 +23,14 @@ NetLink Distributed Key Management System
 Implements multiple independent key hierarchies where breaking one key
 doesn't compromise the entire system. Uses threshold cryptography,
 key sharding, and distributed consensus for maximum security.
-"""
+
 
 logger = logging.getLogger(__name__)
 
 
 class KeyDomain(Enum):
     """Independent key domains for isolation."""
-    AUTHENTICATION = "auth"
+        AUTHENTICATION = "auth"
     DATABASE = "database"
     BACKUP = "backup"
     COMMUNICATION = "comm"
@@ -49,8 +49,8 @@ class ThresholdScheme(Enum):
 
 @dataclass
 class KeyShard:
-    """A shard of a distributed key."""
-    shard_id: str
+    """A shard of a distributed key.
+        shard_id: str
     domain: KeyDomain
     shard_index: int
     total_shards: int
@@ -63,7 +63,7 @@ class KeyShard:
 @dataclass
 class DistributedKey:
     """A key distributed across multiple shards."""
-    key_id: str
+        key_id: str
     domain: KeyDomain
     total_shards: int
     threshold: int
@@ -77,8 +77,8 @@ class DistributedKey:
 
 @dataclass
 class KeyVault:
-    """Secure vault for storing key shards."""
-    vault_id: str
+    Secure vault for storing key shards."""
+        vault_id: str
     domain: KeyDomain
     location: str  # Physical or logical location
     shards: Dict[str, KeyShard] = field(default_factory=dict)
@@ -98,8 +98,7 @@ class DistributedKeyManager:
     - Automatic key recovery
     - Zero-knowledge proofs for key operations
     """
-
-    def __init__(self, config_dir: str = "config/security/distributed"):
+        def __init__(self, config_dir: str = "config/security/distributed"):
         from pathlib import Path
         self.config_dir = Path(config_dir)
         self.config_dir.mkdir(parents=True, exist_ok=True)
@@ -129,7 +128,7 @@ class DistributedKeyManager:
         logger.info(" Distributed key management system initialized")
 
     async def _init_database(self):
-        """Initialize the distributed keys database."""
+        """Initialize the distributed keys database.
         async with aiosqlite.connect(self.db_path) as db:
             await db.execute("""
                 CREATE TABLE IF NOT EXISTS distributed_keys (
@@ -145,7 +144,7 @@ class DistributedKeyManager:
                 )
             """)
 
-            await db.execute("""
+            await db.execute(
                 CREATE TABLE IF NOT EXISTS key_shards (
                     shard_id TEXT PRIMARY KEY,
                     key_id TEXT NOT NULL,
@@ -168,7 +167,7 @@ class DistributedKeyManager:
                     created_at TEXT NOT NULL,
                     last_accessed TEXT
                 )
-            """)
+            )
 
             await db.execute("""
                 CREATE TABLE IF NOT EXISTS vault_access_log (
@@ -186,7 +185,7 @@ class DistributedKeyManager:
             await db.commit()
 
     async def _load_distributed_keys(self):
-        """Load distributed keys from database."""
+        Load distributed keys from database."""
         async with aiosqlite.connect(self.db_path) as db:
             # Load distributed keys
             async with db.execute("SELECT * FROM distributed_keys") as cursor:
@@ -343,7 +342,7 @@ class DistributedKeyManager:
         return distributed_key
 
     def _generate_shamir_shares(self, secret: bytes, threshold: int, total_shares: int) -> List[bytes]:
-        """Generate Shamir's Secret Sharing shares."""
+        """Generate Shamir's Secret Sharing shares.
         # Convert secret to integer
         secret_int = int.from_bytes(secret, 'big')
 
@@ -500,7 +499,7 @@ class DistributedKeyManager:
         return await self.reconstruct_key(new_key.key_id)
 
     async def _save_distributed_key(self, key: DistributedKey):
-        """Save distributed key to database."""
+        """Save distributed key to database.
         async with aiosqlite.connect(self.db_path) as db:
             await db.execute("""
                 INSERT OR REPLACE INTO distributed_keys
@@ -520,7 +519,7 @@ class DistributedKeyManager:
 
             # Save shards
             for shard in key.shards.values():
-                await db.execute("""
+                await db.execute(
                     INSERT OR REPLACE INTO key_shards
                     (shard_id, key_id, domain, shard_index, shard_data, vault_id, metadata, created_at)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
@@ -538,7 +537,7 @@ class DistributedKeyManager:
             await db.commit()
 
     async def _save_vault(self, vault: KeyVault):
-        """Save vault to database."""
+        """Save vault to database.
         async with aiosqlite.connect(self.db_path) as db:
             await db.execute("""
                 INSERT OR REPLACE INTO key_vaults
@@ -555,7 +554,7 @@ class DistributedKeyManager:
             await db.commit()
 
     async def _log_vault_access(self, vault_id: str, operation: str, shard_id: Optional[str], success: bool, metadata: Dict[str, Any]):
-        """Log vault access for audit purposes."""
+        Log vault access for audit purposes."""
         log_id = f"log_{secrets.token_hex(8)}"
 
         async with aiosqlite.connect(self.db_path) as db:
@@ -563,7 +562,7 @@ class DistributedKeyManager:
                 INSERT INTO vault_access_log
                 (log_id, vault_id, operation, shard_id, success, timestamp, metadata)
                 VALUES (?, ?, ?, ?, ?, ?, ?)
-            """, (
+            , (
                 log_id,
                 vault_id,
                 operation,

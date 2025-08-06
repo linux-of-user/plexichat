@@ -16,13 +16,12 @@ from sqlalchemy import DateTime, Index, Text
 """
 Guild (Server) models for Discord-like functionality.
 Includes servers, channels, roles, and permissions.
-"""
+
 
 
 class GuildFeature(str, Enum):
     """Guild feature flags."""
-
-    ANIMATED_ICON = "ANIMATED_ICON"
+        ANIMATED_ICON = "ANIMATED_ICON"
     BANNER = "BANNER"
     COMMERCE = "COMMERCE"
     COMMUNITY = "COMMUNITY"
@@ -40,7 +39,7 @@ class GuildFeature(str, Enum):
 
 
 class VerificationLevel(int, Enum):
-    """Guild verification levels."""
+    """Guild verification levels.
 
     NONE = 0
     LOW = 1
@@ -51,23 +50,21 @@ class VerificationLevel(int, Enum):
 
 class ExplicitContentFilter(int, Enum):
     """Explicit content filter levels."""
-
-    DISABLED = 0
+        DISABLED = 0
     MEMBERS_WITHOUT_ROLES = 1
     ALL_MEMBERS = 2
 
 
 class MFALevel(int, Enum):
-    """Multi-factor authentication levels."""
+    Multi-factor authentication levels."""
 
     NONE = 0
     ELEVATED = 1
 
 
 class NSFWLevel(int, Enum):
-    """NSFW content levels."""
-
-    DEFAULT = 0
+    """NSFW content levels.
+        DEFAULT = 0
     EXPLICIT = 1
     SAFE = 2
     AGE_RESTRICTED = 3
@@ -156,8 +153,7 @@ class Guild(SQLModel, table=True):
 
 class GuildMember(SQLModel, table=True):
     """Guild membership with roles and permissions."""
-
-    __tablename__ = "guild_members"
+        __tablename__ = "guild_members"
 
     id: Optional[int] = Field(default=None, primary_key=True)
     guild_id: int = Field(foreign_key="guilds.id", index=True)
@@ -195,8 +191,7 @@ class GuildMember(SQLModel, table=True):
 
 class Role(SQLModel, table=True):
     """Role model with permissions and hierarchy."""
-
-    __tablename__ = "roles"
+        __tablename__ = "roles"
 
     id: Optional[int] = Field(default=None, primary_key=True)
     guild_id: int = Field(foreign_key="guilds.id", index=True)
@@ -233,8 +228,7 @@ class Role(SQLModel, table=True):
 # Association table for member roles
 class MemberRole(SQLModel, table=True):
     """Association table for member roles."""
-
-    __tablename__ = "member_roles"
+        __tablename__ = "member_roles"
 
     member_id: int = Field(foreign_key="guild_members.id", primary_key=True)
     role_id: int = Field(foreign_key="roles.id", primary_key=True)
@@ -246,8 +240,7 @@ class MemberRole(SQLModel, table=True):
 
 class Emoji(SQLModel, table=True):
     """Custom emoji model."""
-
-    __tablename__ = "emojis"
+        __tablename__ = "emojis"
 
     id: Optional[int] = Field(default=None, primary_key=True)
     guild_id: Optional[int] = Field(foreign_key="guilds.id", index=True)
@@ -275,8 +268,7 @@ class Emoji(SQLModel, table=True):
 
 class Invite(SQLModel, table=True):
     """Guild invite model."""
-
-    __tablename__ = "invites"
+        __tablename__ = "invites"
 
     id: Optional[int] = Field(default=None, primary_key=True)
     code: str = Field(max_length=10, unique=True, index=True)
@@ -310,8 +302,7 @@ class Invite(SQLModel, table=True):
 
 class GuildSettings(SQLModel, table=True):
     """Extended guild settings and preferences."""
-
-    __tablename__ = "guild_settings"
+        __tablename__ = "guild_settings"
 
     id: Optional[int] = Field(default=None, primary_key=True)
     guild_id: int = Field(foreign_key="guilds.id", unique=True, index=True)
@@ -341,8 +332,7 @@ class GuildSettings(SQLModel, table=True):
 
 class GuildAuditLog(SQLModel, table=True):
     """Guild audit log for tracking changes."""
-
-    __tablename__ = "guild_audit_logs"
+        __tablename__ = "guild_audit_logs"
 
     id: Optional[int] = Field(default=None, primary_key=True)
     guild_id: int = Field(foreign_key="guilds.id", index=True)

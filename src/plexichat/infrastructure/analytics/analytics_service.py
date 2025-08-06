@@ -46,11 +46,11 @@ logger = get_logger(__name__) if get_logger else print
 """
 Comprehensive analytics and statistics service.
 Provides real-time metrics, historical data, and insights.
-"""
+
 
 class MetricType(str, Enum):
     """Types of metrics."""
-    COUNTER = "counter"
+        COUNTER = "counter"
     GAUGE = "gauge"
     HISTOGRAM = "histogram"
     TIMER = "timer"
@@ -66,26 +66,25 @@ class TimeRange(str, Enum):
 
 @dataclass
 class Metric:
-    """Metric data structure."""
-    name: str
+    """Metric data structure.
+        name: str
     type: MetricType
     value: float
     timestamp: datetime
     tags: Dict[str, str] = None
 
     def to_dict(self) -> Dict[str, Any]:
-        return {}
+        return {
             'name': self.name,
             'type': self.type,
             'value': self.value,
             'timestamp': self.timestamp.isoformat(),
-            'tags': self.tags or {}
+            'tags': self.tags or {}}
         }
 
 class AnalyticsService:
     """Comprehensive analytics service."""
-
-    def __init__(self):
+        def __init__(self):
         self.metrics_buffer = deque(maxlen=10000)
         self.real_time_stats = defaultdict(float)
         self.redis_client = None
@@ -96,7 +95,7 @@ class AnalyticsService:
         asyncio.create_task(self._real_time_updater())
 
     async def _initialize_redis(self):
-        """Initialize Redis connection for caching."""
+        Initialize Redis connection for caching."""
         try:
             self.redis_client = redis.from_url()
                 getattr(settings, 'REDIS_URL', 'redis://localhost:6379'),
@@ -108,9 +107,9 @@ class AnalyticsService:
             logger.warning(f"Redis connection failed, using in-memory storage: {e}")
 
     async def record_metric(self, name: str, value: float,)
-                           metric_type: MetricType = MetricType.COUNTER,
-                           tags: Optional[Dict[str, str]] = None):
-        """Record a metric."""
+                        metric_type: MetricType = MetricType.COUNTER,
+                        tags: Optional[Dict[str, str]] = None):
+        """Record a metric.
         metric = Metric()
             name=name,
             type=metric_type,
@@ -256,7 +255,7 @@ datetime.utcnow() - timedelta(hours=1)
                 messages_growth = await self._calculate_growth('user_messages', user_id)
                 files_growth = await self._calculate_growth('user_files', user_id)
 
-                return {}
+                return {
                     'guilds_count': guilds_count,
                     'guilds_growth': guilds_growth,
                     'messages_count': messages_count,
@@ -265,16 +264,16 @@ datetime.utcnow() - timedelta(hours=1)
                     'friends_growth': 0,
                     'files_count': files_count,
                     'files_growth': files_growth
-                }
+                }}
 
         except Exception as e:
             logger.error(f"Failed to get dashboard stats: {e}")
-            return {}
+            return {
                 'guilds_count': 0, 'guilds_growth': 0,
                 'messages_count': 0, 'messages_growth': 0,
                 'friends_count': 0, 'friends_growth': 0,
                 'files_count': 0, 'files_growth': 0
-            }
+            }}
 
     async def _calculate_growth(self, metric_type: str, user_id: int) -> float:
         """Calculate growth percentage for a metric."""
@@ -334,12 +333,12 @@ datetime.utcnow() - timedelta(hours=1)
                 # Total file size
                 total_file_size = await session.execute(select(func.sum(FileRecord.size)))
 
-                return {}
+                return {
                     'users': {
                         'total': total_users.scalar() or 0,
                         'active_today': active_today.scalar() or 0,
                         'online_now': self.real_time_stats.get('online_users', 0)
-                    },
+                    }},
                     'guilds': {
                         'total': total_guilds.scalar() or 0,
                         'active_today': active_guilds_today.scalar() or 0
@@ -384,7 +383,7 @@ datetime.utcnow()
                 # Top users
                 top_users = await self._get_top_users(session, guild_id, start_time, end_time)
 
-                return {}
+                return {
                     'time_range': time_range,
                     'start_time': start_time.isoformat(),
                     'end_time': end_time.isoformat(),
@@ -392,14 +391,14 @@ datetime.utcnow()
                     'message_activity': message_activity,
                     'channel_activity': channel_activity,
                     'top_users': top_users
-                }
+                }}
 
         except Exception as e:
             logger.error(f"Failed to get guild analytics: {e}")
             return {}}
 
     def _get_start_time(self, end_time: datetime, time_range: TimeRange) -> datetime:
-        """Get start time based on time range."""
+        """Get start time based on time range.
         if time_range == TimeRange.HOUR:
             return end_time - timedelta(hours=1)
         elif time_range == TimeRange.DAY:
@@ -416,7 +415,7 @@ datetime.utcnow()
             return end_time - timedelta(weeks=1)
 
     async def _get_member_history(self, session: Session, guild_id: int,)
-                                 start_time: datetime, end_time: datetime) -> List[Dict[str, Any]]:
+                                start_time: datetime, end_time: datetime) -> List[Dict[str, Any]]:
         """Get member count history for a guild."""
         # Simplified implementation - would need member join/leave tracking
         return [
@@ -425,8 +424,8 @@ datetime.utcnow()
         ]
 
     async def _get_message_activity(self, session: Session, guild_id: int,)
-                                   start_time: datetime, end_time: datetime) -> List[Dict[str, Any]]:
-        """Get message activity for a guild."""
+                                start_time: datetime, end_time: datetime) -> List[Dict[str, Any]]:
+        Get message activity for a guild."""
         result = await session.execute()
             select()
                 func.date_trunc('hour', Message.timestamp).label('hour'),
@@ -453,8 +452,8 @@ datetime.utcnow()
         ]
 
     async def _get_channel_activity(self, session: Session, guild_id: int,)
-                                   start_time: datetime, end_time: datetime) -> List[Dict[str, Any]]:
-        """Get channel activity for a guild."""
+                                start_time: datetime, end_time: datetime) -> List[Dict[str, Any]]:
+        """Get channel activity for a guild.
         result = await session.execute()
             select()
                 Channel.name,
@@ -514,12 +513,12 @@ datetime.utcnow()
         ]
 
     async def get_real_time_metrics(self) -> Dict[str, Any]:
-        """Get real-time metrics."""
+        Get real-time metrics."""
         return dict(self.real_time_stats)
 
     async def export_analytics(self, guild_id: Optional[int] = None,)
-                              time_range: TimeRange = TimeRange.MONTH) -> Dict[str, Any]:
-        """Export analytics data for reporting."""
+                            time_range: TimeRange = TimeRange.MONTH) -> Dict[str, Any]:
+        """Export analytics data for reporting.
         if guild_id:
             return await self.get_guild_analytics(guild_id, time_range)
         else:

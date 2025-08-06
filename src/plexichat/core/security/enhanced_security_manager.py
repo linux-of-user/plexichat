@@ -55,8 +55,8 @@ logger = get_logger(__name__)
 
 
 class SecurityLevel(Enum):
-    """Security access levels for endpoints."""
-    PUBLIC = 0          # No authentication required
+    """Security access levels for endpoints.
+        PUBLIC = 0          # No authentication required
     BASIC = 1           # Basic authentication required
     AUTHENTICATED = 2   # Valid user session required
     ELEVATED = 3        # Enhanced privileges required
@@ -74,8 +74,8 @@ class ThreatLevel(Enum):
 
 
 class SecurityEventType(Enum):
-    """Types of security events."""
-    LOGIN_SUCCESS = "login_success"
+    Types of security events."""
+        LOGIN_SUCCESS = "login_success"
     LOGIN_FAILURE = "login_failure"
     ACCESS_DENIED = "access_denied"
     RATE_LIMIT_EXCEEDED = "rate_limit_exceeded"
@@ -91,7 +91,7 @@ class SecurityEventType(Enum):
 
 @dataclass
 class SecurityContext:
-    """Security context for requests."""
+    """Security context for requests.
     user_id: Optional[str] = None
     session_id: Optional[str] = None
     ip_address: Optional[str] = None
@@ -107,7 +107,7 @@ class SecurityContext:
 @dataclass
 class SecurityEvent:
     """Security event data."""
-    event_type: SecurityEventType
+        event_type: SecurityEventType
     threat_level: ThreatLevel
     context: SecurityContext
     details: Dict[str, Any] = field(default_factory=dict)
@@ -116,8 +116,8 @@ class SecurityEvent:
 
 @dataclass
 class RateLimitRule:
-    """Rate limiting rule."""
-    requests_per_minute: int
+    Rate limiting rule."""
+        requests_per_minute: int
     requests_per_hour: int
     burst_limit: int
     window_size: int = 60  # seconds
@@ -125,8 +125,7 @@ class RateLimitRule:
 
 class InputValidator:
     """Advanced input validation and sanitization."""
-    
-    # Common attack patterns
+        # Common attack patterns
     SQL_INJECTION_PATTERNS = [
         r"(\bunion\b.*\bselect\b)",
         r"(\bselect\b.*\bfrom\b)",
@@ -152,7 +151,7 @@ class InputValidator:
         self.xss_regex = re.compile("|".join(self.XSS_PATTERNS), re.IGNORECASE)
     
     async def validate_input(self, data: Any, context: SecurityContext) -> Tuple[bool, List[str]]:
-        """Validate input data for security threats."""
+        """Validate input data for security threats.
         threats = []
         
         if isinstance(data, str):
@@ -196,9 +195,8 @@ class InputValidator:
 
 
 class RateLimiter:
-    """Advanced rate limiting with adaptive controls."""
-    
-    def __init__(self):
+    """Advanced rate limiting with adaptive controls.
+        def __init__(self):
         self.requests = {}  # {ip: {endpoint: [(timestamp, count)]}}
         self.blocked_ips = {}  # {ip: block_until_timestamp}
         self.adaptive_limits = {}  # {ip: adjusted_limits}
@@ -261,9 +259,8 @@ class RateLimiter:
 
 
 class ThreatDetector:
-    """Advanced threat detection system."""
-    
-    def __init__(self):
+    """Advanced threat detection system.
+        def __init__(self):
         self.suspicious_patterns = {}
         self.user_behavior_baseline = {}
         self.global_threat_score = 0.0
@@ -287,7 +284,7 @@ class ThreatDetector:
         return min(threat_score, 1.0)
     
     async def _check_ip_reputation(self, ip: str) -> float:
-        """Check IP against threat intelligence."""
+        Check IP against threat intelligence."""
         if not ip:
             return 0.0
         
@@ -307,7 +304,7 @@ class ThreatDetector:
         return 0.0
     
     async def _analyze_user_behavior(self, context: SecurityContext) -> float:
-        """Analyze user behavior patterns."""
+        """Analyze user behavior patterns.
         if not context.user_id:
             return 0.1  # Slight increase for unauthenticated requests
         
@@ -333,7 +330,7 @@ class ThreatDetector:
         return threat_score
     
     async def _check_geolocation_anomaly(self, context: SecurityContext) -> float:
-        """Check for geolocation-based anomalies."""
+        """Check for geolocation-based anomalies.
         # Implement geolocation-based threat detection
         # This would integrate with GeoIP databases
         return 0.0
@@ -341,8 +338,7 @@ class ThreatDetector:
 
 class EnhancedSecurityManager:
     """Enhanced security manager with comprehensive protection."""
-    
-    def __init__(self):
+        def __init__(self):
         self.config = get_config()
         self.auth_manager = get_unified_auth_manager()
         self.input_validator = InputValidator()
@@ -511,7 +507,7 @@ class EnhancedSecurityManager:
         return endpoint
     
     def _get_endpoint_security_level(self, endpoint: str) -> SecurityLevel:
-        """Get security level for endpoint."""
+        """Get security level for endpoint.
         normalized = self._normalize_endpoint(endpoint)
         return self.endpoint_security_levels.get(normalized, SecurityLevel.AUTHENTICATED)
     
@@ -525,8 +521,8 @@ class EnhancedSecurityManager:
         )
     
     async def _log_security_event(self, event_type: SecurityEventType, threat_level: ThreatLevel, 
-                                 context: SecurityContext, details: Dict[str, Any]):
-        """Log security event."""
+                                context: SecurityContext, details: Dict[str, Any]):
+        Log security event."""
         event = SecurityEvent(
             event_type=event_type,
             threat_level=threat_level,
@@ -558,7 +554,7 @@ class EnhancedSecurityManager:
             logger.warning(f"Security event: {json.dumps(log_data, default=str)}")
     
     def get_security_headers(self) -> Dict[str, str]:
-        """Get security headers to add to responses."""
+        """Get security headers to add to responses.
         return self.security_headers.copy()
 
     def configure_comprehensive_security(self, app):
@@ -624,7 +620,7 @@ class EnhancedSecurityManager:
 _security_manager = None
 
 def get_enhanced_security_manager() -> EnhancedSecurityManager:
-    """Get global enhanced security manager instance."""
+    """Get global enhanced security manager instance.
     global _security_manager
     if _security_manager is None:
         _security_manager = EnhancedSecurityManager()
@@ -633,13 +629,12 @@ def get_enhanced_security_manager() -> EnhancedSecurityManager:
 
 class SecurityMiddleware(BaseHTTPMiddleware):
     """Security middleware for FastAPI applications."""
-    
-    def __init__(self, app):
+        def __init__(self, app):
         super().__init__(app)
         self.security_manager = get_enhanced_security_manager()
     
     async def dispatch(self, request: Request, call_next):
-        """Process request through security pipeline."""
+        Process request through security pipeline."""
         start_time = time.time()
         
         # Validate request

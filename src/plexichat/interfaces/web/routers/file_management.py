@@ -15,7 +15,7 @@ router = APIRouter(prefix="/file-management", tags=["file-management"])
 
 class FileInfo(BaseModel):
     """File information model."""
-    name: str = Field(..., description="File name")
+        name: str = Field(..., description="File name")
     path: str = Field(..., description="File path")
     size: int = Field(..., description="File size in bytes")
     type: str = Field(..., description="File type")
@@ -25,7 +25,7 @@ class FileInfo(BaseModel):
 
 class DirectoryListing(BaseModel):
     """Directory listing model."""
-    path: str = Field(..., description="Current directory path")
+        path: str = Field(..., description="Current directory path")
     files: List[FileInfo] = Field(default_factory=list, description="Files in directory")
     total_files: int = Field(default=0, description="Total number of files")
 

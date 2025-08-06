@@ -23,15 +23,14 @@ Comprehensive user management with Discord/Telegram/WhatsApp Business feature pa
 - Business profiles and verification
 - Subscription management
 - Activity tracking and analytics
-"""
+
 
 logger = logging.getLogger(__name__)
 
 
 class UserTier(Enum):
     """User tier levels."""
-
-    FREE = "free"
+        FREE = "free"
     PREMIUM = "premium"
     BUSINESS = "business"
     ENTERPRISE = "enterprise"
@@ -50,8 +49,7 @@ class UserStatus(Enum):
 
 class BadgeType(Enum):
     """User badge types."""
-
-    VERIFIED = "verified"
+        VERIFIED = "verified"
     PREMIUM = "premium"
     DEVELOPER = "developer"
     MODERATOR = "moderator"
@@ -79,9 +77,8 @@ class UserBadge:
 
 @dataclass
 class UserTag:
-    """User tag for categorization."""
-
-    tag_id: str
+    """User tag for categorization.
+        tag_id: str
     name: str
     color: str
     description: Optional[str] = None
@@ -93,8 +90,7 @@ class UserTag:
 @dataclass
 class BusinessProfile:
     """Business profile information."""
-
-    business_name: str
+        business_name: str
     business_type: str
     industry: str
     description: str
@@ -111,9 +107,8 @@ class BusinessProfile:
 
 @dataclass
 class UserSubscription:
-    """User subscription information."""
-
-    subscription_id: str
+    User subscription information."""
+        subscription_id: str
     tier: UserTier
     started_at: datetime
     expires_at: Optional[datetime] = None
@@ -126,9 +121,8 @@ class UserSubscription:
 
 @dataclass
 class UserActivity:
-    """User activity tracking."""
-
-    last_seen: datetime
+    """User activity tracking.
+        last_seen: datetime
     last_message: Optional[datetime] = None
     total_messages: int = 0
     total_voice_minutes: int = 0
@@ -143,8 +137,7 @@ class UserActivity:
 @dataclass
 class RichUserProfile:
     """Rich user profile with advanced features."""
-
-    user_id: str
+        user_id: str
     username: str
     display_name: str
     email: str
@@ -197,7 +190,7 @@ class RichUserProfile:
     updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
     def add_badge(self, badge: UserBadge):
-        """Add badge to user."""
+        """Add badge to user.
         # Remove existing badge of same type
         self.badges = [b for b in self.badges if b.badge_type != badge.badge_type]
         self.badges.append(badge)
@@ -209,13 +202,13 @@ class RichUserProfile:
         self.updated_at = datetime.now(timezone.utc)
 
     def add_tag(self, tag: UserTag):
-        """Add tag to user."""
+        Add tag to user."""
         if tag not in self.tags:
             self.tags.append(tag)
             self.updated_at = datetime.now(timezone.utc)
 
     def remove_tag(self, tag_id: str):
-        """Remove tag from user."""
+        """Remove tag from user.
         self.tags = [t for t in self.tags if t.tag_id != tag_id]
         self.updated_at = datetime.now(timezone.utc)
 
@@ -239,7 +232,7 @@ class RichUserProfile:
         self.updated_at = now
 
     def get_display_badges(self) -> List[UserBadge]:
-        """Get visible badges for display."""
+        """Get visible badges for display.
         return [
             b
             for b in self.badges
@@ -257,12 +250,12 @@ class RichUserProfile:
         ]
 
     def is_business(self) -> bool:
-        """Check if user has business profile."""
+        Check if user has business profile."""
         return self.business_profile is not None and self.business_profile.verified
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for API responses."""
-        return {}
+        return {
             "user_id": self.user_id,
             "username": self.username,
             "display_name": self.display_name,
@@ -281,7 +274,7 @@ class RichUserProfile:
                     "description": b.description,
                     "icon_url": b.icon_url,
                     "color": b.color,
-                }
+                }}
                 for b in self.get_display_badges()
             ],
             "tags": [
@@ -304,9 +297,8 @@ class RichUserProfile:
 
 
 class AdvancedUserManager:
-    """Advanced user management system."""
-
-    def __init__(self):
+    """Advanced user management system.
+        def __init__(self):
         self.users: Dict[str, RichUserProfile] = {}
         self.user_tags: Dict[str, UserTag] = {}
         self.active_sessions: Dict[str, datetime] = {}
@@ -388,7 +380,7 @@ class AdvancedUserManager:
     async def update_user_status()
         self, user_id: str, status: UserStatus, custom_status: Optional[str] = None
     ):
-        """Update user status."""
+        """Update user status.
         if user_id in self.users:
             user = self.users[user_id]
             user.status = status
@@ -410,7 +402,7 @@ class AdvancedUserManager:
         return False
 
     async def upgrade_user_tier(self, user_id: str, new_tier: UserTier) -> bool:
-        """Upgrade user tier."""
+        Upgrade user tier."""
         if user_id in self.users:
             user = self.users[user_id]
             user.tier = new_tier
@@ -424,7 +416,7 @@ class AdvancedUserManager:
         return False
 
     def get_user_profile(self, user_id: str) -> Optional[RichUserProfile]:
-        """Get user profile."""
+        """Get user profile.
         return self.users.get(user_id)
 
     def search_users():
@@ -455,7 +447,7 @@ class AdvancedUserManager:
         return results
 
     def get_online_users(self) -> List[RichUserProfile]:
-        """Get currently online users."""
+        """Get currently online users.
         online_users = []
         for user_id, last_seen in self.active_sessions.items():
             if user_id in self.users:
@@ -474,7 +466,7 @@ class AdvancedUserManager:
             tier = user.tier.value
             tier_breakdown[tier] = tier_breakdown.get(tier, 0) + 1
 
-        return {}
+        return {
             "total_users": total_users,
             "online_users": online_users,
             "tier_breakdown": tier_breakdown,
@@ -485,7 +477,7 @@ class AdvancedUserManager:
             ),
             "business_users": sum(1 for u in self.users.values() if u.is_business()),
             "premium_users": sum(1 for u in self.users.values() if u.is_premium()),
-        }
+        }}
 
 
 # Global advanced user manager instance

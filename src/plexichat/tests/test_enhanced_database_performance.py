@@ -7,7 +7,7 @@ Tests the enhanced database abstraction layer with integrated performance optimi
 - Query optimization
 - Performance monitoring
 - Auto-tuning capabilities
-"""
+
 
 import asyncio
 import logging
@@ -37,8 +37,7 @@ logger = logging.getLogger(__name__)
 
 class EnhancedDatabasePerformanceTester:
     """Test enhanced database performance features."""
-
-    def __init__(self):
+        def __init__(self):
         self.db_manager: EnhancedDatabaseManager = None
         self.test_results: Dict[str, Dict[str, Any]] = {}
         self.performance_metrics: Dict[str, List[float]] = {
@@ -48,7 +47,7 @@ class EnhancedDatabasePerformanceTester:
         }
 
     async def run_all_tests(self) -> Dict[str, Dict[str, Any]]:
-        """Run all enhanced database performance tests."""
+        Run all enhanced database performance tests."""
         print("Starting Enhanced Database Performance Testing...")
         print("=" * 70)
 
@@ -150,9 +149,9 @@ class EnhancedDatabasePerformanceTester:
             pool_stats = await self.db_manager.get_performance_stats()
             pool_metrics = pool_stats.get("connection_pools", {}).get("test_enhanced", {})
             
-            return {}
+            return {
                 "success": successful_queries == 50,
-                "message": f"Executed {successful_queries}/50 concurrent queries in {execution_time:.2f}s",
+                "message": f"Executed {successful_queries}}/50 concurrent queries in {execution_time:.2f}s",
                 "metrics": {
                     "total_execution_time": execution_time,
                     "queries_per_second": 50 / execution_time,
@@ -188,9 +187,9 @@ class EnhancedDatabasePerformanceTester:
             
             cache_hit_improvement = (first_execution_time - second_execution_time) / first_execution_time * 100
             
-            return {}
+            return {
                 "success": result2.get("cached", False),
-                "message": f"Cache hit rate: {cache_metrics.get('hit_rate_percent', 0):.1f}%, Speed improvement: {cache_hit_improvement:.1f}%",
+                "message": f"Cache hit rate: {cache_metrics.get('hit_rate_percent', 0):.1f}}%, Speed improvement: {cache_hit_improvement:.1f}%",
                 "metrics": {
                     "first_execution_ms": first_execution_time * 1000,
                     "cached_execution_ms": second_execution_time * 1000,
@@ -228,9 +227,9 @@ class EnhancedDatabasePerformanceTester:
             # Get Redis info
             redis_info = await self.db_manager.redis_client.info('memory')
             
-            return {}
+            return {
                 "success": True,
-                "message": f"Redis integration working, Memory usage: {redis_info.get('used_memory_human', 'unknown')}",
+                "message": f"Redis integration working, Memory usage: {redis_info.get('used_memory_human', 'unknown')}}",
                 "metrics": {
                     "redis_connected": True,
                     "redis_memory": redis_info.get('used_memory', 0),
@@ -255,9 +254,9 @@ class EnhancedDatabasePerformanceTester:
             # Get optimization stats
             optimizer_stats = self.db_manager.query_optimizer.get_optimization_stats()
             
-            return {}
+            return {
                 "success": result.get("success", False),
-                "message": f"Query optimization: {optimizer_stats.get('queries_optimized', 0)} queries optimized",
+                "message": f"Query optimization: {optimizer_stats.get('queries_optimized', 0)}} queries optimized",
                 "metrics": {
                     "queries_optimized": optimizer_stats.get('queries_optimized', 0),
                     "total_time_saved_ms": optimizer_stats.get('total_time_saved_ms', 0),
@@ -287,14 +286,14 @@ class EnhancedDatabasePerformanceTester:
             # Get performance stats
             perf_stats = await self.db_manager.get_performance_stats()
             
-            return {}
+            return {
                 "success": True,
                 "message": "Auto-tuning system active",
                 "metrics": {
                     "auto_tune_enabled": self.db_manager.auto_tune_enabled,
                     "auto_tune_interval": self.db_manager.auto_tune_interval,
                     "performance_monitoring": self.db_manager.enable_performance_monitoring
-                }
+                }}
             }
             
         except Exception as e:
@@ -329,9 +328,9 @@ class EnhancedDatabasePerformanceTester:
             
             throughput = total_queries / total_time
             
-            return {}
+            return {
                 "success": successful_queries == total_queries,
-                "message": f"Processed {successful_queries}/{total_queries} concurrent queries at {throughput:.1f} QPS",
+                "message": f"Processed {successful_queries}}/{total_queries} concurrent queries at {throughput:.1f} QPS",
                 "metrics": {
                     "total_queries": total_queries,
                     "successful_queries": successful_queries,
@@ -370,9 +369,9 @@ class EnhancedDatabasePerformanceTester:
             cache_stats = await self.db_manager.get_performance_stats()
             cache_metrics = cache_stats.get("query_cache", {})
             
-            return {}
+            return {
                 "success": memory_increase < 50,  # Less than 50MB increase
-                "message": f"Memory usage increased by {memory_increase:.1f}MB, Cache size: {cache_metrics.get('l1_cache_size', 0)}",
+                "message": f"Memory usage increased by {memory_increase:.1f}}MB, Cache size: {cache_metrics.get('l1_cache_size', 0)}",
                 "metrics": {
                     "initial_memory_mb": initial_memory,
                     "final_memory_mb": final_memory,
@@ -409,9 +408,9 @@ class EnhancedDatabasePerformanceTester:
             result3 = await self.db_manager.execute_query(test_query, database="test_enhanced")
             not_cached_after_clear = not result3.get("cached", False)
             
-            return {}
+            return {
                 "success": was_cached and not_cached_after_clear,
-                "message": f"Cache invalidation working: was_cached={was_cached}, cleared={not_cached_after_clear}",
+                "message": f"Cache invalidation working: was_cached={was_cached}}, cleared={not_cached_after_clear}",
                 "metrics": {
                     "cache_invalidation_working": was_cached and not_cached_after_clear,
                     "initial_cached": was_cached,
@@ -439,9 +438,9 @@ class EnhancedDatabasePerformanceTester:
             has_cache_stats = "query_cache" in perf_stats
             has_monitor_stats = "performance_monitor" in perf_stats
             
-            return {}
+            return {
                 "success": has_connection_stats and has_cache_stats,
-                "message": f"Performance monitoring active: pools={has_connection_stats}, cache={has_cache_stats}, monitor={has_monitor_stats}",
+                "message": f"Performance monitoring active: pools={has_connection_stats}}, cache={has_cache_stats}, monitor={has_monitor_stats}",
                 "metrics": {
                     "has_connection_stats": has_connection_stats,
                     "has_cache_stats": has_cache_stats,
@@ -488,9 +487,9 @@ class EnhancedDatabasePerformanceTester:
             # Get final performance stats
             final_stats = await self.db_manager.get_performance_stats()
             
-            return {}
+            return {
                 "success": successful_stress_queries >= total_stress_queries * 0.95,  # 95% success rate
-                "message": f"Stress test: {successful_stress_queries}/{total_stress_queries} queries at {stress_throughput:.1f} QPS",
+                "message": f"Stress test: {successful_stress_queries}}/{total_stress_queries} queries at {stress_throughput:.1f} QPS",
                 "metrics": {
                     "total_stress_queries": total_stress_queries,
                     "successful_stress_queries": successful_stress_queries,
@@ -581,7 +580,7 @@ async def main():
         
         # Determine exit code
         failed_tests = sum(1 for result in results.values() 
-                          if not result.get("success"))
+                        if not result.get("success"))
         
         if failed_tests > 0:
             print(f"\n{failed_tests} tests failed!")

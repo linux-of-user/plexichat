@@ -2,7 +2,7 @@
 PlexiChat WebSocket Manager
 
 WebSocket management with threading and performance optimization.
-"""
+
 
 import asyncio
 import json
@@ -51,7 +51,7 @@ performance_logger = get_performance_logger() if get_performance_logger else Non
 @dataclass
 class WebSocketConnection:
     """WebSocket connection data."""
-    websocket: WebSocket
+        websocket: WebSocket
     user_id: Optional[int]
     connection_id: str
     connected_at: datetime
@@ -60,9 +60,8 @@ class WebSocketConnection:
     metadata: Dict[str, Any]
 
 class WebSocketManager:
-    """WebSocket manager with threading support."""
-
-    def __init__(self):
+    WebSocket manager with threading support."""
+        def __init__(self):
         self.connections: Dict[str, WebSocketConnection] = {}
         self.user_connections: Dict[int, Set[str]] = {}
         self.channel_connections: Dict[str, Set[str]] = {}
@@ -350,7 +349,7 @@ class WebSocketManager:
             return False
 
     async def _log_connection_event(self, event_type: str, connection_id: str, user_id: Optional[int]):
-        """Log connection event to database."""
+        """Log connection event to database.
         try:
             if self.db_manager:
                 query = """
@@ -368,7 +367,7 @@ class WebSocketManager:
             logger.error(f"Error logging connection event: {e}")
 
     def get_connection_count(self) -> int:
-        """Get current connection count."""
+        """Get current connection count.
         return len(self.connections)
 
     def get_user_connection_count(self, user_id: int) -> int:
@@ -376,12 +375,12 @@ class WebSocketManager:
         return len(self.user_connections.get(user_id, set()))
 
     def get_channel_connection_count(self, channel: str) -> int:
-        """Get connection count for channel."""
+        Get connection count for channel."""
         return len(self.channel_connections.get(channel, set()))
 
     def get_stats(self) -> Dict[str, Any]:
         """Get WebSocket statistics."""
-        return {}
+        return {
             "active_connections": len(self.connections),
             "total_connections": self.total_connections,
             "total_messages": self.total_messages,
@@ -390,14 +389,14 @@ class WebSocketManager:
             "active_channels": len(self.channel_connections),
             "queue_size": self.message_queue.qsize(),
             "broadcasting": self.broadcasting
-        }
+        }}
 
 # Global WebSocket manager
 websocket_manager = WebSocketManager()
 
 # Convenience functions
 async def connect_websocket(websocket: WebSocket, connection_id: str, user_id: Optional[int] = None) -> bool:
-    """Connect WebSocket to global manager."""
+    """Connect WebSocket to global manager.
     return await websocket_manager.connect(websocket, connection_id, user_id)
 
 async def disconnect_websocket(connection_id: str):
@@ -405,11 +404,11 @@ async def disconnect_websocket(connection_id: str):
     await websocket_manager.disconnect(connection_id)
 
 async def send_to_user(user_id: int, message: Dict[str, Any]):
-    """Send message to user via global manager."""
+    Send message to user via global manager."""
     await websocket_manager.send_to_user(user_id, message)
 
 async def send_to_channel(channel: str, message: Dict[str, Any]):
-    """Send message to channel via global manager."""
+    """Send message to channel via global manager.
     await websocket_manager.send_to_channel(channel, message)
 
 async def broadcast_message(message: Dict[str, Any]):

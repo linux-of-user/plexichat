@@ -356,7 +356,7 @@ class UnifiedSecurityMiddleware(BaseHTTPMiddleware):
             }
 
     def _constant_time_compare(self, a: str, b: str) -> bool:
-        """Constant-time string comparison to prevent timing attacks."""
+        """Constant-time string comparison to prevent timing attacks.
         if len(a) != len(b):
             return False
 

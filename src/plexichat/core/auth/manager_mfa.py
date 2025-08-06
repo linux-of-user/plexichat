@@ -17,14 +17,14 @@ logger = logging.getLogger(__name__)
 
 class TwoFactorMethod:
     """2FA method constants."""
-    TOTP = "totp"
+        TOTP = "totp"
     SMS = "sms"
     EMAIL = "email"
     BACKUP_CODES = "backup_codes"
     HARDWARE_KEY = "hardware_key"
 
 class TwoFactorConfig(BaseModel):
-    """2FA configuration for a user."""
+    """2FA configuration for a user.
     user_id: int
     enabled: bool = False
     enabled_methods: List[str] = []
@@ -40,8 +40,7 @@ class TwoFactorConfig(BaseModel):
 
 class Advanced2FASystem:
     """Advanced 2FA system with multiple methods and security features."""
-
-    def __init__(self, config: Dict[str, Any] = None):
+        def __init__(self, config: Dict[str, Any] = None):
         self.config = config or {}
         self.user_configs: Dict[int, TwoFactorConfig] = {}
         self.pending_setups: Dict[str, Dict[str, Any]] = {}
@@ -63,7 +62,7 @@ class Advanced2FASystem:
         logger.info("Advanced 2FA system initialized")
 
     def _get_or_create_encryption_key(self) -> bytes:
-        """Get or create encryption key for sensitive data."""
+        """Get or create encryption key for sensitive data.
         key = self.config.get('encryption_key')
         if not key:
             key = Fernet.generate_key()
@@ -86,7 +85,7 @@ class Advanced2FASystem:
         return b"qr_code_placeholder"
 
     def generate_backup_codes(self, count: int = 10) -> List[str]:
-        """Generate backup codes for 2FA."""
+        """Generate backup codes for 2FA.
         return [secrets.token_urlsafe(8) for _ in range(count)]
 
     def hash_backup_code(self, code: str) -> str:
@@ -94,7 +93,7 @@ class Advanced2FASystem:
         return hashlib.sha256(code.encode()).hexdigest()
 
     def initiate_2fa_setup(self, user_id: int, user_email: str, methods: List[str]) -> Dict[str, Any]:
-        """Initiate 2FA setup for a user."""
+        Initiate 2FA setup for a user."""
         setup_token = secrets.token_urlsafe(32)
 
         setup_data = {
@@ -165,11 +164,11 @@ class Advanced2FASystem:
 
                 logger.info(f"2FA setup completed for user {setup_data['user_id']}")
 
-                return {}
+                return {
                     "success": True,
                     "message": "2FA setup completed successfully",
                     "backup_codes": setup_data.get("backup_codes", [])
-                }
+                }}
 
         return {"success": False, "error": "Invalid verification code"}
 
@@ -213,11 +212,11 @@ class Advanced2FASystem:
                 config.locked_until = None
 
                 logger.info(f"2FA backup code verification successful for user {user_id}")
-                return {}
+                return {
                     "success": True,
                     "method": "backup_code",
                     "remaining_codes": len(config.backup_codes)
-                }
+                }}
 
         # Failed verification
         config.failed_attempts += 1
@@ -244,14 +243,14 @@ class Advanced2FASystem:
             return {"enabled": False}
 
         config = self.user_configs[user_id]
-        return {}
+        return {
             "enabled": config.enabled,
             "methods": config.enabled_methods,
             "backup_codes_remaining": len(config.backup_codes),
             "last_used": config.last_used.isoformat() if config.last_used else None,
             "failed_attempts": config.failed_attempts,
             "locked_until": config.locked_until.isoformat() if config.locked_until else None
-        }
+        }}
 
     def regenerate_backup_codes(self, user_id: int) -> List[str]:
         """Regenerate backup codes for a user."""
@@ -306,7 +305,7 @@ class Advanced2FASystem:
             return None
 
         config = self.user_configs[user_id]
-        return {}
+        return {
             "user_id": config.user_id,
             "enabled": config.enabled,
             "enabled_methods": config.enabled_methods,
@@ -314,7 +313,7 @@ class Advanced2FASystem:
             "backup_codes": config.backup_codes,
             "created_at": config.created_at.isoformat(),
             "last_used": config.last_used.isoformat() if config.last_used else None
-        }
+        }}
 
 # Global instance
 mfa_manager = Advanced2FASystem()

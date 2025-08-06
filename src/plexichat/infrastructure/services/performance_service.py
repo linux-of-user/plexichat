@@ -39,14 +39,13 @@ Features:
 - Performance alerting
 - Dashboard data aggregation
 - Historical trend analysis
-"""
+
 
 
 @dataclass
 class SystemMetrics:
     """System-level performance metrics."""
-
-    timestamp: datetime
+        timestamp: datetime
     cpu_usage: float
     memory_usage: float
     disk_usage: float
@@ -58,9 +57,8 @@ class SystemMetrics:
 
 @dataclass
 class ApplicationMetrics:
-    """Application-level performance metrics."""
-
-    timestamp: datetime
+    Application-level performance metrics."""
+        timestamp: datetime
     active_connections: int
     request_rate: float
     response_time_avg: float
@@ -73,9 +71,8 @@ class ApplicationMetrics:
 
 @dataclass
 class DatabaseMetrics:
-    """Database performance metrics."""
-
-    timestamp: datetime
+    """Database performance metrics.
+        timestamp: datetime
     connection_pool_size: int
     active_connections: int
     query_rate: float
@@ -88,8 +85,7 @@ class DatabaseMetrics:
 @dataclass
 class ClusterMetrics:
     """Cluster performance metrics."""
-
-    timestamp: datetime
+        timestamp: datetime
     total_nodes: int
     active_nodes: int
     cluster_cpu_avg: float
@@ -101,9 +97,8 @@ class ClusterMetrics:
 
 @dataclass
 class AIMetrics:
-    """AI service performance metrics."""
-
-    timestamp: datetime
+    AI service performance metrics."""
+        timestamp: datetime
     requests_per_minute: float
     avg_response_time: float
     model_accuracy: float
@@ -114,9 +109,8 @@ class AIMetrics:
 
 
 class PerformanceAggregator:
-    """Aggregates performance data from multiple sources."""
-
-    def __init__(self):
+    """Aggregates performance data from multiple sources.
+        def __init__(self):
         self.system_metrics: deque = deque(maxlen=1000)
         self.app_metrics: deque = deque(maxlen=1000)
         self.db_metrics: deque = deque(maxlen=1000)
@@ -131,12 +125,12 @@ class PerformanceAggregator:
             self.system_metrics.append(metrics)
 
     def add_application_metrics(self, metrics: ApplicationMetrics):
-        """Add application metrics."""
+        Add application metrics."""
         with self.lock:
             self.app_metrics.append(metrics)
 
     def add_database_metrics(self, metrics: DatabaseMetrics):
-        """Add database metrics."""
+        """Add database metrics.
         with self.lock:
             self.db_metrics.append(metrics)
 
@@ -146,7 +140,7 @@ class PerformanceAggregator:
             self.cluster_metrics.append(metrics)
 
     def add_ai_metrics(self, metrics: AIMetrics):
-        """Add AI metrics."""
+        Add AI metrics."""
         with self.lock:
             self.ai_metrics.append(metrics)
 
@@ -163,7 +157,7 @@ class PerformanceAggregator:
     def get_latest_metrics(self) -> Dict[str, Any]:
         """Get latest metrics from all sources."""
         with self.lock:
-            return {}
+            return {
                 "system": ()
                     self.system_metrics[-1].__dict__ if self.system_metrics else None
                 ),
@@ -178,7 +172,7 @@ class PerformanceAggregator:
                 "custom": {
                     name: list(metrics)[-1] if metrics else None
                     for name, metrics in self.custom_metrics.items()
-                },
+                }},
             }
 
     def get_historical_data(self, hours: int = 1) -> Dict[str, List[Dict[str, Any]]]:
@@ -186,7 +180,7 @@ class PerformanceAggregator:
         cutoff_time = datetime.now(timezone.utc) - timedelta(hours=hours)
 
         with self.lock:
-            return {}
+            return {
                 "system": [
                     m.__dict__
                     for m in self.system_metrics
@@ -209,14 +203,13 @@ class PerformanceAggregator:
                 "custom": {
                     name: [m for m in metrics if m["timestamp"] >= cutoff_time]
                     for name, metrics in self.custom_metrics.items()
-                },
+                }},
             }
 
 
 class PerformanceService(BaseService):
     """Unified performance monitoring service."""
-
-    def __init__(self):
+        def __init__(self):
         super().__init__("performance")
         self.config = get_config()
         self.performance_logger = get_performance_logger()
@@ -277,7 +270,7 @@ class PerformanceService(BaseService):
         self.logger.info("Performance monitoring service stopped")
 
     def _initialize_collectors(self):
-        """Initialize performance data collectors."""
+        """Initialize performance data collectors.
         # Import collectors based on availability
         try:
             self.perf_optimizer = PerformanceOptimizer()
@@ -585,7 +578,7 @@ class PerformanceService(BaseService):
 
     # Helper methods for collecting metrics
     def _get_active_connections(self) -> int:
-        """Get active connection count."""
+        """Get active connection count.
         # This would integrate with actual connection tracking
         return 50  # Placeholder
 
@@ -595,12 +588,12 @@ class PerformanceService(BaseService):
         return 10.5  # Placeholder
 
     def _get_avg_response_time(self) -> float:
-        """Get average response time."""
+        Get average response time."""
         # This would integrate with actual response time tracking
         return 150.0  # Placeholder
 
     def _get_p95_response_time(self) -> float:
-        """Get 95th percentile response time."""
+        """Get 95th percentile response time.
         return 300.0  # Placeholder
 
     def _get_p99_response_time(self) -> float:
@@ -608,11 +601,11 @@ class PerformanceService(BaseService):
         return 500.0  # Placeholder
 
     def _get_error_rate(self) -> float:
-        """Get current error rate."""
+        Get current error rate."""
         return 2.5  # Placeholder
 
     def _get_success_rate(self) -> float:
-        """Get current success rate."""
+        """Get current success rate.
         return 97.5  # Placeholder
 
     def _get_throughput(self) -> float:
@@ -620,11 +613,11 @@ class PerformanceService(BaseService):
         return 1000.0  # Placeholder
 
     def _get_db_pool_size(self) -> int:
-        """Get database connection pool size."""
+        Get database connection pool size."""
         return 20  # Placeholder
 
     def _get_db_active_connections(self) -> int:
-        """Get active database connections."""
+        """Get active database connections.
         return 5  # Placeholder
 
     def _get_db_query_rate(self) -> float:
@@ -632,11 +625,11 @@ class PerformanceService(BaseService):
         return 25.0  # Placeholder
 
     def _get_db_avg_query_time(self) -> float:
-        """Get average database query time."""
+        Get average database query time."""
         return 50.0  # Placeholder
 
     def _get_db_slow_queries(self) -> int:
-        """Get slow query count."""
+        """Get slow query count.
         return 2  # Placeholder
 
     def _get_db_cache_hit_rate(self) -> float:
@@ -644,12 +637,12 @@ class PerformanceService(BaseService):
         return 85.0  # Placeholder
 
     def _get_db_deadlocks(self) -> int:
-        """Get database deadlock count."""
+        Get database deadlock count."""
         return 0  # Placeholder
 
     # Public API methods
     def get_current_metrics(self) -> Dict[str, Any]:
-        """Get current performance metrics."""
+        """Get current performance metrics.
         return self.aggregator.get_latest_metrics()
 
     def get_historical_metrics(self, hours: int = 1) -> Dict[str, Any]:
@@ -657,7 +650,7 @@ class PerformanceService(BaseService):
         return self.aggregator.get_historical_data(hours)
 
     def add_custom_metric(self, name: str, value: Any):
-        """Add custom performance metric."""
+        Add custom performance metric."""
         self.aggregator.add_custom_metric(name, value)
         self.performance_logger.record_metric()
             f"custom_{name}",
@@ -666,7 +659,7 @@ class PerformanceService(BaseService):
         )
 
     def add_alert_callback(self, callback: Callable):
-        """Add alert callback function."""
+        """Add alert callback function.
         self.alert_callbacks.append(callback)
 
     def get_performance_summary(self) -> Dict[str, Any]:
@@ -674,26 +667,26 @@ class PerformanceService(BaseService):
         latest = self.aggregator.get_latest_metrics()
         historical = self.aggregator.get_historical_data(24)  # Last 24 hours
 
-        return {}
+        return {
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "current": latest,
             "trends": self._calculate_trends(historical),
             "alerts": self._get_active_alerts(),
             "health_score": self._calculate_health_score(latest),
-        }
+        }}
 
     def _calculate_trends(self, historical_data: Dict[str, Any]) -> Dict[str, str]:
         """Calculate performance trends."""
         # This would implement trend analysis
-        return {}
+        return {
             "cpu_usage": "stable",
             "memory_usage": "increasing",
             "response_time": "improving",
             "error_rate": "stable",
-        }
+        }}
 
     def _get_active_alerts(self) -> List[Dict[str, Any]]:
-        """Get currently active alerts."""
+        """Get currently active alerts.
         # This would return actual active alerts
         return []
 
@@ -708,7 +701,7 @@ _performance_service = None
 
 
 async def get_performance_service() -> PerformanceService:
-    """Get the global performance service instance."""
+    Get the global performance service instance."""
     global _performance_service
     if _performance_service is None:
         _performance_service = PerformanceService()

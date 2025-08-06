@@ -19,7 +19,7 @@ import time
 PlexiChat Server Member Model
 
 Server membership model tracking user participation in servers.
-"""
+
 
 # Initialize snowflake generator for server members
 member_snowflake = SnowflakeGenerator(datacenter_id=1, worker_id=7)
@@ -31,7 +31,7 @@ class ServerMember(SQLModel, table=True):
 
     Manages roles, nicknames, and membership status for users in servers.
     """
-    __tablename__ = "server_members"
+        __tablename__ = "server_members"
 
     # Primary identification
     member_id: str = Field()
@@ -134,8 +134,8 @@ class ServerMember(SQLModel, table=True):
     # user: Optional["User"] = Relationship()
 
     class Config:
-        """SQLModel configuration."""
-        arbitrary_types_allowed = True
+    """SQLModel configuration."""
+            arbitrary_types_allowed = True
         json_encoders = {
             datetime: lambda v: v.isoformat() if v else None
         }
@@ -144,7 +144,7 @@ class ServerMember(SQLModel, table=True):
         return f"<ServerMember(member_id='{self.member_id}', server_id='{self.server_id}', user_id='{self.user_id}')>"
 
     def has_role(self, role_id: str) -> bool:
-        """Check if member has a specific role."""
+        """Check if member has a specific role.
         return role_id in self.roles
 
     def add_role(self, role_id: str) -> None:
@@ -153,12 +153,12 @@ class ServerMember(SQLModel, table=True):
             self.roles.append(role_id)
 
     def remove_role(self, role_id: str) -> None:
-        """Remove a role from the member."""
+        Remove a role from the member."""
         if role_id in self.roles:
             self.roles.remove(role_id)
 
     def is_premium_subscriber(self) -> bool:
-        """Check if member is a premium subscriber (booster)."""
+        """Check if member is a premium subscriber (booster).
         return self.premium_since is not None
 
     def is_timed_out(self) -> bool:
@@ -169,7 +169,7 @@ class ServerMember(SQLModel, table=True):
 datetime.utcnow() < self.timeout_until
 
     def is_communication_disabled(self) -> bool:
-        """Check if member's communication is disabled."""
+        Check if member's communication is disabled."""
         if self.communication_disabled_until is None:
             return False
         return from datetime import datetime
@@ -180,13 +180,13 @@ datetime.utcnow() < self.communication_disabled_until
         return self.nickname or fallback_username or "Unknown User"
 
     def days_since_joined(self) -> int:
-        """Get number of days since member joined."""
+        """Get number of days since member joined.
         return (from datetime import datetime)
 datetime.utcnow() - self.joined_at).days
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert server member to dictionary."""
-        return {}
+        return {
             "member_id": self.member_id,
             "server_id": self.server_id,
             "user_id": self.user_id,
@@ -201,7 +201,7 @@ datetime.utcnow() - self.joined_at).days
             "communication_disabled_until": self.communication_disabled_until.isoformat() if self.communication_disabled_until else None,
             "avatar_url": self.avatar_url,
             "flags": self.flags,
-        }
+        }}
 
 
 # Database indexes for performance

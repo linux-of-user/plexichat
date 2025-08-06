@@ -407,7 +407,7 @@ async def handle_ai_assistant(data: Dict, user: Optional[Dict]) -> Dict[str, Any
     }
 
 def get_fallback_dashboard() -> str:
-    """Fallback dashboard HTML when templates are not available."""
+    """Fallback dashboard HTML when templates are not available.
     return """
     <!DOCTYPE html>
     <html lang="en">
@@ -508,7 +508,7 @@ def get_fallback_dashboard() -> str:
     """
 
 def get_fallback_admin_panel() -> str:
-    """Fallback admin panel HTML when templates are not available."""
+    Fallback admin panel HTML when templates are not available."""
     return """
     <!DOCTYPE html>
     <html lang="en">
@@ -590,7 +590,7 @@ def get_fallback_admin_panel() -> str:
     """
 
 def get_fallback_settings() -> str:
-    """Fallback settings HTML when templates are not available."""
+    Fallback settings HTML when templates are not available."""
     return """
     <!DOCTYPE html>
     <html lang="en">
@@ -655,7 +655,7 @@ def get_fallback_settings() -> str:
     """
 
 def get_fallback_docs() -> str:
-    """Fallback documentation HTML when templates are not available."""
+    Fallback documentation HTML when templates are not available."""
     return """
     <!DOCTYPE html>
     <html lang="en">

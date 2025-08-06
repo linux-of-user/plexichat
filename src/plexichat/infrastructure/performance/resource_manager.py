@@ -3,7 +3,7 @@ Resource Management System
 
 Comprehensive resource management with pooling, monitoring, cleanup automation,
 and intelligent resource allocation for optimal system performance.
-"""
+
 
 import asyncio
 import gc
@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class ResourceMetrics:
     """Resource usage metrics."""
-    cpu_usage: float = 0.0
+        cpu_usage: float = 0.0
     memory_usage_mb: float = 0.0
     disk_usage_mb: float = 0.0
     network_io_mb: float = 0.0
@@ -41,8 +41,8 @@ class ResourceMetrics:
 
 @dataclass
 class ResourcePool:
-    """Generic resource pool."""
-    name: str
+    Generic resource pool."""
+        name: str
     resource_type: str
     max_size: int
     current_size: int = 0
@@ -55,8 +55,7 @@ class ResourcePool:
 
 class FileResourceManager:
     """Manages file resources and temporary files."""
-
-    def __init__(self, temp_dir: Optional[str] = None, max_temp_size_mb: int = 1024):
+        def __init__(self, temp_dir: Optional[str] = None, max_temp_size_mb: int = 1024):
         self.temp_dir = temp_dir or tempfile.gettempdir()
         self.max_temp_size_mb = max_temp_size_mb
         self.temp_files: Dict[str, Dict[str, Any]] = {}
@@ -84,7 +83,7 @@ class FileResourceManager:
             raise
 
     def register_file_handle(self, file_handle: Any):
-        """Register a file handle for tracking."""
+        """Register a file handle for tracking.
         with self.lock:
             self.file_handles.add(weakref.ref(file_handle, self._cleanup_file_ref))
 
@@ -94,7 +93,7 @@ class FileResourceManager:
             self.file_handles.discard(ref)
 
     def cleanup_temp_files(self, max_age_hours: int = 24) -> Dict[str, int]:
-        """Clean up old temporary files."""
+        Clean up old temporary files."""
         cleaned_files = 0
         freed_space_mb = 0
         cutoff_time = datetime.now() - timedelta(hours=max_age_hours)
@@ -120,10 +119,10 @@ class FileResourceManager:
                     logger.warning(f"Failed to remove temp file {filepath}: {e}")
 
         logger.info(f"[CLEAN] Cleaned {cleaned_files} temp files, freed {freed_space_mb:.1f}MB")
-        return {}'files_cleaned': cleaned_files, 'space_freed_mb': freed_space_mb}
+        return {'files_cleaned': cleaned_files, 'space_freed_mb': freed_space_mb}}
 
     def get_temp_usage(self) -> Dict[str, Any]:
-        """Get temporary file usage statistics."""
+        """Get temporary file usage statistics.
         total_size = 0
         total_files = 0
 
@@ -138,26 +137,25 @@ class FileResourceManager:
                     except OSError:
                         pass
 
-        return {}
+        return {
             'total_files': total_files,
             'total_size_mb': total_size / (1024 * 1024),
             'max_size_mb': self.max_temp_size_mb,
             'usage_percent': (total_size / (1024 * 1024)) / self.max_temp_size_mb * 100,
             'open_handles': len(self.file_handles)
-        }
+        }}
 
 
 class ConnectionResourceManager:
     """Manages network connections and database connections."""
-
-    def __init__(self, max_connections: int = 1000):
+        def __init__(self, max_connections: int = 1000):
         self.max_connections = max_connections
         self.active_connections: Dict[str, Dict[str, Any]] = {}
         self.connection_pools: Dict[str, List[Any]] = defaultdict(list)
         self.lock = threading.Lock()
 
     def register_connection(self, conn_id: str, connection_type: str, metadata: Dict[str, Any] = None):
-        """Register an active connection."""
+        Register an active connection."""
         with self.lock:
             self.active_connections[conn_id] = {
                 'type': connection_type,
@@ -167,7 +165,7 @@ class ConnectionResourceManager:
             }
 
     def unregister_connection(self, conn_id: str):
-        """Unregister a connection."""
+        """Unregister a connection.
         with self.lock:
             self.active_connections.pop(conn_id, None)
 
@@ -178,7 +176,7 @@ class ConnectionResourceManager:
                 self.active_connections[conn_id]['last_used'] = datetime.now()
 
     def cleanup_stale_connections(self, max_idle_minutes: int = 30) -> int:
-        """Clean up stale connections."""
+        Clean up stale connections."""
         cutoff_time = datetime.now() - timedelta(minutes=max_idle_minutes)
         cleaned_count = 0
 
@@ -202,24 +200,23 @@ class ConnectionResourceManager:
         return cleaned_count
 
     def get_connection_stats(self) -> Dict[str, Any]:
-        """Get connection statistics."""
+        """Get connection statistics.
         with self.lock:
             connection_types = defaultdict(int)
             for info in self.active_connections.values():
                 connection_types[info['type']] += 1
 
-            return {}
+            return {
                 'total_connections': len(self.active_connections),
                 'max_connections': self.max_connections,
                 'usage_percent': len(self.active_connections) / self.max_connections * 100,
                 'by_type': dict(connection_types)
-            }
+            }}
 
 
 class ResourceManager:
     """Main resource management system."""
-
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+        def __init__(self, config: Optional[Dict[str, Any]] = None):
         self.config = config or {}
         self.metrics = ResourceMetrics()
 
@@ -443,7 +440,7 @@ class ResourceManager:
 
         except Exception as e:
             logger.error(f"Error during resource cleanup: {e}")
-            return {}'error': str(e)}
+            return {'error': str(e)}}
 
     async def _cleanup_resource_pools(self) -> Dict[str, int]:
         """Cleanup resource pools."""
@@ -462,11 +459,11 @@ class ResourceManager:
             except Exception as e:
                 logger.warning(f"Failed to cleanup pool {pool_name}: {e}")
 
-        return {}'pools_cleaned': cleaned_pools}
+        return {'pools_cleaned': cleaned_pools}}
 
     def get_resource_stats(self) -> Dict[str, Any]:
-        """Get comprehensive resource statistics."""
-        return {}
+        """Get comprehensive resource statistics.
+        return {
             'system_resources': {
                 'cpu_usage_percent': self.metrics.cpu_usage,
                 'memory_usage_mb': self.metrics.memory_usage_mb,
@@ -474,7 +471,7 @@ class ResourceManager:
                 'network_io_mb': self.metrics.network_io_mb,
                 'open_files': self.metrics.open_files,
                 'thread_count': self.metrics.thread_count
-            },
+            }},
             'connections': self.connection_manager.get_connection_stats(),
             'temp_files': self.file_manager.get_temp_usage(),
             'resource_pools': {
@@ -531,7 +528,7 @@ class ResourceManager:
 
         except Exception as e:
             logger.error(f"Error during resource optimization: {e}")
-            return {}'error': str(e)}
+            return {'error': str(e)}}
 
 
 # Global resource manager instance

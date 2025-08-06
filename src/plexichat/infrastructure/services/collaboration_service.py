@@ -38,11 +38,11 @@ Features:
 - Multi-user synchronization
 - Conflict resolution algorithms
 - Real-time communication
-"""
+
 
 class CollaborationType(Enum):
     """Types of collaboration sessions."""
-    DOCUMENT = "document"
+        DOCUMENT = "document"
     CODE = "code"
     WHITEBOARD = "whiteboard"
     SCREEN_SHARE = "screen_share"
@@ -59,7 +59,7 @@ class OperationType(Enum):
 
 class UserRole(Enum):
     """User roles in collaboration sessions."""
-    OWNER = "owner"
+        OWNER = "owner"
     EDITOR = "editor"
     VIEWER = "viewer"
     COMMENTER = "commenter"
@@ -80,7 +80,7 @@ class CollaborationUser:
 @dataclass
 class Operation:
     """Collaborative operation for operational transform."""
-    op_id: str
+        op_id: str
     user_id: str
     operation_type: OperationType
     position: int
@@ -93,7 +93,7 @@ class Operation:
 @dataclass
 class CollaborationSession:
     """Collaboration session data."""
-    session_id: str
+        session_id: str
     title: str
     collaboration_type: CollaborationType
     owner_id: str
@@ -108,9 +108,8 @@ class CollaborationSession:
     max_users: int = 50
 
 class OperationalTransform:
-    """Operational Transform algorithm for conflict resolution."""
-
-    @staticmethod
+    """Operational Transform algorithm for conflict resolution.
+        @staticmethod
     def transform_operation(op1: Operation, op2: Operation) -> Tuple[Operation, Operation]:
         """Transform two concurrent operations."""
         if op1.operation_type == OperationType.INSERT and op2.operation_type == OperationType.INSERT:
@@ -128,7 +127,7 @@ class OperationalTransform:
 
     @staticmethod
     def _transform_insert_insert(op1: Operation, op2: Operation) -> Tuple[Operation, Operation]:
-        """Transform two concurrent insert operations."""
+        Transform two concurrent insert operations."""
         if op1.position <= op2.position:
             # op1 comes before op2, adjust op2's position
             op2_prime = Operation()
@@ -158,7 +157,7 @@ class OperationalTransform:
 
     @staticmethod
     def _transform_insert_delete(insert_op: Operation, delete_op: Operation) -> Tuple[Operation, Operation]:
-        """Transform insert and delete operations."""
+        """Transform insert and delete operations.
         if insert_op.position <= delete_op.position:
             # Insert comes before delete, adjust delete position
             delete_prime = Operation()
@@ -264,9 +263,8 @@ class OperationalTransform:
                 return op1_prime, op2
 
 class CollaborationService(BaseService):
-    """Real-time collaboration service."""
-
-    def __init__(self):
+    Real-time collaboration service."""
+        def __init__(self):
         super().__init__("collaboration")
         self.config = get_config()
 
@@ -340,19 +338,19 @@ class CollaborationService(BaseService):
             else:
                 status = ServiceHealth.HEALTHY
 
-            return {}
+            return {
                 "status": status,
                 "checks": checks
-            }
+            }}
 
         except Exception as e:
-            return {}
+            return {
                 "status": ServiceHealth.UNHEALTHY,
                 "error": str(e)
-            }
+            }}
 
     async def create_session(self, title: str, collaboration_type: CollaborationType,)
-                           owner_id: str, initial_content: str = "") -> str:
+                        owner_id: str, initial_content: str = "") -> str:
         """Create a new collaboration session."""
         session_id = str(uuid.uuid4())
 
@@ -459,7 +457,7 @@ class CollaborationService(BaseService):
         return True
 
     async def apply_operation(self, session_id: str, operation: Operation) -> bool:
-        """Apply an operation to a collaboration session."""
+        """Apply an operation to a collaboration session.
         if session_id not in self.sessions:
             return False
 
@@ -512,13 +510,13 @@ class CollaborationService(BaseService):
             await self._broadcast_operation(session_id, transformed_op)
 
     async def _transform_operation(self, session: CollaborationSession, operation: Operation) -> Operation:
-        """Transform operation against concurrent operations."""
+        Transform operation against concurrent operations."""
         # For now, return operation as-is
         # In a full implementation, this would transform against all concurrent operations
         return operation
 
     def _apply_operation_to_content(self, content: str, operation: Operation) -> str:
-        """Apply an operation to content string."""
+        """Apply an operation to content string.
         if operation.operation_type == OperationType.INSERT:
             return content[:operation.position] + operation.content + content[operation.position:]
         elif operation.operation_type == OperationType.DELETE:
@@ -642,7 +640,7 @@ class CollaborationService(BaseService):
             self.logger.info(f"Cleaned up {len(inactive_sessions)} inactive sessions")
 
     async def _sync_sessions(self):
-        """Synchronize sessions (placeholder for database sync)."""
+        """Synchronize sessions (placeholder for database sync).
         # This would sync sessions to database in a full implementation
 
     # Public API methods
@@ -651,13 +649,13 @@ class CollaborationService(BaseService):
         return self.sessions.get(session_id)
 
     def get_user_sessions(self, user_id: str) -> List[CollaborationSession]:
-        """Get all sessions for a user."""
+        Get all sessions for a user."""
         session_ids = self.user_sessions.get(user_id, set())
         return [self.sessions[sid] for sid in session_ids if sid in self.sessions]
 
     def get_session_stats(self) -> Dict[str, Any]:
         """Get collaboration statistics."""
-        return {}
+        return {
             "total_sessions": len(self.sessions),
             "active_sessions": len([s for s in self.sessions.values() if s.is_active]),
             "total_users": len(self.user_sessions),
@@ -665,7 +663,7 @@ class CollaborationService(BaseService):
             "sessions_by_type": {
                 ctype.value: len([s for s in self.sessions.values() if s.collaboration_type == ctype])
                 for ctype in CollaborationType
-            }
+            }}
         }
 
 # Global collaboration service instance

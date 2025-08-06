@@ -54,14 +54,14 @@ PlexiChat Edge Computing & Auto-scaling Manager
 
 Provides distributed computing at network edges with automatic resource scaling
 based on load and intelligent traffic routing for optimal performance.
-"""
+
 
 logger = get_logger(__name__)
 
 
 class NodeType(Enum):
     """Edge node types."""
-    EDGE = "edge"
+        EDGE = "edge"
     GATEWAY = "gateway"
     COMPUTE = "compute"
     STORAGE = "storage"
@@ -78,7 +78,7 @@ class LoadLevel(Enum):
 
 class ScalingAction(Enum):
     """Auto-scaling actions."""
-    SCALE_UP = "scale_up"
+        SCALE_UP = "scale_up"
     SCALE_DOWN = "scale_down"
     MAINTAIN = "maintain"
     REDISTRIBUTE = "redistribute"
@@ -143,7 +143,7 @@ class EdgeNode:
     performance_history: deque = field(default_factory=lambda: deque(maxlen=100))
 
     def update_metrics(self, metrics: Dict[str, float]):
-        """Update node metrics with enhanced tracking."""
+        """Update node metrics with enhanced tracking.
         self.cpu_usage_percent = metrics.get('cpu_usage', self.cpu_usage_percent)
         self.memory_usage_percent = metrics.get('memory_usage', self.memory_usage_percent)
         self.storage_usage_percent = metrics.get('storage_usage', self.storage_usage_percent)
@@ -208,7 +208,7 @@ class EdgeNode:
             return LoadLevel.LOW
 
     def calculate_distance(self, lat: float, lon: float) -> float:
-        """Calculate distance to given coordinates using Haversine formula."""
+        Calculate distance to given coordinates using Haversine formula."""
         if self.latitude is None or self.longitude is None:
             return float('inf')
 
@@ -224,13 +224,13 @@ class EdgeNode:
         dlon = lon2_rad - lon1_rad
 
         a = (math.sin(dlat/2)**2 +
-             math.cos(lat1_rad) * math.cos(lat2_rad) * math.sin(dlon/2)**2)
+            math.cos(lat1_rad) * math.cos(lat2_rad) * math.sin(dlon/2)**2)
         c = 2 * math.asin(math.sqrt(a))
 
         return R * c
 
     def get_efficiency_score(self) -> float:
-        """Calculate node efficiency score based on multiple factors."""
+        """Calculate node efficiency score based on multiple factors.
         # Efficiency factors
         resource_efficiency = 100 - ((self.cpu_usage_percent + self.memory_usage_percent) / 2)
         response_efficiency = max(0, 100 - (self.avg_response_time_ms / 10))  # Lower response time = higher efficiency
@@ -252,7 +252,7 @@ class EdgeNode:
         return service_name in self.supported_services or len(self.supported_services) == 0
 
     def get_capacity_remaining(self) -> Dict[str, float]:
-        """Get remaining capacity for each resource type."""
+        Get remaining capacity for each resource type."""
         return {
             "cpu_percent": max(0, 100 - self.cpu_usage_percent),
             "memory_percent": max(0, 100 - self.memory_usage_percent),
@@ -264,8 +264,8 @@ class EdgeNode:
 
 @dataclass
 class LoadMetrics:
-    """System load metrics."""
-    timestamp: datetime
+    """System load metrics.
+        timestamp: datetime
     total_requests_per_second: float
     average_response_time_ms: float
     error_rate_percent: float
@@ -279,7 +279,7 @@ class LoadMetrics:
 @dataclass
 class ScalingDecision:
     """Auto-scaling decision."""
-    action: ScalingAction
+        action: ScalingAction
     target_nodes: List[str]
     reason: str
     confidence: float
@@ -288,7 +288,7 @@ class ScalingDecision:
 
 
 class EdgeComputingManager:
-    """
+    
     Edge Computing & Auto-scaling Manager.
 
     Features:
@@ -303,8 +303,7 @@ class EdgeComputingManager:
     - Geographic load distribution
     - Real-time performance monitoring
     """
-
-    def __init__(self, config: Dict[str, Any] = None):
+        def __init__(self, config: Dict[str, Any] = None):
         self.config = config or self._load_default_config()
 
         # Edge nodes management
@@ -632,7 +631,7 @@ class EdgeComputingManager:
 
         except Exception as e:
             logger.error(f" Failed to get metrics for node {node_id}: {e}")
-            return {}
+            return {
 
     async def _analyze_load_patterns(self):
         """Analyze load patterns and trends."""
@@ -653,10 +652,10 @@ class EdgeComputingManager:
             self.performance_metrics["response_time_trend"].append(response_time_trend)
 
         except Exception as e:
-            logger.error(f" Failed to analyze load patterns: {e}")
+            logger.error(f" Failed to analyze load patterns: {e}}")
 
     def _calculate_trend(self, values: List[float]) -> float:
-        """Calculate trend using numpy if available, else return 0."""
+        """Calculate trend using numpy if available, else return 0.
         if not values or len(values) < 2:
             return 0.0
         if np is None:
@@ -816,7 +815,7 @@ class EdgeComputingManager:
             elif action == ScalingAction.SCALE_DOWN:
                 # Select least utilized nodes for removal
                 active_nodes = [(node_id, node) for node_id, node in self.edge_nodes.items()
-                              if node.is_active and node.is_healthy]
+                            if node.is_active and node.is_healthy]
 
                 if len(active_nodes) <= self.min_nodes:
                     return []
@@ -1021,7 +1020,7 @@ class EdgeComputingManager:
         """Handle failed nodes with automatic failover."""
         try:
             failed_nodes = [node_id for node_id, node in self.edge_nodes.items()
-                          if node.is_active and not node.is_healthy]
+                        if node.is_active and not node.is_healthy]
 
             if not failed_nodes:
                 return
@@ -1074,7 +1073,7 @@ class EdgeComputingManager:
 
             # Find healthy nodes that can handle the load
             healthy_nodes = [node for node in self.edge_nodes.values()
-                           if node.is_active and node.is_healthy and node.node_id != failed_node_id]
+                        if node.is_active and node.is_healthy and node.node_id != failed_node_id]
 
             if not healthy_nodes:
                 logger.error(" No healthy nodes available for load redistribution")
@@ -1322,7 +1321,7 @@ class EdgeComputingManager:
 
         except Exception as e:
             logger.error(f" Failed to get edge status: {e}")
-            return {}
+            return {
 
     async def get_node_details(self, node_id: str) -> Optional[Dict[str, Any]]:
         """Get detailed information about a specific node."""
@@ -1335,7 +1334,7 @@ class EdgeComputingManager:
                 "node_id": node.node_id,
                 "node_type": node.node_type.value,
                 "location": node.location,
-                "address": f"{node.ip_address}:{node.port}",
+                "address": f"{node.ip_address}}:{node.port}",
                 "status": {
                     "is_active": node.is_active,
                     "is_healthy": node.is_healthy,
@@ -1455,8 +1454,8 @@ class EdgeComputingManager:
                 # Normalize scores (lower is better for distance and load, higher is better for efficiency)
                 distance_score = max(0, 100 - (distance / 100))  # Normalize distance
                 load_score = 100 - (load_level.value == "critical" and 100 or
-                                   load_level.value == "high" and 75 or
-                                   load_level.value == "normal" and 50 or 25)
+                                load_level.value == "high" and 75 or
+                                load_level.value == "normal" and 50 or 25)
                 response_score = max(0, 100 - (node.avg_response_time_ms / 50))
 
                 total_score = (

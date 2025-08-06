@@ -9,7 +9,7 @@ Advanced security system for plugins with:
 - Security compliance checking
 - Plugin isolation and resource limits
 - Advanced threat detection for plugins
-"""
+
 
 import ast
 import sys
@@ -34,7 +34,7 @@ logger = get_logger(__name__)
 
 class SecurityLevel(Enum):
     """Plugin security levels."""
-    MINIMAL = "minimal"      # Basic sandbox, limited imports
+        MINIMAL = "minimal"      # Basic sandbox, limited imports
     STANDARD = "standard"    # Standard sandbox, common imports allowed
     ELEVATED = "elevated"    # More imports allowed, requires approval
     TRUSTED = "trusted"      # Full access, admin approval required
@@ -56,7 +56,7 @@ class PermissionType(Enum):
 @dataclass
 class PluginPermission:
     """Plugin permission definition."""
-    permission_type: PermissionType
+        permission_type: PermissionType
     resource: str
     granted: bool = False
     granted_at: Optional[datetime] = None
@@ -68,8 +68,8 @@ class PluginPermission:
 
 @dataclass
 class SecurityProfile:
-    """Security profile for a plugin."""
-    plugin_name: str
+    """Security profile for a plugin.
+        plugin_name: str
     security_level: SecurityLevel
     permissions: List[PluginPermission] = field(default_factory=list)
     approved_imports: Set[str] = field(default_factory=set)
@@ -89,8 +89,7 @@ class SecurityProfile:
 
 class EnhancedPluginSecurity:
     """Enhanced plugin security manager with flexible sandbox."""
-    
-    def __init__(self):
+        def __init__(self):
         self.security_profiles: Dict[str, SecurityProfile] = {}
         self.global_approved_imports = self._get_default_approved_imports()
         self.dependency_cache: Dict[str, bool] = {}
@@ -106,7 +105,7 @@ class EnhancedPluginSecurity:
         logger.info("Enhanced plugin security manager initialized")
     
     def _get_default_approved_imports(self) -> Set[str]:
-        """Get default set of approved imports for plugins."""
+        """Get default set of approved imports for plugins.
         return {
             # Standard library - safe modules
             'os', 'sys', 'json', 'time', 'datetime', 'collections',
@@ -224,7 +223,7 @@ class EnhancedPluginSecurity:
         return self._request_import_permission(plugin_name, module_name)
     
     def _is_safe_module(self, module_name: str) -> bool:
-        """Check if a module is considered safe for automatic approval."""
+        """Check if a module is considered safe for automatic approval.
         safe_patterns = [
             'pydantic', 'fastapi', 'sqlalchemy', 'requests', 'httpx',
             'aiofiles', 'asyncio', 'datetime', 'json', 'uuid',
@@ -391,7 +390,7 @@ class EnhancedPluginSecurity:
                 profile.security_violations.append(f"{event_type}:{details}:{datetime.now().isoformat()}")
     
     def get_plugin_security_status(self, plugin_name: str) -> Dict[str, Any]:
-        """Get security status for a plugin."""
+        """Get security status for a plugin.
         profile = self.security_profiles.get(plugin_name)
         if not profile:
             return {'status': 'unknown', 'message': 'No security profile found'}

@@ -1,7 +1,7 @@
 """
 PlexiChat Modern PyQt6 Login Screen
 Beautiful, modern login interface with glassmorphic design and animations.
-"""
+
 
 import sys
 import logging
@@ -26,8 +26,7 @@ logger = logging.getLogger(__name__)
 
 class AnimatedBackground(QWidget):
     """Animated starry background widget."""
-    
-    def __init__(self, parent=None):
+        def __init__(self, parent=None):
         super().__init__(parent)
         self.stars = []
         self.timer = QTimer()
@@ -36,7 +35,7 @@ class AnimatedBackground(QWidget):
         self.init_stars()
     
     def init_stars(self):
-        """Initialize star positions."""
+        Initialize star positions."""
         import random
         for _ in range(100):
             self.stars.append({
@@ -48,7 +47,7 @@ class AnimatedBackground(QWidget):
             })
     
     def update_animation(self):
-        """Update star animation."""
+        """Update star animation.
         for star in self.stars:
             star['y'] += star['speed']
             if star['y'] > self.height():
@@ -76,13 +75,12 @@ class AnimatedBackground(QWidget):
             color = QColor(139, 148, 158, int(star['opacity'] * 60))  # Much more subtle
             painter.setBrush(QBrush(color))
             painter.drawEllipse(int(star['x']), int(star['y']),
-                              max(1, star['size'] // 2), max(1, star['size'] // 2))
+                            max(1, star['size'] // 2), max(1, star['size'] // 2))
 
 
 class ModernButton(QPushButton):
     """Modern styled button with hover effects."""
-    
-    def __init__(self, text="", parent=None):
+        def __init__(self, text="", parent=None):
         super().__init__(text, parent)
         self.setMinimumHeight(50)
         self.setFont(QFont("Inter", 14, QFont.Weight.Bold))
@@ -95,7 +93,7 @@ class ModernButton(QPushButton):
         self.animation.setEasingCurve(QEasingCurve.Type.OutCubic)
     
     def setup_style(self):
-        """Setup professional button styling."""
+        """Setup professional button styling.
         self.setStyleSheet("""
             ModernButton {
                 background: #238636;
@@ -131,9 +129,8 @@ class ModernButton(QPushButton):
 
 
 class ModernLineEdit(QLineEdit):
-    """Modern styled line edit with floating labels."""
-    
-    def __init__(self, placeholder="", parent=None):
+    Modern styled line edit with floating labels."""
+        def __init__(self, placeholder="", parent=None):
         super().__init__(parent)
         self.setPlaceholderText(placeholder)
         self.setMinimumHeight(50)
@@ -141,7 +138,7 @@ class ModernLineEdit(QLineEdit):
         self.setup_style()
     
     def setup_style(self):
-        """Setup professional line edit styling."""
+        """Setup professional line edit styling.
         self.setStyleSheet("""
             ModernLineEdit {
                 background: #21262d;
@@ -164,7 +161,7 @@ class ModernLineEdit(QLineEdit):
 
 
 class LoginScreenPyQt(QWidget):
-    """
+    
     Modern PyQt6 login screen with glassmorphic design.
     Features:
     - Animated starry background
@@ -176,8 +173,7 @@ class LoginScreenPyQt(QWidget):
     - Password visibility toggle
     - Smooth animations and transitions
     """
-    
-    # Signals
+        # Signals
     login_requested = pyqtSignal(str, str, bool)  # username, password, remember_me
     login_success = pyqtSignal(dict)  # user_data
     theme_toggle_requested = pyqtSignal()
@@ -205,7 +201,7 @@ class LoginScreenPyQt(QWidget):
         logger.info("Modern PyQt6 login interface initialized successfully")
     
     def setup_ui(self):
-        """Setup the user interface."""
+        """Setup the user interface.
         # Main layout
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(0, 0, 0, 0)
@@ -243,7 +239,7 @@ class LoginScreenPyQt(QWidget):
             QPushButton:hover {
                 background: rgba(255, 255, 255, 0.2);
             }
-        """)
+        )
         
         # Position in top right
         self.theme_toggle.setParent(self.background)
@@ -253,7 +249,7 @@ class LoginScreenPyQt(QWidget):
         """Create the main login panel."""
         self.login_panel = QFrame()
         self.login_panel.setFixedSize(400, 500)
-        self.login_panel.setStyleSheet("""
+        self.login_panel.setStyleSheet(
             QFrame {
                 background: rgba(33, 38, 45, 0.95);
                 border: 1px solid rgba(139, 148, 158, 0.2);
@@ -361,7 +357,7 @@ class LoginScreenPyQt(QWidget):
             QPushButton:hover {
                 color: white;
             }
-        """)
+        )
         
         # Position toggle button
         toggle_btn.setParent(self.password_input)
@@ -408,7 +404,7 @@ class LoginScreenPyQt(QWidget):
             QPushButton:hover {
                 color: #5BA0F2;
             }
-        """)
+        )
         forgot_link.clicked.connect(self.show_password_reset_info)
         actions_layout.addWidget(forgot_link)
         
@@ -425,7 +421,7 @@ class LoginScreenPyQt(QWidget):
         self.password_input.returnPressed.connect(self.handle_login)
     
     def create_progress_bar(self, layout):
-        """Create progress bar for login process."""
+        """Create progress bar for login process.
         self.progress_bar = QProgressBar()
         self.progress_bar.setVisible(False)
         self.progress_bar.setStyleSheet("""
@@ -444,14 +440,14 @@ class LoginScreenPyQt(QWidget):
         layout.addWidget(self.progress_bar)
     
     def create_footer(self):
-        """Create footer with system status."""
+        Create footer with system status."""
         footer = QLabel("System Status: Online | Version: a.1.1-144")
         footer.setAlignment(Qt.AlignmentFlag.AlignCenter)
         footer.setFont(QFont("Inter", 10))
         footer.setStyleSheet("""
             color: rgba(255, 255, 255, 0.5);
             padding: 20px;
-        """)
+        )
         footer.setParent(self.background)
         footer.move(0, self.height() - 60)
     
@@ -466,7 +462,7 @@ class LoginScreenPyQt(QWidget):
         QTimer.singleShot(100, self.animate_panel_entrance)
     
     def animate_panel_entrance(self):
-        """Animate panel entrance."""
+        """Animate panel entrance.
         if self.login_panel:
             start_rect = QRect(200, -500, 400, 500)
             end_rect = QRect(200, 200, 400, 500)
@@ -482,7 +478,7 @@ class LoginScreenPyQt(QWidget):
         self.theme_toggle_requested.emit()
     
     def toggle_password_visibility(self):
-        """Toggle password visibility."""
+        """Toggle password visibility.
         if self.password_input.echoMode() == QLineEdit.EchoMode.Password:
             self.password_input.setEchoMode(QLineEdit.EchoMode.Normal)
         else:
@@ -507,7 +503,7 @@ class LoginScreenPyQt(QWidget):
         QTimer.singleShot(1000, lambda: self.simulate_login_success(username))
 
     def simulate_login_success(self, username):
-        """Simulate successful login."""
+        """Simulate successful login.
         user_data = {
             'username': username,
             'role': 'admin',
@@ -571,8 +567,8 @@ class LoginScreenPyQt(QWidget):
     def show_password_reset_info(self):
         """Show password reset information."""
         QMessageBox.information(self, "Password Reset",
-                              "To reset your password, please contact your system administrator "
-                              "or check the PlexiChat documentation for password recovery options.")
+                            "To reset your password, please contact your system administrator "
+                            "or check the PlexiChat documentation for password recovery options.")
     
     def resizeEvent(self, event):
         """Handle resize events."""

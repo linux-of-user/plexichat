@@ -8,7 +8,7 @@ Consolidates migration management from:
 - core/database/db_zero_downtime_migration.py - ENHANCED
 
 Provides unified interface for all database migrations and schema management.
-"""
+
 
 import asyncio
 import logging
@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 
 class MigrationStatus(Enum):
     """Migration execution status."""
-    PENDING = "pending"
+        PENDING = "pending"
     RUNNING = "running"
     COMPLETED = "completed"
     FAILED = "failed"
@@ -50,7 +50,7 @@ class MigrationStrategy(Enum):
 @dataclass
 class Migration:
     """Database migration definition."""
-    version: str
+        version: str
     name: str
     description: str
     up_sql: str
@@ -74,8 +74,8 @@ class Migration:
 
 @dataclass
 class MigrationExecution:
-    """Migration execution record."""
-    migration_version: str
+    """Migration execution record.
+        migration_version: str
     status: MigrationStatus
     started_at: datetime
     completed_at: Optional[datetime] = None
@@ -87,8 +87,7 @@ class MigrationExecution:
 
 class MigrationRepository:
     """Repository for managing migration records."""
-
-    def __init__(self, engine_name: str = "default"):
+        def __init__(self, engine_name: str = "default"):
         self.engine_name = engine_name
         self.table_name = "plexichat_migrations"
 
@@ -143,7 +142,7 @@ class MigrationRepository:
             return False
 
     async def record_migration_start(self, migration: Migration) -> bool:
-        """Record the start of a migration."""
+        """Record the start of a migration.
         try:
             engine = await unified_engine_manager.get_engine(self.engine_name)
             if not engine:
@@ -175,7 +174,7 @@ class MigrationRepository:
 
     async def record_migration_completion(self, version: str, success: bool,
                                         execution_time: float, error: Optional[str] = None) -> bool:
-        """Record the completion of a migration."""
+        """Record the completion of a migration.
         try:
             engine = await unified_engine_manager.get_engine(self.engine_name)
             if not engine:
@@ -205,7 +204,7 @@ class MigrationRepository:
             return False
 
     async def get_applied_migrations(self) -> List[str]:
-        """Get list of applied migration versions."""
+        """Get list of applied migration versions.
         try:
             engine = await unified_engine_manager.get_engine(self.engine_name)
             if not engine:
@@ -233,7 +232,7 @@ class MigrationRepository:
             return []
 
     async def get_migration_status(self, version: str) -> Optional[MigrationExecution]:
-        """Get the status of a specific migration."""
+        """Get the status of a specific migration.
         try:
             engine = await unified_engine_manager.get_engine(self.engine_name)
             if not engine:
@@ -260,8 +259,7 @@ class UnifiedMigrationManager:
 
     Consolidates all database migration functionality.
     """
-
-    def __init__(self, engine_name: str = "default"):
+        def __init__(self, engine_name: str = "default"):
         self.engine_name = engine_name
         self.repository = MigrationRepository(engine_name)
         self.migrations: Dict[str, Migration] = {}

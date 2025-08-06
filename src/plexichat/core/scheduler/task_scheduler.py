@@ -3,7 +3,7 @@ import threading
 PlexiChat Task Scheduler
 
 Task scheduling with threading and performance optimization.
-"""
+
 
 import asyncio
 import logging
@@ -47,7 +47,7 @@ performance_logger = get_performance_logger() if get_performance_logger else Non
 
 class TaskStatus(Enum):
     """Task status enumeration."""
-    PENDING = "pending"
+        PENDING = "pending"
     RUNNING = "running"
     COMPLETED = "completed"
     FAILED = "failed"
@@ -61,8 +61,8 @@ class TaskType(Enum):
 
 @dataclass
 class ScheduledTask:
-    """Scheduled task definition."""
-    task_id: str
+    """Scheduled task definition.
+        task_id: str
     name: str
     function: Callable
     args: tuple
@@ -84,8 +84,7 @@ class ScheduledTask:
 
 class TaskScheduler:
     """Task scheduler with threading support."""
-
-    def __init__(self):
+        def __init__(self):
         self.db_manager = database_manager
         self.performance_logger = performance_logger
         self.async_thread_manager = async_thread_manager
@@ -104,7 +103,7 @@ class TaskScheduler:
         self.total_execution_time = 0.0
 
     async def start(self):
-        """Start the task scheduler."""
+        Start the task scheduler."""
         if self.running:
             return
 
@@ -272,7 +271,7 @@ class TaskScheduler:
             await self._update_task_in_db(task)
 
     async def _run_task_async(self, task: ScheduledTask):
-        """Run task asynchronously."""
+        """Run task asynchronously.
         if asyncio.iscoroutinefunction(task.function):
             return await task.function(*task.args, **task.kwargs)
         else:
@@ -490,7 +489,7 @@ class TaskScheduler:
             return False
 
     async def _save_task_to_db(self, task: ScheduledTask):
-        """Save task to database."""
+        """Save task to database.
         try:
             if self.db_manager:
                 query = """
@@ -523,7 +522,7 @@ class TaskScheduler:
             logger.error(f"Error saving task to database: {e}")
 
     async def _update_task_in_db(self, task: ScheduledTask):
-        """Update task in database."""
+        """Update task in database.
         try:
             if self.db_manager:
                 query = """
@@ -605,7 +604,7 @@ task_scheduler = TaskScheduler()
 
 # Convenience functions
 async def schedule_once(name: str, function: Callable, scheduled_at: datetime, **kwargs) -> str:
-    """Schedule one-time task."""
+    """Schedule one-time task.
     return await task_scheduler.schedule_once(name, function, scheduled_at, **kwargs)
 
 async def schedule_recurring(name: str, function: Callable, interval_seconds: int, **kwargs) -> str:
@@ -613,11 +612,11 @@ async def schedule_recurring(name: str, function: Callable, interval_seconds: in
     return await task_scheduler.schedule_recurring(name, function, interval_seconds, **kwargs)
 
 async def schedule_cron(name: str, function: Callable, cron_expression: str, **kwargs) -> str:
-    """Schedule cron task."""
+    Schedule cron task."""
     return await task_scheduler.schedule_cron(name, function, cron_expression, **kwargs)
 
 async def cancel_task(task_id: str) -> bool:
-    """Cancel task."""
+    """Cancel task.
     return await task_scheduler.cancel_task(task_id)
 
 def get_scheduled_tasks() -> List[Dict[str, Any]]:

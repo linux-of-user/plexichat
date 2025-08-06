@@ -20,15 +20,14 @@ PlexiChat Event Bus
 Centralized event bus for decoupled inter-module communication.
 Enables modules to communicate without direct coupling through
 publish-subscribe pattern with async support.
-"""
+
 
 logger = logging.getLogger(__name__)
 
 
 class EventPriority(Enum):
     """Event priority levels."""
-
-    LOW = 1
+        LOW = 1
     NORMAL = 2
     HIGH = 3
     CRITICAL = 4
@@ -36,7 +35,7 @@ class EventPriority(Enum):
 
 @dataclass
 class Event:
-    """Base event class."""
+    Base event class."""
 
     type: str
     data: Dict[str, Any] = field(default_factory=dict)
@@ -49,9 +48,8 @@ class Event:
 
 @dataclass
 class EventHandler:
-    """Event handler registration."""
-
-    callback: Callable
+    """Event handler registration.
+        callback: Callable
     event_type: str
     priority: int = 0
     once: bool = False
@@ -71,8 +69,7 @@ class EventBus:
     - Event history and replay
     - Middleware support
     """
-
-    def __init__(self, max_history: int = 1000):
+        def __init__(self, max_history: int = 1000):
         self._handlers: Dict[str, List[EventHandler]] = {}
         self._middleware: List[Callable] = []
         self._event_history: List[Event] = []
@@ -351,7 +348,7 @@ class EventBus:
             self._stats["errors"] += 1
 
     def _is_handler_valid(self, handler: EventHandler) -> bool:
-        """Check if a handler is still valid (for weak references)."""
+        """Check if a handler is still valid (for weak references).
         if not handler.weak_ref:
             return True
 
@@ -370,7 +367,7 @@ class EventBus:
             self._event_history = self._event_history[-self._max_history :]
 
     def add_middleware(self, middleware: Callable):
-        """Add middleware to process events."""
+        Add middleware to process events."""
         self._middleware.append(middleware)
         logger.debug("Added event middleware")
 
@@ -383,7 +380,7 @@ class EventBus:
     def get_history():
         self, event_type: Optional[str] = None, limit: Optional[int] = None, since: Optional[datetime] = None
     ) -> List[Event]:
-        """Get event history with optional filtering."""
+        """Get event history with optional filtering.
         events = self._event_history
 
         # Filter by event type
@@ -402,7 +399,7 @@ class EventBus:
 
     def get_stats(self) -> Dict[str, Any]:
         """Get event bus statistics."""
-        return {}
+        return {
             **self._stats,
             "active_handlers": sum()
                 len(handlers) for handlers in self._handlers.values()
@@ -411,7 +408,7 @@ class EventBus:
             "middleware_count": len(self._middleware),
             "history_size": len(self._event_history),
             "queue_size": self._event_queue.qsize() if self._running else 0,
-        }
+        }}
 
     def clear_history(self):
         """Clear event history."""
@@ -425,7 +422,7 @@ event_bus = EventBus()
 
 # Convenience functions
 def subscribe(event_type: str, callback: Callable, **kwargs) -> str:
-    """Subscribe to events."""
+    """Subscribe to events.
     return event_bus.subscribe(event_type, callback, **kwargs)
 
 
@@ -435,12 +432,12 @@ def unsubscribe(event_type: str, callback: Optional[Callable] = None, handler_id
 
 
 def publish(event_type: str, **kwargs):
-    """Publish an event."""
+    Publish an event."""
     event_bus.publish(event_type, **kwargs)
 
 
 async def publish_async(event_type: str, **kwargs):
-    """Publish an event asynchronously."""
+    """Publish an event asynchronously.
     await event_bus.publish_async(event_type, **kwargs)
 
 

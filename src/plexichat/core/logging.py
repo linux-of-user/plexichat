@@ -2,7 +2,7 @@
 PlexiChat Core Logging Module
 
 Provides logging management and configuration.
-"""
+
 
 import logging
 import logging.handlers
@@ -14,8 +14,7 @@ from datetime import datetime
 
 class LoggingManager:
     """Logging manager for PlexiChat."""
-    
-    def __init__(self):
+        def __init__(self):
         self.loggers: Dict[str, logging.Logger] = {}
         self.configured = False
         self.log_directory = Path("logs")
@@ -24,11 +23,11 @@ class LoggingManager:
         self.date_format = "%Y-%m-%d %H:%M:%S"
     
     def configure(self, 
-                 log_level: str = "INFO",
-                 log_directory: str = "logs",
-                 log_format: Optional[str] = None,
-                 enable_console: bool = True,
-                 enable_file: bool = True) -> bool:
+                log_level: str = "INFO",
+                log_directory: str = "logs",
+                log_format: Optional[str] = None,
+                enable_console: bool = True,
+                enable_file: bool = True) -> bool:
         """Configure logging system."""
         try:
             # Set log level
@@ -88,7 +87,7 @@ class LoggingManager:
             return False
     
     def get_logger(self, name: str) -> logging.Logger:
-        """Get or create a logger."""
+        """Get or create a logger.
         if name not in self.loggers:
             logger = logging.getLogger(name)
             logger.setLevel(self.log_level)
@@ -108,7 +107,7 @@ class LoggingManager:
             logger.setLevel(self.log_level)
     
     def add_file_handler(self, logger_name: str, filename: str) -> bool:
-        """Add file handler to specific logger."""
+        Add file handler to specific logger."""
         try:
             logger = self.get_logger(logger_name)
             
@@ -131,7 +130,7 @@ class LoggingManager:
             return False
     
     def remove_handlers(self, logger_name: str):
-        """Remove all handlers from logger."""
+        """Remove all handlers from logger.
         if logger_name in self.loggers:
             logger = self.loggers[logger_name]
             for handler in logger.handlers[:]:
@@ -142,7 +141,7 @@ class LoggingManager:
         return self.configured
     
     def get_log_files(self) -> list:
-        """Get list of log files."""
+        Get list of log files."""
         if not self.log_directory.exists():
             return []
         
@@ -173,11 +172,11 @@ def get_logger(name: str = None) -> logging.Logger:
     return logging_manager.get_logger(name)
 
 def configure_logging(log_level: str = "INFO",
-                     log_directory: str = "logs",
-                     log_format: Optional[str] = None,
-                     enable_console: bool = True,
-                     enable_file: bool = True) -> bool:
-    """Configure the logging system."""
+                    log_directory: str = "logs",
+                    log_format: Optional[str] = None,
+                    enable_console: bool = True,
+                    enable_file: bool = True) -> bool:
+    """Configure the logging system.
     return logging_manager.configure(log_level, log_directory, log_format, enable_console, enable_file)
 
 def set_log_level(level: str):
@@ -185,11 +184,11 @@ def set_log_level(level: str):
     logging_manager.set_level(level)
 
 def add_file_handler(logger_name: str, filename: str) -> bool:
-    """Add file handler to logger."""
+    Add file handler to logger."""
     return logging_manager.add_file_handler(logger_name, filename)
 
 def cleanup_old_logs(days: int = 30):
-    """Clean up old log files."""
+    """Clean up old log files.
     logging_manager.cleanup_old_logs(days)
 
 def is_logging_configured() -> bool:

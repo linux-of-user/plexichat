@@ -16,7 +16,7 @@ PlexiChat Error Handling Decorators
 
 Convenient decorators for applying error handling, circuit breakers,
 retry logic, and crash reporting to functions and methods.
-"""
+
 
 logger = logging.getLogger(__name__, Optional)
 

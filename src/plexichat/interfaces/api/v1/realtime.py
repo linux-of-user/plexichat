@@ -173,7 +173,7 @@ async def handle_websocket_message(message: Dict, connection_id: str, user_id: s
         await broadcast_presence_update(presence_event)
 
 async def broadcast_to_room_except_sender(message: str, room_id: str, sender_connection_id: str):
-    """Broadcast message to all room members except the sender."""
+    """Broadcast message to all room members except the sender.
     if room_id in manager.room_connections:
         for connection_id in manager.room_connections[room_id]:
             if connection_id != sender_connection_id:
@@ -234,7 +234,7 @@ async def send_direct_message(
 @router.get("/status")
 async def realtime_status():
     """Get real-time system status."""
-    return {}
+    return {
         "status": "operational",
         "active_connections": len(manager.active_connections),
         "active_users": len(manager.user_connections),
@@ -247,4 +247,4 @@ async def realtime_status():
             "presence_tracking",
             "room_management"
         ]
-    }
+    }}

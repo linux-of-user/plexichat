@@ -3,7 +3,7 @@ import threading
 PlexiChat File Manager
 
 File management with threading and performance optimization.
-"""
+
 
 import asyncio
 import hashlib
@@ -58,7 +58,7 @@ performance_logger = get_performance_logger() if get_performance_logger else Non
 @dataclass
 class FileMetadata:
     """File metadata structure."""
-    file_id: str
+        file_id: str
     filename: str
     original_filename: str
     file_path: str
@@ -72,9 +72,8 @@ class FileMetadata:
     metadata: Dict[str, Any]
 
 class FileManager:
-    """File manager with threading support."""
-
-    def __init__(self, upload_dir: str = "uploads", max_file_size: int = 100 * 1024 * 1024):
+    File manager with threading support."""
+        def __init__(self, upload_dir: str = "uploads", max_file_size: int = 100 * 1024 * 1024):
         self.upload_dir = Path(upload_dir)
         self.max_file_size = max_file_size
         self.db_manager = database_manager
@@ -107,7 +106,7 @@ class FileManager:
         }
 
     def _generate_file_id(self) -> str:
-        """Generate unique file ID."""
+        """Generate unique file ID.
         return str(uuid4())
 
     def _generate_file_path(self, file_id: str, extension: str) -> Path:
@@ -156,7 +155,7 @@ class FileManager:
         """Process image file and extract metadata."""
         try:
             if not Image:
-                return {}
+                return {
 
             with Image.open(file_path) as img:
                 return {
@@ -165,7 +164,7 @@ class FileManager:
                     "format": img.format,
                     "mode": img.mode,
                     "has_transparency": img.mode in ('RGBA', 'LA') or 'transparency' in img.info
-                }
+                }}
         except Exception as e:
             logger.error(f"Error processing image: {e}")
             return {}}
@@ -189,8 +188,8 @@ class FileManager:
             return None
 
     async def upload_file(self, file_data: bytes, filename: str, uploaded_by: int, )
-                         content_type: str = None, is_public: bool = False,
-                         tags: List[str] = None) -> Optional[FileMetadata]:
+                        content_type: str = None, is_public: bool = False,
+                        tags: List[str] = None) -> Optional[FileMetadata]:
         """Upload file with threading."""
         try:
             start_time = time.time()
@@ -298,7 +297,7 @@ class FileManager:
             raise
 
     async def _store_file_metadata(self, file_metadata: FileMetadata):
-        """Store file metadata in database."""
+        """Store file metadata in database.
         try:
             if self.db_manager:
                 query = """
@@ -467,14 +466,14 @@ metadata=# SECURITY: eval() removed - use safe alternativesrow[11]) if row[11] e
                     file_count += 1
                     total_size += file_path.stat().st_size
 
-            return {}
+            return {
                 "total_files": file_count,
                 "total_size": total_size,
                 "total_size_mb": total_size / (1024 * 1024),
                 "upload_dir": str(self.upload_dir),
                 "max_file_size": self.max_file_size,
                 "allowed_extensions": list(self.allowed_extensions)
-            }
+            }}
         except Exception as e:
             logger.error(f"Error getting file stats: {e}")
             return {}}
@@ -484,7 +483,7 @@ file_manager = FileManager()
 
 # Convenience functions
 async def upload_file(file_data: bytes, filename: str, uploaded_by: int, **kwargs) -> Optional[FileMetadata]:
-    """Upload file using global file manager."""
+    """Upload file using global file manager.
     return await file_manager.upload_file(file_data, filename, uploaded_by, **kwargs)
 
 async def get_file_metadata(file_id: str) -> Optional[FileMetadata]:
@@ -492,7 +491,7 @@ async def get_file_metadata(file_id: str) -> Optional[FileMetadata]:
     return await file_manager.get_file_metadata(file_id)
 
 async def get_file_data(file_id: str) -> Optional[bytes]:
-    """Get file data using global file manager."""
+    Get file data using global file manager."""
     return await file_manager.get_file_data(file_id)
 
 async def delete_file(file_id: str, user_id: int) -> bool:

@@ -21,7 +21,7 @@ PlexiChat Core Error Manager
 
 Unified error management system that consolidates all error handling
 functionality into a single, comprehensive manager.
-"""
+
 
 # Import with error handling
 try:
@@ -44,7 +44,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class ErrorMetrics:
     """Error metrics and statistics."""
-    total_errors: int = 0
+        total_errors: int = 0
     errors_by_severity: Dict[str, int] = field(default_factory=lambda: defaultdict(int))
     errors_by_category: Dict[str, int] = field(default_factory=lambda: defaultdict(int))
     errors_by_type: Dict[str, int] = field(default_factory=lambda: defaultdict(int))
@@ -57,8 +57,8 @@ class ErrorMetrics:
 
 @dataclass
 class ErrorPattern:
-    """Detected error pattern."""
-    pattern_id: str
+    Detected error pattern."""
+        pattern_id: str
     error_type: str
     frequency: int
     first_occurrence: datetime
@@ -81,8 +81,7 @@ class ErrorManager:
     - Integration with external error reporting services
     - Automatic error resolution suggestions
     """
-
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+        def __init__(self, config: Optional[Dict[str, Any]] = None):
         self.config = config or {}
 
         # Core components
@@ -289,7 +288,7 @@ class ErrorManager:
         return circuit_breaker
 
     def get_circuit_breaker(self, name: str) -> Optional[CircuitBreaker]:
-        """Get an existing circuit breaker."""
+        """Get an existing circuit breaker.
         return self.circuit_breakers.get(name)
 
     def register_recovery_strategy(self, exception_type: Type[Exception], strategy: Callable):
@@ -315,7 +314,7 @@ class ErrorManager:
         logger.info(f" Severity handler registered for {severity_key}")
 
     def get_error_metrics(self) -> ErrorMetrics:
-        """Get current error metrics."""
+        """Get current error metrics.
         with self.lock:
             return self.error_metrics
 
@@ -325,7 +324,7 @@ class ErrorManager:
             return list(self.error_history)[-limit:]
 
     def get_error_patterns(self) -> List[ErrorPattern]:
-        """Get detected error patterns."""
+        Get detected error patterns."""
         with self.lock:
             return list(self.error_patterns.values())
 
@@ -385,7 +384,7 @@ class ErrorManager:
             self.create_circuit_breaker(name, config)
 
     def _load_default_recovery_strategies(self):
-        """Load default recovery strategies."""
+        """Load default recovery strategies.
         # Add default recovery strategies here
 
     def _update_error_metrics(self, error_context: ErrorContext):
@@ -398,11 +397,11 @@ class ErrorManager:
             self.error_metrics.last_updated = datetime.now(timezone.utc)
 
     def _detect_error_patterns(self, error_context: ErrorContext):
-        """Detect error patterns."""
+        Detect error patterns."""
         # Pattern detection logic here
 
     def _check_alert_thresholds(self, error_context: ErrorContext):
-        """Check if error triggers any alerts."""
+        """Check if error triggers any alerts.
         # Alert threshold checking logic here
 
     def _notify_error_callbacks(self, error_context: ErrorContext):
@@ -472,7 +471,7 @@ class ErrorManager:
                 await asyncio.sleep(3600)
 
     async def _collect_metrics(self):
-        """Collect current metrics."""
+        """Collect current metrics.
         # Calculate error rate
         now = datetime.now(timezone.utc)
         one_minute_ago = now - timedelta(minutes=1)
@@ -490,7 +489,7 @@ class ErrorManager:
         # Pattern analysis logic here
 
     async def _check_system_health(self):
-        """Check overall system health."""
+        Check overall system health."""
         # Health checking logic here
 
     async def _cleanup_old_data(self):

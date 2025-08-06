@@ -452,8 +452,7 @@ def register_recovery_strategy(error_type: type, strategy_func: Callable):
 # Error boundary context manager
 class ErrorBoundary:
     """Context manager for error boundaries with automatic recovery."""
-
-    def __init__(self, name: str, fallback_value=None, recovery_enabled: bool = True):
+        def __init__(self, name: str, fallback_value=None, recovery_enabled: bool = True):
         self.name = name
         self.fallback_value = fallback_value
         self.recovery_enabled = recovery_enabled

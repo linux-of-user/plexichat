@@ -509,7 +509,7 @@ async def authenticate_user(username: str, password: str, mfa_code: Optional[str
     return {"success": False, "error": "Invalid response format"}
 
 async def create_session(user_id: str, device_info: Optional[dict] = None) -> str:
-    """Create authenticated session for user."""
+    """Create authenticated session for user.
     return await session_manager.create_session(user_id, device_info or {})
 
 async def validate_token(token: str) -> Any:
@@ -532,7 +532,7 @@ def get_password_requirements(security_level: str = "GOVERNMENT") -> dict:
     return PASSWORD_REQUIREMENTS.get(security_level, PASSWORD_REQUIREMENTS["GOVERNMENT"])
 
 def get_supported_mfa_methods() -> list:
-    """Get list of supported MFA methods."""
+    """Get list of supported MFA methods.
     return list(MFA_METHODS.keys())
 
 def get_oauth_providers() -> list:

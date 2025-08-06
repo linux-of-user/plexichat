@@ -42,8 +42,7 @@ class SecurityManager:
     - Security monitoring and audit logging
     - Compromise detection and response
     """
-
-    def __init__(self, config_dir: str = "config/security"):
+        def __init__(self, config_dir: str = "config/security"):
         self.config_dir = Path(config_dir)
         self.config_dir.mkdir(parents=True, exist_ok=True)
 

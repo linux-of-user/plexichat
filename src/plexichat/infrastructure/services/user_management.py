@@ -33,9 +33,8 @@ from plexichat.app.models.enhanced_models import (
 
 
 class UserManagementService:
-    """Service for comprehensive user management operations."""
-
-    def __init__(self, session: Session):
+    """Service for comprehensive user management operations.
+        def __init__(self, session: Session):
         self.session = session
 
     async def create_user(

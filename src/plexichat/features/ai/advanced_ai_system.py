@@ -22,14 +22,14 @@ Comprehensive AI-powered features with multiple provider support:
 - Real-time language translation
 - Sentiment analysis and emotion detection
 - Smart summarization and insights
-"""
+
 
 logger = logging.getLogger(__name__)
 
 
 class AIProvider(Enum):
     """AI service providers."""
-    OPENAI = "openai"
+        OPENAI = "openai"
     ANTHROPIC = "anthropic"
     GOOGLE = "google"
     OLLAMA = "ollama"
@@ -53,7 +53,7 @@ class AICapability(Enum):
 
 class ModerationAction(Enum):
     """Content moderation actions."""
-    ALLOW = "allow"
+        ALLOW = "allow"
     WARN = "warn"
     FILTER = "filter"
     BLOCK = "block"
@@ -63,7 +63,7 @@ class ModerationAction(Enum):
 
 @dataclass
 class AIModel:
-    """AI model configuration."""
+    """AI model configuration.
     model_id: str
     provider: AIProvider
     name: str
@@ -83,8 +83,8 @@ class AIModel:
 
 @dataclass
 class ModerationResult:
-    """Content moderation result."""
-    content_id: str
+    Content moderation result."""
+        content_id: str
     action: ModerationAction
     confidence: float
     reasons: List[str]
@@ -109,7 +109,7 @@ class ModerationResult:
 @dataclass
 class SentimentResult:
     """Sentiment analysis result."""
-    text: str
+        text: str
     overall_sentiment: str  # positive, negative, neutral
     confidence: float
     sentiment_scores: Dict[str, float] = field(default_factory=dict)
@@ -121,8 +121,8 @@ class SentimentResult:
 
 @dataclass
 class TranslationResult:
-    """Translation result."""
-    original_text: str
+    """Translation result.
+        original_text: str
     translated_text: str
     source_language: str
     target_language: str
@@ -135,7 +135,7 @@ class TranslationResult:
 @dataclass
 class SummaryResult:
     """Text summarization result."""
-    original_text: str
+        original_text: str
     summary: str
     summary_type: str  # extractive, abstractive
     compression_ratio: float
@@ -146,9 +146,8 @@ class SummaryResult:
 
 
 class AIProviderManager:
-    """Manages multiple AI providers and models."""
-
-    def __init__(self):
+    Manages multiple AI providers and models."""
+        def __init__(self):
         self.providers: Dict[AIProvider, Dict[str, Any]] = {}
         self.models: Dict[str, AIModel] = {}
         self.fallback_chain: List[str] = []
@@ -225,7 +224,7 @@ class AIProviderManager:
 
     async def get_available_model(self, capability: AICapability,
                                 preferred_provider: Optional[AIProvider] = None) -> Optional[AIModel]:
-        """Get available model for specific capability."""
+        """Get available model for specific capability.
         # Try preferred provider first
         if preferred_provider:
             for model in self.models.values():
@@ -330,9 +329,8 @@ class AIProviderManager:
 
 
 class ContentModerationEngine:
-    """Advanced content moderation with AI."""
-
-    def __init__(self, provider_manager: AIProviderManager):
+    """Advanced content moderation with AI.
+        def __init__(self, provider_manager: AIProviderManager):
         self.provider_manager = provider_manager
 
         # Moderation rules
@@ -445,7 +443,7 @@ class ContentModerationEngine:
             logger.error(f"AI moderation failed: {e}")
 
     def _determine_final_action(self, result: ModerationResult):
-        """Determine final moderation action."""
+        """Determine final moderation action.
         max_score = max(
             result.toxicity_score,
             result.spam_score,
@@ -474,8 +472,7 @@ ai_provider_manager = AIProviderManager()
 
 class IntelligentAssistant:
     """AI-powered intelligent assistant for content generation and help."""
-
-    def __init__(self, provider_manager: AIProviderManager):
+        def __init__(self, provider_manager: AIProviderManager):
         self.provider_manager = provider_manager
 
         # Enhanced Assistant capabilities
@@ -508,7 +505,7 @@ class IntelligentAssistant:
         self.adaptive_routing = True
 
     async def generate_content(self, prompt: str, content_type: str = "general",
-                             max_length: int = 500, style: str = "professional") -> Dict[str, Any]:
+                            max_length: int = 500, style: str = "professional") -> Dict[str, Any]:
         """Generate content based on prompt."""
         try:
             model = await self.provider_manager.get_available_model(AICapability.TEXT_GENERATION)
@@ -718,7 +715,7 @@ class IntelligentAssistant:
             # Get top keywords
             sorted_words = sorted(word_freq.items(), key=lambda x: x[1], reverse=True)
             keywords = [{"keyword": word, "score": freq/len(words)}
-                       for word, freq in sorted_words[:max_keywords]]
+                    for word, freq in sorted_words[:max_keywords]]
 
             return {
                 "success": True,
@@ -810,8 +807,7 @@ class IntelligentAssistant:
 
 class TranslationEngine:
     """Advanced translation engine with multiple providers."""
-
-    def __init__(self, provider_manager: AIProviderManager):
+        def __init__(self, provider_manager: AIProviderManager):
         self.provider_manager = provider_manager
 
         # Supported languages
@@ -831,7 +827,7 @@ class TranslationEngine:
         }
 
     async def translate_text(self, text: str, target_language: str,
-                           source_language: str = "auto") -> TranslationResult:
+                        source_language: str = "auto") -> TranslationResult:
         """Translate text to target language."""
         try:
             model = await self.provider_manager.get_available_model(AICapability.TRANSLATION)
@@ -896,9 +892,8 @@ class TranslationEngine:
 
 
 class SentimentAnalyzer:
-    """Advanced sentiment analysis and emotion detection."""
-
-    def __init__(self, provider_manager: AIProviderManager):
+    """Advanced sentiment analysis and emotion detection.
+        def __init__(self, provider_manager: AIProviderManager):
         self.provider_manager = provider_manager
 
     async def analyze_sentiment(self, text: str) -> SentimentResult:
@@ -974,12 +969,11 @@ class SentimentAnalyzer:
 
 class SmartSummarizer:
     """Intelligent text summarization system."""
-
-    def __init__(self, provider_manager: AIProviderManager):
+        def __init__(self, provider_manager: AIProviderManager):
         self.provider_manager = provider_manager
 
     async def summarize_text(self, text: str, summary_type: str = "abstractive",
-                           max_length: int = 150) -> SummaryResult:
+                        max_length: int = 150) -> SummaryResult:
         """Summarize text intelligently."""
         try:
             model = await self.provider_manager.get_available_model(AICapability.SUMMARIZATION)

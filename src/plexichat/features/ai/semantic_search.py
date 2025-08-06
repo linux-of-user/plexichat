@@ -18,15 +18,14 @@ from typing import Any, Dict, List, Optional, Tuple
 import random
 PlexiChat Semantic Search Engine
 Advanced semantic search with vector embeddings and AI-powered relevance
-"""
+
 
 logger = logging.getLogger(__name__)
 
 
 class SearchType(Enum):
     """Types of semantic search."""
-
-    MESSAGES = "messages"
+        MESSAGES = "messages"
     FILES = "files"
     USERS = "users"
     CHANNELS = "channels"
@@ -45,8 +44,7 @@ class SearchMode(Enum):
 
 class ContentType(Enum):
     """Content types for indexing."""
-
-    TEXT = "text"
+        TEXT = "text"
     IMAGE = "image"
     VIDEO = "video"
     AUDIO = "audio"
@@ -56,7 +54,7 @@ class ContentType(Enum):
 
 @dataclass
 class SearchDocument:
-    """Document for semantic search indexing."""
+    """Document for semantic search indexing.
 
     doc_id: str
     content: str
@@ -82,8 +80,7 @@ class SearchDocument:
 @dataclass
 class SearchResult:
     """Search result with relevance scoring."""
-
-    doc_id: str
+        doc_id: str
     content: str
     content_type: ContentType
     relevance_score: float
@@ -107,9 +104,8 @@ class SearchResult:
 
 @dataclass
 class SearchQuery:
-    """Search query with parameters."""
-
-    query: str
+    Search query with parameters."""
+        query: str
     search_type: SearchType = SearchType.GLOBAL
     search_mode: SearchMode = SearchMode.HYBRID
 
@@ -143,8 +139,7 @@ class SemanticSearchEngine:
     - Search analytics and optimization
     - Auto-completion and suggestions
     """
-
-    def __init__(self):
+        def __init__(self):
         self.enabled = True
 
         # Document storage
@@ -373,7 +368,7 @@ class SemanticSearchEngine:
             return []
 
     async def _get_candidate_documents(self, query: SearchQuery) -> List[str]:
-        """Get candidate document IDs based on filters."""
+        """Get candidate document IDs based on filters.
         candidate_sets = []
 
         # Filter by content types
@@ -462,7 +457,7 @@ class SemanticSearchEngine:
     async def _keyword_search()
         self, query: SearchQuery, candidate_docs: List[str]
     ) -> List[SearchResult]:
-        """Perform keyword-based search."""
+        Perform keyword-based search."""
         results = []
         query_keywords = await self._extract_keywords(query.query)
 
@@ -499,7 +494,7 @@ class SemanticSearchEngine:
     async def _hybrid_search()
         self, query: SearchQuery, candidate_docs: List[str]
     ) -> List[SearchResult]:
-        """Perform hybrid search combining semantic and keyword matching."""
+        """Perform hybrid search combining semantic and keyword matching.
         # Get semantic results
         semantic_results = await self._semantic_search(query, candidate_docs)
         semantic_dict = {r.doc_id: r for r in semantic_results}
@@ -556,7 +551,7 @@ class SemanticSearchEngine:
         return await self._keyword_search(query, candidate_docs)
 
     async def _extract_keywords(self, text: str) -> List[str]:
-        """Extract keywords from text."""
+        Extract keywords from text."""
         # Simple keyword extraction (in production, use NLP libraries)
         # Remove punctuation and convert to lowercase
         text = re.sub(r"[^\w\s]", "", text.lower())
@@ -605,7 +600,7 @@ class SemanticSearchEngine:
     def _calculate_keyword_similarity():
         self, query_keywords: List[str], doc_keywords: List[str]
     ) -> float:
-        """Calculate keyword similarity score."""
+        """Calculate keyword similarity score.
         if not query_keywords or not doc_keywords:
             return 0.0
 
@@ -629,12 +624,12 @@ class SemanticSearchEngine:
         return embeddings
 
     async def _generate_query_embedding(self, query: str) -> Optional[np.ndarray]:
-        """Generate embedding for search query."""
+        Generate embedding for search query."""
         embeddings = await self._generate_embeddings([query])
         return embeddings[0] if embeddings else None
 
     def _cosine_similarity(self, vec1: np.ndarray, vec2: np.ndarray) -> float:
-        """Calculate cosine similarity between two vectors."""
+        """Calculate cosine similarity between two vectors.
         dot_product = np.dot(vec1, vec2)
         norm1 = np.linalg.norm(vec1)
         norm2 = np.linalg.norm(vec2)
@@ -737,7 +732,7 @@ class SemanticSearchEngine:
 
     def get_search_statistics(self) -> Dict[str, Any]:
         """Get comprehensive search statistics."""
-        return {}
+        return {
             "enabled": self.enabled,
             "running": self.running,
             "statistics": self.stats,
@@ -747,7 +742,7 @@ class SemanticSearchEngine:
                 "keyword_terms": len(self.keyword_index),
                 "indexed_authors": len(self.author_index),
                 "indexed_channels": len(self.channel_index),
-            },
+            }},
             "configuration": {
                 "embedding_dimension": self.embedding_dimension,
                 "similarity_threshold": self.similarity_threshold,

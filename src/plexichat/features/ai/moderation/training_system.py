@@ -26,20 +26,20 @@ from .moderation_engine import ModerationAction, ModerationCategory, ModerationS
 """
 AI Moderation Training System
 Progressive learning system that improves moderation accuracy based on user feedback.
-"""
+
 
 logger = logging.getLogger(__name__)
 
 class TrainingDataSource(str, Enum):
     """Source of training data."""
-    USER_FEEDBACK = "user_feedback"
+        USER_FEEDBACK = "user_feedback"
     HUMAN_REVIEW = "human_review"
     AUTOMATED = "automated"
     IMPORTED = "imported"
 
 @dataclass
 class TrainingData:
-    """Training data point."""
+    """Training data point.
     content: str
     label: ModerationAction
     confidence: float
@@ -51,7 +51,7 @@ class TrainingData:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
-        return {}
+        return {
             "content": self.content,
             "label": self.label.value,
             "confidence": self.confidence,
@@ -60,12 +60,12 @@ class TrainingData:
             "source": self.source.value,
             "metadata": self.metadata,
             "created_at": self.created_at.isoformat()
-        }
+        }}
 
 @dataclass
 class TrainingResult:
-    """Result of model training."""
-    model_version: str
+    """Result of model training.
+        model_version: str
     accuracy: float
     training_samples: int
     validation_samples: int
@@ -76,7 +76,7 @@ class TrainingResult:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
-        return {}
+        return {
             "model_version": self.model_version,
             "accuracy": self.accuracy,
             "training_samples": self.training_samples,
@@ -85,12 +85,11 @@ class TrainingResult:
             "training_time_seconds": self.training_time_seconds,
             "metrics": self.metrics,
             "created_at": self.created_at.isoformat()
-        }
+        }}
 
 class ModerationTrainingSystem:
     """AI moderation training system with progressive learning."""
-
-    def __init__(self, data_path: str = "data/moderation_training"):
+        def __init__(self, data_path: str = "data/moderation_training"):
         self.data_path = Path(data_path)
         self.data_path.mkdir(parents=True, exist_ok=True)
 
@@ -106,7 +105,7 @@ class ModerationTrainingSystem:
         self._load_latest_model()
 
     def _init_database(self):
-        """Initialize training database using abstraction layer."""
+        """Initialize training database using abstraction layer.
         # Use TrainingDataService for all DB initialization and CRUD
         from src.plexichat.features.ai.moderation.training_data_service import TrainingDataService
         self.training_service = TrainingDataService()

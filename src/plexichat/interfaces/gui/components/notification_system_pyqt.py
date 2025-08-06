@@ -1,7 +1,7 @@
 """
 PlexiChat PyQt6 Notification System
 Advanced notification management with multiple notification types.
-"""
+
 
 import logging
 from typing import Dict, Any, Optional, List
@@ -22,14 +22,14 @@ logger = logging.getLogger(__name__)
 
 class NotificationType(Enum):
     """Notification types."""
-    INFO = "info"
+        INFO = "info"
     SUCCESS = "success"
     WARNING = "warning"
     ERROR = "error"
 
 
 class NotificationWidget(QFrame):
-    """Individual notification widget."""
+    """Individual notification widget.
     
     closed = pyqtSignal()
     
@@ -105,14 +105,14 @@ class NotificationWidget(QFrame):
                 background: rgba(255, 255, 255, 0.2);
                 border-radius: 10px;
             }
-        """)
+        )
         close_btn.clicked.connect(self.close_notification)
         layout.addWidget(close_btn)
     
     def apply_style(self):
         """Apply style based on notification type."""
         styles = {
-            NotificationType.INFO: """
+            NotificationType.INFO: 
                 QFrame {
                     background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
                         stop:0 #2196F3, stop:1 #1976D2);
@@ -127,7 +127,7 @@ class NotificationWidget(QFrame):
                     border-radius: 8px;
                     border: 1px solid #2E7D32;
                 }
-            """,
+            ,
             NotificationType.WARNING: """
                 QFrame {
                     background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
@@ -136,7 +136,7 @@ class NotificationWidget(QFrame):
                     border: 1px solid #E65100;
                 }
             """,
-            NotificationType.ERROR: """
+            NotificationType.ERROR: 
                 QFrame {
                     background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
                         stop:0 #F44336, stop:1 #D32F2F);
@@ -172,7 +172,7 @@ class NotificationWidget(QFrame):
         self.exit_animation.finished.connect(self.closed.emit)
     
     def show_notification(self, position: QPoint):
-        """Show notification with animation."""
+        """Show notification with animation.
         # Set initial position (off-screen)
         start_rect = QRect(position.x() + 400, position.y(), 350, 80)
         end_rect = QRect(position.x(), position.y(), 350, 80)
@@ -198,7 +198,7 @@ class NotificationWidget(QFrame):
         self.exit_animation.start()
     
     def mousePressEvent(self, event):
-        """Handle mouse press to close notification."""
+        Handle mouse press to close notification."""
         if event.button() == Qt.MouseButton.LeftButton:
             self.close_notification()
 
@@ -214,8 +214,7 @@ class NotificationSystemPyQt(QWidget):
     - Notification history
     - Sound notifications
     """
-    
-    def __init__(self, parent=None):
+        def __init__(self, parent=None):
         super().__init__(parent)
         self.parent_app = parent
         self.active_notifications: List[NotificationWidget] = []
@@ -290,8 +289,8 @@ class NotificationSystemPyQt(QWidget):
             logger.warning(f"Could not set tray icon: {e}")
     
     def show_notification(self, title: str, message: str, 
-                         notification_type: NotificationType = NotificationType.INFO,
-                         duration: int = 5000):
+                        notification_type: NotificationType = NotificationType.INFO,
+                        duration: int = 5000):
         """Show a notification."""
         try:
             # Add to history
@@ -332,7 +331,7 @@ class NotificationSystemPyQt(QWidget):
             logger.error(f"Failed to show notification: {e}")
     
     def calculate_notification_position(self, index: int) -> QPoint:
-        """Calculate position for notification."""
+        """Calculate position for notification.
         if self.parent_app:
             parent_rect = self.parent_app.geometry()
             x = parent_rect.right() - 370  # 350 width + 20 margin
@@ -355,7 +354,7 @@ class NotificationSystemPyQt(QWidget):
             self.reposition_notifications()
     
     def reposition_notifications(self):
-        """Reposition all active notifications."""
+        Reposition all active notifications."""
         for i, notification in enumerate(self.active_notifications):
             new_position = self.calculate_notification_position(i)
             
@@ -368,7 +367,7 @@ class NotificationSystemPyQt(QWidget):
             animation.start()
     
     def show_info(self, title: str, message: str):
-        """Show info notification."""
+        """Show info notification.
         self.show_notification(title, message, NotificationType.INFO)
     
     def show_success(self, title: str, message: str):
@@ -376,11 +375,11 @@ class NotificationSystemPyQt(QWidget):
         self.show_notification(title, message, NotificationType.SUCCESS)
     
     def show_warning(self, title: str, message: str):
-        """Show warning notification."""
+        Show warning notification."""
         self.show_notification(title, message, NotificationType.WARNING)
     
     def show_error(self, title: str, message: str):
-        """Show error notification."""
+        """Show error notification.
         self.show_notification(title, message, NotificationType.ERROR)
     
     def clear_all_notifications(self):
@@ -389,12 +388,12 @@ class NotificationSystemPyQt(QWidget):
             notification.close_notification()
     
     def on_tray_activated(self, reason):
-        """Handle system tray activation."""
+        Handle system tray activation."""
         if reason == QSystemTrayIcon.ActivationReason.DoubleClick:
             self.show_main_window()
     
     def show_main_window(self):
-        """Show main application window."""
+        """Show main application window.
         if self.parent_app:
             self.parent_app.show()
             self.parent_app.raise_()
@@ -406,14 +405,14 @@ class NotificationSystemPyQt(QWidget):
         pass
     
     def quit_application(self):
-        """Quit the application."""
+        Quit the application."""
         if self.parent_app:
             self.parent_app.close()
         else:
             QApplication.quit()
     
     def get_notification_history(self) -> List[Dict[str, Any]]:
-        """Get notification history."""
+        """Get notification history.
         return self.notification_history.copy()
     
     def cleanup(self):

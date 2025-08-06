@@ -18,7 +18,7 @@ Support for additional database types with optimized adapters:
 - ArangoDB (Multi-Model)
 - ClickHouse (Columnar)
 - Snowflake (Cloud Data Warehouse)
-"""
+
 
 import asyncio
 import logging
@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 
 class DatabaseCategory(str, Enum):
     """Database categories for optimization."""
-    RELATIONAL = "relational"
+        RELATIONAL = "relational"
     DOCUMENT = "document"
     KEY_VALUE = "key_value"
     WIDE_COLUMN = "wide_column"
@@ -46,7 +46,7 @@ class DatabaseCategory(str, Enum):
 
 @dataclass
 class DatabaseCapabilities:
-    """Database capabilities and features."""
+    """Database capabilities and features.
     supports_transactions: bool = False
     supports_acid: bool = False
     supports_joins: bool = False
@@ -65,8 +65,7 @@ class DatabaseCapabilities:
 
 class BaseDatabaseAdapter(ABC):
     """Base class for all database adapters."""
-
-    def __init__(self, config: Dict[str, Any]):
+        def __init__(self, config: Dict[str, Any]):
         self.config = config
         self.connection = None
         self.is_connected = False
@@ -75,12 +74,12 @@ class BaseDatabaseAdapter(ABC):
 
     @abstractmethod
     async def connect(self) -> bool:
-        """Establish database connection."""
+        Establish database connection."""
         pass
 
     @abstractmethod
     async def disconnect(self) -> bool:
-        """Close database connection."""
+        """Close database connection.
         pass
 
     @abstractmethod
@@ -90,12 +89,12 @@ class BaseDatabaseAdapter(ABC):
 
     @abstractmethod
     async def health_check(self) -> Dict[str, Any]:
-        """Perform health check."""
+        Perform health check."""
         pass
 
     @abstractmethod
     def _get_capabilities(self) -> DatabaseCapabilities:
-        """Get database capabilities."""
+        """Get database capabilities.
         pass
 
     @abstractmethod
@@ -105,9 +104,8 @@ class BaseDatabaseAdapter(ABC):
 
 
 class RedisAdapter(BaseDatabaseAdapter):
-    """Redis key-value store adapter."""
-
-    def __init__(self, config: Dict[str, Any]):
+    Redis key-value store adapter."""
+        def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
         self.redis_client = None
 
@@ -174,13 +172,13 @@ class RedisAdapter(BaseDatabaseAdapter):
         """Redis health check."""
         try:
             info = await self.redis_client.info()
-            return {}
+            return {
                 "status": "healthy",
                 "version": info.get("redis_version"),
                 "memory_used": info.get("used_memory_human"),
                 "connected_clients": info.get("connected_clients"),
                 "uptime": info.get("uptime_in_seconds")
-            }
+            }}
         except Exception as e:
             return {"status": "unhealthy", "error": str(e)}
 
@@ -205,9 +203,8 @@ class RedisAdapter(BaseDatabaseAdapter):
 
 
 class CassandraAdapter(BaseDatabaseAdapter):
-    """Cassandra wide-column store adapter."""
-
-    def __init__(self, config: Dict[str, Any]):
+    """Cassandra wide-column store adapter.
+        def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
         self.session = None
         self.cluster = None
@@ -275,12 +272,12 @@ class CassandraAdapter(BaseDatabaseAdapter):
             result = self.session.execute("SELECT release_version FROM system.local")
             version = list(result)[0].release_version if result else "unknown"
 
-            return {}
+            return {
                 "status": "healthy",
                 "version": version,
                 "cluster_name": self.cluster.metadata.cluster_name,
                 "hosts": len(self.cluster.metadata.all_hosts())
-            }
+            }}
         except Exception as e:
             return {"status": "unhealthy", "error": str(e)}
 
@@ -305,9 +302,8 @@ class CassandraAdapter(BaseDatabaseAdapter):
 
 
 class ElasticsearchAdapter(BaseDatabaseAdapter):
-    """Elasticsearch search engine adapter."""
-
-    def __init__(self, config: Dict[str, Any]):
+    """Elasticsearch search engine adapter.
+        def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
         self.es_client = None
 
@@ -381,13 +377,13 @@ class ElasticsearchAdapter(BaseDatabaseAdapter):
             health = await self.es_client.cluster.health()
             info = await self.es_client.info()
 
-            return {}
+            return {
                 "status": health["status"],
                 "version": info["version"]["number"],
                 "cluster_name": health["cluster_name"],
                 "number_of_nodes": health["number_of_nodes"],
                 "active_shards": health["active_shards"]
-            }
+            }}
         except Exception as e:
             return {"status": "unhealthy", "error": str(e)}
 

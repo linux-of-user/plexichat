@@ -20,7 +20,7 @@ PlexiChat Enhanced Services System
 
 Unified service architecture with quantum security integration,
 intelligent resource management, and adaptive performance optimization.
-"""
+
 
 # Import security and optimization systems
 logger = logging.getLogger(__name__)
@@ -28,8 +28,7 @@ logger = logging.getLogger(__name__)
 
 class ServicePriority(Enum):
     """Service execution priority levels."""
-
-    CRITICAL = 1  # Security, authentication, core systems
+        CRITICAL = 1  # Security, authentication, core systems
     HIGH = 2  # Backup, monitoring, essential features
     NORMAL = 3  # Standard application features
     LOW = 4  # Background tasks, analytics
@@ -37,7 +36,7 @@ class ServicePriority(Enum):
 
 
 class ServiceStatus(Enum):
-    """Service status states."""
+    Service status states."""
 
     STOPPED = "stopped"
     STARTING = "starting"
@@ -49,8 +48,7 @@ class ServiceStatus(Enum):
 
 class ServiceType(Enum):
     """Service types for categorization."""
-
-    CORE = "core"  # Core system services
+        CORE = "core"  # Core system services
     SECURITY = "security"  # Security-related services
     BACKUP = "backup"  # Backup and recovery services
     MESSAGING = "messaging"  # Communication services
@@ -81,9 +79,8 @@ class ServiceMetadata:
 
 @dataclass
 class ServiceHealth:
-    """Service health and performance metrics."""
-
-    service_id: str
+    """Service health and performance metrics.
+        service_id: str
     status: ServiceStatus
     uptime: timedelta
     last_heartbeat: datetime
@@ -108,8 +105,7 @@ class SecureService:
     - Health monitoring
     - Automatic recovery
     """
-
-    def __init__(self, metadata: ServiceMetadata):
+        def __init__(self, metadata: ServiceMetadata):
         self.metadata = metadata
         self.status = ServiceStatus.STOPPED
         self.health = ServiceHealth(
@@ -139,7 +135,7 @@ class SecureService:
         asyncio.create_task(self._initialize_service())
 
     async def _initialize_service(self):
-        """Initialize service with security and optimization."""
+        Initialize service with security and optimization."""
         try:
             # Setup service encryption
             await self._setup_service_encryption()
@@ -238,7 +234,7 @@ class SecureService:
         asyncio.create_task(health_monitor())
 
     async def _update_health_metrics(self):
-        """Update service health metrics."""
+        """Update service health metrics.
         if self.start_time:
             self.health.uptime = datetime.now(timezone.utc) - self.start_time
 
@@ -350,13 +346,13 @@ class SecureService:
             await self.start()
 
     async def _on_start(self):
-        """Override this method to implement service startup logic."""
+        """Override this method to implement service startup logic.
 
     async def _on_stop(self):
         """Override this method to implement service shutdown logic."""
 
     async def _emit_event(self, event_name: str, data: Optional[Dict[str, Any]] = None):
-        """Emit service event to registered handlers."""
+        Emit service event to registered handlers."""
         if event_name in self.event_handlers:
             for handler in self.event_handlers[event_name]:
                 try:
@@ -368,7 +364,7 @@ class SecureService:
                     logger.error(f"Event handler error for {event_name}: {e}")
 
     def add_event_handler(self, event_name: str, handler: Callable):
-        """Add event handler for service events."""
+        """Add event handler for service events.
         if event_name not in self.event_handlers:
             self.event_handlers[event_name] = []
         self.event_handlers[event_name].append(handler)

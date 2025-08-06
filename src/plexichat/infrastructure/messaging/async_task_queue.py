@@ -20,15 +20,14 @@ import aioredis
 """
 PlexiChat Asynchronous Task Queue System
 Handles background tasks, job scheduling, and message processing
-"""
+
 
 logger = logging.getLogger(__name__)
 
 
 class TaskStatus(Enum):
     """Task execution status."""
-
-    PENDING = "pending"
+        PENDING = "pending"
     RUNNING = "running"
     COMPLETED = "completed"
     FAILED = "failed"
@@ -38,7 +37,7 @@ class TaskStatus(Enum):
 
 
 class TaskPriority(Enum):
-    """Task priority levels."""
+    """Task priority levels.
 
     CRITICAL = 0
     HIGH = 1
@@ -49,8 +48,7 @@ class TaskPriority(Enum):
 
 class QueueType(Enum):
     """Queue types for different task categories."""
-
-    EMAIL_NOTIFICATIONS = "email_notifications"
+        EMAIL_NOTIFICATIONS = "email_notifications"
     FILE_PROCESSING = "file_processing"
     AI_PROCESSING = "ai_processing"
     BACKUP_OPERATIONS = "backup_operations"
@@ -64,7 +62,7 @@ class QueueType(Enum):
 
 @dataclass
 class Task:
-    """Task definition."""
+    """Task definition.
 
     task_id: str
     queue_name: str
@@ -131,8 +129,7 @@ class Task:
 
 class TaskWorker:
     """Task worker for processing tasks."""
-
-    def __init__(self, worker_id: str, queue_manager: "AsyncTaskQueueManager"):
+        def __init__(self, worker_id: str, queue_manager: "AsyncTaskQueueManager"):
         self.worker_id = worker_id
         self.queue_manager = queue_manager
         self.running = False
@@ -279,14 +276,14 @@ class TaskWorker:
             else 0
         )
 
-        return {}
+        return {
             "worker_id": self.worker_id,
             "running": self.running,
             "uptime_seconds": uptime,
             "processed_tasks": self.processed_tasks,
             "failed_tasks": self.failed_tasks,
             "current_task": self.current_task.task_id if self.current_task else None,
-        }
+        }}
 
 
 class AsyncTaskQueueManager:
@@ -303,8 +300,7 @@ class AsyncTaskQueueManager:
     - Real-time monitoring and metrics
     - Task dependencies and workflows
     """
-
-    def __init__(self, redis_url: str = "redis://localhost:6379"):
+        def __init__(self, redis_url: str = "redis://localhost:6379"):
         self.redis_url = redis_url
         self.redis: Optional[aioredis.Redis] = None
 
@@ -333,7 +329,7 @@ class AsyncTaskQueueManager:
         self._initialize_default_queues()
 
     def _initialize_default_queues(self):
-        """Initialize default queues with priorities."""
+        """Initialize default queues with priorities.
         queue_configs = {
             QueueType.EMAIL_NOTIFICATIONS.value: 1,
             QueueType.FILE_PROCESSING.value: 2,
@@ -392,7 +388,7 @@ class AsyncTaskQueueManager:
         logger.info(f" Registered task handler for: {task_type}")
 
     def get_task_handler(self, task_type: str) -> Optional[Callable]:
-        """Get task handler for a task type."""
+        """Get task handler for a task type.
         return self.task_handlers.get(task_type)
 
     async def submit_task()
@@ -545,14 +541,14 @@ class AsyncTaskQueueManager:
         self.stats["pending_tasks"] = total_pending
         self.stats["running_tasks"] = running_tasks
 
-        return {}
+        return {
             "running": self.running,
             "total_workers": len(self.workers),
             "active_workers": sum(1 for w in self.workers.values() if w.running),
             "statistics": self.stats,
             "queues": queue_stats,
             "workers": worker_stats,
-        }
+        }}
 
 
 # Global task queue manager

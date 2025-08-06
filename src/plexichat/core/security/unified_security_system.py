@@ -69,8 +69,8 @@ logger = logging.getLogger(__name__)
 
 
 class SecurityLevel(Enum):
-    """Security levels."""
-    BASIC = 1
+    """Security levels.
+        BASIC = 1
     ENHANCED = 2
     GOVERNMENT = 3
     MILITARY = 4
@@ -88,8 +88,8 @@ class ThreatLevel(Enum):
 
 
 class SecurityEventType(Enum):
-    """Security event types."""
-    LOGIN_SUCCESS = "login_success"
+    Security event types."""
+        LOGIN_SUCCESS = "login_success"
     LOGIN_FAILURE = "login_failure"
     UNAUTHORIZED_ACCESS = "unauthorized_access"
     PRIVILEGE_ESCALATION = "privilege_escalation"
@@ -123,7 +123,7 @@ class AttackType(Enum):
 @dataclass
 class SecurityEvent:
     """Security event data."""
-    event_type: SecurityEventType
+        event_type: SecurityEventType
     timestamp: datetime
     user_id: Optional[str] = None
     ip_address: Optional[str] = None
@@ -137,8 +137,8 @@ class SecurityEvent:
 
 @dataclass
 class SecurityRequest:
-    """Security request data."""
-    user_id: Optional[str] = None
+    """Security request data.
+        user_id: Optional[str] = None
     ip_address: Optional[str] = None
     user_agent: Optional[str] = None
     endpoint: Optional[str] = None
@@ -151,7 +151,7 @@ class SecurityRequest:
 @dataclass
 class SecurityResponse:
     """Security response data."""
-    allowed: bool = True
+        allowed: bool = True
     threat_level: ThreatLevel = ThreatLevel.LOW
     security_events: List[SecurityEventType] = field(default_factory=list)
     blocked_reason: Optional[str] = None
@@ -160,9 +160,8 @@ class SecurityResponse:
 
 
 class SecurityMetrics:
-    """Security metrics tracking."""
-
-    def __init__(self):
+    Security metrics tracking."""
+        def __init__(self):
         self.metrics = {
             "total_requests": 0,
             "blocked_requests": 0,
@@ -202,9 +201,8 @@ class SecurityMetrics:
 
 
 class PasswordManager:
-    """Password management with advanced security."""
-
-    def __init__(self):
+    """Password management with advanced security.
+        def __init__(self):
         self.min_length = 12
         self.require_uppercase = True
         self.require_lowercase = True
@@ -295,7 +293,7 @@ class PasswordManager:
         }
 
     def check_account_lockout(self, user_id: str) -> bool:
-        """Check if account is locked out."""
+        """Check if account is locked out.
         if user_id in self.locked_accounts:
             lockout_time = self.locked_accounts[user_id]
             if datetime.now() - lockout_time < timedelta(seconds=self.lockout_duration):
@@ -333,7 +331,7 @@ class PasswordManager:
         return False
 
     def clear_failed_attempts(self, user_id: str):
-        """Clear failed attempts for successful login."""
+        """Clear failed attempts for successful login.
         if user_id in self.failed_attempts:
             del self.failed_attempts[user_id]
         if user_id in self.locked_accounts:
@@ -342,8 +340,7 @@ class PasswordManager:
 
 class TokenManager:
     """JWT token management with advanced security."""
-
-    def __init__(self, secret_key: str):
+        def __init__(self, secret_key: str):
         self.secret_key = secret_key
         self.access_token_expiry = timedelta(hours=1)
         self.refresh_token_expiry = timedelta(days=30)
@@ -355,7 +352,7 @@ class TokenManager:
             self._setup_encryption()
 
     def _setup_encryption(self):
-        """Setup Fernet encryption for tokens."""
+        Setup Fernet encryption for tokens."""
         try:
             if PBKDF2HMAC and hashes:
                 kdf = PBKDF2HMAC(
@@ -377,7 +374,7 @@ class TokenManager:
             self.fernet = None
 
     def generate_token(self, user_id: str, token_type: str = "access",
-                       metadata: Optional[Dict[str, Any]] = None) -> str:
+                    metadata: Optional[Dict[str, Any]] = None) -> str:
         """Generate a secure token."""
         try:
             now = datetime.now(timezone.utc)
@@ -490,8 +487,7 @@ class TokenManager:
 
 class RateLimiter:
     """Advanced rate limiting with multiple strategies."""
-
-    def __init__(self):
+        def __init__(self):
         self.limits = {
             "login": {"requests": 5, "window": 300},  # 5 attempts per 5 minutes
             "api": {"requests": 100, "window": 60},   # 100 requests per minute
@@ -554,8 +550,7 @@ class RateLimiter:
 
 class InputSanitizer:
     """Input sanitization and validation."""
-
-    def __init__(self):
+        def __init__(self):
         self.dangerous_patterns = [
             r'<script[^>]*>.*?</script>',  # Script tags
             r'javascript:',                # JavaScript URLs
@@ -648,9 +643,8 @@ class UnifiedSecurityManager:
     Unified Security Manager - SINGLE SOURCE OF TRUTH
 
     Consolidates all security functionality from multiple systems.
-    """
-
-    def __init__(self, secret_key: Optional[str] = None):
+    
+        def __init__(self, secret_key: Optional[str] = None):
         self.secret_key = secret_key or secrets.token_urlsafe(32)
         try:
             from ..unified_config import get_unified_config
@@ -809,7 +803,7 @@ class UnifiedSecurityManager:
                         return
 
     async def _check_authentication(self, request: SecurityRequest, response: SecurityResponse):
-        """Check authentication requirements."""
+        """Check authentication requirements.
         # This would integrate with the unified auth system
         pass
 
@@ -819,7 +813,7 @@ class UnifiedSecurityManager:
         pass
 
     async def _analyze_behavior(self, request: SecurityRequest, response: SecurityResponse):
-        """Analyze behavioral patterns."""
+        Analyze behavioral patterns."""
         # Placeholder for behavioral analysis
         pass
 
@@ -841,7 +835,7 @@ class UnifiedSecurityManager:
 
     # Convenience methods for backward compatibility
     def hash_password(self, password: str) -> str:
-        """Hash password."""
+        """Hash password.
         return self.password_manager.hash_password(password)
 
     def verify_password(self, password: str, hashed: str) -> bool:
@@ -849,7 +843,7 @@ class UnifiedSecurityManager:
         return self.password_manager.verify_password(password, hashed)
 
     def generate_token(self, user_id: str, token_type: str = "access") -> str:
-        """Generate token."""
+        """Generate token.
         return self.token_manager.generate_token(user_id, token_type)
 
     def verify_token(self, token: str) -> Optional[Dict[str, Any]]:
@@ -857,7 +851,7 @@ class UnifiedSecurityManager:
         return self.token_manager.verify_token(token)
 
     def check_rate_limit(self, identifier: str, limit_type: str = "default") -> Dict[str, Any]:
-        """Check rate limit."""
+        """Check rate limit.
         return self.rate_limiter.check_rate_limit(identifier, limit_type)
 
     def sanitize_input(self, text: str) -> str:
@@ -865,7 +859,7 @@ class UnifiedSecurityManager:
         return self.input_sanitizer.sanitize_html(text)
 
     def get_security_stats(self) -> Dict[str, Any]:
-        """Get security statistics."""
+        Get security statistics."""
         return {
             "metrics": self.metrics.get_stats(),
             "security_level": self.security_level.name,
@@ -891,7 +885,7 @@ unified_security_manager = UnifiedSecurityManager()
 
 # Backward compatibility functions
 def hash_password(password: str) -> str:
-    """Hash password using global security manager."""
+    """Hash password using global security manager.
     return unified_security_manager.hash_password(password)
 
 def verify_password(password: str, hashed: str) -> bool:
@@ -899,7 +893,7 @@ def verify_password(password: str, hashed: str) -> bool:
     return unified_security_manager.verify_password(password, hashed)
 
 def generate_token(user_id: str, token_type: str = "access") -> str:
-    """Generate token using global security manager."""
+    """Generate token using global security manager.
     return unified_security_manager.generate_token(user_id, token_type)
 
 def verify_token(token: str) -> Optional[Dict[str, Any]]:
@@ -907,7 +901,7 @@ def verify_token(token: str) -> Optional[Dict[str, Any]]:
     return unified_security_manager.verify_token(token)
 
 def check_rate_limit(identifier: str, limit_type: str = "default") -> Dict[str, Any]:
-    """Check rate limit using global security manager."""
+    """Check rate limit using global security manager.
     return unified_security_manager.check_rate_limit(identifier, limit_type)
 
 def sanitize_input(text: str) -> str:
@@ -915,7 +909,7 @@ def sanitize_input(text: str) -> str:
     return unified_security_manager.sanitize_input(text)
 
 async def process_security_request(request: SecurityRequest) -> SecurityResponse:
-    """Process security request using global security manager."""
+    Process security request using global security manager."""
     return await unified_security_manager.process_security_request(request)
 
 def get_security_manager() -> UnifiedSecurityManager:

@@ -359,7 +359,7 @@ async def test_ai_request(
 
         response = await ai_layer.process_request(ai_request)
 
-        return {}
+        return {
             "success": response.success,
             "response": {
                 "content": response.content,
@@ -370,7 +370,7 @@ async def test_ai_request(
                 "cached": response.cached,
                 "fallback_used": response.fallback_used,
                 "error": response.error
-            }
+            }}
         }
 
     except Exception as e:

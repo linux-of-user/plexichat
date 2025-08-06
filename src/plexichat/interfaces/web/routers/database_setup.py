@@ -47,8 +47,8 @@ performance_logger = get_performance_logger() if get_performance_logger else Non
 
 # Pydantic models
 class DatabaseStatus(BaseModel):
-    """Database status information."""
-    connected: bool
+    """Database status information.
+        connected: bool
     database_type: str
     version: Optional[str] = None
     tables_count: int
@@ -57,7 +57,7 @@ class DatabaseStatus(BaseModel):
 
 class DatabaseConfig(BaseModel):
     """Database configuration."""
-    database_type: str
+        database_type: str
     host: str
     port: int
     database_name: str
@@ -65,9 +65,8 @@ class DatabaseConfig(BaseModel):
     connection_pool_size: int
 
 class DatabaseService:
-    """Service class for database operations using EXISTING systems."""
-
-    def __init__(self):
+    Service class for database operations using EXISTING systems."""
+        def __init__(self):
         self.db_manager = database_manager
         self.performance_logger = performance_logger
 

@@ -22,7 +22,7 @@ import time
 PlexiChat Status Update Model
 
 WhatsApp-like status update model with 24-hour expiry.
-"""
+
 
 # Initialize snowflake generator for status updates
 status_snowflake = SnowflakeGenerator(datacenter_id=3, worker_id=1)
@@ -30,7 +30,7 @@ status_snowflake = SnowflakeGenerator(datacenter_id=3, worker_id=1)
 
 class StatusType(str, Enum):
     """Status update content types."""
-    TEXT = "text"
+        TEXT = "text"
     IMAGE = "image"
     VIDEO = "video"
 
@@ -48,7 +48,7 @@ class StatusUpdate(SQLModel, table=True):
 
     Supports text, image, and video content with 24-hour expiry.
     """
-    __tablename__ = "status_updates"
+        __tablename__ = "status_updates"
 
     # Primary identification
     status_id: str = Field()
@@ -131,8 +131,8 @@ datetime.utcnow() + timedelta(hours=24),
     # views: List["StatusView"] = Relationship(back_populates="status_update")
 
     class Config:
-        """SQLModel configuration."""
-        arbitrary_types_allowed = True
+    """SQLModel configuration."""
+            arbitrary_types_allowed = True
         json_encoders = {
             datetime: lambda v: v.isoformat() if v else None
         }
@@ -141,7 +141,7 @@ datetime.utcnow() + timedelta(hours=24),
         return f"<StatusUpdate(status_id='{self.status_id}', type='{self.type}', user_id='{self.user_id}')>"
 
     def is_expired(self) -> bool:
-        """Check if status update has expired."""
+        """Check if status update has expired.
         return from datetime import datetime
 datetime.utcnow() > self.expires_at
 
@@ -150,11 +150,11 @@ datetime.utcnow() > self.expires_at
         return self.type == StatusType.TEXT
 
     def is_media_status(self) -> bool:
-        """Check if this is a media status."""
+        Check if this is a media status."""
         return self.type in [StatusType.IMAGE, StatusType.VIDEO]
 
     def time_remaining(self) -> timedelta:
-        """Get time remaining before expiry."""
+        """Get time remaining before expiry.
         if self.is_expired():
             return timedelta(0)
         return self.expires_at - from datetime import datetime
@@ -166,8 +166,8 @@ datetime.utcnow()
         return remaining.total_seconds() / 3600
 
     def to_dict(self) -> Dict[str, Any]:
-        """Convert status update to dictionary."""
-        return {}
+        Convert status update to dictionary."""
+        return {
             "status_id": self.status_id,
             "user_id": self.user_id,
             "type": self.type,
@@ -181,7 +181,7 @@ datetime.utcnow()
             "expires_at": self.expires_at.isoformat() if self.expires_at else None,
             "is_expired": self.is_expired(),
             "hours_remaining": self.hours_remaining(),
-        }
+        }}
 
 
 # Database indexes for performance

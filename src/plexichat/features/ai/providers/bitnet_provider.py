@@ -14,7 +14,7 @@ Features:
 - Memory-efficient inference
 - Streaming capabilities
 - Performance monitoring
-"""
+
 
 import asyncio
 import ctypes
@@ -48,7 +48,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class BitNetConfig(ProviderConfig):
     """BitNet-specific configuration."""
-    model_path: str = "data/bitnet_models"
+        model_path: str = "data/bitnet_models"
     quantization_bits: int = 1
     kernel_optimization: bool = True
     use_gpu: bool = True
@@ -72,8 +72,8 @@ class BitNetConfig(ProviderConfig):
 
 @dataclass
 class BitNetModel:
-    """BitNet model information."""
-    name: str
+    """BitNet model information.
+        name: str
     path: str
     size_mb: float
     parameters: int
@@ -100,8 +100,7 @@ class BitNetModel:
 
 class BitNetKernel:
     """BitNet optimized kernel interface."""
-
-    def __init__(self, kernel_path: Optional[str] = None):
+        def __init__(self, kernel_path: Optional[str] = None):
         self.kernel_path = kernel_path
         self.lib = None
         self.compiled = False
@@ -129,7 +128,7 @@ class BitNetKernel:
             return False
 
     def _generate_kernel_source(self) -> str:
-        """Generate optimized kernel source code."""
+        """Generate optimized kernel source code.
         # Mock kernel source - in real implementation, generate CUDA/C++ code
         return """
         // BitNet 1-bit optimized kernel
@@ -148,7 +147,7 @@ class BitNetKernel:
         """
 
     def _compile_source(self, source: str, optimization: str) -> Optional[str]:
-        """Compile kernel source to binary."""
+        Compile kernel source to binary."""
         try:
             # Mock compilation - in real implementation, use nvcc/gcc
             temp_dir = Path(tempfile.mkdtemp())
@@ -204,8 +203,7 @@ class BitNetKernel:
 
 class BitNetProvider(BaseAIProvider):
     """BitNet 1-bit LLM provider with optimized kernels."""
-
-    def __init__(self, config: BitNetConfig):
+        def __init__(self, config: BitNetConfig):
         super().__init__(config)
         self.config: BitNetConfig = config
         self.loaded_models: Dict[str, BitNetModel] = {}
@@ -272,17 +270,17 @@ class BitNetProvider(BaseAIProvider):
                 # Load compiled kernel
                 self.kernel.load_kernel()
 
-                return {}
+                return {
                     "success": True,
                     "kernel_path": self.kernel.kernel_path,
                     "optimization_enabled": True
-                }
+                }}
             else:
-                return {}
+                return {
                     "success": False,
                     "error": "Kernel compilation failed",
                     "fallback": "CPU inference"
-                }
+                }}
 
         except Exception as e:
             logger.error(f"Kernel compilation error: {e}")
@@ -307,16 +305,16 @@ class BitNetProvider(BaseAIProvider):
                 model.loaded = True
 
                 logger.info(f"BitNet model loaded: {model_name}")
-                return {}
+                return {
                     "success": True,
                     "model_loaded": model_name,
                     "parameters": model.parameters,
                     "memory_usage_mb": model.size_mb * 0.125  # 1-bit uses 1/8 memory
-                }
+                }}
             else:
-                return {}
+                return {
                     "success": False,
-                    "error": f"Model not found: {model_name}"
+                    "error": f"Model not found: {model_name}}"
                 }
 
         except Exception as e:
@@ -398,8 +396,8 @@ class BitNetProvider(BaseAIProvider):
     async def _run_inference(self, request: AIRequest, model: BitNetModel) -> Dict[str, Any]:
         """Run standard BitNet inference."""
         # Mock inference
-        return {}
-            "text": f"BitNet response to: {request.prompt}",
+        return {
+            "text": f"BitNet response to: {request.prompt}}",
             "tokens_used": len(request.prompt.split()) + 10,
             "inference_time_ms": 50,
             "kernel_used": False
@@ -408,8 +406,8 @@ class BitNetProvider(BaseAIProvider):
     async def _run_optimized_inference(self, request: AIRequest, model: BitNetModel) -> Dict[str, Any]:
         """Run optimized BitNet inference with compiled kernels."""
         # Mock optimized inference
-        return {}
-            "text": f"Optimized BitNet response to: {request.prompt}",
+        return {
+            "text": f"Optimized BitNet response to: {request.prompt}}",
             "tokens_used": len(request.prompt.split()) + 10,
             "inference_time_ms": 15,  # Faster with optimization
             "speedup_factor": 3.3,
@@ -432,31 +430,31 @@ class BitNetProvider(BaseAIProvider):
 
     async def get_memory_usage(self) -> Dict[str, Any]:
         """Get current memory usage."""
-        return {}
+        return {
             "memory_usage_mb": 512,  # Mock value
             "memory_usage_ratio": 0.125,  # 1-bit uses 1/8 memory
             "peak_memory_mb": 768,
             "available_memory_mb": 7680
-        }
+        }}
 
     async def run_benchmark(self) -> Dict[str, Any]:
         """Run performance benchmark."""
         # Mock benchmark results
-        return {}
+        return {
             "tokens_per_second": 150,
             "latency_ms": 25,
             "memory_usage_mb": 512,
             "energy_efficiency": 0.8,
             "throughput_ratio": 3.2,  # vs full precision
             "accuracy_score": 0.95
-        }
+        }}
 
 
 def check_system_requirements() -> Dict[str, Any]:
     """Check system requirements for BitNet."""
     import psutil
 
-    return {}
+    return {
         "cpu_support": True,  # Mock - check for required CPU instructions
         "memory_available": psutil.virtual_memory().total / (1024**3),  # GB
         "disk_space": psutil.disk_usage('/').free / (1024**3),  # GB
@@ -464,7 +462,7 @@ def check_system_requirements() -> Dict[str, Any]:
         "dependencies": True,  # Mock - check for required packages
         "cuda_available": False,  # Mock - check for CUDA
         "gpu_memory_gb": 0  # Mock - get GPU memory
-    }
+    }}
 
 
 def detect_compilation_tools() -> Dict[str, bool]:
@@ -484,12 +482,12 @@ def detect_compilation_tools() -> Dict[str, bool]:
 def detect_gpu_capabilities() -> Dict[str, Any]:
     """Detect GPU capabilities for optimization."""
     # Mock GPU detection
-    return {}
+    return {
         "cuda_available": False,
         "gpu_memory_gb": 0,
         "compute_capability": None,
         "gpu_count": 0
-    }
+    }}
 
 
 def compile_bitnet_kernels() -> Dict[str, Any]:
@@ -497,8 +495,8 @@ def compile_bitnet_kernels() -> Dict[str, Any]:
     kernel = BitNetKernel()
     success = kernel.compile_kernel()
 
-    return {}
+    return {
         "success": success,
         "kernel_path": kernel.kernel_path if success else None,
         "compilation_time": 5.2  # Mock compilation time
-    }
+    }}

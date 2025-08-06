@@ -1,7 +1,7 @@
 """
 PlexiChat Advanced PyQt6 GUI Application
 The most sophisticated and feature-rich PyQt6 interface for PlexiChat.
-"""
+
 
 import sys
 import os
@@ -56,8 +56,7 @@ class PlexiChatGUIPyQt(QMainWindow):
     - Advanced user management
     - System monitoring and analytics
     """
-
-    # Signals
+        # Signals
     user_authenticated = pyqtSignal(dict)
     user_logged_out = pyqtSignal()
     theme_changed = pyqtSignal(str)
@@ -99,7 +98,7 @@ class PlexiChatGUIPyQt(QMainWindow):
         self.initialize_application()
 
     def initialize_application(self):
-        """Initialize the main application."""
+        Initialize the main application."""
         try:
             logger.info("Initializing PlexiChat Advanced PyQt6 GUI...")
             
@@ -132,7 +131,7 @@ class PlexiChatGUIPyQt(QMainWindow):
         except Exception as e:
             logger.error(f"Failed to initialize GUI: {e}")
             QMessageBox.critical(self, "Initialization Error", 
-                               f"Failed to start PlexiChat GUI: {e}")
+                            f"Failed to start PlexiChat GUI: {e}")
             sys.exit(1)
 
     def setup_main_window(self):
@@ -166,7 +165,7 @@ class PlexiChatGUIPyQt(QMainWindow):
         self.setup_toolbar()
 
     def setup_ui_components(self):
-        """Setup all UI components."""
+        """Setup all UI components.
         # Create login screen
         self.login_screen = LoginScreenPyQt(self)
         self.stacked_widget.addWidget(self.login_screen)
@@ -307,7 +306,7 @@ class PlexiChatGUIPyQt(QMainWindow):
             logger.error(f"Failed to setup async loop: {e}")
 
     def _run_async_loop(self):
-        """Run the async event loop."""
+        """Run the async event loop.
         asyncio.set_event_loop(self.async_loop)
         self.async_loop.run_forever()
 
@@ -341,7 +340,7 @@ class PlexiChatGUIPyQt(QMainWindow):
 
         if self.main_dashboard:
             if self.main_dashboard not in [self.stacked_widget.widget(i)
-                                         for i in range(self.stacked_widget.count())]:
+                                        for i in range(self.stacked_widget.count())]:
                 self.stacked_widget.addWidget(self.main_dashboard)
             self.stacked_widget.setCurrentWidget(self.main_dashboard)
             self.status_bar.showMessage("Dashboard")
@@ -374,9 +373,9 @@ class PlexiChatGUIPyQt(QMainWindow):
     def show_about(self):
         """Show about dialog."""
         QMessageBox.about(self, "About PlexiChat",
-                         "PlexiChat Management Interface\n"
-                         "Advanced PyQt6 GUI Application\n"
-                         "Version: a.1.1-144")
+                        "PlexiChat Management Interface\n"
+                        "Advanced PyQt6 GUI Application\n"
+                        "Version: a.1.1-144")
 
     def handle_user_login(self, user_data: dict):
         """Handle user login from signal."""
@@ -400,7 +399,7 @@ class PlexiChatGUIPyQt(QMainWindow):
         self.on_user_authenticated(user_data)
 
     def handle_theme_change(self, theme_name: str):
-        """Handle theme change from signal."""
+        """Handle theme change from signal.
         self.on_theme_changed(theme_name)
 
     def on_user_authenticated(self, user_data: dict):
@@ -428,7 +427,7 @@ class PlexiChatGUIPyQt(QMainWindow):
                 logger.info(f"Applied theme: {theme['name']}")
 
     def logout_user(self):
-        """Logout the current user."""
+        """Logout the current user.
         self.user_logged_out.emit()
 
     def show_plugin_manager(self):
@@ -484,7 +483,7 @@ class PlexiChatGUIPyQt(QMainWindow):
             logger.error(f"Failed to open documentation: {e}")
             from PyQt6.QtWidgets import QMessageBox
             QMessageBox.information(self, "Documentation",
-                                  "Documentation is available at: http://localhost/docs")
+                                "Documentation is available at: http://localhost/docs")
 
     def closeEvent(self, event):
         """Handle application close event."""
@@ -499,7 +498,7 @@ class PlexiChatGUIPyQt(QMainWindow):
         event.accept()
 
     def run(self):
-        """Run the application."""
+        """Run the application.
         self.show()
 
 
@@ -518,4 +517,6 @@ def main():
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    print("[X] This module cannot be run standalone!")
+    print("Use 'python run.py' to start PlexiChat.")
+    sys.exit(1)

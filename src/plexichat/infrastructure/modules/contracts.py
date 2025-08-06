@@ -58,8 +58,8 @@ logger = get_logger(__name__)
 
 @dataclass
 class ContractViolation:
-    """Represents a contract violation."""
-    severity: str  # "error", "warning", "info"
+    Represents a contract violation."""
+        severity: str  # "error", "warning", "info"
     category: str  # "interface", "security", "performance", "configuration"
     message: str
     details: Dict[str, Any] = field(default_factory=dict)
@@ -68,8 +68,8 @@ class ContractViolation:
 
 @dataclass
 class ContractValidationResult:
-    """Result of contract validation."""
-    is_valid: bool
+    """Result of contract validation.
+        is_valid: bool
     violations: List[ContractViolation] = field(default_factory=list)
     warnings: List[ContractViolation] = field(default_factory=list)
     score: float = 0.0  # Compliance score 0-100
@@ -90,7 +90,7 @@ class ContractValidationResult:
             self.warnings.append(violation)
 
     def calculate_score(self):
-        """Calculate compliance score."""
+        """Calculate compliance score.
         total_issues = len(self.violations) + len(self.warnings)
         if total_issues == 0:
             self.score = 100.0
@@ -113,8 +113,7 @@ class ModuleContractValidator:
     - Configuration schemas
     - API contracts
     """
-
-    def __init__(self):
+        def __init__(self):
         self.required_interfaces = [
             IModuleLifecycle,
             IModuleConfiguration

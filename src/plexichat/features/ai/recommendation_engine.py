@@ -18,15 +18,14 @@ from typing import Any, Dict, List, Optional, Tuple
 import time
 PlexiChat AI-Powered Recommendation Engine
 Intelligent content and connection recommendations using machine learning
-"""
+
 
 logger = logging.getLogger(__name__)
 
 
 class RecommendationType(Enum):
     """Types of recommendations."""
-
-    CONTENT = "content"
+        CONTENT = "content"
     USERS = "users"
     CHANNELS = "channels"
     TOPICS = "topics"
@@ -48,8 +47,7 @@ class RecommendationAlgorithm(Enum):
 @dataclass
 class UserProfile:
     """User profile for recommendations."""
-
-    user_id: str
+        user_id: str
     preferences: Dict[str, float] = field(default_factory=dict)
     interests: List[str] = field(default_factory=list)
     behavior_patterns: Dict[str, Any] = field(default_factory=dict)
@@ -80,8 +78,7 @@ class UserProfile:
 @dataclass
 class ContentItem:
     """Content item for recommendations."""
-
-    item_id: str
+        item_id: str
     content_type: str
     title: str
     description: str
@@ -113,9 +110,8 @@ class ContentItem:
 
 @dataclass
 class Recommendation:
-    """Recommendation result."""
-
-    item_id: str
+    """Recommendation result.
+        item_id: str
     item_type: RecommendationType
     title: str
     description: str
@@ -151,8 +147,7 @@ class AIRecommendationEngine:
     - Explainable recommendations
     - Diversity and novelty optimization
     """
-
-    def __init__(self):
+        def __init__(self):
         self.enabled = True
 
         # User profiles and content items
@@ -448,7 +443,7 @@ class AIRecommendationEngine:
     async def _find_similar_users()
         self, user_id: str, top_k: int = 50
     ) -> List[Tuple[str, float]]:
-        """Find users similar to the given user."""
+        """Find users similar to the given user.
         similarities = []
 
         user_profile = self.user_profiles.get(user_id)
@@ -507,7 +502,7 @@ class AIRecommendationEngine:
     async def _calculate_collaborative_score()
         self, user_id: str, item_id: str, similar_users: List[Tuple[str, float]]
     ) -> float:
-        """Calculate collaborative filtering score for an item."""
+        Calculate collaborative filtering score for an item."""
 
         weighted_sum = 0.0
         similarity_sum = 0.0
@@ -529,7 +524,7 @@ class AIRecommendationEngine:
     async def _build_user_interest_profile()
         self, user_profile: UserProfile
     ) -> Dict[str, float]:
-        """Build user interest profile from interaction history."""
+        """Build user interest profile from interaction history.
         interests = defaultdict(float)
 
         # Analyze liked content
@@ -596,7 +591,7 @@ class AIRecommendationEngine:
     async def _apply_diversity_filter()
         self, recommendations: List[Recommendation], user_profile: UserProfile
     ) -> List[Recommendation]:
-        """Apply diversity filter to avoid too similar recommendations."""
+        Apply diversity filter to avoid too similar recommendations."""
 
         if not recommendations or self.diversity_factor == 0:
             return recommendations
@@ -768,7 +763,7 @@ class AIRecommendationEngine:
                 await asyncio.sleep(300)  # Wait 5 minutes on error
 
     async def _update_similarity_matrices(self):
-        """Update user and item similarity matrices."""
+        """Update user and item similarity matrices.
         # Placeholder for similarity matrix updates
         # In production, this would use more sophisticated algorithms
 
@@ -788,7 +783,7 @@ class AIRecommendationEngine:
         self.popular_items_cache = [item_id for item_id, _ in items_with_scores[:100]]
 
     async def _update_trending_items_cache(self):
-        """Update cache of trending items."""
+        Update cache of trending items."""
 
         # Calculate trending score based on recent engagement
         current_time = datetime.now(timezone.utc)
@@ -847,14 +842,14 @@ class AIRecommendationEngine:
     def get_recommendation_statistics(self) -> Dict[str, Any]:
         """Get comprehensive recommendation statistics."""
 
-        return {}
+        return {
             "enabled": self.enabled,
             "running": self.running,
             "statistics": self.stats,
             "configuration": {
                 "algorithm_weights": {
                     alg.value: weight for alg, weight in self.algorithm_weights.items()
-                },
+                }},
                 "min_confidence_threshold": self.min_confidence_threshold,
                 "diversity_factor": self.diversity_factor,
                 "novelty_factor": self.novelty_factor,

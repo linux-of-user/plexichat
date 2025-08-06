@@ -63,7 +63,7 @@ HOT_UPDATE_SUPPORT = True  # Support for hot updates without downtime
 
 class ClusterRole(Enum):
     """Cluster node roles."""
-    MASTER = "master"
+        MASTER = "master"
     WORKER = "worker"
     COORDINATOR = "coordinator"
     BACKUP = "backup"
@@ -87,8 +87,7 @@ FAILED = "failed"
 
 class LoadBalancingStrategy(Enum):
     """Load balancing strategies."""
-
-ROUND_ROBIN = "round_robin"
+    ROUND_ROBIN = "round_robin"
 LEAST_CONNECTIONS = "least_connections"
 WEIGHTED_ROUND_ROBIN = "weighted_round_robin"
 LEAST_RESPONSE_TIME = "least_response_time"

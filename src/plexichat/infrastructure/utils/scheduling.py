@@ -37,9 +37,8 @@ class Settings:
 settings = Settings()
 
 class TaskScheduler:
-    """Advanced task scheduling with monitoring and error handling."""
-
-    def __init__(self):
+    """Advanced task scheduling with monitoring and error handling.
+        def __init__(self):
         self.scheduler = None
         self.tasks = {}
         self.running = False
@@ -71,7 +70,7 @@ class TaskScheduler:
                 logger.error(f"Error stopping task scheduler: {e}")
 
     def add_task(self, task_id: str, func, trigger: str = 'interval',
-                 minutes: int = 5, **kwargs):
+                minutes: int = 5, **kwargs):
         """Add a scheduled task."""
         if not self.running or not self.scheduler:
             logger.error("Scheduler not running")
@@ -118,11 +117,11 @@ class TaskScheduler:
         try:
             job = self.scheduler.get_job(task_id)
             if job:
-                return {}
+                return {
                     "status": "SCHEDULED",
                     "next_run": job.next_run_time.isoformat() if job.next_run_time else None,
                     "trigger": str(job.trigger)
-                }
+                }}
             else:
                 return {"status": "NOT_FOUND"}
         except Exception as e:
@@ -143,16 +142,16 @@ class TaskScheduler:
                     "trigger": str(job.trigger)
                 }
 
-            return {}
+            return {
                 "status": "RUNNING",
                 "task_count": len(jobs),
                 "tasks": task_status
-            }
+            }}
         except Exception as e:
             return {"status": "ERROR", "error": str(e)}
 
 def schedule_task(func, trigger: str = 'interval', minutes: int = 5, **kwargs):
-    """Decorator to schedule a function as a task."""
+    """Decorator to schedule a function as a task.
     def decorator(func):
         # This would be implemented based on your scheduler setup
         return func
@@ -194,20 +193,20 @@ def run_comprehensive_self_tests() -> Dict[str, Any]:
         else:
             _failure_count += 1
             selftest_logger.warning("Self-test suite FAILED (%.1f%% success rate, failure #%d)",
-                                  success_rate, _failure_count)
+                                success_rate, _failure_count)
 
         # Log monitoring metrics
         if settings.MONITORING_ENABLED and settings.MONITORING_LOG_PERFORMANCE:
             monitoring_logger.info("SELFTEST_METRICS: duration=%.2fs success_rate=%.1f%% failures=%d",
-                                 0.5, success_rate, _failure_count)
+                                0.5, success_rate, _failure_count)
 
-        return {}
+        return {
             "status": "SUCCESS" if overall_success else "FAILED",
             "test_results": test_results,
             "success_rate": success_rate,
             "failure_count": _failure_count,
             "last_success": _last_success_time.isoformat() + "Z" if _last_success_time else None
-        }
+        }}
 
     except Exception as e:
         _failure_count += 1
@@ -220,11 +219,11 @@ def run_comprehensive_self_tests() -> Dict[str, Any]:
         selftest_logger.error("Self-test suite execution failed: %s", e)
         selftest_logger.debug("Self-test error details: %s", error_details["traceback"])
 
-        return {}
+        return {
             "status": "ERROR",
             "error_details": error_details,
             "timestamp": start_time.isoformat() + "Z"
-        }
+        }}
 
 def _job_listener(event):
     """Listen to scheduler job events for monitoring."""
@@ -278,11 +277,11 @@ def start_scheduler():
 
         logger.info("Self-test scheduler started successfully")
         logger.info("Configuration: initial_delay=%ds, interval=%dm",
-                   settings.SELFTEST_INITIAL_DELAY_SECONDS, interval_minutes)
+                settings.SELFTEST_INITIAL_DELAY_SECONDS, interval_minutes)
 
         if settings.MONITORING_ENABLED:
             monitoring_logger.info("SELFTEST_SCHEDULER_STARTED: delay=%ds interval=%dm",
-                                 settings.SELFTEST_INITIAL_DELAY_SECONDS, interval_minutes)
+                                settings.SELFTEST_INITIAL_DELAY_SECONDS, interval_minutes)
 
     except Exception as e:
         logger.error("Failed to start self-test scheduler: %s", e)
@@ -327,14 +326,14 @@ def get_scheduler_status() -> Dict[str, Any]:
                 next_run = job.next_run_time.isoformat() + "Z" if job.next_run_time else None
                 break
 
-        return {}
+        return {
             "status": "RUNNING",
             "next_run": next_run,
             "failure_count": _failure_count,
             "last_success": _last_success_time.isoformat() + "Z" if _last_success_time else None,
             "interval_minutes": settings.SELFTEST_INTERVAL_MINUTES,
             "job_count": len(jobs)
-        }
+        }}
 
     except Exception as e:
         return {"status": "ERROR", "message": str(e)}

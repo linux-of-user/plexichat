@@ -27,13 +27,13 @@ import hashlib
 import http.client
 Advanced AI Moderation Engine
 Supports multiple AI providers, custom training, and progressive learning.
-"""
+
 
 logger = logging.getLogger(__name__)
 
 class ModerationAction(str, Enum):
     """Moderation actions."""
-    ALLOW = "allow"
+        ALLOW = "allow"
     FLAG = "flag"
     BLOCK = "block"
     DELETE = "delete"
@@ -51,7 +51,7 @@ class ModerationSeverity(str, Enum):
 
 class ModerationCategory(str, Enum):
     """Content moderation categories."""
-    SPAM = "spam"
+        SPAM = "spam"
     HARASSMENT = "harassment"
     HATE_SPEECH = "hate_speech"
     VIOLENCE = "violence"
@@ -67,7 +67,7 @@ class ModerationCategory(str, Enum):
 
 @dataclass
 class ModerationResult:
-    """Result of content moderation."""
+    """Result of content moderation.
     content_id: str
     confidence_score: float  # 0.0 to 1.0
     recommended_action: ModerationAction
@@ -82,7 +82,7 @@ class ModerationResult:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
-        return {}
+        return {
             "content_id": self.content_id,
             "confidence_score": self.confidence_score,
             "recommended_action": self.recommended_action.value,
@@ -94,12 +94,12 @@ class ModerationResult:
             "model_used": self.model_used,
             "requires_human_review": self.requires_human_review,
             "timestamp": self.timestamp.isoformat()
-        }
+        }}
 
 @dataclass
 class ModerationConfig:
-    """Moderation configuration."""
-    provider: str
+    """Moderation configuration.
+        provider: str
     model_name: str
     api_key: str
     endpoint_url: str
@@ -119,8 +119,7 @@ class ModerationConfig:
 
 class ModerationEngine:
     """Advanced AI moderation engine with multiple provider support."""
-
-    def __init__(self, config_path: str = "config/moderation_config.json"):
+        def __init__(self, config_path: str = "config/moderation_config.json"):
         self.config_path = Path(config_path)
         self.configs: Dict[str, ModerationConfig] = {}
         self.session: Optional[aiohttp.ClientSession] = None
@@ -322,7 +321,7 @@ class ModerationEngine:
                 raise Exception(f"Local model API error: {response.status}")
 
     def _get_moderation_prompt(self, provider: str, content: str) -> str:
-        """Get moderation prompt for provider."""
+        """Get moderation prompt for provider.
         base_prompt = """You are an AI content moderator. Analyze the following content and provide a JSON response with:
         - confidence: float (0.0-1.0) indicating confidence in your assessment
         - action: one of [allow, flag, block, delete, quarantine, warn_user, timeout_user, ban_user]
@@ -336,7 +335,7 @@ class ModerationEngine:
         return base_prompt
 
     def _parse_moderation_response(self, response_text: str, content_id: str, model_name: str) -> ModerationResult:
-        """Parse AI moderation response."""
+        Parse AI moderation response."""
         try:
             # Try to extract JSON from response
             json_match = re.search(r'\{.*\}', response_text, re.DOTALL)
@@ -407,7 +406,7 @@ class ModerationEngine:
             logger.error(f"Failed to store moderation result: {e}")
 
     def _row_to_result(self, row) -> ModerationResult:
-        """Convert database row to ModerationResult."""
+        """Convert database row to ModerationResult.
         return ModerationResult(
             content_id=row[1],
             confidence_score=row[3],

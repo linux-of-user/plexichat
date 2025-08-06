@@ -28,14 +28,14 @@ OAuth Provider for Plugin Marketplace
 
 Provides OAuth 2.0 authentication and authorization for plugin developers
 to publish and manage their plugins in the PlexiChat marketplace.
-"""
+
 
 logger = get_logger(__name__)
 
 
 class OAuthScope(Enum):
     """OAuth scopes for plugin marketplace."""
-    PLUGIN_READ = "plugin:read"
+        PLUGIN_READ = "plugin:read"
     PLUGIN_PUBLISH = "plugin:publish"
     PLUGIN_MANAGE = "plugin:manage"
     PLUGIN_DELETE = "plugin:delete"
@@ -47,14 +47,14 @@ class OAuthScope(Enum):
 
 class GrantType(Enum):
     """OAuth grant types."""
-    AUTHORIZATION_CODE = "authorization_code"
+        AUTHORIZATION_CODE = "authorization_code"
     CLIENT_CREDENTIALS = "client_credentials"
 REFRESH_TOKEN =os.getenv("ACCESS_TOKEN", "")
 
 
 @dataclass
 class OAuthClient:
-    """OAuth client information."""
+    """OAuth client information.
     client_id: str
     client_secret: str
     client_name: str
@@ -70,7 +70,7 @@ class OAuthClient:
 @dataclass
 class AuthorizationCode:
     """Authorization code for OAuth flow."""
-    code: str
+        code: str
     client_id: str
     user_id: str
     scopes: List[OAuthScope]
@@ -82,8 +82,8 @@ class AuthorizationCode:
 
 @dataclass
 class AccessToken:
-    """OAuth access token."""
-    token: str
+    OAuth access token."""
+        token: str
     client_id: str
     user_id: str
     scopes: List[OAuthScope]
@@ -93,8 +93,8 @@ class AccessToken:
 
 @dataclass
 class RefreshToken:
-    """OAuth refresh token."""
-    token: str
+    """OAuth refresh token.
+        token: str
     client_id: str
     user_id: str
     scopes: List[OAuthScope]
@@ -103,8 +103,7 @@ class RefreshToken:
 
 class PluginOAuthProvider:
     """OAuth 2.0 provider for plugin marketplace."""
-
-    def __init__(self, config: Dict[str, Any] = None):
+        def __init__(self, config: Dict[str, Any] = None):
         self.config = config or self._load_default_config()
         from pathlib import Path
 self.data_dir = Path(self.config.get("data_dir", "data/oauth"))
@@ -126,7 +125,7 @@ self.data_dir = Path(self.config.get("data_dir", "data/oauth"))
 
     def _load_default_config(self) -> Dict[str, Any]:
         """Load default OAuth configuration."""
-        return {}
+        return {
             "data_dir": "data/oauth",
             "access_token_ttl": 3600,  # 1 hour
             "refresh_token_ttl": 2592000,  # 30 days
@@ -135,7 +134,7 @@ self.data_dir = Path(self.config.get("data_dir", "data/oauth"))
             "require_pkce": True,
             "supported_scopes": [scope.value for scope in OAuthScope],
             "supported_grant_types": [grant.value for grant in GrantType]
-        }
+        }}
 
     async def initialize(self) -> bool:
         """Initialize the OAuth provider."""
@@ -201,20 +200,20 @@ self.data_dir = Path(self.config.get("data_dir", "data/oauth"))
 
             logger.info(f" Registered OAuth client: {client_name}")
 
-            return {}
+            return {
                 "success": True,
                 "client_id": client_id,
                 "client_secret": client_secret,
                 "message": "Client registered successfully"
-            }
+            }}
 
         except Exception as e:
             logger.error(f"Failed to register OAuth client: {e}")
             return {"success": False, "error": str(e)}
 
     async def authorize(self, client_id: str, redirect_uri: str, scopes: List[str],)
-                       user_id: str, state: Optional[str] = None, code_challenge: Optional[str] = None,
-                       code_challenge_method: Optional[str] = None) -> Dict[str, Any]:
+                    user_id: str, state: Optional[str] = None, code_challenge: Optional[str] = None,
+                    code_challenge_method: Optional[str] = None) -> Dict[str, Any]:
         """Generate authorization code for OAuth flow."""
         try:
             # Validate client
@@ -270,12 +269,12 @@ self.data_dir = Path(self.config.get("data_dir", "data/oauth"))
             query_string = "&".join([f"{k}={v}" for k, v in redirect_params.items()])
             redirect_url = f"{redirect_uri}?{query_string}"
 
-            return {}
+            return {
                 "success": True,
                 "authorization_code": auth_code,
                 "redirect_url": redirect_url,
                 "expires_in": self.config["authorization_code_ttl"]
-            }
+            }}
 
         except Exception as e:
             logger.error(f"Authorization failed: {e}")
@@ -338,21 +337,21 @@ self.data_dir = Path(self.config.get("data_dir", "data/oauth"))
             # Clean up authorization code
             del self.authorization_codes[code]
 
-            return {}
+            return {
                 "success": True,
                 "access_token": access_token.token,
                 "token_type": access_token.token_type,
                 "expires_in": int((access_token.expires_at - datetime.now(timezone.utc)).total_seconds()),
                 "refresh_token": refresh_token.token,
                 "scope": " ".join([scope.value for scope in authorization.scopes])
-            }
+            }}
 
         except Exception as e:
             logger.error(f"Token exchange failed: {e}")
             return {"success": False, "error": str(e)}
 
     async def refresh_access_token(self, client_id: str, client_secret: str,)
-                                 refresh_token: str) -> Dict[str, Any]:
+                                refresh_token: str) -> Dict[str, Any]:
         """Refresh an access token using refresh token."""
         try:
             # Validate client
@@ -382,13 +381,13 @@ self.data_dir = Path(self.config.get("data_dir", "data/oauth"))
                 client_id, refresh_token_obj.user_id, refresh_token_obj.scopes
             )
 
-            return {}
+            return {
                 "success": True,
                 "access_token": access_token.token,
                 "token_type": access_token.token_type,
                 "expires_in": int((access_token.expires_at - datetime.now(timezone.utc)).total_seconds()),
                 "scope": " ".join([scope.value for scope in refresh_token_obj.scopes])
-            }
+            }}
 
         except Exception as e:
             logger.error(f"Token refresh failed: {e}")
@@ -406,12 +405,12 @@ self.data_dir = Path(self.config.get("data_dir", "data/oauth"))
                 del self.access_tokens[token]
                 return None
 
-            return {}
+            return {
                 "client_id": access_token.client_id,
                 "user_id": access_token.user_id,
                 "scopes": [scope.value for scope in access_token.scopes],
                 "expires_at": access_token.expires_at.isoformat()
-            }
+            }}
 
         except Exception as e:
             logger.error(f"Token validation failed: {e}")
@@ -434,7 +433,7 @@ self.data_dir = Path(self.config.get("data_dir", "data/oauth"))
             return False
 
     async def _generate_access_token(self, client_id: str, user_id: str,)
-                                   scopes: List[OAuthScope]) -> AccessToken:
+                                scopes: List[OAuthScope]) -> AccessToken:
         """Generate a new access token."""
         token = secrets.token_urlsafe(32)
         expires_at = datetime.now(timezone.utc) + timedelta(seconds=self.config["access_token_ttl"])
@@ -557,7 +556,7 @@ self.data_dir = Path(self.config.get("data_dir", "data/oauth"))
 
     def _client_to_dict(self, client: OAuthClient) -> Dict[str, Any]:
         """Convert client to dictionary."""
-        return {}
+        return {
             "client_id": client.client_id,
             "client_secret": client.client_secret,
             "client_name": client.client_name,
@@ -568,7 +567,7 @@ self.data_dir = Path(self.config.get("data_dir", "data/oauth"))
             "created_at": client.created_at.isoformat(),
             "is_active": client.is_active,
             "is_trusted": client.is_trusted
-        }
+        }}
 
     def _dict_to_client(self, data: Dict[str, Any]) -> OAuthClient:
         """Convert dictionary to client."""
@@ -591,7 +590,7 @@ _oauth_provider: Optional[PluginOAuthProvider] = None
 
 
 def get_plugin_oauth_provider() -> PluginOAuthProvider:
-    """Get the global OAuth provider instance."""
+    """Get the global OAuth provider instance.
     global _oauth_provider
     if _oauth_provider is None:
         _oauth_provider = PluginOAuthProvider()

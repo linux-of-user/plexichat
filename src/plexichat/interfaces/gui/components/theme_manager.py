@@ -1,7 +1,7 @@
 """
 Advanced Theme Manager for PlexiChat GUI
 Provides sophisticated theming system with multiple themes and customization.
-"""
+
 
 import tkinter as tk
 from tkinter import ttk
@@ -26,8 +26,7 @@ class ThemeManager:
     - Theme persistence
     - Accessibility features
     """
-
-    def __init__(self, root: tk.Tk):
+        def __init__(self, root: tk.Tk):
         self.root = root
         self.style = ttk.Style()
         self.current_theme = "dark_modern"
@@ -465,7 +464,7 @@ class ThemeManager:
             logger.error(f"Failed to apply custom styles: {e}")
 
     def get_theme(self, theme_name: str) -> Optional[Dict[str, Any]]:
-        """Get theme data by name."""
+        """Get theme data by name.
         if theme_name in self.builtin_themes:
             return self.builtin_themes[theme_name]
         elif theme_name in self.custom_themes:
@@ -478,7 +477,7 @@ class ThemeManager:
         return list(self.builtin_themes.keys()) + list(self.custom_themes.keys())
 
     def get_current_theme(self) -> str:
-        """Get current theme name."""
+        Get current theme name."""
         return self.current_theme
 
     def get_theme_colors(self, theme_name: Optional[str] = None) -> Dict[str, str]:
@@ -488,7 +487,7 @@ class ThemeManager:
         return theme_data["colors"] if theme_data else {}
 
     def register_theme_callback(self, callback: callable):
-        """Register a callback for theme changes."""
+        """Register a callback for theme changes.
         self.theme_callbacks.append(callback)
 
     def notify_theme_change(self, theme_name: str, theme_data: Dict[str, Any]):

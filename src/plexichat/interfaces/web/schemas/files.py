@@ -2,7 +2,7 @@
 """
 File schemas for PlexiChat API.
 Enhanced with comprehensive validation and security.
-"""
+
 
 from datetime import datetime
 from typing import Optional, List, Dict, Any
@@ -12,7 +12,7 @@ from enum import Enum
 
 class FileType(str, Enum):
     """File type enumeration."""
-    IMAGE = "image"
+        IMAGE = "image"
     DOCUMENT = "document"
     VIDEO = "video"
     AUDIO = "audio"
@@ -31,7 +31,7 @@ class FileStatus(str, Enum):
 
 class FileBase(BaseModel):
     """Base file schema."""
-    filename: str = Field(..., min_length=1, max_length=255, description="Original filename")
+        filename: str = Field(..., min_length=1, max_length=255, description="Original filename")
     content_type: str = Field(..., description="MIME content type")
 
     @field_validator('filename')
@@ -48,7 +48,7 @@ class FileBase(BaseModel):
 
 class FileUpload(BaseModel):
     """File upload schema."""
-    filename: str = Field(..., min_length=1, max_length=255, description="Original filename")
+        filename: str = Field(..., min_length=1, max_length=255, description="Original filename")
     content_type: Optional[str] = Field(None, description="MIME content type")
     description: Optional[str] = Field(None, max_length=500, description="File description")
     tags: Optional[List[str]] = Field(None, description="File tags")
@@ -79,7 +79,7 @@ class FileUpload(BaseModel):
 
 class FileResponse(FileBase):
     """File response schema."""
-    id: int = Field(..., description="File ID")
+        id: int = Field(..., description="File ID")
     file_path: str = Field(..., description="File storage path")
     file_size: int = Field(..., description="File size in bytes")
     file_type: FileType = Field(..., description="File type category")
@@ -99,7 +99,7 @@ class FileResponse(FileBase):
 
 class FileListResponse(BaseModel):
     """File list response schema."""
-    files: List[FileResponse] = Field(..., description="List of files")
+        files: List[FileResponse] = Field(..., description="List of files")
     total_count: int = Field(..., description="Total number of files")
     total_size: int = Field(..., description="Total size in bytes")
     page: int = Field(..., description="Current page number")
@@ -110,7 +110,7 @@ class FileListResponse(BaseModel):
 
 class FileUpdate(BaseModel):
     """File update schema."""
-    filename: Optional[str] = Field(None, min_length=1, max_length=255, description="Updated filename")
+        filename: Optional[str] = Field(None, min_length=1, max_length=255, description="Updated filename")
     description: Optional[str] = Field(None, max_length=500, description="Updated description")
     tags: Optional[List[str]] = Field(None, description="Updated tags")
     is_public: Optional[bool] = Field(None, description="Updated public access flag")
@@ -141,7 +141,7 @@ class FileUpdate(BaseModel):
 
 class FileSearch(BaseModel):
     """File search schema."""
-    query: Optional[str] = Field(None, min_length=1, max_length=100, description="Search query")
+        query: Optional[str] = Field(None, min_length=1, max_length=100, description="Search query")
     file_type: Optional[FileType] = Field(None, description="Filter by file type")
     content_type: Optional[str] = Field(None, description="Filter by content type")
     tags: Optional[List[str]] = Field(None, description="Filter by tags")
@@ -161,7 +161,7 @@ class FileSearch(BaseModel):
 
 class FileStats(BaseModel):
     """File statistics schema."""
-    total_files: int = Field(default=0, description="Total file count")
+        total_files: int = Field(default=0, description="Total file count")
     total_size: int = Field(default=0, description="Total size in bytes")
     files_today: int = Field(default=0, description="Files uploaded today")
     files_this_week: int = Field(default=0, description="Files uploaded this week")
@@ -173,7 +173,7 @@ class FileStats(BaseModel):
 
 class FileShare(BaseModel):
     """File sharing schema."""
-    file_id: int = Field(..., description="File ID to share")
+        file_id: int = Field(..., description="File ID to share")
     share_with_users: Optional[List[int]] = Field(None, description="User IDs to share with")
     share_publicly: bool = Field(default=False, description="Make publicly accessible")
     expires_at: Optional[datetime] = Field(None, description="Share expiration time")
@@ -183,7 +183,7 @@ class FileShare(BaseModel):
 
 class FileShareResponse(BaseModel):
     """File share response schema."""
-    share_id: str = Field(..., description="Unique share ID")
+        share_id: str = Field(..., description="Unique share ID")
     share_url: str = Field(..., description="Share URL")
     expires_at: Optional[datetime] = Field(None, description="Expiration time")
     download_count: int = Field(default=0, description="Current download count")

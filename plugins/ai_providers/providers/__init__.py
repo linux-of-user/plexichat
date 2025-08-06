@@ -5,6 +5,7 @@ This package contains various AI provider implementations for the PlexiChat syst
 """
 
 import logging
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -59,15 +60,15 @@ def get_available_providers():
         providers.append('huggingface')
     return providers
 
-def create_provider(provider_name: str, config: dict = None):
+def create_provider(provider_name: str, config: Optional[dict] = None):
     """Create an AI provider instance by name."""
     config = config or {}
 
-    if provider_name.lower() == 'bitnet' and bitnet_available:
+    if provider_name.lower() == 'bitnet' and bitnet_available and BitNetProvider is not None:
         return BitNetProvider(BitNetConfig(**config))
-    elif provider_name.lower() == 'llama' and llama_available:
+    elif provider_name.lower() == 'llama' and llama_available and LlamaProvider is not None:
         return LlamaProvider(LlamaConfig(**config))
-    elif provider_name.lower() == 'huggingface' and hf_available:
+    elif provider_name.lower() == 'huggingface' and hf_available and HuggingFaceProvider is not None:
         return HuggingFaceProvider(HFConfig(**config))
     else:
         raise ValueError(f"Provider '{provider_name}' not available or not supported")

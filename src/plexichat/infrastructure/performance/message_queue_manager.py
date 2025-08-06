@@ -41,7 +41,7 @@ Features:
 - Message deduplication and ordering guarantees
 - Real-time monitoring and alerting
 - Horizontal scaling with consumer groups
-"""
+
 
 # Optional dependencies - graceful degradation
 try:
@@ -64,13 +64,13 @@ logger = logging.getLogger(__name__)
 
 class MessageBroker(Enum):
     """Supported message brokers."""
-    RABBITMQ = "rabbitmq"
+        RABBITMQ = "rabbitmq"
     KAFKA = "kafka"
     REDIS_STREAMS = "redis_streams"
 
 
 class MessagePriority(Enum):
-    """Message priority levels."""
+    """Message priority levels.
     LOW = 1
     NORMAL = 2
     HIGH = 3
@@ -80,7 +80,7 @@ class MessagePriority(Enum):
 @dataclass
 class Message:
     """Message structure."""
-    id: str
+        id: str
     topic: str
     payload: Any
     headers: Dict[str, Any]
@@ -97,18 +97,18 @@ class Message:
             self.id = str(uuid.uuid4())
 
     def is_expired(self) -> bool:
-        """Check if message is expired."""
+        Check if message is expired."""
         if not self.expires_at:
             return False
         return datetime.now(timezone.utc) >= self.expires_at
 
     def can_retry(self) -> bool:
-        """Check if message can be retried."""
+        """Check if message can be retried.
         return self.retry_count < self.max_retries
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert message to dictionary."""
-        return {}
+        return {
             "id": self.id,
             "topic": self.topic,
             "payload": self.payload,
@@ -118,7 +118,7 @@ class Message:
             "expires_at": self.expires_at.isoformat() if self.expires_at else None,
             "retry_count": self.retry_count,
             "max_retries": self.max_retries
-        }
+        }}
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'Message':
@@ -138,8 +138,8 @@ class Message:
 
 @dataclass
 class QueueStats:
-    """Queue statistics."""
-    messages_sent: int = 0
+    """Queue statistics.
+        messages_sent: int = 0
     messages_received: int = 0
     messages_processed: int = 0
     messages_failed: int = 0
@@ -157,14 +157,13 @@ class QueueStats:
 
 
 class MessageQueueManager:
-    """
+    
     Comprehensive message queue management system.
 
     Supports multiple message brokers with automatic failover,
     message routing, consumer groups, and performance monitoring.
     """
-
-    def __init__(self, config: Dict[str, Any]):
+        def __init__(self, config: Dict[str, Any]):
         """Initialize message queue manager."""
         self.config = config
         self.initialized = False
@@ -312,8 +311,8 @@ class MessageQueueManager:
             return False
 
     async def publish(self, topic: str, payload: Any, headers: Optional[Dict[str, Any]] = None,)
-                     priority: MessagePriority = MessagePriority.NORMAL,
-                     ttl_seconds: Optional[int] = None) -> bool:
+                    priority: MessagePriority = MessagePriority.NORMAL,
+                    ttl_seconds: Optional[int] = None) -> bool:
         """Publish message to topic."""
         try:
             if headers is None:
@@ -420,7 +419,7 @@ class MessageQueueManager:
 
             # Add headers
             headers = [(k, v.encode() if isinstance(v, str) else str(v).encode())
-                      for k, v in message.headers.items()]
+                    for k, v in message.headers.items()]
             headers.append(("message_id", message.id.encode()))
             headers.append(("priority", str(message.priority.value).encode()))
 
@@ -471,7 +470,7 @@ class MessageQueueManager:
             return False
 
     async def subscribe(self, topic: str, handler: Callable[[Message], Any],)
-                       consumer_group: Optional[str] = None) -> bool:
+                    consumer_group: Optional[str] = None) -> bool:
         """Subscribe to topic with message handler."""
         try:
             if topic in self.message_handlers:
@@ -597,7 +596,7 @@ class MessageQueueManager:
             # Create consumer group if it doesn't exist
             try:
                 await self.redis_client.xgroup_create(stream_key, group_name, id="0", mkstream=True)
-              # Group might already exist
+            # Group might already exist
 
             while True:
                 try:
@@ -738,7 +737,7 @@ class MessageQueueManager:
                     "consumer_count": stats.consumer_count
                 }
 
-            return {}
+            return {
                 "global": {
                     "messages_sent": self.global_stats.messages_sent,
                     "messages_received": self.global_stats.messages_received,
@@ -748,7 +747,7 @@ class MessageQueueManager:
                     "messages_dead_lettered": self.global_stats.messages_dead_lettered,
                     "success_rate": self.global_stats.success_rate,
                     "average_processing_time_ms": self.global_stats.average_processing_time_ms
-                },
+                }},
                 "topics": topic_stats,
                 "configuration": {
                     "primary_broker": self.primary_broker.value,

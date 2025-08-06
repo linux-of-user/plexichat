@@ -17,13 +17,12 @@ from sqlalchemy import DateTime, Index, Text
 """
 Device management models for intelligent shard distribution.
 Handles device-based backup storage and smart shard placement.
-"""
+
 
 
 class DeviceType(str, Enum):
     """Types of devices that can store shards."""
-
-    DESKTOP = "desktop"
+        DESKTOP = "desktop"
     LAPTOP = "laptop"
     SERVER = "server"
     MOBILE = "mobile"
@@ -43,8 +42,7 @@ class DeviceStatus(str, Enum):
 
 class ConnectionType(str, Enum):
     """Device connection types."""
-
-    ETHERNET = "ethernet"
+        ETHERNET = "ethernet"
     WIFI = "wifi"
     CELLULAR = "cellular"
     SATELLITE = "satellite"
@@ -142,8 +140,7 @@ class StorageDevice(SQLModel, table=True):
 
 class DeviceShardAssignment(SQLModel, table=True):
     """Tracks which shards are assigned to which devices."""
-
-    __tablename__ = "device_shard_assignments"
+        __tablename__ = "device_shard_assignments"
 
     id: Optional[int] = Field(default=None, primary_key=True)
 
@@ -192,8 +189,7 @@ class DeviceShardAssignment(SQLModel, table=True):
 
 class DeviceCapabilityReport(SQLModel, table=True):
     """Periodic reports of device capabilities and status."""
-
-    __tablename__ = "device_capability_reports"
+        __tablename__ = "device_capability_reports"
 
     id: Optional[int] = Field(default=None, primary_key=True)
     device_id: int = Field(foreign_key="storage_devices.id", index=True)
@@ -239,8 +235,7 @@ class DeviceCapabilityReport(SQLModel, table=True):
 
 class ShardDistributionStrategy(SQLModel, table=True):
     """Configuration for shard distribution strategies."""
-
-    __tablename__ = "shard_distribution_strategies"
+        __tablename__ = "shard_distribution_strategies"
 
     id: Optional[int] = Field(default=None, primary_key=True)
 
@@ -284,8 +279,7 @@ class ShardDistributionStrategy(SQLModel, table=True):
 
 class DeviceNetworkTopology(SQLModel, table=True):
     """Network topology information for optimal shard placement."""
-
-    __tablename__ = "device_network_topology"
+        __tablename__ = "device_network_topology"
 
     id: Optional[int] = Field(default=None, primary_key=True)
 

@@ -112,7 +112,7 @@ def run_command(
     command: str = Argument(..., help="Command to execute"),
     args: List[str] = Argument(None, help="Command arguments")
 ):
-    """Execute a command by name."""
+    """Execute a command by name.
     async def _run():
         await ultimate_cli.execute_command(command, *args)
 
@@ -214,7 +214,7 @@ def initialize_ultimate_cli():
 
 # Additional command registration functions would be called here
 def register_all_commands():
-    """Register all 200+ commands across all categories."""
+    """Register all 200+ commands across all categories.
 
     # Core commands are already registered by importing the module
     # System commands are already registered by importing the module

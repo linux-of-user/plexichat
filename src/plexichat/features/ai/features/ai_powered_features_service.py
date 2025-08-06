@@ -46,14 +46,14 @@ PlexiChat AI-Powered Features Service
 
 Comprehensive AI-powered features including smart summarization, content suggestions,
 sentiment analysis, semantic search, and automated moderation with multiple AI providers.
-"""
+
 
 logger = get_logger(__name__)
 
 
 class FeatureType(str, Enum):
     """AI feature types."""
-    SUMMARIZATION = "summarization"
+        SUMMARIZATION = "summarization"
     CONTENT_SUGGESTIONS = "content_suggestions"
     SENTIMENT_ANALYSIS = "sentiment_analysis"
     SEMANTIC_SEARCH = "semantic_search"
@@ -73,7 +73,7 @@ class SentimentType(str, Enum):
 
 class ModerationAction(str, Enum):
     """Moderation actions."""
-    APPROVE = "approve"
+        APPROVE = "approve"
     FLAG = "flag"
     BLOCK = "block"
     REVIEW = "review"
@@ -98,7 +98,7 @@ class SummarizationResult:
 @dataclass
 class ContentSuggestion:
     """Content suggestion data structure."""
-    suggestion_id: str
+        suggestion_id: str
     context: str
     suggestion: str
     suggestion_type: str  # "completion", "improvement", "alternative"
@@ -109,8 +109,8 @@ class ContentSuggestion:
 
 @dataclass
 class SentimentAnalysisResult:
-    """Sentiment analysis result data structure."""
-    analysis_id: str
+    """Sentiment analysis result data structure.
+        analysis_id: str
     text: str
     sentiment: SentimentType
     confidence_score: float
@@ -123,7 +123,7 @@ class SentimentAnalysisResult:
 @dataclass
 class SemanticSearchResult:
     """Semantic search result data structure."""
-    result_id: str
+        result_id: str
     content: str
     similarity_score: float
     metadata: Dict[str, Any] = field(default_factory=dict)
@@ -132,8 +132,8 @@ class SemanticSearchResult:
 
 @dataclass
 class ModerationResult:
-    """Automated moderation result data structure."""
-    moderation_id: str
+    Automated moderation result data structure."""
+        moderation_id: str
     content: str
     action: ModerationAction
     confidence_score: float
@@ -146,8 +146,7 @@ class ModerationResult:
 
 class AIPoweredFeaturesService(BaseService):
     """AI-powered features service with comprehensive functionality."""
-
-    def __init__(self, config_path: Optional[Path] = None):
+        def __init__(self, config_path: Optional[Path] = None):
         super().__init__("ai_powered_features")
 
         # Configuration management
@@ -184,7 +183,7 @@ class AIPoweredFeaturesService(BaseService):
 
     def _get_default_configuration(self) -> Dict[str, Any]:
         """Get default configuration for AI-powered features."""
-        return {}
+        return {
             # General Settings
             "enabled": True,
             "debug_mode": False,
@@ -199,7 +198,7 @@ class AIPoweredFeaturesService(BaseService):
                 "timeout_seconds": 30,
                 "max_retries": 3,
                 "rate_limit_per_minute": 100
-            },
+            }},
 
             # Summarization Settings
             "summarization": {
@@ -503,7 +502,7 @@ class AIPoweredFeaturesService(BaseService):
             return f"Provide {max_suggestions} content suggestions for: {context}\n\nSuggestions:"
 
     def _parse_content_suggestions(self, response: str, context: str, suggestion_type: str) -> List[ContentSuggestion]:
-        """Parse AI response into content suggestions."""
+        """Parse AI response into content suggestions.
         suggestions = []
         lines = response.strip().split('\n')
 
@@ -612,7 +611,7 @@ Format as JSON:
 }"""
 
     def _parse_sentiment_response(self, response: str, original_text: str) -> SentimentAnalysisResult:
-        """Parse AI response into sentiment analysis result."""
+        Parse AI response into sentiment analysis result."""
         try:
             # Try to parse JSON response
             data = json.loads(response.strip())
@@ -767,7 +766,7 @@ Format as JSON:
             logger.error(f"Failed to rebuild semantic vectors: {e}")
 
     def _matches_filters(self, metadata: Dict[str, Any], filters: Dict[str, Any]) -> bool:
-        """Check if metadata matches the provided filters."""
+        """Check if metadata matches the provided filters.
         for key, value in filters.items():
             if key not in metadata or metadata[key] != value:
                 return False
@@ -871,7 +870,7 @@ Guidelines:
 """
 
     def _parse_moderation_response(self, response: str, content: str, content_id: str) -> ModerationResult:
-        """Parse AI response into moderation result."""
+        Parse AI response into moderation result."""
         try:
             # Try to parse JSON response
             data = json.loads(response.strip())
@@ -1029,7 +1028,7 @@ Path("data/semantic_index.json")
                 logger.error(f"Cache cleanup task error: {e}")
 
     def _clean_cache_by_age(self, cache: Dict[str, Any], ttl_hours: int):
-        """Clean cache entries older than TTL."""
+        """Clean cache entries older than TTL.
         current_time = datetime.now(timezone.utc)
         expired_keys = []
 
@@ -1103,7 +1102,7 @@ Path("data/ai_features_cache")
 
     async def get_feature_statistics(self) -> Dict[str, Any]:
         """Get comprehensive feature statistics."""
-        return {}
+        return {
             "feature_stats": self.feature_stats.copy(),
             "cache_sizes": {
                 "summarization": len(self.summarization_cache),
@@ -1111,7 +1110,7 @@ Path("data/ai_features_cache")
                 "sentiment": len(self.sentiment_cache),
                 "semantic_index": len(self.semantic_index),
                 "moderation": len(self.moderation_cache)
-            },
+            }},
             "semantic_search": {
                 "indexed_documents": len(self.document_metadata),
                 "index_size": len(self.semantic_index)

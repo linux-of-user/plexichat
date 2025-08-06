@@ -15,14 +15,14 @@ Advanced migration system with:
 - Automatic rollback on failure
 - Multi-database coordination
 - Real-time validation and monitoring
-"""
+
 
 logger = logging.getLogger(__name__)
 
 
 class MigrationPhase(Enum):
     """Phases of zero-downtime migration."""
-    PREPARING = "preparing"
+        PREPARING = "preparing"
     DUAL_WRITE_SETUP = "dual_write_setup"
     SCHEMA_CHANGE = "schema_change"
     DATA_MIGRATION = "data_migration"
@@ -45,7 +45,7 @@ class MigrationStrategy(Enum):
 
 class ConsistencyLevel(Enum):
     """Data consistency levels during migration."""
-    EVENTUAL = "eventual"
+        EVENTUAL = "eventual"
     STRONG = "strong"
     CAUSAL = "causal"
     MONOTONIC = "monotonic"
@@ -53,7 +53,7 @@ class ConsistencyLevel(Enum):
 
 @dataclass
 class MigrationStep:
-    """Individual migration step."""
+    """Individual migration step.
     step_id: str
     phase: MigrationPhase
     description: str
@@ -73,7 +73,7 @@ class MigrationStep:
 @dataclass
 class ZeroDowntimeMigration:
     """Zero-downtime migration configuration."""
-    migration_id: str
+        migration_id: str
     name: str
     description: str
     strategy: MigrationStrategy
@@ -90,7 +90,7 @@ class ZeroDowntimeMigration:
     target_databases: List[str] = field(default_factory=list)
 
     def add_step(self, step: MigrationStep):
-        """Add migration step."""
+        """Add migration step.
         self.steps.append(step)
 
         # Extract affected tables from SQL commands
@@ -116,8 +116,8 @@ class ZeroDowntimeMigration:
 
 @dataclass
 class MigrationExecution:
-    """Migration execution state and results."""
-    migration_id: str
+    """Migration execution state and results.
+        migration_id: str
     current_phase: MigrationPhase
     current_step: int
     started_at: datetime
@@ -144,15 +144,14 @@ class MigrationExecution:
 
 class DualWriteManager:
     """Manages dual-write operations during migration."""
-
-    def __init__(self):
+        def __init__(self):
         self.active_dual_writes: Dict[str, Dict[str, Any]] = {}
         self.write_interceptors: Dict[str, Callable] = {}
         self.error_counts: Dict[str, int] = {}
 
     async def setup_dual_write(self, table_name: str, old_schema: Dict[str, Any],)
-                             new_schema: Dict[str, Any]) -> bool:
-        """Setup dual-write for table migration."""
+                            new_schema: Dict[str, Any]) -> bool:
+        Setup dual-write for table migration."""
         try:
             dual_write_config = {
                 "table_name": table_name,
@@ -219,7 +218,7 @@ class DualWriteManager:
         return interceptor
 
     def _transform_data(self, data: Dict[str, Any], field_mapping: Dict[str, str]) -> Dict[str, Any]:
-        """Transform data according to field mapping."""
+        """Transform data according to field mapping.
         transformed = {}
 
         for old_field, new_field in field_mapping.items():
@@ -235,7 +234,7 @@ class DualWriteManager:
         return True
 
     async def _write_to_new_schema(self, table_name: str, operation: str, data: Dict[str, Any]) -> bool:
-        """Write to new schema."""
+        Write to new schema."""
         # Placeholder for actual database write
         # In production, this would execute the SQL operation
         return True
@@ -252,9 +251,8 @@ class DualWriteManager:
 
 
 class ZeroDowntimeMigrationManager:
-    """Manages zero-downtime database migrations."""
-
-    def __init__(self):
+    """Manages zero-downtime database migrations.
+        def __init__(self):
         self.active_migrations: Dict[str, MigrationExecution] = {}
         self.migration_history: List[MigrationExecution] = []
         self.dual_write_manager = DualWriteManager()
@@ -338,7 +336,7 @@ class ZeroDowntimeMigrationManager:
         return execution
 
     async def _execute_phase(self, migration: ZeroDowntimeMigration,)
-                           execution: MigrationExecution, phase: MigrationPhase) -> bool:
+                        execution: MigrationExecution, phase: MigrationPhase) -> bool:
         """Execute specific migration phase."""
         try:
             logger.info(f"Executing phase: {phase.value}")
@@ -365,7 +363,7 @@ class ZeroDowntimeMigrationManager:
             return False
 
     async def _prepare_migration(self, migration: ZeroDowntimeMigration,)
-                               execution: MigrationExecution) -> bool:
+                            execution: MigrationExecution) -> bool:
         """Prepare migration environment."""
         try:
             # Validate migration configuration
@@ -455,7 +453,7 @@ datetime = datetime.now()
             return False
 
     async def _migrate_data(self, migration: ZeroDowntimeMigration,)
-                          execution: MigrationExecution) -> bool:
+                        execution: MigrationExecution) -> bool:
         """Migrate data between schemas."""
         try:
             data_steps = [step for step in migration.steps if step.phase == MigrationPhase.DATA_MIGRATION]
@@ -510,7 +508,7 @@ datetime = datetime.now()
             return False
 
     async def _execute_cutover(self, migration: ZeroDowntimeMigration,)
-                             execution: MigrationExecution) -> bool:
+                            execution: MigrationExecution) -> bool:
         """Execute cutover to new schema."""
         try:
             # Stop dual-write
@@ -536,7 +534,7 @@ datetime = datetime.now()
             return False
 
     async def _cleanup_migration(self, migration: ZeroDowntimeMigration,)
-                               execution: MigrationExecution) -> bool:
+                            execution: MigrationExecution) -> bool:
         """Cleanup migration artifacts."""
         try:
             cleanup_steps = [step for step in migration.steps if step.phase == MigrationPhase.CLEANUP]
@@ -580,7 +578,7 @@ datetime = datetime.now()
             logger.error(f"Migration rollback failed: {e}")
 
     async def _check_database_connection(self, db_name: str) -> bool:
-        """Check database connectivity."""
+        """Check database connectivity.
         # Placeholder for actual database connection check
         return True
 
@@ -600,7 +598,7 @@ datetime = datetime.now()
         return {"id": "INTEGER", "name": "VARCHAR(255)", "email": "VARCHAR(255)"}
 
     async def _execute_sql_with_retry(self, sql: str, retry_count: int) -> bool:
-        """Execute SQL with retry logic."""
+        """Execute SQL with retry logic.
         for attempt in range(retry_count):
             try:
                 # Placeholder for actual SQL execution
@@ -618,12 +616,12 @@ datetime = datetime.now()
         return True
 
     async def _execute_data_migration_sql(self, sql: str) -> int:
-        """Execute data migration SQL and return affected rows."""
+        Execute data migration SQL and return affected rows."""
         # Placeholder for data migration execution
         return 100  # Simulate 100 rows affected
 
     async def _verify_strong_consistency(self, migration: ZeroDowntimeMigration) -> bool:
-        """Verify strong consistency requirements."""
+        """Verify strong consistency requirements.
         # Placeholder for consistency verification
         return True
 
@@ -632,7 +630,7 @@ datetime = datetime.now()
         return self.active_migrations.get(migration_id)
 
     def get_migration_history(self) -> List[MigrationExecution]:
-        """Get migration history."""
+        Get migration history."""
         return self.migration_history.copy()
 
 

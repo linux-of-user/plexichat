@@ -2,7 +2,7 @@
 PlexiChat Unified Monitoring System
 
 Provides comprehensive monitoring capabilities for the PlexiChat system.
-"""
+
 
 import logging
 import time
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class MetricData:
     """Metric data structure."""
-    name: str
+        name: str
     value: float
     unit: str
     timestamp: datetime = field(default_factory=datetime.now)
@@ -25,8 +25,8 @@ class MetricData:
 
 @dataclass
 class AlertRule:
-    """Alert rule configuration."""
-    name: str
+    Alert rule configuration."""
+        name: str
     metric: str
     threshold: float
     operator: str  # >, <, >=, <=, ==, !=
@@ -36,8 +36,8 @@ class AlertRule:
 
 @dataclass
 class AnalyticsEvent:
-    """Analytics event data structure."""
-    event_type: str
+    """Analytics event data structure.
+        event_type: str
     data: Dict[str, Any]
     timestamp: datetime = field(default_factory=datetime.now)
     user_id: Optional[str] = None
@@ -46,8 +46,7 @@ class AnalyticsEvent:
 
 class UnifiedMonitoringSystem:
     """Unified monitoring system for PlexiChat."""
-    
-    def __init__(self):
+        def __init__(self):
         self.metrics: Dict[str, List[MetricData]] = {}
         self.alert_rules: Dict[str, AlertRule] = {}
         self.last_alerts: Dict[str, datetime] = {}
@@ -80,7 +79,7 @@ class UnifiedMonitoringSystem:
             self.alert_rules[rule.name] = rule
     
     def record_metric(self, name: str, value: float, unit: str = "", tags: Optional[Dict[str, str]] = None):
-        """Record a metric value."""
+        """Record a metric value.
         metric = MetricData(
             name=name,
             value=value,
@@ -136,7 +135,7 @@ class UnifiedMonitoringSystem:
         logger.warning(f"ALERT: {rule.name} - {metric.name} {rule.operator} {rule.threshold} (current: {metric.value})")
     
     def get_metrics(self, name: str, since: Optional[datetime] = None) -> List[MetricData]:
-        """Get metrics by name."""
+        """Get metrics by name.
         if name not in self.metrics:
             return []
         
@@ -155,7 +154,7 @@ class UnifiedMonitoringSystem:
         return self.metrics[name][-1]
     
     def add_alert_rule(self, rule: AlertRule):
-        """Add an alert rule."""
+        Add an alert rule."""
         self.alert_rules[rule.name] = rule
         logger.info(f"Added alert rule: {rule.name}")
     
@@ -205,7 +204,7 @@ unified_monitoring_system = UnifiedMonitoringSystem()
 
 # Convenience functions
 def record_metric(name: str, value: float, unit: str = "", tags: Optional[Dict[str, str]] = None):
-    """Record a metric value."""
+    """Record a metric value.
     unified_monitoring_system.record_metric(name, value, unit, tags)
 
 
@@ -215,12 +214,12 @@ def get_metrics(name: str, since: Optional[datetime] = None) -> List[MetricData]
 
 
 def get_latest_metric(name: str) -> Optional[MetricData]:
-    """Get the latest metric value."""
+    Get the latest metric value."""
     return unified_monitoring_system.get_latest_metric(name)
 
 
 def get_system_status() -> Dict[str, Any]:
-    """Get overall system status."""
+    """Get overall system status.
     return unified_monitoring_system.get_system_status()
 
 
@@ -230,12 +229,12 @@ def track_event(event_type: str, data: Dict[str, Any], user_id: Optional[str] = 
 
 
 def get_analytics_manager():
-    """Get the analytics manager (backward compatibility)."""
+    Get the analytics manager (backward compatibility)."""
     return unified_monitoring_system
 
 
 def get_analytics_metrics(**kwargs) -> Dict[str, Any]:
-    """Get analytics metrics (backward compatibility)."""
+    """Get analytics metrics (backward compatibility).
     return unified_monitoring_system.get_system_status()
 
 

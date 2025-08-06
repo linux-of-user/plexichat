@@ -39,7 +39,7 @@ Provides secure communication between cluster nodes with:
 - Hot update support
 - Heartbeat encryption
 - Single source of truth
-"""
+
     cluster,
     communication,
     cryptography,
@@ -74,7 +74,7 @@ logger = logging.getLogger(__name__)
 
 class CryptoAlgorithm(Enum):
     """Supported cryptographic algorithms."""
-    AES_256_GCM = "aes-256-gcm"
+        AES_256_GCM = "aes-256-gcm"
     CHACHA20_POLY1305 = "chacha20-poly1305"
     AES_256_GCM_SIV = "aes-256-gcm-siv"  # Misuse-resistant
 
@@ -89,7 +89,7 @@ class KeyExchangeMethod(Enum):
 
 class MessageType(Enum):
     """Types of inter-node messages."""
-    HEARTBEAT = "heartbeat"
+        HEARTBEAT = "heartbeat"
     STATUS_UPDATE = "status_update"
     LOAD_BALANCE = "load_balance"
     FAILOVER = "failover"
@@ -102,7 +102,7 @@ class MessageType(Enum):
 
 
 class SecurityLevel(Enum):
-    """Security levels for different message types."""
+    """Security levels for different message types.
     STANDARD = 1      # Standard encryption
     HIGH = 2          # Enhanced encryption + integrity
     CRITICAL = 3      # Maximum security + PFS
@@ -112,7 +112,7 @@ class SecurityLevel(Enum):
 @dataclass
 class CryptoContext:
     """Cryptographic context for a communication session."""
-    algorithm: CryptoAlgorithm
+        algorithm: CryptoAlgorithm
     key_exchange_method: KeyExchangeMethod
     security_level: SecurityLevel
     session_key: bytes
@@ -125,8 +125,8 @@ class CryptoContext:
 
 @dataclass
 class EncryptedMessage:
-    """Enhanced encrypted message between nodes."""
-    message_id: str
+    Enhanced encrypted message between nodes."""
+        message_id: str
     sender_node_id: str
     recipient_node_id: str
     message_type: MessageType
@@ -157,8 +157,7 @@ class EnhancedEncryptedCommunicationManager:
     - Unified security architecture integration
     - Zero-downtime key rotation
     """
-
-    def __init__(self, node_id: str, data_dir: Path):
+        def __init__(self, node_id: str, data_dir: Path):
         self.node_id = node_id
         from pathlib import Path
 self.data_dir = Path(data_dir)
@@ -514,7 +513,7 @@ self.data_dir = Path(data_dir)
             raise
 
     async def send_encrypted_message(self, recipient_node_id: str, message_type: MessageType,)
-                                   payload: Dict[str, Any]) -> Optional[str]:
+                                payload: Dict[str, Any]) -> Optional[str]:
         """
         Send encrypted message to another node.
 
@@ -613,20 +612,20 @@ self.data_dir = Path(data_dir)
 
             logger.debug(f"Received encrypted message {message.message_id} from {message.sender_node_id}")
 
-            return {}
+            return {
                 'message_id': message.message_id,
                 'sender_node_id': message.sender_node_id,
                 'message_type': message.message_type.value,
                 'payload': payload,
                 'timestamp': message.timestamp.isoformat()
-            }
+            }}
 
         except Exception as e:
             logger.error(f"Failed to receive encrypted message: {e}")
             return None
 
     async def send_heartbeat(self, recipient_node_id: str, status_data: Dict[str, Any]) -> bool:
-        """Send encrypted heartbeat message."""
+        """Send encrypted heartbeat message.
         if not HEARTBEAT_ENCRYPTION:
             return True  # Skip encryption for heartbeats if disabled
 
@@ -711,7 +710,7 @@ self.data_dir = Path(data_dir)
 
     async def get_statistics(self) -> Dict[str, Any]:
         """Get communication statistics."""
-        return {}
+        return {
             **self.stats,
             'current_key_version': self.current_key_version,
             'trusted_nodes': len(self.trusted_nodes),
@@ -719,4 +718,4 @@ self.data_dir = Path(data_dir)
             'encryption_enabled': INTER_NODE_ENCRYPTION,
             'heartbeat_encryption': HEARTBEAT_ENCRYPTION,
             'hot_update_support': HOT_UPDATE_SUPPORT
-        }
+        }}

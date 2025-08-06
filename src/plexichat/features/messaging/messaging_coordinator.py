@@ -42,15 +42,14 @@ Central coordinator for all messaging features including:
 - Voice/video channels
 - Business automation
 - Real-time messaging coordination
-"""
+
 
 logger = logging.getLogger(__name__)
 
 
 class AdvancedMessagingCoordinator:
     """Central coordinator for advanced messaging features."""
-
-    def __init__(self):
+        def __init__(self):
         self.user_manager = advanced_user_manager
         self.group_manager = group_manager
         self.voice_video_manager = voice_video_manager
@@ -62,7 +61,7 @@ class AdvancedMessagingCoordinator:
         self.message_reactions: Dict[str, Dict[str, List[str]]] = {}  # message_id -> reaction -> user_ids
 
     async def initialize(self):
-        """Initialize the messaging coordinator."""
+        Initialize the messaging coordinator."""
         logger.info(" Initializing Advanced Messaging Coordinator...")
 
         # Initialize default users and groups for demo
@@ -136,8 +135,8 @@ class AdvancedMessagingCoordinator:
             logger.error(f"Failed to create demo data: {e}")
 
     async def send_message(self, sender_id: str, target_id: str, message: str,)
-                          target_type: str = "user", message_type: str = "text",
-                          media_url: Optional[str] = None) -> Dict[str, Any]:
+                        target_type: str = "user", message_type: str = "text",
+                        media_url: Optional[str] = None) -> Dict[str, Any]:
         """Send message with advanced features."""
         try:
             # Get sender profile
@@ -163,7 +162,7 @@ class AdvancedMessagingCoordinator:
             return {"success": False, "error": str(e)}
 
     async def _send_direct_message(self, sender: RichUserProfile, recipient_id: str,)
-                                 message: str, media_url: Optional[str]) -> Dict[str, Any]:
+                                message: str, media_url: Optional[str]) -> Dict[str, Any]:
         """Send direct message between users."""
         recipient = self.user_manager.get_user_profile(recipient_id)
         if not recipient:
@@ -245,7 +244,7 @@ settings.get("allow_direct_messages", True):
         return {"success": True, "message_data": message_data}
 
     async def _send_channel_message(self, sender: RichUserProfile, channel_id: str,)
-                                  message: str, media_url: Optional[str]) -> Dict[str, Any]:
+                                message: str, media_url: Optional[str]) -> Dict[str, Any]:
         """Send message to voice/video channel."""
         if channel_id not in self.voice_video_manager.channels:
             return {"success": False, "error": "Channel not found"}
@@ -284,7 +283,7 @@ settings.get("allow_direct_messages", True):
             self.typing_indicators[target_id].discard(user_id)
 
     async def add_reaction(self, user_id: str, message_id: str, reaction: str) -> bool:
-        """Add reaction to message."""
+        """Add reaction to message.
         if message_id not in self.message_reactions:
             self.message_reactions[message_id] = {}
 
@@ -309,7 +308,7 @@ settings.get("allow_direct_messages", True):
         return False
 
     async def _cleanup_typing_indicators(self):
-        """Background task to cleanup old typing indicators."""
+        Background task to cleanup old typing indicators."""
         while True:
             try:
                 await asyncio.sleep(5)  # Cleanup every 5 seconds
@@ -338,13 +337,13 @@ settings.get("allow_direct_messages", True):
         """Get comprehensive system status."""
         user_analytics = self.user_manager.get_user_analytics()
 
-        return {}
+        return {
             "messaging_system": {
                 "users": user_analytics,
                 "groups": {
                     "total_groups": len(self.group_manager.groups),
                     "active_groups": sum(1 for g in self.group_manager.groups.values() if g.members)
-                },
+                }},
                 "voice_video": {
                     "total_channels": len(self.voice_video_manager.channels),
                     "active_channels": sum(1 for c in self.voice_video_manager.channels.values() if c.is_active)

@@ -53,8 +53,8 @@ import time
 
 @dataclass
 class RecoveryPlan:
-    """Plan for recovering a backup from available shards."""
-    backup_id: int
+    Plan for recovering a backup from available shards."""
+        backup_id: int
     backup_name: str
     total_shards: int
     available_shards: int
@@ -68,8 +68,8 @@ class RecoveryPlan:
 
 @dataclass
 class ShardRecoveryStatus:
-    """Status of individual shard recovery."""
-    shard_id: int
+    """Status of individual shard recovery.
+        shard_id: int
     recovery_attempts: int
     successful_sources: List[int]
     failed_sources: List[int]
@@ -81,7 +81,7 @@ class ShardRecoveryStatus:
 @dataclass
 class RedundancyAnalysis:
     """Analysis of backup redundancy and risk assessment."""
-    backup_id: int
+        backup_id: int
     current_redundancy_level: int
     target_redundancy_level: int
     at_risk_shards: List[int]
@@ -92,9 +92,8 @@ class RedundancyAnalysis:
 
 
 class AdvancedRecoverySystem:
-    """Advanced recovery system with intelligent algorithms and redundancy management."""
-
-    def __init__(self, session: Session):
+    Advanced recovery system with intelligent algorithms and redundancy management."""
+        def __init__(self, session: Session):
         self.session = session
         from pathlib import Path
 self.recovery_workspace = Path("secure_backups/recovery")
@@ -524,7 +523,7 @@ shards = self.session.# SECURITY: exec() removed - use safe alternatives)
             return False
 
     async def _calculate_geographic_distribution_score(self, backup_id: int) -> float:
-        """Calculate geographic distribution score for backup."""
+        """Calculate geographic distribution score for backup.
         # Simplified implementation - would use actual geographic data
         return 0.8
 

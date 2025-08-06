@@ -44,7 +44,7 @@ Features:
 - Performance optimization with cache hit ratio tracking
 - Compression and serialization optimization
 - Cache stampede protection
-"""
+
 
 # Optional dependencies - graceful degradation if not available
 try:
@@ -67,7 +67,7 @@ logger = logging.getLogger(__name__)
 
 class CacheTier(Enum):
     """Cache tier levels."""
-    L1_MEMORY = "l1_memory"
+        L1_MEMORY = "l1_memory"
     L2_REDIS = "l2_redis"
     L3_MEMCACHED = "l3_memcached"
     L4_CDN = "l4_cdn"
@@ -84,8 +84,8 @@ class CacheStrategy(Enum):
 
 @dataclass
 class CacheEntry:
-    """Cache entry with metadata."""
-    key: str
+    """Cache entry with metadata.
+        key: str
     value: Any
     tier: CacheTier
     created_at: datetime
@@ -102,15 +102,15 @@ class CacheEntry:
         return datetime.now(timezone.utc) >= self.expires_at
 
     def update_access(self):
-        """Update access statistics."""
+        Update access statistics."""
         self.access_count += 1
         self.last_accessed = datetime.now(timezone.utc)
 
 
 @dataclass
 class CacheStats:
-    """Cache statistics."""
-    hits: int = 0
+    """Cache statistics.
+        hits: int = 0
     misses: int = 0
     evictions: int = 0
     writes: int = 0
@@ -127,7 +127,7 @@ class CacheStats:
 
     @property
     def miss_ratio(self) -> float:
-        """Calculate cache miss ratio."""
+        Calculate cache miss ratio."""
         return 1.0 - self.hit_ratio
 
 
@@ -137,9 +137,8 @@ class MultiTierCacheManager:
 
     Provides comprehensive caching capabilities across multiple storage tiers
     with automatic failover, performance optimization, and analytics.
-    """
-
-    def __init__(self, config: Dict[str, Any]):
+    
+        def __init__(self, config: Dict[str, Any]):
         """Initialize multi-tier cache manager."""
         self.config = config
         self.initialized = False
@@ -716,7 +715,7 @@ class MultiTierCacheManager:
             return False
 
     def _select_cache_tiers(self, key: str, value: Any, ttl_seconds: int) -> List[CacheTier]:
-        """Select appropriate cache tiers for the given data."""
+        """Select appropriate cache tiers for the given data.
         tiers = []
 
         # Always try L1 for frequently accessed small data

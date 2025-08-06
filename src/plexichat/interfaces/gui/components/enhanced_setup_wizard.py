@@ -3,7 +3,7 @@ Enhanced Setup Wizard for PlexiChat.
 
 This module provides a comprehensive setup wizard accessible from the main GUI
 after login, with support for multiple database types and advanced configuration.
-"""
+
 
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
@@ -16,9 +16,8 @@ logger = logging.getLogger(__name__)
 
 class EnhancedSetupWizard:
     """Enhanced setup wizard with comprehensive database and configuration support."""
-    
-    def __init__(self, parent):
-        """Initialize the enhanced setup wizard."""
+        def __init__(self, parent):
+        Initialize the enhanced setup wizard."""
         self.parent = parent
         self.root = None
         self.current_step = 0
@@ -159,7 +158,7 @@ class EnhancedSetupWizard:
         header_frame.pack_propagate(False)
         
         title_label = tk.Label(header_frame, text="PlexiChat Setup Wizard",
-                             font=("Arial", 20, "bold"), bg='#34495e', fg='#3498db')
+                            font=("Arial", 20, "bold"), bg='#34495e', fg='#3498db')
         title_label.pack(pady=20)
         
         # Progress bar
@@ -170,7 +169,7 @@ class EnhancedSetupWizard:
         self.progress_bar.pack()
         
         self.step_label = tk.Label(progress_frame, text="Step 1 of 6: Welcome",
-                                 font=("Arial", 12), bg='#34495e', fg='white')
+                                font=("Arial", 12), bg='#34495e', fg='white')
         self.step_label.pack(pady=(10, 0))
         
         # Content area
@@ -194,9 +193,9 @@ class EnhancedSetupWizard:
         self.next_btn.pack(side='right', padx=(10, 0), ipadx=20, ipady=8)
         
         self.cancel_btn = tk.Button(self.navigation_frame, text="Cancel",
-                                  font=("Arial", 12), bg='#e74c3c', fg='white',
-                                  relief='flat', bd=0, command=self.cancel_setup,
-                                  cursor='hand2')
+                                font=("Arial", 12), bg='#e74c3c', fg='white',
+                                relief='flat', bd=0, command=self.cancel_setup,
+                                cursor='hand2')
         self.cancel_btn.pack(side='right', padx=(10, 0), ipadx=20, ipady=8)
         
     def show_step(self, step_index):
@@ -227,7 +226,7 @@ class EnhancedSetupWizard:
                 self.next_btn.config(text="Next >", bg='#3498db')
                 
     def create_welcome_step(self):
-        """Create the welcome step."""
+        """Create the welcome step.
         welcome_frame = tk.Frame(self.content_frame, bg='#34495e')
         welcome_frame.pack(fill='both', expand=True, padx=40, pady=40)
         
@@ -249,8 +248,8 @@ through the configuration files or this wizard.
 Click 'Next' to begin the configuration process."""
         
         welcome_label = tk.Label(welcome_frame, text=welcome_text,
-                               font=("Arial", 12), bg='#34495e', fg='white',
-                               justify='left', wraplength=600)
+                            font=("Arial", 12), bg='#34495e', fg='white',
+                            justify='left', wraplength=600)
         welcome_label.pack(pady=40)
         
         # System requirements check
@@ -267,7 +266,7 @@ Click 'Next' to begin the configuration process."""
         
         for req in requirements:
             req_label = tk.Label(req_frame, text=req, font=("Arial", 10),
-                               bg='#34495e', fg='#2ecc71')
+                            bg='#34495e', fg='#2ecc71')
             req_label.pack(anchor='w', padx=20, pady=2)
 
     def create_database_step(self):
@@ -277,17 +276,17 @@ Click 'Next' to begin the configuration process."""
 
         # Database type selection
         type_frame = tk.LabelFrame(db_frame, text="Database Type",
-                                 font=("Arial", 12, "bold"), bg='#34495e', fg='#3498db')
+                                font=("Arial", 12, "bold"), bg='#34495e', fg='#3498db')
         type_frame.pack(fill='x', pady=(0, 20))
 
         self.form_vars['db_type'] = tk.StringVar(value=self.config_data['database']['type'])
 
         for db_type, config in self.db_configs.items():
             rb = tk.Radiobutton(type_frame, text=f"{config['name']} - {config['description']}",
-                              variable=self.form_vars['db_type'], value=db_type,
-                              font=("Arial", 10), bg='#34495e', fg='white',
-                              selectcolor='#2c3e50', activebackground='#34495e',
-                              command=self.on_db_type_change)
+                            variable=self.form_vars['db_type'], value=db_type,
+                            font=("Arial", 10), bg='#34495e', fg='white',
+                            selectcolor='#2c3e50', activebackground='#34495e',
+                            command=self.on_db_type_change)
             rb.pack(anchor='w', padx=20, pady=5)
 
         # Database connection details
@@ -302,9 +301,9 @@ Click 'Next' to begin the configuration process."""
         test_frame.pack(fill='x')
 
         test_btn = tk.Button(test_frame, text="Test Connection",
-                           font=("Arial", 12), bg='#f39c12', fg='white',
-                           relief='flat', bd=0, command=self.test_db_connection,
-                           cursor='hand2')
+                        font=("Arial", 12), bg='#f39c12', fg='white',
+                        relief='flat', bd=0, command=self.test_db_connection,
+                        cursor='hand2')
         test_btn.pack(side='left', ipadx=20, ipady=8)
 
         self.connection_status = tk.Label(test_frame, text="",
@@ -324,7 +323,7 @@ Click 'Next' to begin the configuration process."""
         row = 0
         for field in fields:
             label = tk.Label(self.db_details_frame, text=f"{field.title()}:",
-                           font=("Arial", 10), bg='#34495e', fg='white')
+                        font=("Arial", 10), bg='#34495e', fg='white')
             label.grid(row=row, column=0, sticky='w', padx=20, pady=5)
 
             var_name = f'db_{field}'
@@ -336,10 +335,10 @@ Click 'Next' to begin the configuration process."""
 
             if field == 'password':
                 entry = tk.Entry(self.db_details_frame, textvariable=self.form_vars[var_name],
-                               font=("Arial", 10), show='*', width=30)
+                            font=("Arial", 10), show='*', width=30)
             else:
                 entry = tk.Entry(self.db_details_frame, textvariable=self.form_vars[var_name],
-                               font=("Arial", 10), width=30)
+                            font=("Arial", 10), width=30)
 
             entry.grid(row=row, column=1, sticky='w', padx=(10, 20), pady=5)
             row += 1
@@ -370,36 +369,36 @@ Click 'Next' to begin the configuration process."""
 
         # Server settings
         settings_frame = tk.LabelFrame(server_frame, text="Server Settings",
-                                     font=("Arial", 12, "bold"), bg='#34495e', fg='#3498db')
+                                    font=("Arial", 12, "bold"), bg='#34495e', fg='#3498db')
         settings_frame.pack(fill='x', pady=(0, 20))
 
         # Host
         tk.Label(settings_frame, text="Host:", font=("Arial", 10),
-               bg='#34495e', fg='white').grid(row=0, column=0, sticky='w', padx=20, pady=5)
+            bg='#34495e', fg='white').grid(row=0, column=0, sticky='w', padx=20, pady=5)
         self.form_vars['server_host'] = tk.StringVar(value=self.config_data['server']['host'])
         tk.Entry(settings_frame, textvariable=self.form_vars['server_host'],
-               font=("Arial", 10), width=30).grid(row=0, column=1, sticky='w', padx=(10, 20), pady=5)
+            font=("Arial", 10), width=30).grid(row=0, column=1, sticky='w', padx=(10, 20), pady=5)
 
         # Port
         tk.Label(settings_frame, text="Port:", font=("Arial", 10),
-               bg='#34495e', fg='white').grid(row=1, column=0, sticky='w', padx=20, pady=5)
+            bg='#34495e', fg='white').grid(row=1, column=0, sticky='w', padx=20, pady=5)
         self.form_vars['server_port'] = tk.StringVar(value=str(self.config_data['server']['port']))
         tk.Entry(settings_frame, textvariable=self.form_vars['server_port'],
-               font=("Arial", 10), width=30).grid(row=1, column=1, sticky='w', padx=(10, 20), pady=5)
+            font=("Arial", 10), width=30).grid(row=1, column=1, sticky='w', padx=(10, 20), pady=5)
 
         # Workers
         tk.Label(settings_frame, text="Worker Processes:", font=("Arial", 10),
-               bg='#34495e', fg='white').grid(row=2, column=0, sticky='w', padx=20, pady=5)
+            bg='#34495e', fg='white').grid(row=2, column=0, sticky='w', padx=20, pady=5)
         self.form_vars['server_workers'] = tk.StringVar(value=str(self.config_data['server']['workers']))
         tk.Entry(settings_frame, textvariable=self.form_vars['server_workers'],
-               font=("Arial", 10), width=30).grid(row=2, column=1, sticky='w', padx=(10, 20), pady=5)
+            font=("Arial", 10), width=30).grid(row=2, column=1, sticky='w', padx=(10, 20), pady=5)
 
         # Debug mode
         self.form_vars['server_debug'] = tk.BooleanVar(value=self.config_data['server']['debug'])
         tk.Checkbutton(settings_frame, text="Enable Debug Mode",
-                     variable=self.form_vars['server_debug'], font=("Arial", 10),
-                     bg='#34495e', fg='white', selectcolor='#2c3e50',
-                     activebackground='#34495e').grid(row=3, column=0, columnspan=2,
+                    variable=self.form_vars['server_debug'], font=("Arial", 10),
+                    bg='#34495e', fg='white', selectcolor='#2c3e50',
+                    activebackground='#34495e').grid(row=3, column=0, columnspan=2,
                                                     sticky='w', padx=20, pady=5)
 
     def create_security_step(self):
@@ -409,46 +408,46 @@ Click 'Next' to begin the configuration process."""
 
         # Security settings
         settings_frame = tk.LabelFrame(security_frame, text="Security Settings",
-                                     font=("Arial", 12, "bold"), bg='#34495e', fg='#3498db')
+                                    font=("Arial", 12, "bold"), bg='#34495e', fg='#3498db')
         settings_frame.pack(fill='x', pady=(0, 20))
 
         # JWT Secret
         tk.Label(settings_frame, text="JWT Secret Key:", font=("Arial", 10),
-               bg='#34495e', fg='white').grid(row=0, column=0, sticky='w', padx=20, pady=5)
+            bg='#34495e', fg='white').grid(row=0, column=0, sticky='w', padx=20, pady=5)
         self.form_vars['jwt_secret'] = tk.StringVar(value=self.config_data['security']['jwt_secret'])
         jwt_entry = tk.Entry(settings_frame, textvariable=self.form_vars['jwt_secret'],
-                           font=("Arial", 10), width=30, show='*')
+                        font=("Arial", 10), width=30, show='*')
         jwt_entry.grid(row=0, column=1, sticky='w', padx=(10, 20), pady=5)
 
         generate_btn = tk.Button(settings_frame, text="Generate",
-                               font=("Arial", 9), bg='#3498db', fg='white',
-                               relief='flat', bd=0, command=self.generate_jwt_secret,
-                               cursor='hand2')
+                            font=("Arial", 9), bg='#3498db', fg='white',
+                            relief='flat', bd=0, command=self.generate_jwt_secret,
+                            cursor='hand2')
         generate_btn.grid(row=0, column=2, padx=(5, 20), pady=5)
 
         # Session timeout
         tk.Label(settings_frame, text="Session Timeout (seconds):", font=("Arial", 10),
-               bg='#34495e', fg='white').grid(row=1, column=0, sticky='w', padx=20, pady=5)
+            bg='#34495e', fg='white').grid(row=1, column=0, sticky='w', padx=20, pady=5)
         self.form_vars['session_timeout'] = tk.StringVar(value=str(self.config_data['security']['session_timeout']))
         tk.Entry(settings_frame, textvariable=self.form_vars['session_timeout'],
-               font=("Arial", 10), width=30).grid(row=1, column=1, sticky='w', padx=(10, 20), pady=5)
+            font=("Arial", 10), width=30).grid(row=1, column=1, sticky='w', padx=(10, 20), pady=5)
 
         # Max login attempts
         tk.Label(settings_frame, text="Max Login Attempts:", font=("Arial", 10),
-               bg='#34495e', fg='white').grid(row=2, column=0, sticky='w', padx=20, pady=5)
+            bg='#34495e', fg='white').grid(row=2, column=0, sticky='w', padx=20, pady=5)
         self.form_vars['max_login_attempts'] = tk.StringVar(value=str(self.config_data['security']['max_login_attempts']))
         tk.Entry(settings_frame, textvariable=self.form_vars['max_login_attempts'],
-               font=("Arial", 10), width=30).grid(row=2, column=1, sticky='w', padx=(10, 20), pady=5)
+            font=("Arial", 10), width=30).grid(row=2, column=1, sticky='w', padx=(10, 20), pady=5)
 
         # Password minimum length
         tk.Label(settings_frame, text="Password Min Length:", font=("Arial", 10),
-               bg='#34495e', fg='white').grid(row=3, column=0, sticky='w', padx=20, pady=5)
+            bg='#34495e', fg='white').grid(row=3, column=0, sticky='w', padx=20, pady=5)
         self.form_vars['password_min_length'] = tk.StringVar(value=str(self.config_data['security']['password_min_length']))
         tk.Entry(settings_frame, textvariable=self.form_vars['password_min_length'],
-               font=("Arial", 10), width=30).grid(row=3, column=1, sticky='w', padx=(10, 20), pady=5)
+            font=("Arial", 10), width=30).grid(row=3, column=1, sticky='w', padx=(10, 20), pady=5)
 
     def generate_jwt_secret(self):
-        """Generate a random JWT secret."""
+        """Generate a random JWT secret.
         import secrets
         import string
         secret = ''.join(secrets.choice(string.ascii_letters + string.digits + '!@#$%^&*') for _ in range(64))
@@ -461,7 +460,7 @@ Click 'Next' to begin the configuration process."""
 
         # Features
         feat_frame = tk.LabelFrame(features_frame, text="Features",
-                                 font=("Arial", 12, "bold"), bg='#34495e', fg='#3498db')
+                                font=("Arial", 12, "bold"), bg='#34495e', fg='#3498db')
         feat_frame.pack(fill='x', pady=(0, 20))
 
         features = [
@@ -475,12 +474,12 @@ Click 'Next' to begin the configuration process."""
         for key, label in features:
             self.form_vars[key] = tk.BooleanVar(value=self.config_data['features'][key])
             tk.Checkbutton(feat_frame, text=label, variable=self.form_vars[key],
-                         font=("Arial", 10), bg='#34495e', fg='white',
-                         selectcolor='#2c3e50', activebackground='#34495e').pack(anchor='w', padx=20, pady=2)
+                        font=("Arial", 10), bg='#34495e', fg='white',
+                        selectcolor='#2c3e50', activebackground='#34495e').pack(anchor='w', padx=20, pady=2)
 
         # Performance
         perf_frame = tk.LabelFrame(features_frame, text="Performance",
-                                 font=("Arial", 12, "bold"), bg='#34495e', fg='#3498db')
+                                font=("Arial", 12, "bold"), bg='#34495e', fg='#3498db')
         perf_frame.pack(fill='x', pady=(0, 20))
 
         performance = [
@@ -493,12 +492,12 @@ Click 'Next' to begin the configuration process."""
         for key, label in performance:
             self.form_vars[key] = tk.BooleanVar(value=self.config_data['performance'][key])
             tk.Checkbutton(perf_frame, text=label, variable=self.form_vars[key],
-                         font=("Arial", 10), bg='#34495e', fg='white',
-                         selectcolor='#2c3e50', activebackground='#34495e').pack(anchor='w', padx=20, pady=2)
+                        font=("Arial", 10), bg='#34495e', fg='white',
+                        selectcolor='#2c3e50', activebackground='#34495e').pack(anchor='w', padx=20, pady=2)
 
         # Paths
         paths_frame = tk.LabelFrame(features_frame, text="Directory Paths",
-                                  font=("Arial", 12, "bold"), bg='#34495e', fg='#3498db')
+                                font=("Arial", 12, "bold"), bg='#34495e', fg='#3498db')
         paths_frame.pack(fill='x')
 
         paths = [
@@ -511,16 +510,16 @@ Click 'Next' to begin the configuration process."""
         row = 0
         for key, label in paths:
             tk.Label(paths_frame, text=f"{label}:", font=("Arial", 10),
-                   bg='#34495e', fg='white').grid(row=row, column=0, sticky='w', padx=20, pady=2)
+                bg='#34495e', fg='white').grid(row=row, column=0, sticky='w', padx=20, pady=2)
 
             self.form_vars[key] = tk.StringVar(value=self.config_data['paths'][key])
             tk.Entry(paths_frame, textvariable=self.form_vars[key],
-                   font=("Arial", 10), width=25).grid(row=row, column=1, sticky='w', padx=(10, 5), pady=2)
+                font=("Arial", 10), width=25).grid(row=row, column=1, sticky='w', padx=(10, 5), pady=2)
 
             browse_btn = tk.Button(paths_frame, text="Browse",
-                                 font=("Arial", 9), bg='#95a5a6', fg='white',
-                                 relief='flat', bd=0, cursor='hand2',
-                                 command=lambda k=key: self.browse_directory(k))
+                                font=("Arial", 9), bg='#95a5a6', fg='white',
+                                relief='flat', bd=0, cursor='hand2',
+                                command=lambda k=key: self.browse_directory(k))
             browse_btn.grid(row=row, column=2, padx=(5, 20), pady=2)
             row += 1
 
@@ -537,7 +536,7 @@ Click 'Next' to begin the configuration process."""
 
         # Review title
         title_label = tk.Label(review_frame, text="Configuration Review",
-                             font=("Arial", 16, "bold"), bg='#34495e', fg='#3498db')
+                            font=("Arial", 16, "bold"), bg='#34495e', fg='#3498db')
         title_label.pack(pady=(0, 20))
 
         # Create scrollable text widget for review
@@ -545,8 +544,8 @@ Click 'Next' to begin the configuration process."""
         text_frame.pack(fill='both', expand=True)
 
         self.review_text = tk.Text(text_frame, font=("Courier", 10),
-                                 bg='#2c3e50', fg='white', wrap='word',
-                                 relief='flat', bd=0)
+                                bg='#2c3e50', fg='white', wrap='word',
+                                relief='flat', bd=0)
         scrollbar = tk.Scrollbar(text_frame, orient='vertical', command=self.review_text.yview)
         self.review_text.configure(yscrollcommand=scrollbar.set)
 
@@ -561,13 +560,13 @@ Click 'Next' to begin the configuration process."""
         save_frame.pack(fill='x', pady=(20, 0))
 
         save_btn = tk.Button(save_frame, text="Save Configuration",
-                           font=("Arial", 12), bg='#27ae60', fg='white',
-                           relief='flat', bd=0, command=self.save_configuration,
-                           cursor='hand2')
+                        font=("Arial", 12), bg='#27ae60', fg='white',
+                        relief='flat', bd=0, command=self.save_configuration,
+                        cursor='hand2')
         save_btn.pack(side='left', ipadx=20, ipady=8)
 
         self.save_status = tk.Label(save_frame, text="",
-                                  font=("Arial", 10), bg='#34495e')
+                                font=("Arial", 10), bg='#34495e')
         self.save_status.pack(side='left', padx=(20, 0))
 
     def update_review(self):
@@ -592,7 +591,7 @@ Click 'Next' to begin the configuration process."""
         self.review_text.config(state='disabled')
 
     def collect_configuration(self):
-        """Collect all configuration from form variables."""
+        """Collect all configuration from form variables.
         config = {}
 
         # Database configuration
@@ -693,7 +692,7 @@ Click 'Next' to begin the configuration process."""
             logger.error(f"Failed to save configuration: {e}")
 
     def go_next(self):
-        """Go to the next step."""
+        """Go to the next step.
         if self.current_step < len(self.steps) - 1:
             # Validate current step
             if self.validate_current_step():
@@ -708,7 +707,7 @@ Click 'Next' to begin the configuration process."""
             self.show_step(self.current_step - 1)
 
     def validate_current_step(self):
-        """Validate the current step."""
+        Validate the current step."""
         if self.current_step == 1:  # Database step
             db_type = self.form_vars.get('db_type', tk.StringVar()).get()
             if not db_type:
@@ -770,7 +769,7 @@ Click 'Next' to begin the configuration process."""
 
                 # Restart application (implement restart logic)
                 messagebox.showinfo("Restart Required",
-                                  "Please restart PlexiChat manually to apply the new configuration.")
+                                "Please restart PlexiChat manually to apply the new configuration.")
             else:
                 self.root.destroy()
 

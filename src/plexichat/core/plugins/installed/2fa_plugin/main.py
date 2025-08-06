@@ -26,7 +26,7 @@ class TwoFactorAuthPlugin(PluginInterface):
     """
     Example 2FA plugin for PlexiChat. Provides endpoints to enable, verify, and manage 2FA for users.
     """
-    def __init__(self):
+        def __init__(self):
         super().__init__(name="2FAPlugin", version="1.0.0")
         self.router = router
 
@@ -36,12 +36,12 @@ class TwoFactorAuthPlugin(PluginInterface):
         return True
 
     def get_metadata(self):
-        return {}
+        return {
             "name": "2FA Plugin",
             "version": "1.0.0",
             "description": "Provides two-factor authentication endpoints for users.",
             "plugin_type": "security"
-        }
+        }}
 
 # --- 2FA Endpoints ---
 

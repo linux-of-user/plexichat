@@ -6,7 +6,7 @@ Consolidates database engine management from:
 - core/database/db_manager.py engine components - ENHANCED
 
 Provides unified interface for all database engines and connections.
-"""
+
 
 import asyncio
 import logging
@@ -48,7 +48,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class EngineConfig:
     """Unified engine configuration."""
-    engine_type: DatabaseType
+        engine_type: DatabaseType
     host: str = "localhost"
     port: Optional[int] = None
     database: str = "plexichat"
@@ -78,9 +78,8 @@ class EngineConfig:
 
 
 class DatabaseEngine(ABC):
-    """Abstract base class for database engines."""
-
-    def __init__(self, config: EngineConfig):
+    """Abstract base class for database engines.
+        def __init__(self, config: EngineConfig):
         self.config = config
         self.connection = None
         self.is_connected = False
@@ -92,12 +91,12 @@ class DatabaseEngine(ABC):
 
     @abstractmethod
     async def disconnect(self) -> bool:
-        """Disconnect from the database."""
+        Disconnect from the database."""
         pass
 
     @abstractmethod
     async def execute(self, query: str, params: Optional[Dict[str, Any]] = None) -> Any:
-        """Execute a query."""
+        """Execute a query.
         pass
 
     @abstractmethod
@@ -107,9 +106,8 @@ class DatabaseEngine(ABC):
 
 
 class SQLiteEngine(DatabaseEngine):
-    """SQLite database engine."""
-
-    async def connect(self) -> bool:
+    SQLite database engine."""
+        async def connect(self) -> bool:
         """Connect to SQLite database."""
         try:
             if not aiosqlite:
@@ -171,7 +169,7 @@ class SQLiteEngine(DatabaseEngine):
             raise
 
     async def health_check(self) -> bool:
-        """Check SQLite health using abstraction layer."""
+        """Check SQLite health using abstraction layer.
         try:
             from plexichat.core.database import database_manager
             return await database_manager.health_check()
@@ -181,9 +179,8 @@ class SQLiteEngine(DatabaseEngine):
 
 class PostgreSQLEngine(DatabaseEngine):
     """PostgreSQL database engine."""
-
-    async def connect(self) -> bool:
-        """Connect to PostgreSQL database."""
+        async def connect(self) -> bool:
+        Connect to PostgreSQL database."""
         try:
             if create_async_engine:
                 # SQLAlchemy async engine
@@ -270,9 +267,8 @@ class PostgreSQLEngine(DatabaseEngine):
 
 
 class MongoDBEngine(DatabaseEngine):
-    """MongoDB database engine."""
-
-    async def connect(self) -> bool:
+    """MongoDB database engine.
+        async def connect(self) -> bool:
         """Connect to MongoDB database."""
         try:
             if not motor:
@@ -327,7 +323,7 @@ class MongoDBEngine(DatabaseEngine):
             raise
 
     async def health_check(self) -> bool:
-        """Check MongoDB health."""
+        """Check MongoDB health.
         try:
             if not self.is_connected or not self.connection:
                 return False
@@ -339,9 +335,8 @@ class MongoDBEngine(DatabaseEngine):
 
 class MySQLEngine(DatabaseEngine):
     """MySQL database engine."""
-
-    async def connect(self) -> bool:
-        """Connect to MySQL database."""
+        async def connect(self) -> bool:
+        Connect to MySQL database."""
         try:
             if not create_async_engine:
                 logger.error("SQLAlchemy async engine not available")
@@ -407,9 +402,8 @@ class MySQLEngine(DatabaseEngine):
 
 
 class RedisEngine(DatabaseEngine):
-    """Redis database engine."""
-
-    async def connect(self) -> bool:
+    """Redis database engine.
+        async def connect(self) -> bool:
         """Connect to Redis database."""
         try:
             import redis.asyncio as redis_async
@@ -469,7 +463,7 @@ class RedisEngine(DatabaseEngine):
             raise
 
     async def health_check(self) -> bool:
-        """Check Redis health."""
+        """Check Redis health.
         try:
             if not self.is_connected or not self.connection:
                 return False
@@ -485,8 +479,7 @@ class UnifiedEngineManager:
 
     Consolidates all database engine management functionality.
     """
-
-    def __init__(self):
+        def __init__(self):
         self.engines: Dict[str, DatabaseEngine] = {}
         self.engine_classes = {
             # SQL Databases
@@ -506,7 +499,7 @@ class UnifiedEngineManager:
         }
 
     async def create_engine(self, name: str, config: EngineConfig) -> bool:
-        """Create and register a database engine."""
+        Create and register a database engine."""
         try:
             engine_class = self.engine_classes.get(config.engine_type)
             if not engine_class:
@@ -529,7 +522,7 @@ class UnifiedEngineManager:
             return False
 
     async def get_engine(self, name: str) -> Optional[DatabaseEngine]:
-        """Get a database engine by name."""
+        """Get a database engine by name.
         return self.engines.get(name)
 
     async def remove_engine(self, name: str) -> bool:

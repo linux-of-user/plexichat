@@ -57,7 +57,7 @@ except ImportError:
             self.connected = False
 
         async def connect(self):
-            """Connect to database."""
+            """Connect to database.
             self.connected = True
             return True
 
@@ -67,7 +67,7 @@ except ImportError:
             return True
 
         async def execute_query(self, query, params=None):
-            """Execute a database query."""
+            Execute a database query."""
             # Acknowledge parameters to avoid unused warnings
             _ = query, params
             # Mock result object
@@ -107,9 +107,8 @@ logger = logging.getLogger(__name__)
 
 
 class DatabaseClientFactory:
-    """Factory for creating database clients based on configuration."""
-
-    # Registry of available database client implementations
+    """Factory for creating database clients based on configuration.
+        # Registry of available database client implementations
     _client_registry: Dict[DatabaseType, Type[AbstractDatabaseClient]] = {
         # SQL Databases
         DatabaseType.POSTGRESQL: PostgreSQLClient,
@@ -136,7 +135,7 @@ class DatabaseClientFactory:
 
     @classmethod
     def register_repository(cls, name: str, repository_class):
-        """Register a repository class for dependency injection."""
+        """Register a repository class for dependency injection.
         return database_manager.register_repository(name, repository_class)
 
     @classmethod
@@ -146,7 +145,7 @@ class DatabaseClientFactory:
 
     @classmethod
     def create_client(cls, config: DatabaseConfig) -> AbstractDatabaseClient:
-        """Create appropriate database client based on configuration."""
+        Create appropriate database client based on configuration."""
         if config.type not in cls._client_registry:
             raise ValueError(f"Unsupported database type: {config.type.value}")
 
@@ -158,7 +157,7 @@ class DatabaseClientFactory:
 
     @classmethod
     def get_supported_types(cls) -> List[DatabaseType]:
-        """Get list of supported database types."""
+        """Get list of supported database types.
         return list(cls._client_registry.keys())
 
     @classmethod
@@ -168,9 +167,8 @@ class DatabaseClientFactory:
 
 
 class DatabaseManager:
-    """Enhanced database manager with factory pattern and advanced features."""
-
-    def __init__(self):
+    Enhanced database manager with factory pattern and advanced features."""
+        def __init__(self):
         self.clients: Dict[str, AbstractDatabaseClient] = {}
         self.configs: Dict[str, DatabaseConfig] = {}
         self.factory = DatabaseClientFactory()
@@ -231,7 +229,7 @@ class DatabaseManager:
             return False
 
     def get_client(self, name: str) -> Optional[AbstractDatabaseClient]:
-        """Get database client by name."""
+        """Get database client by name.
         return self.clients.get(name)
 
     def get_clients_by_type(self, db_type: DatabaseType) -> List[AbstractDatabaseClient]:
@@ -242,7 +240,7 @@ class DatabaseManager:
         ]
 
     async def connect_all(self) -> Dict[str, bool]:
-        """Connect to all configured databases."""
+        Connect to all configured databases."""
         results = {}
 
         for name, client in self.clients.items():

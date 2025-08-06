@@ -41,7 +41,7 @@ rate_limiter = RateLimiter()
 logger = logging.getLogger(__name__)
 class LoginRequest(BaseModel):
     """Enhanced login request with validation."""
-    username: str = Field(..., min_length=3, max_length=50, description="Username or email")
+        username: str = Field(..., min_length=3, max_length=50, description="Username or email")
     password: str = Field(..., min_length=8, max_length=128, description="User password")
     remember_me: bool = Field(default=False, description="Extended session duration")
     device_info: Optional[Dict[str, str]] = Field(default=None, description="Device information")
@@ -67,7 +67,7 @@ class LoginRequest(BaseModel):
 
 class LoginResponse(BaseModel):
     """Enhanced login response with additional metadata."""
-    access_token: str
+        access_token: str
     token_type: str = "bearer"
     expires_in: int
     refresh_token: Optional[str] = None
@@ -78,12 +78,12 @@ class LoginResponse(BaseModel):
 
 class RefreshTokenRequest(BaseModel):
     """Refresh token request."""
-    refresh_token: str = Field(..., description="Valid refresh token")
+        refresh_token: str = Field(..., description="Valid refresh token")
 
 
 class PasswordChangeRequest(BaseModel):
-    """Password change request with enhanced validation."""
-    current_password: str = Field(..., min_length=8, max_length=128)
+    """Password change request with enhanced validation.
+        current_password: str = Field(..., min_length=8, max_length=128)
     new_password: str = Field(..., min_length=8, max_length=128)
     confirm_password: str = Field(..., min_length=8, max_length=128)
 
@@ -106,7 +106,7 @@ class PasswordChangeRequest(BaseModel):
 
 class TwoFactorSetupRequest(BaseModel):
     """Two-factor authentication setup request."""
-    method: str = Field(..., pattern="^(totp|sms|email)$", description="2FA method")
+        method: str = Field(..., pattern="^(totp|sms|email)$", description="2FA method")
     phone_number: Optional[str] = Field(None, description="Phone number for SMS 2FA")
 
 
@@ -149,14 +149,14 @@ async def enhanced_login(
         if not user:
             # Log failed attempt without revealing user existence
             logger.warning("Login attempt for non-existent user: %s from IP: %s",
-                         request.username, client_ip)
+                        request.username, client_ip)
             rate_limiter.record_attempt(f"login:{client_ip}")
             raise HTTPException(status_code=401, detail="Invalid credentials")
 
         # Verify password
         if not security_manager.verify_password(request.password, user.password_hash):
             logger.warning("Failed login attempt for user: %s from IP: %s",
-                         user.username, client_ip)
+                        user.username, client_ip)
             rate_limiter.record_attempt(f"login:{client_ip}")
             rate_limiter.record_attempt(f"user_login:{user.id}")
             raise HTTPException(status_code=401, detail="Invalid credentials")
@@ -164,7 +164,7 @@ async def enhanced_login(
         # Check if user account is locked
         if security_manager.is_account_locked(user.id):
             logger.warning("Login attempt for locked account: %s from IP: %s",
-                         user.username, client_ip)
+                        user.username, client_ip)
             raise HTTPException(status_code=423, detail="Account is temporarily locked")
 
         # Generate session
@@ -344,7 +344,7 @@ async def change_password(
         if not security_manager.verify_password(request.current_password, user.password_hash):
             client_ip = security_manager.get_client_ip(http_request)
             logger.warning("Failed password change attempt for user: %s from IP: %s",
-                         user.username, client_ip)
+                        user.username, client_ip)
             raise HTTPException(status_code=401, detail="Current password is incorrect")
 
         # Check password history (prevent reuse)
@@ -398,7 +398,7 @@ async def get_current_user(
         # Get additional user metadata
         user_metadata = security_manager.get_user_metadata(user_id)
 
-        return {}
+        return {
             "id": user.id,
             "username": user.username,
             "email": user.email,
@@ -410,7 +410,7 @@ async def get_current_user(
                 "session_id": token_data.get("session_id"),
                 "expires_at": token_data.get("exp"),
                 "device_fingerprint": token_data.get("device_fingerprint")
-            }
+            }}
         }
 
     except JWTError:

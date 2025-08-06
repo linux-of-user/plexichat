@@ -191,9 +191,9 @@ async def train_model(background_tasks: BackgroundTasks, min_samples: int = 100)
         # Run training in background
         background_tasks.add_task(_train_model_background, min_samples)
 
-        return {}
+        return {
             "status": "success",
-            "message": f"Model training started with minimum {min_samples} samples"
+            "message": f"Model training started with minimum {min_samples}} samples"
         }
 
     except Exception as e:
@@ -219,12 +219,12 @@ async def get_moderation_stats(days: int = 7):
         feedback_stats = await feedback_collector.get_feedback_stats(days)
         training_stats = await training_system.get_training_stats()
 
-        return {}
+        return {
             "moderation": moderation_stats,
             "feedback": feedback_stats,
             "training": training_stats,
             "period_days": days
-        }
+        }}
 
     except Exception as e:
         logger.error(f"Stats retrieval failed: {e}")
@@ -235,11 +235,11 @@ async def get_user_feedback(user_id: str, limit: int = 50):
     """Get feedback history for a user."""
     try:
         feedback_history = await feedback_collector.get_user_feedback_history(user_id, limit)
-        return {}
+        return {
             "user_id": user_id,
             "feedback_count": len(feedback_history),
             "feedback": feedback_history
-        }
+        }}
 
     except Exception as e:
         logger.error(f"User feedback retrieval failed: {e}")
@@ -252,15 +252,15 @@ async def predict_with_trained_model(content: str):
         prediction = await training_system.predict(content)
 
         if prediction:
-            return {}
+            return {
                 "status": "success",
                 "prediction": prediction
-            }
+            }}
         else:
-            return {}
+            return {
                 "status": "no_model",
                 "message": "No trained model available"
-            }
+            }}
 
     except Exception as e:
         logger.error(f"Prediction failed: {e}")
@@ -270,20 +270,20 @@ async def predict_with_trained_model(content: str):
 async def health_check():
     """Health check for moderation system."""
     try:
-        return {}
+        return {
             "status": "healthy",
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "components": {
                 "moderation_engine": "available",
                 "training_system": "available",
                 "feedback_collector": "available"
-            }
+            }}
         }
 
     except Exception as e:
         logger.error(f"Health check failed: {e}")
-        return {}
+        return {
             "status": "unhealthy",
             "error": str(e),
             "timestamp": datetime.now(timezone.utc).isoformat()
-        }
+        }}

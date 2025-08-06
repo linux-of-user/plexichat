@@ -9,7 +9,7 @@ import bcrypt
 PlexiChat Password Manager
 
 Comprehensive password management with strength validation and policies.
-"""
+
 
 logger = logging.getLogger(__name__)
 
@@ -17,17 +17,15 @@ logger = logging.getLogger(__name__)
 @dataclass
 class PasswordVerificationResult:
     """Password verification result."""
-
-    success: bool
+        success: bool
     user_id: Optional[str] = None
     password_expired: bool = False
     error_message: Optional[str] = None
 
 
 class PasswordManager:
-    """Password management system."""
-
-    def __init__(self):
+    Password management system."""
+        def __init__(self):
         self.config = {}
         self.users = {}  # Mock user storage
         self.initialized = False

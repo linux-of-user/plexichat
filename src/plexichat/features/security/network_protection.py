@@ -22,22 +22,21 @@ PlexiChat Unified Network Protection System
 
 Replaces all previous DDoS protection and rate limiting systems with a unified,
 comprehensive solution supporting advanced threat detection and mitigation.
-"""
+
 
 logger = get_logger(__name__)
 
 
 class ThreatLevel(Enum):
     """Threat severity levels."""
-
-    LOW = 1
+        LOW = 1
     MEDIUM = 2
     HIGH = 3
     CRITICAL = 4
 
 
 class AttackType(Enum):
-    """Types of detected attacks."""
+    Types of detected attacks."""
 
     DDOS = "ddos"
     RATE_LIMIT_VIOLATION = "rate_limit"
@@ -49,8 +48,7 @@ class AttackType(Enum):
 
 class ActionType(Enum):
     """Actions to take when limits are exceeded."""
-
-    ALLOW = "allow"
+        ALLOW = "allow"
     DELAY = "delay"
     BLOCK = "block"
     CAPTCHA = "captcha"
@@ -72,8 +70,7 @@ class LimitType(Enum):
 @dataclass
 class SecurityThreat:
     """Security threat information."""
-
-    threat_id: str
+        threat_id: str
     threat_type: AttackType
     threat_level: ThreatLevel
     source_ip: str
@@ -87,8 +84,7 @@ class SecurityThreat:
 @dataclass
 class RateLimitRequest:
     """Rate limit request information."""
-
-    ip_address: str
+        ip_address: str
     user_id: Optional[str] = None
     endpoint: str = ""
     method: str = "GET"
@@ -101,8 +97,7 @@ class RateLimitRequest:
 @dataclass
 class IPReputation:
     """IP reputation tracking."""
-
-    ip_address: str
+        ip_address: str
     first_seen: datetime
     last_seen: datetime
     request_count: int = 0
@@ -117,9 +112,8 @@ class IPReputation:
 
 @dataclass
 class RateLimit:
-    """Rate limit configuration."""
-
-    limit_type: LimitType
+    """Rate limit configuration.
+        limit_type: LimitType
     max_requests: int
     window_seconds: int
     action: ActionType
@@ -130,15 +124,14 @@ class RateLimit:
 
 class TokenBucket:
     """Token bucket algorithm implementation."""
-
-    def __init__(self, capacity: int, refill_rate: float):
+        def __init__(self, capacity: int, refill_rate: float):
         self.capacity = capacity
         self.tokens = capacity
         self.refill_rate = refill_rate
         self.last_refill = time.time()
 
     def consume(self, tokens: int = 1) -> bool:
-        """Try to consume tokens from the bucket."""
+        Try to consume tokens from the bucket."""
         self._refill()
 
         if self.tokens >= tokens:
@@ -147,7 +140,7 @@ class TokenBucket:
         return False
 
     def _refill(self):
-        """Refill tokens based on time elapsed."""
+        """Refill tokens based on time elapsed.
         now = time.time()
         elapsed = now - self.last_refill
         self.tokens = min(self.capacity, self.tokens + elapsed * self.refill_rate)
@@ -156,13 +149,12 @@ class TokenBucket:
 
 class SlidingWindowCounter:
     """Sliding window counter implementation."""
-
-    def __init__(self, window_seconds: int):
+        def __init__(self, window_seconds: int):
         self.window_seconds = window_seconds
         self.requests: deque = deque()
 
     def add_request(self, timestamp: Optional[float] = None):
-        """Add a request to the window."""
+        Add a request to the window."""
         if timestamp is None:
             timestamp = time.time()
 
@@ -170,7 +162,7 @@ class SlidingWindowCounter:
         self._cleanup_old_requests()
 
     def get_count(self) -> int:
-        """Get current request count in the window."""
+        """Get current request count in the window.
         self._cleanup_old_requests()
         return len(self.requests)
 
@@ -182,9 +174,8 @@ class SlidingWindowCounter:
 
 
 class BehavioralAnalyzer:
-    """Behavioral analysis for threat detection."""
-
-    def __init__(self):
+    Behavioral analysis for threat detection."""
+        def __init__(self):
         self.user_patterns: Dict[str, Dict] = defaultdict(dict)
         self.suspicious_patterns = {
             "rapid_requests": {"threshold": 50, "window": 60},
@@ -252,8 +243,7 @@ class ConsolidatedNetworkProtection:
     Replaces all previous DDoS protection and rate limiting systems with a unified,
     comprehensive solution supporting advanced threat detection and mitigation.
     """
-
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+        def __init__(self, config: Optional[Dict[str, Any]] = None):
         self.config = config or get_config().get("network_protection", {})
         self.initialized = False
 
@@ -317,7 +307,7 @@ class ConsolidatedNetworkProtection:
             return False
 
     def _setup_default_limits(self):
-        """Setup default rate limits."""
+        """Setup default rate limits.
         default_limits = [
             RateLimit(LimitType.REQUESTS_PER_SECOND, 10, 1, ActionType.DELAY),
             RateLimit(LimitType.REQUESTS_PER_MINUTE, 300, 60, ActionType.BLOCK),
@@ -459,7 +449,7 @@ class ConsolidatedNetworkProtection:
         return threat
 
     def _record_request(self, request: RateLimitRequest):
-        """Record a successful request for tracking."""
+        """Record a successful request for tracking.
         current_time = datetime.now(timezone.utc)
 
         # Update IP reputation
@@ -551,7 +541,7 @@ class ConsolidatedNetworkProtection:
         current_time = time.time()
         uptime = current_time - self.stats["last_reset"]
 
-        return {}
+        return {
             "initialized": self.initialized,
             "uptime_seconds": uptime,
             "statistics": self.stats.copy(),
@@ -565,7 +555,7 @@ class ConsolidatedNetworkProtection:
                     "max_requests": limit.max_requests,
                     "window_seconds": limit.window_seconds,
                     "action": limit.action.value,
-                }
+                }}
                 for name, limit in self.rate_limits.items()
             },
         }

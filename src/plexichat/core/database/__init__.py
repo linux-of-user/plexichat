@@ -466,7 +466,7 @@ async def get_session(role: str = "primary", read_only: bool = False):
         return None
 
 async def execute_query(query: str, params: Optional[dict] = None, role: str = "primary"):
-    """Execute a database query with automatic failover."""
+    """Execute a database query with automatic failover.
     return await database_manager.execute_query(query, params or {}, role)
 
 async def get_database_health():

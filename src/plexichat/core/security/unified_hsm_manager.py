@@ -31,7 +31,7 @@ Features:
 - Multi-HSM support with failover
 - Zero-trust key management
 - Post-quantum cryptography readiness
-"""
+
 
 # Import from unified audit system would go here when available
 
@@ -40,7 +40,7 @@ logger = get_logger(__name__)
 
 class HSMType(Enum):
     """Types of Hardware Security Modules."""
-    NETWORK_ATTACHED = "network_attached"
+        NETWORK_ATTACHED = "network_attached"
     PCIe_CARD = "pcie_card"
 USB_TOKEN =os.getenv("ACCESS_TOKEN", "")
     CLOUD_HSM = "cloud_hsm"
@@ -63,7 +63,7 @@ class KeyType(Enum):
 
 class KeyUsage(Enum):
     """Key usage purposes."""
-    ENCRYPTION = "encryption"
+        ENCRYPTION = "encryption"
     DECRYPTION = "decryption"
     SIGNING = "signing"
     VERIFICATION = "verification"
@@ -74,7 +74,7 @@ class KeyUsage(Enum):
 
 
 class SecurityLevel(Enum):
-    """Security levels for HSM operations."""
+    """Security levels for HSM operations.
     STANDARD = 1
     HIGH = 2
     CRITICAL = 3
@@ -84,7 +84,7 @@ class SecurityLevel(Enum):
 @dataclass
 class HSMKey:
     """HSM-managed cryptographic key with enhanced security."""
-    key_id: str
+        key_id: str
     key_type: KeyType
     key_size: int
     usage: List[KeyUsage]
@@ -98,7 +98,7 @@ class HSMKey:
     last_accessed: Optional[datetime] = None
 
     def is_expired(self) -> bool:
-        """Check if key is expired."""
+        """Check if key is expired.
         if self.expires_at:
             return datetime.now(timezone.utc) > self.expires_at
         return False
@@ -108,8 +108,8 @@ class HSMKey:
         return self.key_type in [KeyType.QUANTUM_RESISTANT, KeyType.POST_QUANTUM, KeyType.KYBER, KeyType.DILITHIUM]
 
     def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for serialization."""
-        return {}
+        Convert to dictionary for serialization."""
+        return {
             "key_id": self.key_id,
             "key_type": self.key_type.value,
             "key_size": self.key_size,
@@ -122,13 +122,13 @@ class HSMKey:
             "access_count": self.access_count,
             "last_accessed": self.last_accessed.isoformat() if self.last_accessed else None,
             "is_quantum_safe": self.is_quantum_safe()
-        }
+        }}
 
 
 @dataclass
 class HSMDevice:
-    """Hardware Security Module device with enhanced capabilities."""
-    device_id: str
+    """Hardware Security Module device with enhanced capabilities.
+        device_id: str
     device_type: HSMType
     manufacturer: str
     model: str
@@ -143,7 +143,7 @@ class HSMDevice:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
-        return {}
+        return {
             "device_id": self.device_id,
             "device_type": self.device_type.value,
             "manufacturer": self.manufacturer,
@@ -156,13 +156,12 @@ class HSMDevice:
             "is_quantum_ready": self.is_quantum_ready,
             "capabilities": self.capabilities,
             "performance_metrics": self.performance_metrics
-        }
+        }}
 
 
 class UnifiedHSMInterface:
     """Enhanced HSM interface with unified security integration."""
-
-    def __init__(self, device: HSMDevice):
+        def __init__(self, device: HSMDevice):
         self.device = device
         self.session_active = False
         self.keys: Dict[str, HSMKey] = {}
@@ -259,12 +258,12 @@ class UnifiedHSMInterface:
             return False
 
     async def generate_key(self,)
-                          key_type: KeyType,
-                          key_size: int,
-                          usage: List[KeyUsage],
-                          security_level: SecurityLevel = SecurityLevel.HIGH,
-                          expires_days: Optional[int] = None,
-                          user_id: str = "system") -> Optional[HSMKey]:
+                        key_type: KeyType,
+                        key_size: int,
+                        usage: List[KeyUsage],
+                        security_level: SecurityLevel = SecurityLevel.HIGH,
+                        expires_days: Optional[int] = None,
+                        user_id: str = "system") -> Optional[HSMKey]:
         """Generate cryptographic key in HSM with enhanced security."""
         try:
             if not self.device.is_authenticated:
@@ -354,8 +353,7 @@ class UnifiedHSMManager:
 
     Manages all HSM operations with integration to unified security architecture.
     """
-
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+        def __init__(self, config: Optional[Dict[str, Any]] = None):
         self.config = config or get_config().get("hsm", {})
         self.initialized = False
 
@@ -492,7 +490,7 @@ class UnifiedHSMManager:
             # Set as primary if it's the first real HSM or has higher security level
             if (not self.primary_hsm or)
                 (device.device_type != HSMType.VIRTUAL_HSM and)
-                 device.security_level.value > self.devices[self.primary_hsm].device.security_level.value)):
+                device.security_level.value > self.devices[self.primary_hsm].device.security_level.value)):
                 self.primary_hsm = device.device_id
             else:
                 self.backup_hsms.append(device.device_id)
@@ -542,10 +540,10 @@ class UnifiedHSMManager:
         return await self.devices[device_id].authenticate(pin, admin_pin, user_id)
 
     async def generate_master_key(self,)
-                                 purpose: str,
-                                 key_type: KeyType = KeyType.QUANTUM_RESISTANT,
-                                 key_size: int = 256,
-                                 user_id: str = "system") -> Optional[HSMKey]:
+                                purpose: str,
+                                key_type: KeyType = KeyType.QUANTUM_RESISTANT,
+                                key_size: int = 256,
+                                user_id: str = "system") -> Optional[HSMKey]:
         """Generate master encryption key for specific purpose."""
         if not self.primary_hsm:
             logger.error("No primary HSM available")
@@ -580,9 +578,9 @@ class UnifiedHSMManager:
         )
 
     async def generate_signing_key(self,)
-                                  key_type: KeyType = KeyType.DILITHIUM,
-                                  key_size: int = 3,
-                                  user_id: str = "system") -> Optional[HSMKey]:
+                                key_type: KeyType = KeyType.DILITHIUM,
+                                key_size: int = 3,
+                                user_id: str = "system") -> Optional[HSMKey]:
         """Generate post-quantum digital signing key."""
         if not self.primary_hsm:
             logger.error("No primary HSM available")
@@ -622,7 +620,7 @@ class UnifiedHSMManager:
             total_keys += len(hsm.keys)
             quantum_safe_keys += len([k for k in hsm.keys.values() if k.is_quantum_safe()])
 
-        return {}
+        return {
             "hardware_security": {
                 "initialized": self.initialized,
                 "total_devices": len(self.devices),
@@ -635,7 +633,7 @@ class UnifiedHSMManager:
                 "operation_metrics": self.operation_metrics,
                 "master_keys": list(self.master_keys.keys()),
                 "scheduled_rotations": len(self.key_rotation_schedule)
-            }
+            }}
         }
 
     async def _key_rotation_scheduler(self):

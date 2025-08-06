@@ -106,10 +106,7 @@ class ConfigManager:
                 "colors": True,
                 "history_size": 1000
             },
-            "gui": {
-                "enabled": True,
-                "auto_open": True
-            },
+
             "logging": {
                 "level": "INFO",
                 "file": "logs/run.log",
@@ -1289,7 +1286,7 @@ def start_webui_server(host="0.0.0.0", port=8080):
 
 def start_cli():
     """Start the PlexiChat CLI system."""
-    print_colored("[GUI]  Starting Interactive CLI...", Colors.GREEN)
+    print_colored("[CLI]  Starting Interactive CLI...", Colors.GREEN)
     print_colored("[TIP] Type 'help' for available commands, 'exit' to quit", Colors.CYAN)
     print()
 
@@ -1429,7 +1426,7 @@ def start_full_system(host="0.0.0.0", port=8000, webui_port=8080, reload=True, e
                 # Import and start the CLI system
                 sys.path.insert(0, str(Path(__file__).parent / "src"))
                 from plexichat.interfaces.cli.main_cli import main as cli_main
-                print_colored("[GUI]  Starting Interactive CLI...", Colors.GREEN)
+                print_colored("[CLI]  Starting Interactive CLI...", Colors.GREEN)
                 print_colored("[TIP] Type 'help' for available commands, 'exit' to quit", Colors.CYAN)
                 print()
                 cli_main()
@@ -1496,7 +1493,7 @@ Examples:
   python run.py clean                    # Clean caches and temporary files
   python run.py clean --all              # Clean everything including venv
   python run.py update                   # Update to latest version
-  python run.py gui                      # Start GUI interface
+
   python run.py --host 127.0.0.1 --port 8080 --webui-port 8081  # Custom ports
         """
     )

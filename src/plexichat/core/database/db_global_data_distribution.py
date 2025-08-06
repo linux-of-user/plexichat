@@ -17,15 +17,14 @@ Advanced global data distribution with:
 - Global consistency models (eventual, strong, causal)
 - Automatic failover and disaster recovery
 - Data sovereignty and compliance management
-"""
+
 
 logger = logging.getLogger(__name__)
 
 
 class ConsistencyModel(Enum):
     """Global consistency models."""
-
-    EVENTUAL = "eventual"
+        EVENTUAL = "eventual"
     STRONG = "strong"
     CAUSAL = "causal"
     MONOTONIC_READ = "monotonic_read"
@@ -46,8 +45,7 @@ class ReplicationStrategy(Enum):
 
 class DataLocality(Enum):
     """Data locality preferences."""
-
-    GLOBAL = "global"
+        GLOBAL = "global"
     REGIONAL = "regional"
     LOCAL = "local"
     USER_BASED = "user_based"
@@ -56,7 +54,7 @@ class DataLocality(Enum):
 
 @dataclass
 class DataRegion:
-    """Global data region configuration."""
+    """Global data region configuration.
 
     region_id: str
     region_name: str
@@ -76,9 +74,8 @@ class DataRegion:
 
 @dataclass
 class DataPlacement:
-    """Data placement decision."""
-
-    data_id: str
+    Data placement decision."""
+        data_id: str
     data_type: str
     primary_region: str
     replica_regions: List[str]
@@ -94,8 +91,7 @@ class DataPlacement:
 @dataclass
 class ConflictResolutionRule:
     """Conflict resolution rule for distributed data."""
-
-    rule_id: str
+        rule_id: str
     data_type: str
     field_name: str
     resolution_strategy: str  # "last_write_wins", "merge", "custom"
@@ -106,8 +102,7 @@ class ConflictResolutionRule:
 @dataclass
 class GlobalTransaction:
     """Global distributed transaction."""
-
-    transaction_id: str
+        transaction_id: str
     operations: List[Dict[str, Any]]
     participating_regions: Set[str]
     consistency_level: ConsistencyModel
@@ -118,9 +113,8 @@ class GlobalTransaction:
 
 
 class VectorClock:
-    """Vector clock for causal consistency."""
-
-    def __init__(self, node_id: str):
+    """Vector clock for causal consistency.
+        def __init__(self, node_id: str):
         self.node_id = node_id
         self.clock: Dict[str, int] = {node_id: 0}
 
@@ -129,7 +123,7 @@ class VectorClock:
         self.clock[self.node_id] += 1
 
     def update(self, other_clock: Dict[str, int]):
-        """Update clock with received clock."""
+        Update clock with received clock."""
         for node_id, timestamp in other_clock.items():
             self.clock[node_id] = max(self.clock.get(node_id, 0), timestamp)
         self.tick()
@@ -161,9 +155,8 @@ class VectorClock:
 
 
 class CRDTManager:
-    """Manages Conflict-free Replicated Data Types."""
-
-    def __init__(self):
+    """Manages Conflict-free Replicated Data Types.
+        def __init__(self):
         self.crdts: Dict[str, Any] = {}
         self.vector_clocks: Dict[str, VectorClock] = {}
 
@@ -247,8 +240,7 @@ class CRDTManager:
 
 class GlobalDataDistributionManager:
     """Manages global data distribution across regions."""
-
-    def __init__(self):
+        def __init__(self):
         self.regions: Dict[str, DataRegion] = {}
         self.data_placements: Dict[str, DataPlacement] = {}
         self.conflict_resolution_rules: Dict[str, ConflictResolutionRule] = {}
@@ -397,7 +389,7 @@ class GlobalDataDistributionManager:
     def _find_suitable_regions():
         self, compliance_requirements: Optional[List[str]], data_size_mb: float
     ) -> List[DataRegion]:
-        """Find regions that meet compliance and capacity requirements."""
+        """Find regions that meet compliance and capacity requirements.
         suitable = []
 
         for region in self.regions.values():
@@ -472,7 +464,7 @@ class GlobalDataDistributionManager:
     def _determine_replication_strategy():
         self, consistency_model: ConsistencyModel
     ) -> ReplicationStrategy:
-        """Determine replication strategy based on consistency model."""
+        """Determine replication strategy based on consistency model.
         if consistency_model == ConsistencyModel.STRONG:
             return ReplicationStrategy.QUORUM_BASED
         elif consistency_model in [
@@ -642,7 +634,7 @@ class GlobalDataDistributionManager:
     async def _read_with_monotonic_consistency()
         self, data_id: str, placement: DataPlacement
     ) -> Tuple[Optional[bytes], Dict[str, Any]]:
-        """Read with monotonic read consistency."""
+        """Read with monotonic read consistency.
         # Read from primary region for monotonic guarantees
         return await self._read_from_region(placement.primary_region, data_id)
 
@@ -751,7 +743,7 @@ class GlobalDataDistributionManager:
         return sorted_versions[0]
 
     def _resolve_merge(self, versions: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """Resolve conflicts by merging versions."""
+        """Resolve conflicts by merging versions.
         if not versions:
             return {}}
 
@@ -776,7 +768,7 @@ class GlobalDataDistributionManager:
         return self._resolve_last_write_wins(versions)
 
     async def _start_background_tasks(self):
-        """Start background maintenance tasks."""
+        Start background maintenance tasks."""
         asyncio.create_task(self._consistency_maintenance_task())
         asyncio.create_task(self._region_health_monitoring_task())
         asyncio.create_task(self._data_placement_optimization_task())
@@ -796,7 +788,7 @@ class GlobalDataDistributionManager:
                 logger.error(f"Consistency maintenance task error: {e}")
 
     async def _check_data_consistency(self, data_id: str, placement: DataPlacement):
-        """Check and maintain data consistency."""
+        """Check and maintain data consistency.
         # Acknowledge parameters to avoid unused warnings
         _ = data_id, placement
         # Placeholder for consistency checking
@@ -816,7 +808,7 @@ class GlobalDataDistributionManager:
                 logger.error(f"Region health monitoring task error: {e}")
 
     async def _check_region_health(self, region_id: str) -> bool:
-        """Check health of specific region."""
+        """Check health of specific region.
         # Acknowledge parameter to avoid unused warning
         _ = region_id
         # Placeholder for region health check
@@ -836,7 +828,7 @@ class GlobalDataDistributionManager:
                 logger.error(f"Data placement optimization task error: {e}")
 
     async def _optimize_data_placement(self, data_id: str, placement: DataPlacement):
-        """Optimize data placement based on access patterns."""
+        """Optimize data placement based on access patterns.
         # Acknowledge parameters to avoid unused warnings
         _ = data_id, placement
         # Placeholder for placement optimization
@@ -852,14 +844,14 @@ class GlobalDataDistributionManager:
             model = placement.consistency_model.value
             consistency_breakdown[model] = consistency_breakdown.get(model, 0) + 1
 
-        return {}
+        return {
             "total_regions": len(self.regions),
             "active_regions": active_regions,
             "total_data_placements": total_placements,
             "consistency_models": consistency_breakdown,
             "active_transactions": len(self.active_transactions),
             "conflict_resolution_rules": len(self.conflict_resolution_rules),
-        }
+        }}
 
 
 # Global data distribution manager instance

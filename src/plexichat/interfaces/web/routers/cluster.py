@@ -59,8 +59,8 @@ optimization_engine = PerformanceOptimizationEngine() if PerformanceOptimization
 
 # Pydantic models
 class NodeInfo(BaseModel):
-    """Cluster node information."""
-    node_id: str
+    """Cluster node information.
+        node_id: str
     hostname: str
     ip_address: str
     port: int
@@ -73,7 +73,7 @@ class NodeInfo(BaseModel):
 
 class ClusterStatus(BaseModel):
     """Cluster status information."""
-    cluster_id: str
+        cluster_id: str
     total_nodes: int
     active_nodes: int
     inactive_nodes: int
@@ -83,8 +83,8 @@ class ClusterStatus(BaseModel):
     average_response_time: float
 
 class ClusterMetrics(BaseModel):
-    """Cluster performance metrics."""
-    timestamp: datetime
+    Cluster performance metrics."""
+        timestamp: datetime
     total_cpu_usage: float
     total_memory_usage: float
     total_disk_usage: float
@@ -94,8 +94,7 @@ class ClusterMetrics(BaseModel):
 
 class ClusterService:
     """Service class for cluster operations using EXISTING systems."""
-
-    def __init__(self):
+        def __init__(self):
         self.cluster_manager = cluster_manager
         self.performance_monitor = performance_monitor
         self.performance_logger = performance_logger

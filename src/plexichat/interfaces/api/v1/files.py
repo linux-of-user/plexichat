@@ -53,7 +53,7 @@ class FileShare(BaseModel):
 
 # Utility functions
 def is_allowed_file(filename: str) -> bool:
-    """Check if file extension is allowed."""
+    """Check if file extension is allowed.
     return any(filename.lower().endswith(ext) for ext in ALLOWED_EXTENSIONS)
 
 def get_file_type(filename: str) -> str:

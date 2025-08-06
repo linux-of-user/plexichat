@@ -21,7 +21,7 @@ PlexiChat Core Authentication Manager
 
 Central authentication manager that coordinates all authentication
 operations and provides a unified interface for the system.
-"""
+
 
 # Note: Removed import from deleted advanced_authentication.py - functionality now in unified system
 
@@ -30,8 +30,7 @@ logger = logging.getLogger(__name__)
 
 class AuthenticationResult(Enum):
     """Authentication result types."""
-
-    SUCCESS = "success"
+        SUCCESS = "success"
     INVALID_CREDENTIALS = "invalid_credentials"
     ACCOUNT_LOCKED = "account_locked"
     MFA_REQUIRED = "mfa_required"
@@ -71,9 +70,8 @@ class AuthenticationRequest:
 
 @dataclass
 class AuthenticationResponse:
-    """Authentication response data."""
-
-    result: AuthenticationResult
+    """Authentication response data.
+        result: AuthenticationResult
     success: bool
     user_id: Optional[str] = None
     session_id: Optional[str] = None
@@ -115,8 +113,7 @@ class AuthManager:
     - Risk assessment
     - Audit logging
     """
-
-    def __init__(self):
+        def __init__(self):
         # Core components
         self.token_manager: TokenManager = TokenManager()
         self.session_manager: SessionManager = SessionManager()
@@ -144,7 +141,7 @@ class AuthManager:
         self.initialized = False
 
     async def initialize(self, config: Dict[str, Any]):
-        """Initialize the authentication manager."""
+        Initialize the authentication manager."""
         if self.initialized:
             return
 
@@ -355,7 +352,7 @@ class AuthManager:
             )
 
     async def validate_session(self, session_id: str) -> Dict[str, Any]:
-        """Validate an active session."""
+        """Validate an active session.
         return await self.session_manager.validate_session(session_id)
 
     async def validate_token(self, token: str) -> Dict[str, Any]:
@@ -370,7 +367,7 @@ class AuthManager:
         return {"valid": False, "error": "Invalid token format"}
 
     async def refresh_token(self, refresh_token: str) -> Dict[str, Any]:
-        """Refresh an access token."""
+        """Refresh an access token.
         return await self.token_manager.refresh_token(refresh_token)
 
     async def logout(
@@ -451,7 +448,7 @@ class AuthManager:
     async def _authenticate_primary(
         self, request: AuthenticationRequest
     ) -> AuthenticationResponse:
-        """Perform primary authentication."""
+        """Perform primary authentication.
         if request.oauth_provider:
             return await self._authenticate_oauth(request)
         elif request.biometric_data:
@@ -532,7 +529,7 @@ class AuthManager:
         )
 
     async def _is_rate_limited(self, request: AuthenticationRequest) -> bool:
-        """Check if request is rate limited."""
+        """Check if request is rate limited.
         _ = request  # Mark as used
         return False
 
@@ -542,12 +539,12 @@ class AuthManager:
         return 60
 
     async def _is_account_locked(self, username: str) -> bool:
-        """Check if account is locked."""
+        Check if account is locked."""
         _ = username  # Mark as used
         return False
 
     async def _assess_risk(self, request: AuthenticationRequest) -> float:
-        """Assess authentication risk."""
+        """Assess authentication risk.
         _ = request  # Mark as used
         return 0.1
 
@@ -571,7 +568,7 @@ class AuthManager:
         return levels.get(current, 0) >= levels.get(required, 0)
 
     async def _record_failed_attempt(self, request: AuthenticationRequest):
-        """Record failed authentication attempt."""
+        """Record failed authentication attempt.
         # Failed attempt recording logic here - using request for future implementation
         _ = request  # Mark as used
 

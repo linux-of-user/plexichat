@@ -119,11 +119,11 @@ API_VERSION_INFO = {
 }
 
 @beta_router.get("/",)
-               summary="API Beta Information",
-               description="Get information about beta API features and experimental endpoints")
+            summary="API Beta Information",
+            description="Get information about beta API features and experimental endpoints")
 async def get_api_info():
     """Get API beta information and capabilities."""
-    return {}
+    return {
         "api_version": "beta",
         "info": API_VERSION_INFO,
         "endpoints": ENDPOINT_CATEGORIES,
@@ -137,12 +137,12 @@ datetime.utcnow().isoformat(),
             "edge_computing": "Distributed processing capabilities",
             "advanced_collaboration": "Next-gen real-time tools",
             "ml_analytics": "Machine learning powered insights"
-        }
+        }}
     }
 
 @beta_router.get("/health",)
-               summary="Beta API Health Check",
-               description="Check beta API health and experimental feature status")
+            summary="Beta API Health Check",
+            description="Check beta API health and experimental feature status")
 async def health_check():
     """Health check endpoint for beta API monitoring."""
     try:
@@ -161,7 +161,7 @@ async def health_check():
 
         overall_status = "healthy" if all(s in ["healthy", "experimental"] for s in services_status.values()) else "degraded"
 
-        return {}
+        return {
             "status": overall_status,
             "version": "beta",
             "timestamp": from datetime import datetime
@@ -172,23 +172,24 @@ datetime.utcnow().isoformat(),
                 "quantum_security": "testing",
                 "edge_computing": "development",
                 "advanced_analytics": "beta"
-            },
+            }},
             "uptime": "calculated_uptime_here"
         }
 
     except Exception as e:
         logger.error(f"Beta health check failed: {e}")
-        raise HTTPException()
+        raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Beta service temporarily unavailable"
+        
         )
 
 @beta_router.get("/capabilities",)
-               summary="Beta API Capabilities",
-               description="Get detailed beta API capabilities and experimental feature flags")
+            summary="Beta API Capabilities",
+            description="Get detailed beta API capabilities and experimental feature flags")
 async def get_capabilities():
     """Get beta API capabilities and experimental feature flags."""
-    return {}
+    return {
         "version": "beta",
         "capabilities": {
             "authentication": {
@@ -196,7 +197,7 @@ async def get_capabilities():
                 "session_management": True,
                 "device_tracking": True,
                 "experimental_auth": True
-            },
+            }},
             "ai": {
                 "custom_training": True,
                 "model_deployment": True,

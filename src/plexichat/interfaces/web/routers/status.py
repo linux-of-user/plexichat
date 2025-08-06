@@ -72,8 +72,7 @@ class MetricsResponse(BaseModel):
 
 class StatusService:
     """Service class for status operations using EXISTING database abstraction layer."""
-
-    def __init__(self):
+        def __init__(self):
         # Use EXISTING database manager
         self.db_manager = database_manager
         self.performance_logger = performance_logger

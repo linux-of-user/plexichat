@@ -46,8 +46,8 @@ from plexichat.app.models.moderation import ()
 
 
 class UserRole(Enum):
-    """Enhanced user roles with hierarchical permissions."""
-    OWNER = "owner"              # Server owner (highest permissions)
+    Enhanced user roles with hierarchical permissions."""
+        OWNER = "owner"              # Server owner (highest permissions)
     ADMIN = "admin"              # Server administrator
     MODERATOR = "moderator"      # Server moderator
     TRUSTED = "trusted"          # Trusted user
@@ -87,16 +87,15 @@ class Permission(Enum):
 
 
 class ModerationService:
-    """Service for comprehensive moderation operations."""
-
-    def __init__(self, session: Session):
+    """Service for comprehensive moderation operations.
+        def __init__(self, session: Session):
         self.session = session
         self.role_permissions = self._initialize_role_permissions()
         # Using unified cache instead of local cache: self.user_roles_cache  # Cache for user roles
 
     def _initialize_role_permissions(self) -> Dict[UserRole, Set[Permission]]:
         """Initialize default permissions for each role."""
-        return {}
+        return {
             UserRole.OWNER: {
                 # All permissions
                 Permission.SEND_MESSAGES, Permission.DELETE_MESSAGES, Permission.EDIT_MESSAGES,
@@ -105,7 +104,7 @@ class ModerationService:
                 Permission.MANAGE_ROLES, Permission.MANAGE_SERVER, Permission.MANAGE_CHANNELS,
                 Permission.VIEW_AUDIT_LOG, Permission.MODERATE_CONTENT, Permission.VIEW_REPORTS,
                 Permission.HANDLE_APPEALS
-            },
+            }},
             UserRole.ADMIN: {
                 # Most permissions except server management
                 Permission.SEND_MESSAGES, Permission.DELETE_MESSAGES, Permission.EDIT_MESSAGES,
@@ -139,7 +138,7 @@ class ModerationService:
         }
 
     def get_user_role(self, user_id: int, guild_id: Optional[int] = None) -> UserRole:
-        """Get the current role of a user."""
+        Get the current role of a user."""
         try:
             # Check cache first
             cache_key = f"{user_id}_{guild_id}"
@@ -345,10 +344,11 @@ existing_mod = self.session.# SECURITY: exec() removed - use safe alternatives)
         try:
             # Check if moderator can moderate target user
             if not self.can_moderate_user(moderator_id, target_user_id, guild_id):
-                raise HTTPException()
-                    status_code=status.HTTP_403_FORBIDDEN,
-                    detail="Insufficient permissions to moderate this user"
-                )
+                raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Insufficient permissions to moderate this user"
+                
+        )
 
             # Check specific action permissions
             required_permission = None
@@ -442,10 +442,11 @@ existing_mod = self.session.# SECURITY: exec() removed - use safe alternatives)
         try:
             # Check if moderator has permission to handle appeals
             if not self.has_permission(moderator_id, Permission.HANDLE_APPEALS, guild_id):
-                raise HTTPException()
-                    status_code=status.HTTP_403_FORBIDDEN,
-                    detail="Insufficient permissions to handle appeals"
-                )
+                raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Insufficient permissions to handle appeals"
+                
+        )
 
             # Get the moderation log
             log_entry = self.session.get(ModerationLog, moderation_log_id)
@@ -532,7 +533,7 @@ active_status = self.session.# SECURITY: exec() removed - use safe alternatives)
                 if log.appeal_status == "pending"
             ]
 
-            return {}
+            return {
                 "user_id": user_id,
                 "current_role": current_role.value,
                 "active_status": {
@@ -540,7 +541,7 @@ active_status = self.session.# SECURITY: exec() removed - use safe alternatives)
                     "reason": active_status.reason if active_status else None,
                     "expires_at": active_status.expires_at.isoformat() if active_status and active_status.expires_at else None,
                     "moderator_id": active_status.moderator_id if active_status else None
-                },
+                }},
                 "moderation_history": {
                     "total_actions": len(history),
                     "action_counts": action_counts,
@@ -565,10 +566,10 @@ active_status = self.session.# SECURITY: exec() removed - use safe alternatives)
 
         except Exception as e:
             logger.error(f"Failed to get user moderation summary: {e}")
-            return {}
+            return {
                 "user_id": user_id,
                 "error": str(e)
-            }
+            }}
 
     async def check_moderator_permissions(
         self,
@@ -647,10 +648,11 @@ moderator_role = self.session.# SECURITY: exec() removed - use safe alternatives
 
             # Check severity limits
             if moderator_role and severity.value > moderator_role.max_punishment_severity.value:
-                raise HTTPException()
-                    status_code=status.HTTP_403_FORBIDDEN,
-                    detail="Action severity exceeds moderator permissions"
-                )
+                raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Action severity exceeds moderator permissions"
+                
+        )
 
             # Get or create user moderation status
 user_status = self.session.# SECURITY: exec() removed - use safe alternatives)
@@ -729,10 +731,11 @@ user_status = self.session.# SECURITY: exec() removed - use safe alternatives)
             )
 
             if not has_permission:
-                raise HTTPException()
-                    status_code=status.HTTP_403_FORBIDDEN,
-                    detail="Insufficient moderator permissions"
-                )
+                raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Insufficient moderator permissions"
+                
+        )
 
             # Get the message
             message = self.session.get(Message, message_id)
@@ -797,12 +800,12 @@ user_status = self.session.# SECURITY: exec() removed - use safe alternatives)
             ).first()
 
             if not user_status:
-                return {}
+                return {
                     "is_muted": False,
                     "is_banned": False,
                     "is_timed_out": False,
                     "warning_count": 0
-                }
+                }}
 
             now = datetime.now(timezone.utc)
 
@@ -824,7 +827,7 @@ user_status = self.session.# SECURITY: exec() removed - use safe alternatives)
 
             self.session.commit()
 
-            return {}
+            return {
                 "is_muted": user_status.is_muted,
                 "is_banned": user_status.is_banned,
                 "is_timed_out": user_status.is_timed_out,
@@ -836,7 +839,7 @@ user_status = self.session.# SECURITY: exec() removed - use safe alternatives)
                 "ban_reason": user_status.ban_reason,
                 "timeout_reason": user_status.timeout_reason,
                 "last_warning_at": user_status.last_warning_at
-            }
+            }}
 
         except Exception as e:
             logger.error(f"Error checking user restrictions: {e}")
@@ -858,10 +861,11 @@ user_status = self.session.# SECURITY: exec() removed - use safe alternatives)
             has_permission, granter_role = await self.check_moderator_permissions(granter_id, guild_id, channel_id)
 
             if not has_permission or not granter_role or not granter_role.can_manage_roles:
-                raise HTTPException()
-                    status_code=status.HTTP_403_FORBIDDEN,
-                    detail="Insufficient permissions to grant moderator roles"
-                )
+                raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Insufficient permissions to grant moderator roles"
+                
+        )
 
             # Check if user already has a moderator role in this context
 existing_role = self.session.# SECURITY: exec() removed - use safe alternatives)
@@ -931,10 +935,11 @@ existing_role = self.session.# SECURITY: exec() removed - use safe alternatives)
             )
 
             if not has_permission or not revoker_role or not revoker_role.can_manage_roles:
-                raise HTTPException()
-                    status_code=status.HTTP_403_FORBIDDEN,
-                    detail="Insufficient permissions to revoke moderator roles"
-                )
+                raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Insufficient permissions to revoke moderator roles"
+                
+        )
 
             moderator_role.is_active = False
             moderator_role.revoked_at = datetime.now(timezone.utc)
@@ -966,10 +971,11 @@ existing_role = self.session.# SECURITY: exec() removed - use safe alternatives)
 
             # Check if user can appeal this action
             if moderation_log.target_user_id != user_id:
-                raise HTTPException()
-                    status_code=status.HTTP_403_FORBIDDEN,
-                    detail="Can only appeal your own moderation actions"
-                )
+                raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Can only appeal your own moderation actions"
+                
+        )
 
             # Check if already appealed
             if moderation_log.appeal_submitted_at:
@@ -1011,10 +1017,11 @@ existing_role = self.session.# SECURITY: exec() removed - use safe alternatives)
             )
 
             if not has_permission:
-                raise HTTPException()
-                    status_code=status.HTTP_403_FORBIDDEN,
-                    detail="Insufficient permissions to review appeals"
-                )
+                raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Insufficient permissions to review appeals"
+                
+        )
 
             # Check if appeal exists
             if not moderation_log.appeal_submitted_at:

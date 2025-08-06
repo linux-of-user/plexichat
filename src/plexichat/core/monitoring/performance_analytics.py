@@ -10,7 +10,7 @@ Provides enterprise-grade performance monitoring with:
 - Resource utilization tracking
 - Bottleneck detection and analysis
 - Performance optimization recommendations
-"""
+
 
 import asyncio
 import time
@@ -32,7 +32,7 @@ logger = get_logger(__name__)
 
 class MetricType(Enum):
     """Types of performance metrics."""
-    COUNTER = "counter"
+        COUNTER = "counter"
     GAUGE = "gauge"
     HISTOGRAM = "histogram"
     TIMER = "timer"
@@ -50,7 +50,7 @@ class AlertLevel(Enum):
 @dataclass
 class PerformanceMetric:
     """Individual performance metric data point."""
-    name: str
+        name: str
     value: float
     metric_type: MetricType
     timestamp: datetime = field(default_factory=datetime.now)
@@ -61,8 +61,8 @@ class PerformanceMetric:
 
 @dataclass
 class SystemHealthStatus:
-    """System health status information."""
-    overall_status: str  # healthy, degraded, unhealthy
+    """System health status information.
+        overall_status: str  # healthy, degraded, unhealthy
     cpu_usage: float
     memory_usage: float
     disk_usage: float
@@ -87,7 +87,7 @@ class SystemHealthStatus:
 @dataclass
 class PerformanceAlert:
     """Performance alert information."""
-    alert_id: str
+        alert_id: str
     level: AlertLevel
     title: str
     message: str
@@ -100,9 +100,8 @@ class PerformanceAlert:
 
 
 class MetricsCollector:
-    """Collects and aggregates performance metrics."""
-    
-    def __init__(self, max_metrics: int = 10000):
+    Collects and aggregates performance metrics."""
+        def __init__(self, max_metrics: int = 10000):
         self.max_metrics = max_metrics
         self.metrics: Dict[str, deque] = defaultdict(lambda: deque(maxlen=1000))
         self.metric_definitions: Dict[str, Dict] = {}
@@ -178,8 +177,8 @@ class MetricsCollector:
             logger.error(f"Error collecting system metrics: {e}")
     
     def record_metric(self, name: str, value: float, metric_type: MetricType, 
-                     tags: Optional[Dict[str, str]] = None, unit: str = "", description: str = ""):
-        """Record a performance metric."""
+                    tags: Optional[Dict[str, str]] = None, unit: str = "", description: str = ""):
+        """Record a performance metric.
         with self._lock:
             metric = PerformanceMetric(
                 name=name,
@@ -213,10 +212,10 @@ class MetricsCollector:
             ]
     
     def get_metric_stats(self, name: str, duration_minutes: int = 60) -> Dict[str, float]:
-        """Get statistical summary of a metric."""
+        Get statistical summary of a metric."""
         history = self.get_metric_history(name, duration_minutes)
         if not history:
-            return {}
+            return {
 
         values = [m.value for m in history]
         return {
@@ -227,10 +226,10 @@ class MetricsCollector:
             'median': statistics.median(values),
             'std_dev': statistics.stdev(values) if len(values) > 1 else 0.0,
             'latest': values[-1] if values else 0.0
-        }
+        }}
     
     def get_all_metrics_summary(self) -> Dict[str, Any]:
-        """Get summary of all collected metrics."""
+        """Get summary of all collected metrics.
         with self._lock:
             summary = {}
             for name in self.metrics:
@@ -245,8 +244,7 @@ class MetricsCollector:
 
 class PerformanceAnalyzer:
     """Analyzes performance metrics and detects issues."""
-    
-    def __init__(self, metrics_collector: MetricsCollector):
+        def __init__(self, metrics_collector: MetricsCollector):
         self.metrics_collector = metrics_collector
         self.thresholds = {
             'system.cpu.usage_percent': {'warning': 70.0, 'critical': 85.0},
@@ -259,7 +257,7 @@ class PerformanceAnalyzer:
         self.alert_callbacks: List[Callable] = []
     
     def analyze_system_health(self) -> SystemHealthStatus:
-        """Analyze overall system health."""
+        Analyze overall system health."""
         try:
             # Get current metrics
             cpu_stats = self.metrics_collector.get_metric_stats('system.cpu.usage_percent', 5)
@@ -400,7 +398,7 @@ class PerformanceAnalyzer:
         return new_alerts
     
     def add_alert_callback(self, callback: Callable[[PerformanceAlert], None]):
-        """Add callback for alert notifications."""
+        """Add callback for alert notifications.
         self.alert_callbacks.append(callback)
     
     def get_performance_trends(self, duration_hours: int = 24) -> Dict[str, Any]:
@@ -446,9 +444,8 @@ class PerformanceAnalyzer:
 
 
 class PerformanceMonitor:
-    """Main performance monitoring system."""
-    
-    def __init__(self):
+    Main performance monitoring system."""
+        def __init__(self):
         self.metrics_collector = MetricsCollector()
         self.analyzer = PerformanceAnalyzer(self.metrics_collector)
         self.dashboard_data = {}
@@ -510,7 +507,7 @@ class PerformanceMonitor:
         log_level(f"Performance Alert: {alert.title} - {alert.message}")
     
     def get_dashboard_data(self) -> Dict[str, Any]:
-        """Get current dashboard data."""
+        """Get current dashboard data.
         return self.dashboard_data.copy()
     
     def get_system_health(self) -> SystemHealthStatus:
@@ -518,8 +515,8 @@ class PerformanceMonitor:
         return self.analyzer.analyze_system_health()
     
     def record_custom_metric(self, name: str, value: float, metric_type: MetricType = MetricType.GAUGE, 
-                           tags: Optional[Dict[str, str]] = None, unit: str = ""):
-        """Record a custom metric."""
+                        tags: Optional[Dict[str, str]] = None, unit: str = ""):
+        """Record a custom metric.
         self.metrics_collector.record_metric(name, value, metric_type, tags, unit)
     
     def get_performance_report(self) -> Dict[str, Any]:
@@ -560,9 +557,8 @@ class PerformanceMonitor:
 
 
 class PredictiveAnalytics:
-    """Machine learning-based predictive analytics for performance."""
-
-    def __init__(self, performance_monitor):
+    Machine learning-based predictive analytics for performance."""
+        def __init__(self, performance_monitor):
         self.performance_monitor = performance_monitor
         self.prediction_models: Dict[str, Any] = {}
         self.prediction_cache: Dict[str, Dict] = {}
@@ -576,7 +572,7 @@ class PredictiveAnalytics:
         logger.info("Predictive analytics system initialized")
 
     def collect_training_data(self, metric_name: str, value: float, timestamp: datetime):
-        """Collect training data for predictive models."""
+        """Collect training data for predictive models.
         self.training_data[metric_name].append({
             'timestamp': timestamp,
             'value': value,
@@ -707,8 +703,7 @@ class PredictiveAnalytics:
 
 class AutoScaler:
     """Automatic scaling system based on performance metrics."""
-
-    def __init__(self, performance_monitor):
+        def __init__(self, performance_monitor):
         self.performance_monitor = performance_monitor
         self.scaling_rules: List[Dict] = []
         self.scaling_history: List[Dict] = []
@@ -720,7 +715,7 @@ class AutoScaler:
         logger.info("Auto-scaler initialized")
 
     def _setup_default_scaling_rules(self):
-        """Setup default scaling rules."""
+        """Setup default scaling rules.
         self.scaling_rules = [
             {
                 'name': 'cpu_scale_up',
@@ -783,7 +778,7 @@ class AutoScaler:
                 logger.error(f"Error evaluating scaling rule {rule['name']}: {e}")
 
     def _is_in_cooldown(self, rule: Dict) -> bool:
-        """Check if scaling rule is in cooldown period."""
+        """Check if scaling rule is in cooldown period.
         cooldown_minutes = rule.get('cooldown_minutes', 5)
         cutoff_time = datetime.now() - timedelta(minutes=cooldown_minutes)
 
@@ -828,7 +823,7 @@ class AutoScaler:
             logger.error(f"Error executing scaling action: {e}")
 
     def get_scaling_status(self) -> Dict[str, Any]:
-        """Get current scaling status."""
+        """Get current scaling status.
         recent_actions = [
             entry for entry in self.scaling_history
             if entry['timestamp'] > datetime.now() - timedelta(hours=24)
@@ -846,8 +841,7 @@ class AutoScaler:
 # Enhanced Performance Monitor with Predictive Analytics
 class EnhancedPerformanceMonitor(PerformanceMonitor):
     """Enhanced performance monitor with predictive analytics and auto-scaling."""
-
-    def __init__(self):
+        def __init__(self):
         super().__init__()
         self.predictive_analytics = PredictiveAnalytics(self)
         self.auto_scaler = AutoScaler(self)
@@ -857,7 +851,7 @@ class EnhancedPerformanceMonitor(PerformanceMonitor):
         self.scaling_task: Optional[asyncio.Task] = None
 
     async def start_monitoring(self):
-        """Start enhanced monitoring with predictive analytics."""
+        Start enhanced monitoring with predictive analytics."""
         await super().start_monitoring()
 
         # Start predictive analytics
@@ -920,7 +914,7 @@ class EnhancedPerformanceMonitor(PerformanceMonitor):
                 await asyncio.sleep(60)
 
     def get_enhanced_dashboard_data(self) -> Dict[str, Any]:
-        """Get enhanced dashboard data with predictions."""
+        """Get enhanced dashboard data with predictions.
         base_data = super().get_dashboard_data()
 
         # Add predictive analytics data
@@ -950,12 +944,12 @@ async def start_performance_monitoring():
 
 
 async def stop_performance_monitoring():
-    """Stop global performance monitoring."""
+    Stop global performance monitoring."""
     await performance_monitor.stop_monitoring()
 
 
 def get_performance_dashboard() -> Dict[str, Any]:
-    """Get performance dashboard data."""
+    """Get performance dashboard data.
     return performance_monitor.get_enhanced_dashboard_data()
 
 

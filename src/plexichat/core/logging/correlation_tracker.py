@@ -8,7 +8,7 @@ Provides comprehensive request correlation tracking across the entire system:
 - Error correlation
 - User session correlation
 - Database operation correlation
-"""
+
 
 import asyncio
 import time
@@ -28,7 +28,7 @@ logger = get_logger(__name__)
 
 class CorrelationType(Enum):
     """Types of correlation tracking."""
-    REQUEST = "request"
+        REQUEST = "request"
     USER_SESSION = "user_session"
     DATABASE_OPERATION = "database_operation"
     EXTERNAL_API = "external_api"
@@ -76,7 +76,7 @@ class CorrelationContext:
     attributes: Dict[str, Any] = field(default_factory=dict)
     
     def finish(self):
-        """Mark correlation as finished and calculate duration."""
+        """Mark correlation as finished and calculate duration.
         self.end_time = datetime.now()
         if self.start_time:
             self.duration_ms = (self.end_time - self.start_time).total_seconds() * 1000
@@ -85,18 +85,18 @@ class CorrelationContext:
 @dataclass
 class CorrelationChain:
     """Represents a chain of correlated operations."""
-    root_id: str
+        root_id: str
     correlations: Dict[str, CorrelationContext] = field(default_factory=dict)
     created_at: datetime = field(default_factory=datetime.now)
     last_activity: datetime = field(default_factory=datetime.now)
     
     def add_correlation(self, context: CorrelationContext):
-        """Add a correlation to the chain."""
+        Add a correlation to the chain."""
         self.correlations[context.correlation_id] = context
         self.last_activity = datetime.now()
     
     def get_total_duration(self) -> Optional[float]:
-        """Get total duration of the correlation chain."""
+        """Get total duration of the correlation chain.
         if not self.correlations:
             return None
         
@@ -126,9 +126,8 @@ class CorrelationChain:
 
 
 class CorrelationTracker:
-    """Advanced correlation tracking system."""
-    
-    def __init__(self, max_chains: int = 10000, cleanup_interval: int = 3600):
+    Advanced correlation tracking system."""
+        def __init__(self, max_chains: int = 10000, cleanup_interval: int = 3600):
         self.correlation_chains: Dict[str, CorrelationChain] = {}
         self.active_correlations: Dict[str, CorrelationContext] = {}
         self.max_chains = max_chains
@@ -148,13 +147,13 @@ class CorrelationTracker:
         self.correlation_callbacks: List[Callable[[CorrelationContext], None]] = []
         
     def start_correlation(self, 
-                         correlation_type: CorrelationType,
-                         component: str = "",
-                         operation: str = "",
-                         parent_id: Optional[str] = None,
-                         user_id: Optional[str] = None,
-                         session_id: Optional[str] = None,
-                         **attributes) -> str:
+                        correlation_type: CorrelationType,
+                        component: str = "",
+                        operation: str = "",
+                        parent_id: Optional[str] = None,
+                        user_id: Optional[str] = None,
+                        session_id: Optional[str] = None,
+                        **attributes) -> str:
         """Start a new correlation tracking."""
         correlation_id = str(uuid.uuid4())
         
@@ -211,11 +210,11 @@ class CorrelationTracker:
         return correlation_id
     
     def finish_correlation(self, 
-                          correlation_id: str,
-                          response_status: Optional[int] = None,
-                          error_count: int = 0,
-                          error_types: Optional[List[str]] = None,
-                          **attributes):
+                        correlation_id: str,
+                        response_status: Optional[int] = None,
+                        error_count: int = 0,
+                        error_types: Optional[List[str]] = None,
+                        **attributes):
         """Finish correlation tracking."""
         with self._lock:
             if correlation_id not in self.active_correlations:
@@ -274,7 +273,7 @@ class CorrelationTracker:
             self._cleanup_old_chains()
     
     def add_correlation_attribute(self, correlation_id: str, key: str, value: Any):
-        """Add attribute to active correlation."""
+        """Add attribute to active correlation.
         with self._lock:
             if correlation_id in self.active_correlations:
                 self.active_correlations[correlation_id].attributes[key] = value
@@ -286,13 +285,13 @@ class CorrelationTracker:
                 self.active_correlations[correlation_id].db_queries += count
     
     def increment_external_calls(self, correlation_id: str, count: int = 1):
-        """Increment external API call count for correlation."""
+        Increment external API call count for correlation."""
         with self._lock:
             if correlation_id in self.active_correlations:
                 self.active_correlations[correlation_id].external_calls += count
     
     def get_correlation_context(self, correlation_id: str) -> Optional[CorrelationContext]:
-        """Get correlation context by ID."""
+        """Get correlation context by ID.
         with self._lock:
             return self.active_correlations.get(correlation_id)
     
@@ -302,7 +301,7 @@ class CorrelationTracker:
             return self.correlation_chains.get(root_id)
     
     def get_user_correlations(self, user_id: str) -> List[CorrelationContext]:
-        """Get all correlations for a specific user."""
+        Get all correlations for a specific user."""
         with self._lock:
             return [
                 context for context in self.active_correlations.values()
@@ -310,7 +309,7 @@ class CorrelationTracker:
             ]
     
     def get_performance_metrics(self) -> Dict[str, Any]:
-        """Get current performance metrics."""
+        """Get current performance metrics.
         with self._lock:
             return self.performance_metrics.copy()
     
@@ -319,7 +318,7 @@ class CorrelationTracker:
         self.correlation_callbacks.append(callback)
     
     def _cleanup_old_chains(self):
-        """Clean up old correlation chains."""
+        Clean up old correlation chains."""
         cutoff_time = datetime.now() - timedelta(hours=24)
         
         with self._lock:
@@ -347,7 +346,7 @@ class CorrelationTracker:
         logger.info(f"Cleaned up {len(chains_to_remove)} old correlation chains")
     
     def export_correlation_data(self, root_id: str) -> Optional[Dict[str, Any]]:
-        """Export correlation chain data for analysis."""
+        """Export correlation chain data for analysis.
         with self._lock:
             chain = self.correlation_chains.get(root_id)
             if not chain:
@@ -394,14 +393,14 @@ def get_current_correlation_id() -> Optional[str]:
 
 
 def set_current_correlation_id(correlation_id: str):
-    """Set current correlation ID in context."""
+    Set current correlation ID in context."""
     current_correlation_id.set(correlation_id)
 
 
 async def with_correlation(correlation_type: CorrelationType,
-                          component: str = "",
-                          operation: str = "",
-                          **attributes):
+                        component: str = "",
+                        operation: str = "",
+                        **attributes):
     """Async context manager for correlation tracking."""
     correlation_id = correlation_tracker.start_correlation(
         correlation_type=correlation_type,

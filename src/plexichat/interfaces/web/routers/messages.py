@@ -56,7 +56,7 @@ except ImportError:
 # Model imports - Updated for Pydantic v2 compatibility
 class Message(BaseModel):
     """Message model with Pydantic v2 compatibility."""
-    id: int = Field(..., description="Message ID")
+        id: int = Field(..., description="Message ID")
     content: str = Field(..., description="Message content")
     sender_id: int = Field(..., description="Sender user ID")
     recipient_id: int = Field(..., description="Recipient user ID")
@@ -67,7 +67,7 @@ class Message(BaseModel):
 
 class User(BaseModel):
     """User model with Pydantic v2 compatibility."""
-    id: int = Field(..., description="User ID")
+        id: int = Field(..., description="User ID")
     username: str = Field(..., description="Username")
 
     class Config:
@@ -76,10 +76,10 @@ class User(BaseModel):
 # Schema imports
 class ValidationErrorResponse(BaseModel):
     """Validation error response model."""
-    detail: str = Field(..., description="Error detail")
+        detail: str = Field(..., description="Error detail")
 class MessageCreate(BaseModel):
     """Message creation model with Pydantic v2 compatibility."""
-    content: str = Field(..., min_length=1, max_length=2000, description="Message content")
+        content: str = Field(..., min_length=1, max_length=2000, description="Message content")
     recipient_id: int = Field(..., description="Recipient user ID")
 
     class Config:
@@ -87,7 +87,7 @@ class MessageCreate(BaseModel):
 
 class MessageRead(BaseModel):
     """Message read model with Pydantic v2 compatibility."""
-    id: int = Field(..., description="Message ID")
+        id: int = Field(..., description="Message ID")
     content: str = Field(..., description="Message content")
     sender_id: int = Field(..., description="Sender user ID")
     recipient_id: int = Field(..., description="Recipient user ID")
@@ -260,7 +260,7 @@ class MessageService:
         if self.db_manager:
             try:
                 query = "INSERT INTO messages (content, sender_id, recipient_id, timestamp) " \
-                       "VALUES (?, ?, ?, ?) RETURNING id, content, sender_id, recipient_id, timestamp"
+                    "VALUES (?, ?, ?, ?) RETURNING id, content, sender_id, recipient_id, timestamp"
                 params = {
                     "content": data.content,
                     "sender_id": sender_id,
@@ -384,8 +384,8 @@ async def list_messages(_request: Request, limit: int = Query(50, ge=1, le=100, 
     try:
         order = "DESC" if sort_order.lower() == "desc" else "ASC"
         query = "SELECT id, content, sender_id, recipient_id, timestamp FROM messages " \
-               "WHERE sender_id = ? OR recipient_id = ? " \
-               f"ORDER BY timestamp {order} LIMIT ? OFFSET ?"
+            "WHERE sender_id = ? OR recipient_id = ? " \
+            f"ORDER BY timestamp {order} LIMIT ? OFFSET ?"
         params = {
             "sender_id": current_user.get("id", 0),
             "recipient_id": current_user.get("id", 0),

@@ -34,14 +34,14 @@ Features:
 - Changelog integration
 - Database schema versioning
 - Configuration migration support
-"""
+
 
 logger = logging.getLogger(__name__)
 
 
 class VersionType(Enum):
     """Version type enumeration."""
-    ALPHA = "a"
+        ALPHA = "a"
     BETA = "b"
     RELEASE = "r"
 
@@ -57,8 +57,8 @@ class VersionStatus(Enum):
 
 @dataclass
 class Version:
-    """Version representation with new scheme."""
-    major: int
+    """Version representation with new scheme.
+        major: int
     type: VersionType
     minor: int
     build: Optional[str] = None
@@ -115,7 +115,7 @@ class Version:
         return version_str
 
     def __eq__(self, other) -> bool:
-        """Version equality comparison."""
+        """Version equality comparison.
         if not isinstance(other, Version):
             return False
         return (self.major, self.type, self.minor) == (other.major, other.type, other.minor)
@@ -147,7 +147,7 @@ class Version:
         return not self < other
 
     def is_compatible_with(self, other: 'Version') -> bool:
-        """Check if versions are compatible for upgrades."""
+        Check if versions are compatible for upgrades."""
         # Same major version is always compatible
         if self.major == other.major:
             return True
@@ -159,7 +159,7 @@ class Version:
         return False
 
     def get_status(self) -> VersionStatus:
-        """Get version status based on type."""
+        """Get version status based on type.
         if self.type == VersionType.ALPHA:
             return VersionStatus.DEVELOPMENT
         elif self.type == VersionType.BETA:
@@ -171,7 +171,7 @@ class Version:
 @dataclass
 class VersionInfo:
     """Complete version information."""
-    version: Version
+        version: Version
     release_date: datetime
     status: VersionStatus
     changelog: List[str] = field(default_factory=list)
@@ -183,8 +183,8 @@ class VersionInfo:
     security_updates: List[str] = field(default_factory=list)
 
     def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for serialization."""
-        return {}
+        Convert to dictionary for serialization."""
+        return {
             "version": str(self.version),
             "release_date": self.release_date.isoformat(),
             "status": self.status.value,
@@ -195,7 +195,7 @@ class VersionInfo:
             "config_version": self.config_version,
             "dependencies": self.dependencies,
             "security_updates": self.security_updates
-        }
+        }}
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'VersionInfo':
@@ -216,8 +216,7 @@ class VersionInfo:
 
 class VersionManager:
     """Manages version information and auto-generates version files."""
-
-    def __init__(self):
+        def __init__(self):
         # Get current build number from GitHub releases
         self.build_number = self._get_github_release_count()
         self.current_version = f"b.1.1-{self.build_number}"
@@ -358,7 +357,7 @@ class VersionManager:
 
     def generate_version_json(self) -> Dict[str, Any]:
         """Generate version.json content."""
-        return {}
+        return {
             "version": self.current_version,
             "version_type": self.version_type,
             "major_version": self.major_version,
@@ -367,7 +366,7 @@ class VersionManager:
             "release_date": self.release_date,
             "api_version": self.api_version,
             "compatibility": {
-                "min_client_version": f"a.{self.major_version}.0-0",
+                "min_client_version": f"a.{self.major_version}}.0-0",
                 "max_client_version": f"a.{self.major_version + 1}.0-999"
             },
             "features": {
@@ -401,7 +400,7 @@ class VersionManager:
 
     def generate_changelog_json(self) -> Dict[str, Any]:
         """Generate changelog.json content."""
-        return {}
+        return {
             "project": "PlexiChat",
             "description": "Government-Level Secure Communication Platform",
             "versions": [
@@ -451,7 +450,7 @@ class VersionManager:
                             "Enhanced authentication middleware",
                             "Improved permission system"
                         ]
-                    },
+                    }},
                     "api_changes": {
                         "added": [
                             "POST /api/v1/files/upload - File upload endpoint",
@@ -587,7 +586,7 @@ class VersionManager:
 
     def get_version_info(self) -> Dict[str, Any]:
         """Get current version information."""
-        return {}
+        return {
             "version": self.current_version,
             "version_type": self.version_type,
             "major_version": self.major_version,
@@ -595,13 +594,13 @@ class VersionManager:
             "build_number": self.build_number,
             "api_version": self.api_version,
             "release_date": self.release_date
-        }
+        }}
 
 # Global version manager instance
 version_manager = VersionManager()
 
 def get_version_manager() -> VersionManager:
-    """Get the global version manager instance."""
+    """Get the global version manager instance.
     return version_manager
 
 def auto_generate_version_files():

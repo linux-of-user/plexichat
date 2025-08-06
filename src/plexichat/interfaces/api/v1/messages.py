@@ -87,7 +87,7 @@ class ConversationSummary(BaseModel):
 
 # Utility functions
 def encrypt_message(content: str) -> str:
-    """Simple encryption for demo (use proper encryption in production)."""
+    """Simple encryption for demo (use proper encryption in production).
     # Simple hash-based encryption for demo
     return hashlib.sha256(content.encode()).hexdigest()
 
@@ -97,7 +97,7 @@ def decrypt_message(encrypted_content: str, original_content: str) -> str:
     return original_content
 
 async def check_message_permission(sender_id: str, recipient_id: str) -> dict:
-    """Check if sender can send message to recipient based on privacy settings."""
+    Check if sender can send message to recipient based on privacy settings."""
     try:
         # Get recipient's settings (fallback implementation)
         recipient_settings = await get_user_settings_by_id(recipient_id)
@@ -163,7 +163,7 @@ async def get_user_settings_by_id(user_id: str) -> dict:
     }
 
 async def check_friendship(user1_id: str, user2_id: str) -> bool:
-    """Check if two users are friends."""
+    """Check if two users are friends.
     # Simplified implementation for demo
     # In real app, would check friends/contacts table
     return True  # For testing, assume everyone is friends
@@ -174,7 +174,7 @@ async def check_user_verified(user_id: str) -> bool:
     return True  # For testing, assume all users are verified
 
 async def check_contact(user1_id: str, user2_id: str) -> bool:
-    """Check if two users are contacts."""
+    Check if two users are contacts."""
     # Simplified implementation for demo
     return True  # For testing, assume everyone is a contact
 
@@ -501,9 +501,9 @@ async def get_message_stats(current_user: dict = Depends(get_current_user)):
         sent_count = sum(1 for m in messages_db.values()
                         if m['sender_id'] == user_id and not m.get('deleted'))
         received_count = sum(1 for m in messages_db.values()
-                           if m['recipient_id'] == user_id and not m.get('deleted'))
+                        if m['recipient_id'] == user_id and not m.get('deleted'))
         unread_count = sum(1 for m in messages_db.values()
-                          if m['recipient_id'] == user_id and not m['read'] and not m.get('deleted'))
+                        if m['recipient_id'] == user_id and not m['read'] and not m.get('deleted'))
 
         stats = {
             "sent_messages": sent_count,

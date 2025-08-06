@@ -36,7 +36,7 @@ if templates_path.exists():
 @rate_limit(requests_per_minute=60)
 @audit_access("view", "webui")
 async def webui_home(request: Request):
-    """Main WebUI dashboard."""
+    """Main WebUI dashboard.
     if not templates:
         # Fallback HTML if templates not available
         html_content = f"""
@@ -139,7 +139,7 @@ async def webui_home(request: Request):
 @router.get("/login", response_class=HTMLResponse)
 @rate_limit(requests_per_minute=30)
 async def webui_login(request: Request):
-    """WebUI login page."""
+    """WebUI login page.
     html_content = f"""
     <!DOCTYPE html>
     <html>
@@ -204,7 +204,7 @@ async def webui_login(request: Request):
 @require_auth()
 @rate_limit(requests_per_minute=60)
 async def webui_dashboard(request: Request):
-    """Authenticated user dashboard."""
+    """Authenticated user dashboard.
     html_content = f"""
     <!DOCTYPE html>
     <html>
@@ -304,12 +304,12 @@ async def webui_dashboard(request: Request):
 
             function showDeveloperInfo() {{
                 alert('[SETUP] PlexiChat Developer Mode\\n\\n' +
-                      '[START] Version: {PLEXICHAT_VERSION}\\n' +
-                      '[LAUNCH] Framework: FastAPI + HTML/CSS/JS\\n' +
-                      '? Security: Enterprise-grade\\n' +
-                      '? Performance: Sub-millisecond API\\n\\n' +
-                      '[GAME] Easter Eggs Found: ' + (clickCount >= 7 ? 'Developer Mode!' : clickCount) + '\\n\\n' +
-                      'Thanks for exploring PlexiChat! ?');
+                    '[START] Version: {PLEXICHAT_VERSION}\\n' +
+                    '[LAUNCH] Framework: FastAPI + HTML/CSS/JS\\n' +
+                    '? Security: Enterprise-grade\\n' +
+                    '? Performance: Sub-millisecond API\\n\\n' +
+                    '[GAME] Easter Eggs Found: ' + (clickCount >= 7 ? 'Developer Mode!' : clickCount) + '\\n\\n' +
+                    'Thanks for exploring PlexiChat! ?');
             }}
 
             // Konami code listener
@@ -355,7 +355,7 @@ async def webui_dashboard(request: Request):
                         </p>
                         <button onclick="this.parentElement.parentElement.remove()"
                                 style="padding: 15px 30px; font-size: 1.2em; background: #4ecdc4;
-                                       color: white; border: none; border-radius: 5px; cursor: pointer;">
+                                    color: white; border: none; border-radius: 5px; cursor: pointer;">
                             Awesome! [SUCCESS]
                         </button>
                     </div>
@@ -387,11 +387,11 @@ async def webui_dashboard(request: Request):
 
             function show42Reference() {{
                 alert('? The Answer to Everything: 42\\n\\n' +
-                      '"The Answer to the Ultimate Question of Life, ' +
-                      'the Universe, and Everything is 42."\\n\\n' +
-                      '- The Hitchhiker\\'s Guide to the Galaxy\\n' +
-                      'by Douglas Adams\\n\\n' +
-                      'Don\\'t Panic! [START]');
+                    '"The Answer to the Ultimate Question of Life, ' +
+                    'the Universe, and Everything is 42."\\n\\n' +
+                    '- The Hitchhiker\\'s Guide to the Galaxy\\n' +
+                    'by Douglas Adams\\n\\n' +
+                    'Don\\'t Panic! [START]');
             }}
         </script>
     </body>

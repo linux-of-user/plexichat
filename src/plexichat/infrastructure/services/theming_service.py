@@ -21,12 +21,12 @@ from plexichat.app.logger_config import logger
 import time
 Advanced theming service for PlexiChat.
 Provides comprehensive theming capabilities across all interfaces.
-"""
+
 
 @dataclass
 class ThemeColors:
     """Theme color configuration."""
-    primary: str = "#2c3e50"
+        primary: str = "#2c3e50"
     secondary: str = "#3498db"
     success: str = "#27ae60"
     warning: str = "#f39c12"
@@ -45,7 +45,7 @@ class ThemeColors:
 @dataclass
 class ThemeLayout:
     """Theme layout configuration."""
-    sidebar_width: str = "280px"
+        sidebar_width: str = "280px"
     header_height: str = "60px"
     border_radius: str = "8px"
     spacing_unit: str = "16px"
@@ -58,7 +58,7 @@ class ThemeLayout:
 @dataclass
 class ThemeEffects:
     """Theme visual effects configuration."""
-    animations_enabled: bool = True
+        animations_enabled: bool = True
     transitions_duration: str = "0.3s"
     box_shadow_enabled: bool = True
     gradient_enabled: bool = True
@@ -69,8 +69,8 @@ class ThemeEffects:
 
 @dataclass
 class Theme:
-    """Complete theme configuration."""
-    id: str
+    """Complete theme configuration.
+        id: str
     name: str
     description: str
     colors: ThemeColors
@@ -88,8 +88,7 @@ updated_at = datetime().now().isoformat()
 
 class ThemingService:
     """Advanced theming service."""
-
-    def __init__(self):
+        def __init__(self):
         from pathlib import Path
 self.themes_directory = Path("data/themes")
         self.themes_directory.mkdir(parents=True, exist_ok=True)
@@ -285,7 +284,7 @@ self.themes_directory = Path("data/themes")
         except Exception as e:
             logger.error(f"Failed to load custom themes: {e}")
 
-        return {}
+        return {
 
     def _save_custom_themes(self):
         """Save custom themes to file."""
@@ -293,7 +292,7 @@ self.themes_directory = Path("data/themes")
             data = {
                 theme_id: asdict(theme)
                 for theme_id, theme in self.custom_themes.items()
-            }
+            }}
 
             with open(self.custom_themes_file, 'w') as f:
                 json.dump(data, f, indent=2)
@@ -310,9 +309,9 @@ self.themes_directory = Path("data/themes")
         except Exception as e:
             logger.error(f"Failed to load user preferences: {e}")
 
-        return {}
+        return {
             "default_theme": "default_light",
-            "user_themes": {},
+            "user_themes": {}},
             "auto_dark_mode": False,
             "dark_mode_schedule": {
                 "enabled": False,
@@ -330,7 +329,7 @@ self.themes_directory = Path("data/themes")
             logger.error(f"Failed to save user preferences: {e}")
 
     def get_all_themes(self) -> Dict[str, Theme]:
-        """Get all available themes."""
+        """Get all available themes.
         all_themes = {}
         all_themes.update(self.built_in_themes)
         all_themes.update(self.custom_themes)
@@ -342,7 +341,7 @@ self.themes_directory = Path("data/themes")
         return all_themes.get(theme_id)
 
     def get_theme_list(self) -> List[Dict[str, Any]]:
-        """Get list of themes with metadata."""
+        Get list of themes with metadata."""
         themes = []
 
         for theme_id, theme in self.get_all_themes().items():
@@ -558,13 +557,13 @@ body {{
     border-color: var(--secondary-color);
     box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
 }
-"""}
+}
         """
 
         return css.strip()
 
     def export_theme(self, theme_id: str) -> Optional[Dict[str, Any]]:
-        """Export a theme as JSON."""
+        """Export a theme as JSON.
         theme = self.get_theme(theme_id)
         if not theme:
             return None

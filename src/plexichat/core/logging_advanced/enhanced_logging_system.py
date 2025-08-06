@@ -1,7 +1,7 @@
 """
 Enhanced Logging System for PlexiChat
 Provides comprehensive logging with structured output, contextual information, and monitoring.
-"""
+
 
 import asyncio
 import gzip
@@ -45,8 +45,8 @@ except ImportError:
 
 
 class LogLevel(Enum):
-    """Enhanced log levels."""
-    TRACE = 5
+    Enhanced log levels."""
+        TRACE = 5
     DEBUG = 10
     INFO = 20
     WARNING = 30
@@ -78,8 +78,8 @@ class LogCategory(Enum):
 
 @dataclass
 class LogContext:
-    """Context information for logs."""
-    request_id: Optional[str] = None
+    """Context information for logs.
+        request_id: Optional[str] = None
     user_id: Optional[str] = None
     session_id: Optional[str] = None
     ip_address: Optional[str] = None
@@ -97,7 +97,7 @@ class LogContext:
 @dataclass
 class PerformanceMetrics:
     """Performance metrics for logging."""
-    duration_ms: Optional[float] = None
+        duration_ms: Optional[float] = None
     memory_usage_mb: Optional[float] = None
     cpu_usage_percent: Optional[float] = None
     disk_io_mb: Optional[float] = None
@@ -109,8 +109,8 @@ class PerformanceMetrics:
 
 @dataclass
 class SecurityMetrics:
-    """Security-related metrics."""
-    threat_score: Optional[float] = None
+    Security-related metrics."""
+        threat_score: Optional[float] = None
     blocked_attempts: Optional[int] = None
     failed_authentications: Optional[int] = None
     privilege_escalations: Optional[int] = None
@@ -119,8 +119,8 @@ class SecurityMetrics:
 
 @dataclass
 class LogEntry:
-    """Enhanced structured log entry."""
-    timestamp: datetime
+    """Enhanced structured log entry.
+        timestamp: datetime
     level: LogLevel
     category: LogCategory
     message: str
@@ -167,14 +167,13 @@ class LogEntry:
         return data
     
     def to_json(self) -> str:
-        """Convert to JSON string."""
+        """Convert to JSON string.
         return json.dumps(self.to_dict(), default=str, separators=(',', ':'))
 
 
 class LogBuffer:
     """Thread-safe circular buffer for log entries."""
-    
-    def __init__(self, max_size: int = 50000):
+        def __init__(self, max_size: int = 50000):
         self.max_size = max_size
         self.buffer = deque(maxlen=max_size)
         self.lock = threading.RLock()
@@ -213,13 +212,13 @@ class LogBuffer:
                         pass
     
     def get_entries(self, 
-                   count: Optional[int] = None,
-                   level_filter: Optional[LogLevel] = None,
-                   category_filter: Optional[LogCategory] = None,
-                   start_time: Optional[datetime] = None,
-                   end_time: Optional[datetime] = None,
-                   tags: Optional[List[str]] = None) -> List[LogEntry]:
-        """Get filtered log entries."""
+                count: Optional[int] = None,
+                level_filter: Optional[LogLevel] = None,
+                category_filter: Optional[LogCategory] = None,
+                start_time: Optional[datetime] = None,
+                end_time: Optional[datetime] = None,
+                tags: Optional[List[str]] = None) -> List[LogEntry]:
+        """Get filtered log entries.
         with self.lock:
             entries = list(self.buffer)
             
@@ -254,7 +253,7 @@ class LogBuffer:
             self.subscribers.append(callback)
     
     def unsubscribe(self, callback: Callable[[LogEntry], None]):
-        """Unsubscribe from log entries."""
+        Unsubscribe from log entries."""
         with self.lock:
             try:
                 self.subscribers.remove(callback)
@@ -284,9 +283,8 @@ class LogBuffer:
 
 
 class PerformanceTracker:
-    """Performance tracking for operations."""
-    
-    def __init__(self):
+    """Performance tracking for operations.
+        def __init__(self):
         self.operations = defaultdict(list)
         self.lock = threading.RLock()
     
@@ -308,7 +306,7 @@ class PerformanceTracker:
         with self.lock:
             if operation:
                 if operation not in self.operations:
-                    return {}
+                    return {
                 
                 durations = [op["duration"] for op in self.operations[operation]]
                 return {
@@ -320,12 +318,12 @@ class PerformanceTracker:
                     "recent_durations": durations[-10:] if durations else [],
                     "p95": self._percentile(durations, 95) if durations else 0,
                     "p99": self._percentile(durations, 99) if durations else 0
-                }
+                }}
             else:
                 return {op: self.get_stats(op) for op in self.operations.keys()}
     
     def _percentile(self, data: List[float], percentile: int) -> float:
-        """Calculate percentile value."""
+        """Calculate percentile value.
         if not data:
             return 0.0
         sorted_data = sorted(data)
@@ -335,15 +333,14 @@ class PerformanceTracker:
 
 class StructuredFormatter(logging.Formatter):
     """Enhanced structured JSON formatter."""
-    
-    def __init__(self, include_context: bool = True, include_performance: bool = True):
+        def __init__(self, include_context: bool = True, include_performance: bool = True):
         super().__init__()
         self.include_context = include_context
         self.include_performance = include_performance
         self.hostname = os.uname().nodename if hasattr(os, 'uname') else 'unknown'
     
     def format(self, record: logging.LogRecord) -> str:
-        """Format log record as structured JSON."""
+        Format log record as structured JSON."""
         # Get caller information
         frame = inspect.currentframe()
         try:
@@ -395,7 +392,7 @@ class StructuredFormatter(logging.Formatter):
         return entry.to_json()
     
     def _get_log_level(self, level_name: str) -> LogLevel:
-        """Convert logging level name to LogLevel enum."""
+        """Convert logging level name to LogLevel enum.
         level_mapping = {
             'TRACE': LogLevel.TRACE,
             'DEBUG': LogLevel.DEBUG,
@@ -414,8 +411,7 @@ class StructuredFormatter(logging.Formatter):
 
 class ColorizedConsoleFormatter(logging.Formatter):
     """Colorized console formatter for better readability."""
-    
-    COLORS = {
+        COLORS = {
         'TRACE': '\033[90m',      # Dark gray
         'DEBUG': '\033[36m',      # Cyan
         'INFO': '\033[32m',       # Green
@@ -438,7 +434,7 @@ class ColorizedConsoleFormatter(logging.Formatter):
         self.use_colors = use_colors and sys.stdout.isatty()
     
     def format(self, record: logging.LogRecord) -> str:
-        """Format with colors if enabled."""
+        Format with colors if enabled."""
         if self.use_colors:
             level_color = self.COLORS.get(record.levelname, '')
             reset_color = self.COLORS['RESET']
@@ -466,9 +462,8 @@ class ColorizedConsoleFormatter(logging.Formatter):
 
 
 class CompressingRotatingFileHandler(logging.handlers.RotatingFileHandler):
-    """Rotating file handler with automatic compression."""
-    
-    def doRollover(self):
+    """Rotating file handler with automatic compression.
+        def doRollover(self):
         """Perform rollover with compression."""
         super().doRollover()
         
@@ -488,9 +483,8 @@ class CompressingRotatingFileHandler(logging.handlers.RotatingFileHandler):
 
 
 class AsyncLogHandler(logging.Handler):
-    """Asynchronous log handler to prevent I/O blocking."""
-    
-    def __init__(self, target_handler: logging.Handler, queue_size: int = 10000):
+    """Asynchronous log handler to prevent I/O blocking.
+        def __init__(self, target_handler: logging.Handler, queue_size: int = 10000):
         super().__init__()
         self.target_handler = target_handler
         self.queue = asyncio.Queue(maxsize=queue_size)
@@ -511,7 +505,7 @@ class AsyncLogHandler(logging.Handler):
             self.handleError(record)
     
     async def start_processing(self):
-        """Start the asynchronous processing task."""
+        Start the asynchronous processing task."""
         self.task = asyncio.create_task(self._process_queue())
     
     async def _process_queue(self):
@@ -527,7 +521,7 @@ class AsyncLogHandler(logging.Handler):
                 print(f"Error processing log record: {e}")
     
     def close(self):
-        """Close the handler and stop processing."""
+        """Close the handler and stop processing.
         self.running = False
         if self.task:
             self.task.cancel()
@@ -537,8 +531,7 @@ class AsyncLogHandler(logging.Handler):
 
 class EnhancedLoggingSystem:
     """Enhanced logging system with comprehensive features."""
-    
-    def __init__(self):
+        def __init__(self):
         self.config = get_config()
         self.log_buffer = LogBuffer()
         self.performance_stats = {}
@@ -550,7 +543,7 @@ class EnhancedLoggingSystem:
         self._setup_logging()
     
     def _setup_logging(self):
-        """Setup the enhanced logging system."""
+        Setup the enhanced logging system."""
         # Create logs directory
         log_dir = Path("logs")
         log_dir.mkdir(exist_ok=True)
@@ -576,7 +569,7 @@ class EnhancedLoggingSystem:
         self._setup_custom_levels()
     
     def _setup_console_handler(self, logger: logging.Logger):
-        """Setup colorized console handler."""
+        """Setup colorized console handler.
         console_handler = logging.StreamHandler(sys.stdout)
         console_handler.setLevel(logging.INFO)
         console_formatter = ColorizedConsoleFormatter()
@@ -650,7 +643,7 @@ class EnhancedLoggingSystem:
         self.handlers.append(structured_handler)
     
     def _setup_buffer_handler(self, logger: logging.Logger):
-        """Setup in-memory buffer handler."""
+        """Setup in-memory buffer handler.
         class BufferHandler(logging.Handler):
             def __init__(self, log_buffer: LogBuffer):
                 super().__init__()
@@ -733,7 +726,7 @@ class EnhancedLoggingSystem:
         logging.Logger.performance = performance
     
     def get_logger(self, name: str = None) -> logging.Logger:
-        """Get enhanced logger instance."""
+        Get enhanced logger instance."""
         if name is None:
             name = self._get_caller_module()
         
@@ -744,7 +737,7 @@ class EnhancedLoggingSystem:
         return self.loggers[name]
     
     def _get_caller_module(self) -> str:
-        """Get the module name of the caller."""
+        """Get the module name of the caller.
         frame = inspect.currentframe()
         try:
             # Walk up the stack to find the calling module
@@ -767,13 +760,13 @@ class EnhancedLoggingSystem:
                 setattr(self.context_stack.context, key, value)
     
     def get_context(self) -> LogContext:
-        """Get current logging context."""
+        Get current logging context."""
         if not hasattr(self.context_stack, 'context'):
             self.context_stack.context = LogContext()
         return self.context_stack.context
     
     def clear_context(self):
-        """Clear logging context for current thread."""
+        """Clear logging context for current thread.
         if hasattr(self.context_stack, 'context'):
             self.context_stack.context = LogContext()
     
@@ -803,11 +796,11 @@ class EnhancedLoggingSystem:
         logger.log(level, message, extra=extra)
     
     def get_buffer_stats(self) -> Dict[str, Any]:
-        """Get logging buffer statistics."""
+        Get logging buffer statistics."""
         return self.log_buffer.get_stats()
     
     def get_performance_stats(self) -> Dict[str, Any]:
-        """Get performance tracking statistics."""
+        """Get performance tracking statistics.
         return self.performance_stats
     
     def get_performance_tracker(self, operation_name: str, logger_name: Optional[str] = None):
@@ -816,7 +809,7 @@ class EnhancedLoggingSystem:
         return PerformanceTracker(operation_name, logger)
     
     def track_operation(self, operation_name: str, duration: float, metadata: Dict[str, Any] = None):
-        """Track an operation's performance."""
+        Track an operation's performance."""
         if operation_name not in self.performance_stats:
             self.performance_stats[operation_name] = {
                 'count': 0,
@@ -834,12 +827,12 @@ class EnhancedLoggingSystem:
         stats['max_duration'] = max(stats['max_duration'], duration)
     
     def search_logs(self, query: str, 
-                   level: Optional[LogLevel] = None,
-                   category: Optional[LogCategory] = None,
-                   start_time: Optional[datetime] = None,
-                   end_time: Optional[datetime] = None,
-                   limit: int = 100) -> List[LogEntry]:
-        """Search logs with filters."""
+                level: Optional[LogLevel] = None,
+                category: Optional[LogCategory] = None,
+                start_time: Optional[datetime] = None,
+                end_time: Optional[datetime] = None,
+                limit: int = 100) -> List[LogEntry]:
+        """Search logs with filters.
         entries = self.log_buffer.get_entries(
             count=limit * 2,  # Get more entries to filter
             level_filter=level,
@@ -865,9 +858,9 @@ class EnhancedLoggingSystem:
         return entries[:limit]
     
     def export_logs(self, 
-                   start_time: Optional[datetime] = None,
-                   end_time: Optional[datetime] = None,
-                   format: str = 'json') -> str:
+                start_time: Optional[datetime] = None,
+                end_time: Optional[datetime] = None,
+                format: str = 'json') -> str:
         """Export logs in specified format."""
         entries = self.log_buffer.get_entries(
             start_time=start_time,
@@ -903,7 +896,7 @@ class EnhancedLoggingSystem:
             raise ValueError(f"Unsupported export format: {format}")
     
     def shutdown(self):
-        """Shutdown the logging system."""
+        """Shutdown the logging system.
         for handler in self.handlers:
             handler.close()
         self.handlers.clear()
@@ -921,12 +914,12 @@ def get_enhanced_logging_system() -> EnhancedLoggingSystem:
 
 
 def get_logger(name: str = None) -> logging.Logger:
-    """Get enhanced logger instance."""
+    Get enhanced logger instance."""
     return get_enhanced_logging_system().get_logger(name)
 
 
 def setup_module_logging(name: str = None, level: str = "INFO") -> logging.Logger:
-    """Setup logging for a module."""
+    """Setup logging for a module.
     logger = get_logger(name)
     level_obj = getattr(logging, level.upper(), logging.INFO)
     logger.setLevel(level_obj)
@@ -936,8 +929,7 @@ def setup_module_logging(name: str = None, level: str = "INFO") -> logging.Logge
 # Context manager for performance tracking
 class PerformanceTracker:
     """Context manager for tracking operation performance."""
-    
-    def __init__(self, operation_name: str, logger: logging.Logger = None):
+        def __init__(self, operation_name: str, logger: logging.Logger = None):
         self.operation_name = operation_name
         self.logger = logger or get_logger()
         self.start_time = None
@@ -968,11 +960,11 @@ class PerformanceTracker:
             }
             
             self.logger.log(LogLevel.PERFORMANCE.value, 
-                          f"Operation '{self.operation_name}' completed in {duration:.2f}ms",
-                          extra=extra)
+                        f"Operation '{self.operation_name}' completed in {duration:.2f}ms",
+                        extra=extra)
     
     def add_metadata(self, **kwargs):
-        """Add metadata to the performance tracking."""
+        """Add metadata to the performance tracking.
         self.metadata.update(kwargs)
 
 

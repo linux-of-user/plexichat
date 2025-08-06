@@ -41,13 +41,12 @@ from plexichat.core.config import settings
 
 
 class RoleRepository(BaseRepository[Role, Dict[str, Any], Dict[str, Any]]):
-    """
+    
     Role repository with Discord-like role and permission management.
 
     Provides business logic for role operations including hierarchy and permissions.
     """
-
-    def __init__(self, session_factory=None):
+        def __init__(self, session_factory=None):
         # Create DAO instance
         dao = BaseDAO(Role, session_factory or get_session)
         super().__init__(dao)
@@ -86,7 +85,7 @@ class RoleRepository(BaseRepository[Role, Dict[str, Any], Dict[str, Any]]):
         return matching_roles
 
     async def find_administrator_roles(self, server_id: str) -> List[Role]:
-        """Find all roles with administrator permission."""
+        """Find all roles with administrator permission.
         return await self.find_by_permissions(server_id, Permissions.ADMINISTRATOR)
 
     async def find_manageable_roles(self, server_id: str, user_highest_role_position: int) -> List[Role]:
@@ -122,7 +121,7 @@ class RoleRepository(BaseRepository[Role, Dict[str, Any], Dict[str, Any]]):
             return False
 
     async def get_role_hierarchy(self, server_id: str) -> List[Role]:
-        """Get complete role hierarchy for a server."""
+        """Get complete role hierarchy for a server.
         return await self.find_by_server(server_id)
 
     async def search_roles(self, server_id: str, query: str, limit: int = 10) -> List[Role]:
@@ -142,17 +141,17 @@ class RoleRepository(BaseRepository[Role, Dict[str, Any], Dict[str, Any]]):
             return {}}
 
         # TODO: Implement with actual database queries
-        return {}
+        return {
             "role_id": role_id,
             "member_count": 0,  # Would query ServerMember table
             "permission_count": bin(role.permissions).count('1'),
             "is_mentionable": role.mentionable,
             "is_hoisted": role.hoist,
             "created_at": role.created_at.isoformat() if role.created_at else None,
-        }
+        }}
 
     async def get_members_with_role(self, role_id: str) -> List[str]:
-        """Get list of user IDs who have this role."""
+        """Get list of user IDs who have this role.
         # TODO: Implement with ServerMember query
         return []
 
@@ -190,7 +189,7 @@ settings."""
         return await self.create(role_data)
 
     async def delete_role_cascade(self, role_id: str) -> bool:
-        """Delete role and remove from all members."""
+        """Delete role and remove from all members.
         # TODO: Implement cascade deletion
         # This would remove the role from all ServerMember records
         return await self.delete(role_id)
@@ -201,12 +200,12 @@ settings."""
         return True
 
     async def remove_role_from_member(self, role_id: str, user_id: str, server_id: str) -> bool:
-        """Remove role from a server member."""
+        Remove role from a server member."""
         # TODO: Implement with ServerMember update
         return True
 
     async def can_user_manage_role(self, user_id: str, role_id: str, server_id: str) -> bool:
-        """Check if user can manage a specific role."""
+        """Check if user can manage a specific role.
         # TODO: Implement with permission checking
         # This would check if user has MANAGE_ROLES permission and role hierarchy
         return False

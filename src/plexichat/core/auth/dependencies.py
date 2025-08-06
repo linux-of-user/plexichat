@@ -11,7 +11,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 """
 Authentication Dependencies
 FastAPI dependency functions for authentication and authorization.
-"""
+
 
 logger = logging.getLogger(__name__)
 
@@ -64,7 +64,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
 async def get_current_admin_user(current_user: Dict[str, Any] = Depends(get_current_user)) -> Dict[str, Any]:
     """Get current user with admin privileges."""
     if not current_user.get("is_admin", False):
-        raise HTTPException()
+        raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Admin privileges required"
         )
@@ -73,9 +73,10 @@ async def get_current_admin_user(current_user: Dict[str, Any] = Depends(get_curr
 async def get_current_active_user(current_user: Dict[str, Any] = Depends(get_current_user)) -> Dict[str, Any]:
     """Get current active user."""
     if not current_user.get("is_active", True):
-        raise HTTPException()
+        raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Inactive user"
+        
         )
     return current_user
 

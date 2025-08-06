@@ -1,7 +1,7 @@
 """
 PlexiChat PyQt6 Main Dashboard
 Modern dashboard interface with comprehensive system management.
-"""
+
 
 import logging
 from typing import Dict, Any, Optional, List
@@ -19,14 +19,13 @@ logger = logging.getLogger(__name__)
 
 class SystemStatsWidget(QFrame):
     """Widget displaying system statistics."""
-    
-    def __init__(self, parent=None):
+        def __init__(self, parent=None):
         super().__init__(parent)
         self.setup_ui()
         self.setup_timer()
     
     def setup_ui(self):
-        """Setup the UI components."""
+        Setup the UI components."""
         self.setFrameStyle(QFrame.Shape.StyledPanel)
         layout = QVBoxLayout(self)
         
@@ -70,7 +69,7 @@ class SystemStatsWidget(QFrame):
         layout.addStretch()
     
     def setup_timer(self):
-        """Setup timer for updating stats."""
+        """Setup timer for updating stats.
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_stats)
         self.timer.start(5000)  # Update every 5 seconds
@@ -107,9 +106,8 @@ class SystemStatsWidget(QFrame):
 
 
 class QuickActionsWidget(QFrame):
-    """Widget with quick action buttons."""
-    
-    action_triggered = pyqtSignal(str)
+    """Widget with quick action buttons.
+        action_triggered = pyqtSignal(str)
     
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -144,9 +142,8 @@ class QuickActionsWidget(QFrame):
 
 
 class RecentActivityWidget(QFrame):
-    """Widget showing recent system activity."""
-    
-    def __init__(self, parent=None):
+    """Widget showing recent system activity.
+        def __init__(self, parent=None):
         super().__init__(parent)
         self.setup_ui()
         self.populate_activity()
@@ -193,8 +190,7 @@ class MainDashboardPyQt(QWidget):
     - User management tools
     - System health indicators
     """
-    
-    # Signals
+        # Signals
     action_requested = pyqtSignal(str)
     plugin_action = pyqtSignal(str, str)
     
@@ -207,7 +203,7 @@ class MainDashboardPyQt(QWidget):
         logger.info("Main dashboard initialized")
     
     def setup_ui(self):
-        """Setup the main dashboard UI."""
+        """Setup the main dashboard UI.
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(20, 20, 20, 20)
         main_layout.setSpacing(20)
@@ -253,7 +249,7 @@ class MainDashboardPyQt(QWidget):
         layout.addLayout(header_layout)
     
     def create_left_panel(self) -> QWidget:
-        """Create left panel with system stats."""
+        """Create left panel with system stats.
         panel = QWidget()
         layout = QVBoxLayout(panel)
         
@@ -296,7 +292,7 @@ class MainDashboardPyQt(QWidget):
         return panel
     
     def create_right_panel(self) -> QWidget:
-        """Create right panel with activity feed."""
+        """Create right panel with activity feed.
         panel = QWidget()
         layout = QVBoxLayout(panel)
         
@@ -459,7 +455,7 @@ class MainDashboardPyQt(QWidget):
             self.users_table.setItem(row, 3, QTableWidgetItem(status))
     
     def setup_connections(self):
-        """Setup signal connections."""
+        """Setup signal connections.
         if self.actions_widget:
             self.actions_widget.action_triggered.connect(self.handle_action)
     
@@ -476,7 +472,7 @@ class MainDashboardPyQt(QWidget):
             self.tab_widget.setCurrentIndex(3)
     
     def refresh_plugins(self):
-        """Refresh plugins table."""
+        """Refresh plugins table.
         # In a real implementation, this would reload plugin data
         self.populate_plugins_table()
     

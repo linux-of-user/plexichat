@@ -3,7 +3,7 @@ Legacy configuration compatibility layer.
 
 This module provides backward compatibility for existing code that uses
 the old configuration system while redirecting to the unified config system.
-"""
+
 
 from typing import Optional, List
 import logging
@@ -19,8 +19,7 @@ logger = logging.getLogger(__name__)
 
 class LoggingSettings:
     """Logging configuration settings (compatibility layer)."""
-
-    def __init__(self):
+        def __init__(self):
         try:
             if UNIFIED_CONFIG_AVAILABLE:
                 from .simple_config import get_config
@@ -48,8 +47,7 @@ class LoggingSettings:
 
 class Settings:
     """Main settings class (compatibility layer)."""
-
-    def __init__(self):
+        def __init__(self):
         try:
             if UNIFIED_CONFIG_AVAILABLE:
                 from .simple_config import get_config
@@ -100,7 +98,7 @@ class Settings:
 # settings = Settings()
 
 def get_settings():
-    """Get global settings instance."""
+    """Get global settings instance.
     return Settings()
 
 # Backward compatibility functions
@@ -112,7 +110,7 @@ def get_setting(key: str, default=None):
     return default
 
 def get_settings():
-    """Get settings instance (backward compatibility)."""
+    Get settings instance (backward compatibility)."""
     return settings
 
 settings = Settings()

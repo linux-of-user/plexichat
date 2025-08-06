@@ -92,9 +92,8 @@ performance_logger = get_performance_logger() if get_performance_logger else Non
 optimization_engine = PerformanceOptimizationEngine() if PerformanceOptimizationEngine else None
 
 class ConnectionManager:
-    """WebSocket connection manager with performance optimization."""
-
-    def __init__(self):
+    """WebSocket connection manager with performance optimization.
+        def __init__(self):
         self.active_connections: List[WebSocket] = []
         self.user_connections: Dict[int, WebSocket] = {}
         self.performance_logger = performance_logger
@@ -166,8 +165,7 @@ manager = ConnectionManager()
 
 class WebSocketService:
     """Service class for WebSocket operations using EXISTING database abstraction layer."""
-
-    def __init__(self):
+        def __init__(self):
         # Use EXISTING database manager
         self.db_manager = database_manager
         self.performance_logger = performance_logger
@@ -188,7 +186,7 @@ class WebSocketService:
 
     @async_track_performance("websocket_message_log") if async_track_performance else lambda f: f
     async def log_websocket_message(self, user_id: int, message_type: str, content: str):
-        """Log WebSocket message using EXISTING database abstraction layer."""
+        """Log WebSocket message using EXISTING database abstraction layer.
         if self.db_manager:
             try:
                 # Use EXISTING database manager with optimized insert
@@ -391,7 +389,7 @@ async def get_system_status() -> Dict[str, Any]:
 
     except Exception as e:
         logger.error(f"Error getting system status: {e}")
-        return {}
+        return {
             "error": "Unable to retrieve system status",
             "timestamp": datetime.now().isoformat()
-        }
+        }}

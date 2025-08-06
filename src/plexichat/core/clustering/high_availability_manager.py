@@ -10,7 +10,7 @@ Comprehensive high availability system with:
 - Distributed configuration management
 - Automatic scaling based on load
 - Zero-downtime deployments
-"""
+
 
 import asyncio
 import time
@@ -33,7 +33,7 @@ logger = get_logger(__name__)
 
 class NodeStatus(Enum):
     """Node status in the cluster."""
-    HEALTHY = "healthy"
+        HEALTHY = "healthy"
     DEGRADED = "degraded"
     UNHEALTHY = "unhealthy"
     OFFLINE = "offline"
@@ -51,7 +51,7 @@ class ServiceStatus(Enum):
 
 class LoadBalancingStrategy(Enum):
     """Load balancing strategies."""
-    ROUND_ROBIN = "round_robin"
+        ROUND_ROBIN = "round_robin"
     LEAST_CONNECTIONS = "least_connections"
     WEIGHTED_ROUND_ROBIN = "weighted_round_robin"
     IP_HASH = "ip_hash"
@@ -98,7 +98,7 @@ class ClusterNode:
 @dataclass
 class ServiceDefinition:
     """Service definition for high availability."""
-    service_name: str
+        service_name: str
     service_type: str
     port: int
     health_check_path: str = "/health"
@@ -128,9 +128,8 @@ class ServiceDefinition:
 
 
 class HealthChecker:
-    """Health checking system for cluster nodes and services."""
-    
-    def __init__(self):
+    """Health checking system for cluster nodes and services.
+        def __init__(self):
         self.health_checks: Dict[str, Dict] = {}
         self.health_history: Dict[str, List] = {}
         self.check_interval = 30  # seconds
@@ -166,7 +165,7 @@ class HealthChecker:
                 await asyncio.sleep(self.check_interval)
     
     async def _perform_health_checks(self):
-        """Perform health checks on all registered nodes/services."""
+        """Perform health checks on all registered nodes/services.
         check_tasks = []
         
         for check_id, check_config in self.health_checks.items():
@@ -233,10 +232,10 @@ class HealthChecker:
                         return {'healthy': False, 'error': f'HTTP {response.status}'}
                         
         except Exception as e:
-            return {}'healthy': False, 'error': str(e)}
+            return {'healthy': False, 'error': str(e)}}
     
     async def _tcp_health_check(self, config: Dict) -> Dict[str, Any]:
-        """Perform TCP health check."""
+        """Perform TCP health check.
         try:
             reader, writer = await asyncio.wait_for(
                 asyncio.open_connection(config['host'], config['port']),
@@ -246,10 +245,10 @@ class HealthChecker:
             writer.close()
             await writer.wait_closed()
             
-            return {}'healthy': True, 'details': {'connection': 'successful'}}
+            return {'healthy': True, 'details': {'connection': 'successful'}}}
             
         except Exception as e:
-            return {}'healthy': False, 'error': str(e)}
+            return {'healthy': False, 'error': str(e)}}
     
     async def _custom_health_check(self, config: Dict) -> Dict[str, Any]:
         """Perform custom health check."""
@@ -260,13 +259,13 @@ class HealthChecker:
                 result = await check_function()
                 return result
             else:
-                return {}'healthy': False, 'error': 'No custom check function provided'}
+                return {'healthy': False, 'error': 'No custom check function provided'}}
                 
         except Exception as e:
-            return {}'healthy': False, 'error': str(e)}
+            return {'healthy': False, 'error': str(e)}}
     
     def register_health_check(self, check_id: str, check_type: str, **kwargs):
-        """Register a health check."""
+        Register a health check."""
         self.health_checks[check_id] = {
             'type': check_type,
             'registered_at': datetime.now(),
@@ -275,7 +274,7 @@ class HealthChecker:
         logger.info(f"Registered health check: {check_id} ({check_type})")
     
     def get_health_status(self, check_id: str) -> Optional[Dict[str, Any]]:
-        """Get health status for a specific check."""
+        """Get health status for a specific check.
         if check_id in self.health_checks:
             return self.health_checks[check_id].get('last_check')
         return None
@@ -290,23 +289,22 @@ class HealthChecker:
             if last_check and last_check.get('healthy'):
                 healthy_checks += 1
         
-        return {}
+        return {
             'total_checks': total_checks,
             'healthy_checks': healthy_checks,
             'unhealthy_checks': total_checks - healthy_checks,
             'health_percentage': (healthy_checks / total_checks * 100) if total_checks > 0 else 0,
             'last_check_time': max(
-                (config.get('last_check', {}).get('timestamp', datetime.min) 
-                 for config in self.health_checks.values()),
+                (config.get('last_check', {}}).get('timestamp', datetime.min) 
+                for config in self.health_checks.values()),
                 default=None
             )
         }
 
 
 class LoadBalancer:
-    """Load balancer with multiple strategies."""
-    
-    def __init__(self):
+    Load balancer with multiple strategies."""
+        def __init__(self):
         self.strategies = {
             LoadBalancingStrategy.ROUND_ROBIN: self._round_robin,
             LoadBalancingStrategy.LEAST_CONNECTIONS: self._least_connections,
@@ -322,8 +320,8 @@ class LoadBalancer:
         self.connection_counts: Dict[str, int] = {}
         
     def select_node(self, service_name: str, available_nodes: List[ClusterNode], 
-                   strategy: LoadBalancingStrategy, client_ip: str = "") -> Optional[ClusterNode]:
-        """Select a node using the specified load balancing strategy."""
+                strategy: LoadBalancingStrategy, client_ip: str = "") -> Optional[ClusterNode]:
+        """Select a node using the specified load balancing strategy.
         if not available_nodes:
             return None
         
@@ -351,11 +349,11 @@ class LoadBalancer:
         return nodes[index]
     
     def _least_connections(self, service_name: str, nodes: List[ClusterNode], client_ip: str) -> ClusterNode:
-        """Least connections load balancing."""
+        Least connections load balancing."""
         return min(nodes, key=lambda node: node.current_connections)
     
     def _weighted_round_robin(self, service_name: str, nodes: List[ClusterNode], client_ip: str) -> ClusterNode:
-        """Weighted round-robin load balancing."""
+        """Weighted round-robin load balancing.
         # Create weighted list
         weighted_nodes = []
         for node in nodes:
@@ -382,11 +380,11 @@ class LoadBalancer:
         return nodes[index]
     
     def _least_response_time(self, service_name: str, nodes: List[ClusterNode], client_ip: str) -> ClusterNode:
-        """Least response time load balancing."""
+        Least response time load balancing."""
         return min(nodes, key=lambda node: node.response_time_ms)
     
     def update_connection_count(self, node_id: str, delta: int):
-        """Update connection count for a node."""
+        """Update connection count for a node.
         if node_id not in self.connection_counts:
             self.connection_counts[node_id] = 0
         
@@ -394,18 +392,17 @@ class LoadBalancer:
     
     def get_load_balancing_stats(self) -> Dict[str, Any]:
         """Get load balancing statistics."""
-        return {}
+        return {
             'round_robin_counters': dict(self.round_robin_counters),
             'connection_counts': dict(self.connection_counts),
             'total_requests': sum(self.round_robin_counters.values()),
             'active_connections': sum(self.connection_counts.values())
-        }
+        }}
 
 
 class HighAvailabilityManager:
-    """Enterprise high availability manager."""
-    
-    def __init__(self):
+    Enterprise high availability manager."""
+        def __init__(self):
         self.cluster_nodes: Dict[str, ClusterNode] = {}
         self.services: Dict[str, ServiceDefinition] = {}
         self.health_checker = HealthChecker()
@@ -548,7 +545,7 @@ class HighAvailabilityManager:
                         self._record_cluster_event('node_offline', node_id)
     
     async def _check_failover_conditions(self):
-        """Check if failover is needed for any services."""
+        """Check if failover is needed for any services.
         for service_name, service_def in self.services.items():
             if not service_def.failover_enabled:
                 continue
@@ -618,7 +615,7 @@ class HighAvailabilityManager:
                     
                     # Scale down if needed
                     elif (avg_cpu < service_def.target_cpu_percent * 0.5 and 
-                          current_instances > service_def.min_instances):
+                        current_instances > service_def.min_instances):
                         await self._scale_down_service(service_name, service_def)
                 
             except Exception as e:
@@ -637,7 +634,7 @@ class HighAvailabilityManager:
         # Implementation would stop instances gracefully
     
     def _record_cluster_event(self, event_type: str, details: str):
-        """Record cluster event."""
+        """Record cluster event.
         event = {
             'timestamp': datetime.now(),
             'event_type': event_type,
@@ -666,7 +663,7 @@ class HighAvailabilityManager:
                     if node.status == status
                 )
             
-            return {}
+            return {
                 'cluster_id': self.cluster_id,
                 'node_id': self.node_id,
                 'is_leader': self.is_leader,
@@ -676,7 +673,7 @@ class HighAvailabilityManager:
                 'recent_events': len([e for e in self.cluster_events if e['timestamp'] > datetime.now() - timedelta(hours=1)]),
                 'failover_count_24h': len([f for f in self.failover_history if f['timestamp'] > datetime.now() - timedelta(hours=24)]),
                 'health_summary': self.health_checker.get_health_summary()
-            }
+            }}
 
 
 # Global high availability manager

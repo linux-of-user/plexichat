@@ -132,7 +132,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class NodeHealthInfo:
     """Individual node health information."""
-    node_id: str
+        node_id: str
     name: str
     status: str
     health_score: float
@@ -151,8 +151,8 @@ class NodeHealthInfo:
 
 @dataclass
 class ClusterSystemStatus:
-    """Enhanced cluster system status information."""
-    total_nodes: int
+    """Enhanced cluster system status information.
+        total_nodes: int
     active_nodes: int
     offline_nodes: int = 0
     maintenance_nodes: int = 0
@@ -172,9 +172,8 @@ class ClusterSystemStatus:
 
 class EnhancedClusteringManagementWidget:
     """Enhanced GUI widget for comprehensive clustering management."""
-
-    def __init__(self, parent_frame):
-        """Initialize enhanced clustering management widget."""
+        def __init__(self, parent_frame):
+        Initialize enhanced clustering management widget."""
         self.parent_frame = parent_frame
         self.status_data: Optional[ClusterSystemStatus] = None
         self.refresh_interval = 15000  # 15 seconds for more responsive updates
@@ -590,7 +589,7 @@ class EnhancedClusteringManagementWidget:
 
             # Configure columns with better widths
             column_widths = {"ID": 80, "Name": 100, "Type": 80, "Address": 120,
-                           "Status": 80, "CPU": 60, "Memory": 60, "Health": 60}
+                        "Status": 80, "CPU": 60, "Memory": 60, "Health": 60}
 
             for col in node_columns:
                 self.nodes_tree.heading(col, text=col)
@@ -698,7 +697,7 @@ class EnhancedClusteringManagementWidget:
             logger.error(f"Error setting up control panel: {e}")
 
     def start_background_monitoring(self):
-        """Start background monitoring thread."""
+        """Start background monitoring thread.
         if not self.background_thread or not self.background_thread.is_alive():
             self.background_thread = threading.Thread(target=self._background_monitor, daemon=True)
             self.background_thread.start()
@@ -836,7 +835,7 @@ class EnhancedClusteringManagementWidget:
                 self.parent_frame.after(0, lambda: messagebox.showerror("Error", f"Failed to remove node: {str(e)}"))
 
     def refresh_nodes(self):
-        """Refresh the nodes display."""
+        """Refresh the nodes display.
         self.schedule_refresh()
 
     def toggle_maintenance_mode(self):
@@ -847,7 +846,7 @@ class EnhancedClusteringManagementWidget:
         messagebox.showinfo("Info", "Maintenance mode toggle functionality will be implemented here")
 
     def toggle_auto_refresh(self):
-        """Toggle auto refresh."""
+        """Toggle auto refresh.
         if self.auto_refresh_var:
             self.auto_refresh_enabled = self.auto_refresh_var.get()
 
@@ -856,7 +855,7 @@ class EnhancedClusteringManagementWidget:
         self.schedule_refresh()
 
     def export_cluster_data(self):
-        """Export cluster data to file."""
+        Export cluster data to file."""
         if not GUI_AVAILABLE:
             return
 

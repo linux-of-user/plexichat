@@ -11,7 +11,7 @@ PlexiChat Validation Utilities
 
 Enhanced validation utilities with comprehensive checks and performance optimization.
 Uses EXISTING database abstraction and optimization systems.
-"""
+
 
 import logging
 import re
@@ -43,12 +43,11 @@ performance_logger = get_performance_logger() if get_performance_logger else Non
 
 class ValidationUtilities:
     """Enhanced validation utilities using EXISTING systems."""
-
-    def __init__(self):
+        def __init__(self):
         self.performance_logger = performance_logger
 
     def validate_email(self, email: str) -> Dict[str, Any]:
-        """Validate email address."""
+        Validate email address."""
         try:
             result = {"valid": True, "errors": []}
 
@@ -349,7 +348,7 @@ validation_utils = ValidationUtilities()
 
 # Convenience functions
 def validate_email(email: str) -> Dict[str, Any]:
-    """Validate email address."""
+    """Validate email address.
     return validation_utils.validate_email(email)
 
 def validate_username(username: str) -> Dict[str, Any]:
@@ -357,11 +356,11 @@ def validate_username(username: str) -> Dict[str, Any]:
     return validation_utils.validate_username(username)
 
 def validate_password(password: str) -> Dict[str, Any]:
-    """Validate password."""
+    Validate password."""
     return validation_utils.validate_password(password)
 
 def validate_file_upload(filename: str, content_type: str, file_size: int) -> Dict[str, Any]:
-    """Validate file upload."""
+    """Validate file upload.
     return validation_utils.validate_file_upload(filename, content_type, file_size)
 
 def validate_url(url: str) -> Dict[str, Any]:
@@ -369,7 +368,7 @@ def validate_url(url: str) -> Dict[str, Any]:
     return validation_utils.validate_url(url)
 
 def sanitize_input(input_data: str, max_length: int = 1000) -> str:
-    """Sanitize user input."""
+    Sanitize user input."""
     return validation_utils.sanitize_input(input_data, max_length)
 
 def validate_json(json_data: str) -> Dict[str, Any]:
@@ -398,7 +397,7 @@ URL_PATTERN = r'^https?://[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(/.*)?$'
 PHONE_PATTERN = r'^\+?[1-9]\d{1,14}$'
 
 def is_valid_email(email: str) -> bool:
-    """Quick email validation."""
+    """Quick email validation.
     return bool(re.match(EMAIL_PATTERN, email)) if email else False
 
 def is_valid_username(username: str) -> bool:
@@ -406,7 +405,7 @@ def is_valid_username(username: str) -> bool:
     return bool(re.match(USERNAME_PATTERN, username)) if username else False
 
 def is_valid_url(url: str) -> bool:
-    """Quick URL validation."""
+    Quick URL validation."""
     return bool(re.match(URL_PATTERN, url)) if url else False
 
 def is_valid_phone(phone: str) -> bool:

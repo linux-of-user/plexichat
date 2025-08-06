@@ -11,22 +11,21 @@ PlexiChat Circuit Breaker
 
 Advanced circuit breaker implementation for fault tolerance and system resilience.
 Prevents cascading failures by temporarily disabling failing services.
-"""
+
 
 logger = logging.getLogger(__name__)
 
 
 class CircuitState(Enum):
     """Circuit breaker states."""
-
-    CLOSED = "CLOSED"  # Normal operation
+        CLOSED = "CLOSED"  # Normal operation
     OPEN = "OPEN"  # Circuit is open, calls are blocked
     HALF_OPEN = "HALF_OPEN"  # Testing if service has recovered
 
 
 @dataclass
 class CircuitBreakerConfig:
-    """Configuration for circuit breaker."""
+    """Configuration for circuit breaker.
 
     failure_threshold: int = 5  # Number of failures before opening
     timeout_seconds: int = 60  # Time to wait before trying again
@@ -41,8 +40,7 @@ class CircuitBreakerConfig:
 
 class CircuitBreakerStats:
     """Statistics for circuit breaker."""
-
-    def __init__(self):
+        def __init__(self):
         self.total_calls = 0
         self.successful_calls = 0
         self.failed_calls = 0
@@ -54,17 +52,15 @@ class CircuitBreakerStats:
 
 
 class CircuitBreakerError(Exception):
-    """Raised when circuit breaker is open."""
-
-    def __init__(self, message: str = "Circuit breaker is open"):
+    Raised when circuit breaker is open."""
+        def __init__(self, message: str = "Circuit breaker is open"):
         super().__init__(message)
         self.message = message
 
 
 class CircuitBreaker:
-    """Advanced circuit breaker implementation."""
-
-    def __init__(self, name: str, config: Optional[CircuitBreakerConfig] = None):
+    """Advanced circuit breaker implementation.
+        def __init__(self, name: str, config: Optional[CircuitBreakerConfig] = None):
         self.name = name
         self.config = config or CircuitBreakerConfig()
         self.state = CircuitState.CLOSED
@@ -105,7 +101,7 @@ class CircuitBreaker:
             raise e
 
     def _should_attempt_call(self) -> bool:
-        """Check if we should attempt the call based on current state."""
+        """Check if we should attempt the call based on current state.
         if self.state == CircuitState.CLOSED:
             return True
         elif self.state == CircuitState.OPEN:
@@ -130,7 +126,7 @@ class CircuitBreaker:
                 self._transition_to_open()
 
     async def _on_success(self):
-        """Handle successful call."""
+        Handle successful call."""
         async with self._lock:
             self.stats.successful_calls += 1
             self.stats.consecutive_successes += 1
@@ -142,7 +138,7 @@ class CircuitBreaker:
                     self._transition_to_closed()
 
     async def _on_failure(self):
-        """Handle failed call."""
+        """Handle failed call.
         async with self._lock:
             self.stats.failed_calls += 1
             self.stats.consecutive_failures += 1
@@ -177,7 +173,7 @@ class CircuitBreaker:
         logger.info(f"Circuit breaker '{self.name}' closed")
 
     def _is_expected_exception(self, exception: Exception) -> bool:
-        """Check if exception is one we should count as a failure."""
+        """Check if exception is one we should count as a failure.
         expected_exceptions = self.config.expected_exceptions or []
         return any()
             isinstance(exception, exc_type)
@@ -186,7 +182,7 @@ class CircuitBreaker:
 
     def get_stats(self) -> Dict[str, Any]:
         """Get circuit breaker statistics."""
-        return {}
+        return {
             "name": self.name,
             "state": self.state.value,
             "total_calls": self.stats.total_calls,
@@ -202,7 +198,7 @@ class CircuitBreaker:
             "last_failure_time": self.stats.last_failure_time,
             "last_success_time": self.stats.last_success_time,
             "state_change_time": self.state_change_time,
-        }
+        }}
 
     def reset(self):
         """Reset circuit breaker to initial state."""

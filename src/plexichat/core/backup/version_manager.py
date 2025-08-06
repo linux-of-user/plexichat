@@ -4,7 +4,7 @@ Version Manager for Distributed Backup System
 
 Handles immutable versioning and diff generation for message edits.
 Maintains version chains and provides efficient storage of changes.
-"""
+
 
 import hashlib
 import json
@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 class VersionType(Enum):
     """Types of versions."""
-    FULL = "full"           # Complete backup
+        FULL = "full"           # Complete backup
     INCREMENTAL = "incremental"  # Changes since last version
     DIFF = "diff"           # Message edit diff
     SNAPSHOT = "snapshot"   # Point-in-time snapshot
@@ -41,8 +41,8 @@ class ChangeType(Enum):
 
 @dataclass
 class VersionInfo:
-    """Information about a backup version."""
-    version_id: str
+    """Information about a backup version.
+        version_id: str
     backup_id: str
     version_type: VersionType
     parent_version_id: Optional[str]
@@ -83,8 +83,8 @@ class VersionInfo:
 
 @dataclass
 class MessageDiff:
-    """Represents a diff for a message edit."""
-    message_id: str
+    """Represents a diff for a message edit.
+        message_id: str
     old_content: str
     new_content: str
     edit_timestamp: datetime
@@ -106,8 +106,8 @@ class MessageDiff:
 
 @dataclass
 class VersionChain:
-    """Represents a chain of versions for a backup."""
-    backup_id: str
+    """Represents a chain of versions for a backup.
+        backup_id: str
     versions: List[VersionInfo]
     head_version_id: str
     created_at: datetime
@@ -119,11 +119,11 @@ class VersionChain:
     
     @property
     def total_size(self) -> int:
-        """Get total size of all versions."""
+        Get total size of all versions."""
         return sum(v.size for v in self.versions)
     
     def get_version(self, version_id: str) -> Optional[VersionInfo]:
-        """Get version by ID."""
+        """Get version by ID.
         return next((v for v in self.versions if v.version_id == version_id), None)
     
     def get_latest_version(self) -> Optional[VersionInfo]:
@@ -131,9 +131,8 @@ class VersionChain:
         return self.get_version(self.head_version_id)
 
 class VersionManager:
-    """Manages immutable versioning and diff generation."""
-    
-    def __init__(self, storage_dir: Path):
+    Manages immutable versioning and diff generation."""
+        def __init__(self, storage_dir: Path):
         self.storage_dir = Path(storage_dir)
         self.storage_dir.mkdir(parents=True, exist_ok=True)
         
@@ -151,7 +150,7 @@ class VersionManager:
         self._load_versions()
     
     def create_version(self, backup_id: str, data: bytes, version_type: VersionType = VersionType.FULL,
-                      parent_version_id: Optional[str] = None, metadata: Optional[Dict[str, Any]] = None) -> VersionInfo:
+                    parent_version_id: Optional[str] = None, metadata: Optional[Dict[str, Any]] = None) -> VersionInfo:
         """Create a new immutable version."""
         try:
             version_id = str(uuid4())
@@ -202,7 +201,7 @@ class VersionManager:
             raise
     
     def create_incremental_version(self, backup_id: str, new_data: bytes, 
-                                 metadata: Optional[Dict[str, Any]] = None) -> Optional[VersionInfo]:
+                                metadata: Optional[Dict[str, Any]] = None) -> Optional[VersionInfo]:
         """Create an incremental version with changes since last version."""
         try:
             chain = self.version_chains.get(backup_id)
@@ -247,7 +246,7 @@ class VersionManager:
             return None
     
     def create_message_diff(self, message_id: str, old_content: str, new_content: str, 
-                          user_id: str, backup_id: str) -> Optional[VersionInfo]:
+                        user_id: str, backup_id: str) -> Optional[VersionInfo]:
         """Create a diff version for a message edit."""
         try:
             # Generate text diff
@@ -396,7 +395,7 @@ class VersionManager:
             return diff_data  # Fallback
     
     def get_version_chain(self, backup_id: str) -> Optional[VersionChain]:
-        """Get version chain for a backup."""
+        """Get version chain for a backup.
         return self.version_chains.get(backup_id)
     
     def get_version_history(self, backup_id: str) -> List[VersionInfo]:
@@ -405,7 +404,7 @@ class VersionManager:
         return chain.versions if chain else []
     
     def cleanup_old_versions(self, backup_id: str, keep_count: int = 10) -> int:
-        """Clean up old versions, keeping only the most recent ones."""
+        Clean up old versions, keeping only the most recent ones."""
         try:
             chain = self.version_chains.get(backup_id)
             if not chain or len(chain.versions) <= keep_count:

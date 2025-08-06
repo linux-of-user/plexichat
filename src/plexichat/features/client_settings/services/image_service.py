@@ -3,7 +3,7 @@ PlexiChat Client Settings Image Service
 ======================================
 
 Service for handling image uploads, storage, and management for client settings.
-"""
+
 
 import os
 import uuid
@@ -28,9 +28,8 @@ logger = logging.getLogger(__name__)
 
 class ImageService:
     """Service for managing client setting images."""
-    
-    def __init__(self, repository: ClientSettingsRepository):
-        """Initialize image service."""
+        def __init__(self, repository: ClientSettingsRepository):
+        Initialize image service."""
         self.repository = repository
         self.config = get_client_settings_config()
     
@@ -216,7 +215,7 @@ class ImageService:
             raise ValueError("File is not a valid image")
     
     async def _check_upload_limits(self, user_id: str, file_size: int) -> bool:
-        """Check if upload is within user limits."""
+        """Check if upload is within user limits.
         if not self.config:
             return True
         
@@ -257,10 +256,10 @@ class ImageService:
         try:
             # This would be a maintenance operation
             # For now, return empty stats
-            return {}
+            return {
                 'files_cleaned': 0,
                 'space_freed_mb': 0
-            }
+            }}
         except Exception as e:
             logger.error(f"Error in cleanup: {e}")
-            return {}'files_cleaned': 0, 'space_freed_mb': 0}
+            return {'files_cleaned': 0, 'space_freed_mb': 0}}

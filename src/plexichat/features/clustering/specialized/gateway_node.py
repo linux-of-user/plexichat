@@ -33,7 +33,7 @@ Dedicated cluster node for gateway operations with:
 - DDoS protection and rate limiting
 - Request routing and proxy capabilities
 - Performance optimization for gateway workloads
-"""
+
 
 # Import PlexiChat components
 sys.path.append(str(from pathlib import Path))
@@ -44,7 +44,7 @@ logger = logging.getLogger(__name__)
 
 class GatewayNodeCapability(Enum):
     """Gateway node capabilities."""
-    SSL_TERMINATION = "ssl_termination"
+        SSL_TERMINATION = "ssl_termination"
     LOAD_BALANCING = "load_balancing"
     DDOS_PROTECTION = "ddos_protection"
     REQUEST_ROUTING = "request_routing"
@@ -55,7 +55,7 @@ class GatewayNodeCapability(Enum):
 
 @dataclass
 class RouteConfig:
-    """Route configuration for gateway."""
+    """Route configuration for gateway.
     path_pattern: str
     target_nodes: List[str]
     load_balance_method: str
@@ -75,8 +75,7 @@ class GatewayClusterNode(BaseClusterNode):
     - Request routing to appropriate backend nodes
     - Health checking of backend services
     """
-
-    def __init__(self, node_id: str, cluster_config: Dict[str, Any]):
+        def __init__(self, node_id: str, cluster_config: Dict[str, Any]):
         super().__init__(node_id, cluster_config)
 
         self.node_type = "gateway"
@@ -143,22 +142,22 @@ class GatewayClusterNode(BaseClusterNode):
                 client_ip = request_data.get('client_ip', 'unknown')
                 if not await self._check_rate_limit(client_ip):
                     self.performance_metrics['requests_blocked'] += 1
-                    return {}
+                    return {
                         'status': 'blocked',
                         'reason': 'rate_limit_exceeded',
                         'retry_after': 60
-                    }
+                    }}
 
             # Route request to appropriate backend
             route_path = request_data.get('path', '/')
             target_node = await self._select_backend_node(route_path)
 
             if not target_node:
-                return {}
+                return {
                     'status': 'error',
                     'reason': 'no_available_backend',
                     'code': 503
-                }
+                }}
 
             # Forward request to backend
             response = await self._forward_request(target_node, request_data)
@@ -173,11 +172,11 @@ class GatewayClusterNode(BaseClusterNode):
         except Exception as e:
             logger.error(f"Error processing request in gateway node: {e}")
             self.performance_metrics['backend_failures'] += 1
-            return {}
+            return {
                 'status': 'error',
                 'reason': 'internal_error',
                 'code': 500
-            }
+            }}
 
     async def _load_route_configurations(self):
         """Load route configurations from database."""
@@ -205,7 +204,7 @@ class GatewayClusterNode(BaseClusterNode):
         logger.info(f"Loaded {len(self.routes)} route configurations")
 
     async def _check_rate_limit(self, client_ip: str) -> bool:
-        """Check if client IP is within rate limits."""
+        """Check if client IP is within rate limits.
         # Implementation would use rate limiting logic
         return True  # Simplified for now
 
@@ -233,16 +232,16 @@ class GatewayClusterNode(BaseClusterNode):
         return None
 
     async def _forward_request(self, target_node: str, request_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Forward request to target backend node."""
+        Forward request to target backend node."""
         # Implementation would forward request via encrypted communication
-        return {}
+        return {
             'status': 'success',
             'forwarded_to': target_node,
             'response': 'Request processed successfully'
-        }
+        }}
 
     def _update_response_time(self, processing_time: float):
-        """Update average response time metric."""
+        """Update average response time metric.
         current_avg = self.performance_metrics['average_response_time']
         total_requests = self.performance_metrics['requests_processed']
 
@@ -271,7 +270,7 @@ class GatewayClusterNode(BaseClusterNode):
                 await asyncio.sleep(5)
 
     async def _check_node_health(self, node_id: str, health_path: str) -> bool:
-        """Check health of a specific backend node."""
+        """Check health of a specific backend node.
         # Implementation would perform actual health check
         return True  # Simplified for now
 
@@ -285,8 +284,8 @@ class GatewayClusterNode(BaseClusterNode):
                 # Log performance summary
                 if self.performance_metrics['requests_processed'] > 0:
                     logger.info(f"Gateway {self.node_id} - Processed: {self.performance_metrics['requests_processed']}, ")
-                              f"Blocked: {self.performance_metrics['requests_blocked']}, "
-                              f"Avg Response: {self.performance_metrics['average_response_time']:.3f}s")
+                            f"Blocked: {self.performance_metrics['requests_blocked']}, "
+                            f"Avg Response: {self.performance_metrics['average_response_time']:.3f}s")
 
                 await asyncio.sleep(60)  # Update every minute
 

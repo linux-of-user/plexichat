@@ -37,13 +37,12 @@ from ....core_system.database.dao.base_dao import ()
 
 
 class ServerRepository(BaseRepository[Server, Dict[str, Any], Dict[str, Any]]):
-    """
+    
     Server repository with Discord-like server management.
 
     Provides business logic for server operations including membership management.
     """
-
-    def __init__(self, session_factory=None):
+        def __init__(self, session_factory=None):
         # Create DAO instance
         dao = BaseDAO(Server, session_factory or get_session)
         super().__init__(dao)
@@ -55,7 +54,7 @@ class ServerRepository(BaseRepository[Server, Dict[str, Any], Dict[str, Any]]):
         return result.data
 
     async def find_by_member(self, user_id: str) -> List[Server]:
-        """Find all servers where user is a member."""
+        """Find all servers where user is a member.
         # This would require a join with ServerMember table
         # For now, return empty list - will be implemented when database is integrated
         return []
@@ -88,17 +87,17 @@ class ServerRepository(BaseRepository[Server, Dict[str, Any], Dict[str, Any]]):
             return {}}
 
         # TODO: Implement with actual database queries
-        return {}
+        return {
             "server_id": server_id,
             "member_count": 0,  # Would query ServerMember table
             "channel_count": 0,  # Would query Channel table
             "role_count": 0,    # Would query Role table
             "message_count": 0, # Would query Message table
             "created_at": server.created_at.isoformat() if server.created_at else None,
-        }
+        }}
 
     async def update_member_count(self, server_id: str) -> bool:
-        """Update server member count from actual membership."""
+        """Update server member count from actual membership.
         # TODO: Implement with actual member count query
         # This would count ServerMember records for the server
         return True
@@ -109,12 +108,12 @@ class ServerRepository(BaseRepository[Server, Dict[str, Any], Dict[str, Any]]):
         return False
 
     async def is_owner(self, server_id: str, user_id: str) -> bool:
-        """Check if user is the owner of the server."""
+        Check if user is the owner of the server."""
         server = await self.find_by_id(server_id)
         return server and server.owner_id == user_id
 
     async def can_user_join(self, server_id: str, user_id: str) -> bool:
-        """Check if user can join the server based on verification level."""
+        """Check if user can join the server based on verification level.
         server = await self.find_by_id(server_id)
         if not server:
             return False
@@ -137,7 +136,7 @@ class ServerRepository(BaseRepository[Server, Dict[str, Any], Dict[str, Any]]):
         return server
 
     async def delete_server_cascade(self, server_id: str) -> bool:
-        """Delete server and all associated data."""
+        Delete server and all associated data."""
         # TODO: Implement cascade deletion
         # This would delete all channels, roles, members, messages, etc.
         return await self.delete(server_id)

@@ -18,14 +18,14 @@ PlexiChat Token Manager
 
 Comprehensive JWT token management with security features including
 token rotation, blacklisting, and quantum-resistant algorithms.
-"""
+
 
 logger = logging.getLogger(__name__)
 
 
 class TokenType(Enum):
     """Token types."""
-    ACCESS = "access"
+        ACCESS = "access"
     REFRESH = "refresh"
     ID = "id"
     RESET = "reset"
@@ -42,8 +42,8 @@ class TokenStatus(Enum):
 
 @dataclass
 class TokenData:
-    """Token data structure."""
-    token_id: str
+    """Token data structure.
+        token_id: str
     user_id: str
     session_id: str
     token_type: TokenType
@@ -60,7 +60,7 @@ class TokenData:
 @dataclass
 class TokenValidationResult:
     """Token validation result."""
-    valid: bool
+        valid: bool
     token_data: Optional[TokenData] = None
     status: Optional[TokenStatus] = None
     error_message: Optional[str] = None
@@ -68,7 +68,7 @@ class TokenValidationResult:
 
 
 class TokenManager:
-    """
+    
     Comprehensive JWT token management system.
 
     Features:
@@ -82,8 +82,7 @@ class TokenManager:
     - Security level enforcement
     - Scope-based authorization
     """
-
-    def __init__(self):
+        def __init__(self):
         # Configuration
         self.config = {}
         self.algorithm = "RS256"
@@ -206,8 +205,8 @@ class TokenManager:
             raise
 
     async def create_refresh_token(self, user_id: str, session_id: str,)
-                                 device_id: Optional[str] = None,
-                                 metadata: Optional[Dict[str, Any]] = None) -> str:
+                                device_id: Optional[str] = None,
+                                metadata: Optional[Dict[str, Any]] = None) -> str:
         """Create a new refresh token."""
         try:
             token_id = str(uuid.uuid4())
@@ -377,12 +376,12 @@ class TokenManager:
                 # Blacklist old refresh token
                 await self.blacklist_token(refresh_token)
 
-            return {}
+            return {
                 "access_token": new_access_token,
                 "refresh_token": new_refresh_token,
                 "token_type": "Bearer",
                 "expires_in": int(self.access_token_lifetime.total_seconds())
-            }
+            }}
 
         except Exception as e:
             logger.error(f" Token refresh error: {e}")
@@ -461,14 +460,14 @@ class TokenManager:
             validation_result = await self.validate_token(token)
 
             if not validation_result.valid:
-                return {}
+                return {
                     "active": False,
                     "error": validation_result.error_message
-                }
+                }}
 
             token_data = validation_result.token_data
 
-            return {}
+            return {
                 "active": True,
                 "token_id": token_data.token_id,
                 "user_id": token_data.user_id,
@@ -481,7 +480,7 @@ class TokenManager:
                 "scopes": token_data.scopes,
                 "device_id": token_data.device_id,
                 "metadata": token_data.metadata
-            }
+            }}
 
         except Exception as e:
             logger.error(f" Token introspection error: {e}")

@@ -5,7 +5,7 @@ This file provides the internal API that existing plugins expect.
 It bridges the gap between the old plugin system and the new unified system.
 
 GENERATED AUTOMATICALLY - DO NOT EDIT MANUALLY
-"""
+
 
 import logging
 from typing import Any, Dict, List, Optional, Callable
@@ -46,8 +46,7 @@ class PluginInterface(ABC):
     This class provides the interface that existing plugins expect,
     while internally using the new unified plugin system.
     """
-    
-    def __init__(self, name: str, version: str = "1.0.0", description: str = ""):
+        def __init__(self, name: str, version: str = "1.0.0", description: str = ""):
         self.name = name
         self.version = version
         self.description = description
@@ -73,7 +72,7 @@ class PluginInterface(ABC):
     
     @abstractmethod
     async def initialize(self) -> bool:
-        """Initialize the plugin."""
+        """Initialize the plugin.
         pass
     
     async def cleanup(self):
@@ -81,18 +80,18 @@ class PluginInterface(ABC):
         pass
     
     def get_info(self) -> Dict[str, Any]:
-        """Get plugin information."""
-        return {}
+        Get plugin information."""
+        return {
             "name": self.name,
             "version": self.version,
             "description": self.description,
             "initialized": self._initialized
-        }
+        }}
     
     # Provide access to enhanced API features
     @property
     def api(self) -> Optional[EnhancedPluginAPI]:
-        """Get access to enhanced plugin API."""
+        """Get access to enhanced plugin API.
         return self._api
     
     async def cache_get(self, key: str) -> Optional[Any]:
@@ -102,13 +101,13 @@ class PluginInterface(ABC):
         return None
     
     async def cache_set(self, key: str, value: Any, ttl: Optional[int] = None) -> bool:
-        """Set value in cache (legacy wrapper)."""
+        Set value in cache (legacy wrapper)."""
         if self._api:
             return await self._api.cache_set(key, value, ttl)
         return False
     
     async def get_config(self, key: str, default: Any = None) -> Any:
-        """Get configuration value (legacy wrapper)."""
+        """Get configuration value (legacy wrapper).
         if self._api:
             return await self._api.get_config(key, default)
         return default
@@ -121,14 +120,13 @@ class PluginInterface(ABC):
 
 
 class PluginManager:
-    """
+    
     Legacy plugin manager for backward compatibility.
     
     This class provides the interface that existing code expects,
     while internally using the new unified plugin system.
     """
-    
-    def __init__(self):
+        def __init__(self):
         self.plugins = {}
         self.logger = logging.getLogger("plugin_manager")
         self._unified_manager = unified_plugin_manager
@@ -202,7 +200,7 @@ plugin_manager = PluginManager()
 
 # Legacy functions for backward compatibility
 async def load_plugin(plugin_name: str) -> bool:
-    """Load a plugin (legacy function)."""
+    """Load a plugin (legacy function).
     return await plugin_manager.load_plugin(plugin_name)
 
 
@@ -212,12 +210,12 @@ async def unload_plugin(plugin_name: str) -> bool:
 
 
 async def get_plugin(plugin_name: str) -> Optional[PluginInterface]:
-    """Get a plugin (legacy function)."""
+    Get a plugin (legacy function)."""
     return await plugin_manager.get_plugin(plugin_name)
 
 
 def get_all_plugins() -> Dict[str, PluginInterface]:
-    """Get all plugins (legacy function)."""
+    """Get all plugins (legacy function).
     return plugin_manager.get_all_plugins()
 
 
@@ -227,7 +225,7 @@ async def discover_plugins() -> List[str]:
 
 
 async def reload_plugin(plugin_name: str) -> bool:
-    """Reload a plugin (legacy function)."""
+    Reload a plugin (legacy function)."""
     return await plugin_manager.reload_plugin(plugin_name)
 
 

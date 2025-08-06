@@ -8,7 +8,7 @@ This module provides a high-performance database abstraction layer with:
 - Real-time performance monitoring and auto-tuning
 - Distributed cache invalidation
 - Connection multiplexing and load balancing
-"""
+
 
 import asyncio
 import hashlib
@@ -47,14 +47,14 @@ logger = get_logger(__name__)
 
 class CacheLevel(Enum):
     """Cache level priorities."""
-    L1_MEMORY = "l1_memory"      # In-process memory cache
+        L1_MEMORY = "l1_memory"      # In-process memory cache
     L2_REDIS = "l2_redis"        # Redis distributed cache
     L3_DATABASE = "l3_database"  # Database-level caching
 
 
 @dataclass
 class QueryCacheEntry:
-    """Query cache entry with metadata."""
+    """Query cache entry with metadata.
     result: Any
     cached_at: datetime
     expires_at: datetime
@@ -68,7 +68,7 @@ class QueryCacheEntry:
 @dataclass
 class ConnectionPoolMetrics:
     """Enhanced connection pool metrics."""
-    total_connections: int = 0
+        total_connections: int = 0
     active_connections: int = 0
     idle_connections: int = 0
     peak_connections: int = 0
@@ -81,9 +81,8 @@ class ConnectionPoolMetrics:
 
 
 class EnhancedConnectionPool:
-    """Enhanced connection pool with health monitoring and load balancing."""
-    
-    def __init__(self, config: DatabaseConfig):
+    Enhanced connection pool with health monitoring and load balancing."""
+        def __init__(self, config: DatabaseConfig):
         self.config = config
         self.engine: Optional[AsyncEngine] = None
         self.session_factory: Optional[sessionmaker] = None
@@ -163,7 +162,7 @@ class EnhancedConnectionPool:
             raise ValueError(f"Unsupported database type: {self.config.type}")
     
     def _get_connect_args(self) -> Dict[str, Any]:
-        """Get database-specific connection arguments."""
+        """Get database-specific connection arguments.
         args = {}
         
         if self.config.type == DatabaseType.POSTGRESQL:
@@ -219,7 +218,7 @@ class EnhancedConnectionPool:
             self._update_pool_utilization()
     
     def _update_pool_utilization(self):
-        """Update pool utilization metrics."""
+        """Update pool utilization metrics.
         if self.config.connection_pool_size > 0:
             self.metrics.pool_utilization_percent = (
                 self.metrics.active_connections / self.config.connection_pool_size * 100
@@ -280,7 +279,7 @@ class EnhancedConnectionPool:
             return False
     
     def get_metrics(self) -> ConnectionPoolMetrics:
-        """Get current pool metrics."""
+        """Get current pool metrics.
         return self.metrics
     
     async def close(self):
@@ -291,9 +290,8 @@ class EnhancedConnectionPool:
 
 
 class EnhancedQueryCache:
-    """Multi-level query cache with Redis integration."""
-    
-    def __init__(self, redis_client: Optional[RedisType] = None):
+    """Multi-level query cache with Redis integration.
+        def __init__(self, redis_client: Optional[RedisType] = None):
         self.redis_client = redis_client
         self.l1_cache: Dict[str, QueryCacheEntry] = {}  # In-memory cache
         self.cache_stats = {
@@ -315,7 +313,7 @@ class EnhancedQueryCache:
         return f"query:{hashlib.sha256(key_data.encode()).hexdigest()}"
     
     def _extract_table_names(self, query: str) -> List[str]:
-        """Extract table names from SQL query."""
+        """Extract table names from SQL query.
         import re
         
         # Simple regex-based table extraction
@@ -391,7 +389,7 @@ class EnhancedQueryCache:
         return None
     
     async def set(self, query: str, result: Any, parameters: Optional[Dict] = None, 
-                  ttl_seconds: int = 300) -> bool:
+                ttl_seconds: int = 300) -> bool:
         """Cache query result."""
         cache_key = self._generate_cache_key(query, parameters)
         table_names = self._extract_table_names(query)
@@ -446,7 +444,7 @@ class EnhancedQueryCache:
         return True
     
     async def _promote_to_l1(self, cache_key: str, entry_data: Dict):
-        """Promote Redis cache entry to L1 cache."""
+        """Promote Redis cache entry to L1 cache.
         with self._lock:
             if len(self.l1_cache) >= self.max_l1_size:
                 self._evict_lru()
@@ -482,7 +480,7 @@ class EnhancedQueryCache:
         self.cache_stats['evictions'] += 1
     
     async def invalidate_table(self, table_name: str):
-        """Invalidate all cached queries for a table."""
+        Invalidate all cached queries for a table."""
         # Invalidate L1 cache
         with self._lock:
             cache_keys_to_remove = list(self.table_dependencies[table_name])
@@ -533,7 +531,7 @@ class EnhancedQueryCache:
                 logger.warning(f"Redis cache clear error: {e}")
     
     def get_stats(self) -> Dict[str, Any]:
-        """Get cache statistics."""
+        """Get cache statistics.
         total_requests = sum(self.cache_stats.values()) - self.cache_stats['evictions'] - self.cache_stats['invalidations']
         hit_rate = 0.0
         
@@ -552,8 +550,7 @@ class EnhancedQueryCache:
 
 class EnhancedDatabaseManager(ConsolidatedDatabaseManager):
     """Enhanced database manager with integrated performance optimizations."""
-    
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+        def __init__(self, config: Optional[Dict[str, Any]] = None):
         super().__init__(config)
         
         # Enhanced components
@@ -661,7 +658,7 @@ class EnhancedDatabaseManager(ConsolidatedDatabaseManager):
             return False
     
     async def execute_query(self, query: str, parameters: Optional[Dict] = None, 
-                          database: Optional[str] = None, use_cache: bool = True) -> Dict[str, Any]:
+                        database: Optional[str] = None, use_cache: bool = True) -> Dict[str, Any]:
         """Execute query with caching and optimization."""
         start_time = time.time()
         database = database or self.default_database

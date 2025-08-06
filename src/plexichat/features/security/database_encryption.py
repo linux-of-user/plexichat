@@ -22,23 +22,22 @@ from sqlalchemy.engine import Engine
 import string
 Advanced Database Encryption System
 Provides comprehensive encryption for database connections, data at rest, and sensitive fields.
-"""
+
 
 logger = logging.getLogger(__name__)
 
 
 class DatabaseEncryption:
     """Advanced database encryption manager."""
-
-    def __init__(self, master_key: Optional[str] = None):
-        """Initialize encryption with master key."""
+        def __init__(self, master_key: Optional[str] = None):
+        Initialize encryption with master key."""
         self.master_key = master_key or self._generate_master_key()
         self.field_cipher = self._create_field_cipher()
         self.connection_cipher = self._create_connection_cipher()
         self.encrypted_fields = set()
 
     def _generate_master_key(self) -> str:
-        """Generate a secure master key."""
+        """Generate a secure master key.
         return base64.urlsafe_b64encode(secrets.token_bytes(32)).decode()
 
     def _create_field_cipher(self) -> Fernet:
@@ -158,15 +157,14 @@ class DatabaseEncryption:
 
 
 class DatabaseAtRestEncryption:
-    """Encryption for database files at rest."""
-
-    def __init__(self, encryption_key: str):
+    """Encryption for database files at rest.
+        def __init__(self, encryption_key: str):
         """Initialize with encryption key."""
         self.encryption_key = encryption_key
         self.cipher = self._create_cipher()
 
     def _create_cipher(self) -> Fernet:
-        """Create cipher for file encryption."""
+        Create cipher for file encryption."""
         kdf = PBKDF2HMAC(
             algorithm=hashes.SHA256(),
             length=32,
@@ -219,9 +217,8 @@ class DatabaseAtRestEncryption:
 
 
 class EncryptedDatabaseManager:
-    """Database manager with comprehensive encryption support."""
-
-    def __init__(self, master_key: Optional[str] = None):
+    """Database manager with comprehensive encryption support.
+        def __init__(self, master_key: Optional[str] = None):
         """Initialize encrypted database manager."""
         self.encryption = DatabaseEncryption(master_key)
         self.at_rest_encryption = DatabaseAtRestEncryption(
@@ -230,7 +227,7 @@ class EncryptedDatabaseManager:
         self.encrypted_connections = {}
 
     def store_encrypted_connection(self, name: str, connection_string: str):
-        """Store encrypted connection string."""
+        Store encrypted connection string."""
         encrypted = self.encryption.encrypt_connection_string(connection_string)
         self.encrypted_connections[name] = encrypted
         logger.info(f"Stored encrypted connection: {name}")
@@ -262,7 +259,7 @@ class EncryptedDatabaseManager:
             self.encryption.register_encrypted_field(table, field)
 
     def create_encrypted_backup(self, database_path: str, backup_path: str) -> str:
-        """Create encrypted database backup."""
+        """Create encrypted database backup.
         return self.at_rest_encryption.encrypt_database_file(database_path, backup_path)
 
     def restore_encrypted_backup(self, backup_path: str, restore_path: str) -> str:
@@ -270,7 +267,7 @@ class EncryptedDatabaseManager:
         return self.at_rest_encryption.decrypt_database_file(backup_path, restore_path)
 
     def get_encryption_status(self) -> Dict[str, Any]:
-        """Get encryption system status."""
+        Get encryption system status."""
         return {
             "field_encryption_enabled": True,
             "connection_encryption_enabled": True,
@@ -286,8 +283,7 @@ class EncryptedDatabaseManager:
 # Data classification enum
 class DataClassification:
     """Data classification levels."""
-
-    PUBLIC = "public"
+        PUBLIC = "public"
     INTERNAL = "internal"
     CONFIDENTIAL = "confidential"
     RESTRICTED = "restricted"
@@ -301,7 +297,7 @@ database_encryption = encryption_manager
 
 
 def get_encryption_manager() -> EncryptedDatabaseManager:
-    """Get global encryption manager instance."""
+    """Get global encryption manager instance.
     return encryption_manager
 
 

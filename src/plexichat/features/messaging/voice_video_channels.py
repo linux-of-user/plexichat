@@ -24,14 +24,14 @@ Advanced voice and video communication with Discord-like features:
 - Recording and streaming capabilities
 - Advanced audio/video controls
 - Real-time collaboration features
-"""
+
 
 logger = logging.getLogger(__name__)
 
 
 class ChannelType(Enum):
     """Channel types."""
-    VOICE = "voice"
+        VOICE = "voice"
     VIDEO = "video"
     STAGE = "stage"  # One-to-many presentation
     CONFERENCE = "conference"  # Multi-party video
@@ -48,7 +48,7 @@ class AudioQuality(Enum):
 
 class VideoQuality(Enum):
     """Video quality settings."""
-    LOW = "low"  # 480p
+        LOW = "low"  # 480p
     MEDIUM = "medium"  # 720p
     HIGH = "high"  # 1080p
     ULTRA = "ultra"  # 4K
@@ -64,8 +64,8 @@ class ParticipantRole(Enum):
 
 @dataclass
 class AudioSettings:
-    """Audio settings for channels."""
-    quality: AudioQuality = AudioQuality.HIGH
+    """Audio settings for channels.
+        quality: AudioQuality = AudioQuality.HIGH
     noise_suppression: bool = True
     echo_cancellation: bool = True
     auto_gain_control: bool = True
@@ -78,7 +78,7 @@ class AudioSettings:
 @dataclass
 class VideoSettings:
     """Video settings for channels."""
-    quality: VideoQuality = VideoQuality.MEDIUM
+        quality: VideoQuality = VideoQuality.MEDIUM
     frame_rate: int = 30
     enable_camera: bool = True
     enable_screen_share: bool = True
@@ -90,8 +90,8 @@ class VideoSettings:
 
 @dataclass
 class ChannelParticipant:
-    """Channel participant information."""
-    user_id: str
+    Channel participant information."""
+        user_id: str
     username: str
     display_name: str
     role: ParticipantRole
@@ -118,7 +118,7 @@ class ChannelParticipant:
     can_use_camera: bool = True
 
     def toggle_mute(self):
-        """Toggle mute status."""
+        """Toggle mute status.
         self.is_muted = not self.is_muted
 
     def toggle_camera(self):
@@ -127,19 +127,19 @@ class ChannelParticipant:
             self.camera_enabled = not self.camera_enabled
 
     def start_screen_share(self):
-        """Start screen sharing."""
+        Start screen sharing."""
         if self.can_share_screen:
             self.screen_sharing = True
 
     def stop_screen_share(self):
-        """Stop screen sharing."""
+        """Stop screen sharing.
         self.screen_sharing = False
 
 
 @dataclass
 class RecordingSettings:
     """Recording settings for channels."""
-    enabled: bool = False
+        enabled: bool = False
     record_audio: bool = True
     record_video: bool = True
     record_screen_share: bool = True
@@ -151,8 +151,8 @@ class RecordingSettings:
 
 @dataclass
 class StreamingSettings:
-    """Streaming settings for channels."""
-    enabled: bool = False
+    """Streaming settings for channels.
+        enabled: bool = False
     stream_key: Optional[str] = None
     rtmp_url: Optional[str] = None
     quality: VideoQuality = VideoQuality.HIGH
@@ -164,7 +164,7 @@ class StreamingSettings:
 @dataclass
 class VoiceVideoChannel:
     """Voice/Video channel with advanced features."""
-    channel_id: str
+        channel_id: str
     name: str
     description: str
     channel_type: ChannelType
@@ -198,8 +198,8 @@ class VoiceVideoChannel:
     ended_at: Optional[datetime] = None
 
     def add_participant(self, user_id: str, username: str, display_name: str,):
-                       role: ParticipantRole = ParticipantRole.SPEAKER) -> bool:
-        """Add participant to channel."""
+                    role: ParticipantRole = ParticipantRole.SPEAKER) -> bool:
+        Add participant to channel."""
         if len(self.participants) >= self.max_participants:
             return False
 
@@ -239,7 +239,7 @@ class VoiceVideoChannel:
         return False
 
     def mute_participant(self, user_id: str, muted_by: str) -> bool:
-        """Mute participant (moderator action)."""
+        """Mute participant (moderator action).
         if user_id in self.participants:
             # Check if muted_by has permission
             if muted_by in self.participants:
@@ -259,7 +259,7 @@ class VoiceVideoChannel:
         return False
 
     def start_recording(self) -> bool:
-        """Start recording the channel."""
+        Start recording the channel."""
         if not self.recording_settings.enabled:
             return False
 
@@ -304,7 +304,7 @@ class VoiceVideoChannel:
         logger.info(f"Channel {self.name} ended")
 
     def get_speaking_participants(self) -> List[ChannelParticipant]:
-        """Get currently speaking participants."""
+        """Get currently speaking participants.
         return [p for p in self.participants.values() if p.is_speaking and not p.is_muted]
 
     def get_screen_sharing_participants(self) -> List[ChannelParticipant]:
@@ -312,8 +312,8 @@ class VoiceVideoChannel:
         return [p for p in self.participants.values() if p.screen_sharing]
 
     def get_channel_stats(self) -> Dict[str, Any]:
-        """Get channel statistics."""
-        return {}
+        Get channel statistics."""
+        return {
             "channel_id": self.channel_id,
             "name": self.name,
             "type": self.channel_type.value,
@@ -326,11 +326,11 @@ class VoiceVideoChannel:
             "screen_sharing_participants": len(self.get_screen_sharing_participants()),
             "recording_active": self.recording_enabled,
             "streaming_active": self.streaming_enabled
-        }
+        }}
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for API responses."""
-        return {}
+        return {
             "channel_id": self.channel_id,
             "name": self.name,
             "description": self.description,
@@ -348,7 +348,7 @@ class VoiceVideoChannel:
                     "camera_enabled": p.camera_enabled,
                     "screen_sharing": p.screen_sharing,
                     "connection_quality": p.connection_quality
-                }
+                }}
                 for p in self.participants.values()
             ],
             "max_participants": self.max_participants,
@@ -358,9 +358,8 @@ class VoiceVideoChannel:
 
 
 class VoiceVideoManager:
-    """Voice/Video channel management system."""
-
-    def __init__(self):
+    """Voice/Video channel management system.
+        def __init__(self):
         self.channels: Dict[str, VoiceVideoChannel] = {}
         self.user_channels: Dict[str, str] = {}  # user_id -> channel_id
 
@@ -379,8 +378,8 @@ class VoiceVideoManager:
         return channel
 
     async def join_channel(self, channel_id: str, user_id: str, username: str,
-                          display_name: str) -> bool:
-        """Join voice/video channel."""
+                        display_name: str) -> bool:
+        """Join voice/video channel.
         if channel_id not in self.channels:
             return False
 
@@ -410,7 +409,7 @@ class VoiceVideoManager:
         return success
 
     def get_user_channel(self, user_id: str) -> Optional[VoiceVideoChannel]:
-        """Get channel user is currently in."""
+        Get channel user is currently in."""
         if user_id in self.user_channels:
             channel_id = self.user_channels[user_id]
             return self.channels.get(channel_id)

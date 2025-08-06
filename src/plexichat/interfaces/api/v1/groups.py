@@ -79,10 +79,10 @@ async def create_group(
     group_members_db[group_id] = [current_user["user_id"]]
     group_messages_db[group_id] = []
     
-    return {}
+    return {
         "status": "Group created successfully",
         "group": group
-    }
+    }}
 
 @router.get("/")
 async def list_groups(
@@ -115,12 +115,12 @@ async def list_groups(
     total = len(groups)
     groups = groups[offset:offset + limit]
     
-    return {}
+    return {
         "groups": groups,
         "total": total,
         "limit": limit,
         "offset": offset
-    }
+    }}
 
 @router.get("/stats")
 async def get_groups_stats(
@@ -134,7 +134,7 @@ async def get_groups_stats(
     total_members = sum(len(members) for members in group_members_db.values())
     avg_members = total_members / total_groups if total_groups > 0 else 0
 
-    return {}
+    return {
         "total_groups": total_groups,
         "public_groups": public_groups,
         "private_groups": private_groups,
@@ -144,7 +144,7 @@ async def get_groups_stats(
             g for g_id, members in group_members_db.items()
             if current_user["user_id"] in members
         ])
-    }
+    }}
 
 @router.get("/{group_id}")
 async def get_group(
@@ -196,10 +196,10 @@ async def update_group(
     
     group["updated_at"] = time.time()
     
-    return {}
+    return {
         "status": "Group updated successfully",
         "group": group
-    }
+    }}
 
 @router.delete("/{group_id}")
 async def delete_group(
@@ -315,11 +315,11 @@ async def invite_users(
     # Update member count
     groups_db[group_id]["member_count"] = len(group_members_db[group_id])
     
-    return {}
+    return {
         "status": "Invitations sent",
         "invited_users": invited_users,
         "total_invited": len(invited_users)
-    }
+    }}
 
 @router.get("/{group_id}/members")
 async def get_group_members(
@@ -339,11 +339,11 @@ async def get_group_members(
     
     members = group_members_db.get(group_id, [])
     
-    return {}
+    return {
         "group_id": group_id,
         "members": members,
         "member_count": len(members)
-    }
+    }}
 
 @router.get("/my/groups")
 async def get_my_groups(
@@ -361,9 +361,9 @@ async def get_my_groups(
                 group_info["is_owner"] = group["owner_id"] == current_user["user_id"]
                 user_groups.append(group_info)
     
-    return {}
+    return {
         "groups": user_groups,
         "total": len(user_groups)
-    }
+    }}
 
 

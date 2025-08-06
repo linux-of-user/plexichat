@@ -4,7 +4,7 @@ PlexiChat Unified Configuration System
 Comprehensive configuration management system that handles all aspects of
 PlexiChat configuration including server, database, security, networking,
 caching, AI, plugins, WebUI, and more.
-"""
+
 
 import json
 import logging
@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 class ConfigCategory(Enum):
     """Configuration categories for organization."""
-    SYSTEM = "system"
+        SYSTEM = "system"
     NETWORK = "network"
     DATABASE = "database"
     SECURITY = "security"
@@ -57,7 +57,7 @@ class ConfigField:
 @dataclass
 class SystemConfig:
     """System configuration section."""
-    name: str = "PlexiChat"
+        name: str = "PlexiChat"
     version: str = "2.0.0"
     environment: str = "production"
     debug: bool = False
@@ -71,7 +71,7 @@ class SystemConfig:
 @dataclass
 class NetworkConfig:
     """Network configuration section."""
-    host: str = "0.0.0.0"
+        host: str = "0.0.0.0"
     port: int = 8080
     api_port: int = 8000
     admin_port: int = 8002
@@ -89,7 +89,7 @@ class NetworkConfig:
 @dataclass
 class DatabaseConfig:
     """Database configuration section."""
-    type: str = "sqlite"
+        type: str = "sqlite"
     host: str = "localhost"
     port: int = 5432
     name: str = "plexichat"
@@ -107,7 +107,7 @@ class DatabaseConfig:
 @dataclass
 class SecurityConfig:
     """Security configuration section."""
-    encryption_algorithm: str = "aes-256-gcm"
+        encryption_algorithm: str = "aes-256-gcm"
     key_rotation_days: int = 30
     session_timeout_minutes: int = 60
     max_login_attempts: int = 5
@@ -127,7 +127,7 @@ class SecurityConfig:
 @dataclass
 class CachingConfig:
     """Caching configuration section."""
-    enabled: bool = True
+        enabled: bool = True
     type: str = "multi-tier"
     l1_memory_size_mb: int = 200
     l1_max_items: int = 5000
@@ -148,7 +148,7 @@ class CachingConfig:
 @dataclass
 class AIConfig:
     """AI configuration section."""
-    enabled: bool = True
+        enabled: bool = True
     default_provider: str = "openai"
     max_tokens: int = 4096
     temperature: float = 0.7
@@ -164,7 +164,7 @@ class AIConfig:
 @dataclass
 class WebUIConfig:
     """WebUI configuration section."""
-    enabled: bool = True
+        enabled: bool = True
     theme: str = "default"
     dark_mode_default: bool = False
     language: str = "en"
@@ -185,7 +185,7 @@ class WebUIConfig:
 @dataclass
 class LoggingConfig:
     """Logging configuration section."""
-    level: str = "INFO"
+        level: str = "INFO"
     format: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     file_path: str = "logs/plexichat.log"
     max_size_mb: int = 10
@@ -203,8 +203,8 @@ class LoggingConfig:
 
 @dataclass
 class MessagingConfig:
-    """Messaging configuration section."""
-    max_message_length: int = 10000
+    """Messaging configuration section.
+        max_message_length: int = 10000
     file_attachments_enabled: bool = True
     max_attachment_size_mb: int = 50
     encryption_default: bool = True
@@ -222,7 +222,7 @@ class MessagingConfig:
 @dataclass
 class PerformanceConfig:
     """Performance configuration section."""
-    worker_processes: int = 4
+        worker_processes: int = 4
     worker_threads: int = 8
     max_concurrent_requests: int = 1000
     request_timeout_seconds: int = 30
@@ -240,7 +240,7 @@ class PerformanceConfig:
 @dataclass
 class FilesConfig:
     """Files configuration section."""
-    upload_enabled: bool = True
+        upload_enabled: bool = True
     upload_directory: str = "uploads"
     max_file_size_mb: int = 100
     allowed_extensions: List[str] = field(default_factory=lambda: [
@@ -258,8 +258,7 @@ class FilesConfig:
 
 class UnifiedConfigManager:
     """Unified configuration manager for all PlexiChat settings."""
-
-    def __init__(self, config_file: Optional[Path] = None):
+        def __init__(self, config_file: Optional[Path] = None):
         self.config_file = config_file or Path("config/plexichat.yaml")
         self.plugin_config_dir = Path("config/plugins")
         self.backup_dir = Path("config/backups")
@@ -321,57 +320,57 @@ class UnifiedConfigManager:
         """Initialize configuration field metadata for WebUI."""
         # System fields
         self._add_config_field("system.name", self.system.name, ConfigCategory.SYSTEM,
-                              "Application name", "string", webui_section="Basic")
+                            "Application name", "string", webui_section="Basic")
         self._add_config_field("system.environment", self.system.environment, ConfigCategory.SYSTEM,
-                              "Environment (development/staging/production)", "select",
-                              options=["development", "staging", "production"], webui_section="Basic")
+                            "Environment (development/staging/production)", "select",
+                            options=["development", "staging", "production"], webui_section="Basic")
         self._add_config_field("system.debug", self.system.debug, ConfigCategory.SYSTEM,
-                              "Enable debug mode", "boolean", restart_required=True, webui_section="Basic")
+                            "Enable debug mode", "boolean", restart_required=True, webui_section="Basic")
         self._add_config_field("system.max_users", self.system.max_users, ConfigCategory.SYSTEM,
-                              "Maximum number of users", "integer", min_value=1, max_value=100000, webui_section="Limits")
+                            "Maximum number of users", "integer", min_value=1, max_value=100000, webui_section="Limits")
 
         # Network fields
         self._add_config_field("network.host", self.network.host, ConfigCategory.NETWORK,
-                              "Server host address", "string", restart_required=True, webui_section="Basic")
+                            "Server host address", "string", restart_required=True, webui_section="Basic")
         self._add_config_field("network.port", self.network.port, ConfigCategory.NETWORK,
-                              "Main server port", "integer", min_value=1, max_value=65535,
-                              restart_required=True, webui_section="Basic")
+                            "Main server port", "integer", min_value=1, max_value=65535,
+                            restart_required=True, webui_section="Basic")
         self._add_config_field("network.ssl_enabled", self.network.ssl_enabled, ConfigCategory.NETWORK,
-                              "Enable SSL/TLS", "boolean", restart_required=True, webui_section="Security")
+                            "Enable SSL/TLS", "boolean", restart_required=True, webui_section="Security")
 
         # Database fields
         self._add_config_field("database.type", self.database.type, ConfigCategory.DATABASE,
-                              "Database type", "select", options=["sqlite", "postgresql", "mysql"],
-                              restart_required=True, webui_section="Basic")
+                            "Database type", "select", options=["sqlite", "postgresql", "mysql"],
+                            restart_required=True, webui_section="Basic")
         self._add_config_field("database.backup_enabled", self.database.backup_enabled, ConfigCategory.DATABASE,
-                              "Enable automatic backups", "boolean", webui_section="Backup")
+                            "Enable automatic backups", "boolean", webui_section="Backup")
 
         # Security fields
         self._add_config_field("security.session_timeout_minutes", self.security.session_timeout_minutes,
-                              ConfigCategory.SECURITY, "Session timeout in minutes", "integer",
-                              min_value=5, max_value=1440, webui_section="Authentication")
+                            ConfigCategory.SECURITY, "Session timeout in minutes", "integer",
+                            min_value=5, max_value=1440, webui_section="Authentication")
         self._add_config_field("security.two_factor_enabled", self.security.two_factor_enabled,
-                              ConfigCategory.SECURITY, "Enable two-factor authentication", "boolean",
-                              webui_section="Authentication")
+                            ConfigCategory.SECURITY, "Enable two-factor authentication", "boolean",
+                            webui_section="Authentication")
 
         # Caching fields
         self._add_config_field("caching.enabled", self.caching.enabled, ConfigCategory.CACHING,
-                              "Enable caching system", "boolean", restart_required=True, webui_section="Basic")
+                            "Enable caching system", "boolean", restart_required=True, webui_section="Basic")
         self._add_config_field("caching.l1_memory_size_mb", self.caching.l1_memory_size_mb,
-                              ConfigCategory.CACHING, "L1 cache memory size (MB)", "integer",
-                              min_value=50, max_value=2048, webui_section="Memory")
+                            ConfigCategory.CACHING, "L1 cache memory size (MB)", "integer",
+                            min_value=50, max_value=2048, webui_section="Memory")
 
         # WebUI fields
         self._add_config_field("webui.theme", self.webui.theme, ConfigCategory.WEBUI,
-                              "Default theme", "select", options=["default", "dark", "light", "auto"],
-                              webui_section="Appearance")
+                            "Default theme", "select", options=["default", "dark", "light", "auto"],
+                            webui_section="Appearance")
         self._add_config_field("webui.config_editing_enabled", self.webui.config_editing_enabled,
-                              ConfigCategory.WEBUI, "Allow config editing via WebUI", "boolean",
-                              webui_section="Features")
+                            ConfigCategory.WEBUI, "Allow config editing via WebUI", "boolean",
+                            webui_section="Features")
 
     def _add_config_field(self, name: str, value: Any, category: ConfigCategory,
-                         description: str, data_type: str, **kwargs):
-        """Add a configuration field with metadata."""
+                        description: str, data_type: str, **kwargs):
+        """Add a configuration field with metadata.
         self._config_fields[name] = ConfigField(
             name=name,
             value=value,
@@ -417,7 +416,7 @@ class UnifiedConfigManager:
                                         if hasattr(SystemConfig, k)})
         if "network" in config_data:
             self.network = NetworkConfig(**{k: v for k, v in config_data["network"].items()
-                                          if hasattr(NetworkConfig, k)})
+                                        if hasattr(NetworkConfig, k)})
         if "database" in config_data:
             self.database = DatabaseConfig(**{k: v for k, v in config_data["database"].items()
                                             if hasattr(DatabaseConfig, k)})
@@ -426,25 +425,25 @@ class UnifiedConfigManager:
                                             if hasattr(SecurityConfig, k)})
         if "caching" in config_data:
             self.caching = CachingConfig(**{k: v for k, v in config_data["caching"].items()
-                                          if hasattr(CachingConfig, k)})
+                                        if hasattr(CachingConfig, k)})
         if "ai" in config_data:
             self.ai = AIConfig(**{k: v for k, v in config_data["ai"].items()
                                 if hasattr(AIConfig, k)})
         if "webui" in config_data:
             self.webui = WebUIConfig(**{k: v for k, v in config_data["webui"].items()
-                                      if hasattr(WebUIConfig, k)})
+                                    if hasattr(WebUIConfig, k)})
         if "logging" in config_data:
             self.logging = LoggingConfig(**{k: v for k, v in config_data["logging"].items()
-                                          if hasattr(LoggingConfig, k)})
+                                        if hasattr(LoggingConfig, k)})
         if "messaging" in config_data:
             self.messaging = MessagingConfig(**{k: v for k, v in config_data["messaging"].items()
-                                              if hasattr(MessagingConfig, k)})
+                                            if hasattr(MessagingConfig, k)})
         if "performance" in config_data:
             self.performance = PerformanceConfig(**{k: v for k, v in config_data["performance"].items()
-                                                   if hasattr(PerformanceConfig, k)})
+                                                if hasattr(PerformanceConfig, k)})
         if "files" in config_data:
             self.files = FilesConfig(**{k: v for k, v in config_data["files"].items()
-                                      if hasattr(FilesConfig, k)})
+                                    if hasattr(FilesConfig, k)})
 
     def _load_plugin_configs(self) -> None:
         """Load plugin-specific configurations."""
@@ -481,7 +480,7 @@ class UnifiedConfigManager:
         return default
     
     def _convert_env_value(self, value: str) -> Union[str, int, bool, float]:
-        """Convert environment variable string to appropriate type."""
+        """Convert environment variable string to appropriate type.
         # Boolean conversion
         if value.lower() in ('true', 'false'):
             return value.lower() == 'true'
@@ -506,7 +505,7 @@ class UnifiedConfigManager:
         self._config[key] = value
     
     def save(self) -> bool:
-        """Save configuration to file."""
+        Save configuration to file."""
         with self._lock:
             try:
                 # Create backup first
@@ -562,7 +561,7 @@ class UnifiedConfigManager:
                 logger.warning(f"Failed to create config backup: {e}")
 
     def get_config_fields(self, category: Optional[ConfigCategory] = None) -> Dict[str, ConfigField]:
-        """Get configuration fields, optionally filtered by category."""
+        """Get configuration fields, optionally filtered by category.
         if category:
             return {k: v for k, v in self._config_fields.items() if v.category == category}
         return self._config_fields.copy()
@@ -607,7 +606,7 @@ class UnifiedConfigManager:
                 return False
 
     def get_config_value(self, field_path: str) -> Any:
-        """Get a configuration value by field path."""
+        """Get a configuration value by field path.
         try:
             parts = field_path.split('.')
             if len(parts) != 2:
@@ -627,7 +626,7 @@ class UnifiedConfigManager:
         self._change_callbacks.append(callback)
 
     def remove_change_callback(self, callback: Callable):
-        """Remove a configuration change callback."""
+        Remove a configuration change callback."""
         if callback in self._change_callbacks:
             self._change_callbacks.remove(callback)
 
@@ -684,7 +683,7 @@ class UnifiedConfigManager:
 _config_manager: Optional[UnifiedConfigManager] = None
 
 def get_config() -> UnifiedConfigManager:
-    """Get the global configuration manager instance."""
+    """Get the global configuration manager instance.
     global _config_manager
     if _config_manager is None:
         _config_manager = UnifiedConfigManager()
@@ -698,11 +697,11 @@ def reload_config():
 
 # Backward compatibility functions
 def get_setting(key: str, default: Any = None) -> Any:
-    """Get a configuration setting (backward compatibility)."""
+    Get a configuration setting (backward compatibility)."""
     return get_config().get(key, default)
 
 def set_setting(key: str, value: Any) -> None:
-    """Set a configuration setting (backward compatibility)."""
+    """Set a configuration setting (backward compatibility).
     get_config().set(key, value)
     
     def get_plugin_config(self, plugin_name: str) -> Dict[str, Any]:
@@ -710,7 +709,7 @@ def set_setting(key: str, value: Any) -> None:
         return self._plugin_configs.get(plugin_name, {})
     
     def set_plugin_config(self, plugin_name: str, config: Dict[str, Any]) -> bool:
-        """Set configuration for a specific plugin."""
+        Set configuration for a specific plugin."""
         try:
             self._plugin_configs[plugin_name] = config
             plugin_file = self.plugin_config_dir / f"{plugin_name}.yaml"
@@ -792,7 +791,7 @@ config = UnifiedConfigManager()
 
 # Convenience functions
 def get_config(key: str, default: Any = None) -> Any:
-    """Get configuration value."""
+    """Get configuration value.
     return config.get(key, default)
 
 def set_config(key: str, value: Any) -> None:
@@ -800,11 +799,11 @@ def set_config(key: str, value: Any) -> None:
     config.set(key, value)
 
 def save_config() -> bool:
-    """Save configuration."""
+    Save configuration."""
     return config.save()
 
 def get_plugin_config(plugin_name: str) -> Dict[str, Any]:
-    """Get plugin configuration."""
+    """Get plugin configuration.
     return config.get_plugin_config(plugin_name)
 
 def set_plugin_config(plugin_name: str, plugin_config: Dict[str, Any]) -> bool:
@@ -812,7 +811,7 @@ def set_plugin_config(plugin_name: str, plugin_config: Dict[str, Any]) -> bool:
     return config.set_plugin_config(plugin_name, plugin_config)
 
 def get_unified_config() -> UnifiedConfigManager:
-    """Get the unified configuration manager instance."""
+    Get the unified configuration manager instance."""
     return config
 
 # Constants access functions - All constants loaded from YAML config
@@ -878,7 +877,7 @@ def get_max_channel_members() -> int:
 
 # Legacy constant names for backward compatibility - lazy loaded
 def _get_legacy_constants():
-    """Get legacy constants - lazy loaded to avoid circular imports."""
+    """Get legacy constants - lazy loaded to avoid circular imports.
     return {
         'APP_NAME': get_app_name(),
         'APP_VERSION': get_app_version(),

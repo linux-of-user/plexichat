@@ -44,15 +44,14 @@ Transformations:
 - Feature engineering for ML
 - Data enrichment
 - Format conversions
-"""
+
 
 logger = logging.getLogger(__name__)
 
 
 class PipelineType(Enum):
     """Types of data pipelines."""
-
-    BATCH = "batch"
+        BATCH = "batch"
     STREAMING = "streaming"
     MICRO_BATCH = "micro_batch"
     EVENT_DRIVEN = "event_driven"
@@ -72,8 +71,7 @@ class PipelineStatus(Enum):
 
 class TransformationType(Enum):
     """Types of data transformations."""
-
-    FILTER = "filter"
+        FILTER = "filter"
     MAP = "map"
     AGGREGATE = "aggregate"
     JOIN = "join"
@@ -132,8 +130,7 @@ class PipelineConfig:
 @dataclass
 class PipelineRun:
     """Pipeline execution run."""
-
-    run_id: str = field(default_factory=lambda: str(uuid.uuid4()))
+        run_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     pipeline_name: str = ""
     status: PipelineStatus = PipelineStatus.PENDING
     start_time: Optional[datetime] = None
@@ -153,7 +150,7 @@ class PipelineRun:
 
     @property
     def duration_seconds(self) -> Optional[float]:
-        """Calculate run duration."""
+        """Calculate run duration.
         if self.start_time and self.end_time:
             return (self.end_time - self.start_time).total_seconds()
         return None
@@ -161,8 +158,7 @@ class PipelineRun:
 
 class DataTransformer:
     """Data transformation engine."""
-
-    def __init__(self):
+        def __init__(self):
         self.transformations: Dict[TransformationType, Callable] = {
             TransformationType.FILTER: self._filter_transform,
             TransformationType.MAP: self._map_transform,
@@ -176,7 +172,7 @@ class DataTransformer:
     async def apply_transformations()
         self, data: List[Dict[str, Any]], transformations: List[Dict[str, Any]]
     ) -> List[Dict[str, Any]]:
-        """Apply a series of transformations to data."""
+        Apply a series of transformations to data."""
         result = data
 
         for transform_config in transformations:
@@ -471,8 +467,7 @@ if # SECURITY: eval() removed - use safe alternativeseval_condition):
 
 class ETLPipelineService:
     """Main ETL/ELT pipeline service."""
-
-    def __init__(self):
+        def __init__(self):
         self.pipelines: Dict[str, PipelineConfig] = {}
         self.active_runs: Dict[str, PipelineRun] = {}
         self.transformer = DataTransformer()
@@ -659,17 +654,17 @@ class ETLPipelineService:
                 logger.error(f" Pipeline scheduler error: {e}")
 
     def get_pipeline_status(self, run_id: str) -> Optional[PipelineRun]:
-        """Get pipeline run status."""
+        """Get pipeline run status.
         return self.active_runs.get(run_id)
 
     def get_metrics(self) -> Dict[str, Any]:
         """Get pipeline service metrics."""
-        return {}
+        return {
             **self.metrics,
             "active_pipelines": len(self.active_runs),
             "registered_pipelines": len(self.pipelines),
             "is_running": self.is_running,
-        }
+        }}
 
 
 # Global instance

@@ -10,9 +10,8 @@ class GovernmentAuth:
     SECURITY WARNING: This is a placeholder implementation.
     In production, this should integrate with proper government authentication systems
     such as PIV cards, CAC authentication, or other approved identity providers.
-    """
-
-    def __init__(self):
+    
+        def __init__(self):
         # Generate secure session keys
         self._session_key = secrets.token_bytes(32)
         self._active_sessions = {}

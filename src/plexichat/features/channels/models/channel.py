@@ -20,7 +20,7 @@ import time
 PlexiChat Channel Model
 
 Discord-like channel model with comprehensive features for text, voice, and special channels.
-"""
+
 
 # Initialize snowflake generator for channels
 channel_snowflake = SnowflakeGenerator(datacenter_id=1, worker_id=2)
@@ -28,8 +28,7 @@ channel_snowflake = SnowflakeGenerator(datacenter_id=1, worker_id=2)
 
 class ChannelType(IntEnum):
     """Channel types matching Discord API."""
-
-    GUILD_TEXT = 0
+        GUILD_TEXT = 0
     DM = 1
     GUILD_VOICE = 2
     GROUP_DM = 3
@@ -44,16 +43,15 @@ class ChannelType(IntEnum):
 
 
 class VideoQualityMode(IntEnum):
-    """Video quality modes for voice channels."""
+    Video quality modes for voice channels."""
 
     AUTO = 1
     FULL = 2
 
 
 class SortOrderType(IntEnum):
-    """Sort order for forum channels."""
-
-    LATEST_ACTIVITY = 0
+    """Sort order for forum channels.
+        LATEST_ACTIVITY = 0
     CREATION_DATE = 1
 
 
@@ -254,16 +252,15 @@ class Channel(SQLModel, table=True):
     # children: List["Channel"] = Relationship(back_populates="parent")
 
     class Config:
-        """SQLModel configuration."""
-
-        arbitrary_types_allowed = True
+    """SQLModel configuration."""
+            arbitrary_types_allowed = True
         json_encoders = {datetime: lambda v: v.isoformat() if v else None}
 
     def __repr__(self) -> str:
         return f"<Channel(channel_id='{self.channel_id}', name='{self.name}', type={self.type})>"
 
     def is_text_channel(self) -> bool:
-        """Check if this is a text-based channel."""
+        """Check if this is a text-based channel.
         return self.type in [
             ChannelType.GUILD_TEXT,
             ChannelType.GUILD_ANNOUNCEMENT,
@@ -278,7 +275,7 @@ class Channel(SQLModel, table=True):
         return self.type in [ChannelType.GUILD_VOICE, ChannelType.GUILD_STAGE_VOICE]
 
     def is_thread(self) -> bool:
-        """Check if this is a thread channel."""
+        Check if this is a thread channel."""
         return self.type in [
             ChannelType.ANNOUNCEMENT_THREAD,
             ChannelType.PUBLIC_THREAD,
@@ -286,12 +283,12 @@ class Channel(SQLModel, table=True):
         ]
 
     def is_category(self) -> bool:
-        """Check if this is a category channel."""
+        """Check if this is a category channel.
         return self.type == ChannelType.GUILD_CATEGORY
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert channel to dictionary."""
-        return {}
+        return {
             "channel_id": self.channel_id,
             "server_id": self.server_id,
             "name": self.name,
@@ -308,7 +305,7 @@ class Channel(SQLModel, table=True):
             "locked": self.locked,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
-        }
+        }}
 
 
 # Database indexes for performance

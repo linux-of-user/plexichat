@@ -4,7 +4,7 @@ Distribution Manager for Distributed Backup System
 
 Handles distribution of encrypted shards across multiple users/nodes.
 Provides load balancing, redundancy, and geographic distribution.
-"""
+
 
 import asyncio
 import logging
@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 class NodeType(Enum):
     """Types of storage nodes."""
-    USER = "user"           # Regular user storage
+        USER = "user"           # Regular user storage
     DEDICATED = "dedicated" # Dedicated backup node
     CLOUD = "cloud"         # Cloud storage
     LOCAL = "local"         # Local storage
@@ -39,7 +39,7 @@ class NodeStatus(Enum):
 
 class DistributionStrategy(Enum):
     """Distribution strategies."""
-    ROUND_ROBIN = "round_robin"
+        ROUND_ROBIN = "round_robin"
     LOAD_BALANCED = "load_balanced"
     GEOGRAPHIC = "geographic"
     RANDOM = "random"
@@ -47,7 +47,7 @@ class DistributionStrategy(Enum):
 
 @dataclass
 class StorageNode:
-    """Represents a storage node."""
+    """Represents a storage node.
     node_id: str
     node_type: NodeType
     user_id: Optional[str]  # For user nodes
@@ -65,12 +65,12 @@ class StorageNode:
     
     @property
     def usage_percent(self) -> float:
-        """Get usage percentage."""
+        Get usage percentage."""
         return (self.used_mb / self.capacity_mb * 100) if self.capacity_mb > 0 else 100.0
     
     @property
     def is_available(self) -> bool:
-        """Check if node is available for storage."""
+        """Check if node is available for storage.
         return (self.status == NodeStatus.ONLINE and 
                 self.available_mb > 0 and 
                 self.usage_percent < 90.0)
@@ -91,8 +91,8 @@ class StorageNode:
 
 @dataclass
 class ShardDistribution:
-    """Represents distribution of a shard."""
-    shard_id: str
+    """Represents distribution of a shard.
+        shard_id: str
     node_id: str
     storage_path: str
     stored_at: datetime
@@ -103,7 +103,7 @@ class ShardDistribution:
 @dataclass
 class DistributionPlan:
     """Plan for distributing shards."""
-    backup_id: str
+        backup_id: str
     shard_distributions: List[ShardDistribution]
     strategy: DistributionStrategy
     created_at: datetime
@@ -111,18 +111,17 @@ class DistributionPlan:
     
     @property
     def total_shards(self) -> int:
-        """Get total number of shards."""
+        Get total number of shards."""
         return len(self.shard_distributions)
     
     @property
     def unique_nodes(self) -> Set[str]:
-        """Get unique node IDs used."""
+        """Get unique node IDs used.
         return {dist.node_id for dist in self.shard_distributions}
 
 class AdvancedDistributionManager:
     """Advanced distribution manager with intelligent geographic distribution and automatic replication."""
-
-    def __init__(self, storage_dir: Path, p2p_manager=None):
+        def __init__(self, storage_dir: Path, p2p_manager=None):
         self.storage_dir = Path(storage_dir)
         self.storage_dir.mkdir(parents=True, exist_ok=True)
 
@@ -191,9 +190,9 @@ class AdvancedDistributionManager:
         logger.info("Initialized local storage node")
     
     def register_node(self, node_id: str, node_type: NodeType, capacity_mb: int,
-                     location: str, user_id: Optional[str] = None,
-                     metadata: Optional[Dict[str, Any]] = None,
-                     geographic_region: Optional[str] = None) -> StorageNode:
+                    location: str, user_id: Optional[str] = None,
+                    metadata: Optional[Dict[str, Any]] = None,
+                    geographic_region: Optional[str] = None) -> StorageNode:
         """Register a new storage node."""
         node = StorageNode(
             node_id=node_id,
@@ -231,7 +230,7 @@ class AdvancedDistributionManager:
         if node_id in self.nodes:
             # Check if node has any shards
             node_shards = [dist for distributions in self.shard_locations.values() 
-                          for dist in distributions if dist.node_id == node_id]
+                        for dist in distributions if dist.node_id == node_id]
             
             if node_shards:
                 logger.warning(f"Cannot unregister node {node_id}: has {len(node_shards)} shards")
@@ -244,7 +243,7 @@ class AdvancedDistributionManager:
         return False
     
     def update_node_status(self, node_id: str, status: NodeStatus, 
-                          used_mb: Optional[int] = None):
+                        used_mb: Optional[int] = None):
         """Update node status and usage."""
         if node_id in self.nodes:
             node = self.nodes[node_id]
@@ -257,7 +256,7 @@ class AdvancedDistributionManager:
             logger.debug(f"Updated node {node_id} status to {status.value}")
     
     def get_available_nodes(self, exclude_nodes: Optional[Set[str]] = None) -> List[StorageNode]:
-        """Get list of available storage nodes."""
+        """Get list of available storage nodes.
         exclude_nodes = exclude_nodes or set()
         
         available = [
@@ -268,7 +267,7 @@ class AdvancedDistributionManager:
         return sorted(available, key=lambda n: n.usage_percent)
     
     def create_distribution_plan(self, shard_set: ShardSet, 
-                               strategy: Optional[DistributionStrategy] = None) -> DistributionPlan:
+                            strategy: Optional[DistributionStrategy] = None) -> DistributionPlan:
         """Create a distribution plan for a shard set."""
         strategy = strategy or self.default_strategy
         
@@ -302,7 +301,7 @@ class AdvancedDistributionManager:
         for shard in shard_set.all_shards:
             # Find best node (lowest usage, not already used for this backup)
             candidate_nodes = [n for n in available_nodes 
-                             if n.node_id not in used_nodes_for_backup]
+                            if n.node_id not in used_nodes_for_backup]
             
             if not candidate_nodes:
                 # If all nodes used, reset and use least loaded
@@ -397,7 +396,7 @@ class AdvancedDistributionManager:
         )
     
     async def execute_distribution_plan(self, plan: DistributionPlan, 
-                                      shard_data: Dict[str, bytes]) -> bool:
+                                    shard_data: Dict[str, bytes]) -> bool:
         """Execute a distribution plan by storing shards on nodes."""
         try:
             logger.info(f"Executing distribution plan for backup {plan.backup_id}")
@@ -850,7 +849,7 @@ class AdvancedDistributionManager:
         return max(0.0, health_score)
 
     async def _ping_node(self, node_id: str) -> Optional[float]:
-        """Ping a node and return response time in milliseconds."""
+        """Ping a node and return response time in milliseconds.
         if self.p2p_manager:
             try:
                 start_time = time.time()
@@ -902,7 +901,7 @@ class AdvancedDistributionManager:
 
                         # Attempt to create additional replicas
                         if await self._replicate_shard(shard_id, backup_id,
-                                                     self.min_redundancy - len(healthy_replicas)):
+                                                    self.min_redundancy - len(healthy_replicas)):
                             repairs_completed += 1
                             self.stats["auto_repairs"] += 1
 
@@ -944,8 +943,8 @@ class AdvancedDistributionManager:
 
             # Select best nodes for replication
             selected_nodes = self._select_diverse_nodes(candidate_nodes,
-                                                      await self._calculate_node_affinities(candidate_nodes),
-                                                      copies_needed)
+                                                    await self._calculate_node_affinities(candidate_nodes),
+                                                    copies_needed)
 
             # Offer shard to selected nodes
             if self.p2p_manager:

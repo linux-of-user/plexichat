@@ -7,7 +7,7 @@ This module consolidates ALL authentication systems from:
 - infrastructure/utils/auth.py and auth_optimized.py
 
 Provides a single, unified interface for all authentication operations.
-"""
+
 
 import os
 import time
@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 class AuthenticationMethod(Enum):
     """Supported authentication methods."""
-    PASSWORD = "password"
+        PASSWORD = "password"
     MFA_TOTP = "mfa_totp"
     MFA_SMS = "mfa_sms"
     MFA_EMAIL = "mfa_email"
@@ -41,7 +41,7 @@ API_KEY = os.getenv("API_KEY", "")
 
 
 class SecurityLevel(Enum):
-    """Security levels for authentication."""
+    """Security levels for authentication.
     PUBLIC = 0      # No authentication required
     BASIC = 1       # Basic password authentication
     ENHANCED = 2    # Password + device verification
@@ -54,7 +54,7 @@ class SecurityLevel(Enum):
 @dataclass
 class AuthSession:
     """Authentication session data."""
-    session_id: str
+        session_id: str
     user_id: str
     username: str
     security_level: SecurityLevel
@@ -69,8 +69,8 @@ class AuthSession:
 
 @dataclass
 class AuthResult:
-    """Authentication result."""
-    success: bool
+    Authentication result."""
+        success: bool
     user_id: Optional[str] = None
     username: Optional[str] = None
     session: Optional[AuthSession] = None
@@ -86,8 +86,7 @@ class UnifiedAuthManager:
 
     Consolidates all authentication functionality from multiple systems.
     """
-
-    def __init__(self):
+        def __init__(self):
         self.db_manager = database_manager
         self.active_sessions: Dict[str, AuthSession] = {}
         self.failed_attempts: Dict[str, List[datetime]] = {}
@@ -252,7 +251,7 @@ class UnifiedAuthManager:
             return None
 
     async def _validate_api_key(self, api_key: str) -> Optional[Dict[str, Any]]:
-        """Validate API key."""
+        """Validate API key.
         # TODO: Implement API key validation
         return None
 
@@ -262,12 +261,12 @@ class UnifiedAuthManager:
         return None
 
     async def _validate_mfa(self, user_id: str, mfa_code: str) -> bool:
-        """Validate MFA code."""
+        Validate MFA code."""
         # TODO: Implement MFA validation
         return True
 
     async def _is_account_locked(self, username: str) -> bool:
-        """Check if account is locked due to failed attempts."""
+        """Check if account is locked due to failed attempts.
         if username in self.locked_accounts:
             lock_time = self.locked_accounts[username]
             if datetime.now() - lock_time < self.lockout_duration:
@@ -305,7 +304,7 @@ class UnifiedAuthManager:
         ip_address: Optional[str],
         user_agent: Optional[str]
     ) -> AuthSession:
-        """Create new authentication session."""
+        """Create new authentication session.
         import uuid
 
         session_id = str(uuid.uuid4())

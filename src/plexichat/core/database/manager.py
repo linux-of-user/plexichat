@@ -6,7 +6,7 @@ It re-exports the main database manager and related components from db_manager.p
 to maintain backward compatibility with existing imports.
 
 Uses shared components for consistent error handling and type definitions.
-"""
+
 
 # Import shared components (NEW ARCHITECTURE)
 from ...shared.exceptions import DatabaseError
@@ -46,22 +46,22 @@ except ImportError:
 # Create specific database exceptions using shared base
 class ConnectionError(DatabaseError):
     """Database connection errors."""
-pass
+    pass
 
 class MigrationError(DatabaseError):
-    """Database migration errors."""
+    Database migration errors."""
 pass
 
 class EncryptionError(DatabaseError):
-    """Database encryption errors."""
-pass
+    """Database encryption errors.
+    pass
 
 class TransactionError(DatabaseError):
     """Database transaction errors."""
 pass
 
 class SchemaError(DatabaseError):
-    """Database schema errors."""
+    Database schema errors."""
 pass
 
 # Backward compatibility aliases

@@ -41,12 +41,12 @@ Features:
 - Dashboard data endpoints
 - Alert management
 - Log integrity verification
-"""
+
 
 # Pydantic models for API
 class LogFilterRequest(BaseModel):
     """Log filter request model."""
-    level: Optional[str] = None
+        level: Optional[str] = None
     category: Optional[str] = None
     start_time: Optional[datetime] = None
     end_time: Optional[datetime] = None
@@ -54,8 +54,8 @@ class LogFilterRequest(BaseModel):
     limit: Optional[int] = Field(default=100, le=1000)
 
 class LogExportRequest(BaseModel):
-    """Log export request model."""
-    format: str = Field(default="json", pattern="^(json|csv|txt)$")
+    Log export request model."""
+        format: str = Field(default="json", pattern="^(json|csv|txt)$")
     level: Optional[str] = None
     category: Optional[str] = None
     start_time: Optional[datetime] = None
@@ -63,8 +63,8 @@ class LogExportRequest(BaseModel):
     include_context: bool = True
 
 class SecurityEventRequest(BaseModel):
-    """Security event request model."""
-    event_types: Optional[List[str]] = None
+    """Security event request model.
+        event_types: Optional[List[str]] = None
     severity: Optional[str] = None
     start_time: Optional[datetime] = None
     end_time: Optional[datetime] = None
@@ -72,7 +72,7 @@ class SecurityEventRequest(BaseModel):
 
 class PerformanceMetricsRequest(BaseModel):
     """Performance metrics request model."""
-    metric_names: Optional[List[str]] = None
+        metric_names: Optional[List[str]] = None
     start_time: Optional[datetime] = None
     end_time: Optional[datetime] = None
     aggregation: str = Field(default="avg", pattern="^(avg|min|max|sum|count)$")
@@ -80,9 +80,8 @@ class PerformanceMetricsRequest(BaseModel):
 
 # WebSocket connection manager
 class LogWebSocketManager:
-    """Manage WebSocket connections for real-time log streaming."""
-
-    def __init__(self):
+    """Manage WebSocket connections for real-time log streaming.
+        def __init__(self):
         self.active_connections: List[WebSocket] = []
         self.connection_filters: Dict[WebSocket, LogFilterRequest] = {}
 
@@ -94,7 +93,7 @@ class LogWebSocketManager:
             self.connection_filters[websocket] = log_filter
 
     def disconnect(self, websocket: WebSocket):
-        """Remove WebSocket connection."""
+        Remove WebSocket connection."""
         if websocket in self.active_connections:
             self.active_connections.remove(websocket)
         if websocket in self.connection_filters:
@@ -127,7 +126,7 @@ class LogWebSocketManager:
             self.disconnect(connection)
 
     def _matches_filter(self, log_entry: LogEntry, log_filter: Optional[LogFilterRequest]) -> bool:
-        """Check if log entry matches filter criteria."""
+        """Check if log entry matches filter criteria.
         if not log_filter:
             return True
 
@@ -227,7 +226,7 @@ async def get_log_entries()
 
         filtered_entries.append(entry.to_dict())
 
-    return {}
+    return {
         "entries": filtered_entries,
         "total": len(filtered_entries),
         "filters": {
@@ -237,7 +236,7 @@ async def get_log_entries()
             "end_time": end_time,
             "search_query": search_query,
             "limit": limit
-        }
+        }}
     }
 
 @router.websocket("/stream")
@@ -299,14 +298,14 @@ async def get_performance_metrics()
         )
         metrics_data[metric_name] = [m.to_dict() for m in metrics]
 
-    return {}
+    return {
         "metrics": metrics_data,
         "filters": {
             "metric_names": metric_names,
             "start_time": start_time,
             "end_time": end_time,
             "limit": limit
-        }
+        }}
     }
 
 @router.get("/security/events")
@@ -347,7 +346,7 @@ async def get_security_events()
     if limit:
         events = events[-limit:]
 
-    return {}
+    return {
         "events": events,
         "total": len(events),
         "filters": {
@@ -356,7 +355,7 @@ async def get_security_events()
             "start_time": start_time,
             "end_time": end_time,
             "limit": limit
-        }
+        }}
     }
 
 @router.get("/security/integrity")
@@ -486,13 +485,13 @@ async def get_log_stats(current_user = Depends(require_admin)):
         hour_key = entry.timestamp.strftime("%Y-%m-%d %H:00")
         hourly_counts[hour_key] = hourly_counts.get(hour_key, 0) + 1
 
-    return {}
+    return {
         "total_entries": len(recent_entries),
         "level_distribution": level_counts,
         "category_distribution": category_counts,
         "hourly_distribution": hourly_counts,
         "performance_summary": logging_manager.get_performance_summary()
-    }
+    }}
 
 # Initialize log streaming when module is imported
 setup_log_streaming()

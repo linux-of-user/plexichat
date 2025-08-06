@@ -47,7 +47,7 @@ logger = logging.getLogger(__name__)
 
 
 def _get_result_attribute(result, attr_name, default_value):
-    """Helper function to safely get attributes from result objects or dicts."""
+    """Helper function to safely get attributes from result objects or dicts.
     if hasattr(result, attr_name):
         return getattr(result, attr_name)
     elif hasattr(result, 'get') and callable(getattr(result, 'get')):
@@ -58,7 +58,7 @@ def _get_result_attribute(result, attr_name, default_value):
 
 class PartitionType(Enum):
     """Types of partitioning strategies."""
-    TIME_BASED = "time_based"
+        TIME_BASED = "time_based"
     HASH_BASED = "hash_based"
     RANGE_BASED = "range_based"
     LIST_BASED = "list_based"
@@ -77,7 +77,7 @@ class PartitionInterval(Enum):
 @dataclass
 class PartitionConfig:
     """Configuration for table partitioning."""
-    table_name: str
+        table_name: str
     partition_type: PartitionType
     partition_column: str
 
@@ -102,8 +102,8 @@ class PartitionConfig:
 
 @dataclass
 class PartitionInfo:
-    """Information about a database partition."""
-    name: str
+    """Information about a database partition.
+        name: str
     table_name: str
     partition_type: PartitionType
     partition_key: str
@@ -117,20 +117,19 @@ class PartitionInfo:
 
 class PartitionManager:
     """Manages database partitioning strategies."""
-
-    def __init__(self):
+        def __init__(self):
         self.partition_configs: Dict[str, PartitionConfig] = {}
         self.partition_info: Dict[str, List[PartitionInfo]] = {}
         self.maintenance_interval = 3600  # 1 hour
         self._maintenance_task: Optional[asyncio.Task] = None
 
     def register_partition_config(self, config: PartitionConfig):
-        """Register a partition configuration for a table."""
+        Register a partition configuration for a table."""
         self.partition_configs[config.table_name] = config
         logger.info(f"Registered partition config for table: {config.table_name}")
 
     async def create_partitions(self, client: AbstractDatabaseClient, table_name: str,)
-                              periods: int = 12) -> List[str]:
+                            periods: int = 12) -> List[str]:
         """Create partitions for a table."""
         if table_name not in self.partition_configs:
             raise ValueError(f"No partition config found for table: {table_name}")
@@ -154,7 +153,7 @@ class PartitionManager:
         return created_partitions
 
     async def _create_time_based_partitions(self, client: AbstractDatabaseClient,)
-                                          config: PartitionConfig, periods: int) -> List[str]:
+                                        config: PartitionConfig, periods: int) -> List[str]:
         """Create time-based partitions."""
         created_partitions = []
         database_type = getattr(client.config, 'type', DatabaseType.SQLITE)
@@ -220,7 +219,7 @@ class PartitionManager:
         return created_partitions
 
     async def _create_hash_based_partitions(self, client: AbstractDatabaseClient,)
-                                          config: PartitionConfig) -> List[str]:
+                                        config: PartitionConfig) -> List[str]:
         """Create hash-based partitions."""
         created_partitions = []
         database_type = getattr(client.config, 'type', DatabaseType.SQLITE)
@@ -236,7 +235,7 @@ class PartitionManager:
                     sql = f"""
                     CREATE TABLE {partition_name} PARTITION OF {config.table_name}
                     FOR VALUES WITH (MODULUS {config.hash_partitions}, REMAINDER {i})
-                    """
+                    
                 elif database_type == DatabaseType.MYSQL:
                     # MySQL hash partitioning is defined on the main table
                     if i == 0:  # Only create the partitioning scheme once
@@ -249,7 +248,7 @@ class PartitionManager:
                         continue  # Skip individual partition creation for MySQL
                 else:
                     # Create separate tables for hash partitions
-                    sql = f"""
+                    sql = f
                     CREATE TABLE {partition_name} AS
                     SELECT * FROM {config.table_name} WHERE 1=0
                     """
@@ -270,7 +269,7 @@ class PartitionManager:
         return created_partitions
 
     async def _create_range_based_partitions(self, client: AbstractDatabaseClient,)
-                                           config: PartitionConfig) -> List[str]:
+                                        config: PartitionConfig) -> List[str]:
         """Create range-based partitions."""
         created_partitions = []
 
@@ -291,7 +290,7 @@ class PartitionManager:
                         sql = f"""
                         CREATE TABLE {partition_name} PARTITION OF {config.table_name}
                         FOR VALUES FROM ('{start_value}') TO ('{end_value}')
-                        """
+                        
                     else:
                         sql = f"""
                         CREATE TABLE {partition_name} PARTITION OF {config.table_name}
@@ -325,7 +324,7 @@ class PartitionManager:
         return created_partitions
 
     def _calculate_partition_dates(self, base_date: datetime, interval: PartitionInterval,):
-                                 periods: int) -> List[Tuple[datetime, datetime]]:
+                                periods: int) -> List[Tuple[datetime, datetime]]:
         """Calculate partition date ranges."""
         dates = []
         current_date = base_date.replace(hour=0, minute=0, second=0, microsecond=0)
@@ -385,18 +384,18 @@ class PartitionManager:
         return f"{prefix}{table_name}_{suffix}"
 
     def _generate_postgresql_time_partition_sql(self, config: PartitionConfig,):
-                                              partition_name: str, start_date: datetime,
-                                              end_date: datetime) -> str:
-        """Generate PostgreSQL time partition SQL."""
+                                            partition_name: str, start_date: datetime,
+                                            end_date: datetime) -> str:
+        """Generate PostgreSQL time partition SQL.
         return f"""
         CREATE TABLE {partition_name} PARTITION OF {config.table_name}
         FOR VALUES FROM ('{start_date.isoformat()}') TO ('{end_date.isoformat()}')
         """
 
     def _generate_mysql_time_partition_sql(self, config: PartitionConfig,):
-                                         partition_name: str, start_date: datetime,
-                                         end_date: datetime) -> str:
-        """Generate MySQL time partition SQL."""
+                                        partition_name: str, start_date: datetime,
+                                        end_date: datetime) -> str:
+        Generate MySQL time partition SQL."""
         # Acknowledge unused parameters
         _ = start_date
         # MySQL partitioning is typically defined on the main table
@@ -404,13 +403,13 @@ class PartitionManager:
         ALTER TABLE {config.table_name}
         PARTITION BY RANGE (TO_DAYS({config.partition_column}))
         (PARTITION {partition_name} VALUES LESS THAN (TO_DAYS('{end_date.date()}')))
-        """
+        
 
     def _generate_table_based_partition_sql(self, config: PartitionConfig,):
-                                           partition_name: str, start_date: datetime,
-                                           end_date: datetime) -> str:
+                                        partition_name: str, start_date: datetime,
+                                        end_date: datetime) -> str:
         """Generate table-based partition SQL for databases without native partitioning."""
-        return f"""
+        return f
         CREATE TABLE {partition_name} AS
         SELECT * FROM {config.table_name}
         WHERE {config.partition_column} >= '{start_date.isoformat()}'
@@ -419,7 +418,7 @@ class PartitionManager:
         """
 
     async def cleanup_old_partitions(self, client: AbstractDatabaseClient,)
-                                   table_name: str) -> List[str]:
+                                table_name: str) -> List[str]:
         """Clean up old partitions based on retention policy."""
         if table_name not in self.partition_configs:
             return []
@@ -457,7 +456,7 @@ class PartitionManager:
         return dropped_partitions
 
     async def get_partition_statistics(self, client: AbstractDatabaseClient,)
-                                     table_name: str) -> Dict[str, Any]:
+                                    table_name: str) -> Dict[str, Any]:
         """Get statistics for table partitions."""
         # Acknowledge unused parameter
         _ = client

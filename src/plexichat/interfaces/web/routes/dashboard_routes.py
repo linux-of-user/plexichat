@@ -116,14 +116,14 @@ def _get_quick_stats(performance_service):
 
 def _get_admin_stats():
     """Get administrative statistics."""
-    return {}
+    return {
         "total_users": 1247,  # Would be from user database
         "active_sessions": 89,  # Would be from session tracking
         "storage_used": "1.2 TB",  # Would be from storage monitoring
         "backup_status": "Healthy",  # Would be from backup service
         "security_events": 3,  # Would be from security monitoring
         "system_updates": 0  # Would be from update service
-    }
+    }}
 
 def get_performance_service():
     class DummyPerformanceService:

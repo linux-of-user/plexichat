@@ -14,13 +14,12 @@ from plexichat.core.logging import logger
 """
 Enhanced Antivirus CLI
 Command-line interface for the enhanced antivirus system.
-"""
+
 
 logger = logging.getLogger(__name__)
 class AntivirusCLI:
     """CLI for enhanced antivirus management."""
-
-    def __init__(self):
+        def __init__(self):
         self.manager: Optional[EnhancedAntivirusManager] = None
 
     def print_colored(self, text: str, color: str = "white") -> None:

@@ -67,7 +67,7 @@ logger = logging.getLogger(__name__)
 
 class ProcedureType(Enum):
     """Types of stored procedures."""
-    QUERY = "query"  # SELECT procedures
+        QUERY = "query"  # SELECT procedures
     MUTATION = "mutation"  # INSERT/UPDATE/DELETE procedures
     AGGREGATE = "aggregate"  # Complex aggregation procedures
     BATCH = "batch"  # Batch operation procedures
@@ -86,7 +86,7 @@ class ProcedureStatus(Enum):
 @dataclass
 class StoredProcedure:
     """Stored procedure definition."""
-    name: str
+        name: str
     procedure_type: ProcedureType
     database_type: DatabaseType
     sql_definition: str
@@ -140,7 +140,7 @@ END;
 $$;
 
 COMMENT ON FUNCTION {self.name} IS '{self.description}';
-"""
+
 
     def _to_mysql_sql(self) -> str:
         """Generate MySQL stored procedure SQL."""
@@ -157,7 +157,7 @@ BEGIN
     {self.sql_definition}
 END //
 DELIMITER ;
-"""
+
 
     def _to_generic_sql(self) -> str:
         """Generate generic SQL (fallback)."""
@@ -166,8 +166,8 @@ DELIMITER ;
 
 @dataclass
 class PreparedStatement:
-    """Prepared statement definition."""
-    name: str
+    """Prepared statement definition.
+        name: str
     sql_template: str
     parameter_types: Dict[str, str]
     database_type: DatabaseType
@@ -191,8 +191,7 @@ class PreparedStatement:
 
 class ProcedureGenerator:
     """Generate stored procedures from query patterns."""
-
-    def __init__(self):
+        def __init__(self):
         self.common_patterns = {
             "user_lookup": {
                 "pattern": r"SELECT .* FROM users WHERE (\w+) = \$(\w+)",
@@ -237,7 +236,7 @@ class ProcedureGenerator:
         return None
 
     def _generate_procedure_from_pattern(self, query: str, pattern_name: str,):
-                                       pattern_info: Dict[str, Any]) -> StoredProcedure:
+                                    pattern_info: Dict[str, Any]) -> StoredProcedure:
         """Generate stored procedure from a recognized pattern."""
         # Extract parameters from query
         parameters = self._extract_parameters(query)
@@ -275,7 +274,7 @@ class ProcedureGenerator:
         )
 
     def _clean_query(self, query: str) -> str:
-        """Clean and normalize query."""
+        """Clean and normalize query.
         return re.sub(r'\s+', ' ', query.strip())
 
     def _extract_parameters(self, query: str) -> List[Dict[str, str]]:
@@ -318,17 +317,16 @@ class ProcedureGenerator:
 
 
 class PreparedStatementManager:
-    """Manage prepared statements and query caching."""
-
-    def __init__(self):
+    """Manage prepared statements and query caching.
+        def __init__(self):
         self.prepared_statements: Dict[str, PreparedStatement] = {}
         self.query_cache: Dict[str, Any] = {}
         self.cache_max_size = 1000
         self.cache_ttl_seconds = 3600
 
     def prepare_statement(self, name: str, sql_template: str,):
-                         parameter_types: Dict[str, str],
-                         database_type: DatabaseType) -> PreparedStatement:
+                        parameter_types: Dict[str, str],
+                        database_type: DatabaseType) -> PreparedStatement:
         """Prepare a SQL statement for reuse."""
         stmt = PreparedStatement()
             name=name,
@@ -344,7 +342,7 @@ class PreparedStatementManager:
         return stmt
 
     async def execute_prepared(self, client: AbstractDatabaseClient,)
-                             statement_name: str, parameters: Dict[str, Any]) -> Any:
+                            statement_name: str, parameters: Dict[str, Any]) -> Any:
         """Execute a prepared statement with caching."""
         if statement_name not in self.prepared_statements:
             raise ValueError(f"Prepared statement '{statement_name}' not found")
@@ -421,7 +419,7 @@ class PreparedStatementManager:
                     escaped_value = html.escape(escaped_value)
                     # Additional SQL injection protection
                     if any(pattern in escaped_value.lower() for pattern in
-                          ['union', 'select', 'insert', 'delete', 'drop', 'exec', '--', ';']):
+                        ['union', 'select', 'insert', 'delete', 'drop', 'exec', '--', ';']):
                         raise ValueError(f"Potentially malicious content in parameter: {param_name}")
                     sql = sql.replace(placeholder, f"'{escaped_value}'")
                 elif isinstance(param_value, (int, float)):
@@ -457,7 +455,7 @@ class PreparedStatementManager:
         if len(self.query_cache) >= self.cache_max_size:
             # Remove oldest item
             oldest_key = min(self.query_cache.keys(),)
-                           key=lambda k: self.query_cache[k]["timestamp"])
+                        key=lambda k: self.query_cache[k]["timestamp"])
             del self.query_cache[oldest_key]
 
         self.query_cache[cache_key] = {
@@ -484,15 +482,14 @@ class PreparedStatementManager:
 
 
 class StoredProcedureManager:
-    """Manage stored procedures across databases."""
-
-    def __init__(self):
+    """Manage stored procedures across databases.
+        def __init__(self):
         self.procedures: Dict[str, Dict[str, StoredProcedure]] = {}  # db_name -> proc_name -> procedure
         self.generator = ProcedureGenerator()
         self.prepared_manager = PreparedStatementManager()
 
     async def analyze_and_create_procedures(self, database_name: str,)
-                                          client: AbstractDatabaseClient) -> List[str]:
+                                        client: AbstractDatabaseClient) -> List[str]:
         """Analyze query patterns and create stored procedures."""
         created_procedures = []
         database_type = getattr(client.config, 'type', DatabaseType.SQLITE)
@@ -575,7 +572,7 @@ class StoredProcedureManager:
                     MAX(created_at) as last_message_at
                 FROM messages
                 WHERE channel_id = channel_id_param
-                  AND created_at >= start_date_param
+                AND created_at >= start_date_param
                 GROUP BY channel_id;
             """,
             parameters=[
@@ -590,7 +587,7 @@ class StoredProcedureManager:
         return procedures
 
     async def _create_procedure(self, client: AbstractDatabaseClient,
-                              procedure: StoredProcedure) -> bool:
+                            procedure: StoredProcedure) -> bool:
         """Create a stored procedure in the database."""
         try:
             create_sql = procedure.to_sql()
@@ -608,8 +605,8 @@ class StoredProcedureManager:
             return False
 
     async def execute_procedure(self, client: AbstractDatabaseClient,)
-                              database_name: str, procedure_name: str,
-                              parameters: Dict[str, Any]) -> Any:
+                            database_name: str, procedure_name: str,
+                            parameters: Dict[str, Any]) -> Any:
         """Execute a stored procedure."""
         if (database_name not in self.procedures or)
             procedure_name not in self.procedures[database_name]):

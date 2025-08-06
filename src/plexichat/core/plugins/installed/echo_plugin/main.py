@@ -25,7 +25,7 @@ class EchoPlugin(PluginInterface):
     """
     Example Echo plugin for PlexiChat.
     """
-    def __init__(self):
+        def __init__(self):
         super().__init__(name="EchoPlugin", version="1.0.0")
         self.router = router
 
@@ -34,9 +34,9 @@ class EchoPlugin(PluginInterface):
         return True
 
     def get_metadata(self):
-        return {}
+        return {
             "name": "Echo Plugin",
             "version": "1.0.0",
             "description": "A simple Echo plugin that echoes messages.",
             "plugin_type": "utility"
-        }
+        }}

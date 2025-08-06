@@ -191,11 +191,11 @@ def _calculate_component_health(component_metrics):
 
     # This would implement actual health calculation logic
     # For now, return a placeholder
-    return {}
+    return {
         "score": 85,
         "status": "healthy",
         "issues": []
-    }
+    }}
 
 # Export router
 __all__ = ["router"]

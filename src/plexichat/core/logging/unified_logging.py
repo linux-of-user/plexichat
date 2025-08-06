@@ -7,7 +7,7 @@ Consolidates ALL logging functionality from:
 - infrastructure/utils/enhanced_logging.py - INTEGRATED
 
 Provides a single, unified interface for all logging operations.
-"""
+
 
 
 import gzip
@@ -61,8 +61,8 @@ logger = logging.getLogger(__name__)
 
 
 class LogLevel(Enum):
-    """Enhanced log levels."""
-    TRACE = 5
+    """Enhanced log levels.
+        TRACE = 5
     DEBUG = 10
     INFO = 20
     WARNING = 30
@@ -90,8 +90,8 @@ class LogCategory(Enum):
 
 @dataclass
 class LogContext:
-    """Log context information."""
-    user_id: Optional[str] = None
+    """Log context information.
+        user_id: Optional[str] = None
     session_id: Optional[str] = None
     request_id: Optional[str] = None
     operation: Optional[str] = None
@@ -102,7 +102,7 @@ class LogContext:
 @dataclass
 class LogEntry:
     """Structured log entry."""
-    timestamp: datetime
+        timestamp: datetime
     level: LogLevel
     category: LogCategory
     message: str
@@ -111,7 +111,7 @@ class LogEntry:
     extra_data: Dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for JSON serialization."""
+        Convert to dictionary for JSON serialization."""
         return {
             "timestamp": self.timestamp.isoformat(),
             "level": self.level.name,
@@ -132,8 +132,7 @@ class LogEntry:
 
 class ColoredFormatter(logging.Formatter):
     """Colored log formatter for console output."""
-
-    COLORS = {
+        COLORS = {
         'TRACE': '\033[90m',      # Dark gray
         'DEBUG': '\033[36m',      # Cyan
         'INFO': '\033[32m',       # Green
@@ -153,8 +152,7 @@ class ColoredFormatter(logging.Formatter):
 
 class StructuredFormatter(logging.Formatter):
     """JSON structured log formatter."""
-
-    def format(self, record):
+        def format(self, record):
         log_entry = {
             "timestamp": datetime.fromtimestamp(record.created).isoformat(),
             "level": record.levelname,
@@ -181,9 +179,8 @@ class StructuredFormatter(logging.Formatter):
 
 
 class PerformanceTracker:
-    """Performance tracking and metrics."""
-
-    def __init__(self):
+    """Performance tracking and metrics.
+        def __init__(self):
         self.metrics: Dict[str, List[float]] = {}
         self.counters: Dict[str, int] = {}
         self.lock = threading.Lock()
@@ -200,7 +197,7 @@ class PerformanceTracker:
                 self.metrics[operation] = self.metrics[operation][-1000:]
 
     def increment_counter(self, name: str, value: int = 1):
-        """Increment counter metric."""
+        Increment counter metric."""
         with self.lock:
             self.counters[name] = self.counters.get(name, 0) + value
 
@@ -208,11 +205,11 @@ class PerformanceTracker:
         """Get statistics for an operation."""
         with self.lock:
             if operation not in self.metrics:
-                return {}
+                return {
 
             timings = self.metrics[operation]
             if not timings:
-                return {}
+                return {}}
 
             return {
                 "count": len(timings),
@@ -224,9 +221,8 @@ class PerformanceTracker:
 
 
 class LogBuffer:
-    """Thread-safe log buffer for real-time streaming."""
-
-    def __init__(self, max_size: int = 10000):
+    """Thread-safe log buffer for real-time streaming.
+        def __init__(self, max_size: int = 10000):
         self.max_size = max_size
         self.entries: List[LogEntry] = []
         self.lock = threading.Lock()
@@ -248,12 +244,12 @@ class LogBuffer:
                 pass
 
     def get_recent(self, count: int = 100) -> List[LogEntry]:
-        """Get recent log entries."""
+        Get recent log entries."""
         with self.lock:
             return self.entries[-count:] if self.entries else []
 
     def subscribe(self, callback: Callable[[LogEntry], None]):
-        """Subscribe to new log entries."""
+        """Subscribe to new log entries.
         self.subscribers.append(callback)
 
     def unsubscribe(self, callback: Callable[[LogEntry], None]):
@@ -263,9 +259,8 @@ class LogBuffer:
 
 
 class PerformanceTimer:
-    """Context manager for performance timing."""
-
-    def __init__(self, logger, operation: str, **kwargs):
+    Context manager for performance timing."""
+        def __init__(self, logger, operation: str, **kwargs):
         self.logger = logger
         self.operation = operation
         self.kwargs = kwargs
@@ -286,9 +281,8 @@ class UnifiedLogger:
     Unified Logger - SINGLE SOURCE OF TRUTH
 
     Consolidates all logging functionality from multiple systems.
-    """
-
-    def __init__(self, name: str, manager=None):
+    
+        def __init__(self, name: str, manager=None):
         self.name = name
         self.manager = manager
         self.logger = logging.getLogger(name)
@@ -303,11 +297,11 @@ class UnifiedLogger:
                 self.context.metadata[key] = value
 
     def clear_context(self):
-        """Clear logging context."""
+        Clear logging context."""
         self.context = LogContext()
 
     def _log(self, level: LogLevel, category: LogCategory, message: str, **kwargs):
-        """Internal logging method."""
+        """Internal logging method.
         entry = LogEntry(
             timestamp=datetime.now(),
             level=level,
@@ -336,11 +330,11 @@ class UnifiedLogger:
         self._log(LogLevel.TRACE, category, message, **kwargs)
 
     def debug(self, message: str, category: LogCategory = LogCategory.SYSTEM, **kwargs):
-        """Log debug message."""
+        Log debug message."""
         self._log(LogLevel.DEBUG, category, message, **kwargs)
 
     def info(self, message: str, category: LogCategory = LogCategory.SYSTEM, **kwargs):
-        """Log info message."""
+        """Log info message.
         self._log(LogLevel.INFO, category, message, **kwargs)
 
     def warning(self, message: str, category: LogCategory = LogCategory.SYSTEM, **kwargs):
@@ -348,11 +342,11 @@ class UnifiedLogger:
         self._log(LogLevel.WARNING, category, message, **kwargs)
 
     def error(self, message: str, category: LogCategory = LogCategory.SYSTEM, **kwargs):
-        """Log error message."""
+        Log error message."""
         self._log(LogLevel.ERROR, category, message, **kwargs)
 
     def critical(self, message: str, category: LogCategory = LogCategory.SYSTEM, **kwargs):
-        """Log critical message."""
+        """Log critical message.
         self._log(LogLevel.CRITICAL, category, message, **kwargs)
 
     def security(self, message: str, **kwargs):
@@ -360,7 +354,7 @@ class UnifiedLogger:
         self._log(LogLevel.SECURITY, LogCategory.SECURITY, message, **kwargs)
 
     def audit(self, message: str, **kwargs):
-        """Log audit event."""
+        Log audit event."""
         self._log(LogLevel.AUDIT, LogCategory.AUDIT, message, **kwargs)
 
     def performance(self, operation: str, duration: float, **kwargs):
@@ -378,7 +372,7 @@ class UnifiedLogger:
         self._log(LogLevel.INFO, LogCategory.API, message, method=method, path=path, status_code=status_code, duration=duration, **kwargs)
 
     def timer(self, operation: str, **kwargs):
-        """Get performance timer context manager."""
+        """Get performance timer context manager.
         return PerformanceTimer(self, operation, **kwargs)
 
     def log_performance(self, operation: str, duration: float, **kwargs):
@@ -387,9 +381,8 @@ class UnifiedLogger:
 
 
 class CompressingRotatingFileHandler(logging.handlers.RotatingFileHandler):
-    """Rotating file handler that compresses old log files and manages cleanup."""
-
-    def __init__(self, filename, mode='a', maxBytes=0, backupCount=0, encoding=None, delay=False, log_dir=None):
+    Rotating file handler that compresses old log files and manages cleanup."""
+        def __init__(self, filename, mode='a', maxBytes=0, backupCount=0, encoding=None, delay=False, log_dir=None):
         super().__init__(filename, mode, maxBytes, backupCount, encoding, delay)
         self.log_dir = Path(log_dir) if log_dir else Path(filename).parent
 
@@ -430,9 +423,8 @@ class UnifiedLoggingManager:
     Unified Logging Manager - SINGLE SOURCE OF TRUTH
 
     Consolidates all logging management functionality.
-    """
-
-    def __init__(self):
+    
+        def __init__(self):
         self.config = get_config()
         self.loggers: Dict[str, UnifiedLogger] = {}
         self.log_buffer = LogBuffer(max_size=getattr(self.config.logging, 'buffer_size', 10000))
@@ -680,7 +672,7 @@ class UnifiedLoggingManager:
             print(f"Error configuring third-party loggers: {e}")
 
     def get_logger(self, name: str) -> UnifiedLogger:
-        """Get a unified logger instance."""
+        """Get a unified logger instance.
         if name not in self.loggers:
             self.loggers[name] = UnifiedLogger(name, self)
         return self.loggers[name]
@@ -690,7 +682,7 @@ class UnifiedLoggingManager:
         self.alert_callbacks.append(callback)
 
     def remove_alert_callback(self, callback: Callable[[LogEntry], None]):
-        """Remove alert callback."""
+        Remove alert callback."""
         if callback in self.alert_callbacks:
             self.alert_callbacks.remove(callback)
 
@@ -705,7 +697,7 @@ class UnifiedLoggingManager:
         }
 
     def get_recent_logs(self, count: int = 100) -> List[Dict[str, Any]]:
-        """Get recent log entries as dictionaries."""
+        """Get recent log entries as dictionaries.
         entries = self.log_buffer.get_recent(count)
         return [entry.to_dict() for entry in entries]
 
@@ -744,7 +736,7 @@ unified_logging_manager = UnifiedLoggingManager()
 
 # Backward compatibility functions
 def get_logger(name: str = "plexichat") -> UnifiedLogger:
-    """Get unified logger instance."""
+    """Get unified logger instance.
     return unified_logging_manager.get_logger(name)
 
 def get_logging_manager() -> UnifiedLoggingManager:
@@ -752,7 +744,7 @@ def get_logging_manager() -> UnifiedLoggingManager:
     return unified_logging_manager
 
 def setup_module_logging(module_name: str, level: str = "INFO") -> UnifiedLogger:
-    """Setup logging for a specific module."""
+    """Setup logging for a specific module.
     logger = get_logger(module_name)
     # Set level on underlying logger
     log_level = getattr(logging, level.upper(), logging.INFO)

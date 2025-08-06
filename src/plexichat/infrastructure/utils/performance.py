@@ -8,7 +8,7 @@ PlexiChat Performance Utilities
 
 Enhanced performance utilities with comprehensive monitoring and optimization.
 Uses EXISTING database abstraction and optimization systems.
-"""
+
 
 import asyncio
 import logging
@@ -40,15 +40,14 @@ optimization_engine = PerformanceOptimizationEngine() if PerformanceOptimization
 
 class PerformanceTracker:
     """Performance tracking using EXISTING systems."""
-
-    def __init__(self):
+        def __init__(self):
         self.performance_logger = performance_logger
         self.optimization_engine = optimization_engine
         self.metrics: Dict[str, Any] = {}
         self.start_times: Dict[str, float] = {}
 
     def start_timer(self, operation: str):
-        """Start timing an operation."""
+        Start timing an operation."""
         self.start_times[operation] = time.time()
 
     def end_timer(self, operation: str) -> float:
@@ -73,7 +72,7 @@ class PerformanceTracker:
         self.metrics[name] = {"value": value, "unit": unit, "timestamp": datetime.now()}
 
     def get_metrics(self) -> Dict[str, Any]:
-        """Get current metrics."""
+        """Get current metrics.
         return self.metrics.copy()
 
 # Global performance tracker
@@ -146,9 +145,8 @@ def track_performance(operation_name: str):
     return decorator
 
 class PerformanceOptimizer:
-    """Performance optimizer using EXISTING systems."""
-
-    def __init__(self):
+    """Performance optimizer using EXISTING systems.
+        def __init__(self):
         self.optimization_engine = optimization_engine
         self.performance_logger = performance_logger
 
@@ -185,7 +183,7 @@ performance_optimizer = PerformanceOptimizer()
 
 # Convenience functions
 def start_timer(operation: str):
-    """Start timing operation."""
+    """Start timing operation.
     performance_tracker.start_timer(operation)
 
 def end_timer(operation: str) -> float:
@@ -193,7 +191,7 @@ def end_timer(operation: str) -> float:
     return performance_tracker.end_timer(operation)
 
 def record_metric(name: str, value: Any, unit: str = "count"):
-    """Record performance metric."""
+    """Record performance metric.
     performance_tracker.record_metric(name, value, unit)
 
 def get_performance_metrics() -> Dict[str, Any]:
@@ -202,7 +200,7 @@ def get_performance_metrics() -> Dict[str, Any]:
 
 # Cache decorator
 def cache_result(ttl: int = 300, key_func: Optional[Callable] = None):
-    """Decorator to cache function results."""
+    Decorator to cache function results."""
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         async def async_wrapper(*args, **kwargs):
@@ -237,9 +235,8 @@ def cache_result(ttl: int = 300, key_func: Optional[Callable] = None):
 
 # Rate limiting
 class RateLimiter:
-    """Simple rate limiter."""
-
-    def __init__(self):
+    """Simple rate limiter.
+        def __init__(self):
         self.requests: Dict[str, list] = {}
 
     def is_allowed(self, key: str, limit: int, window: int) -> bool:
@@ -264,7 +261,7 @@ class RateLimiter:
 rate_limiter = RateLimiter()
 
 def rate_limit(limit: int, window: int = 60, key_func: Optional[Callable] = None):
-    """Rate limiting decorator."""
+    Rate limiting decorator."""
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         async def async_wrapper(*args, **kwargs):

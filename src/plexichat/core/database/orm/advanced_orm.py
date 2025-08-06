@@ -27,8 +27,7 @@ T = TypeVar("T", bound=SQLModel)
 
 class ConnectionPoolType(Enum):
     """Database connection pool types."""
-
-    QUEUE_POOL = "queue_pool"
+        QUEUE_POOL = "queue_pool"
     NULL_POOL = "null_pool"
     STATIC_POOL = "static_pool"
     ASYNC_POOL = "async_pool"
@@ -45,9 +44,8 @@ class IsolationLevel(Enum):
 
 @dataclass
 class ORMConfig:
-    """ORM configuration."""
-
-    database_url: str
+    """ORM configuration.
+        database_url: str
     async_database_url: Optional[str] = None
     pool_type: ConnectionPoolType = ConnectionPoolType.QUEUE_POOL
     pool_size: int = 20
@@ -73,8 +71,7 @@ class ORMConfig:
 @dataclass
 class QueryMetrics:
     """Query performance metrics."""
-
-    query_count: int = 0
+        query_count: int = 0
     total_execution_time: float = 0.0
     average_execution_time: float = 0.0
     slowest_query_time: float = 0.0
@@ -97,8 +94,7 @@ class AdvancedORM:
     - Connection health monitoring
     - SQL injection protection
     """
-
-    def __init__(self, config: ORMConfig):
+        def __init__(self, config: ORMConfig):
         self.config = config
         self.sync_engine = None
         self.async_engine = None
@@ -216,7 +212,7 @@ class AdvancedORM:
         return create_async_engine(**engine_kwargs)
 
     def _get_pool_class(self):
-        """Get SQLAlchemy pool class based on configuration."""
+        """Get SQLAlchemy pool class based on configuration.
         pool_mapping = {
             ConnectionPoolType.QUEUE_POOL: QueuePool,
             ConnectionPoolType.NULL_POOL: NullPool,
@@ -255,7 +251,7 @@ class AdvancedORM:
                 self._trigger_event("after_query", statement, execution_time)
 
     async def _create_tables(self):
-        """Create database tables for registered models."""
+        """Create database tables for registered models.
         if self.async_engine:
             async with self.async_engine.begin() as conn:
                 await conn.run_sync(SQLModel.metadata.create_all)
@@ -334,7 +330,7 @@ class AdvancedORM:
         logger.debug(f"Registered model: {model_name}")
 
     def get_model(self, name: str) -> Optional[Type[SQLModel]]:
-        """Get registered model by name."""
+        """Get registered model by name.
         return self.registered_models.get(name)
 
     def list_models(self) -> List[str]:
@@ -349,7 +345,7 @@ class AdvancedORM:
         id: Any,
         include_relations: Optional[List[str]] = None,
     ) -> Optional[T]:
-        """Find model instance by ID with optional relationship loading."""
+        Find model instance by ID with optional relationship loading."""
 
         if self.async_session_factory:
             async with await self.get_async_session() as session:
@@ -450,7 +446,7 @@ class AdvancedORM:
                 return list(result.scalars().all())
 
     async def create(self, model_instance: T) -> T:
-        """Create new model instance."""
+        """Create new model instance.
 
         if self.async_session_factory:
             async with await self.get_async_session() as session:
@@ -482,7 +478,7 @@ class AdvancedORM:
                 return model_instance
 
     async def delete(self, model_instance: SQLModel) -> bool:
-        """Delete model instance."""
+        Delete model instance."""
 
         try:
             if self.async_session_factory:
@@ -508,7 +504,7 @@ class AdvancedORM:
         return hashlib.md5(content.encode()).hexdigest()
 
     def _get_from_cache(self, key: str) -> Any:
-        """Get result from cache."""
+        """Get result from cache.
         if key not in self.query_cache:
             return None
 
@@ -529,12 +525,12 @@ class AdvancedORM:
         self.cache_timestamps[key] = datetime.now(timezone.utc)
 
     def _remove_from_cache(self, key: str):
-        """Remove result from cache."""
+        Remove result from cache."""
         self.query_cache.pop(key, None)
         self.cache_timestamps.pop(key, None)
 
     def clear_cache(self):
-        """Clear query cache."""
+        """Clear query cache.
         self.query_cache.clear()
         self.cache_timestamps.clear()
 
@@ -555,7 +551,7 @@ class AdvancedORM:
             self.query_metrics.fastest_query_time = execution_time
 
     def _trigger_event(self, event_name: str, *args, **kwargs):
-        """Trigger event handlers."""
+        Trigger event handlers."""
         if event_name in self.event_handlers:
             for handler in self.event_handlers[event_name]:
                 try:
@@ -564,7 +560,7 @@ class AdvancedORM:
                     logger.error(f"Event handler error for {event_name}: {e}")
 
     def add_event_handler(self, event_name: str, handler: Callable):
-        """Add event handler."""
+        """Add event handler.
         if event_name not in self.event_handlers:
             self.event_handlers[event_name] = []
         self.event_handlers[event_name].append(handler)

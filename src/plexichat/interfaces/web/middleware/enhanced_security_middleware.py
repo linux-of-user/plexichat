@@ -36,8 +36,7 @@ except ImportError as e:
 
 class EnhancedSecurityMiddleware(BaseHTTPMiddleware):
     """Enhanced security middleware with comprehensive protection."""
-    
-    def __init__(self, app, config: Optional[Dict[str, Any]] = None):
+        def __init__(self, app, config: Optional[Dict[str, Any]] = None):
         super().__init__(app)
         self.config = config or {}
         self.enabled = self.config.get("enabled", True)
@@ -149,7 +148,7 @@ class EnhancedSecurityMiddleware(BaseHTTPMiddleware):
         return "unknown"
     
     def _should_bypass_security(self, request: Request) -> bool:
-        """Check if request should bypass security checks."""
+        """Check if request should bypass security checks.
         path = str(request.url.path)
         return any(path.startswith(bypass) for bypass in self.bypass_endpoints)
     
@@ -173,11 +172,11 @@ class EnhancedSecurityMiddleware(BaseHTTPMiddleware):
                     }
                 )
                 
-                return {}
+                return {
                     "allowed": False,
                     "reason": error_info.get("error", "Security policy violation"),
                     "details": error_info
-                }
+                }}
             
             return {"allowed": True, "context": context}
             
@@ -365,19 +364,18 @@ class EnhancedSecurityMiddleware(BaseHTTPMiddleware):
     
     def get_metrics(self) -> Dict[str, Any]:
         """Get security middleware metrics."""
-        return {}
+        return {
             "total_requests": self.request_count,
             "blocked_requests": self.blocked_requests,
             "threat_detections": self.threat_detections,
             "block_rate": self.blocked_requests / max(self.request_count, 1),
             "threat_rate": self.threat_detections / max(self.request_count, 1)
-        }
+        }}
 
 
 class SecurityAuditMiddleware(BaseHTTPMiddleware):
-    """Additional middleware for security auditing."""
-    
-    def __init__(self, app):
+    """Additional middleware for security auditing.
+        def __init__(self, app):
         super().__init__(app)
         self.logging_system = get_enhanced_logging_system()
         

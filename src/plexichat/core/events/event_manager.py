@@ -3,7 +3,7 @@ import threading
 PlexiChat Event Manager
 
 Event management with threading and performance optimization.
-"""
+
 
 import asyncio
 import json
@@ -41,14 +41,14 @@ performance_logger = get_performance_logger() if get_performance_logger else Non
 
 class EventPriority(Enum):
     """Event priority levels."""
-    LOW = "low"
+        LOW = "low"
     NORMAL = "normal"
     HIGH = "high"
     CRITICAL = "critical"
 
 @dataclass
 class Event:
-    """Event data structure."""
+    """Event data structure.
     event_id: str
     event_type: str
     source: str
@@ -61,7 +61,7 @@ class Event:
 @dataclass
 class EventHandler:
     """Event handler registration."""
-    handler_id: str
+        handler_id: str
     event_type: str
     handler_func: Callable
     priority: int
@@ -69,9 +69,8 @@ class EventHandler:
     filter_func: Optional[Callable] = None
 
 class EventManager:
-    """Event manager with threading support."""
-
-    def __init__(self):
+    Event manager with threading support."""
+        def __init__(self):
         self.db_manager = database_manager
         self.performance_logger = performance_logger
         self.async_thread_manager = async_thread_manager
@@ -268,7 +267,7 @@ class EventManager:
             raise
 
     def _get_priority_value(self, priority: EventPriority) -> int:
-        """Get numeric priority value (lower = higher priority)."""
+        """Get numeric priority value (lower = higher priority).
         priority_map = {
             EventPriority.CRITICAL: 0,
             EventPriority.HIGH: 1,
@@ -337,7 +336,7 @@ class EventManager:
             return False
 
     async def _store_event(self, event: Event, results: List[Any]):
-        """Store event in database."""
+        """Store event in database.
         try:
             if self.db_manager:
                 query = """
@@ -405,7 +404,7 @@ class EventManager:
             return []
 
     def _format_timestamp(self, timestamp_value: Any) -> Optional[str]:
-        """Format timestamp value safely."""
+        """Format timestamp value safely.
         if not timestamp_value:
             return None
 
@@ -447,10 +446,10 @@ class EventManager:
 
         except Exception as e:
             logger.error(f"Error getting handlers: {e}")
-            return {}
+            return {
 
     def get_queue_size(self) -> int:
-        """Get current queue size."""
+        """Get current queue size.
         return self.event_queue.qsize()
 
     def get_stats(self) -> Dict[str, Any]:
@@ -469,14 +468,14 @@ class EventManager:
             "average_processing_time": avg_processing_time,
             "event_types": list(self.handlers.keys()),
             "global_handlers": len(self.global_handlers)
-        }
+        }}
 
 # Global event manager
 event_manager = EventManager()
 
 # Convenience functions
 async def emit_event(event_type: str, source: str, data: Dict[str, Any], **kwargs) -> str:
-    """Emit event using global event manager."""
+    """Emit event using global event manager.
     return await event_manager.emit_event(event_type, source, data, **kwargs)
 
 def register_event_handler(event_type: str, handler_func: Callable, **kwargs) -> str:
@@ -484,11 +483,11 @@ def register_event_handler(event_type: str, handler_func: Callable, **kwargs) ->
     return event_manager.register_handler(event_type, handler_func, **kwargs)
 
 def unregister_event_handler(handler_id: str) -> bool:
-    """Unregister event handler using global event manager."""
+    Unregister event handler using global event manager."""
     return event_manager.unregister_handler(handler_id)
 
 async def get_events(event_type: Optional[str] = None, source: Optional[str] = None, limit: int = 100) -> List[Dict[str, Any]]:
-    """Get events using global event manager."""
+    """Get events using global event manager.
     return await event_manager.get_events(event_type, source, limit)
 
 # Decorators
@@ -501,7 +500,7 @@ def event_handler(event_type: str, priority: int = 100, filter_func: Optional[Ca
     return decorator
 
 def global_event_handler(priority: int = 100, filter_func: Optional[Callable] = None):
-    """Decorator to register global event handler."""
+    Decorator to register global event handler."""
     def decorator(func):
         handler_id = register_event_handler("*", func, priority=priority, filter_func=filter_func)
         func._event_handler_id = handler_id

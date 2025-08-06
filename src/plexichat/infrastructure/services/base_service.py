@@ -31,13 +31,12 @@ Features:
 - Service registration and discovery
 - Graceful shutdown handling
 - Error handling and recovery
-"""
+
 
 
 class ServiceState(Enum):
     """Service state enumeration."""
-
-    STOPPED = "stopped"
+        STOPPED = "stopped"
     STARTING = "starting"
     RUNNING = "running"
     STOPPING = "stopping"
@@ -55,8 +54,7 @@ class ServiceHealth(Enum):
 
 class BaseService(ABC):
     """Base class for all PlexiChat services."""
-
-    def __init__(self, service_name: str):
+        def __init__(self, service_name: str):
         self.service_name = service_name
         self.logger = get_logger(f"service.{service_name}")
         self.config = get_config()
@@ -219,7 +217,7 @@ class BaseService(ABC):
             self.health = health_data.get("status", ServiceHealth.UNKNOWN)
             self.last_health_check = datetime.now(timezone.utc)
 
-            return {}
+            return {
                 "service_name": self.service_name,
                 "state": self.state.value,
                 "health": self.health.value,
@@ -236,7 +234,7 @@ class BaseService(ABC):
                 ),
                 "metrics": self.metrics.copy(),
                 **health_data,
-            }
+            }}
 
         except Exception as e:
             self.health = ServiceHealth.UNHEALTHY
@@ -246,17 +244,17 @@ class BaseService(ABC):
 
             self.logger.error(f"Health check failed for {self.service_name}: {e}")
 
-            return {}
+            return {
                 "service_name": self.service_name,
                 "state": self.state.value,
                 "health": ServiceHealth.UNHEALTHY.value,
                 "error": str(e),
                 "error_time": datetime.now(timezone.utc).isoformat(),
-            }
+            }}
 
     def get_info(self) -> Dict[str, Any]:
         """Get service information."""
-        return {}
+        return {
             "name": self.service_name,
             "version": self.version,
             "description": self.description,
@@ -266,10 +264,10 @@ class BaseService(ABC):
             "uptime_seconds": self.metrics["uptime_seconds"],
             "dependencies": self.dependencies,
             "metrics": self.metrics.copy(),
-        }
+        }}
 
     def update_metric(self, name: str, value: Any):
-        """Update a service metric."""
+        """Update a service metric.
         self.metrics[name] = value
 
     def increment_metric(self, name: str, amount: int = 1):
@@ -277,7 +275,7 @@ class BaseService(ABC):
         self.metrics[name] = self.metrics.get(name, 0) + amount
 
     async def _health_monitoring_loop(self):
-        """Background health monitoring loop."""
+        Background health monitoring loop."""
         while self.state == ServiceState.RUNNING:
             try:
                 await self.health_check()
@@ -302,21 +300,20 @@ class BaseService(ABC):
     # Abstract methods that must be implemented by subclasses
     @abstractmethod
     async def _initialize(self):
-        """Initialize the service. Must be implemented by subclasses."""
+        """Initialize the service. Must be implemented by subclasses.
 
     @abstractmethod
     async def _cleanup(self):
         """Cleanup the service. Must be implemented by subclasses."""
 
     async def _perform_health_check(self) -> Dict[str, Any]:
-        """Perform service-specific health check. Can be overridden by subclasses."""
+        Perform service-specific health check. Can be overridden by subclasses."""
         return {"status": ServiceHealth.HEALTHY, "checks": {"basic": "ok"}}
 
 
 class ServiceRegistry:
     """Registry for managing multiple services."""
-
-    def __init__(self):
+        def __init__(self):
         self.services: Dict[str, BaseService] = {}
         self.logger = get_logger("service.registry")
 
@@ -332,7 +329,7 @@ class ServiceRegistry:
             self.logger.info(f"Unregistered service: {service_name}")
 
     def get_service(self, service_name: str) -> Optional[BaseService]:
-        """Get a service by name."""
+        """Get a service by name.
         return self.services.get(service_name)
 
     def list_services(self) -> List[str]:
@@ -340,7 +337,7 @@ class ServiceRegistry:
         return list(self.services.keys())
 
     async def start_all(self):
-        """Start all registered services."""
+        Start all registered services."""
         self.logger.info("Starting all services")
         for service in self.services.values():
             try:
@@ -362,7 +359,7 @@ class ServiceRegistry:
                 self.logger.error(f"Failed to stop service {service.service_name}: {e}")
 
     async def get_all_health(self) -> Dict[str, Any]:
-        """Get health status of all services."""
+        """Get health status of all services.
         health_data = {}
         for service_name, service in self.services.items():
             health_data[service_name] = await service.health_check()

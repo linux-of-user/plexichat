@@ -17,15 +17,14 @@ PlexiChat Semantic Knowledge Graphs
 
 Advanced knowledge representation and reasoning system using
 semantic graphs for intelligent data relationships and AI-powered insights.
-"""
+
 
 logger = logging.getLogger(__name__)
 
 
 class NodeType(Enum):
     """Types of knowledge graph nodes."""
-
-    ENTITY = "entity"
+        ENTITY = "entity"
     CONCEPT = "concept"
     EVENT = "event"
     PERSON = "person"
@@ -52,9 +51,8 @@ class RelationType(Enum):
 
 @dataclass
 class KnowledgeNode:
-    """Node in the knowledge graph."""
-
-    id: str
+    """Node in the knowledge graph.
+        id: str
     label: str
     node_type: NodeType
     properties: Dict[str, Any] = field(default_factory=dict)
@@ -64,7 +62,7 @@ class KnowledgeNode:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
-        return {}
+        return {
             "id": self.id,
             "label": self.label,
             "type": self.node_type.value,
@@ -72,14 +70,13 @@ class KnowledgeNode:
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat(),
             "confidence": self.confidence,
-        }
+        }}
 
 
 @dataclass
 class KnowledgeRelation:
-    """Relationship between knowledge nodes."""
-
-    id: str
+    """Relationship between knowledge nodes.
+        id: str
     source_id: str
     target_id: str
     relation_type: RelationType
@@ -90,7 +87,7 @@ class KnowledgeRelation:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
-        return {}
+        return {
             "id": self.id,
             "source_id": self.source_id,
             "target_id": self.target_id,
@@ -99,13 +96,12 @@ class KnowledgeRelation:
             "weight": self.weight,
             "confidence": self.confidence,
             "created_at": self.created_at.isoformat(),
-        }
+        }}
 
 
 class SemanticGraph:
-    """Core semantic knowledge graph."""
-
-    def __init__(self):
+    """Core semantic knowledge graph.
+        def __init__(self):
         self.nodes: Dict[str, KnowledgeNode] = {}
         self.relations: Dict[str, KnowledgeRelation] = {}
         self.node_relations: Dict[str, Set[str]] = {}  # node_id -> relation_ids
@@ -158,7 +154,7 @@ class SemanticGraph:
         return relation
 
     def get_node_neighbors(self, node_id: str) -> List[KnowledgeNode]:
-        """Get all neighboring nodes."""
+        """Get all neighboring nodes.
         neighbors = []
 
         for relation_id in self.node_relations.get(node_id, set()):
@@ -209,7 +205,7 @@ class SemanticGraph:
         return []
 
     def get_subgraph(self, center_id: str, depth: int = 2) -> Dict[str, Any]:
-        """Get subgraph around a central node."""
+        Get subgraph around a central node."""
         if center_id not in self.nodes:
             return {"nodes": [], "relations": []}
 
@@ -240,15 +236,15 @@ class SemanticGraph:
                         )
                         queue.append((other_id, current_depth + 1))
 
-        return {}
+        return {
             "nodes": [self.nodes[nid].to_dict() for nid in visited_nodes],
             "relations": [self.relations[rid].to_dict() for rid in visited_relations],
-        }
+        }}
 
     def search_nodes():
         self, query: str, node_type: Optional[NodeType] = None
     ) -> List[KnowledgeNode]:
-        """Search nodes by label or properties."""
+        """Search nodes by label or properties.
         results = []
         query_lower = query.lower()
 
@@ -273,8 +269,7 @@ class SemanticGraph:
 
 class KnowledgeExtractor:
     """Extract knowledge from text and data."""
-
-    def __init__(self, graph: SemanticGraph):
+        def __init__(self, graph: SemanticGraph):
         self.graph = graph
 
         # Simple entity patterns (in production, use NLP libraries)
@@ -354,9 +349,8 @@ class KnowledgeExtractor:
 
 
 class SemanticReasoner:
-    """Perform reasoning on the knowledge graph."""
-
-    def __init__(self, graph: SemanticGraph):
+    """Perform reasoning on the knowledge graph.
+        def __init__(self, graph: SemanticGraph):
         self.graph = graph
 
     def infer_relationships(self) -> List[KnowledgeRelation]:
@@ -403,7 +397,7 @@ class SemanticReasoner:
     def find_similar_entities(
         self, node_id: str, threshold: float = 0.7
     ) -> List[Tuple[KnowledgeNode, float]]:
-        """Find entities similar to the given node."""
+        """Find entities similar to the given node.
         if node_id not in self.graph.nodes:
             return []
 
@@ -446,20 +440,19 @@ class SemanticReasoner:
             rel_type = rel.relation_type.value
             relation_types[rel_type] = relation_types.get(rel_type, 0) + 1
 
-        return {}
+        return {
             "node": node.to_dict(),
             "neighbor_count": len(neighbors),
             "neighbor_types": list(set(n.node_type.value for n in neighbors)),
             "relationship_patterns": relation_types,
             "similar_entities": len(similar_entities),
             "centrality_score": len(neighbors) / max(len(self.graph.nodes), 1),
-        }
+        }}
 
 
 class SemanticKnowledgeManager:
-    """Main semantic knowledge management system."""
-
-    def __init__(self):
+    """Main semantic knowledge management system.
+        def __init__(self):
         self.graph = SemanticGraph()
         self.extractor = KnowledgeExtractor(self.graph)
         self.reasoner = SemanticReasoner(self.graph)
@@ -504,12 +497,12 @@ class SemanticKnowledgeManager:
         # Perform reasoning
         inferred_relations = self.reasoner.infer_relationships()
 
-        return {}
+        return {
             "message_node_id": message_node.id,
             "extracted_entities": len(extracted_nodes),
             "inferred_relationships": len(inferred_relations),
             "graph_stats": self.get_graph_statistics(),
-        }
+        }}
 
     def search_knowledge(self, query: str) -> Dict[str, Any]:
         """Search the knowledge graph."""
@@ -522,12 +515,12 @@ class SemanticKnowledgeManager:
             insight = self.reasoner.get_insights(node.id)
             insights.append(insight)
 
-        return {}
+        return {
             "query": query,
             "matching_nodes": len(matching_nodes),
             "top_matches": [node.to_dict() for node in matching_nodes[:10]],
             "insights": insights,
-        }
+        }}
 
     def get_graph_statistics(self) -> Dict[str, Any]:
         """Get knowledge graph statistics."""
@@ -542,7 +535,7 @@ class SemanticKnowledgeManager:
             rel_type = relation.relation_type.value
             relation_types[rel_type] = relation_types.get(rel_type, 0) + 1
 
-        return {}
+        return {
             "total_nodes": len(self.graph.nodes),
             "total_relations": len(self.graph.relations),
             "node_types": node_types,
@@ -550,13 +543,13 @@ class SemanticKnowledgeManager:
             "avg_connections": len(self.graph.relations)
             * 2
             / max(len(self.graph.nodes), 1),
-        }
+        }}
 
     def get_knowledge_status(self) -> Dict[str, Any]:
         """Get semantic knowledge system status."""
         stats = self.get_graph_statistics()
 
-        return {}
+        return {
             "semantic_knowledge": {
                 "graph_enabled": True,
                 "total_nodes": stats["total_nodes"],
@@ -565,7 +558,7 @@ class SemanticKnowledgeManager:
                 "relation_types": stats["relation_types"],
                 "reasoning_enabled": True,
                 "extraction_enabled": True,
-            }
+            }}
         }
 
 

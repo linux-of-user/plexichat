@@ -113,12 +113,7 @@ class TestSuite:
                 }
             
             # Test inference
-            try:
-                from ..providers.bitnet import AIRequest
-            except ImportError:
-                class AIRequest:
-                    def __init__(self, *args, **kwargs):
-                        pass
+            from plugin_internal import AIRequest
             request = AIRequest(
                 model_id="test-bitnet-1b",
                 prompt="Test BitNet inference",
@@ -183,12 +178,7 @@ class TestSuite:
                 }
             
             # Test inference
-            try:
-                from ..providers.bitnet import AIRequest
-            except ImportError:
-                class AIRequest:
-                    def __init__(self, *args, **kwargs):
-                        pass
+            from plugin_internal import AIRequest
             request = AIRequest(
                 model_id="test-llama-7b",
                 prompt="Test Llama inference",
@@ -243,12 +233,7 @@ class TestSuite:
                 }
             
             # Test inference
-            try:
-                from ..providers.bitnet import AIRequest
-            except ImportError:
-                class AIRequest:
-                    def __init__(self, *args, **kwargs):
-                        pass
+            from plugin_internal import AIRequest
             request = AIRequest(
                 model_id="gpt2",
                 prompt="Test HuggingFace inference",
@@ -367,12 +352,7 @@ class TestSuite:
         try:
             streaming_results = {}
             
-            try:
-                from ..providers.bitnet import AIRequest
-            except ImportError:
-                class AIRequest:
-                    def __init__(self, *args, **kwargs):
-                        pass
+            from plugin_internal import AIRequest
             request = AIRequest(
                 model_id="test-model",
                 prompt="Test streaming",

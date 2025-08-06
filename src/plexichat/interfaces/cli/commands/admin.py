@@ -2,7 +2,7 @@
 PlexiChat CLI Admin Commands
 
 Command-line interface for administrative operations.
-"""
+
 import click
 import json
 import sys
@@ -33,7 +33,7 @@ def admin():
 @click.option('--password', '-p', prompt=True, hide_input=True, help='Admin password')
 @click.option('--role', '-r', default='admin', help='Admin role (admin, super_admin)')
 def create_admin(username: str, email: str, password: str, role: str):
-    """Create a new admin user."""
+    Create a new admin user."""
     if not admin_manager:
         click.echo("Error: Admin manager not available", err=True)
         sys.exit(1)
@@ -265,7 +265,7 @@ def system_status():
 
 @admin.command()
 @click.option('--format', 'output_format', default='json',
-              type=click.Choice(['json', 'yaml']), help='Output format')
+            type=click.Choice(['json', 'yaml']), help='Output format')
 @click.option('--output', '-o', type=click.Path(), help='Output file path')
 def export_config(output_format: str, output: Optional[str]):
     """Export system configuration."""

@@ -16,14 +16,14 @@ from .base_provider import AIRequest, AIResponse, BaseAIProvider, ProviderConfig
 """
 Ollama Provider Implementation
 Comprehensive Ollama integration with model management and local inference.
-"""
+
 
 logger = logging.getLogger(__name__)
 
 @dataclass
 class OllamaConfig(ProviderConfig):
     """Ollama-specific configuration."""
-    auto_pull_models: bool = True
+        auto_pull_models: bool = True
     model_cache_path: str = "data/ollama_models"
     gpu_enabled: bool = True
     max_concurrent_requests: int = 4
@@ -35,8 +35,8 @@ class OllamaConfig(ProviderConfig):
 
 @dataclass
 class OllamaModel:
-    """Ollama model information."""
-    name: str
+    """Ollama model information.
+        name: str
     tag: str
     size: int
     digest: str
@@ -56,9 +56,8 @@ class OllamaModel:
         )
 
 class OllamaProvider(BaseAIProvider):
-    """Ollama provider with comprehensive model management."""
-
-    def __init__(self, config: OllamaConfig):
+    """Ollama provider with comprehensive model management.
+        def __init__(self, config: OllamaConfig):
         super().__init__(config)
         self.config: OllamaConfig = config
         self.available_models: List[OllamaModel] = []
@@ -389,11 +388,11 @@ class OllamaProvider(BaseAIProvider):
             ) as response:
                 if response.status == 200:
                     data = await response.json()
-                    return {}
+                    return {
                         "name": data.get("modelfile", ""),
                         "parameters": data.get("parameters", ""),
                         "template": data.get("template", ""),
-                        "details": data.get("details", {}),
+                        "details": data.get("details", {}}),
                         "model_info": data.get("model_info", {})
                     }
                 else:

@@ -20,15 +20,14 @@ import aioredis
 """
 PlexiChat Distributed Caching System
 Multi-level distributed caching with Redis clustering and intelligent routing
-"""
+
 
 logger = logging.getLogger(__name__)
 
 
 class CacheStrategy(Enum):
     """Cache distribution strategies."""
-
-    CONSISTENT_HASHING = "consistent_hashing"
+        CONSISTENT_HASHING = "consistent_hashing"
     ROUND_ROBIN = "round_robin"
     LEAST_LOADED = "least_loaded"
     GEOGRAPHIC = "geographic"
@@ -47,8 +46,7 @@ class CacheLevel(Enum):
 @dataclass
 class CacheNode:
     """Distributed cache node."""
-
-    node_id: str
+        node_id: str
     host: str
     port: int
     region: str = "default"
@@ -75,9 +73,8 @@ class CacheNode:
 
 @dataclass
 class CacheEntry:
-    """Cache entry with metadata."""
-
-    key: str
+    """Cache entry with metadata.
+        key: str
     value: Any
     ttl: Optional[int] = None
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
@@ -93,7 +90,7 @@ class CacheEntry:
         return (datetime.now(timezone.utc) - self.created_at).total_seconds() > self.ttl
 
     def update_access(self):
-        """Update access metadata."""
+        Update access metadata."""
         self.accessed_at = datetime.now(timezone.utc)
         self.access_count += 1
 
@@ -112,8 +109,7 @@ class DistributedCacheManager:
     - Compression and serialization
     - TTL and eviction policies
     """
-
-    def __init__(self):
+        def __init__(self):
         self.nodes: Dict[str, CacheNode] = {}
         self.strategy = CacheStrategy.CONSISTENT_HASHING
         self.replication_factor = 2
@@ -250,7 +246,7 @@ class DistributedCacheManager:
         logger.debug(f"Rebuilt hash ring with {len(self.hash_ring)} virtual nodes")
 
     def _get_nodes_for_key(self, key: str) -> List[str]:
-        """Get nodes responsible for a key using consistent hashing."""
+        """Get nodes responsible for a key using consistent hashing.
         if not self.hash_ring:
             return []
 
@@ -416,7 +412,7 @@ class DistributedCacheManager:
             return False
 
     async def _store_l1(self, key: str, value: Any, ttl: Optional[int] = None):
-        """Store value in L1 cache."""
+        """Store value in L1 cache.
         # Evict if L1 cache is full
         if len(self.l1_cache) >= self.l1_max_size:
             await self._evict_l1()
@@ -443,7 +439,7 @@ class DistributedCacheManager:
         self.stats["evictions"] += 1
 
     async def _serialize(self, value: Any) -> bytes:
-        """Serialize value for storage."""
+        """Serialize value for storage.
         # Pickle the value
         data = pickle.dumps(value)
 
@@ -467,7 +463,7 @@ class DistributedCacheManager:
         return pickle.loads(data)
 
     async def _health_check_loop(self):
-        """Background health check loop."""
+        Background health check loop."""
         while self.running:
             try:
                 await self._check_node_health()
@@ -546,7 +542,7 @@ class DistributedCacheManager:
                 "last_ping": node.last_ping.isoformat() if node.last_ping else None,
             }
 
-        return {}
+        return {
             "running": self.running,
             "total_nodes": len(self.nodes),
             "healthy_nodes": sum(1 for n in self.nodes.values() if n.is_healthy()),
@@ -557,7 +553,7 @@ class DistributedCacheManager:
             "nodes": node_stats,
             "hash_ring_size": len(self.hash_ring),
             "replication_factor": self.replication_factor,
-        }
+        }}
 
 
 # Global distributed cache manager

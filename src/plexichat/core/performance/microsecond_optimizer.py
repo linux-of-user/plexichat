@@ -1,7 +1,7 @@
 """
 Microsecond-Level Performance Optimizer
 Optimizes PlexiChat to achieve sub-microsecond response times while maintaining security
-"""
+
 
 import asyncio
 import time
@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class MicrosecondMetrics:
     """Microsecond-level performance metrics."""
-    operation: str
+        operation: str
     start_time_ns: int
     end_time_ns: int
     duration_ns: int = 0
@@ -47,8 +47,8 @@ class MicrosecondMetrics:
 
 @dataclass
 class OptimizationConfig:
-    """Configuration for microsecond optimization."""
-    enable_response_caching: bool = True
+    Configuration for microsecond optimization."""
+        enable_response_caching: bool = True
     enable_connection_pooling: bool = True
     enable_query_optimization: bool = True
     enable_middleware_optimization: bool = True
@@ -61,8 +61,7 @@ class OptimizationConfig:
 
 class MicrosecondOptimizer:
     """High-performance optimizer for microsecond-level response times."""
-    
-    def __init__(self, config: OptimizationConfig = None):
+        def __init__(self, config: OptimizationConfig = None):
         self.config = config or OptimizationConfig()
         self.metrics: List[MicrosecondMetrics] = []
         self.response_cache: Dict[str, Any] = {}
@@ -81,7 +80,7 @@ class MicrosecondOptimizer:
         logger.info("MicrosecondOptimizer initialized")
     
     def time_ns(self) -> int:
-        """High-precision nanosecond timing."""
+        """High-precision nanosecond timing.
         try:
             return time.time_ns()
         except AttributeError:
@@ -96,7 +95,7 @@ class MicrosecondOptimizer:
         )
     
     def end_timing(self, metrics: MicrosecondMetrics) -> MicrosecondMetrics:
-        """End timing and calculate metrics."""
+        End timing and calculate metrics."""
         metrics.end_time_ns = self.time_ns()
         metrics.duration_ns = metrics.end_time_ns - metrics.start_time_ns
         metrics.duration_microseconds = metrics.duration_ns / 1000.0
@@ -176,7 +175,7 @@ class MicrosecondOptimizer:
             logger.warning(f"Middleware optimization failed: {e}")
     
     def optimize_memory_usage(self):
-        """Optimize memory usage for consistent performance."""
+        """Optimize memory usage for consistent performance.
         if not self.config.enable_memory_optimization:
             return
         
@@ -219,7 +218,7 @@ class MicrosecondOptimizer:
         return None
     
     def cache_response(self, cache_key: str, response_data: bytes):
-        """Cache response data."""
+        Cache response data."""
         if not self.config.enable_response_caching:
             return
         
@@ -227,7 +226,7 @@ class MicrosecondOptimizer:
         self.cache_timestamps[cache_key] = time.time()
     
     async def create_optimized_middleware(self):
-        """Create optimized middleware for microsecond performance."""
+        """Create optimized middleware for microsecond performance.
         
         async def microsecond_performance_middleware(request, call_next):
             """Ultra-fast performance middleware."""
@@ -328,7 +327,7 @@ class MicrosecondOptimizer:
         recent_metrics = self.metrics[-100:]  # Last 100 requests
         durations = [m.duration_microseconds for m in recent_metrics]
         
-        return {}
+        return {
             "total_requests": len(self.metrics),
             "recent_requests": len(recent_metrics),
             "avg_response_time_us": sum(durations) / len(durations),
@@ -339,7 +338,7 @@ class MicrosecondOptimizer:
             "target_achieved": all(d < self.config.target_response_time_us for d in durations[-10:]),
             "cache_hit_ratio": len(self.precompiled_responses) / max(len(self.response_cache) + len(self.precompiled_responses), 1),
             "optimization_active": self.optimization_active
-        }
+        }}
     
     async def run_performance_test(self, test_function: Callable, iterations: int = 100) -> Dict[str, Any]:
         """Run a performance test with microsecond precision."""
@@ -369,7 +368,7 @@ class MicrosecondOptimizer:
         
         durations = [r["duration_us"] for r in successful_results]
         
-        return {}
+        return {
             "total_iterations": iterations,
             "successful_iterations": len(successful_results),
             "success_rate": len(successful_results) / iterations * 100,
@@ -379,14 +378,14 @@ class MicrosecondOptimizer:
             "p95_duration_us": sorted(durations)[int(len(durations) * 0.95)],
             "p99_duration_us": sorted(durations)[int(len(durations) * 0.99)],
             "target_achieved": all(d < self.config.target_response_time_us for d in durations)
-        }
+        }}
 
 # Global optimizer instance
 microsecond_optimizer = MicrosecondOptimizer()
 
 # Convenience functions
 async def start_microsecond_optimization():
-    """Start microsecond-level optimization."""
+    """Start microsecond-level optimization.
     await microsecond_optimizer.start_optimization()
 
 async def stop_microsecond_optimization():
@@ -394,11 +393,11 @@ async def stop_microsecond_optimization():
     await microsecond_optimizer.stop_optimization()
 
 def get_microsecond_performance_stats():
-    """Get current microsecond performance statistics."""
+    Get current microsecond performance statistics."""
     return microsecond_optimizer.get_performance_stats()
 
 async def create_optimized_middleware():
-    """Create optimized middleware for FastAPI."""
+    """Create optimized middleware for FastAPI.
     return await microsecond_optimizer.create_optimized_middleware()
 
 async def run_microsecond_performance_test(test_function: Callable, iterations: int = 100):

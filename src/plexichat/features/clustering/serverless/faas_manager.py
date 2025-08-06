@@ -36,14 +36,14 @@ Advanced serverless computing integration with:
 - Function composition and orchestration
 - Cost optimization and resource management
 - Integration with PlexiChat's clustering system
-"""
+
 
 logger = logging.getLogger(__name__)
 
 
 class FaaSProvider(Enum):
     """Supported FaaS providers."""
-    AWS_LAMBDA = "aws_lambda"
+        AWS_LAMBDA = "aws_lambda"
     AZURE_FUNCTIONS = "azure_functions"
     GCP_CLOUD_FUNCTIONS = "gcp_cloud_functions"
     KNATIVE = "knative"
@@ -66,7 +66,7 @@ class FunctionRuntime(Enum):
 
 class TriggerType(Enum):
     """Function trigger types."""
-    HTTP = "http"
+        HTTP = "http"
     TIMER = "timer"
     MESSAGE_QUEUE = "message_queue"
     DATABASE_CHANGE = "database_change"
@@ -93,17 +93,17 @@ class FunctionConfig:
     @property
     def resource_requirements(self) -> Dict[str, Any]:
         """Get resource requirements for function."""
-        return {}
+        return {
             "memory_mb": self.memory_mb,
             "timeout_seconds": self.timeout_seconds,
             "cpu_allocation": self.memory_mb / 128  # Simplified CPU allocation
-        }
+        }}
 
 
 @dataclass
 class FunctionExecution:
     """Function execution record."""
-    execution_id: str
+        execution_id: str
     function_name: str
     trigger_type: TriggerType
     start_time: datetime
@@ -117,7 +117,7 @@ class FunctionExecution:
 
     @property
     def is_cold_start(self) -> bool:
-        """Check if this was a cold start execution."""
+        """Check if this was a cold start execution.
         # Simplified cold start detection
         return self.duration_ms and self.duration_ms > 1000
 
@@ -125,7 +125,7 @@ class FunctionExecution:
 @dataclass
 class FunctionMetrics:
     """Function performance metrics."""
-    function_name: str
+        function_name: str
     total_invocations: int = 0
     successful_invocations: int = 0
     failed_invocations: int = 0
@@ -138,14 +138,14 @@ class FunctionMetrics:
 
     @property
     def success_rate(self) -> float:
-        """Calculate success rate percentage."""
+        Calculate success rate percentage."""
         if self.total_invocations == 0:
             return 0.0
         return (self.successful_invocations / self.total_invocations) * 100
 
     @property
     def cold_start_rate(self) -> float:
-        """Calculate cold start rate percentage."""
+        """Calculate cold start rate percentage.
         if self.total_invocations == 0:
             return 0.0
         return (self.cold_starts / self.total_invocations) * 100
@@ -153,8 +153,7 @@ class FunctionMetrics:
 
 class FaaSManager:
     """Manages serverless functions across multiple providers."""
-
-    def __init__(self, default_provider: FaaSProvider = FaaSProvider.NATIVE):
+        def __init__(self, default_provider: FaaSProvider = FaaSProvider.NATIVE):
         self.default_provider = default_provider
         self.functions: Dict[str, FunctionConfig] = {}
         self.executions: Dict[str, FunctionExecution] = {}
@@ -181,14 +180,14 @@ class FaaSManager:
         self.warm_functions: Dict[str, List[Any]] = {}
 
     async def initialize(self):
-        """Initialize FaaS manager."""
+        Initialize FaaS manager."""
         await self._initialize_providers()
         await self._load_function_configurations()
         await self._start_background_tasks()
         logger.info(f"FaaS manager initialized with {self.default_provider.value}")
 
     async def _initialize_providers(self):
-        """Initialize FaaS providers."""
+        """Initialize FaaS providers.
         # Initialize native provider (always available)
         self.providers[FaaSProvider.NATIVE] = self
 
@@ -321,7 +320,7 @@ Path("config/functions")
             raise
 
     async def _execute_function(self, execution: FunctionExecution,)
-                              config: FunctionConfig, payload: Dict[str, Any]) -> Any:
+                            config: FunctionConfig, payload: Dict[str, Any]) -> Any:
         """Execute function and return result."""
         try:
 start_time = datetime.now()
@@ -405,9 +404,9 @@ datetime = datetime.now()
         # For now, simulate execution
         await asyncio.sleep(0.1)  # Simulate network latency
 
-        return {}
+        return {
             "statusCode": 200,
-            "body": json.dumps({"message": "Function executed successfully", "input": payload})
+            "body": json.dumps({"message": "Function executed successfully", "input": payload}})
         }
 
     def register_native_function(self, name: str, function: Callable) -> bool:
@@ -440,7 +439,7 @@ datetime = datetime.now()
         return True
 
     async def _package_function_code(self, config: FunctionConfig) -> str:
-        """Package function code for deployment."""
+        """Package function code for deployment.
         # Create temporary zip file
         with tempfile.NamedTemporaryFile(suffix='.zip', delete=False) as temp_file:
             with zipfile.ZipFile(temp_file.name, 'w', zipfile.ZIP_DEFLATED) as zip_file:
@@ -515,14 +514,14 @@ Path(config.code_path)
         logger.debug(f"Warm pool setup for {function_name}: {self.warm_pool_size} instances")
 
     async def _get_warm_instance(self, function_name: str) -> Optional[Any]:
-        """Get warm instance from pool."""
+        """Get warm instance from pool.
         if function_name in self.warm_functions and self.warm_functions[function_name]:
             return self.warm_functions[function_name].pop(0)
         return None
 
     async def _update_function_metrics(self, function_name: str,)
-                                     execution: FunctionExecution,
-                                     is_cold_start: bool):
+                                    execution: FunctionExecution,
+                                    is_cold_start: bool):
         """Update function performance metrics."""
         if function_name not in self.metrics:
             self.metrics[function_name] = FunctionMetrics(function_name=function_name)
@@ -559,7 +558,7 @@ Path(config.code_path)
         metrics.last_invocation = execution.start_time
 
     async def get_function_metrics(self, function_name: str) -> Optional[FunctionMetrics]:
-        """Get metrics for specific function."""
+        """Get metrics for specific function.
         return self.metrics.get(function_name)
 
     async def get_all_metrics(self) -> Dict[str, FunctionMetrics]:
@@ -567,7 +566,7 @@ Path(config.code_path)
         return self.metrics.copy()
 
     async def cleanup(self):
-        """Cleanup FaaS manager resources."""
+        Cleanup FaaS manager resources."""
         logger.info("Cleaning up FaaS manager")
 
 

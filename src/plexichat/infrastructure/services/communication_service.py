@@ -33,13 +33,13 @@ PlexiChat Advanced Communication Service
 
 Enhanced communication features including voice messages, reactions,
 thread management, translation, and AI-powered smart notifications.
-"""
+
 
 logger = get_logger(__name__)
 
 class MessageType(Enum):
     """Message types for advanced communication."""
-    TEXT = "text"
+        TEXT = "text"
     VOICE = "voice"
     IMAGE = "image"
     FILE = "file"
@@ -61,7 +61,7 @@ class ReactionType(Enum):
 
 class NotificationPriority(Enum):
     """Notification priority levels."""
-    LOW = "low"
+        LOW = "low"
     NORMAL = "normal"
     HIGH = "high"
     URGENT = "urgent"
@@ -74,8 +74,8 @@ class ThreadStatus(Enum):
 
 @dataclass
 class VoiceMessage:
-    """Voice message data structure."""
-    message_id: str
+    """Voice message data structure.
+        message_id: str
     user_id: str
     chat_id: str
     file_path: str
@@ -88,7 +88,7 @@ class VoiceMessage:
 @dataclass
 class MessageReaction:
     """Message reaction data structure."""
-    reaction_id: str
+        reaction_id: str
     message_id: str
     user_id: str
     reaction_type: ReactionType
@@ -96,8 +96,8 @@ class MessageReaction:
 
 @dataclass
 class MessageThread:
-    """Message thread data structure."""
-    thread_id: str
+    Message thread data structure."""
+        thread_id: str
     parent_message_id: str
     chat_id: str
     title: Optional[str] = None
@@ -110,8 +110,8 @@ class MessageThread:
 
 @dataclass
 class TranslationRequest:
-    """Translation request data structure."""
-    request_id: str
+    """Translation request data structure.
+        request_id: str
     message_id: str
     user_id: str
     source_language: str
@@ -125,7 +125,7 @@ class TranslationRequest:
 @dataclass
 class SmartNotification:
     """Smart notification data structure."""
-    notification_id: str
+        notification_id: str
     user_id: str
     message_id: str
     chat_id: str
@@ -141,9 +141,8 @@ class SmartNotification:
     expires_at: Optional[datetime] = None
 
 class CommunicationService(BaseService):
-    """Advanced communication service with enhanced features."""
-
-    def __init__(self, config_path: Optional[Path] = None):
+    Advanced communication service with enhanced features."""
+        def __init__(self, config_path: Optional[Path] = None):
         super().__init__("communication")
 
         # Configuration management
@@ -325,7 +324,7 @@ self.voice_storage_path = Path(self.config["voice_messages"]["storage_path"])
 
     def _get_default_configuration(self) -> Dict[str, Any]:
         """Get default configuration."""
-        return {}
+        return {
             # Voice Message Settings
             "voice_messages": {
                 "enabled": True,
@@ -338,7 +337,7 @@ self.voice_storage_path = Path(self.config["voice_messages"]["storage_path"])
                 "compression_quality": 0.8,
                 "allowed_formats": ["wav", "mp3", "ogg", "m4a"],
                 "cleanup_after_days": 90
-            },
+            }},
 
             # Message Reactions Settings
             "reactions": {
@@ -459,7 +458,7 @@ self.voice_storage_path = Path(self.config["voice_messages"]["storage_path"])
         }
 
     def _deep_merge_config(self, base: Dict[str, Any], update: Dict[str, Any]) -> Dict[str, Any]:
-        """Deep merge configuration dictionaries."""
+        """Deep merge configuration dictionaries.
         result = base.copy()
 
         for key, value in update.items():
@@ -586,7 +585,7 @@ self.voice_storage_path = Path(self.config["voice_messages"]["storage_path"])
             logger.error(f"Failed to transcribe voice message {message_id}: {e}")
 
     async def get_voice_message(self, message_id: str) -> Optional[VoiceMessage]:
-        """Get voice message by ID."""
+        """Get voice message by ID.
         return self.voice_messages.get(message_id)
 
     # Message Reaction Methods
@@ -643,7 +642,7 @@ self.voice_storage_path = Path(self.config["voice_messages"]["storage_path"])
             return False
 
     async def get_message_reactions(self, message_id: str) -> List[MessageReaction]:
-        """Get all reactions for a message."""
+        """Get all reactions for a message.
         return self.message_reactions.get(message_id, [])
 
     # Thread Management Methods
@@ -712,7 +711,7 @@ self.voice_storage_path = Path(self.config["voice_messages"]["storage_path"])
             return False
 
     async def get_thread(self, thread_id: str) -> Optional[MessageThread]:
-        """Get thread by ID."""
+        """Get thread by ID.
         return self.message_threads.get(thread_id)
 
     async def get_chat_threads(self, chat_id: str) -> List[MessageThread]:
@@ -785,7 +784,7 @@ self.voice_storage_path = Path(self.config["voice_messages"]["storage_path"])
             logger.error(f"Failed to perform translation {request_id}: {e}")
 
     async def get_translation(self, request_id: str) -> Optional[TranslationRequest]:
-        """Get translation by request ID."""
+        """Get translation by request ID.
         return self.translations.get(request_id)
 
     # Smart Notification Methods
@@ -871,7 +870,7 @@ self.voice_storage_path = Path(self.config["voice_messages"]["storage_path"])
         user_id: str,
         unread_only: bool = False
     ) -> List[SmartNotification]:
-        """Get notifications for a user."""
+        """Get notifications for a user.
         notifications = self.notifications.get(user_id, [])
 
         if unread_only:
@@ -987,7 +986,7 @@ self.voice_storage_path = Path(self.config["voice_messages"]["storage_path"])
     # Configuration Management Methods
 
     async def get_configuration(self) -> Dict[str, Any]:
-        """Get current service configuration."""
+        """Get current service configuration.
         return self.config.copy()
 
     async def update_configuration(self, config_updates: Dict[str, Any]) -> bool:
@@ -1100,12 +1099,12 @@ self.voice_storage_path = Path(self.config["voice_messages"]["storage_path"])
 
     async def get_configuration_schema(self) -> Dict[str, Any]:
         """Get configuration schema for UI generation."""
-        return {}
+        return {
             "voice_messages": {
                 "title": "Voice Messages",
                 "description": "Configuration for voice message features",
                 "properties": {
-                    "enabled": {"type": "boolean", "title": "Enable Voice Messages", "default": True},
+                    "enabled": {"type": "boolean", "title": "Enable Voice Messages", "default": True}},
                     "storage_path": {"type": "string", "title": "Storage Path", "default": "data/voice_messages"},
                     "max_duration_seconds": {"type": "integer", "title": "Max Duration (seconds)", "minimum": 1, "maximum": 3600, "default": 300},
                     "max_file_size_mb": {"type": "integer", "title": "Max File Size (MB)", "minimum": 1, "maximum": 500, "default": 50},

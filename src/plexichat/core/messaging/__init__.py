@@ -14,7 +14,7 @@ Provides a single, unified interface for all messaging operations with:
 - Group messaging
 - Voice/video channels
 - Business automation
-"""
+
 
 import warnings
 import logging
@@ -60,7 +60,7 @@ try:
         return await send_message(sender_id, channel_id, content, **kwargs)
 
     async def process_message_now(sender_id: str, channel_id: str, content: str, **kwargs):
-        """Process message immediately (backward compatibility)."""
+        Process message immediately (backward compatibility)."""
         return await send_message(sender_id, channel_id, content, **kwargs)
 
     # Legacy data class

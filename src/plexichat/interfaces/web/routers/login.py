@@ -88,15 +88,14 @@ class LoginResponse(BaseModel):
 
 class LoginService:
     """Service class for login operations using EXISTING database abstraction layer."""
-
-    def __init__(self):
+        def __init__(self):
         # Use EXISTING database manager
         self.db_manager = database_manager
         self.performance_logger = performance_logger
 
     @async_track_performance("user_authentication") if async_track_performance else lambda f: f
     async def authenticate_user(self, username: str, password: str) -> Optional[User]:
-        """Authenticate user using EXISTING database abstraction layer."""
+        """Authenticate user using EXISTING database abstraction layer.
         if self.db_manager:
             try:
                 # Use EXISTING database manager with optimized query

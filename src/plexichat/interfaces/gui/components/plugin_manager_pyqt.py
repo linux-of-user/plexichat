@@ -1,7 +1,7 @@
 """
 PlexiChat PyQt6 Plugin Manager
 Advanced plugin management interface with marketplace integration.
-"""
+
 
 import logging
 from typing import Dict, Any, List, Optional
@@ -21,8 +21,7 @@ logger = logging.getLogger(__name__)
 
 class PluginCard(QFrame):
     """Individual plugin card widget."""
-    
-    action_requested = pyqtSignal(str, str)  # action, plugin_name
+        action_requested = pyqtSignal(str, str)  # action, plugin_name
     
     def __init__(self, plugin_data: Dict[str, Any], parent=None):
         super().__init__(parent)
@@ -30,7 +29,7 @@ class PluginCard(QFrame):
         self.setup_ui()
     
     def setup_ui(self):
-        """Setup the plugin card UI."""
+        Setup the plugin card UI."""
         self.setFrameStyle(QFrame.Shape.StyledPanel)
         self.setFixedSize(300, 200)
         
@@ -85,8 +84,7 @@ class PluginCard(QFrame):
 
 class PluginInstallDialog(QDialog):
     """Dialog for installing new plugins."""
-    
-    def __init__(self, parent=None):
+        def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Install Plugin")
         self.setModal(True)
@@ -143,7 +141,7 @@ class PluginInstallDialog(QDialog):
         self.url_radio.toggled.connect(self.toggle_method)
     
     def toggle_method(self):
-        """Toggle between installation methods."""
+        """Toggle between installation methods.
         file_method = self.file_radio.isChecked()
         self.file_path.setEnabled(file_method)
         self.url_input.setEnabled(not file_method)
@@ -167,8 +165,7 @@ class PluginManagerPyQt(QDialog):
     - Plugin development tools
     - Plugin security scanning
     """
-
-    # Signals
+        # Signals
     plugin_action = pyqtSignal(str, str)  # action, plugin_name
 
     def __init__(self, parent=None):
@@ -179,7 +176,7 @@ class PluginManagerPyQt(QDialog):
         # Make window movable and resizable
         self.setWindowTitle("Plugin Manager")
         self.setWindowFlags(Qt.WindowType.Window | Qt.WindowType.WindowCloseButtonHint |
-                           Qt.WindowType.WindowMinMaxButtonsHint)
+                        Qt.WindowType.WindowMinMaxButtonsHint)
         self.setModal(False)  # Allow interaction with other windows
         self.resize(900, 700)
 
@@ -363,7 +360,7 @@ Plugin Development Guide:
 4. Package your plugin for distribution
 
 For detailed documentation, visit: localhost/docs/plugins
-        """)
+        )
         docs_layout.addWidget(docs_text)
         
         layout.addWidget(docs_group)
@@ -415,7 +412,7 @@ For detailed documentation, visit: localhost/docs/plugins
         self.display_plugins()
     
     def display_plugins(self):
-        """Display plugins in the grid layout."""
+        """Display plugins in the grid layout.
         # Clear existing widgets
         for i in reversed(range(self.plugins_layout.count())):
             self.plugins_layout.itemAt(i).widget().setParent(None)
@@ -451,7 +448,7 @@ For detailed documentation, visit: localhost/docs/plugins
         return True
     
     def filter_plugins(self):
-        """Filter plugins based on search and status."""
+        """Filter plugins based on search and status.
         self.display_plugins()
     
     def handle_plugin_action(self, action: str, plugin_name: str):
@@ -480,7 +477,7 @@ For detailed documentation, visit: localhost/docs/plugins
 
             if not plugin_data:
                 QMessageBox.warning(self, "Plugin Not Found",
-                                  f"Plugin '{plugin_name}' not found.")
+                                f"Plugin '{plugin_name}' not found.")
                 return
 
             # Create configuration dialog
@@ -490,7 +487,7 @@ For detailed documentation, visit: localhost/docs/plugins
         except Exception as e:
             logger.error(f"Failed to open plugin configuration: {e}")
             QMessageBox.critical(self, "Configuration Error",
-                               f"Failed to open configuration for {plugin_name}:\n{str(e)}")
+                            f"Failed to open configuration for {plugin_name}:\n{str(e)}")
     
     def show_install_dialog(self):
         """Show plugin installation dialog."""
@@ -498,37 +495,36 @@ For detailed documentation, visit: localhost/docs/plugins
         if dialog.exec() == QDialog.DialogCode.Accepted:
             # Handle plugin installation
             QMessageBox.information(self, "Plugin Installation",
-                                  "Plugin installation would be processed here.")
+                                "Plugin installation would be processed here.")
     
     def refresh_plugins(self):
-        """Refresh plugin list."""
+        """Refresh plugin list.
         self.load_plugins()
     
     def create_new_plugin(self):
         """Create new plugin."""
         QMessageBox.information(self, "Create Plugin",
-                              "Plugin creation wizard would open here.")
+                            "Plugin creation wizard would open here.")
     
     def generate_template(self):
         """Generate plugin template."""
         QMessageBox.information(self, "Generate Template",
-                              "Plugin template generator would run here.")
+                            "Plugin template generator would run here.")
     
     def test_plugin(self):
         """Test plugin."""
         QMessageBox.information(self, "Test Plugin",
-                              "Plugin testing interface would open here.")
+                            "Plugin testing interface would open here.")
     
     def package_plugin(self):
         """Package plugin for distribution."""
         QMessageBox.information(self, "Package Plugin",
-                              "Plugin packaging tool would run here.")
+                            "Plugin packaging tool would run here.")
 
 
 class PluginConfigDialog(QDialog):
     """Plugin configuration dialog with dynamic form generation."""
-
-    def __init__(self, plugin_data: Dict[str, Any], parent=None):
+        def __init__(self, plugin_data: Dict[str, Any], parent=None):
         super().__init__(parent)
         self.plugin_data = plugin_data
         self.config_widgets = {}
@@ -713,7 +709,7 @@ class PluginConfigDialog(QDialog):
             logger.info(f"Saved configuration for {self.plugin_data.get('name')}: {new_config}")
 
             QMessageBox.information(self, "Configuration Saved",
-                                  f"Configuration for {self.plugin_data.get('name')} has been saved.")
+                                f"Configuration for {self.plugin_data.get('name')} has been saved.")
 
             self.accept()
 
@@ -750,7 +746,7 @@ class PluginConfigDialog(QDialog):
                         widget.setValue(5)
 
             QMessageBox.information(self, "Defaults Restored",
-                                  "Configuration has been reset to default values.")
+                                "Configuration has been reset to default values.")
 
         except Exception as e:
             logger.error(f"Failed to restore defaults: {e}")

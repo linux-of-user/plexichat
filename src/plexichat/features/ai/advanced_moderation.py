@@ -19,15 +19,14 @@ import aiohttp
 import http.client
 PlexiChat Advanced AI-Powered Content Moderation
 Real-time proactive content moderation with multi-modal analysis
-"""
+
 
 logger = logging.getLogger(__name__)
 
 
 class ContentType(Enum):
     """Content types for moderation."""
-
-    TEXT = "text"
+        TEXT = "text"
     IMAGE = "image"
     VIDEO = "video"
     AUDIO = "audio"
@@ -53,9 +52,8 @@ class ViolationType(Enum):
 
 
 class ModerationSeverity(Enum):
-    """Moderation severity levels."""
-
-    NONE = 0
+    """Moderation severity levels.
+        NONE = 0
     LOW = 1
     MEDIUM = 2
     HIGH = 3
@@ -76,9 +74,8 @@ class ModerationAction(Enum):
 
 @dataclass
 class ModerationResult:
-    """Comprehensive moderation result."""
-
-    content_id: str
+    """Comprehensive moderation result.
+        content_id: str
     content_type: ContentType
     overall_score: float  # 0.0 - 1.0
     overall_severity: ModerationSeverity
@@ -121,8 +118,7 @@ class ProactiveContentModerator:
     - Automated escalation for edge cases
     - Comprehensive audit trail
     """
-
-    def __init__(self):
+        def __init__(self):
         self.enabled = True
         self.real_time_processing = True
 
@@ -478,7 +474,7 @@ class ProactiveContentModerator:
     def _calculate_severity():
         self, violation_scores: Dict[ViolationType, float]
     ) -> ModerationSeverity:
-        """Calculate overall severity based on violation scores."""
+        """Calculate overall severity based on violation scores.
         if not violation_scores:
             return ModerationSeverity.NONE
 
@@ -512,7 +508,7 @@ class ProactiveContentModerator:
         return base_action
 
     def _requires_human_review(self, result: ModerationResult) -> bool:
-        """Determine if content requires human review."""
+        Determine if content requires human review."""
         # Always review critical content
         if result.overall_severity == ModerationSeverity.CRITICAL:
             return True
@@ -531,7 +527,7 @@ class ProactiveContentModerator:
         return False
 
     def _calculate_review_priority(self, result: ModerationResult) -> int:
-        """Calculate human review priority (1-5)."""
+        """Calculate human review priority (1-5).
         if result.overall_severity == ModerationSeverity.CRITICAL:
             return 5
         elif result.overall_severity == ModerationSeverity.HIGH:
@@ -548,7 +544,7 @@ class ProactiveContentModerator:
         return hashlib.sha256(content).hexdigest()
 
     def _get_cached_result(self, content_hash: str) -> Optional[ModerationResult]:
-        """Get cached moderation result."""
+        """Get cached moderation result.
         if content_hash in self.moderation_cache:
             cached_result = self.moderation_cache[content_hash]
             # Check if cache is still valid
@@ -565,7 +561,7 @@ class ProactiveContentModerator:
         self.moderation_cache[content_hash] = result
 
     def _update_statistics(self, result: ModerationResult):
-        """Update moderation statistics."""
+        Update moderation statistics."""
         self.stats["total_moderated"] += 1
 
         if result.recommended_action in [
@@ -624,7 +620,7 @@ class ProactiveContentModerator:
 
     # Placeholder methods for external AI services
     async def _call_google_text_analysis(self, text: str) -> Dict[str, Any]:
-        """Placeholder for Google Cloud Natural Language API."""
+        """Placeholder for Google Cloud Natural Language API.
         return {}}
 
     async def _call_google_vision_analysis(self, image_data: bytes) -> Dict[str, Any]:
@@ -632,7 +628,7 @@ class ProactiveContentModerator:
         return {}}
 
     async def _call_azure_vision_analysis(self, image_data: bytes) -> Dict[str, Any]:
-        """Placeholder for Azure Computer Vision API."""
+        Placeholder for Azure Computer Vision API."""
         return {}}
 
     async def _apply_custom_text_rules(self, text: str, result: ModerationResult):
@@ -660,7 +656,7 @@ class ProactiveContentModerator:
     async def _apply_custom_image_rules()
         self, image_data: bytes, result: ModerationResult
     ):
-        """Apply custom image analysis rules."""
+        """Apply custom image analysis rules.
         # Placeholder for custom image analysis
 
     async def _detect_language(self, text: str) -> Optional[str]:
@@ -669,7 +665,7 @@ class ProactiveContentModerator:
         return "en"
 
     async def _analyze_sentiment(self, text: str) -> float:
-        """Analyze sentiment of text."""
+        """Analyze sentiment of text.
         # Placeholder - would use sentiment analysis
         return 0.0
 
@@ -679,12 +675,12 @@ class ProactiveContentModerator:
         return []
 
     async def _extract_video_audio(self, video_data: bytes) -> Optional[bytes]:
-        """Extract audio from video."""
+        Extract audio from video."""
         # Placeholder - would use video processing library
         return None
 
     async def _transcribe_audio(self, audio_data: bytes) -> Optional[str]:
-        """Transcribe audio to text."""
+        """Transcribe audio to text.
         # Placeholder - would use speech-to-text service
         return None
 
@@ -696,19 +692,19 @@ class ProactiveContentModerator:
     def _merge_image_results():
         self, result: ModerationResult, ai_result: Dict[str, Any], provider: str
     ):
-        """Merge image analysis results."""
+        Merge image analysis results."""
         result.models_used.append(provider)
         # Implementation would map provider-specific results
 
     def get_moderation_statistics(self) -> Dict[str, Any]:
         """Get comprehensive moderation statistics."""
-        return {}
+        return {
             "enabled": self.enabled,
             "real_time_processing": self.real_time_processing,
             "statistics": self.stats,
             "thresholds": {
                 vt.value: threshold for vt, threshold in self.thresholds.items()
-            },
+            }},
             "cache_size": len(self.moderation_cache),
             "providers_configured": len()
                 [p for p, config in self.ai_providers.items() if config.get("api_key")]

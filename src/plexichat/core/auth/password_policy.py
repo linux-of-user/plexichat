@@ -8,7 +8,7 @@ Implements comprehensive password policies including:
 - Expiration policies
 - Breach detection
 - Strength scoring
-"""
+
 
 import hashlib
 import re
@@ -26,7 +26,7 @@ logger = get_logger(__name__)
 
 class PasswordStrength(Enum):
     """Password strength levels."""
-    VERY_WEAK = 1
+        VERY_WEAK = 1
     WEAK = 2
     FAIR = 3
     GOOD = 4
@@ -36,7 +36,7 @@ class PasswordStrength(Enum):
 
 @dataclass
 class PasswordPolicy:
-    """Password policy configuration."""
+    Password policy configuration."""
     min_length: int = 8
     max_length: int = 128
     require_uppercase: bool = True
@@ -57,8 +57,8 @@ class PasswordPolicy:
 
 @dataclass
 class PasswordValidationResult:
-    """Result of password validation."""
-    is_valid: bool
+    """Result of password validation.
+        is_valid: bool
     strength: PasswordStrength
     score: int
     errors: List[str] = field(default_factory=list)
@@ -69,15 +69,14 @@ class PasswordValidationResult:
 @dataclass
 class PasswordHistory:
     """Password history entry."""
-    password_hash: str
+        password_hash: str
     created_at: datetime
     salt: str
 
 
 class PasswordPolicyManager:
-    """Password policy manager."""
-
-    def __init__(self, policy: Optional[PasswordPolicy] = None):
+    Password policy manager."""
+        def __init__(self, policy: Optional[PasswordPolicy] = None):
         self.policy = policy or PasswordPolicy()
         self.password_histories: Dict[str, List[PasswordHistory]] = {}
 
@@ -178,7 +177,7 @@ class PasswordPolicyManager:
         )
 
     def generate_secure_password(self, length: int = 16) -> str:
-        """Generate a secure password that meets policy requirements."""
+        """Generate a secure password that meets policy requirements.
         if length < self.policy.min_length:
             length = self.policy.min_length
         if length > self.policy.max_length:
@@ -240,7 +239,7 @@ class PasswordPolicyManager:
             self.password_histories[user_id] = self.password_histories[user_id][-self.policy.password_history_count:]
 
     def is_password_expired(self, user_id: str, password_created_at: datetime) -> bool:
-        """Check if password has expired."""
+        Check if password has expired."""
         if self.policy.password_expiry_days <= 0:
             return False
 
@@ -265,7 +264,7 @@ class PasswordPolicyManager:
         return None
 
     def _calculate_password_strength(self, password: str) -> Tuple[PasswordStrength, int]:
-        """Calculate password strength and score."""
+        """Calculate password strength and score.
         score = 0
 
         # Length scoring
@@ -325,7 +324,7 @@ class PasswordPolicyManager:
         return False
 
     def _has_sequential_chars(self, password: str) -> bool:
-        """Check for sequential characters."""
+        Check for sequential characters."""
         sequences = [
             'abcdefghijklmnopqrstuvwxyz',
             'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
@@ -346,7 +345,7 @@ class PasswordPolicyManager:
         return False
 
     def _is_common_password(self, password: str) -> bool:
-        """Check if password is in common passwords list."""
+        """Check if password is in common passwords list.
         return password.lower() in self.common_passwords
 
     def _is_breached_password(self, password: str) -> bool:
@@ -355,7 +354,7 @@ class PasswordPolicyManager:
         return password_hash in self.breach_hashes
 
     def _is_in_password_history(self, password: str, user_id: str) -> bool:
-        """Check if password is in user's history."""
+        Check if password is in user's history."""
         if user_id not in self.password_histories:
             return False
 
@@ -366,7 +365,7 @@ class PasswordPolicyManager:
         return False
 
     def _hash_password(self, password: str, salt: str) -> str:
-        """Hash password with salt."""
+        """Hash password with salt.
         return hashlib.pbkdf2_hmac('sha256', password.encode(), salt.encode(), 100000).hex()
 
     def _verify_password(self, password: str, password_hash: str, salt: str) -> bool:
@@ -374,7 +373,7 @@ class PasswordPolicyManager:
         return self._hash_password(password, salt) == password_hash
 
     def _load_common_passwords(self) -> Set[str]:
-        """Load common passwords list."""
+        Load common passwords list."""
         # In production, load from a file containing common passwords
         common_passwords = {
             'password', '123456', '123456789', 'qwerty', 'abc123',

@@ -207,7 +207,7 @@ class UserProfile(BaseModel):
 
 class PublicUserProfile(BaseModel):
     """Public user profile (no authentication required)"""
-    id: str
+        id: str
     username: str
     display_name: str
     bio: Optional[str] = None

@@ -35,7 +35,7 @@ Dedicated cluster node for antivirus scanning operations with:
 - Real-time threat intelligence sharing
 - Quarantine coordination
 - Performance optimization for scanning workloads
-"""
+
 
 # Import PlexiChat components
 sys.path.append(str(from pathlib import Path))
@@ -46,7 +46,7 @@ logger = logging.getLogger(__name__)
 
 class ScanPriority(Enum):
     """Priority levels for scan requests."""
-    LOW = 1
+        LOW = 1
     NORMAL = 2
     HIGH = 3
     CRITICAL = 4
@@ -54,7 +54,7 @@ class ScanPriority(Enum):
 
 @dataclass
 class ScanRequest:
-    """Represents a scan request in the cluster."""
+    Represents a scan request in the cluster."""
     request_id: str
     file_path: str
     scan_type: ScanType
@@ -78,8 +78,7 @@ class AntivirusClusterNode(ClusterNode):
     - Coordinated quarantine actions
     - Performance monitoring and optimization
     """
-
-    def __init__(self, node_id: str, data_dir: Path, cluster_config: Dict[str, Any]):
+        def __init__(self, node_id: str, data_dir: Path, cluster_config: Dict[str, Any]):
         super().__init__(node_id, data_dir, cluster_config)
 
         # Antivirus-specific directories
@@ -170,7 +169,7 @@ class AntivirusClusterNode(ClusterNode):
         return request_id
 
     async def get_scan_result(self, request_id: str) -> Optional[ScanResult]:
-        """Get scan result by request ID."""
+        """Get scan result by request ID.
         if request_id in self.completed_scans:
             return self.completed_scans[request_id].result
 
@@ -230,7 +229,7 @@ class AntivirusClusterNode(ClusterNode):
             return False
 
     async def get_node_performance(self) -> Dict[str, Any]:
-        """Get antivirus node performance metrics."""
+        """Get antivirus node performance metrics.
         # Update current metrics
         self.performance_metrics.update({)
             'queue_length': len(self.scan_queue),
@@ -241,13 +240,13 @@ class AntivirusClusterNode(ClusterNode):
         # Get antivirus engine statistics
         engine_stats = await self.antivirus_engine.get_scan_statistics()
 
-        return {}
+        return {
             **self.performance_metrics,
             'engine_stats': engine_stats,
             'node_id': self.node_id,
             'node_type': 'antivirus',
             'max_concurrent_scans': self.max_concurrent_scans
-        }
+        }}
 
     def _add_to_scan_queue(self, scan_request: ScanRequest):
         """Add scan request to queue with priority ordering."""
@@ -263,12 +262,12 @@ class AntivirusClusterNode(ClusterNode):
             self.scan_queue.append(scan_request)
 
     async def _scan_processing_task(self):
-        """Background task for processing scan requests."""
+        Background task for processing scan requests."""
         while True:
             try:
                 # Process scan queue
                 while (len(self.active_scans) < self.max_concurrent_scans and)
-                       len(self.scan_queue) > 0):
+                    len(self.scan_queue) > 0):
 
                     scan_request = self.scan_queue.pop(0)
                     await self._start_scan(scan_request)

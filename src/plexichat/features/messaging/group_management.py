@@ -25,14 +25,14 @@ Comprehensive group management with Discord/Telegram/WhatsApp Business features:
 - Voice/video channels
 - Automated moderation and bots
 - Group analytics and insights
-"""
+
 
 logger = logging.getLogger(__name__)
 
 
 class GroupType(Enum):
     """Group types."""
-    PRIVATE_GROUP = "private_group"
+        PRIVATE_GROUP = "private_group"
     PUBLIC_GROUP = "public_group"
     CHANNEL = "channel"
     BROADCAST = "broadcast"
@@ -53,7 +53,7 @@ SECRET =os.getenv("SECRET_KEY", "")
 
 class MemberRole(Enum):
     """Member roles in groups."""
-    OWNER = "owner"
+        OWNER = "owner"
     ADMIN = "admin"
     MODERATOR = "moderator"
     MEMBER = "member"
@@ -84,8 +84,8 @@ class Permission(Enum):
 
 @dataclass
 class GroupRole:
-    """Group role with permissions."""
-    role_id: str
+    """Group role with permissions.
+        role_id: str
     name: str
     color: str
     permissions: Set[Permission]
@@ -98,7 +98,7 @@ class GroupRole:
 @dataclass
 class GroupMember:
     """Group member information."""
-    user_id: str
+        user_id: str
     username: str
     display_name: str
     role: MemberRole
@@ -112,7 +112,7 @@ class GroupMember:
     custom_title: Optional[str] = None
 
     def has_permission(self, permission: Permission, group_roles: Dict[str, GroupRole]) -> bool:
-        """Check if member has specific permission."""
+        Check if member has specific permission."""
         # Owner has all permissions
         if self.role == MemberRole.OWNER:
             return True
@@ -131,12 +131,12 @@ class GroupMember:
         # Default role permissions
         default_permissions = {
             MemberRole.ADMIN: {Permission.SEND_MESSAGES, Permission.SEND_MEDIA, Permission.ADD_MEMBERS,
-                              Permission.REMOVE_MEMBERS, Permission.EDIT_GROUP_INFO, Permission.PIN_MESSAGES,
-                              Permission.DELETE_MESSAGES, Permission.MANAGE_ROLES},
+                            Permission.REMOVE_MEMBERS, Permission.EDIT_GROUP_INFO, Permission.PIN_MESSAGES,
+                            Permission.DELETE_MESSAGES, Permission.MANAGE_ROLES},
             MemberRole.MODERATOR: {Permission.SEND_MESSAGES, Permission.SEND_MEDIA, Permission.PIN_MESSAGES,
-                                  Permission.DELETE_MESSAGES, Permission.MANAGE_VOICE_CHAT},
+                                Permission.DELETE_MESSAGES, Permission.MANAGE_VOICE_CHAT},
             MemberRole.MEMBER: {Permission.SEND_MESSAGES, Permission.SEND_MEDIA, Permission.SEND_VOICE,
-                               Permission.SEND_VIDEO, Permission.SEND_FILES}
+                            Permission.SEND_VIDEO, Permission.SEND_FILES}
         }
 
         return permission in default_permissions.get(self.role, set())
@@ -145,7 +145,7 @@ class GroupMember:
 @dataclass
 class GroupSettings:
     """Group settings and configuration."""
-    allow_member_invites: bool = True
+        allow_member_invites: bool = True
     require_approval_for_join: bool = False
     allow_message_history_for_new_members: bool = True
     slow_mode_delay: int = 0  # seconds
@@ -163,8 +163,8 @@ class GroupSettings:
 
 @dataclass
 class GroupAnalytics:
-    """Group analytics and insights."""
-    total_messages: int = 0
+    """Group analytics and insights.
+        total_messages: int = 0
     total_members: int = 0
     active_members_24h: int = 0
     active_members_7d: int = 0
@@ -180,7 +180,7 @@ class GroupAnalytics:
 @dataclass
 class AdvancedGroup:
     """Advanced group with comprehensive features."""
-    group_id: str
+        group_id: str
     name: str
     description: str
     group_type: GroupType
@@ -219,8 +219,8 @@ class AdvancedGroup:
     updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
     def add_member(self, user_id: str, username: str, display_name: str,):
-                   role: MemberRole = MemberRole.MEMBER) -> bool:
-        """Add member to group."""
+                role: MemberRole = MemberRole.MEMBER) -> bool:
+        Add member to group."""
         if user_id in self.banned_users:
             return False
 
@@ -239,7 +239,7 @@ class AdvancedGroup:
         return False
 
     def remove_member(self, user_id: str) -> bool:
-        """Remove member from group."""
+        """Remove member from group.
         if user_id in self.members:
             del self.members[user_id]
             self.analytics.total_members = len(self.members)
@@ -256,7 +256,7 @@ class AdvancedGroup:
         return True
 
     def unban_member(self, user_id: str) -> bool:
-        """Unban member."""
+        Unban member."""
         if user_id in self.banned_users:
             self.banned_users.remove(user_id)
             self.updated_at = datetime.now(timezone.utc)
@@ -264,7 +264,7 @@ class AdvancedGroup:
         return False
 
     def update_member_role(self, user_id: str, new_role: MemberRole) -> bool:
-        """Update member role."""
+        """Update member role.
         if user_id in self.members:
             self.members[user_id].role = new_role
             self.updated_at = datetime.now(timezone.utc)
@@ -277,7 +277,7 @@ class AdvancedGroup:
         self.updated_at = datetime.now(timezone.utc)
 
     def assign_role_to_member(self, user_id: str, role_id: str) -> bool:
-        """Assign custom role to member."""
+        Assign custom role to member."""
         if user_id in self.members and role_id in self.roles:
             if role_id not in self.members[user_id].custom_roles:
                 self.members[user_id].custom_roles.append(role_id)
@@ -286,7 +286,7 @@ class AdvancedGroup:
         return False
 
     def get_member_permissions(self, user_id: str) -> Set[Permission]:
-        """Get all permissions for a member."""
+        """Get all permissions for a member.
         if user_id not in self.members:
             return set()
 
@@ -311,7 +311,7 @@ class AdvancedGroup:
         ]
 
     def update_analytics(self, event_type: str, **kwargs):
-        """Update group analytics."""
+        Update group analytics."""
         if event_type == "message":
             self.analytics.total_messages += 1
             self.analytics.messages_24h += 1  # This would be managed by a background task
@@ -329,7 +329,7 @@ class AdvancedGroup:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for API responses."""
-        return {}
+        return {
             "group_id": self.group_id,
             "name": self.name,
             "description": self.description,
@@ -351,7 +351,7 @@ settings.require_approval_for_join,
 settings.slow_mode_delay,
                 "max_members": from plexichat.core.config import settings
 settings.max_members
-            },
+            }},
             "analytics": {
                 "total_messages": self.analytics.total_messages,
                 "active_members_24h": self.analytics.active_members_24h,
@@ -361,9 +361,8 @@ settings.max_members
 
 
 class GroupManager:
-    """Advanced group management system."""
-
-    def __init__(self):
+    """Advanced group management system.
+        def __init__(self):
         self.groups: Dict[str, AdvancedGroup] = {}
         self.group_categories: Dict[str, str] = {}
         self.user_groups: Dict[str, Set[str]] = {}  # user_id -> group_ids

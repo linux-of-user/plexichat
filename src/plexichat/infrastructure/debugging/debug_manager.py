@@ -8,7 +8,7 @@ Debug Manager
 
 Comprehensive debugging system for PlexiChat with advanced logging, profiling,
 error tracking, and debugging tools.
-"""
+
 
 import asyncio
 import functools
@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 
 class DebugLevel(Enum):
     """Debug levels for different types of debugging."""
-    TRACE = "trace"
+        TRACE = "trace"
     DEBUG = "debug"
     INFO = "info"
     WARNING = "warning"
@@ -54,8 +54,8 @@ class ProfilerType(Enum):
 
 @dataclass
 class DebugEvent:
-    """Debug event data structure."""
-    timestamp: str
+    """Debug event data structure.
+        timestamp: str
     level: DebugLevel
     source: str
     message: str
@@ -71,7 +71,7 @@ class DebugEvent:
 @dataclass
 class ProfileData:
     """Profiling data structure."""
-    profiler_type: ProfilerType
+        profiler_type: ProfilerType
     start_time: float
     end_time: float
     duration: float
@@ -81,9 +81,8 @@ class ProfileData:
 
 
 class DebugSession:
-    """Debug session for tracking debugging activities."""
-
-    def __init__(self, session_id: str, name: str):
+    Debug session for tracking debugging activities."""
+        def __init__(self, session_id: str, name: str):
         self.session_id = session_id
         self.name = name
         self.start_time = time.time()
@@ -93,7 +92,7 @@ class DebugSession:
         self.metadata: Dict[str, Any] = {}
 
     def add_event(self, event: DebugEvent):
-        """Add a debug event to the session."""
+        """Add a debug event to the session.
         if self.active:
             self.events.append(event)
 
@@ -103,7 +102,7 @@ class DebugSession:
             self.profiling_data.append(profile_data)
 
     def end_session(self):
-        """End the debug session."""
+        End the debug session."""
         self.active = False
         self.end_time = time.time()
         self.duration = self.end_time - self.start_time
@@ -111,8 +110,7 @@ class DebugSession:
 
 class DebugManager:
     """Comprehensive debugging manager."""
-
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+        def __init__(self, config: Optional[Dict[str, Any]] = None):
         self.config = config or {}
         self.debug_enabled = self.config.get("debug_enabled", True)
         self.log_level = DebugLevel(self.config.get("log_level", "debug"))
@@ -193,9 +191,9 @@ class DebugManager:
             return ""
 
     def log_event(self, level: DebugLevel, source: str, message: str, ):
-                  context: Optional[Dict[str, Any]] = None,
-                  session_id: Optional[str] = None,
-                  include_stack: bool = False):
+                context: Optional[Dict[str, Any]] = None,
+                session_id: Optional[str] = None,
+                include_stack: bool = False):
         """Log a debug event."""
         try:
             if not self.debug_enabled:
@@ -238,8 +236,8 @@ class DebugManager:
             logger.error(f"Error logging debug event: {e}")
 
     def log_error(self, source: str, error: Exception, ):
-                  context: Optional[Dict[str, Any]] = None,
-                  session_id: Optional[str] = None):
+                context: Optional[Dict[str, Any]] = None,
+                session_id: Optional[str] = None):
         """Log an error with full traceback."""
         try:
             error_message = f"{type(error).__name__}: {str(error)}"
@@ -352,7 +350,7 @@ class DebugManager:
                 logger.error(f"Error processing profile data: {e}")
 
     def profile_decorator(self, profiler_type: ProfilerType = ProfilerType.CPU):
-        """Decorator for profiling functions."""
+        """Decorator for profiling functions.
         def decorator(func):
             @functools.wraps(func)
             def wrapper(*args, **kwargs):
@@ -372,18 +370,18 @@ class DebugManager:
         return decorator
 
     def _get_current_performance_data(self) -> Dict[str, Any]:
-        """Get current performance data."""
+        Get current performance data."""
         try:
             process = psutil.Process()
 
-            return {}
+            return {
                 "cpu_percent": process.cpu_percent(),
                 "memory_mb": process.memory_info().rss / 1024 / 1024,
                 "memory_percent": process.memory_percent(),
                 "num_threads": process.num_threads(),
                 "num_fds": process.num_fds() if hasattr(process, 'num_fds') else 0,
                 "timestamp": time.time()
-            }
+            }}
 
         except Exception as e:
             logger.error(f"Error getting performance data: {e}")
@@ -464,12 +462,12 @@ class DebugManager:
                 reverse=True
             )[:10]
 
-            return {}
+            return {
                 "total_errors": total_errors,
                 "unique_errors": len(error_counts),
                 "top_errors": top_errors,
                 "error_rate": total_errors / len(self.debug_events) if self.debug_events else 0
-            }
+            }}
 
         except Exception as e:
             logger.error(f"Error getting error summary: {e}")
@@ -505,7 +503,7 @@ class DebugManager:
             with self._lock:
                 if session_id and session_id in self.debug_sessions:
                     session = self.debug_sessions[session_id]
-                    return {}
+                    return {
                         "session_id": session_id,
                         "session_name": session.name,
                         "start_time": session.start_time,
@@ -517,7 +515,7 @@ class DebugManager:
                                 "source": event.source,
                                 "message": event.message,
                                 "context": event.context
-                            }
+                            }}
                             for event in session.events
                         ],
                         "profiling_data": [
@@ -531,7 +529,7 @@ class DebugManager:
                         ]
                     }
                 else:
-                    return {}
+                    return {
                         "all_events": [
                             {
                                 "timestamp": event.timestamp,
@@ -539,7 +537,7 @@ class DebugManager:
                                 "source": event.source,
                                 "message": event.message,
                                 "context": event.context
-                            }
+                            }}
                             for event in self.debug_events
                         ],
                         "error_summary": self.get_error_summary(),

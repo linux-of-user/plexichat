@@ -10,7 +10,7 @@
 PlexiChat Shared Models
 
 Common data models and schemas used across the application.
-"""
+
 
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -29,14 +29,14 @@ except ImportError:
 
 class Priority(Enum):
     """Priority levels."""
-    LOW = 1
+        LOW = 1
     NORMAL = 5
     HIGH = 10
     CRITICAL = 20
 
 
 class Status(Enum):
-    """Generic status enumeration."""
+    Generic status enumeration."""
     PENDING = "pending"
     RUNNING = "running"
     COMPLETED = "completed"
@@ -47,7 +47,7 @@ class Status(Enum):
 
 class LogLevel(Enum):
     """Log level enumeration."""
-    DEBUG = "debug"
+        DEBUG = "debug"
     INFO = "info"
     WARNING = "warning"
     ERROR = "error"
@@ -56,7 +56,7 @@ class LogLevel(Enum):
 
 @dataclass
 class BaseDataModel:
-    """Base data model with common fields."""
+    """Base data model with common fields.
     id: str = field(default_factory=lambda: str(uuid4()))
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
@@ -69,8 +69,8 @@ class BaseDataModel:
 
 @dataclass
 class User(BaseDataModel):
-    """User model."""
-    username: str = ""
+    User model."""
+        username: str = ""
     email: str = ""
     display_name: str = ""
     is_active: bool = True
@@ -82,7 +82,7 @@ class User(BaseDataModel):
 @dataclass
 class Message:
     """Message model."""
-    content: str = ""
+        content: str = ""
     user_id: str = ""
     channel_id: str = ""
     message_type: str = "text"
@@ -97,7 +97,7 @@ class Message:
 @dataclass
 class Channel:
     """Channel model."""
-    name: str = ""
+        name: str = ""
     description: str = ""
     channel_type: str = "public"
     owner_id: str = ""
@@ -109,7 +109,7 @@ class Channel:
 @dataclass
 class Plugin(BaseModel):
     """Plugin model."""
-    name: str = ""
+        name: str = ""
     version: str = "1.0.0"
     description: str = ""
     author: str = ""
@@ -123,7 +123,7 @@ class Plugin(BaseModel):
 @dataclass
 class Event(BaseModel):
     """Event model."""
-    event_type: str = ""
+        event_type: str = ""
     source: str = ""
     target: Optional[str] = None
     data: Dict[str, Any] = field(default_factory=dict)
@@ -135,7 +135,7 @@ class Event(BaseModel):
 @dataclass
 class Task(BaseModel):
     """Task model."""
-    name: str = ""
+        name: str = ""
     description: str = ""
     task_type: str = "generic"
     status: Status = Status.PENDING
@@ -152,7 +152,7 @@ class Task(BaseModel):
 @dataclass
 class Metric(BaseModel):
     """Metric model."""
-    name: str = ""
+        name: str = ""
     value: Union[int, float] = 0
     metric_type: str = "gauge"
     tags: Dict[str, str] = field(default_factory=dict)
@@ -162,7 +162,7 @@ class Metric(BaseModel):
 @dataclass
 class Alert(BaseModel):
     """Alert model."""
-    name: str = ""
+        name: str = ""
     message: str = ""
     severity: str = "info"
     source: str = ""
@@ -176,7 +176,7 @@ class Alert(BaseModel):
 @dataclass
 class Configuration(BaseModel):
     """Configuration model."""
-    key: str = ""
+        key: str = ""
     value: Any = None
     config_type: str = "string"
     description: str = ""
@@ -188,7 +188,7 @@ class Configuration(BaseModel):
 @dataclass
 class Session(BaseModel):
     """Session model."""
-    user_id: str = ""
+        user_id: str = ""
     session_token: str = ""
     expires_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     ip_address: str = ""
@@ -200,7 +200,7 @@ class Session(BaseModel):
 @dataclass
 class Permission(BaseModel):
     """Permission model."""
-    name: str = ""
+        name: str = ""
     description: str = ""
     resource: str = ""
     action: str = ""
@@ -210,7 +210,7 @@ class Permission(BaseModel):
 @dataclass
 class Role(BaseModel):
     """Role model."""
-    name: str = ""
+        name: str = ""
     description: str = ""
     permissions: List[str] = field(default_factory=list)
     is_system_role: bool = False
@@ -219,7 +219,7 @@ class Role(BaseModel):
 @dataclass
 class ApiResponse:
     """Standard API response model."""
-    success: bool = True
+        success: bool = True
     message: str = "Success"
     data: Optional[Any] = None
     error_code: Optional[str] = None

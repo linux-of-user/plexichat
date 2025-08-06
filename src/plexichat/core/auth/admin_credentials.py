@@ -11,16 +11,15 @@ import bcrypt
 """
 PlexiChat Admin Credentials Manager
 Handles secure storage and management of admin passwords separately from user passwords.
-"""
+
 
 logger = logging.getLogger(__name__)
 
 
 class AdminCredentialsManager:
     """Manages admin credentials securely."""
-
-    def __init__(self):
-        """Initialize the admin credentials manager."""
+        def __init__(self):
+        Initialize the admin credentials manager."""
         self.config_dir = Path.home() / ".plexichat"
         self.admin_creds_file = self.config_dir / "admin_credentials.json"
         self.default_creds_file = self.config_dir / "default_creds.txt"
@@ -34,7 +33,7 @@ class AdminCredentialsManager:
         logger.info("Admin credentials manager initialized")
 
     def _initialize_admin_credentials(self):
-        """Initialize admin credentials from default_creds.txt or create new ones."""
+        """Initialize admin credentials from default_creds.txt or create new ones.
         if self.admin_creds_file and not self.admin_creds_file.exists():
             # Check if default_creds.txt exists
             if self.default_creds_file and self.default_creds_file.exists():
@@ -88,7 +87,7 @@ class AdminCredentialsManager:
         logger.info("Created default admin credentials")
 
     def _hash_password(self, password: str) -> str:
-        """Hash a password using bcrypt."""
+        """Hash a password using bcrypt.
         salt = bcrypt.gensalt(rounds=12)
         hashed = bcrypt.hashpw(password.encode('utf-8'), salt)
         return hashed.decode('utf-8')
@@ -235,13 +234,13 @@ class AdminCredentialsManager:
         """List all admin users (without sensitive data)."""
         try:
             if not self.admin_creds_file.exists() if self.admin_creds_file else False:
-                return {}
+                return {
 
             with open(self.admin_creds_file, 'r') as f:
                 admin_data = json.load(f)
 
             # Return admin info without password hashes
-            admin_list = {}
+            admin_list = {}}
             for username, info in admin_data.get("admins", {}).items():
                 admin_list[username] = {
                     "created_at": info.get("created_at"),
@@ -255,7 +254,7 @@ class AdminCredentialsManager:
 
         except Exception as e:
             logger.error(f"Failed to list admin users: {e}")
-            return {}
+            return {
 
     def reset_admin_password(self, username: str) -> Optional[str]:
         """Reset admin password to a random password (emergency use)."""
@@ -270,7 +269,7 @@ class AdminCredentialsManager:
             with open(self.admin_creds_file, 'r') as f:
                 admin_data = json.load(f)
 
-            if username not in admin_data.get("admins", {}):
+            if username not in admin_data.get("admins", {}}):
                 return None
 
             # Update password and reset locks

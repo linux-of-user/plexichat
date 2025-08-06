@@ -6,21 +6,20 @@ from typing import Any, Dict, Optional
 PlexiChat Device Manager
 
 Device fingerprinting and trusted device management.
-"""
+
 
 logger = logging.getLogger(__name__)
 
 
 class DeviceManager:
     """Device management system."""
-
-    def __init__(self):
+        def __init__(self):
         self.config = {}
         self.trusted_devices = {}  # Mock storage
         self.initialized = False
 
     async def initialize(self, config: Dict[str, Any]):
-        """Initialize device manager."""
+        Initialize device manager."""
         self.config = config
         self.initialized = True
         logger.info(" Device Manager initialized")
@@ -28,7 +27,7 @@ class DeviceManager:
     async def is_device_trusted(
         self, user_id: str, device_info: Dict[str, Any]
     ) -> bool:
-        """Check if device is trusted."""
+        """Check if device is trusted.
         return False  # Mock implementation
 
     async def register_device(self, user_id: str, device_info: Dict[str, Any]):
@@ -36,7 +35,7 @@ class DeviceManager:
         pass  # Mock implementation
 
     async def shutdown(self):
-        """Shutdown device manager."""
+        Shutdown device manager."""
         logger.info(" Device Manager shutdown complete")
 
 

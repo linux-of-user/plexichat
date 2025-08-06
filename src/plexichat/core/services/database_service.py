@@ -58,9 +58,8 @@ class DatabaseService:
     """
     Database service layer that provides a unified interface for all database operations
     with integrated caching and fallback to in-memory storage.
-    """
     
-    def __init__(self):
+        def __init__(self):
         self.db_manager = None
         self.fallback_storage = {
             'users': {},
@@ -112,7 +111,7 @@ class DatabaseService:
             self.initialized = True
     
     async def _ensure_tables_exist(self):
-        """Ensure required tables exist in the database."""
+        """Ensure required tables exist in the database.
         if not self.db_manager:
             return
         
@@ -141,7 +140,7 @@ class DatabaseService:
             """)
             
             # Create messages table
-            await execute_query("""
+            await execute_query(
                 CREATE TABLE IF NOT EXISTS messages (
                     id TEXT PRIMARY KEY,
                     sender_id TEXT NOT NULL,
@@ -254,7 +253,7 @@ class DatabaseService:
         return None
     
     async def create_user(self, user_data: Dict[str, Any]) -> Optional[str]:
-        """Create a new user."""
+        """Create a new user.
         try:
             user_id = user_data.get('id')
             if not user_id:
@@ -352,14 +351,14 @@ class DatabaseService:
 
     # Message operations
     async def get_messages_for_conversation(self, user1_id: str, user2_id: str,
-                                          limit: int = 50, offset: int = 0) -> List[Dict[str, Any]]:
-        """Get messages between two users."""
+                                        limit: int = 50, offset: int = 0) -> List[Dict[str, Any]]:
+        """Get messages between two users.
         try:
             if self.db_manager:
                 result = await execute_query("""
                     SELECT * FROM messages
                     WHERE ((sender_id = :user1 AND recipient_id = :user2)
-                           OR (sender_id = :user2 AND recipient_id = :user1))
+                        OR (sender_id = :user2 AND recipient_id = :user1))
                     AND deleted = FALSE
                     ORDER BY created_at ASC
                     LIMIT :limit OFFSET :offset
@@ -376,7 +375,7 @@ class DatabaseService:
                 for msg in self.fallback_storage['messages'].values():
                     if (not msg.get('deleted') and
                         ((msg.get('sender_id') == user1_id and msg.get('recipient_id') == user2_id) or
-                         (msg.get('sender_id') == user2_id and msg.get('recipient_id') == user1_id))):
+                        (msg.get('sender_id') == user2_id and msg.get('recipient_id') == user1_id))):
                         messages.append(msg)
 
                 # Sort by timestamp and apply pagination
@@ -388,7 +387,7 @@ class DatabaseService:
             return []
 
     async def create_message(self, message_data: Dict[str, Any]) -> Optional[str]:
-        """Create a new message."""
+        """Create a new message.
         try:
             message_id = message_data.get('id')
             if not message_id:
@@ -429,7 +428,7 @@ class DatabaseService:
             return None
 
     async def get_user_conversations(self, user_id: str) -> List[Dict[str, Any]]:
-        """Get all conversations for a user."""
+        """Get all conversations for a user.
         try:
             if self.db_manager:
                 result = await execute_query("""

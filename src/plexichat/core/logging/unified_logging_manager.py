@@ -16,7 +16,7 @@ Advanced logging system with:
 - Performance monitoring
 - Security audit logging
 - Structured logging with JSON support
-"""
+
 
 import gzip
 import json
@@ -36,8 +36,7 @@ from ...shared.exceptions import LoggingError
 
 class UnifiedLoggingManager:
     """Unified logging manager with advanced features."""
-
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+        def __init__(self, config: Optional[Dict[str, Any]] = None):
         # Merge provided config with defaults
         default_config = self._get_default_config()
         if config:
@@ -61,7 +60,7 @@ class UnifiedLoggingManager:
         self._schedule_log_cleanup()
 
     def _get_default_config(self) -> Dict[str, Any]:
-        """Get default logging configuration."""
+        Get default logging configuration."""
         return {
             "level": "INFO",
             "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -221,7 +220,7 @@ class UnifiedLoggingManager:
             return int(size_str)
 
     def _schedule_log_cleanup(self):
-        """Schedule periodic log cleanup."""
+        """Schedule periodic log cleanup.
         # This would be called by a scheduler in a real implementation
         # For now, we'll call it manually
         pass
@@ -330,7 +329,7 @@ _logging_manager: Optional[UnifiedLoggingManager] = None
 
 
 def initialize_logging(config: Optional[Dict[str, Any]] = None) -> UnifiedLoggingManager:
-    """Initialize the unified logging system."""
+    """Initialize the unified logging system.
     global _logging_manager
 
     if _logging_manager is None:
@@ -348,7 +347,7 @@ def get_logger(name: str) -> logging.Logger:
 
 
 def cleanup_logs():
-    """Clean up old log files."""
+    Clean up old log files."""
     if _logging_manager:
         _logging_manager.cleanup_old_logs()
 
@@ -360,7 +359,7 @@ def log_security_event(event_type: str, details: Dict[str, Any]):
 
 
 def log_performance_metric(metric_name: str, value: float, unit: str = ""):
-    """Log a performance metric."""
+    """Log a performance metric.
     if _logging_manager:
         _logging_manager.log_performance_metric(metric_name, value, unit)
 

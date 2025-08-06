@@ -1,7 +1,7 @@
 """
 PlexiChat PyQt6 Settings Panel
 Comprehensive settings management interface.
-"""
+
 
 import logging
 from typing import Dict, Any, Optional
@@ -29,8 +29,7 @@ class SettingsPanelPyQt(QDialog):
     - Plugin configuration
     - System settings
     """
-
-    # Signals
+        # Signals
     settings_changed = pyqtSignal(str, object)  # setting_name, value
     theme_changed = pyqtSignal(str)
 
@@ -42,7 +41,7 @@ class SettingsPanelPyQt(QDialog):
         # Make window movable and resizable
         self.setWindowTitle("Settings")
         self.setWindowFlags(Qt.WindowType.Window | Qt.WindowType.WindowCloseButtonHint |
-                           Qt.WindowType.WindowMinMaxButtonsHint)
+                        Qt.WindowType.WindowMinMaxButtonsHint)
         self.setModal(False)  # Allow interaction with other windows
         self.resize(800, 600)
 
@@ -488,7 +487,7 @@ class SettingsPanelPyQt(QDialog):
         self.theme_changed.emit(theme_key)
     
     def choose_color(self, color_type: str):
-        """Choose custom color."""
+        """Choose custom color.
         color = QColorDialog.getColor(Qt.GlobalColor.blue, self)
         if color.isValid():
             # Apply color (implementation would depend on theme system)
@@ -512,15 +511,15 @@ class SettingsPanelPyQt(QDialog):
         QMessageBox.information(self, "Settings", "Settings applied successfully.")
     
     def save_and_close(self):
-        """Save settings and close dialog."""
+        """Save settings and close dialog.
         self.save_settings()
         self.close()
     
     def reset_to_defaults(self):
         """Reset all settings to defaults."""
         reply = QMessageBox.question(self, "Reset Settings",
-                                   "Are you sure you want to reset all settings to defaults?",
-                                   QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+                                "Are you sure you want to reset all settings to defaults?",
+                                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
         
         if reply == QMessageBox.StandardButton.Yes:
             self.settings.clear()

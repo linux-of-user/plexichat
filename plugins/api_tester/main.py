@@ -29,7 +29,7 @@ from pydantic import BaseModel
 import sys
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
-from plexichat.core.plugins.unified_plugin_manager import PluginInterface
+from plugin_internal import PluginInterface
 from typing import Optional
 
 logger = logging.getLogger(__name__)

@@ -44,15 +44,15 @@ router = APIRouter(prefix="/api/backup/shards", tags=["Distributed Backup"])
 
 # Request models
 class ShardUploadRequest(BaseModel):
-    """Shard upload request."""
-    shard_id: str
+    """Shard upload request.
+        shard_id: str
     backup_id: str
     shard_type: str
     metadata: Optional[Dict[str, Any]] = None
 
 class NodeRegistrationRequest(BaseModel):
     """Storage node registration request."""
-    node_id: str
+        node_id: str
     node_type: str
     capacity_mb: int
     location: str
@@ -60,15 +60,15 @@ class NodeRegistrationRequest(BaseModel):
     metadata: Optional[Dict[str, Any]] = None
 
 class MessageDiffRequest(BaseModel):
-    """Message diff backup request."""
-    message_id: str
+    Message diff backup request."""
+        message_id: str
     old_content: str
     new_content: str
     user_id: str
 
 class DistributionRequest(BaseModel):
     """Distribution plan request."""
-    backup_id: str
+        backup_id: str
     strategy: Optional[str] = "load_balanced"
 
 @router.get("/status")

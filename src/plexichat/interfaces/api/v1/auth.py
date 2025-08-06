@@ -204,7 +204,7 @@ async def generate_secure_token(user_id: str, session_type: str = "access") -> s
         return hashlib.sha256(f"{data}:{SECRET_KEY}".encode()).hexdigest()
 
 async def validate_token(token: str) -> Optional[Dict[str, Any]]:
-    """Validate and decode token."""
+    """Validate and decode token.
     if unified_security_manager:
         return await unified_security_manager.token_manager.validate_token(token)
     else:
@@ -250,7 +250,7 @@ async def send_mfa_code(user_id: str, code: str) -> bool:
     return True
 
 async def verify_mfa_code(user_id: str, provided_code: str) -> bool:
-    """Verify MFA code."""
+    """Verify MFA code.
     mfa_data = mfa_codes_db.get(user_id)
     if not mfa_data:
         return False
@@ -287,7 +287,7 @@ async def check_account_lockout(username: str) -> bool:
     return False
 
 async def record_failed_attempt(username: str):
-    """Record failed login attempt."""
+    Record failed login attempt."""
     if username not in failed_attempts_db:
         failed_attempts_db[username] = {'attempts': 0, 'locked_until': 0}
 
@@ -298,7 +298,7 @@ async def record_failed_attempt(username: str):
         logger.warning(f"Account locked due to failed attempts: {username}")
 
 async def clear_failed_attempts(username: str):
-    """Clear failed login attempts."""
+    """Clear failed login attempts.
     if username in failed_attempts_db:
         del failed_attempts_db[username]
 

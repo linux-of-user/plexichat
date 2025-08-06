@@ -1,7 +1,7 @@
 """
 Enhanced Plugin CLI Interface for PlexiChat
 Command-line interface for comprehensive plugin management.
-"""
+
 # pyright: reportArgumentType=false
 # pyright: reportCallIssue=false
 # pyright: reportAttributeAccessIssue=false
@@ -35,13 +35,13 @@ except ImportError:
             self.plugin_metadata = {}
         
         def get_plugin_dashboard_data(self):
-            return {}'plugins': [], 'security_overview': {}}
+            return {'plugins': [], 'security_overview': {}}}
         
         async def install_plugin_from_zip(self, zip_path, source):
-            return {}'success': True, 'message': 'Mock installation successful'}
+            return {'success': True, 'message': 'Mock installation successful'}}
         
         async def uninstall_plugin(self, plugin_name, remove_data):
-            return {}'success': True, 'message': 'Mock uninstall successful'}
+            return {'success': True, 'message': 'Mock uninstall successful'}}
         
         def enable_plugin(self, plugin_name):
             return True
@@ -50,19 +50,19 @@ except ImportError:
             return True
         
         async def update_plugin(self, plugin_name):
-            return {}'success': True, 'message': 'Mock update successful'}
+            return {'success': True, 'message': 'Mock update successful'}}
         
         async def check_for_updates(self, plugin_name=None):
-            return {}'success': True, 'updates': {}, 'total_updates': 0}
+            return {'success': True, 'updates': {}}, 'total_updates': 0}
         
         async def rescan_plugin_security(self, plugin_name):
-            return {}'success': True, 'security_result': {'passed': True, 'risk_level': 'low'}}
+            return {'success': True, 'security_result': {'passed': True, 'risk_level': 'low'}}}
         
         def set_plugin_auto_update(self, plugin_name, enabled):
-            return {}'success': True, 'message': 'Auto-update setting changed'}
+            return {'success': True, 'message': 'Auto-update setting changed'}}
         
         async def cleanup_quarantine(self, days_old):
-            return {}'success': True, 'message': 'Cleanup completed'}
+            return {'success': True, 'message': 'Cleanup completed'}}
     
     def get_enhanced_plugin_manager():
         return MockPluginManager()
@@ -72,12 +72,11 @@ except ImportError:
 logger = logging.getLogger(__name__)
 class PluginCLI:
     """Command-line interface for plugin management."""
-
-    def __init__(self):
+        def __init__(self):
         self.plugin_manager = get_enhanced_plugin_manager()
 
     async def cmd_list(self, args: List[str]) -> None:
-        """List all installed plugins."""
+        List all installed plugins."""
         try:
             dashboard_data = self.plugin_manager.get_plugin_dashboard_data()
             plugins = dashboard_data.get("plugins", [])
@@ -106,7 +105,7 @@ class PluginCLI:
                 }.get(plugin.get("security", {}).get("risk_level", "low"), "")
 
                 logger.info(f"{status_emoji} {plugin['name']:<20} v{plugin['version']:<10} "
-                      f"{plugin['source']:<12} {risk_emoji} {plugin['size_mb']:.1f}MB")
+                    f"{plugin['source']:<12} {risk_emoji} {plugin['size_mb']:.1f}MB")
 
                 if plugin.get("update_info", {}).get("update_available"):
                     logger.info(f"    Update available: v{plugin['update_info']['latest_version']}")
@@ -297,7 +296,7 @@ class PluginCLI:
                     for name, update_info in updates.items():
                         if update_info.get("update_available"):
                             logger.info(f"    {name}: v{update_info.get('current_version', '?')}  "
-                                  f"v{update_info.get('latest_version', '?')}")
+                                f"v{update_info.get('latest_version', '?')}")
             else:
                 logger.info(f" Update check failed: {result['error']}")
 

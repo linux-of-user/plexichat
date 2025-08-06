@@ -29,14 +29,14 @@ PlexiChat Crash Reporter
 
 Comprehensive crash reporting system with detailed context collection,
 automatic recovery suggestions, and integration with monitoring systems.
-"""
+
 
 logger = logging.getLogger(__name__)
 
 @dataclass
 class CrashContext:
     """Comprehensive crash context information."""
-    error_id: str
+        error_id: str
     timestamp: datetime
     exception_type: str
     exception_message: str
@@ -61,7 +61,7 @@ class CrashContext:
     recovery_suggestions: Optional[List[str]] = None
 
     def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for serialization."""
+        Convert to dictionary for serialization."""
         data = asdict(self)
         data['timestamp'] = self.timestamp.isoformat()
         data['severity'] = self.severity.value
@@ -71,8 +71,7 @@ class CrashContext:
 
 class CrashReporter:
     """Advanced crash reporting system."""
-
-    def __init__(self, crash_log_dir: str = "logs/crashes"):
+        def __init__(self, crash_log_dir: str = "logs/crashes"):
         from pathlib import Path
 self.crash_log_dir = Path(crash_log_dir)
         self.crash_log_dir.mkdir(parents=True, exist_ok=True)
@@ -110,7 +109,7 @@ self.crash_log_dir = Path(crash_log_dir)
         }
 
     async def initialize(self, config: Dict[str, Any] = None):
-        """Initialize the crash reporter."""
+        """Initialize the crash reporter.
         if config:
             from pathlib import Path
 self.crash_log_dir = Path(config.get('crash_log_dir', self.crash_log_dir))
@@ -177,14 +176,14 @@ self.crash_log_dir = Path(config.get('crash_log_dir', self.crash_log_dir))
         return crash_context
 
     def _collect_system_info(self) -> Dict[str, Any]:
-        """Collect comprehensive system information."""
+        """Collect comprehensive system information.
         try:
             memory = import psutil
 psutil.virtual_memory()
             cpu_percent = import psutil
 psutil.cpu_percent(interval=1)
 
-            return {}
+            return {
                 'python_version': sys.version,
                 'platform_info': platform.platform(),
                 'memory_usage': {
@@ -192,14 +191,14 @@ psutil.cpu_percent(interval=1)
                     'available': memory.available,
                     'percent': memory.percent,
                     'used': memory.used
-                },
+                }},
                 'cpu_usage': cpu_percent
             }
         except Exception as e:
-            return {}
+            return {
                 'python_version': sys.version,
                 'platform_info': platform.platform(),
-                'memory_usage': {'error': str(e)},
+                'memory_usage': {'error': str(e)}},
                 'cpu_usage': 0.0
             }
 
@@ -213,13 +212,13 @@ psutil.cpu_percent(interval=1)
             logger.info(f"Failed to store crash context: {e}")
 
     def get_crash_history(self, limit: int = 100) -> List[CrashContext]:
-        """Get recent crash history."""
+        """Get recent crash history.
         return self.crash_history[-limit:]
 
     def get_crash_statistics(self) -> Dict[str, Any]:
         """Get crash statistics."""
         if not self.crash_history:
-            return {}'total_crashes': 0}
+            return {'total_crashes': 0}}
 
         # Count by exception type
         exception_counts = {}
@@ -231,16 +230,16 @@ psutil.cpu_percent(interval=1)
             severity_counts[crash.severity.value] = severity_counts.get(crash.severity.value, 0) + 1
             category_counts[crash.category.value] = category_counts.get(crash.category.value, 0) + 1
 
-        return {}
+        return {
             'total_crashes': len(self.crash_history),
             'exception_types': exception_counts,
             'severity_distribution': severity_counts,
             'category_distribution': category_counts,
             'most_recent': self.crash_history[-1].to_dict() if self.crash_history else None
-        }
+        }}
 
     def clear_crash_history(self):
-        """Clear crash history."""
+        Clear crash history."""
         self.crash_history.clear()
 
     async def shutdown(self):

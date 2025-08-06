@@ -1,7 +1,7 @@
 """
 PlexiChat Core Validation
 Essential validation functions for the entire application.
-"""
+
 
 import re
 import logging
@@ -17,18 +17,17 @@ logger = logging.getLogger(__name__)
 @dataclass
 class ValidationResult:
     """Validation result."""
-    valid: bool
+        valid: bool
     errors: List[str]
     warnings: List[str]
     cleaned_data: Dict[str, Any]
 
 
 class Validator:
-    """Core validation class."""
-    
-    @staticmethod
+    Core validation class."""
+        @staticmethod
     def validate_string(value: Any, min_length: int = 0, max_length: int = 1000, 
-                       pattern: str = None, required: bool = True) -> ValidationResult:
+                    pattern: str = None, required: bool = True) -> ValidationResult:
         """Validate string value."""
         errors = []
         warnings = []

@@ -66,7 +66,7 @@ Consolidated Database Manager - Single Source of Truth
 
 Replaces all previous database management systems with a unified,
 comprehensive solution supporting all database types and advanced features.
-"""
+
 
 # SQLAlchemy imports
 # Database-specific imports
@@ -88,7 +88,7 @@ logger = get_logger(__name__)
 
 class DatabaseType(Enum):
     """Supported database types."""
-    # SQL Databases
+        # SQL Databases
     SQLITE = "sqlite"
     POSTGRESQL = "postgresql"
     MYSQL = "mysql"
@@ -148,7 +148,7 @@ class DatabaseRole(Enum):
 
 class ConnectionStatus(Enum):
     """Database connection status."""
-    CONNECTED = "connected"
+        CONNECTED = "connected"
     DISCONNECTED = "disconnected"
     CONNECTING = "connecting"
     ERROR = "error"
@@ -177,8 +177,8 @@ class DatabaseConfig:
 
 @dataclass
 class DatabaseMetrics:
-    """Database performance metrics."""
-    queries_executed: int = 0
+    """Database performance metrics.
+        queries_executed: int = 0
     total_execution_time: float = 0.0
     average_response_time: float = 0.0
     errors: int = 0
@@ -195,8 +195,7 @@ class ConsolidatedDatabaseManager:
     Replaces all previous database management systems with a unified,
     comprehensive solution supporting all database types and advanced features.
     """
-
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+        def __init__(self, config: Optional[Dict[str, Any]] = None):
         # Handle config safely
         if config:
             self.config = config
@@ -328,7 +327,7 @@ class ConsolidatedDatabaseManager:
             return None
 
     def list_repositories(self) -> list:
-        """List all registered repositories."""
+        """List all registered repositories.
         return list(self.repositories.keys())
 
     async def _initialize_security(self) -> None:
@@ -737,7 +736,7 @@ class ConsolidatedDatabaseManager:
 
             # SQL Databases (SQLAlchemy-based)
             if config.type in [DatabaseType.SQLITE, DatabaseType.POSTGRESQL, DatabaseType.MYSQL,
-                              DatabaseType.MARIADB, DatabaseType.TIMESCALEDB, DatabaseType.CLICKHOUSE]:
+                            DatabaseType.MARIADB, DatabaseType.TIMESCALEDB, DatabaseType.CLICKHOUSE]:
                 async with engine.begin() as conn:
                     await conn.execute(text("SELECT 1"))
 
@@ -862,7 +861,7 @@ class ConsolidatedDatabaseManager:
 
             # SQL Databases (SQLAlchemy-based)
             if config.type in [DatabaseType.SQLITE, DatabaseType.POSTGRESQL, DatabaseType.MYSQL,
-                              DatabaseType.MARIADB, DatabaseType.TIMESCALEDB, DatabaseType.CLICKHOUSE]:
+                            DatabaseType.MARIADB, DatabaseType.TIMESCALEDB, DatabaseType.CLICKHOUSE]:
                 async with engine.begin() as conn:
                     result_obj = await conn.execute(text(query), params)
                     if result_obj.returns_rows:
@@ -972,7 +971,7 @@ class ConsolidatedDatabaseManager:
             return {"success": False, "error": str(e), "execution_time": execution_time}
 
     def _format_last_query_time(self, last_query_time) -> Optional[str]:
-        """Helper method to safely format last query time."""
+        """Helper method to safely format last query time.
         return last_query_time.isoformat() if last_query_time is not None else None
 
     def _update_metrics(self, database: str, execution_time: float, success: bool = True):
@@ -1079,7 +1078,7 @@ class ConsolidatedDatabaseManager:
         logger.info("All database connections closed")
 
     async def __aenter__(self):
-        """Async context manager entry."""
+        """Async context manager entry.
         if not self.initialized:
             await self.initialize()
         return self
@@ -1097,7 +1096,7 @@ database_manager = ConsolidatedDatabaseManager()
 
 # Convenience functions for backward compatibility
 async def initialize_database_system(config: Optional[dict] = None) -> bool:
-    """Initialize the consolidated database system."""
+    Initialize the consolidated database system."""
     return await database_manager.initialize(config)
 
 

@@ -124,8 +124,8 @@ if GUI_AVAILABLE:
 
     @dataclass
     class BackupInfo:
-        """Individual backup information."""
-        backup_id: str
+    """Individual backup information.
+            backup_id: str
         source_path: str
         backup_type: str
         status: str
@@ -139,8 +139,8 @@ if GUI_AVAILABLE:
 
     @dataclass
     class BackupNodeInfo:
-        """Individual backup node information."""
-        node_id: str
+    """Individual backup node information."""
+            node_id: str
         address: str
         status: str
         storage_used_gb: float
@@ -153,8 +153,8 @@ if GUI_AVAILABLE:
 
     @dataclass
     class BackupSystemStatus:
-        """Enhanced backup system status information."""
-        total_backups: int
+    Enhanced backup system status information."""
+            total_backups: int
         active_backups: int
         completed_backups: int
         failed_backups: int
@@ -174,9 +174,8 @@ if GUI_AVAILABLE:
 
 
     class EnhancedBackupManagementWidget:
-        """Enhanced GUI widget for comprehensive backup management."""
-
-        def __init__(self, parent_frame):
+    """Enhanced GUI widget for comprehensive backup management.
+            def __init__(self, parent_frame):
             """Initialize enhanced backup management widget."""
             self.parent_frame = parent_frame
             self.status_data: Optional[BackupSystemStatus] = None
@@ -235,7 +234,7 @@ if GUI_AVAILABLE:
             self.initialize_widget()
 
         def initialize_widget(self):
-            """Initialize the widget based on available components."""
+            Initialize the widget based on available components."""
             if GUI_AVAILABLE:
                 try:
                     self.setup_gui()
@@ -681,7 +680,7 @@ if GUI_AVAILABLE:
 
                 # Configure columns with better widths
                 column_widths = {"ID": 100, "Source": 150, "Type": 80, "Status": 80,
-                               "Created": 120, "Size": 80, "Shards": 60, "Security": 100}
+                            "Created": 120, "Size": 80, "Shards": 60, "Security": 100}
 
                 for col in backup_columns:
                     self.backups_tree.heading(col, text=col)
@@ -740,7 +739,7 @@ if GUI_AVAILABLE:
 
                 # Configure columns with better widths
                 column_widths = {"ID": 100, "Address": 150, "Status": 80, "Storage": 120,
-                               "Usage": 80, "Shards": 60, "Last Seen": 80}
+                            "Usage": 80, "Shards": 60, "Last Seen": 80}
 
                 for col in node_columns:
                     self.nodes_tree.heading(col, text=col)
@@ -851,7 +850,7 @@ if GUI_AVAILABLE:
                 logger.error(f"Error setting up control panel: {e}")
 
         def start_background_monitoring(self):
-            """Start background monitoring thread."""
+            """Start background monitoring thread.
             if not self.background_thread or not self.background_thread.is_alive():
                 self.background_thread = threading.Thread(target=self._background_monitor, daemon=True)
                 self.background_thread.start()
@@ -1054,7 +1053,7 @@ if GUI_AVAILABLE:
 
         # Additional methods
         def refresh_backups(self):
-            """Refresh the backups display."""
+            """Refresh the backups display.
             self.schedule_refresh()
 
         def refresh_nodes(self):
@@ -1062,7 +1061,7 @@ if GUI_AVAILABLE:
             self.schedule_refresh()
 
         def add_backup_node_dialog(self):
-            """Show dialog to add a backup node."""
+            Show dialog to add a backup node."""
             if not GUI_AVAILABLE:
                 return
             messagebox.showinfo("Info", "Add backup node functionality will be implemented here")
@@ -1092,7 +1091,7 @@ if GUI_AVAILABLE:
             messagebox.showinfo("Info", "Export backup report functionality will be implemented here")
 
         def toggle_auto_refresh(self):
-            """Toggle auto refresh."""
+            """Toggle auto refresh.
             if self.auto_refresh_var:
                 self.auto_refresh_enabled = self.auto_refresh_var.get()
 
@@ -1101,7 +1100,7 @@ if GUI_AVAILABLE:
             self.schedule_refresh()
 
         def export_backup_data(self):
-            """Export backup data to file."""
+            Export backup data to file."""
             if not GUI_AVAILABLE:
                 return
 

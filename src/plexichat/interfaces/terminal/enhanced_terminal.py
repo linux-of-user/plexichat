@@ -15,7 +15,7 @@ Provides a tmux-like terminal interface with:
 - Interactive CLI
 - System status display
 - Performance metrics
-"""
+
 
 import os
 import sys
@@ -51,8 +51,7 @@ logger = logging.getLogger(__name__)
 
 class Pane:
     """Represents a terminal pane."""
-
-    def __init__(self, x: int, y: int, width: int, height: int, title: str = ""):
+        def __init__(self, x: int, y: int, width: int, height: int, title: str = ""):
         self.x = x
         self.y = y
         self.width = width
@@ -64,7 +63,7 @@ class Pane:
         self.border = True
 
     def add_content(self, line: str):
-        """Add content to the pane."""
+        """Add content to the pane.
         self.content.append(line)
         if len(self.content) > self.height - 2:  # Account for borders
             self.content.pop(0)
@@ -75,20 +74,19 @@ class Pane:
         self.scroll_offset = 0
 
     def scroll_up(self):
-        """Scroll pane content up."""
+        Scroll pane content up."""
         if self.scroll_offset > 0:
             self.scroll_offset -= 1
 
     def scroll_down(self):
-        """Scroll pane content down."""
+        """Scroll pane content down.
         max_scroll = max(0, len(self.content) - (self.height - 2))
         if self.scroll_offset < max_scroll:
             self.scroll_offset += 1
 
 class EnhancedTerminal:
     """Enhanced terminal interface with resizable panes."""
-
-    def __init__(self):
+        def __init__(self):
         self.width = 0
         self.height = 0
         self.panes = []
@@ -104,7 +102,7 @@ class EnhancedTerminal:
         self.create_default_panes()
 
     def init_terminal(self):
-        """Initialize terminal settings."""
+        Initialize terminal settings."""
         if not HAS_TERMINAL:
             logger.warning("Terminal features not available on this platform")
             return
@@ -141,7 +139,7 @@ class EnhancedTerminal:
         self.panes[0].active = True
 
     def get_terminal_size(self) -> Tuple[int, int]:
-        """Get current terminal size."""
+        """Get current terminal size.
         try:
             import shutil
             size = shutil.get_terminal_size()
@@ -170,7 +168,7 @@ class EnhancedTerminal:
                 self.panes[1].height = pane_height
 
     def draw_pane(self, pane: Pane):
-        """Draw a single pane."""
+        Draw a single pane."""
         # Draw border
         if pane.border:
             border_char = "=" if pane.active else "-"
@@ -278,7 +276,7 @@ class EnhancedTerminal:
             logger.error(f"Error handling input: {e}")
 
     def process_key(self, key: str):
-        """Process a single key press."""
+        """Process a single key press.
         if key == '\x1b':  # Escape sequence
             # Handle arrow keys and other special keys
             pass
@@ -304,13 +302,13 @@ class EnhancedTerminal:
         self.panes[self.active_pane].active = True
 
     def previous_pane(self):
-        """Switch to previous pane."""
+        Switch to previous pane."""
         self.panes[self.active_pane].active = False
         self.active_pane = (self.active_pane - 1) % len(self.panes)
         self.panes[self.active_pane].active = True
 
     def next_pane(self):
-        """Switch to next pane."""
+        """Switch to next pane.
         self.switch_pane()
 
     def refresh_screen(self):
@@ -319,14 +317,14 @@ class EnhancedTerminal:
         self.draw_screen()
 
     def add_log_message(self, message: str):
-        """Add a log message to the logs pane."""
+        Add a log message to the logs pane."""
         if self.panes:
             timestamp = datetime.now().strftime('%H:%M:%S')
             formatted_message = f"[{timestamp}] {message}"
             self.panes[0].add_content(formatted_message)
 
     def add_cli_output(self, output: str):
-        """Add output to the CLI pane."""
+        """Add output to the CLI pane.
         if len(self.panes) > 1:
             self.panes[1].add_content(output)
 
@@ -353,7 +351,7 @@ class EnhancedTerminal:
             if self and hasattr(self, "cleanup"): self.cleanup()
 
     def input_loop(self):
-        """Input handling loop."""
+        """Input handling loop.
         while self.running:
             self.handle_input()
             time.sleep(0.01)
@@ -401,9 +399,8 @@ class EnhancedTerminal:
         print("\033[H")
 
 class TerminalManager:
-    """Manages terminal sessions and panes."""
-
-    def __init__(self):
+    """Manages terminal sessions and panes.
+        def __init__(self):
         self.terminals = {}
         self.current_terminal = None
 
@@ -414,11 +411,11 @@ class TerminalManager:
         return terminal
 
     def get_terminal(self, name: str) -> Optional[EnhancedTerminal]:
-        """Get a terminal session by name."""
+        Get a terminal session by name."""
         return self.terminals.get(name)
 
     def list_terminals(self) -> List[str]:
-        """List all terminal sessions."""
+        """List all terminal sessions.
         return list(self.terminals.keys())
 
     def switch_terminal(self, name: str) -> bool:
@@ -432,7 +429,7 @@ class TerminalManager:
 terminal_manager = TerminalManager()
 
 def start_enhanced_terminal():
-    """Start the enhanced terminal interface."""
+    Start the enhanced terminal interface."""
     terminal = EnhancedTerminal()
     terminal.run()
 

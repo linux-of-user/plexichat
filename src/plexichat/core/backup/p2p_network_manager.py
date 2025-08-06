@@ -4,7 +4,7 @@ P2P Network Manager for Distributed Backup System
 
 Handles peer-to-peer networking for shard distribution, node discovery,
 bandwidth management, and incentive mechanisms for storage providers.
-"""
+
 
 import asyncio
 import hashlib
@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 
 class NodeRole(Enum):
     """Roles a node can have in the P2P network."""
-    STORAGE = "storage"          # Stores shards
+        STORAGE = "storage"          # Stores shards
     RELAY = "relay"             # Relays requests
     BOOTSTRAP = "bootstrap"      # Bootstrap node for discovery
     HYBRID = "hybrid"           # Multiple roles
@@ -43,8 +43,8 @@ class RequestType(Enum):
     BANDWIDTH_TEST = "bandwidth_test"
 
 class RequestPriority(Enum):
-    """Priority levels for requests."""
-    CRITICAL = 1    # Emergency recovery
+    """Priority levels for requests.
+        CRITICAL = 1    # Emergency recovery
     HIGH = 2        # Important operations
     NORMAL = 3      # Regular operations
     LOW = 4         # Background tasks
@@ -67,12 +67,12 @@ class NetworkNode:
     
     @property
     def storage_available_gb(self) -> float:
-        """Get available storage in GB."""
+        Get available storage in GB."""
         return max(0.0, self.storage_capacity_gb - self.storage_used_gb)
     
     @property
     def storage_usage_percent(self) -> float:
-        """Get storage usage percentage."""
+        """Get storage usage percentage.
         return (self.storage_used_gb / self.storage_capacity_gb * 100) if self.storage_capacity_gb > 0 else 100.0
     
     @property
@@ -83,7 +83,7 @@ class NetworkNode:
                 self.response_time_ms < 1000.0)
     
     def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary."""
+        Convert to dictionary."""
         return {
             "node_id": self.node_id,
             "endpoint": self.endpoint,
@@ -103,8 +103,8 @@ class NetworkNode:
 
 @dataclass
 class P2PRequest:
-    """Represents a P2P network request."""
-    request_id: str
+    """Represents a P2P network request.
+        request_id: str
     request_type: RequestType
     priority: RequestPriority
     source_node: str
@@ -121,7 +121,7 @@ class P2PRequest:
         return self.expires_at and datetime.now(timezone.utc) > self.expires_at
     
     def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary."""
+        Convert to dictionary."""
         return {
             "request_id": self.request_id,
             "request_type": self.request_type.value,
@@ -137,9 +137,8 @@ class P2PRequest:
 
 class P2PNetworkManager:
     """Manages P2P networking for distributed backup system."""
-    
-    def __init__(self, node_id: str, listen_port: int = 8080, 
-                 max_connections: int = 100, bandwidth_limit_mbps: float = 10.0):
+        def __init__(self, node_id: str, listen_port: int = 8080, 
+                max_connections: int = 100, bandwidth_limit_mbps: float = 10.0):
         self.node_id = node_id
         self.listen_port = listen_port
         self.max_connections = max_connections
@@ -231,8 +230,8 @@ class P2PNetworkManager:
         await self._health_check_node(node.node_id)
     
     async def request_shard(self, shard_id: str, backup_id: str, 
-                          preferred_nodes: Optional[List[str]] = None,
-                          priority: RequestPriority = RequestPriority.NORMAL) -> Optional[bytes]:
+                        preferred_nodes: Optional[List[str]] = None,
+                        priority: RequestPriority = RequestPriority.NORMAL) -> Optional[bytes]:
         """Request a shard from the P2P network."""
         try:
             # Find nodes that might have the shard
@@ -275,14 +274,14 @@ class P2PNetworkManager:
             return None
     
     async def offer_shard(self, shard_id: str, backup_id: str, shard_data: bytes,
-                         target_nodes: Optional[List[str]] = None,
-                         redundancy_copies: int = 3) -> Dict[str, bool]:
+                        target_nodes: Optional[List[str]] = None,
+                        redundancy_copies: int = 3) -> Dict[str, bool]:
         """Offer a shard to nodes in the network."""
         try:
             # Find suitable nodes for storage
             if target_nodes:
                 candidate_nodes = [self.known_nodes[nid] for nid in target_nodes 
-                                 if nid in self.known_nodes]
+                                if nid in self.known_nodes]
             else:
                 candidate_nodes = await self._find_storage_candidates(
                     len(shard_data), redundancy_copies
@@ -320,7 +319,7 @@ class P2PNetworkManager:
             
         except Exception as e:
             logger.error(f"Shard offer failed: {e}")
-            return {}
+            return {
     
     async def discover_nodes(self, max_nodes: int = 50) -> List[NetworkNode]:
         """Discover new nodes in the network."""
@@ -351,7 +350,7 @@ class P2PNetworkManager:
                                 break
                                 
                 except Exception as e:
-                    logger.warning(f"Failed to discover peers from node {node.node_id}: {e}")
+                    logger.warning(f"Failed to discover peers from node {node.node_id}}: {e}")
                     continue
                 
                 if len(discovered_nodes) >= max_nodes:
@@ -365,8 +364,8 @@ class P2PNetworkManager:
             return []
     
     async def _find_shard_candidates(self, shard_id: str, 
-                                   preferred_nodes: Optional[List[str]] = None) -> List[NetworkNode]:
-        """Find nodes that might have a specific shard."""
+                                preferred_nodes: Optional[List[str]] = None) -> List[NetworkNode]:
+        """Find nodes that might have a specific shard.
         candidates = []
         
         # Check preferred nodes first
@@ -387,7 +386,7 @@ class P2PNetworkManager:
         return candidates
     
     async def _find_storage_candidates(self, shard_size_bytes: int, 
-                                     count: int) -> List[NetworkNode]:
+                                    count: int) -> List[NetworkNode]:
         """Find suitable nodes for storing a shard."""
         shard_size_gb = shard_size_bytes / (1024**3)
         
@@ -409,8 +408,8 @@ class P2PNetworkManager:
         return candidates[:count * 2]  # Return more candidates than needed
     
     async def _request_shard_from_node(self, node_id: str, shard_id: str, 
-                                     backup_id: str, priority: RequestPriority) -> Optional[bytes]:
-        """Request a specific shard from a node."""
+                                    backup_id: str, priority: RequestPriority) -> Optional[bytes]:
+        Request a specific shard from a node."""
         if not NETWORK_AVAILABLE:
             return None
         
@@ -461,7 +460,7 @@ class P2PNetworkManager:
             return None
     
     async def _offer_shard_to_node(self, node_id: str, shard_id: str, 
-                                 backup_id: str, shard_data: bytes) -> bool:
+                                backup_id: str, shard_data: bytes) -> bool:
         """Offer a shard to a specific node."""
         if not NETWORK_AVAILABLE:
             return False

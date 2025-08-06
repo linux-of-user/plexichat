@@ -25,12 +25,12 @@ import stat
 import time
 Advanced log management service with filtering, search, and archiving.
 Provides comprehensive log viewing and management capabilities.
-"""
+
 
 @dataclass
 class LogEntry:
     """Individual log entry structure."""
-    timestamp: datetime
+        timestamp: datetime
     level: str
     message: str
     module: str
@@ -42,8 +42,8 @@ class LogEntry:
 
 @dataclass
 class LogFile:
-    """Log file information."""
-    filename: str
+    """Log file information.
+        filename: str
     filepath: str
     size_bytes: int
     created_at: datetime
@@ -55,8 +55,7 @@ class LogFile:
 
 class LogParser:
     """Parses different log formats."""
-
-    def __init__(self):
+        def __init__(self):
         # Common log patterns
         self.patterns = {
             'standard': re.compile()
@@ -80,7 +79,7 @@ class LogParser:
         }
 
     def parse_log_line(self, line: str) -> Optional[LogEntry]:
-        """Parse a single log line."""
+        Parse a single log line."""
         line = line.strip()
         if not line:
             return None
@@ -124,8 +123,7 @@ class LogParser:
 
 class LogManager:
     """Advanced log management with filtering and archiving."""
-
-    def __init__(self, log_directory: str = "logs"):
+        def __init__(self, log_directory: str = "logs"):
         from pathlib import Path
         self.log_directory = Path(log_directory)
         self.log_directory.mkdir(exist_ok=True)
@@ -303,7 +301,7 @@ class LogManager:
                 hour_key = entry.timestamp.strftime('%Y-%m-%d %H:00')
                 hourly_counts[hour_key] = hourly_counts.get(hour_key, 0) + 1
 
-            return {}
+            return {
                 'total_entries': len(entries),
                 'total_lines': total_lines,
                 'level_distribution': level_counts,
@@ -312,7 +310,7 @@ class LogManager:
                 'time_range': {
                     'start': entries[0].timestamp.isoformat() if entries else None,
                     'end': entries[-1].timestamp.isoformat() if entries else None
-                }
+                }}
             }
 
         except Exception as e:
@@ -423,7 +421,7 @@ class LogManager:
             raise ValueError(f"Unsupported export format: {export_format}")
 
     def _count_log_entries(self, log_path: Path) -> int:
-        """Count entries in a log file (approximate)."""
+        """Count entries in a log file (approximate).
         try:
             with open(log_path, 'r', encoding='utf-8', errors='ignore') as f:
                 return sum(1 for line in f if line.strip())

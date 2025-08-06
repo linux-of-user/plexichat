@@ -9,7 +9,7 @@ Implements advanced database capabilities:
 - Performance monitoring
 - Query optimization
 - Connection pooling
-"""
+
 
 import asyncio
 import hashlib
@@ -28,7 +28,7 @@ logger = get_logger(__name__)
 
 class ShardStrategy(Enum):
     """Database sharding strategies."""
-    HASH_BASED = "hash_based"
+        HASH_BASED = "hash_based"
     RANGE_BASED = "range_based"
     DIRECTORY_BASED = "directory_based"
     CONSISTENT_HASH = "consistent_hash"
@@ -44,8 +44,8 @@ class PartitionType(Enum):
 
 @dataclass
 class ShardConfig:
-    """Shard configuration."""
-    shard_id: str
+    """Shard configuration.
+        shard_id: str
     connection_string: str
     weight: float = 1.0
     is_active: bool = True
@@ -56,7 +56,7 @@ class ShardConfig:
 @dataclass
 class PartitionConfig:
     """Partition configuration."""
-    partition_name: str
+        partition_name: str
     table_name: str
     partition_type: PartitionType
     partition_key: str
@@ -66,8 +66,8 @@ class PartitionConfig:
 
 @dataclass
 class QueryMetrics:
-    """Query performance metrics."""
-    query_id: str
+    Query performance metrics."""
+        query_id: str
     query_text: str
     execution_time: float
     rows_affected: int
@@ -77,9 +77,8 @@ class QueryMetrics:
 
 
 class DatabaseShardManager:
-    """Manages database sharding."""
-
-    def __init__(self, strategy: ShardStrategy = ShardStrategy.HASH_BASED):
+    """Manages database sharding.
+        def __init__(self, strategy: ShardStrategy = ShardStrategy.HASH_BASED):
         self.strategy = strategy
         self.shards: Dict[str, ShardConfig] = {}
         self.shard_ring: List[str] = []  # For consistent hashing
@@ -116,7 +115,7 @@ class DatabaseShardManager:
             return self.shard_ring[0]  # Default to first shard
 
     def get_read_shards(self) -> List[str]:
-        """Get available shards for read operations."""
+        """Get available shards for read operations.
         return [
             shard_id for shard_id, config in self.shards.items()
             if config.is_active
@@ -130,7 +129,7 @@ class DatabaseShardManager:
         ]
 
     def record_query_metrics(self, metrics: QueryMetrics):
-        """Record query performance metrics."""
+        Record query performance metrics."""
         self.query_metrics.append(metrics)
 
         # Keep only recent metrics
@@ -175,7 +174,7 @@ class DatabaseShardManager:
         return stats
 
     def _hash_based_shard(self, key: str) -> str:
-        """Hash-based sharding."""
+        """Hash-based sharding.
         hash_value = int(hashlib.md5(key.encode()).hexdigest(), 16)
         shard_index = hash_value % len(self.shard_ring)
         return self.shard_ring[shard_index]
@@ -195,7 +194,7 @@ class DatabaseShardManager:
         return sorted(self.shard_ring)[0]
 
     def _range_based_shard(self, key: str) -> str:
-        """Range-based sharding (simplified)."""
+        Range-based sharding (simplified)."""
         # This would typically use predefined ranges
         # For now, use alphabetical ranges
         first_char = key[0].lower() if key else 'a'
@@ -206,7 +205,7 @@ class DatabaseShardManager:
             return self.shard_ring[-1] if len(self.shard_ring) > 0 else None
 
     def _rebuild_shard_ring(self):
-        """Rebuild the shard ring for consistent hashing."""
+        """Rebuild the shard ring for consistent hashing.
         self.shard_ring = [
             shard_id for shard_id, config in self.shards.items()
             if config.is_active
@@ -215,12 +214,11 @@ class DatabaseShardManager:
 
 class DatabasePartitionManager:
     """Manages database partitioning."""
-
-    def __init__(self):
+        def __init__(self):
         self.partitions: Dict[str, List[PartitionConfig]] = {}
 
     def create_partition(self, config: PartitionConfig) -> bool:
-        """Create a new partition."""
+        Create a new partition."""
         try:
             table_name = config.table_name
             if table_name not in self.partitions:
@@ -240,7 +238,7 @@ class DatabasePartitionManager:
             return False
 
     def get_partition_for_value(self, table_name: str, partition_key: str, value: Any) -> Optional[str]:
-        """Get partition name for a given value."""
+        """Get partition name for a given value.
         if table_name not in self.partitions:
             return None
 
@@ -256,7 +254,7 @@ class DatabasePartitionManager:
         return self.partitions.get(table_name, [])
 
     def drop_partition(self, table_name: str, partition_name: str) -> bool:
-        """Drop a partition."""
+        Drop a partition."""
         if table_name in self.partitions:
             self.partitions[table_name] = [
                 p for p in self.partitions[table_name]
@@ -267,14 +265,14 @@ class DatabasePartitionManager:
         return False
 
     def _generate_partition_sql(self, config: PartitionConfig) -> str:
-        """Generate SQL for partition creation."""
+        """Generate SQL for partition creation.
         if config.partition_type == PartitionType.RANGE:
             return f"""
             CREATE TABLE {config.partition_name} PARTITION OF {config.table_name}
             FOR VALUES FROM ('{config.partition_value[0]}') TO ('{config.partition_value[1]}');
             """
         elif config.partition_type == PartitionType.HASH:
-            return f"""
+            return f
             CREATE TABLE {config.partition_name} PARTITION OF {config.table_name}
             FOR VALUES WITH (modulus {config.partition_value[0]}, remainder {config.partition_value[1]});
             """
@@ -288,7 +286,7 @@ class DatabasePartitionManager:
             return f"-- Partition type {config.partition_type} not implemented"
 
     def _value_matches_partition(self, value: Any, partition: PartitionConfig) -> bool:
-        """Check if value matches partition criteria."""
+        """Check if value matches partition criteria.
         if partition.partition_type == PartitionType.RANGE:
             return partition.partition_value[0] <= value < partition.partition_value[1]
         elif partition.partition_type == PartitionType.LIST:
@@ -302,14 +300,13 @@ class DatabasePartitionManager:
 
 class ReadReplicaManager:
     """Manages read replicas."""
-
-    def __init__(self):
+        def __init__(self):
         self.replicas: Dict[str, ShardConfig] = {}
         self.replica_weights: Dict[str, float] = {}
         self.health_status: Dict[str, bool] = {}
 
     def add_replica(self, replica_config: ShardConfig):
-        """Add a read replica."""
+        Add a read replica."""
         self.replicas[replica_config.shard_id] = replica_config
         self.replica_weights[replica_config.shard_id] = replica_config.weight
         self.health_status[replica_config.shard_id] = True
@@ -317,7 +314,7 @@ class ReadReplicaManager:
         logger.info(f"Added read replica: {replica_config.shard_id}")
 
     def get_read_replica(self) -> Optional[str]:
-        """Get a read replica using weighted selection."""
+        """Get a read replica using weighted selection.
         healthy_replicas = [
             replica_id for replica_id in self.replicas.keys()
             if self.health_status.get(replica_id, False)
@@ -338,15 +335,14 @@ class ReadReplicaManager:
         return True
 
     def update_replica_health(self):
-        """Update health status for all replicas."""
+        Update health status for all replicas."""
         for replica_id in self.replicas.keys():
             self.health_status[replica_id] = self.check_replica_health(replica_id)
 
 
 class PerformanceMonitor:
-    """Database performance monitoring."""
-
-    def __init__(self):
+    """Database performance monitoring.
+        def __init__(self):
         self.slow_query_threshold = 1.0  # seconds
         self.slow_queries: List[QueryMetrics] = []
         self.connection_stats: Dict[str, Any] = {}
@@ -391,7 +387,7 @@ class PerformanceMonitor:
             raise
 
     def get_slow_queries(self, limit: int = 50) -> List[QueryMetrics]:
-        """Get recent slow queries."""
+        """Get recent slow queries.
         return sorted(self.slow_queries, key=lambda x: x.execution_time, reverse=True)[:limit]
 
     def get_performance_summary(self) -> Dict[str, Any]:
@@ -401,25 +397,24 @@ class PerformanceMonitor:
 
         execution_times = [q.execution_time for q in self.slow_queries]
 
-        return {}
+        return {
             "slow_queries": len(self.slow_queries),
             "avg_slow_query_time": sum(execution_times) / len(execution_times),
             "max_slow_query_time": max(execution_times),
             "slowest_query": max(self.slow_queries, key=lambda x: x.execution_time).query_text
-        }
+        }}
 
 
 class AdvancedDatabaseManager:
-    """Advanced database manager combining all features."""
-
-    def __init__(self):
+    """Advanced database manager combining all features.
+        def __init__(self):
         self.shard_manager = DatabaseShardManager()
         self.partition_manager = DatabasePartitionManager()
         self.replica_manager = ReadReplicaManager()
         self.performance_monitor = PerformanceMonitor()
 
     async def execute_query(self, query: str, params: tuple = None, )
-                          shard_key: str = None, is_read_only: bool = False):
+                        shard_key: str = None, is_read_only: bool = False):
         """Execute query with advanced features."""
         # Determine target shard
         if shard_key:
@@ -448,7 +443,7 @@ class AdvancedDatabaseManager:
         )
 
     def setup_sharding(self, shard_configs: List[ShardConfig]):
-        """Setup database sharding."""
+        """Setup database sharding.
         for config in shard_configs:
             self.shard_manager.add_shard(config)
 
@@ -458,18 +453,18 @@ class AdvancedDatabaseManager:
             self.partition_manager.create_partition(config)
 
     def setup_read_replicas(self, replica_configs: List[ShardConfig]):
-        """Setup read replicas."""
+        Setup read replicas."""
         for config in replica_configs:
             self.replica_manager.add_replica(config)
 
     def get_database_stats(self) -> Dict[str, Any]:
         """Get comprehensive database statistics."""
-        return {}
+        return {
             "sharding": {
                 "total_shards": len(self.shard_manager.shards),
                 "active_shards": len(self.shard_manager.get_read_shards()),
                 "performance": self.shard_manager.get_performance_stats()
-            },
+            }},
             "partitioning": {
                 "total_tables": len(self.partition_manager.partitions),
                 "total_partitions": sum(len(partitions) for partitions in self.partition_manager.partitions.values())

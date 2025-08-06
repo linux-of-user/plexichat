@@ -1,6 +1,6 @@
 """
 Menu System Component for PlexiChat GUI
-"""
+
 
 import tkinter as tk
 from tkinter import ttk, messagebox
@@ -12,14 +12,13 @@ logger = logging.getLogger(__name__)
 
 class MenuSystem:
     """Advanced menu system with CLI integration."""
-
-    def __init__(self, root, app_instance):
+        def __init__(self, root, app_instance):
         self.root = root
         self.app = app_instance
         self.create_menu()
 
     def create_menu(self):
-        """Create the main menu bar."""
+        Create the main menu bar."""
         try:
             # Create menu bar
             self.menubar = tk.Menu(self.root)
@@ -183,9 +182,9 @@ class MenuSystem:
         try:
             from tkinter import messagebox
             messagebox.showinfo("About PlexiChat",
-                              "PlexiChat - Advanced AI-Powered Chat Platform\n"
-                              "Version: 1.0.0\n"
-                              "Built with Python and Tkinter")
+                            "PlexiChat - Advanced AI-Powered Chat Platform\n"
+                            "Version: 1.0.0\n"
+                            "Built with Python and Tkinter")
         except Exception as e:
             logger.error(f"Failed to show about: {e}")
 

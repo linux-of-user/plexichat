@@ -3,7 +3,7 @@ PlexiChat Client Settings Database Models
 ========================================
 
 Database models for flexible client settings with key-value storage and image support.
-"""
+
 
 from datetime import datetime
 from enum import Enum
@@ -17,7 +17,7 @@ Base = declarative_base()
 
 class SettingType(str, Enum):
     """Types of client settings."""
-    TEXT = "text"
+        TEXT = "text"
     JSON = "json"
     NUMBER = "number"
     BOOLEAN = "boolean"
@@ -34,7 +34,7 @@ class ImageStatus(str, Enum):
 # Database Models
 class ClientSetting(Base):
     """Client settings key-value storage."""
-    __tablename__ = "client_settings"
+        __tablename__ = "client_settings"
     
     # Composite primary key
     user_id = Column(String(36), primary_key=True)
@@ -100,8 +100,8 @@ class ClientSettingImage(Base):
 
 # Pydantic Models for API
 class ClientSettingBase(BaseModel):
-    """Base client setting model."""
-    setting_key: str = Field(..., max_length=255)
+    """Base client setting model.
+        setting_key: str = Field(..., max_length=255)
     setting_value: str = Field(..., max_length=10000)  # Will be validated by config
     setting_type: SettingType = SettingType.TEXT
     description: Optional[str] = Field(None, max_length=500)
@@ -116,12 +116,12 @@ class ClientSettingBase(BaseModel):
     @field_validator('setting_value')
     @classmethod
     def validate_setting_value_field(cls, v: str) -> str:
-        """Validate setting value."""
+        Validate setting value."""
         return validate_setting_value(v)
 
 class ClientSettingCreate(ClientSettingBase):
-    """Model for creating client settings."""
-    pass
+    """Model for creating client settings.
+        pass
 
 class ClientSettingUpdate(BaseModel):
     """Model for updating client settings."""
@@ -131,8 +131,8 @@ class ClientSettingUpdate(BaseModel):
     is_public: Optional[bool] = None
 
 class ClientSettingResponse(ClientSettingBase):
-    """Model for client setting responses."""
-    user_id: str
+    Model for client setting responses."""
+        user_id: str
     is_encrypted: bool
     created_at: datetime
     updated_at: datetime
@@ -141,24 +141,24 @@ class ClientSettingResponse(ClientSettingBase):
         from_attributes = True
 
 class ClientSettingImageBase(BaseModel):
-    """Base client setting image model."""
-    setting_key: Optional[str] = Field(None, max_length=255)
+    """Base client setting image model.
+        setting_key: Optional[str] = Field(None, max_length=255)
     description: Optional[str] = Field(None, max_length=500)
     alt_text: Optional[str] = Field(None, max_length=255)
 
 class ClientSettingImageCreate(ClientSettingImageBase):
     """Model for creating client setting images."""
-    pass
+        pass
 
 class ClientSettingImageUpdate(BaseModel):
-    """Model for updating client setting images."""
+    Model for updating client setting images."""
     setting_key: Optional[str] = Field(None, max_length=255)
     description: Optional[str] = Field(None, max_length=500)
     alt_text: Optional[str] = Field(None, max_length=255)
 
 class ClientSettingImageResponse(ClientSettingImageBase):
-    """Model for client setting image responses."""
-    id: str
+    """Model for client setting image responses.
+        id: str
     user_id: str
     original_filename: str
     stored_filename: str
@@ -176,19 +176,19 @@ class ClientSettingImageResponse(ClientSettingImageBase):
 
 class ClientSettingsBulkUpdate(BaseModel):
     """Model for bulk updating client settings."""
-    settings: Dict[str, Union[str, Dict[str, Any]]] = Field(..., max_items=20)  # Configurable limit
+        settings: Dict[str, Union[str, Dict[str, Any]]] = Field(..., max_items=20)  # Configurable limit
 
 class ClientSettingsBulkResponse(BaseModel):
-    """Response for bulk operations."""
-    success: bool
+    Response for bulk operations."""
+        success: bool
     updated_count: int
     failed_count: int
     errors: List[Dict[str, str]] = []
     updated_keys: List[str] = []
 
 class ClientSettingsStatsResponse(BaseModel):
-    """Response for client settings statistics."""
-    total_settings: int
+    """Response for client settings statistics.
+        total_settings: int
     total_images: int
     total_storage_used_bytes: int
     total_storage_used_mb: float
@@ -197,7 +197,7 @@ class ClientSettingsStatsResponse(BaseModel):
 
 class ClientSettingsExportResponse(BaseModel):
     """Response for exporting client settings."""
-    user_id: str
+        user_id: str
     export_timestamp: datetime
     settings: Dict[str, Any]
     images: List[Dict[str, Any]]
@@ -206,7 +206,7 @@ class ClientSettingsExportResponse(BaseModel):
 
 # Validation functions
 def validate_setting_key(key: str) -> str:
-    """Validate and normalize setting key."""
+    Validate and normalize setting key."""
     if not key:
         raise ValueError("Setting key cannot be empty")
     

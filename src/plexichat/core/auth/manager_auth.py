@@ -4,7 +4,7 @@ PlexiChat Authentication Manager
 
 Enhanced authentication management with comprehensive security and performance optimization.
 Uses EXISTING database abstraction and optimization systems.
-"""
+
 
 import logging
 from datetime import datetime, timedelta
@@ -40,8 +40,7 @@ performance_logger = get_performance_logger() if get_performance_logger else Non
 
 class AuthenticationManager:
     """Enhanced authentication manager using EXISTING systems."""
-
-    def __init__(self):
+        def __init__(self):
         self.db_manager = database_manager
         self.performance_logger = performance_logger
         self.auth_core = auth_core
@@ -205,7 +204,7 @@ class AuthenticationManager:
             return None
 
     def _is_account_locked(self, username: str) -> bool:
-        """Check if account is locked due to failed attempts."""
+        """Check if account is locked due to failed attempts.
         if username not in self.failed_attempts:
             return False
 
@@ -237,7 +236,7 @@ class AuthenticationManager:
         ]
 
     async def _log_auth_event(self, event_type: str, user_id: Optional[int], ip_address: str, details: Optional[Dict[str, Any]] = None):
-        """Log authentication event to database."""
+        Log authentication event to database."""
         if self.db_manager:
             try:
                 query = """

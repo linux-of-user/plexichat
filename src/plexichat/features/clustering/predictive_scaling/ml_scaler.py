@@ -26,14 +26,14 @@ Advanced ML-powered auto-scaling system with:
 - Seasonal pattern recognition
 - Real-time model adaptation
 - Integration with hybrid cloud and service mesh
-"""
+
 
 logger = logging.getLogger(__name__)
 
 
 class ScalingDirection(Enum):
     """Scaling direction."""
-    SCALE_UP = "scale_up"
+        SCALE_UP = "scale_up"
     SCALE_DOWN = "scale_down"
     MAINTAIN = "maintain"
 
@@ -49,7 +49,7 @@ class ResourceType(Enum):
 
 class ScalingTrigger(Enum):
     """Scaling trigger types."""
-    THRESHOLD = "threshold"
+        THRESHOLD = "threshold"
     PREDICTIVE = "predictive"
     ANOMALY = "anomaly"
     COST_OPTIMIZATION = "cost_optimization"
@@ -58,7 +58,7 @@ class ScalingTrigger(Enum):
 
 @dataclass
 class MetricDataPoint:
-    """Single metric data point."""
+    """Single metric data point.
     timestamp: datetime
     value: float
     resource_type: ResourceType
@@ -67,19 +67,19 @@ class MetricDataPoint:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
-        return {}
+        return {
             "timestamp": self.timestamp.isoformat(),
             "value": self.value,
             "resource_type": self.resource_type.value,
             "service_name": self.service_name,
             "node_id": self.node_id
-        }
+        }}
 
 
 @dataclass
 class ScalingPrediction:
-    """Scaling prediction result."""
-    service_name: str
+    """Scaling prediction result.
+        service_name: str
     resource_type: ResourceType
     current_value: float
     predicted_value: float
@@ -98,8 +98,8 @@ class ScalingPrediction:
 
 @dataclass
 class ScalingAction:
-    """Scaling action to be executed."""
-    action_id: str
+    Scaling action to be executed."""
+        action_id: str
     service_name: str
     resource_type: ResourceType
     current_capacity: float
@@ -113,9 +113,8 @@ class ScalingAction:
 
 
 class TimeSeriesForecaster:
-    """Time series forecasting for resource demand prediction."""
-
-    def __init__(self):
+    """Time series forecasting for resource demand prediction.
+        def __init__(self):
         self.models: Dict[str, Any] = {}  # service_name -> model
         self.training_data: Dict[str, List[MetricDataPoint]] = {}
         self.model_accuracy: Dict[str, float] = {}
@@ -200,14 +199,14 @@ class TimeSeriesForecaster:
         # Detect seasonal patterns (simplified)
         seasonal_pattern = self._detect_seasonal_pattern(values)
 
-        return {}
+        return {
             "type": "simple_forecast",
             "moving_avg": moving_avg[-1] if moving_avg else 0.0,
             "trend": trend,
             "seasonal_pattern": seasonal_pattern,
             "last_values": values[-24:] if len(values) >= 24 else values,
             "trained_at": datetime.now(timezone.utc)
-        }
+        }}
 
     def _detect_seasonal_pattern(self, values: List[float]) -> Dict[str, float]:
         """Detect seasonal patterns in data."""
@@ -224,7 +223,7 @@ class TimeSeriesForecaster:
         return {"daily": daily_pattern}
 
     async def _evaluate_model_accuracy(self, key: str, test_data: List[MetricDataPoint]) -> float:
-        """Evaluate model accuracy on test data."""
+        """Evaluate model accuracy on test data.
         if key not in self.models or len(test_data) < 10:
             return 0.0
 
@@ -276,7 +275,7 @@ class TimeSeriesForecaster:
         return max(0.0, prediction)
 
     async def forecast(self, service_name: str, resource_type: ResourceType,)
-                     hours_ahead: int = 1) -> Optional[float]:
+                    hours_ahead: int = 1) -> Optional[float]:
         """Forecast resource demand."""
         key = f"{service_name}_{resource_type.value}"
 
@@ -310,14 +309,13 @@ class TimeSeriesForecaster:
 
 
 class AnomalyDetector:
-    """Detects anomalies in resource usage patterns."""
-
-    def __init__(self):
+    """Detects anomalies in resource usage patterns.
+        def __init__(self):
         self.baseline_models: Dict[str, Dict[str, float]] = {}
         self.anomaly_threshold = 2.0  # Standard deviations
 
     def update_baseline(self, service_name: str, resource_type: ResourceType,):
-                       data_points: List[MetricDataPoint]):
+                    data_points: List[MetricDataPoint]):
         """Update baseline model for anomaly detection."""
         if len(data_points) < 10:
             return
@@ -339,7 +337,7 @@ class AnomalyDetector:
         }
 
     def detect_anomaly(self, service_name: str, resource_type: ResourceType,):
-                      current_value: float) -> Tuple[bool, float]:
+                    current_value: float) -> Tuple[bool, float]:
         """Detect if current value is anomalous."""
         key = f"{service_name}_{resource_type.value}"
 
@@ -362,9 +360,8 @@ class AnomalyDetector:
 
 
 class PredictiveScaler:
-    """Main predictive scaling engine."""
-
-    def __init__(self):
+    """Main predictive scaling engine.
+        def __init__(self):
         self.forecaster = TimeSeriesForecaster()
         self.anomaly_detector = AnomalyDetector()
         self.scaling_history: List[ScalingAction] = []
@@ -405,7 +402,7 @@ class PredictiveScaler:
             )
 
     async def predict_scaling_need(self, service_name: str, resource_type: ResourceType,)
-                                 current_value: float) -> Optional[ScalingPrediction]:
+                                current_value: float) -> Optional[ScalingPrediction]:
         """Predict if scaling is needed for service."""
         try:
             # Get forecast
@@ -466,7 +463,7 @@ class PredictiveScaler:
             return None
 
     def _calculate_cost_impact(self, resource_type: ResourceType, scale_factor: float) -> float:
-        """Calculate cost impact of scaling action."""
+        """Calculate cost impact of scaling action.
         base_cost = self.cost_per_unit.get(resource_type, 0.0)
         cost_change = base_cost * (scale_factor - 1.0)
         return cost_change
@@ -523,7 +520,7 @@ class PredictiveScaler:
         return True
 
     async def get_scaling_recommendations(self) -> List[ScalingPrediction]:
-        """Get scaling recommendations for all active services."""
+        """Get scaling recommendations for all active services.
         recommendations = []
 
         for service_name in self.active_services:
@@ -556,7 +553,7 @@ class PredictiveScaler:
         logger.info("Loading historical metrics data")
 
     async def _train_initial_models(self):
-        """Train initial forecasting models."""
+        """Train initial forecasting models.
         for service_name in self.active_services:
             for resource_type in ResourceType:
                 await self.forecaster.train_model(service_name, resource_type)
@@ -568,7 +565,7 @@ class PredictiveScaler:
         asyncio.create_task(self._cost_optimization_task())
 
     async def get_scaling_metrics(self) -> Dict[str, Any]:
-        """Get scaling system metrics."""
+        Get scaling system metrics."""
         recent_actions = self.scaling_history[-100:]
 
         successful_actions = [a for a in recent_actions if a.success]
@@ -576,7 +573,7 @@ class PredictiveScaler:
 
         total_cost_impact = sum(a.prediction.cost_impact for a in recent_actions if a.prediction)
 
-        return {}
+        return {
             "total_actions": len(recent_actions),
             "successful_actions": len(successful_actions),
             "failed_actions": len(failed_actions),
@@ -585,7 +582,7 @@ class PredictiveScaler:
             "active_services": len(self.active_services),
             "trained_models": len(self.forecaster.models),
             "average_model_accuracy": sum(self.forecaster.model_accuracy.values()) / max(len(self.forecaster.model_accuracy), 1)
-        }
+        }}
 
     async def cleanup(self):
         """Cleanup predictive scaler resources."""

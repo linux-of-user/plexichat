@@ -1,7 +1,7 @@
 """
 PlexiChat PyQt6 Theme Manager
 Advanced theme management system with modern styling.
-"""
+
 
 import logging
 from typing import Dict, Any, Optional
@@ -17,8 +17,7 @@ class ThemeManagerPyQt(QObject):
     Advanced theme management system for PyQt6.
     Supports multiple themes with smooth transitions.
     """
-    
-    theme_changed = pyqtSignal(str)
+        theme_changed = pyqtSignal(str)
     
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -28,7 +27,7 @@ class ThemeManagerPyQt(QObject):
         
     def load_themes(self) -> Dict[str, Dict[str, Any]]:
         """Load all available themes."""
-        return {}
+        return {
             "dark_modern": {
                 "name": "Dark Modern",
                 "description": "Modern dark theme with blue accents",
@@ -44,7 +43,7 @@ class ThemeManagerPyQt(QObject):
                     "success": "#4CAF50",
                     "warning": "#FF9800",
                     "error": "#F44336"
-                },
+                }},
                 "stylesheet": self.get_dark_modern_stylesheet()
             },
             "light_modern": {
@@ -212,7 +211,7 @@ class ThemeManagerPyQt(QObject):
         }
     
     def get_dark_modern_stylesheet(self) -> str:
-        """Get dark modern theme stylesheet with glass effects."""
+        """Get dark modern theme stylesheet with glass effects.
         return """
             QMainWindow {
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
@@ -484,7 +483,7 @@ class ThemeManagerPyQt(QObject):
         """
     
     def get_light_modern_stylesheet(self) -> str:
-        """Get light modern theme stylesheet."""
+        Get light modern theme stylesheet."""
         return """
             QMainWindow {
                 background-color: #f8fafc;
@@ -555,11 +554,11 @@ class ThemeManagerPyQt(QObject):
                 color: #333333;
                 border-top: 1px solid #e0e0e0;
             }
-        """
+        
     
     def get_cyberpunk_stylesheet(self) -> str:
         """Get cyberpunk theme stylesheet with enhanced neon effects."""
-        return """
+        return 
             QMainWindow {
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
                     stop:0 #0a0a0a, stop:0.5 #1a0a1a, stop:1 #0a1a0a);
@@ -691,7 +690,7 @@ class ThemeManagerPyQt(QObject):
             logger.error(f"Failed to apply theme '{theme_name}': {e}")
     
     def get_current_theme(self) -> str:
-        """Get the current theme name."""
+        """Get the current theme name.
         return self.current_theme
     
     def get_theme_info(self, theme_name: str) -> Optional[Dict[str, Any]]:
@@ -699,8 +698,8 @@ class ThemeManagerPyQt(QObject):
         return self.themes.get(theme_name)
     
     def get_available_themes(self) -> Dict[str, str]:
-        """Get list of available themes."""
-        return {}name: theme["name"] for name, theme in self.themes.items()}
+        Get list of available themes."""
+        return {name: theme["name"] for name, theme in self.themes.items()}}
     
     def get_theme_color(self, color_name: str, theme_name: Optional[str] = None) -> str:
         """Get a specific color from the current or specified theme."""
@@ -721,7 +720,7 @@ class ThemeManagerPyQt(QObject):
             self.apply_theme("dark_modern")
 
     def get_neon_blue_stylesheet(self) -> str:
-        """Get neon blue theme stylesheet with glass effects."""
+        """Get neon blue theme stylesheet with glass effects.
         return """
             QMainWindow {
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
@@ -790,7 +789,7 @@ class ThemeManagerPyQt(QObject):
         """
 
     def get_forest_green_stylesheet(self) -> str:
-        """Get forest green theme stylesheet with glass effects."""
+        Get forest green theme stylesheet with glass effects."""
         return """
             QMainWindow {
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
@@ -856,11 +855,11 @@ class ThemeManagerPyQt(QObject):
                 background: #4CAF50;
                 color: #ffffff;
             }
-        """
+        
 
     def get_sunset_orange_stylesheet(self) -> str:
         """Get sunset orange theme stylesheet."""
-        return """
+        return 
             QMainWindow {
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
                     stop:0 #1a0f0a, stop:1 #2e1a12);
@@ -919,7 +918,7 @@ class ThemeManagerPyQt(QObject):
         """
 
     def get_royal_purple_stylesheet(self) -> str:
-        """Get royal purple theme stylesheet."""
+        """Get royal purple theme stylesheet.
         return """
             QMainWindow {
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
@@ -979,7 +978,7 @@ class ThemeManagerPyQt(QObject):
         """
 
     def get_ocean_blue_stylesheet(self) -> str:
-        """Get ocean blue theme stylesheet with glassmorphism."""
+        Get ocean blue theme stylesheet with glassmorphism."""
         return """
             QMainWindow {
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
@@ -1045,11 +1044,11 @@ class ThemeManagerPyQt(QObject):
                 border: 1px solid #0077be;
                 color: #ffffff;
             }
-        """
+        
 
     def get_midnight_purple_stylesheet(self) -> str:
         """Get midnight purple theme stylesheet with elegant gradients."""
-        return """
+        return 
             QMainWindow {
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
                     stop:0 #1a0f2e, stop:0.5 #2a1b3d, stop:1 #3a2a4d);
@@ -1117,7 +1116,7 @@ class ThemeManagerPyQt(QObject):
         """
 
     def get_emerald_green_stylesheet(self) -> str:
-        """Get emerald green theme stylesheet with nature vibes."""
+        """Get emerald green theme stylesheet with nature vibes.
         return """
             QMainWindow {
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:1,

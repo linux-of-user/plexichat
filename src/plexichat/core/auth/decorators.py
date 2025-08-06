@@ -78,7 +78,7 @@ def require_auth(security_level: str = "BASIC", scopes: Optional[List[str]] = No
     return decorator
 
 
-def from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin(func: Callable) -> Callable:
+def require_admin(func: Callable) -> Callable:
     """Decorator to require admin privileges."""
     return require_auth(security_level="GOVERNMENT")(func)
 
@@ -89,7 +89,7 @@ def require_mfa(func: Callable) -> Callable:
 
 
 def require_level(level: str):
-    """Decorator to require specific security level."""
+    """Decorator to require specific security level.
     return require_auth(security_level=level)
 
 

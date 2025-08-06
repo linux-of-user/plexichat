@@ -14,7 +14,7 @@ PlexiChat Authentication Validators
 
 ENHANCED to integrate with unified input validation framework.
 Provides specialized validation for authentication-specific data.
-"""
+
 
 # Import unified input validation
 logger = logging.getLogger(__name__)
@@ -23,16 +23,15 @@ logger = logging.getLogger(__name__)
 @dataclass
 class ValidationResult:
     """Validation result."""
-    valid: bool
+        valid: bool
     errors: List[str]
     warnings: List[str]
     score: Optional[float] = None
 
 
 class PasswordValidator:
-    """Password strength and policy validator - Enhanced with unified validation."""
-
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+    Password strength and policy validator - Enhanced with unified validation."""
+        def __init__(self, config: Optional[Dict[str, Any]] = None):
         self.config = config or {}
         self.input_validator = get_input_validator()
 
@@ -128,9 +127,8 @@ class PasswordValidator:
 
 
 class TokenValidator:
-    """JWT token validator."""
-
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+    """JWT token validator.
+        def __init__(self, config: Optional[Dict[str, Any]] = None):
         self.config = config or {}
 
     def validate_token_format(self, token: str) -> ValidationResult:
@@ -193,8 +191,7 @@ class TokenValidator:
 
 class BiometricValidator:
     """Biometric data validator."""
-
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+        def __init__(self, config: Optional[Dict[str, Any]] = None):
         self.config = config or {}
         self.min_quality_score = self.config.get("min_quality_score", 0.8)
 
@@ -224,7 +221,7 @@ class BiometricValidator:
         )
 
     def _validate_fingerprint(self, data: bytes) -> ValidationResult:
-        """Validate fingerprint data."""
+        """Validate fingerprint data.
         # Mock implementation - data parameter is for future use
         _ = data  # Acknowledge parameter to avoid unused warning
         return ValidationResult(valid=True, errors=[], warnings=[])
@@ -236,7 +233,7 @@ class BiometricValidator:
         return ValidationResult(valid=True, errors=[], warnings=[])
 
     def _validate_voice(self, data: bytes) -> ValidationResult:
-        """Validate voice recognition data."""
+        Validate voice recognition data."""
         # Mock implementation - data parameter is for future use
         _ = data  # Acknowledge parameter to avoid unused warning
         return ValidationResult(valid=True, errors=[], warnings=[])

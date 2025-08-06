@@ -17,13 +17,12 @@ from sqlalchemy import DateTime, Index, Text
 import time
 Channel models for Discord-like functionality.
 Includes text channels, voice channels, categories, threads, and permissions.
-"""
+
 
 
 class ChannelType(int, Enum):
     """Channel types matching Discord API."""
-
-    GUILD_TEXT = 0
+        GUILD_TEXT = 0
     DM = 1
     GUILD_VOICE = 2
     GROUP_DM = 3
@@ -39,16 +38,15 @@ class ChannelType(int, Enum):
 
 
 class VideoQualityMode(int, Enum):
-    """Video quality modes for voice channels."""
+    Video quality modes for voice channels."""
 
     AUTO = 1
     FULL = 2
 
 
 class SortOrderType(int, Enum):
-    """Sort order for forum channels."""
-
-    LATEST_ACTIVITY = 0
+    """Sort order for forum channels.
+        LATEST_ACTIVITY = 0
     CREATION_DATE = 1
 
 
@@ -129,8 +127,7 @@ class Channel(SQLModel, table=True):
 
 class ChannelPermissionOverwrite(SQLModel, table=True):
     """Channel permission overwrites for roles and users."""
-
-    __tablename__ = "channel_permission_overwrites"
+        __tablename__ = "channel_permission_overwrites"
 
     id: Optional[int] = Field(default=None, primary_key=True)
     channel_id: int = Field(foreign_key="channels.id", index=True)
@@ -159,8 +156,7 @@ class ChannelPermissionOverwrite(SQLModel, table=True):
 
 class ThreadMember(SQLModel, table=True):
     """Thread membership tracking."""
-
-    __tablename__ = "thread_members"
+        __tablename__ = "thread_members"
 
     id: Optional[int] = Field(default=None, primary_key=True)
     thread_id: int = Field(foreign_key="channels.id", index=True)
@@ -184,8 +180,7 @@ class ThreadMember(SQLModel, table=True):
 
 class ChannelFollower(SQLModel, table=True):
     """Channel following for news channels."""
-
-    __tablename__ = "channel_followers"
+        __tablename__ = "channel_followers"
 
     id: Optional[int] = Field(default=None, primary_key=True)
     channel_id: int = Field(foreign_key="channels.id", index=True)  # Source channel
@@ -199,8 +194,7 @@ class ChannelFollower(SQLModel, table=True):
 
 class VoiceState(SQLModel, table=True):
     """Voice channel state tracking."""
-
-    __tablename__ = "voice_states"
+        __tablename__ = "voice_states"
 
     id: Optional[int] = Field(default=None, primary_key=True)
     guild_id: Optional[int] = Field(foreign_key="guilds.id", index=True)
@@ -240,8 +234,7 @@ class VoiceState(SQLModel, table=True):
 
 class StageInstance(SQLModel, table=True):
     """Stage channel instances."""
-
-    __tablename__ = "stage_instances"
+        __tablename__ = "stage_instances"
 
     id: Optional[int] = Field(default=None, primary_key=True)
     guild_id: int = Field(foreign_key="guilds.id", index=True)
@@ -263,8 +256,7 @@ class StageInstance(SQLModel, table=True):
 
 class ForumTag(SQLModel, table=True):
     """Forum channel tags."""
-
-    __tablename__ = "forum_tags"
+        __tablename__ = "forum_tags"
 
     id: Optional[int] = Field(default=None, primary_key=True)
     channel_id: int = Field(foreign_key="channels.id", index=True)
@@ -285,8 +277,7 @@ class ForumTag(SQLModel, table=True):
 
 class ChannelSettings(SQLModel, table=True):
     """Extended channel settings and preferences."""
-
-    __tablename__ = "channel_settings"
+        __tablename__ = "channel_settings"
 
     id: Optional[int] = Field(default=None, primary_key=True)
     channel_id: int = Field(foreign_key="channels.id", unique=True, index=True)
@@ -314,8 +305,7 @@ class ChannelSettings(SQLModel, table=True):
 
 class ChannelInvite(SQLModel, table=True):
     """Channel-specific invite tracking."""
-
-    __tablename__ = "channel_invites"
+        __tablename__ = "channel_invites"
 
     id: Optional[int] = Field(default=None, primary_key=True)
     channel_id: int = Field(foreign_key="channels.id", index=True)

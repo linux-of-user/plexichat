@@ -48,7 +48,7 @@ router = APIRouter(prefix="/api/queue", tags=["Message Queue"])
 
 class PublishMessageRequest(BaseModel):
     """Request model for publishing messages."""
-    topic: str = Field(..., description="Topic to publish to")
+        topic: str = Field(..., description="Topic to publish to")
     payload: Any = Field(..., description="Message payload")
     headers: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Message headers")
     priority: Optional[str] = Field("normal", description="Message priority (low, normal, high, critical)")
@@ -56,20 +56,20 @@ class PublishMessageRequest(BaseModel):
 
 class SubscribeRequest(BaseModel):
     """Request model for subscribing to topics."""
-    topic: str = Field(..., description="Topic to subscribe to")
+        topic: str = Field(..., description="Topic to subscribe to")
     consumer_group: Optional[str] = Field(None, description="Consumer group name")
     handler_config: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Handler configuration")
 
 class QueueResponse(BaseModel):
     """Response model for queue operations."""
-    success: bool = Field(..., description="Operation success status")
+        success: bool = Field(..., description="Operation success status")
     message: str = Field(..., description="Response message")
     data: Optional[Any] = Field(None, description="Response data")
     timestamp: str = Field(..., description="Response timestamp")
 
 class PurgeTopicRequest(BaseModel):
     """Request model for purging topics."""
-    confirm: bool = Field(False, description="Confirmation flag for destructive operation")
+        confirm: bool = Field(False, description="Confirmation flag for destructive operation")
 
 
 @router.get("/status", response_model=Dict[str, Any])
@@ -98,11 +98,11 @@ async def get_queue_status(current_user: Dict = Depends(require_auth)):
         else:
             status = "healthy"
 
-        return {}
+        return {
             "status": status,
             "initialized": queue_manager.initialized,
             "statistics": stats,
-            "primary_broker": stats.get("configuration", {}).get("primary_broker"),
+            "primary_broker": stats.get("configuration", {}}).get("primary_broker"),
             "healthy_brokers": healthy_brokers,
             "total_brokers": len(availability),
             "timestamp": "2025-01-07T12:00:00Z"
@@ -138,11 +138,11 @@ async def get_queue_stats()
             if not topic_stats:
                 raise HTTPException(status_code=404, detail=f"Topic '{topic}' not found")
 
-            return {}
+            return {
                 "topic": topic,
                 "statistics": topic_stats,
                 "timestamp": "2025-01-07T12:00:00Z"
-            }
+            }}
 
         # Return all statistics
         response_data = {
@@ -335,12 +335,12 @@ async def list_topics(current_user: Dict = Depends(require_auth)):
                 "consumer_count": topic_stats.get("consumer_count", 0)
             })
 
-        return {}
+        return {
             "topics": topic_list,
             "total_topics": len(topic_list),
             "registered_handlers": stats.get("registered_handlers", []),
             "timestamp": "2025-01-07T12:00:00Z"
-        }
+        }}
 
     except Exception as e:
         logger.error(f" List topics error: {e}")
@@ -361,10 +361,11 @@ async def purge_topic()
     """
     try:
         if not request.confirm:
-            raise HTTPException()
-                status_code=400,
-                detail="Confirmation required for destructive purge operation"
-            )
+            raise HTTPException(
+            status_code=400,
+            detail="Confirmation required for destructive purge operation"
+            
+        )
 
         queue_manager = get_queue_manager()
 
@@ -415,13 +416,13 @@ async def get_queue_health(current_user: Dict = Depends(require_auth)):
         else:
             health_status = "healthy"
 
-        return {}
+        return {
             "status": health_status,
             "initialized": queue_manager.initialized,
             "broker_availability": availability,
             "healthy_brokers": healthy_brokers,
             "total_brokers": total_brokers,
-            "global_stats": stats.get("global", {}),
+            "global_stats": stats.get("global", {}}),
             "active_consumers": stats.get("active_consumers", 0),
             "dead_letter_queue_size": stats.get("dead_letter_queue", {}).get("count", 0),
             "timestamp": "2025-01-07T12:00:00Z"
@@ -456,12 +457,12 @@ async def get_dead_letter_queue()
         if limit > 0:
             messages = messages[:limit]
 
-        return {}
+        return {
             "total_count": dead_letter_data.get("count", 0),
             "returned_count": len(messages),
             "messages": messages,
             "timestamp": "2025-01-07T12:00:00Z"
-        }
+        }}
 
     except Exception as e:
         logger.error(f" Dead letter queue error: {e}")

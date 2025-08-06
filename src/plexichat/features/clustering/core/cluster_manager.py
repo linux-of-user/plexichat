@@ -39,7 +39,7 @@ except ImportError:
         def stop_monitoring(self):
             pass
         def get_metrics(self):
-            return {}
+            return {
 from .task_manager import AdvancedTaskManager
 from plexichat.infrastructure.modules.interfaces import ModulePriority
 import psutil
@@ -62,7 +62,7 @@ except ImportError:
 
 class ClusterState(Enum):
     """Cluster operational states."""
-    INITIALIZING = "initializing"
+        INITIALIZING = "initializing"
     ACTIVE = "active"
     DEGRADED = "degraded"
     MAINTENANCE = "maintenance"
@@ -72,7 +72,7 @@ class ClusterState(Enum):
 
 @dataclass
 class ClusterNode:
-    """Represents a cluster node."""
+    """Represents a cluster node.
     node_id: str
     hostname: str
     ip_address: str
@@ -95,7 +95,7 @@ class ClusterNode:
 @dataclass
 class ClusterMetrics:
     """Cluster performance metrics."""
-    timestamp: datetime
+        timestamp: datetime
     total_nodes: int
     active_nodes: int
     total_cpu_cores: int
@@ -112,8 +112,8 @@ class ClusterMetrics:
 
 @dataclass
 class ClusterConfiguration:
-    """Cluster configuration."""
-    cluster_id: str
+    Cluster configuration."""
+        cluster_id: str
     cluster_name: str
     security_level: str
     encryption_enabled: bool
@@ -142,9 +142,8 @@ class AdvancedClusterManager:
     - Performance monitoring and analytics
     - Automatic failover and recovery
     - Government-level security and encryption
-    """
-
-    def __init__(self, plexichat_app):
+    
+        def __init__(self, plexichat_app):
         """Initialize the advanced cluster manager."""
         self.plexichat_app = plexichat_app
         self.cluster_dir = Path("clustering")
@@ -158,7 +157,7 @@ class AdvancedClusterManager:
 
         # Cluster state
         self.cluster_state = ClusterState.INITIALIZING
-        self.cluster_nodes: Dict[str, ClusterNode] = {}
+        self.cluster_nodes: Dict[str, ClusterNode] = {}}
         self.cluster_config: Optional[ClusterConfiguration] = None
         self.master_node_id: Optional[str] = None
         self.local_node_id: str = f"node_{secrets.token_hex(8)}"
@@ -227,7 +226,7 @@ class AdvancedClusterManager:
         logger.info("Advanced Cluster Manager fully initialized")
 
     async def _initialize_database(self):
-        """Initialize cluster registry database."""
+        """Initialize cluster registry database.
         async with aiosqlite.connect(self.cluster_db_path) as db:
             # Cluster configuration table
             await db.execute(""")
@@ -251,7 +250,7 @@ class AdvancedClusterManager:
             """)
 
             # Cluster nodes table
-            await db.execute(""")
+            await db.execute()
                 CREATE TABLE IF NOT EXISTS cluster_nodes ()
                     node_id TEXT PRIMARY KEY,
                     hostname TEXT NOT NULL,
@@ -291,7 +290,7 @@ class AdvancedClusterManager:
                     performance_gain_factor REAL NOT NULL,
                     throughput_improvement REAL NOT NULL
                 )
-            """)
+            )
 
             # Cluster events log
             await db.execute(""")
@@ -309,7 +308,7 @@ class AdvancedClusterManager:
             await db.commit()
 
     async def _load_cluster_configuration(self):
-        """Load or create cluster configuration."""
+        Load or create cluster configuration."""
         async with aiosqlite.connect(self.cluster_db_path) as db:
             async with db.execute("SELECT * FROM cluster_configuration LIMIT 1") as cursor:
                 row = await cursor.fetchone()
@@ -366,7 +365,7 @@ class AdvancedClusterManager:
         logger.info(f"Created default cluster configuration: {cluster_id}")
 
     async def _save_cluster_configuration(self):
-        """Save cluster configuration to database."""
+        """Save cluster configuration to database.
         if not self.cluster_config:
             return
 
@@ -398,7 +397,7 @@ class AdvancedClusterManager:
             await db.commit()
 
     async def _initialize_local_node(self):
-        """Initialize the local node and add it to the cluster."""
+        Initialize the local node and add it to the cluster."""
         # Get system information
         cpu_cores = import psutil
 psutil.cpu_count()
@@ -529,7 +528,7 @@ psutil.disk_usage('/').total / (1024**3)
         return None
 
     async def get_specialized_nodes_by_capability(self, capability: str) -> List[Any]:
-        """Get specialized nodes that have a specific capability."""
+        """Get specialized nodes that have a specific capability.
         matching_nodes = []
 
         for node in self.specialized_nodes.values():
@@ -701,7 +700,7 @@ psutil.disk_usage('/').total / (1024**3)
             raise
 
     async def _save_node_to_database(self, node: ClusterNode):
-        """Save node information to database."""
+        """Save node information to database.
         async with aiosqlite.connect(self.cluster_db_path) as db:
             await db.execute(""")
                 INSERT OR REPLACE INTO cluster_nodes ()
@@ -732,7 +731,7 @@ psutil.disk_usage('/').total / (1024**3)
             await db.commit()
 
     async def _start_cluster_operations(self):
-        """Start cluster operations and background tasks."""
+        Start cluster operations and background tasks."""
         self.cluster_state = ClusterState.ACTIVE
 
         # Start background tasks
@@ -742,7 +741,7 @@ psutil.disk_usage('/').total / (1024**3)
 
         # Log cluster startup
         await self._log_cluster_event("cluster_started", "INFO",)
-                                     f"Cluster started with {len(self.cluster_nodes)} nodes")
+                                    f"Cluster started with {len(self.cluster_nodes)} nodes")
 
         logger.info(f"Cluster operations started - State: {self.cluster_state.value}")
 
@@ -782,7 +781,7 @@ psutil.disk_usage('/').total / (1024**3)
         }
 
     async def _log_cluster_event(self, event_type: str, severity: str, message: str, node_id: Optional[str] = None):
-        """Log cluster events."""
+        """Log cluster events.
         async with aiosqlite.connect(self.cluster_db_path) as db:
             await db.execute(""")
                 INSERT INTO cluster_events ()
@@ -799,7 +798,7 @@ psutil.disk_usage('/').total / (1024**3)
             await db.commit()
 
     async def _cluster_monitoring_task(self):
-        """Background task for cluster monitoring."""
+        Background task for cluster monitoring."""
         while self.cluster_state == ClusterState.ACTIVE:
             try:
                 await asyncio.sleep(30)  # Monitor every 30 seconds
@@ -1239,7 +1238,7 @@ psutil.disk_usage('/').total / (1024**3)
 
         except Exception as e:
             logger.error(f"Failed to get enhanced cluster status: {e}")
-            return {}**base_status, "enhanced_clustering": {"error": str(e)}}
+            return {**base_status, "enhanced_clustering": {"error": str(e)}}}
 
 
 # Global cluster manager instance (will be initialized later)

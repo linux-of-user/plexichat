@@ -3,7 +3,7 @@ Database Performance Monitor
 
 Advanced monitoring system for database performance, query optimization,
 and resource usage tracking with real-time alerts and analytics.
-"""
+
 
 import asyncio
 import logging
@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class QueryMetrics:
     """Metrics for individual queries."""
-    query_hash: str
+        query_hash: str
     query_text: str
     execution_count: int = 0
     total_execution_time: float = 0.0
@@ -37,8 +37,8 @@ class QueryMetrics:
 
 @dataclass
 class ConnectionMetrics:
-    """Connection pool metrics."""
-    active_connections: int = 0
+    Connection pool metrics."""
+        active_connections: int = 0
     idle_connections: int = 0
     total_connections: int = 0
     peak_connections: int = 0
@@ -50,8 +50,8 @@ class ConnectionMetrics:
 
 @dataclass
 class ResourceMetrics:
-    """System resource metrics."""
-    cpu_usage: float = 0.0
+    """System resource metrics.
+        cpu_usage: float = 0.0
     memory_usage: float = 0.0
     disk_io_read: float = 0.0
     disk_io_write: float = 0.0
@@ -62,8 +62,7 @@ class ResourceMetrics:
 
 class DatabasePerformanceMonitor:
     """Advanced database performance monitoring system."""
-
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+        def __init__(self, config: Optional[Dict[str, Any]] = None):
         self.config = config or {}
         self.enabled = self.config.get('enabled', True)
 
@@ -112,8 +111,8 @@ class DatabasePerformanceMonitor:
         logger.info("[STOP] Database performance monitoring stopped")
 
     def record_query_execution(self, query: str, execution_time: float,
-                             rows_affected: int = 0, error: Optional[str] = None,
-                             cache_hit: bool = False):
+                            rows_affected: int = 0, error: Optional[str] = None,
+                            cache_hit: bool = False):
         """Record query execution metrics."""
         if not self.enabled:
             return
@@ -158,7 +157,7 @@ class DatabasePerformanceMonitor:
 
     def update_connection_metrics(self, active: int, idle: int, total: int,
                                 errors: int = 0, timeouts: int = 0):
-        """Update connection pool metrics."""
+        """Update connection pool metrics.
         if not self.enabled:
             return
 

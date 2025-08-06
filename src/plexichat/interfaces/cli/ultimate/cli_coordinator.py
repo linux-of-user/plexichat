@@ -24,7 +24,7 @@ import os
 import time
 PlexiChat Ultimate CLI Coordinator
 Manages 200+ commands organized into logical groups for complete system control
-"""
+
 
 logger = logging.getLogger(__name__)
 console = Console()
@@ -32,7 +32,7 @@ console = Console()
 
 class CommandCategory(Enum):
     """CLI command categories."""
-    CORE = "core"
+        CORE = "core"
     SYSTEM = "system"
     SECURITY = "security"
     DATABASE = "database"
@@ -102,8 +102,7 @@ class UltimateCLICoordinator:
     - Deployment and maintenance
     - Troubleshooting and diagnostics
     """
-
-    def __init__(self):
+        def __init__(self):
         self.commands: Dict[str, UltimateCommand] = {}
         self.categories: Dict[CommandCategory, List[str]] = {}
         self.aliases: Dict[str, str] = {}
@@ -140,7 +139,7 @@ class UltimateCLICoordinator:
         logger.debug(f"Registered ultimate command: {command.name} ({command.category.value})")
 
     def get_command(self, name: str) -> Optional[UltimateCommand]:
-        """Get command by name or alias."""
+        """Get command by name or alias.
         # Check direct name
         if name in self.commands:
             return self.commands[name]
@@ -160,7 +159,7 @@ class UltimateCLICoordinator:
         return list(self.commands.values())
 
     def search_commands(self, query: str) -> List[UltimateCommand]:
-        """Search commands by name, description, or category."""
+        Search commands by name, description, or category."""
         query = query.lower()
         results = []
 
@@ -356,7 +355,7 @@ class UltimateCLICoordinator:
             return False
 
     def _check_permissions(self, command: UltimateCommand) -> bool:
-        """Check if user has permission to execute command."""
+        """Check if user has permission to execute command.
         # This would integrate with the actual authentication system
         if command.requires_auth:
             # Check if user is authenticated

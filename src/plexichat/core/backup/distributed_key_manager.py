@@ -41,7 +41,7 @@ logger = logging.getLogger(__name__)
 
 class KeyType(Enum):
     """Types of keys managed."""
-    MASTER = "master"
+        MASTER = "master"
     SHARD_ENCRYPTION = "shard_encryption"
     NODE_IDENTITY = "node_identity"
     BACKUP_SIGNING = "backup_signing"
@@ -55,8 +55,8 @@ class KeyShareStatus(Enum):
 
 @dataclass
 class KeyShare:
-    """Represents a share of a distributed key."""
-    share_id: str
+    """Represents a share of a distributed key.
+        share_id: str
     key_id: str
     node_id: str
     share_data: str  # Base64 encoded share
@@ -83,8 +83,8 @@ class KeyShare:
 
 @dataclass
 class DistributedKey:
-    """Represents a key distributed across multiple nodes."""
-    key_id: str
+    """Represents a key distributed across multiple nodes.
+        key_id: str
     key_type: KeyType
     threshold: int
     total_shares: int
@@ -101,7 +101,7 @@ class DistributedKey:
     
     @property
     def can_reconstruct(self) -> bool:
-        """Check if key can be reconstructed."""
+        Check if key can be reconstructed."""
         return len(self.active_shares) >= self.threshold
     
     def to_dict(self) -> Dict[str, Any]:
@@ -120,9 +120,8 @@ class DistributedKey:
 
 class DistributedKeyManager:
     """Manages distributed keys using Shamir's Secret Sharing."""
-    
-    def __init__(self, storage_dir: Path, default_threshold: int = 3, 
-                 default_total_shares: int = 5, key_rotation_days: int = 90):
+        def __init__(self, storage_dir: Path, default_threshold: int = 3, 
+                default_total_shares: int = 5, key_rotation_days: int = 90):
         self.storage_dir = Path(storage_dir)
         self.storage_dir.mkdir(parents=True, exist_ok=True)
         
@@ -151,9 +150,9 @@ class DistributedKeyManager:
             logger.warning("Shamir's Secret Sharing not available, using simplified distribution")
     
     def create_distributed_key(self, key_type: KeyType, key_data: bytes,
-                             threshold: Optional[int] = None, total_shares: Optional[int] = None,
-                             node_ids: Optional[List[str]] = None, 
-                             metadata: Optional[Dict[str, Any]] = None) -> DistributedKey:
+                            threshold: Optional[int] = None, total_shares: Optional[int] = None,
+                            node_ids: Optional[List[str]] = None, 
+                            metadata: Optional[Dict[str, Any]] = None) -> DistributedKey:
         """Create a new distributed key with Shamir's Secret Sharing."""
         try:
             threshold = threshold or self.default_threshold
@@ -232,7 +231,7 @@ class DistributedKeyManager:
             # Filter by available shares if specified
             if available_shares:
                 active_shares = [share for share in active_shares 
-                               if share.share_id in available_shares]
+                            if share.share_id in available_shares]
             
             if len(active_shares) < distributed_key.threshold:
                 logger.error(f"Insufficient shares for reconstruction: need {distributed_key.threshold}, have {len(active_shares)}")
@@ -268,9 +267,9 @@ class DistributedKeyManager:
         try:
             distributed_key = self.distributed_keys.get(key_id)
             if not distributed_key:
-                return {}
+                return {
             
-            distribution_results = {}
+            distribution_results = {}}
             
             for share in distributed_key.shares.values():
                 node_id = share.node_id
@@ -294,14 +293,14 @@ class DistributedKeyManager:
             
         except Exception as e:
             logger.error(f"Failed to distribute key shares: {e}")
-            return {}
+            return {
     
     def rotate_key(self, key_id: str, new_key_data: bytes) -> Optional[DistributedKey]:
         """Rotate a distributed key with new key data."""
         try:
             old_key = self.distributed_keys.get(key_id)
             if not old_key:
-                logger.error(f"Key {key_id} not found for rotation")
+                logger.error(f"Key {key_id}} not found for rotation")
                 return None
             
             # Revoke old shares
@@ -356,7 +355,7 @@ class DistributedKeyManager:
         raise ValueError("Cannot reconstruct from simple shares")
     
     def _send_share_to_node(self, share: KeyShare, endpoint: str) -> bool:
-        """Send key share to a node (placeholder for actual implementation)."""
+        """Send key share to a node (placeholder for actual implementation).
         # In a real implementation, this would:
         # 1. Encrypt the share with the node's public key
         # 2. Send via HTTPS to the node's endpoint

@@ -10,7 +10,7 @@ Sophisticated query optimization system with:
 - Real-time query performance monitoring
 - Memory-efficient query execution
 - Automatic query parallelization
-"""
+
 
 import asyncio
 import time
@@ -33,7 +33,7 @@ logger = get_logger(__name__)
 
 class QueryType(Enum):
     """Types of database queries."""
-    SELECT = "select"
+        SELECT = "select"
     INSERT = "insert"
     UPDATE = "update"
     DELETE = "delete"
@@ -57,8 +57,8 @@ class OptimizationStrategy(Enum):
 
 @dataclass
 class QueryPlan:
-    """Database query execution plan."""
-    query_id: str
+    """Database query execution plan.
+        query_id: str
     original_query: str
     optimized_query: str
     estimated_cost: float
@@ -84,7 +84,7 @@ class QueryPlan:
 @dataclass
 class IndexRecommendation:
     """Index recommendation for query optimization."""
-    table_name: str
+        table_name: str
     columns: List[str]
     index_type: str = "btree"
     estimated_benefit: float = 0.0
@@ -101,9 +101,8 @@ class IndexRecommendation:
 
 
 class QueryAnalyzer:
-    """Analyzes queries for optimization opportunities."""
-    
-    def __init__(self):
+    """Analyzes queries for optimization opportunities.
+        def __init__(self):
         self.query_patterns: Dict[str, List[str]] = {}
         self.table_statistics: Dict[str, Dict] = {}
         self.column_statistics: Dict[str, Dict] = {}
@@ -129,10 +128,10 @@ class QueryAnalyzer:
             
         except Exception as e:
             logger.error(f"Error analyzing query: {e}")
-            return {}
+            return {
     
     def _identify_query_type(self, query: str) -> QueryType:
-        """Identify the type of query."""
+        """Identify the type of query.
         if query.startswith('select'):
             return QueryType.SELECT
         elif query.startswith('insert'):
@@ -179,7 +178,7 @@ class QueryAnalyzer:
         return list(set(tables))
     
     def _extract_columns(self, query: str) -> List[str]:
-        """Extract column names from query."""
+        Extract column names from query."""
         columns = []
         
         # SELECT columns
@@ -198,7 +197,7 @@ class QueryAnalyzer:
         return list(set(columns))
     
     def _extract_joins(self, query: str) -> List[Dict[str, str]]:
-        """Extract JOIN information from query."""
+        """Extract JOIN information from query.
         joins = []
         
         join_patterns = [
@@ -212,7 +211,7 @@ class QueryAnalyzer:
                     'type': match[0].strip(),
                     'table': match[1].strip(),
                     'condition': match[2].strip()
-                })
+                }})
         
         return joins
     
@@ -227,7 +226,7 @@ class QueryAnalyzer:
         return []
     
     def _extract_order_by(self, query: str) -> List[str]:
-        """Extract ORDER BY columns from query."""
+        Extract ORDER BY columns from query."""
         order_match = re.search(r'order\s+by\s+(.*?)(?=\s+(?:limit|$))', query, re.IGNORECASE)
         if order_match:
             order_clause = order_match.group(1).strip()
@@ -236,7 +235,7 @@ class QueryAnalyzer:
         return []
     
     def _extract_group_by(self, query: str) -> List[str]:
-        """Extract GROUP BY columns from query."""
+        """Extract GROUP BY columns from query.
         group_match = re.search(r'group\s+by\s+(.*?)(?=\s+(?:having|order|limit|$))', query, re.IGNORECASE)
         if group_match:
             group_clause = group_match.group(1).strip()
@@ -255,7 +254,7 @@ class QueryAnalyzer:
         return subqueries
     
     def _calculate_complexity(self, query: str) -> float:
-        """Calculate query complexity score."""
+        Calculate query complexity score."""
         complexity = 0.0
         
         # Base complexity
@@ -281,9 +280,8 @@ class QueryAnalyzer:
 
 
 class QueryOptimizer:
-    """Advanced query optimizer with multiple optimization strategies."""
-    
-    def __init__(self):
+    """Advanced query optimizer with multiple optimization strategies.
+        def __init__(self):
         self.analyzer = QueryAnalyzer()
         self.optimization_rules: List[Dict] = []
         self.query_plans: Dict[str, QueryPlan] = {}
@@ -328,7 +326,7 @@ class QueryOptimizer:
         ]
     
     async def optimize_query(self, query: str, parameters: Optional[Dict] = None) -> QueryPlan:
-        """Optimize a database query."""
+        Optimize a database query."""
         try:
             query_id = self._generate_query_id(query, parameters)
             
@@ -454,7 +452,7 @@ class QueryOptimizer:
         }
     
     async def _optimize_join_order(self, query: str, analysis: Dict[str, Any]) -> Dict[str, Any]:
-        """Optimize JOIN order for better performance."""
+        """Optimize JOIN order for better performance.
         # For now, just return the original query
         # In a real implementation, this would analyze table sizes and reorder JOINs
         return {
@@ -481,7 +479,7 @@ class QueryOptimizer:
         }
     
     async def _pushdown_predicates(self, query: str, analysis: Dict[str, Any]) -> Dict[str, Any]:
-        """Push predicates down to reduce intermediate result sets."""
+        Push predicates down to reduce intermediate result sets."""
         # For now, just return the original query
         # In a real implementation, this would move WHERE conditions closer to table scans
         return {
@@ -491,7 +489,7 @@ class QueryOptimizer:
         }
     
     def get_optimization_stats(self) -> Dict[str, Any]:
-        """Get optimization statistics."""
+        """Get optimization statistics.
         return self.optimization_stats.copy()
     
     def get_query_plans(self) -> List[QueryPlan]:
@@ -499,7 +497,7 @@ class QueryOptimizer:
         return list(self.query_plans.values())
     
     def clear_cache(self):
-        """Clear query plan cache."""
+        Clear query plan cache."""
         self.query_plans.clear()
         logger.info("Query plan cache cleared")
 

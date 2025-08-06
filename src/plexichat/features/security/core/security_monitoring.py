@@ -24,15 +24,14 @@ PlexiChat Security Monitoring System
 
 Real-time security monitoring with alerting, incident response,
 and comprehensive security event correlation.
-"""
+
 
 logger = logging.getLogger(__name__)
 
 
 class EventType(Enum):
     """Types of security events."""
-
-    AUTHENTICATION_FAILURE = "authentication_failure"
+        AUTHENTICATION_FAILURE = "authentication_failure"
     AUTHORIZATION_FAILURE = "authorization_failure"
     SUSPICIOUS_ACTIVITY = "suspicious_activity"
     MALWARE_DETECTED = "malware_detected"
@@ -50,7 +49,7 @@ class EventType(Enum):
 
 
 class Severity(Enum):
-    """Event severity levels."""
+    """Event severity levels.
 
     INFO = 1
     LOW = 2
@@ -61,8 +60,7 @@ class Severity(Enum):
 
 class AlertStatus(Enum):
     """Alert status."""
-
-    OPEN = "open"
+        OPEN = "open"
     ACKNOWLEDGED = "acknowledged"
     INVESTIGATING = "investigating"
     RESOLVED = "resolved"
@@ -72,7 +70,7 @@ class AlertStatus(Enum):
 
 @dataclass
 class SecurityEvent:
-    """Security event data structure."""
+    """Security event data structure.
 
     event_id: str
     event_type: EventType
@@ -103,9 +101,8 @@ class SecurityEvent:
 
 @dataclass
 class SecurityAlert:
-    """Security alert with response tracking."""
-
-    alert_id: str
+    """Security alert with response tracking.
+        alert_id: str
     event: SecurityEvent
     status: AlertStatus
     created_at: datetime
@@ -132,9 +129,8 @@ class SecurityAlert:
 
 @dataclass
 class MonitoringRule:
-    """Security monitoring rule."""
-
-    rule_id: str
+    """Security monitoring rule.
+        rule_id: str
     name: str
     description: str
     event_types: Set[EventType]
@@ -160,9 +156,8 @@ class MonitoringRule:
 
 
 class SecurityMonitor:
-    """Real-time security monitoring system."""
-
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+    """Real-time security monitoring system.
+        def __init__(self, config: Optional[Dict[str, Any]] = None):
         """Initialize security monitor."""
         self.config = config or {}
 
@@ -272,7 +267,7 @@ class SecurityMonitor:
         logger.info(f"Security event logged: {event.event_type.value} - {event.description}")
 
     async def _check_monitoring_rules(self, event: SecurityEvent):
-        """Check if event triggers any monitoring rules."""
+        """Check if event triggers any monitoring rules.
         current_time = event.timestamp
 
         for rule in self.rules.values():
@@ -483,7 +478,7 @@ Please investigate this security event immediately.
         return False
 
     def get_monitoring_rules(self) -> List[Dict[str, Any]]:
-        """Get all monitoring rules."""
+        """Get all monitoring rules.
         return [rule.to_dict() for rule in self.rules.values()]
 
     def update_alert_status(self, alert_id: str, status: AlertStatus, assigned_to: Optional[str] = None, notes: Optional[str] = None) -> bool:
@@ -501,7 +496,7 @@ Please investigate this security event immediately.
         return True
 
     def get_alerts(self, status: Optional[AlertStatus] = None, limit: int = 100) -> List[Dict[str, Any]]:
-        """Get all monitoring alerts, optionally filtered by status."""
+        """Get all monitoring alerts, optionally filtered by status.
         alerts = list(self.alerts.values())
         if status:
             alerts = [a for a in alerts if a.status == status]
@@ -515,7 +510,7 @@ Please investigate this security event immediately.
         return [e.to_dict() for e in events[:limit]]
 
     def get_statistics(self) -> Dict[str, Any]:
-        """Get monitoring statistics."""
+        Get monitoring statistics."""
         open_alerts = len([
             alert
             for alert in self.alerts.values()

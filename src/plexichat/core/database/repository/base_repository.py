@@ -71,8 +71,8 @@ UpdateT = TypeVar('UpdateT')  # Update DTO type
 
 
 class CacheStrategy(Enum):
-    """Cache strategies for repositories."""
-    NONE = "none"
+    Cache strategies for repositories."""
+        NONE = "none"
     READ_THROUGH = "read_through"
     WRITE_THROUGH = "write_through"
     WRITE_BEHIND = "write_behind"
@@ -104,7 +104,7 @@ class RepositoryConfig:
 @dataclass
 class ValidationResult:
     """Validation result."""
-    is_valid: bool
+        is_valid: bool
     errors: Optional[List[str]] = None
     warnings: Optional[List[str]] = None
 
@@ -116,7 +116,7 @@ class ValidationResult:
 
 
 class BaseRepository(Generic[T, CreateT, UpdateT], ABC):
-    """
+    
     Base Repository providing domain-specific data access patterns.
 
     Features:
@@ -129,8 +129,7 @@ class BaseRepository(Generic[T, CreateT, UpdateT], ABC):
     - Performance optimization
     - Transaction management
     """
-
-    def __init__(self, dao: BaseDAO[T, CreateT, UpdateT], config: Optional[RepositoryConfig] = None):  # type: ignore
+        def __init__(self, dao: BaseDAO[T, CreateT, UpdateT], config: Optional[RepositoryConfig] = None):  # type: ignore
         self.dao = dao
         self.config = config or RepositoryConfig()
         self.entity_name = self.dao.model_class.__name__
@@ -184,10 +183,10 @@ class BaseRepository(Generic[T, CreateT, UpdateT], ABC):
         return entity
 
     async def find_all(self,)
-                      filters: Optional[List[FilterCriteria]] = None,
-                      sorts: Optional[List[SortCriteria]] = None,
-                      pagination: Optional[PaginationParams] = None,
-                      include_relations: Optional[List[str]] = None) -> QueryResult[T]:  # type: ignore
+                    filters: Optional[List[FilterCriteria]] = None,
+                    sorts: Optional[List[SortCriteria]] = None,
+                    pagination: Optional[PaginationParams] = None,
+                    include_relations: Optional[List[str]] = None) -> QueryResult[T]:  # type: ignore
         """Find entities with advanced filtering and pagination."""
         self.stats["operations_count"] += 1
 
@@ -329,7 +328,7 @@ class BaseRepository(Generic[T, CreateT, UpdateT], ABC):
         return entity is not None
 
     async def count(self, filters: Optional[List[FilterCriteria]] = None) -> int:
-        """Count entities matching criteria."""
+        Count entities matching criteria."""
         options = QueryOptions(filters=filters or [])
         result = await self.dao.get_all(options)
         return result.total_count
@@ -436,7 +435,7 @@ class BaseRepository(Generic[T, CreateT, UpdateT], ABC):
         self._cache_timestamps[key] = datetime.now(timezone.utc)
 
     def _remove_from_cache(self, key: str):
-        """Remove entity from cache."""
+        Remove entity from cache."""
         self._cache.pop(key, None)
         self._cache_timestamps.pop(key, None)
 
@@ -476,7 +475,7 @@ class BaseRepository(Generic[T, CreateT, UpdateT], ABC):
         self._validators.append(validator)
 
     async def _validate_create(self, create_data: CreateT) -> ValidationResult:
-        """Validate create data."""
+        Validate create data."""
         result = ValidationResult(is_valid=True)
         result.__post_init__()
 
@@ -526,6 +525,7 @@ class BaseRepository(Generic[T, CreateT, UpdateT], ABC):
     @abstractmethod
     async def _to_domain_entity(self, dao_entity) -> T:
         """Transform DAO entity to domain entity."""
+        pass
 
     @abstractmethod
     async def _to_dao_create(self, create_data: CreateT) -> Any:
@@ -534,10 +534,12 @@ class BaseRepository(Generic[T, CreateT, UpdateT], ABC):
     @abstractmethod
     async def _to_dao_update(self, update_data: UpdateT) -> Any:
         """Transform update data to DAO format."""
+        pass
 
     @abstractmethod
     async def _criteria_to_filters(self, criteria: Dict[str, Any]) -> List[FilterCriteria]:
         """Convert business criteria to filter criteria."""
+        pass
 
     # Statistics and Monitoring
 
@@ -548,7 +550,7 @@ class BaseRepository(Generic[T, CreateT, UpdateT], ABC):
         if total_cache_operations > 0:
             cache_hit_rate = self.stats["cache_hits"] / total_cache_operations
 
-        return {}
+        return {
             "entity_name": self.entity_name,
             "operations_count": self.stats["operations_count"],
             "cache_hit_rate": cache_hit_rate,
@@ -560,7 +562,7 @@ class BaseRepository(Generic[T, CreateT, UpdateT], ABC):
                 "cache_ttl": self.config.cache_ttl,
                 "enable_events": self.config.enable_events,
                 "enable_validation": self.config.enable_validation
-            }
+            }}
         }
 
     async def health_check(self) -> Dict[str, Any]:
@@ -575,13 +577,13 @@ class BaseRepository(Generic[T, CreateT, UpdateT], ABC):
             end_time = datetime.now(timezone.utc)
             response_time = (end_time - start_time).total_seconds() * 1000
 
-            return {}
+            return {
                 "status": "healthy",
                 "response_time_ms": response_time,
                 "entity_count": count,
                 "cache_size": len(self._cache),
                 "last_check": end_time.isoformat()
-            }
+            }}
 
         except Exception as e:
             return {

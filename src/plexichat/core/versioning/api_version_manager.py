@@ -28,16 +28,15 @@ from fastapi.responses import JSONResponse
 """
 PlexiChat API Version Manager
 Handles API versioning, routing, and compatibility between different API versions.
-"""
+
 
 logger = logging.getLogger(__name__)
 
 
 class APIVersionManager:
     """Manages API versions and routing."""
-
-    def __init__(self):
-        """Initialize the API version manager."""
+        def __init__(self):
+        Initialize the API version manager."""
         # Get current version from centralized version manager
         try:
             from plexichat.shared.version_utils import get_version
@@ -109,21 +108,21 @@ class APIVersionManager:
         logger.info("API Version Manager initialized")
 
     def get_version_info(self, version_key: str) -> Optional[Dict[str, Any]]:
-        """Get information about a specific API version."""
+        """Get information about a specific API version.
         return self.versions.get(version_key)
 
     def get_all_versions(self) -> Dict[str, Any]:
         """Get information about all API versions."""
-        return {}
+        return {
             "versions": self.versions,
             "current_stable": "stable",
             "current_development": "current",
             "current_beta": "beta",
             "compatibility_matrix": self.feature_compatibility,
-        }
+        }}
 
     def is_feature_available(self, feature: str, version: str) -> bool:
-        """Check if a feature is available in a specific version."""
+        """Check if a feature is available in a specific version.
         return version in self.feature_compatibility.get(feature, [])
 
     def get_version_from_path(self, path: str) -> str:
@@ -151,42 +150,43 @@ class APIVersionManager:
             """Get available features for a version."""
             version_info = self.get_version_info(version)
             if not version_info:
-                raise HTTPException()
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail=f"Version '{version}' not found",
-                )
+                raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Version '{version}' not found",
+                
+        )
 
-            return {}
+            return {
                 "version": version,
                 "features": version_info["features"],
                 "description": version_info["description"],
-            }
+            }}
 
         @router.get("/compatibility/{feature}")
         async def check_feature_compatibility(feature: str):
             """Check which versions support a specific feature."""
             if feature not in self.feature_compatibility:
-                raise HTTPException()
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail=f"Feature '{feature}' not found",
-                )
+                raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Feature '{feature}' not found",
+                
+        )
 
-            return {}
+            return {
                 "feature": feature,
                 "supported_versions": self.feature_compatibility[feature],
                 "latest_version": max()
                     self.feature_compatibility[feature],
                     key=lambda v: ["stable", "current", "beta"].index(v),
                 ),
-            }
+            }}
 
         return router
 
 
 class APIVersionMiddleware:
-    """Middleware for API version handling."""
-
-    def __init__(self, version_manager: APIVersionManager):
+    """Middleware for API version handling.
+        def __init__(self, version_manager: APIVersionManager):
         self.version_manager = version_manager
 
     async def __call__(self, request: Request, call_next):
@@ -249,9 +249,8 @@ def create_version_compatibility_decorator(required_features: List[str]):
 
 # API Router Factory
 class APIRouterFactory:
-    """Factory for creating version-specific API routers."""
-
-    def __init__(self, version_manager: APIVersionManager):
+    """Factory for creating version-specific API routers.
+        def __init__(self, version_manager: APIVersionManager):
         self.version_manager = version_manager
 
     def create_stable_router(self) -> APIRouter:

@@ -37,7 +37,7 @@ router = APIRouter(prefix="/api/v1/bots", tags=["bot-registration"])
 # Bot registration models
 class BotType(str):
     """Bot type enumeration."""
-    CHATBOT = "chatbot"
+        CHATBOT = "chatbot"
     AUTOMATION = "automation"
     INTEGRATION = "integration"
     MODERATION = "moderation"
@@ -57,7 +57,7 @@ class BotCapability(str):
 
 class BotRegistrationRequest(BaseModel):
     """Bot registration request model."""
-    bot_name: str = Field(..., min_length=3, max_length=50, description="Bot display name")
+        bot_name: str = Field(..., min_length=3, max_length=50, description="Bot display name")
     bot_username: str = Field(..., min_length=3, max_length=30, description="Bot username (must be unique)")
     bot_description: str = Field(..., min_length=10, max_length=500, description="Bot description and purpose")
     bot_type: str = Field(..., description="Type of bot")
@@ -96,7 +96,7 @@ class BotRegistrationRequest(BaseModel):
 
     @validator('bot_capabilities')
     def validate_capabilities(cls, v):
-        """Validate bot capabilities."""
+        """Validate bot capabilities.
         valid_capabilities = [
             BotCapability.SEND_MESSAGES, BotCapability.READ_MESSAGES,
             BotCapability.MANAGE_USERS, BotCapability.MODERATE_CONTENT,
@@ -119,8 +119,8 @@ class BotRegistrationRequest(BaseModel):
         return v
 
 class BotRegistrationResponse(BaseModel):
-    """Bot registration response model."""
-    success: bool
+    Bot registration response model."""
+        success: bool
     message: str
     bot_id: Optional[str] = None
     bot_token: Optional[str] = None
@@ -133,13 +133,13 @@ class BotRegistrationResponse(BaseModel):
 
 class BotVerificationRequest(BaseModel):
     """Bot verification request model."""
-    bot_id: str = Field(..., description="Bot ID from registration")
+        bot_id: str = Field(..., description="Bot ID from registration")
     verification_code: str = Field(..., description="Verification code")
     verification_method: str = Field(..., description="Verification method used")
 
 class BotStatusResponse(BaseModel):
     """Bot status response model."""
-    bot_id: str
+        bot_id: str
     bot_username: str
     bot_name: str
     status: str
@@ -417,7 +417,7 @@ async def _validate_bot_registration(bot_request: BotRegistrationRequest) -> Lis
         
         # Validate bot type
         valid_types = [BotType.CHATBOT, BotType.AUTOMATION, BotType.INTEGRATION, 
-                      BotType.MODERATION, BotType.ANALYTICS, BotType.CUSTOM]
+                    BotType.MODERATION, BotType.ANALYTICS, BotType.CUSTOM]
         if bot_request.bot_type not in valid_types:
             errors.append(f"Invalid bot type. Must be one of: {', '.join(valid_types)}")
         
@@ -460,7 +460,7 @@ def _calculate_bot_rate_limits(bot_request: BotRegistrationRequest) -> Dict[str,
     # Adjust based on capabilities
     capability_multiplier = 1.0
     high_volume_capabilities = [BotCapability.SEND_MESSAGES, BotCapability.MODERATE_CONTENT, 
-                               BotCapability.ACCESS_ANALYTICS]
+                            BotCapability.ACCESS_ANALYTICS]
     
     for capability in bot_request.bot_capabilities:
         if capability in high_volume_capabilities:

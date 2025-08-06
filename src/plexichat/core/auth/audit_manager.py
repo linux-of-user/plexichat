@@ -6,21 +6,20 @@ from typing import Any, Dict, Optional
 PlexiChat Authentication Audit Manager
 
 Comprehensive audit logging for authentication events and compliance.
-"""
+
 
 logger = logging.getLogger(__name__)
 
 
 class AuthAuditManager:
     """Authentication audit manager."""
-
-    def __init__(self):
+        def __init__(self):
         self.config = {}
         self.audit_logs = []  # Mock storage
         self.initialized = False
 
     async def initialize(self, config: Dict[str, Any]):
-        """Initialize audit manager."""
+        Initialize audit manager."""
         self.config = config
         self.initialized = True
         logger.info(" Auth Audit Manager initialized")

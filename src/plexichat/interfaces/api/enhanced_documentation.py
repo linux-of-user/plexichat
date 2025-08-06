@@ -8,7 +8,7 @@ import platform
 import time
 Enhanced API Documentation System
 Provides comprehensive API documentation with security information and interactive testing.
-"""
+
 
 import json
 import logging
@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 class SecurityInfo(BaseModel):
     """Security information for API endpoints."""
-    authentication_required: bool
+        authentication_required: bool
     authorization_level: str
     rate_limit: Optional[Dict[str, int]]
     input_validation: bool
@@ -35,8 +35,8 @@ class SecurityInfo(BaseModel):
 
 
 class EndpointDocumentation(BaseModel):
-    """Enhanced endpoint documentation."""
-    path: str
+    Enhanced endpoint documentation."""
+        path: str
     method: str
     summary: str
     description: str
@@ -51,8 +51,7 @@ class EndpointDocumentation(BaseModel):
 
 class EnhancedAPIDocumentation:
     """Enhanced API documentation system."""
-
-    def __init__(self, app: FastAPI):
+        def __init__(self, app: FastAPI):
         self.app = app
         self.endpoints_info: Dict[str, EndpointDocumentation] = {}
         self.security_schemes = {
@@ -107,7 +106,7 @@ class EnhancedAPIDocumentation:
         return openapi_schema
 
     def _get_api_description(self) -> str:
-        """Get comprehensive API description."""
+        """Get comprehensive API description.
         return """
 # PlexiChat Enhanced API
 
@@ -146,7 +145,7 @@ For API support, please contact our development team or refer to the comprehensi
         """
 
     def _add_security_info_to_schema(self, schema: Dict[str, Any]):
-        """Add security information to OpenAPI schema."""
+        Add security information to OpenAPI schema."""
         if "paths" not in schema:
             return
 
@@ -161,7 +160,7 @@ For API support, please contact our development team or refer to the comprehensi
                         operation["description"] += self._get_security_description(path, method)
 
     def _get_security_description(self, path: str, method: str) -> str:
-        """Get security description for endpoint."""
+        """Get security description for endpoint.
         return """
 
 ### Security Requirements
@@ -174,7 +173,7 @@ For API support, please contact our development team or refer to the comprehensi
         """
 
     def _add_enhanced_examples(self, schema: Dict[str, Any]):
-        """Add enhanced examples to OpenAPI schema."""
+        Add enhanced examples to OpenAPI schema."""
         if "paths" not in schema:
             return
 
@@ -247,7 +246,7 @@ For API support, please contact our development team or refer to the comprehensi
                             operation["responses"][status_code] = response_info
 
     def generate_interactive_docs(self) -> str:
-        """Generate interactive API documentation HTML."""
+        """Generate interactive API documentation HTML.
         return """
 <!DOCTYPE html>
 <html lang="en">
@@ -310,7 +309,7 @@ For API support, please contact our development team or refer to the comprehensi
         """
 
     def add_endpoint_documentation(self, endpoint_doc: EndpointDocumentation):
-        """Add documentation for a specific endpoint."""
+        Add documentation for a specific endpoint."""
         key = f"{endpoint_doc.method.upper()}:{endpoint_doc.path}"
         self.endpoints_info[key] = endpoint_doc
 

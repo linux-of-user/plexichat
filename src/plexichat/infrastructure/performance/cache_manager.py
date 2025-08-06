@@ -25,7 +25,7 @@ PlexiChat Secure Caching System
 
 Quantum-encrypted caching with security-aware performance optimization.
 Integrates with the unified security architecture for maximum protection.
-"""
+
 
 # Import security systems
 logger = logging.getLogger(__name__)
@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 
 class CacheLevel(Enum):
     """Cache security levels."""
-    PUBLIC = 1          # No encryption
+        PUBLIC = 1          # No encryption
     INTERNAL = 2        # Basic encryption
     CONFIDENTIAL = 3    # Strong encryption
     RESTRICTED = 4      # Quantum encryption
@@ -41,7 +41,7 @@ class CacheLevel(Enum):
 
 
 class CacheStrategy(Enum):
-    """Cache eviction strategies."""
+    Cache eviction strategies."""
     LRU = "lru"         # Least Recently Used
     LFU = "lfu"         # Least Frequently Used
     TTL = "ttl"         # Time To Live
@@ -50,8 +50,8 @@ class CacheStrategy(Enum):
 
 @dataclass
 class SecureCacheEntry:
-    """Secure cache entry with encryption metadata."""
-    key: str
+    """Secure cache entry with encryption metadata.
+        key: str
     encrypted_data: bytes
     encryption_metadata: Dict[str, Any]
     security_level: CacheLevel
@@ -66,7 +66,7 @@ class SecureCacheEntry:
 @dataclass
 class CacheStats:
     """Cache performance statistics."""
-    total_entries: int = 0
+        total_entries: int = 0
     total_size: int = 0
     hit_count: int = 0
     miss_count: int = 0
@@ -77,7 +77,7 @@ class CacheStats:
 
 
 class QuantumSecureCache:
-    """
+    
     Quantum-Secure Cache System
 
     Features:
@@ -89,11 +89,10 @@ class QuantumSecureCache:
     - Automatic key rotation
     - Threat-aware cache management
     """
-
-    def __init__(self,
-                 max_size: int = 1024 * 1024 * 100,  # 100MB default
-                 default_ttl: int = 3600,  # 1 hour
-                 security_level: CacheLevel = CacheLevel.RESTRICTED):
+        def __init__(self,
+                max_size: int = 1024 * 1024 * 100,  # 100MB default
+                default_ttl: int = 3600,  # 1 hour
+                security_level: CacheLevel = CacheLevel.RESTRICTED):
 
         self.max_size = max_size
         self.default_ttl = default_ttl
@@ -158,10 +157,10 @@ class QuantumSecureCache:
         asyncio.create_task(maintenance_loop())
 
     async def set(self,
-                  key: str,
-                  value: Any,
-                  ttl: Optional[int] = None,
-                  security_level: Optional[CacheLevel] = None) -> bool:
+                key: str,
+                value: Any,
+                ttl: Optional[int] = None,
+                security_level: Optional[CacheLevel] = None) -> bool:
         """Set a value in the secure cache."""
         try:
             security_level = security_level or self.default_security_level
@@ -349,7 +348,7 @@ class QuantumSecureCache:
             raise ValueError(f"Unknown encryption type: {encryption_type}")
 
     def _get_quantum_security_tier(self, cache_level: CacheLevel):
-        """Convert cache security level to quantum security tier."""
+        """Convert cache security level to quantum security tier.
         mapping = {
             CacheLevel.RESTRICTED: SecurityTier.GOVERNMENT,
             CacheLevel.TOP_SECRET: SecurityTier.QUANTUM_PROOF
@@ -367,7 +366,7 @@ class QuantumSecureCache:
         self.access_frequency[key] = self.access_frequency.get(key, 0) + 1
 
     async def _cleanup_expired_entries(self):
-        """Clean up expired cache entries."""
+        Clean up expired cache entries."""
         current_time = datetime.now(timezone.utc)
         expired_keys = []
 
@@ -401,7 +400,7 @@ class QuantumSecureCache:
             logger.info(f" Evicted {evicted_count} cache entries to enforce size limits")
 
     def _select_eviction_candidate(self) -> Optional[str]:
-        """Select a cache entry for eviction based on strategy."""
+        """Select a cache entry for eviction based on strategy.
         if not self.cache_entries:
             return None
 
@@ -448,13 +447,13 @@ class QuantumSecureCache:
         self.stats.last_updated = datetime.now(timezone.utc)
 
     def get_stats(self) -> Dict[str, Any]:
-        """Get cache statistics."""
+        Get cache statistics."""
         hit_rate = ()
             self.stats.hit_count / (self.stats.hit_count + self.stats.miss_count)
             if (self.stats.hit_count + self.stats.miss_count) > 0 else 0.0
         )
 
-        return {}
+        return {
             "total_entries": self.stats.total_entries,
             "total_size": self.stats.total_size,
             "max_size": self.max_size,
@@ -468,7 +467,7 @@ class QuantumSecureCache:
             "eviction_strategy": self.eviction_strategy.value,
             "default_security_level": self.default_security_level.name,
             "last_updated": self.stats.last_updated.isoformat()
-        }
+        }}
 
 
 # Global secure cache instance

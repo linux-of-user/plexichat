@@ -101,7 +101,7 @@ class AIProvidersPlugin(PluginInterface):
     """AI Providers Plugin with BitNet, Llama, and HF support."""
 
     def __init__(self):
-        super().__init__("ai_providers", "1.0.0")
+        super().__init__("ai_providers", {})
         
         # Providers
         self.bitnet: Optional[BitNetProvider] = None
@@ -127,18 +127,13 @@ class AIProvidersPlugin(PluginInterface):
             version="1.0.0",
             description="AI providers with BitNet 1-bit LLM, Llama.cpp, and HF support",
             author="PlexiChat Team",
-            plugin_type=PluginType.FEATURE,
+            plugin_type=PluginType.AI_PROVIDER,
             enabled=True
         )
 
     def get_required_permissions(self) -> ModulePermissions:
         """Get required permissions."""
         return ModulePermissions(
-            capabilities=[
-                ModuleCapability("messaging", "AI messaging capabilities"),
-                ModuleCapability("file_system_access", "File system access for models"),
-                ModuleCapability("network_access", "Network access for remote models")
-            ],
             network_access=True,
             file_system_access=True,
             database_access=False
@@ -266,7 +261,32 @@ class AIProvidersPlugin(PluginInterface):
         except Exception as e:
             logger.error(f"Failed to initialize tests: {e}")
 
-    async def get_status(self) -> Dict[str, Any]:
+    async def initialize(self) -> bool:
+        """Initialize the AI providers plugin."""
+        try:
+            self.logger.info("Initializing AI Providers Plugin...")
+
+            # Initialize available providers
+            for provider_name in ["bitnet", "llama", "huggingface"]:
+                try:
+                    from .providers import create_provider
+                    provider = create_provider(provider_name)
+                    if provider:
+                        setattr(self, provider_name.replace("huggingface", "hf"), provider)
+                        self.logger.info(f"Initialized provider: {provider_name}")
+                except Exception as e:
+                    self.logger.warning(f"Failed to initialize provider {provider_name}: {e}")
+
+            self.initialized = True
+            self.logger.info("AI Providers Plugin initialized successfully")
+            return True
+
+        except Exception as e:
+            self.logger.error(f"Failed to initialize AI Providers Plugin: {e}")
+            self.last_error = e
+            return False
+
+    def get_status(self) -> Dict[str, Any]:
         """Get provider status."""
         return {
             "bitnet": {

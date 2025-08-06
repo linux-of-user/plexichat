@@ -42,14 +42,14 @@ Features:
 - ACME protocol integration
 - Certificate backup and recovery
 - Unified security integration
-"""
+
 
 logger = get_logger(__name__)
 
 
 class CertificateType(Enum):
     """Types of certificates."""
-    SELF_SIGNED = "self_signed"
+        SELF_SIGNED = "self_signed"
     LETS_ENCRYPT = "lets_encrypt"
     CUSTOM_CA = "custom_ca"
     WILDCARD = "wildcard"
@@ -66,8 +66,8 @@ class CertificateStatus(Enum):
 
 @dataclass
 class CertificateInfo:
-    """Certificate information."""
-    domain: str
+    """Certificate information.
+        domain: str
     certificate_type: CertificateType
     certificate_path: Path
     private_key_path: Path
@@ -90,8 +90,7 @@ class ConsolidatedCertificateManager:
     Replaces all previous certificate management systems with a unified,
     comprehensive solution supporting all certificate types and operations.
     """
-
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+        def __init__(self, config: Optional[Dict[str, Any]] = None):
         self.config = config or getattr(get_config(), "certificates", {})
         self.initialized = False
 
@@ -188,7 +187,7 @@ class ConsolidatedCertificateManager:
             return None
 
     def _get_certificate_status(self, expiry_date: datetime) -> CertificateStatus:
-        """Get certificate status based on expiry date."""
+        """Get certificate status based on expiry date.
         if not expiry_date:
             return CertificateStatus.INVALID
 
@@ -474,7 +473,7 @@ class ConsolidatedCertificateManager:
         if cert_info.expiry_date:
             days_until_expiry = (cert_info.expiry_date - now).days
 
-        return {}
+        return {
             "domain": domain,
             "certificate_type": cert_info.certificate_type.value,
             "status": cert_info.status.value,
@@ -484,7 +483,7 @@ class ConsolidatedCertificateManager:
             "auto_renew": cert_info.auto_renew,
             "san_domains": cert_info.san_domains,
             "renewal_failures": cert_info.renewal_failures
-        }
+        }}
 
     async def _certificate_renewal_task(self) -> None:
         """Background task for certificate renewal."""

@@ -8,7 +8,7 @@ Provides enterprise-grade error handling with:
 - User-friendly error responses
 - Comprehensive error analytics
 - Security-aware error handling
-"""
+
 
 import asyncio
 import json
@@ -32,7 +32,7 @@ logger = get_logger(__name__)
 
 class ErrorType(Enum):
     """Enhanced error type classification."""
-    VALIDATION = "validation"
+        VALIDATION = "validation"
     AUTHENTICATION = "authentication"
     AUTHORIZATION = "authorization"
     NOT_FOUND = "not_found"
@@ -58,7 +58,7 @@ class ErrorContext(Enum):
 @dataclass
 class ErrorDetails:
     """Comprehensive error details with context."""
-    error_id: str = field(default_factory=lambda: str(uuid.uuid4()))
+        error_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     correlation_id: str = ""
     error_type: ErrorType = ErrorType.SYSTEM
     error_context: ErrorContext = ErrorContext.SYSTEM_OPERATION
@@ -101,9 +101,8 @@ class ErrorDetails:
 
 
 class EnhancedErrorHandler:
-    """Enhanced error handler with descriptive messages and analytics."""
-    
-    def __init__(self):
+    """Enhanced error handler with descriptive messages and analytics.
+        def __init__(self):
         self.error_templates = self._load_error_templates()
         self.error_analytics = {}
         self.correlation_tracker = {}
@@ -159,11 +158,11 @@ class EnhancedErrorHandler:
         }
     
     async def handle_error(self, 
-                          exception: Exception,
-                          request: Optional[Request] = None,
-                          correlation_id: Optional[str] = None,
-                          context: Optional[Dict[str, Any]] = None) -> ErrorDetails:
-        """Handle error with comprehensive analysis and response generation."""
+                        exception: Exception,
+                        request: Optional[Request] = None,
+                        correlation_id: Optional[str] = None,
+                        context: Optional[Dict[str, Any]] = None) -> ErrorDetails:
+        """Handle error with comprehensive analysis and response generation.
         
         # Generate correlation ID if not provided
         if not correlation_id:
@@ -185,10 +184,10 @@ class EnhancedErrorHandler:
         return error_details
     
     async def _analyze_error(self, 
-                           exception: Exception,
-                           request: Optional[Request],
-                           correlation_id: str,
-                           context: Optional[Dict[str, Any]]) -> ErrorDetails:
+                        exception: Exception,
+                        request: Optional[Request],
+                        correlation_id: str,
+                        context: Optional[Dict[str, Any]]) -> ErrorDetails:
         """Analyze error and create comprehensive error details."""
         
         error_details = ErrorDetails(correlation_id=correlation_id)
@@ -235,7 +234,7 @@ class EnhancedErrorHandler:
         return error_details
     
     def _classify_error(self, exception: Exception) -> ErrorType:
-        """Classify error based on exception type and content."""
+        """Classify error based on exception type and content.
         exception_name = type(exception).__name__.lower()
         exception_message = str(exception).lower()
         
@@ -287,7 +286,7 @@ class EnhancedErrorHandler:
         return ErrorContext.SYSTEM_OPERATION
     
     def _determine_severity(self, exception: Exception, error_type: ErrorType) -> ErrorSeverity:
-        """Determine error severity based on exception and type."""
+        """Determine error severity based on exception and type.
         if error_type == ErrorType.SECURITY:
             return ErrorSeverity.HIGH
         elif error_type in [ErrorType.DATABASE, ErrorType.SYSTEM]:
@@ -393,7 +392,7 @@ class EnhancedErrorHandler:
         # such as rate limiting, IP blocking, or alerting
     
     def create_error_response(self, error_details: ErrorDetails, include_debug: bool = False) -> JSONResponse:
-        """Create a comprehensive error response."""
+        """Create a comprehensive error response.
         response_data = {
             'error': {
                 'id': error_details.error_id,

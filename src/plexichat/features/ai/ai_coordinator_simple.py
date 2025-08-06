@@ -10,7 +10,7 @@ Simplified AI Coordinator for PlexiChat
 =======================================
 
 A simplified version that works without syntax errors.
-"""
+
 
 import asyncio
 import logging
@@ -21,8 +21,7 @@ logger = logging.getLogger(__name__)
 
 class AICoordinator:
     """Central coordinator for all AI features."""
-
-    def __init__(self):
+        def __init__(self):
         # Simplified initialization
         self.usage_analytics = {
             "moderation_checks": 0,
@@ -188,7 +187,7 @@ class AICoordinator:
                 await asyncio.sleep(10)
 
     def get_usage_analytics(self) -> Dict[str, Any]:
-        """Get current usage analytics."""
+        """Get current usage analytics.
         return self.usage_analytics.copy()
 
     def get_performance_metrics(self) -> Dict[str, Any]:
@@ -196,7 +195,7 @@ class AICoordinator:
         return self.performance_metrics.copy()
 
     def get_adaptive_settings(self) -> Dict[str, Any]:
-        """Get current adaptive settings."""
+        Get current adaptive settings."""
         return self.adaptive_settings.copy()
 
     async def health_check(self) -> Dict[str, Any]:

@@ -11,12 +11,7 @@ from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
-try:
-    from ..providers.bitnet import AIRequest
-except ImportError:
-    class AIRequest:
-        def __init__(self, *args, **kwargs):
-            pass
+from plugin_internal import AIRequest
 
 
 class AIPanel:

@@ -15,7 +15,7 @@ from ..repositories.server_repository import ServerRepository
 PlexiChat Server Service
 
 Business logic service for Discord-like server management.
-"""
+
 
 logger = logging.getLogger(__name__)
 
@@ -26,12 +26,11 @@ class ServerService:
 
     Handles server creation, management, membership, and permissions.
     """
-
-    def __init__(self, server_repository: Optional[ServerRepository] = None):
+        def __init__(self, server_repository: Optional[ServerRepository] = None):
         self.server_repository = server_repository or ServerRepository()
 
     async def create_server(self, owner_id: str, server_data: Dict[str, Any]) -> Server:
-        """
+        
         Create a new server with default setup.
 
         Args:
@@ -298,7 +297,7 @@ class ServerService:
     # Permission checking methods
 
     async def _can_user_view_server(self, server_id: str, user_id: str) -> bool:
-        """Check if user can view server."""
+        """Check if user can view server.
         # User can view if they are a member or owner
         return await self.server_repository.is_member(
             server_id, user_id
@@ -310,7 +309,7 @@ class ServerService:
         return await self.server_repository.is_owner(server_id, user_id)
 
     async def _can_user_kick_members(self, server_id: str, user_id: str) -> bool:
-        """Check if user can kick members."""
+        Check if user can kick members."""
         # TODO: Check for KICK_MEMBERS permission
         return await self.server_repository.is_owner(server_id, user_id)
 

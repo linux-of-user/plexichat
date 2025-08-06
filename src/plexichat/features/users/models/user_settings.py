@@ -3,7 +3,7 @@ PlexiChat User Settings Models
 =============================
 
 Comprehensive user settings system with extensive privacy and customization options.
-"""
+
 
 from datetime import datetime
 from enum import Enum
@@ -17,7 +17,7 @@ Base = declarative_base()
 
 class PrivacyLevel(str, Enum):
     """Privacy levels for various settings."""
-    PUBLIC = "public"
+        PUBLIC = "public"
     FRIENDS_ONLY = "friends_only"
     PRIVATE = "private"
     CUSTOM = "custom"
@@ -32,7 +32,7 @@ class MessagePermission(str, Enum):
 
 class OnlineStatus(str, Enum):
     """Online status visibility options."""
-    VISIBLE = "visible"
+        VISIBLE = "visible"
     FRIENDS_ONLY = "friends_only"
     INVISIBLE = "invisible"
 
@@ -47,7 +47,7 @@ class NotificationFrequency(str, Enum):
 
 class Theme(str, Enum):
     """UI theme options."""
-    LIGHT = "light"
+        LIGHT = "light"
     DARK = "dark"
     AUTO = "auto"
     HIGH_CONTRAST = "high_contrast"
@@ -69,7 +69,7 @@ class Language(str, Enum):
 # Database Model
 class UserSettings(Base):
     """Comprehensive user settings database model."""
-    __tablename__ = "user_settings"
+        __tablename__ = "user_settings"
     
     # Primary key
     user_id = Column(String(36), ForeignKey("users.id"), primary_key=True)
@@ -143,7 +143,7 @@ class UserSettings(Base):
 
 # Pydantic Models for API
 class UserSettingsBase(BaseModel):
-    """Base user settings model."""
+    """Base user settings model.
     # Privacy Settings
     profile_visibility: PrivacyLevel = PrivacyLevel.FRIENDS_ONLY
     message_permissions: MessagePermission = MessagePermission.FRIENDS_ONLY
@@ -206,10 +206,10 @@ class UserSettingsBase(BaseModel):
 
 class UserSettingsCreate(UserSettingsBase):
     """Model for creating user settings."""
-    pass
+        pass
 
 class UserSettingsUpdate(BaseModel):
-    """Model for updating user settings (all fields optional)."""
+    Model for updating user settings (all fields optional)."""
     # Privacy Settings
     profile_visibility: Optional[PrivacyLevel] = None
     message_permissions: Optional[MessagePermission] = None
@@ -272,7 +272,7 @@ class UserSettingsUpdate(BaseModel):
 
 class UserSettingsResponse(UserSettingsBase):
     """Model for user settings response."""
-    user_id: str
+        user_id: str
     created_at: datetime
     updated_at: datetime
     

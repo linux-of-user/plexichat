@@ -331,7 +331,7 @@ async def create_default_settings(user_id: str) -> Dict:
 
 def create_default_settings_dict(user_id: str) -> Dict:
     """Create default settings dictionary."""
-    return {}
+    return {
         "user_id": user_id,
         "profile_visibility": "friends_only",
         "message_permissions": "friends_only",
@@ -372,7 +372,7 @@ def create_default_settings_dict(user_id: str) -> Dict:
         "backup_frequency_days": 7,
         "analytics_enabled": True,
         "crash_reports_enabled": True,
-        "custom_settings": {},
+        "custom_settings": {}},
         "blocked_users": [],
         "blocked_keywords": [],
         "created_at": datetime.utcnow(),
@@ -392,7 +392,7 @@ async def update_user_settings_internal(user_id: str, update_data: Dict):
             user_settings_db[user_id]["updated_at"] = datetime.utcnow()
 
 async def check_friendship(user1_id: str, user2_id: str) -> bool:
-    """Check if two users are friends."""
+    """Check if two users are friends.
     # Placeholder implementation
     # In a real system, this would check the friends/contacts table
     return True  # For testing, assume everyone is friends
@@ -403,6 +403,6 @@ async def check_user_verified(user_id: str) -> bool:
     return True  # For testing, assume all users are verified
 
 async def check_contact(user1_id: str, user2_id: str) -> bool:
-    """Check if two users are contacts."""
+    Check if two users are contacts."""
     # Placeholder implementation
     return True  # For testing, assume everyone is a contact

@@ -47,12 +47,12 @@ Features:
 - Performance alerting
 - Trend analysis
 - Bottleneck detection
-"""
+
 
 @dataclass
 class PerformanceMetric:
     """Performance metric data structure."""
-    name: str
+        name: str
     value: float
     unit: str
     timestamp: datetime
@@ -60,7 +60,7 @@ class PerformanceMetric:
     metadata: Dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
-        """Convert metric to dictionary."""
+        Convert metric to dictionary."""
         return {
             "name": self.name,
             "value": self.value,
@@ -72,8 +72,8 @@ class PerformanceMetric:
 
 @dataclass
 class PerformanceAlert:
-    """Performance alert configuration."""
-    metric_name: str
+    """Performance alert configuration.
+        metric_name: str
     threshold: float
     comparison: str  # 'gt', 'lt', 'eq', 'gte', 'lte'
     duration: int  # seconds
@@ -100,15 +100,14 @@ class PerformanceAlert:
         return comparison_func(metric.value, self.threshold)
 
 class MetricBuffer:
-    """Thread-safe buffer for performance metrics."""
-
-    def __init__(self, max_size: int = 10000):
+    Thread-safe buffer for performance metrics."""
+        def __init__(self, max_size: int = 10000):
         self.max_size = max_size
         self.metrics: Dict[str, deque] = defaultdict(lambda: deque(maxlen=max_size))
         self.lock = threading.RLock()
 
     def add_metric(self, metric: PerformanceMetric):
-        """Add metric to buffer."""
+        """Add metric to buffer.
         with self.lock:
             self.metrics[metric.name].append(metric)
 
@@ -130,27 +129,26 @@ class MetricBuffer:
             return metrics
 
     def get_all_metric_names(self) -> List[str]:
-        """Get all metric names."""
+        Get all metric names."""
         with self.lock:
             return list(self.metrics.keys())
 
     def clear_old_metrics(self, older_than: datetime):
-        """Clear metrics older than specified time."""
+        """Clear metrics older than specified time.
         with self.lock:
             for metric_name in self.metrics:
                 self.metrics[metric_name] = deque([m for m in self.metrics[metric_name] if m.timestamp >= older_than], maxlen=self.max_size)
 
 class SystemMonitor:
     """System resource monitoring."""
-
-    def __init__(self):
+        def __init__(self):
         self.process = psutil.Process() if psutil else None
         self.last_cpu_times = None
         self.last_network_io = None
         self.last_disk_io = None
 
     def get_cpu_usage(self) -> float:
-        """Get current CPU usage percentage."""
+        Get current CPU usage percentage."""
         if self.process is None:
             return 0.0
         return self.process.cpu_percent()
@@ -187,7 +185,7 @@ class SystemMonitor:
     def get_disk_usage(self) -> Dict[str, float]:
         """Get disk I/O statistics."""
         if self.process is None:
-            return {}
+            return {
         try:
             disk_io = self.process.io_counters()
             return {
@@ -195,16 +193,16 @@ class SystemMonitor:
                 "write_bytes": disk_io.write_bytes,
                 "read_count": disk_io.read_count,
                 "write_count": disk_io.write_count
-            }
+            }}
         except (psutil.AccessDenied if psutil else Exception, AttributeError):
-            return {}
+            return {
 
     def get_network_usage(self) -> Dict[str, float]:
         """Get network I/O statistics."""
         try:
             network_io = psutil.net_io_counters() if psutil else None
             if network_io is None:
-                return {}
+                return {}}
             return {
                 "bytes_sent": network_io.bytes_sent,
                 "bytes_recv": network_io.bytes_recv,
@@ -212,10 +210,10 @@ class SystemMonitor:
                 "packets_recv": network_io.packets_recv
             }
         except AttributeError:
-            return {}
+            return {
 
     def get_thread_count(self) -> int:
-        """Get current thread count."""
+        """Get current thread count.
         if self.process is None:
             return 0
         return self.process.num_threads()
@@ -230,14 +228,13 @@ class SystemMonitor:
             return 0
 
 class PerformanceLogger:
-    """Comprehensive performance logging and monitoring."""
-
-    def __init__(self, log_dir: Path, config: Optional[Dict[str, Any]] = None):
+    Comprehensive performance logging and monitoring."""
+        def __init__(self, log_dir: Path, config: Optional[Dict[str, Any]] = None):
         self.log_dir = log_dir
         self.log_dir.mkdir(parents=True, exist_ok=True)
 
         # Configuration
-        self.config = config or {}
+        self.config = config or {}}
         self.config.setdefault("compact_logging", True)  # Enable compact logging by default
         self.config.setdefault("batch_logging", True)    # Enable batch logging by default
         self.config.setdefault("log_level", "INFO")      # Default log level
@@ -306,7 +303,7 @@ class PerformanceLogger:
         ))
 
     def add_alert(self, alert: PerformanceAlert):
-        """Add performance alert."""
+        """Add performance alert.
         with self.lock:
             self.alerts.append(alert)
 
@@ -489,7 +486,7 @@ class PerformanceLogger:
         return summary
 
     def export_metrics(self, output_file: Path, start_time: Optional[datetime] = None, end_time: Optional[datetime] = None):
-        """Export metrics to JSON file."""
+        """Export metrics to JSON file.
         metrics_data = []
 
         for metric_name in self.metric_buffer.get_all_metric_names():
@@ -510,7 +507,7 @@ class PerformanceLogger:
 _performance_logger = None
 
 def get_performance_logger() -> PerformanceLogger:
-    """Get the global performance logger instance."""
+    Get the global performance logger instance."""
     global _performance_logger
     if _performance_logger is None:
         try:
@@ -537,7 +534,7 @@ def get_performance_logger() -> PerformanceLogger:
 
 # Convenience functions
 def record_metric(name: str, value: float, unit: str = "", **kwargs):
-    """Record a performance metric."""
+    """Record a performance metric.
     get_performance_logger().record_metric(name, value, unit, **kwargs)
 
 def timer(operation_name: str, **kwargs):
@@ -545,7 +542,7 @@ def timer(operation_name: str, **kwargs):
     return get_performance_logger().timer(operation_name, **kwargs)
 
 def time_function(func_name: Optional[str] = None):
-    """Function timing decorator."""
+    Function timing decorator."""
     return get_performance_logger().time_function(func_name)
 
 # Export main components

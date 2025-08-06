@@ -24,15 +24,14 @@ PlexiChat AI-Powered Features Service Integration
 
 Handles initialization, lifecycle management, and integration of AI-powered features
 with PlexiChat's main application and service management framework.
-"""
+
 
 logger = get_logger(__name__)
 
 
 class AIPoweredFeaturesIntegration(BaseService):
     """Integration service for AI-powered features."""
-
-    def __init__(self, config: Dict[str, Any] = None):
+        def __init__(self, config: Dict[str, Any] = None):
         super().__init__("ai_powered_features", config or {})
         self.ai_features_service: Optional[AIPoweredFeaturesService] = None
         self._initialized = False
@@ -122,29 +121,29 @@ class AIPoweredFeaturesIntegration(BaseService):
     async def health_check(self) -> Dict[str, Any]:
         """Perform health check on the AI-powered features service."""
         if not self.ai_features_service:
-            return {}
+            return {
                 "status": "error",
                 "message": "Service not initialized",
                 "timestamp": self._get_timestamp()
-            }
+            }}
 
         try:
             health = await self.ai_features_service.health_check()
-            return {}
+            return {
                 "status": "healthy" if health.get("service_state") == "running" else "unhealthy",
                 "details": health,
                 "timestamp": self._get_timestamp()
-            }
+            }}
 
         except Exception as e:
-            return {}
+            return {
                 "status": "error",
                 "message": str(e),
                 "timestamp": self._get_timestamp()
-            }
+            }}
 
     def get_service(self) -> Optional[AIPoweredFeaturesService]:
-        """Get the AI-powered features service instance."""
+        """Get the AI-powered features service instance.
         return self.ai_features_service
 
     async def _load_configuration(self) -> Dict[str, Any]:
@@ -360,7 +359,7 @@ _ai_features_integration: Optional[AIPoweredFeaturesIntegration] = None
 
 
 def get_ai_features_integration() -> Optional[AIPoweredFeaturesIntegration]:
-    """Get the global AI-powered features integration instance."""
+    """Get the global AI-powered features integration instance.
     return _ai_features_integration
 
 
@@ -372,7 +371,7 @@ def initialize_ai_features_integration(config: Dict[str, Any] = None) -> AIPower
 
 
 async def startup_ai_features():
-    """Startup function for AI-powered features integration."""
+    Startup function for AI-powered features integration."""
     try:
         integration = get_ai_features_integration()
         if not integration:

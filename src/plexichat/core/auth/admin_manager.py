@@ -3,7 +3,7 @@ import time
 PlexiChat Admin Management System
 
 Unified admin management with authentication, permissions, and system control.
-"""
+
 
 import asyncio
 import json
@@ -28,7 +28,7 @@ logger = get_logger(__name__)
 @dataclass
 class AdminUser:
     """Admin user data model."""
-    username: str
+        username: str
     email: str
     role: str
     permissions: List[str]
@@ -40,8 +40,8 @@ class AdminUser:
 
 @dataclass
 class AdminSession:
-    """Admin session data model."""
-    token: str
+    Admin session data model."""
+        token: str
     username: str
     created_at: datetime
     expires_at: datetime
@@ -50,8 +50,7 @@ class AdminSession:
 
 class AdminManager:
     """Unified admin management system."""
-
-    def __init__(self, data_dir: Optional[Path] = None):
+        def __init__(self, data_dir: Optional[Path] = None):
         self.data_dir = data_dir or Path("data/admin")
         self.data_dir.mkdir(parents=True, exist_ok=True)
 
@@ -160,7 +159,7 @@ class AdminManager:
             logger.error(f"Error creating default admin: {e}")
 
     def _clean_expired_sessions(self):
-        """Remove expired sessions."""
+        """Remove expired sessions.
         now = datetime.now(timezone.utc)
         expired_tokens = [
             token for token, session in self.sessions.items()
@@ -174,8 +173,8 @@ class AdminManager:
             self._save_data()
 
     async def authenticate(self, username: str, password: str,
-                          ip_address: Optional[str] = None,
-                          user_agent: Optional[str] = None) -> Optional[str]:
+                        ip_address: Optional[str] = None,
+                        user_agent: Optional[str] = None) -> Optional[str]:
         """Authenticate admin user and create session."""
         try:
             # Use credentials manager if available
@@ -291,7 +290,7 @@ class AdminManager:
             return False
 
     def get_admin(self, username: str) -> Optional[AdminUser]:
-        """Get admin user by username."""
+        """Get admin user by username.
         return self.admins.get(username)
 
     def list_admins(self) -> List[AdminUser]:
@@ -299,7 +298,7 @@ class AdminManager:
         return list(self.admins.values())
 
     def has_permission(self, username: str, permission: str) -> bool:
-        """Check if admin has specific permission."""
+        Check if admin has specific permission."""
         admin = self.admins.get(username)
         if not admin:
             return False

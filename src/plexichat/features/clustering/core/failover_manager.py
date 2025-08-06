@@ -18,7 +18,7 @@ Advanced Automatic Failover Manager
 
 Provides intelligent failure detection and automatic failover management
 with seamless service continuity and system recovery.
-"""
+
 
 # Configuration constants
 FAILOVER_TIMEOUT_SECONDS = 30
@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 
 class FailureType(Enum):
     """Types of failures that can trigger failover."""
-    NODE_UNRESPONSIVE = "node_unresponsive"
+        NODE_UNRESPONSIVE = "node_unresponsive"
     HIGH_ERROR_RATE = "high_error_rate"
     RESOURCE_EXHAUSTION = "resource_exhaustion"
     NETWORK_PARTITION = "network_partition"
@@ -49,7 +49,7 @@ class FailoverStrategy(Enum):
 
 class RecoveryStatus(Enum):
     """Recovery status."""
-    PENDING = "pending"
+        PENDING = "pending"
     IN_PROGRESS = "in_progress"
     COMPLETED = "completed"
     FAILED = "failed"
@@ -58,7 +58,7 @@ class RecoveryStatus(Enum):
 
 @dataclass
 class FailureEvent:
-    """Failure event record."""
+    """Failure event record.
     event_id: str
     node_id: str
     failure_type: FailureType
@@ -74,7 +74,7 @@ class FailureEvent:
 @dataclass
 class FailoverPlan:
     """Failover execution plan."""
-    plan_id: str
+        plan_id: str
     failed_node_id: str
     target_node_id: str
     strategy: FailoverStrategy
@@ -87,8 +87,8 @@ class FailoverPlan:
 
 @dataclass
 class FailoverExecution:
-    """Failover execution record."""
-    execution_id: str
+    Failover execution record."""
+        execution_id: str
     plan_id: str
     failed_node_id: str
     target_node_id: str
@@ -116,9 +116,8 @@ class AutomaticFailoverManager:
     - Rollback capabilities
     - Performance impact minimization
     - Comprehensive failure analysis
-    """
-
-    def __init__(self, cluster_manager):
+    
+        def __init__(self, cluster_manager):
         """Initialize the failover manager."""
         self.cluster_manager = cluster_manager
         self.failure_events: List[FailureEvent] = []
@@ -262,12 +261,12 @@ class AutomaticFailoverManager:
         )
 
         logger.info(f"Created failover plan {plan.plan_id}: {failed_node_id} -> {target_node_id} ")
-                   f"using {strategy.value} strategy")
+                f"using {strategy.value} strategy")
 
         return plan
 
     async def _select_failover_target(self, failed_node_id: str) -> Optional[str]:
-        """Select the best node to handle failover."""
+        """Select the best node to handle failover.
         available_nodes = []
 
         for node_id, node in self.cluster_manager.cluster_nodes.items():
@@ -308,7 +307,7 @@ class AutomaticFailoverManager:
             return FailoverStrategy.GRACEFUL
 
     def _estimate_failover_downtime(self, strategy: FailoverStrategy, failure_event: FailureEvent) -> float:
-        """Estimate failover downtime in seconds."""
+        Estimate failover downtime in seconds."""
         base_time = {
             FailoverStrategy.IMMEDIATE: 5.0,
             FailoverStrategy.GRACEFUL: 15.0,
@@ -326,7 +325,7 @@ class AutomaticFailoverManager:
         return base_time.get(strategy, 15.0) * multiplier
 
     def _create_failover_steps(self, failed_node_id: str, target_node_id: str,):
-                             strategy: FailoverStrategy) -> List[Dict[str, Any]]:
+                            strategy: FailoverStrategy) -> List[Dict[str, Any]]:
         """Create detailed failover execution steps."""
         steps = []
 
@@ -623,7 +622,7 @@ class AutomaticFailoverManager:
             if (datetime.now(timezone.utc) - event.detected_at).total_seconds() < 3600  # Last hour
         ]
 
-        return {}
+        return {
             "total_failovers": self.total_failovers,
             "successful_failovers": self.successful_failovers,
             "success_rate": (self.successful_failovers / max(1, self.total_failovers)) * 100,
@@ -634,7 +633,7 @@ class AutomaticFailoverManager:
             "recent_failures_last_hour": len(recent_failures),
             "failure_type_distribution": failure_type_counts,
             "unresolved_failures": len([e for e in self.failure_events if not e.resolved])
-        }
+        }}
 
     async def _failure_detection_task(self):
         """Background task for failure detection."""
@@ -700,7 +699,7 @@ class AutomaticFailoverManager:
                         node = self.cluster_manager.cluster_nodes[failover.target_node_id]
                         if node.status != NodeStatus.ONLINE or node.current_load > 0.9:
                             logger.warning(f"Target node {failover.target_node_id} from failover ")
-                                         f"{failover.execution_id} may need attention")
+                                        f"{failover.execution_id} may need attention")
 
             except Exception as e:
                 logger.error(f"Recovery verification task error: {e}")

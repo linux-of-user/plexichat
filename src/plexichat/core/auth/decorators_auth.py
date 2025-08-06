@@ -11,7 +11,7 @@ PlexiChat Authentication Decorators
 Decorators for protecting functions and endpoints with authentication requirements.
 """
 
-def require_auth(security_level: str = "BASIC", scopes: Optional[List[str]] = None, Optional):
+def require_auth(security_level: str = "BASIC", scopes: Optional[List[str]] = None):
     """
     Decorator to require authentication with optional security level and scopes.
 
@@ -76,7 +76,7 @@ def require_mfa(func: Callable) -> Callable:
 
 
 def require_level(level: str):
-    """Decorator to require specific security level."""
+    """Decorator to require specific security level.
     return require_auth(security_level=level)
 
 

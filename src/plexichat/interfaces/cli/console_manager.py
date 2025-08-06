@@ -31,7 +31,7 @@ import logging
 """
 Enhanced Split-Screen Console Interface
 Provides advanced split-screen functionality with real-time updates, interactive features, and improved layout.
-"""
+
 
 # Rich library imports (optional)
 try:
@@ -49,7 +49,7 @@ except ImportError:
 @dataclass
 class LogEntry:
     """Enhanced log entry with additional metadata."""
-    timestamp: datetime
+        timestamp: datetime
     level: str
     module: str
     message: str
@@ -61,8 +61,8 @@ class LogEntry:
 
 @dataclass
 class SystemMetrics:
-    """System performance metrics."""
-    cpu_percent: float
+    System performance metrics."""
+        cpu_percent: float
     memory_percent: float
     memory_used_mb: int
     disk_percent: float
@@ -73,8 +73,7 @@ class SystemMetrics:
 
 class EnhancedSplitScreen:
     """Enhanced split-screen console interface with advanced features."""
-
-    def __init__(self, logger=None):
+        def __init__(self, logger=None):
         self.logger = logger or logging.getLogger(__name__)
         self.console = Console() if RICH_AVAILABLE else None
         self.layout = None
@@ -336,7 +335,7 @@ class EnhancedSplitScreen:
         ))
 
     def _get_level_style(self, level: str) -> str:
-        """Get the style for a log level."""
+        """Get the style for a log level.
         level_styles = {
             'DEBUG': 'dim',
             'INFO': 'blue',
@@ -367,7 +366,7 @@ class EnhancedSplitScreen:
             self.stats['warnings'] += 1
 
     def start_operation(self, operation_id: str, operation_type: str = "request"):
-        """Start tracking an operation."""
+        """Start tracking an operation.
         self.active_operations[operation_id] = {
             'type': operation_type,
             'status': 'running',
@@ -382,7 +381,7 @@ class EnhancedSplitScreen:
             self.active_operations[operation_id]['success'] = success
 
     def _start_fallback_mode(self):
-        """Start fallback mode without Rich library."""
+        Start fallback mode without Rich library."""
         logger = logging.getLogger(__name__)
         logger.info("=" * 80)
         logger.info("PlexiChat Enhanced Console - Fallback Mode")
@@ -552,7 +551,7 @@ class EnhancedSplitScreen:
         ))
 
     def _input_handler(self):
-        """Handle keyboard input for interactive features."""
+        """Handle keyboard input for interactive features.
         if not HAS_KEYBOARD:
             # Keyboard module not available, use basic input
             while self.active:
@@ -599,7 +598,7 @@ class EnhancedSplitScreen:
             self.config['refresh_rate'] = 8 if self.config['refresh_rate'] == 4 else 4
 
     def _show_detailed_stats(self):
-        """Show detailed statistics."""
+        Show detailed statistics."""
         uptime = datetime.now() - self.stats['start_time']
 
         stats_info = {
@@ -625,7 +624,7 @@ settings."""
             self.logger.info(f"Configuration updated: {config_updates}")
 
     def get_stats(self) -> Dict[str, Any]:
-        """Get current statistics."""
+        """Get current statistics.
         return {
             **self.stats,
             'active_operations': len(self.active_operations),

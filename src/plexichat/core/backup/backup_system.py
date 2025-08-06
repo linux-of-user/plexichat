@@ -4,7 +4,7 @@ PlexiChat Unified Backup System
 
 A clean, simple, and effective backup system that integrates with the unified
 configuration system and provides reliable backup and restore functionality.
-"""
+
 
 import asyncio
 import gzip
@@ -47,15 +47,15 @@ logger = logging.getLogger(__name__)
 # Exceptions
 class BackupError(Exception):
     """Backup operation error."""
-    pass
+        pass
 
 class RestoreError(Exception):
-    """Restore operation error."""
+    Restore operation error."""
     pass
 
 class BackupType(Enum):
     """Types of backups."""
-    DATABASE = "database"
+        DATABASE = "database"
     FILES = "files"
     FULL = "full"
     CONFIG = "config"
@@ -70,10 +70,9 @@ class BackupStatus(Enum):
     CANCELLED = "cancelled"
 
 class BackupInfo:
-    """Information about a backup."""
-    
-    def __init__(self, backup_id: str, backup_type: BackupType, name: str, 
-                 file_path: str, size: int = 0, created_at: datetime = None):
+    """Information about a backup.
+        def __init__(self, backup_id: str, backup_type: BackupType, name: str, 
+                file_path: str, size: int = 0, created_at: datetime = None):
         self.backup_id = backup_id
         self.backup_type = backup_type
         self.name = name
@@ -119,8 +118,7 @@ class BackupInfo:
 
 class BackupManager:
     """Unified backup manager for PlexiChat."""
-    
-    def __init__(self):
+        def __init__(self):
         try:
             if CONFIG_AVAILABLE:
                 from ...config.simple_config import get_config
@@ -198,7 +196,7 @@ class BackupManager:
         return Path("backups")
     
     def _get_config_value(self, key: str, default: Any) -> Any:
-        """Get configuration value with fallback."""
+        """Get configuration value with fallback.
         if self.config and hasattr(self.config, 'system'):
             return getattr(self.config.system, key, default)
         return default
@@ -308,7 +306,7 @@ class BackupManager:
             return False
 
     async def create_files_backup(self, name: Optional[str] = None,
-                                 include_paths: Optional[List[str]] = None) -> Optional[BackupInfo]:
+                                include_paths: Optional[List[str]] = None) -> Optional[BackupInfo]:
         """Create a files backup."""
         try:
             backup_id = str(uuid4())
@@ -379,7 +377,7 @@ class BackupManager:
             return False
 
     async def create_message_diff_backup(self, name: Optional[str] = None,
-                                       since_timestamp: Optional[datetime] = None) -> Optional[BackupInfo]:
+                                    since_timestamp: Optional[datetime] = None) -> Optional[BackupInfo]:
         """Create a differential backup of messages since a specific timestamp."""
         try:
             backup_id = str(uuid4())
@@ -674,7 +672,7 @@ class BackupManager:
             return False
 
     def list_backups(self, backup_type: Optional[BackupType] = None) -> List[BackupInfo]:
-        """List all backups, optionally filtered by type."""
+        """List all backups, optionally filtered by type.
         backups = list(self.backups.values())
 
         if backup_type:
@@ -690,7 +688,7 @@ class BackupManager:
         return self.backups.get(backup_id)
 
     def delete_backup(self, backup_id: str) -> bool:
-        """Delete a backup."""
+        Delete a backup."""
         try:
             if backup_id not in self.backups:
                 return False
@@ -745,7 +743,7 @@ class BackupManager:
             return 0
 
     async def register_storage_node(self, node_id: str, endpoint: str, capacity_gb: float,
-                                  location: str, user_id: Optional[str] = None) -> bool:
+                                location: str, user_id: Optional[str] = None) -> bool:
         """Register a storage node (simplified for API compatibility)."""
         try:
             # For now, just log the registration
@@ -765,7 +763,7 @@ class BackupManager:
         }
 
     async def create_massive_database_backup(self, name: Optional[str] = None,
-                                           streaming: bool = True) -> Optional[BackupInfo]:
+                                        streaming: bool = True) -> Optional[BackupInfo]:
         """Create massive database backup (fallback to regular backup for now)."""
         try:
             logger.info(f"Creating massive database backup (streaming: {streaming})")
@@ -776,7 +774,7 @@ class BackupManager:
             return None
 
     async def restore_massive_backup(self, backup_id: str, target_path: Optional[str] = None,
-                                   verify_integrity: bool = True) -> Optional[str]:
+                                verify_integrity: bool = True) -> Optional[str]:
         """Restore massive backup (fallback to regular restore for now)."""
         try:
             logger.info(f"Restoring massive backup {backup_id} (verify: {verify_integrity})")
@@ -808,7 +806,7 @@ class BackupManager:
 _backup_manager: Optional[BackupManager] = None
 
 def get_backup_manager() -> BackupManager:
-    """Get the global backup manager instance."""
+    """Get the global backup manager instance.
     global _backup_manager
     if _backup_manager is None:
         _backup_manager = BackupManager()
@@ -820,12 +818,12 @@ async def create_database_backup(name: Optional[str] = None) -> Optional[BackupI
     return await get_backup_manager().create_database_backup(name)
 
 async def create_files_backup(name: Optional[str] = None,
-                             include_paths: Optional[List[str]] = None) -> Optional[BackupInfo]:
-    """Create a files backup."""
+                            include_paths: Optional[List[str]] = None) -> Optional[BackupInfo]:
+    Create a files backup."""
     return await get_backup_manager().create_files_backup(name, include_paths)
 
 async def create_full_backup(name: Optional[str] = None) -> Optional[BackupInfo]:
-    """Create a full backup."""
+    """Create a full backup.
     return await get_backup_manager().create_full_backup(name)
 
 async def restore_backup(backup_id: str, restore_path: Optional[str] = None) -> bool:
@@ -833,7 +831,7 @@ async def restore_backup(backup_id: str, restore_path: Optional[str] = None) -> 
     return await get_backup_manager().restore_backup(backup_id, restore_path)
 
 def list_backups(backup_type: Optional[BackupType] = None) -> List[BackupInfo]:
-    """List all backups."""
+    List all backups."""
     return get_backup_manager().list_backups(backup_type)
 
 # Export main classes and functions

@@ -1,7 +1,7 @@
 """
 Advanced Penetration Testing Suite for PlexiChat
 Comprehensive security testing with advanced attack vectors and vulnerability assessment.
-"""
+
 
 import asyncio
 import json
@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 class VulnerabilityType(Enum):
     """Types of vulnerabilities to test for."""
-    SQL_INJECTION = "sql_injection"
+        SQL_INJECTION = "sql_injection"
     XSS = "xss"
     CSRF = "csrf"
     AUTHENTICATION_BYPASS = "auth_bypass"
@@ -58,8 +58,8 @@ class SeverityLevel(Enum):
 
 @dataclass
 class VulnerabilityResult:
-    """Result of a vulnerability test."""
-    vulnerability_type: VulnerabilityType
+    """Result of a vulnerability test.
+        vulnerability_type: VulnerabilityType
     severity: SeverityLevel
     endpoint: str
     method: str
@@ -74,7 +74,7 @@ class VulnerabilityResult:
 @dataclass
 class PenetrationTestReport:
     """Comprehensive penetration test report."""
-    target_url: str
+        target_url: str
     start_time: datetime
     end_time: Optional[datetime] = None
     vulnerabilities: List[VulnerabilityResult] = field(default_factory=list)
@@ -88,9 +88,8 @@ class PenetrationTestReport:
 
 
 class AdvancedPenetrationTester:
-    """Advanced penetration testing suite with comprehensive attack vectors."""
-    
-    def __init__(self, base_url: str = "http://localhost:8000"):
+    Advanced penetration testing suite with comprehensive attack vectors."""
+        def __init__(self, base_url: str = "http://localhost:8000"):
         self.base_url = base_url.rstrip('/')
         self.session = requests.Session()
         
@@ -632,7 +631,7 @@ class AdvancedPenetrationTester:
             logger.error(f"Error testing session management: {e}")
 
     def _calculate_report_statistics(self):
-        """Calculate vulnerability statistics for the report."""
+        """Calculate vulnerability statistics for the report.
         for vuln in self.report.vulnerabilities:
             if vuln.severity == SeverityLevel.CRITICAL:
                 self.report.critical_count += 1
@@ -655,7 +654,7 @@ class AdvancedPenetrationTester:
             return self._generate_text_report()
 
     def _generate_json_report(self) -> str:
-        """Generate JSON format report."""
+        Generate JSON format report."""
         report_data = {
             'target_url': self.report.target_url,
             'start_time': self.report.start_time.isoformat(),

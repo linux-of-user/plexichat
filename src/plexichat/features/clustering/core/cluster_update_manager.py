@@ -25,14 +25,14 @@ Manages coordinated updates across cluster nodes with:
 - Node health monitoring during updates
 - Rollback coordination
 - Update status synchronization
-"""
+
 
 logger = logging.getLogger(__name__)
 
 
 class ClusterUpdateStrategy(Enum):
     """Cluster update strategies."""
-    ROLLING = "rolling"  # Update nodes one by one
+        ROLLING = "rolling"  # Update nodes one by one
     PARALLEL = "parallel"  # Update multiple nodes simultaneously
     BLUE_GREEN = "blue_green"  # Blue-green deployment
     CANARY = "canary"  # Canary deployment
@@ -51,8 +51,8 @@ class ClusterUpdatePhase(Enum):
 
 @dataclass
 class NodeUpdateStatus:
-    """Status of update on a specific node."""
-    node_id: str
+    """Status of update on a specific node.
+        node_id: str
     node_name: str
     status: UpdateStatus
     current_phase: str
@@ -81,8 +81,8 @@ class NodeUpdateStatus:
 
 @dataclass
 class ClusterUpdateOperation:
-    """Represents a cluster-wide update operation."""
-    operation_id: str
+    """Represents a cluster-wide update operation.
+        operation_id: str
     target_version: Version
     update_type: UpdateType
     strategy: ClusterUpdateStrategy
@@ -99,7 +99,7 @@ class ClusterUpdateOperation:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for serialization."""
-        return {}
+        return {
             "operation_id": self.operation_id,
             "target_version": str(self.target_version),
             "update_type": self.update_type.value,
@@ -109,7 +109,7 @@ class ClusterUpdateOperation:
             "started_at": self.started_at.isoformat(),
             "estimated_completion": self.estimated_completion.isoformat() if self.estimated_completion else None,
             "completed_at": self.completed_at.isoformat() if self.completed_at else None,
-            "node_statuses": {node_id: status.to_dict() for node_id, status in self.node_statuses.items()},
+            "node_statuses": {node_id: status.to_dict() for node_id, status in self.node_statuses.items()}},
             "overall_progress": self.overall_progress,
             "success": self.success,
             "error_message": self.error_message,
@@ -118,9 +118,8 @@ class ClusterUpdateOperation:
 
 
 class ClusterUpdateManager:
-    """Manages coordinated updates across cluster nodes."""
-
-    def __init__(self, cluster_manager):
+    """Manages coordinated updates across cluster nodes.
+        def __init__(self, cluster_manager):
         """Initialize cluster update manager."""
         self.cluster_manager = cluster_manager
         self.update_system = UpdateSystem()
@@ -544,7 +543,7 @@ datetime = datetime.now()
             return None
 
     def get_operation_status(self, operation_id: str) -> Optional[Dict[str, Any]]:
-        """Get status of a cluster update operation."""
+        """Get status of a cluster update operation.
         operation = self.active_operations.get(operation_id)
         if operation:
             return operation.to_dict()
@@ -561,7 +560,7 @@ datetime = datetime.now()
         return [op.to_dict() for op in self.active_operations.values()]
 
     def list_operation_history(self, limit: int = 10) -> List[Dict[str, Any]]:
-        """List cluster update operation history."""
+        List cluster update operation history."""
         return [op.to_dict() for op in self.operation_history[-limit:]]
 
 

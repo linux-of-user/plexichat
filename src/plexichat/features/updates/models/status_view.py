@@ -19,7 +19,7 @@ import time
 PlexiChat Status View Model
 
 Tracking who viewed status updates.
-"""
+
 
 # Initialize snowflake generator for status views
 view_snowflake = SnowflakeGenerator(datacenter_id=3, worker_id=2)
@@ -31,8 +31,7 @@ class StatusView(SQLModel, table=True):
 
     Records when users view status updates for analytics and read receipts.
     """
-
-    __tablename__ = "status_views"
+        __tablename__ = "status_views"
 
     # Primary identification
     view_id: str = Field()
@@ -66,9 +65,8 @@ class StatusView(SQLModel, table=True):
     # user: Optional["User"] = Relationship()
 
     class Config:
-        """SQLModel configuration."""
-
-        arbitrary_types_allowed = True
+    """SQLModel configuration."""
+            arbitrary_types_allowed = True
         json_encoders = {datetime: lambda v: v.isoformat() if v else None}
 
     def __repr__(self) -> str:
@@ -76,12 +74,12 @@ class StatusView(SQLModel, table=True):
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert status view to dictionary."""
-        return {}
+        return {
             "view_id": self.view_id,
             "status_id": self.status_id,
             "user_id": self.user_id,
             "viewed_at": self.viewed_at.isoformat() if self.viewed_at else None,
-        }
+        }}
 
 
 # Database indexes for performance

@@ -2,7 +2,7 @@
 Basic Enhanced Database Test
 
 Simple test to verify enhanced database functionality without Redis dependency.
-"""
+
 
 import asyncio
 import logging

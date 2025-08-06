@@ -30,14 +30,14 @@ Advanced canary deployment system for staged rollouts with:
 - Progressive rollout strategies
 - A/B testing capabilities
 - Performance impact analysis
-"""
+
 
 logger = logging.getLogger(__name__)
 
 
 class CanaryStrategy(Enum):
     """Canary deployment strategies."""
-    PERCENTAGE_BASED = "percentage_based"
+        PERCENTAGE_BASED = "percentage_based"
     NODE_COUNT_BASED = "node_count_based"
     GEOGRAPHIC_BASED = "geographic_based"
     LOAD_BASED = "load_based"
@@ -59,7 +59,7 @@ class CanaryPhase(Enum):
 
 class HealthCheckType(Enum):
     """Types of health checks."""
-    HTTP_ENDPOINT = "http_endpoint"
+        HTTP_ENDPOINT = "http_endpoint"
     PERFORMANCE_METRICS = "performance_metrics"
     ERROR_RATE = "error_rate"
     RESPONSE_TIME = "response_time"
@@ -69,7 +69,7 @@ class HealthCheckType(Enum):
 
 @dataclass
 class CanaryNode:
-    """Node selected for canary deployment."""
+    """Node selected for canary deployment.
     node_id: str
     node_type: str
     region: str
@@ -87,8 +87,8 @@ class CanaryNode:
 
 @dataclass
 class HealthCheck:
-    """Health check configuration."""
-    check_type: HealthCheckType
+    Health check configuration."""
+        check_type: HealthCheckType
     endpoint: Optional[str] = None
     metric_name: Optional[str] = None
     threshold: float = 0.0
@@ -109,8 +109,8 @@ class HealthCheck:
 
 @dataclass
 class CanaryDeploymentPlan:
-    """Canary deployment plan."""
-    deployment_id: str
+    """Canary deployment plan.
+        deployment_id: str
     update_id: str
     strategy: CanaryStrategy
     phases: List[Dict[str, Any]] = field(default_factory=list)
@@ -134,7 +134,7 @@ class CanaryDeploymentPlan:
 @dataclass
 class CanaryDeploymentResult:
     """Result of canary deployment."""
-    deployment_id: str
+        deployment_id: str
     phase: CanaryPhase
     success: bool
     message: str
@@ -154,8 +154,7 @@ class CanaryDeploymentResult:
 
 class CanaryDeploymentManager:
     """Manages canary deployments with intelligent rollout strategies."""
-
-    def __init__(self):
+        def __init__(self):
         self.active_deployments: Dict[str, CanaryDeploymentResult] = {}
         self.node_selector = None
         self.health_monitor = None
@@ -199,8 +198,8 @@ class CanaryDeploymentManager:
         logger.info("Canary deployment manager initialized")
 
     async def create_deployment_plan(self, update_id: str,)
-                                   strategy: CanaryStrategy = CanaryStrategy.PERCENTAGE_BASED,
-                                   custom_config: Optional[Dict[str, Any]] = None) -> CanaryDeploymentPlan:
+                                strategy: CanaryStrategy = CanaryStrategy.PERCENTAGE_BASED,
+                                custom_config: Optional[Dict[str, Any]] = None) -> CanaryDeploymentPlan:
         """Create canary deployment plan."""
         deployment_id = f"canary_{update_id}_{int(datetime.now().timestamp())}"
 
@@ -257,7 +256,7 @@ class CanaryDeploymentManager:
         logger.info(f"Created {len(plan.phases)} deployment phases")
 
     async def _get_total_node_count(self) -> int:
-        """Get total number of available nodes."""
+        """Get total number of available nodes.
         if self.cluster_manager:
             nodes = await self.cluster_manager.get_all_nodes()
             return len(nodes)
@@ -357,8 +356,8 @@ class CanaryDeploymentManager:
         return result
 
     async def _select_canary_nodes(self, plan: CanaryDeploymentPlan,)
-                                 phase_config: Dict[str, Any],
-                                 result: CanaryDeploymentResult) -> List[CanaryNode]:
+                                phase_config: Dict[str, Any],
+                                result: CanaryDeploymentResult) -> List[CanaryNode]:
         """Select nodes for canary deployment phase."""
         try:
             if self.node_selector:
@@ -412,16 +411,16 @@ class CanaryDeploymentManager:
             return False
 
     async def _deploy_to_single_node(self, node: CanaryNode, update_id: str) -> bool:
-        """Deploy update to a single node."""
+        """Deploy update to a single node.
         # Placeholder for actual deployment logic
         # This would integrate with the cluster manager or local deployment system
         await asyncio.sleep(1)  # Simulate deployment time
         return True  # Simulate successful deployment
 
     async def _monitor_canary_health(self, nodes: List[CanaryNode],)
-                                   plan: CanaryDeploymentPlan,
-                                   result: CanaryDeploymentResult,
-                                   duration_minutes: int) -> bool:
+                                plan: CanaryDeploymentPlan,
+                                result: CanaryDeploymentResult,
+                                duration_minutes: int) -> bool:
         """Monitor health of canary nodes during deployment."""
         try:
             result.add_log(f"Starting health monitoring for {duration_minutes} minutes")
@@ -485,8 +484,8 @@ class CanaryDeploymentManager:
         return health_data
 
     async def _evaluate_canary_success(self, nodes: List[CanaryNode],)
-                                     plan: CanaryDeploymentPlan,
-                                     result: CanaryDeploymentResult) -> bool:
+                                    plan: CanaryDeploymentPlan,
+                                    result: CanaryDeploymentResult) -> bool:
         """Evaluate if canary deployment meets success criteria."""
         try:
             result.add_log("Evaluating canary deployment success criteria")
@@ -539,7 +538,7 @@ class CanaryDeploymentManager:
             return False
 
     async def _rollback_single_node(self, node: CanaryNode, update_id: str) -> bool:
-        """Rollback update on a single node."""
+        """Rollback update on a single node.
         # Placeholder for actual rollback logic
         await asyncio.sleep(0.5)  # Simulate rollback time
         return True  # Simulate successful rollback
@@ -549,7 +548,7 @@ class CanaryDeploymentManager:
         return self.active_deployments.get(deployment_id)
 
     async def cleanup(self):
-        """Cleanup canary deployment manager resources."""
+        Cleanup canary deployment manager resources."""
         if self.health_monitor:
             await self.if health_monitor and hasattr(health_monitor, "cleanup"): health_monitor.cleanup()
         if self.node_selector:

@@ -24,15 +24,14 @@ Defines strict interfaces and contracts for all modules/plugins to ensure:
 - Consistent lifecycle management
 - Security and permission boundaries
 - Performance monitoring and resource management
-"""
+
 
 logger = get_logger(__name__)
 
 
 class ModuleCapability(Enum):
     """Module capability types."""
-
-    # Core capabilities
+        # Core capabilities
     MESSAGING = "messaging"
     USER_MANAGEMENT = "user_management"
     FILE_HANDLING = "file_handling"
@@ -77,7 +76,7 @@ class ModuleCapability(Enum):
 
 
 class ModulePriority(Enum):
-    """Module loading and execution priority."""
+    """Module loading and execution priority.
 
     CRITICAL = 1  # Core system modules (auth, database)
     HIGH = 2  # Important features (messaging, security)
@@ -88,8 +87,7 @@ class ModulePriority(Enum):
 
 class ModuleState(Enum):
     """Module lifecycle states."""
-
-    UNLOADED = "unloaded"
+        UNLOADED = "unloaded"
     LOADING = "loading"
     LOADED = "loaded"
     INITIALIZING = "initializing"
@@ -102,7 +100,7 @@ class ModuleState(Enum):
 
 @dataclass
 class ModulePermissions:
-    """Module permission requirements."""
+    """Module permission requirements.
 
     capabilities: List[ModuleCapability] = field(default_factory=list)
     network_access: bool = False
@@ -118,15 +116,14 @@ class ModulePermissions:
         return capability in self.capabilities
 
     def is_privileged(self) -> bool:
-        """Check if module requires privileged access."""
+        Check if module requires privileged access."""
         return self.admin_access or self.system_config_access or self.database_access
 
 
 @dataclass
 class ModuleMetrics:
-    """Module performance and usage metrics."""
-
-    load_time: Optional[float] = None
+    """Module performance and usage metrics.
+        load_time: Optional[float] = None
     initialization_time: Optional[float] = None
     memory_usage_mb: float = 0.0
     cpu_usage_percent: float = 0.0
@@ -141,15 +138,14 @@ class ModuleMetrics:
         self.api_calls_count += 1
 
     def record_error(self):
-        """Record module error."""
+        Record module error."""
         self.error_count += 1
 
 
 @dataclass
 class ModuleConfiguration:
-    """Module configuration structure."""
-
-    enabled: bool = True
+    """Module configuration structure.
+        enabled: bool = True
     auto_start: bool = True
     priority: ModulePriority = ModulePriority.NORMAL
     timeout_seconds: int = 30
@@ -164,13 +160,12 @@ class ModuleConfiguration:
 @runtime_checkable
 class IModuleLifecycle(Protocol):
     """Module lifecycle interface."""
-
-    async def initialize(self) -> bool:
-        """Initialize the module. Return True if successful."""
+        async def initialize(self) -> bool:
+        Initialize the module. Return True if successful."""
         ...
 
     async def start(self) -> bool:
-        """Start the module. Return True if successful."""
+        """Start the module. Return True if successful.
         ...
 
     async def stop(self) -> bool:
@@ -178,11 +173,11 @@ class IModuleLifecycle(Protocol):
         ...
 
     async def pause(self) -> bool:
-        """Pause the module. Return True if successful."""
+        Pause the module. Return True if successful."""
         ...
 
     async def resume(self) -> bool:
-        """Resume the module. Return True if successful."""
+        """Resume the module. Return True if successful.
         ...
 
     async def shutdown(self) -> bool:
@@ -190,24 +185,23 @@ class IModuleLifecycle(Protocol):
         ...
 
     async def health_check(self) -> Dict[str, Any]:
-        """Perform health check. Return status information."""
+        Perform health check. Return status information."""
         ...
 
 
 @runtime_checkable
 class IModuleConfiguration(Protocol):
-    """Module configuration interface."""
-
-    def get_config_schema(self) -> Dict[str, Any]:
+    """Module configuration interface.
+        def get_config_schema(self) -> Dict[str, Any]:
         """Get configuration schema for validation."""
         ...
 
     def validate_config(self, config: Dict[str, Any]) -> bool:
-        """Validate configuration. Return True if valid."""
+        Validate configuration. Return True if valid."""
         ...
 
     def apply_config(self, config: Dict[str, Any]) -> bool:
-        """Apply configuration. Return True if successful."""
+        """Apply configuration. Return True if successful.
         ...
 
     def get_current_config(self) -> Dict[str, Any]:
@@ -217,10 +211,9 @@ class IModuleConfiguration(Protocol):
 
 @runtime_checkable
 class IModuleAPI(Protocol):
-    """Module API interface for inter-module communication."""
-
-    def get_api_version(self) -> str:
-        """Get API version."""
+    Module API interface for inter-module communication."""
+        def get_api_version(self) -> str:
+        """Get API version.
         ...
 
     def get_available_methods(self) -> List[str]:
@@ -228,11 +221,11 @@ class IModuleAPI(Protocol):
         ...
 
     async def call_method(self, method: str, **kwargs) -> Any:
-        """Call module method."""
+        Call module method."""
         ...
 
     def register_event_handler(self, event: str, handler: Callable) -> bool:
-        """Register event handler."""
+        """Register event handler.
         ...
 
     def emit_event(self, event: str, data: Any) -> bool:
@@ -242,10 +235,9 @@ class IModuleAPI(Protocol):
 
 @runtime_checkable
 class IModuleSecurity(Protocol):
-    """Module security interface."""
-
-    def get_required_permissions(self) -> ModulePermissions:
-        """Get required permissions."""
+    Module security interface."""
+        def get_required_permissions(self) -> ModulePermissions:
+        """Get required permissions.
         ...
 
     def validate_permissions(self, granted_permissions: ModulePermissions) -> bool:
@@ -253,11 +245,11 @@ class IModuleSecurity(Protocol):
         ...
 
     def get_security_context(self) -> Dict[str, Any]:
-        """Get current security context."""
+        Get current security context."""
         ...
 
     async def security_scan(self) -> Dict[str, Any]:
-        """Perform security self-scan."""
+        """Perform security self-scan.
         ...
 
 
@@ -268,8 +260,7 @@ class BaseModule(ABC):
     All modules must inherit from this class to ensure
     consistent behavior and interface compliance.
     """
-
-    def __init__(self, name: str, version: str = "1.0.0"):
+        def __init__(self, name: str, version: str = "1.0.0"):
         self.name = name
         self.version = version
         self.state = ModuleState.UNLOADED
@@ -295,7 +286,7 @@ class BaseModule(ABC):
     # Abstract methods that must be implemented
     @abstractmethod
     async def initialize(self) -> bool:
-        """Initialize the module."""
+        """Initialize the module.
 
     @abstractmethod
     def get_metadata(self) -> Dict[str, Any]:
@@ -303,7 +294,7 @@ class BaseModule(ABC):
 
     @abstractmethod
     def get_required_permissions(self) -> ModulePermissions:
-        """Get required permissions."""
+        Get required permissions."""
 
     # Default implementations
     async def start(self) -> bool:
@@ -356,7 +347,7 @@ class BaseModule(ABC):
             return False
 
     async def pause(self) -> bool:
-        """Pause the module."""
+        """Pause the module.
         if self.state == ModuleState.ACTIVE:
             self.state = ModuleState.PAUSED
             await self._on_pause()
@@ -372,7 +363,7 @@ class BaseModule(ABC):
         return False
 
     async def shutdown(self) -> bool:
-        """Shutdown the module."""
+        Shutdown the module."""
         if self and hasattr(self, "stop"):
             return await self.stop()
         return False
@@ -459,7 +450,7 @@ class BaseModule(ABC):
 
     # Event system
     def register_event_handler(self, event: str, handler: Callable) -> bool:
-        """Register event handler."""
+        """Register event handler.
         try:
             if event not in self.event_handlers:
                 self.event_handlers[event] = []
@@ -479,7 +470,7 @@ class BaseModule(ABC):
 
     # Lifecycle hooks (can be overridden by subclasses)
     async def _on_start(self) -> bool:
-        """Override for custom start logic."""
+        """Override for custom start logic.
         return True
 
     async def _on_stop(self) -> bool:
@@ -487,11 +478,11 @@ class BaseModule(ABC):
         return True
 
     async def _on_pause(self) -> bool:
-        """Override for custom pause logic."""
+        Override for custom pause logic."""
         return True
 
     async def _on_resume(self) -> bool:
-        """Override for custom resume logic."""
+        """Override for custom resume logic.
         return True
 
     # Utility methods
@@ -500,7 +491,7 @@ class BaseModule(ABC):
         return self.state == ModuleState.ACTIVE and self.metrics.error_count < 10
 
     def get_api_version(self) -> str:
-        """Get API version."""
+        Get API version."""
         return "1.0"
 
     def get_available_methods(self) -> List[str]:

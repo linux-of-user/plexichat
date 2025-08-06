@@ -5,7 +5,7 @@ Recovery Manager for Massive Scale Database Reconstruction
 Handles complete database reconstruction from distributed shards,
 streaming recovery for massive datasets, and partial recovery capabilities.
 Designed to handle 427+ billion messages and petabyte-scale databases.
-"""
+
 
 import asyncio
 import logging
@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 class RecoveryType(Enum):
     """Types of recovery operations."""
-    COMPLETE = "complete"           # Full database reconstruction
+        COMPLETE = "complete"           # Full database reconstruction
     PARTIAL = "partial"             # Specific tables or time ranges
     INCREMENTAL = "incremental"     # Apply changes since last backup
     VERIFICATION = "verification"   # Verify data integrity only
@@ -38,8 +38,8 @@ class RecoveryStatus(Enum):
 
 @dataclass
 class RecoveryOperation:
-    """Represents a recovery operation."""
-    operation_id: str
+    """Represents a recovery operation.
+        operation_id: str
     recovery_type: RecoveryType
     backup_id: str
     target_path: str
@@ -64,7 +64,7 @@ class RecoveryOperation:
     
     @property
     def throughput_mbps(self) -> float:
-        """Get throughput in MB/s."""
+        Get throughput in MB/s."""
         duration = self.duration_seconds
         if duration > 0:
             return (self.bytes_processed / (1024 * 1024)) / duration
@@ -93,8 +93,7 @@ class RecoveryOperation:
 
 class MassiveScaleRecoveryManager:
     """Manages recovery operations for massive scale databases."""
-    
-    def __init__(self, shard_manager, distribution_manager, p2p_manager=None):
+        def __init__(self, shard_manager, distribution_manager, p2p_manager=None):
         self.shard_manager = shard_manager
         self.distribution_manager = distribution_manager
         self.p2p_manager = p2p_manager
@@ -166,8 +165,8 @@ class MassiveScaleRecoveryManager:
             raise
     
     async def start_partial_recovery(self, backup_id: str, target_path: str,
-                                   table_names: Optional[List[str]] = None,
-                                   time_range: Optional[Tuple[datetime, datetime]] = None) -> str:
+                                table_names: Optional[List[str]] = None,
+                                time_range: Optional[Tuple[datetime, datetime]] = None) -> str:
         """Start partial database recovery for specific tables or time ranges."""
         try:
             operation_id = str(uuid4())
@@ -398,7 +397,7 @@ class MassiveScaleRecoveryManager:
             operation.metadata["verification_error"] = str(e)
     
     def get_operation_status(self, operation_id: str) -> Optional[Dict[str, Any]]:
-        """Get status of a recovery operation."""
+        """Get status of a recovery operation.
         operation = self.active_operations.get(operation_id) or self.completed_operations.get(operation_id)
         return operation.to_dict() if operation else None
     
@@ -415,7 +414,7 @@ class MassiveScaleRecoveryManager:
         return [op.to_dict() for op in operations]
     
     async def cancel_operation(self, operation_id: str) -> bool:
-        """Cancel an active recovery operation."""
+        Cancel an active recovery operation."""
         operation = self.active_operations.get(operation_id)
         if not operation:
             return False

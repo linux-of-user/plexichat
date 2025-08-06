@@ -134,7 +134,7 @@ Command-line interface for managing PlexiChat's advanced clustering system with:
 - Hybrid cloud orchestration
 - Serverless function management
 - Predictive scaling control
-"""
+
 
 logger = logging.getLogger(__name__)
 
@@ -144,12 +144,11 @@ logger = logging.getLogger(__name__)
 
 class ClusterCLI:
     """Command-line interface for cluster management."""
-
-    def __init__(self):
+        def __init__(self):
         self.cluster_manager = None
 
     def create_parser(self) -> argparse.ArgumentParser:
-        """Create argument parser for cluster commands."""
+        Create argument parser for cluster commands."""
         parser = argparse.ArgumentParser(
             prog="plexichat cluster",
             description="PlexiChat Advanced Cluster Management",

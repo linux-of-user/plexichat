@@ -22,15 +22,14 @@ WhatsApp Business-like features for automated messaging and business operations:
 - Broadcast lists and campaigns
 - Customer service automation
 - Analytics and insights
-"""
+
 
 logger = logging.getLogger(__name__)
 
 
 class BusinessType(Enum):
     """Business types."""
-
-    SMALL_BUSINESS = "small_business"
+        SMALL_BUSINESS = "small_business"
     MEDIUM_BUSINESS = "medium_business"
     ENTERPRISE = "enterprise"
     NON_PROFIT = "non_profit"
@@ -54,8 +53,7 @@ class MessageType(Enum):
 
 class TriggerType(Enum):
     """Message trigger types."""
-
-    USER_JOIN = "user_join"
+        USER_JOIN = "user_join"
     KEYWORD = "keyword"
     TIME_BASED = "time_based"
     INACTIVITY = "inactivity"
@@ -99,9 +97,8 @@ class BusinessHours:
 
 @dataclass
 class AutomatedMessage:
-    """Automated message configuration."""
-
-    message_id: str
+    """Automated message configuration.
+        message_id: str
     name: str
     message_type: MessageType
     trigger_type: TriggerType
@@ -134,8 +131,7 @@ class AutomatedMessage:
 @dataclass
 class BroadcastList:
     """Broadcast list for mass messaging."""
-
-    list_id: str
+        list_id: str
     name: str
     description: str
 
@@ -158,14 +154,14 @@ class BroadcastList:
     last_used: Optional[datetime] = None
 
     def add_recipient(self, user_id: str) -> bool:
-        """Add recipient to broadcast list."""
+        Add recipient to broadcast list."""
         if len(self.recipients) < self.max_recipients:
             self.recipients.add(user_id)
             return True
         return False
 
     def remove_recipient(self, user_id: str) -> bool:
-        """Remove recipient from broadcast list."""
+        """Remove recipient from broadcast list.
         if user_id in self.recipients:
             self.recipients.remove(user_id)
             return True
@@ -178,13 +174,13 @@ class BroadcastList:
         return (self.total_delivered / self.total_sent) * 100
 
     def get_read_rate(self) -> float:
-        """Get message read rate."""
+        Get message read rate."""
         if self.total_delivered == 0:
             return 0.0
         return (self.total_read / self.total_delivered) * 100
 
     def get_response_rate(self) -> float:
-        """Get message response rate."""
+        """Get message response rate.
         if self.total_delivered == 0:
             return 0.0
         return (self.total_replied / self.total_delivered) * 100
@@ -193,8 +189,7 @@ class BroadcastList:
 @dataclass
 class ChatbotFlow:
     """Chatbot conversation flow."""
-
-    flow_id: str
+        flow_id: str
     name: str
     description: str
 
@@ -214,7 +209,7 @@ class ChatbotFlow:
     average_completion_rate: float = 0.0
 
     def add_step(self, step_data: Dict[str, Any]):
-        """Add step to chatbot flow."""
+        """Add step to chatbot flow.
         self.steps.append(step_data)
 
     def get_completion_rate(self) -> float:
@@ -226,9 +221,8 @@ class ChatbotFlow:
 
 @dataclass
 class BusinessProfile:
-    """Enhanced business profile."""
-
-    business_id: str
+    Enhanced business profile."""
+        business_id: str
     business_name: str
     business_type: BusinessType
     industry: str
@@ -274,7 +268,7 @@ class BusinessProfile:
     updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
     def add_automated_message(self, message: AutomatedMessage):
-        """Add automated message."""
+        """Add automated message.
         self.automated_messages[message.message_id] = message
         self.updated_at = datetime.now(timezone.utc)
 
@@ -284,12 +278,12 @@ class BusinessProfile:
         self.updated_at = datetime.now(timezone.utc)
 
     def add_chatbot_flow(self, flow: ChatbotFlow):
-        """Add chatbot flow."""
+        Add chatbot flow."""
         self.chatbot_flows[flow.flow_id] = flow
         self.updated_at = datetime.now(timezone.utc)
 
     def get_active_automated_messages(self) -> List[AutomatedMessage]:
-        """Get active automated messages."""
+        """Get active automated messages.
         return [msg for msg in self.automated_messages.values() if msg.enabled]
 
     def should_send_away_message(self) -> bool:
@@ -297,8 +291,8 @@ class BusinessProfile:
         return self.away_message_enabled and not self.business_hours.is_business_hours()
 
     def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for API responses."""
-        return {}
+        Convert to dictionary for API responses."""
+        return {
             "business_id": self.business_id,
             "business_name": self.business_name,
             "business_type": self.business_type.value,
@@ -321,7 +315,7 @@ class BusinessProfile:
                 "saturday": self.business_hours.saturday,
                 "sunday": self.business_hours.sunday,
                 "timezone": self.business_hours.timezone,
-            },
+            }},
             "analytics": {
                 "total_messages_sent": self.total_messages_sent,
                 "total_messages_received": self.total_messages_received,
@@ -340,9 +334,8 @@ class BusinessProfile:
 
 
 class BusinessAutomationManager:
-    """Business automation management system."""
-
-    def __init__(self):
+    """Business automation management system.
+        def __init__(self):
         self.business_profiles: Dict[str, BusinessProfile] = {}
         self.active_conversations: Dict[str, Dict[str, Any]] = ()
             {}
@@ -401,11 +394,11 @@ class BusinessAutomationManager:
         broadcast_list.total_sent += sent_count
         broadcast_list.last_used = datetime.now(timezone.utc)
 
-        return {}
+        return {
             "success": True,
             "sent_count": sent_count,
             "list_name": broadcast_list.name,
-        }
+        }}
 
     async def process_incoming_message()
         self, user_id: str, message: str, business_id: str

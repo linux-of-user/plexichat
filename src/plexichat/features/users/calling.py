@@ -18,13 +18,12 @@ from sqlalchemy import DateTime, Index, Text
 import time
 Voice and video calling models with end-to-end encryption.
 Supports WebRTC, secure key exchange, and call management.
-"""
+
 
 
 class CallType(str, Enum):
     """Types of calls."""
-
-    VOICE = "voice"
+        VOICE = "voice"
     VIDEO = "video"
     SCREEN_SHARE = "screen_share"
     GROUP_VOICE = "group_voice"
@@ -48,8 +47,7 @@ class CallStatus(str, Enum):
 
 class EncryptionMethod(str, Enum):
     """Encryption methods for calls."""
-
-    AES_256_GCM = "aes_256_gcm"
+        AES_256_GCM = "aes_256_gcm"
     CHACHA20_POLY1305 = "chacha20_poly1305"
     AES_128_GCM = "aes_128_gcm"
 
@@ -130,8 +128,7 @@ class CallSession(SQLModel, table=True):
 
 class CallParticipant(SQLModel, table=True):
     """Individual call participant details."""
-
-    __tablename__ = "call_participants"
+        __tablename__ = "call_participants"
 
     id: Optional[int] = Field(default=None, primary_key=True)
     uuid: str = Field()
@@ -183,8 +180,7 @@ class CallParticipant(SQLModel, table=True):
 
 class CallInvitation(SQLModel, table=True):
     """Call invitations and notifications."""
-
-    __tablename__ = "call_invitations"
+        __tablename__ = "call_invitations"
 
     id: Optional[int] = Field(default=None, primary_key=True)
     uuid: str = Field()
@@ -228,8 +224,7 @@ class CallInvitation(SQLModel, table=True):
 
 class CallRecording(SQLModel, table=True):
     """Call recordings with encryption."""
-
-    __tablename__ = "call_recordings"
+        __tablename__ = "call_recordings"
 
     id: Optional[int] = Field(default=None, primary_key=True)
     uuid: str = Field()
@@ -280,8 +275,7 @@ class CallRecording(SQLModel, table=True):
 
 class CallAnalytics(SQLModel, table=True):
     """Call analytics and quality metrics."""
-
-    __tablename__ = "call_analytics"
+        __tablename__ = "call_analytics"
 
     id: Optional[int] = Field(default=None, primary_key=True)
     uuid: str = Field()

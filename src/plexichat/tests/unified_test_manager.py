@@ -3,7 +3,7 @@ PlexiChat Unified Test Manager
 
 Comprehensive test runner for all endpoints, plugins, and system components.
 Integrates with the plugin system and CLI to provide unified testing capabilities.
-"""
+
 
 import asyncio
 import json
@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 class UnifiedTestManager:
     """Unified test manager for all PlexiChat components."""
-    
+
     def __init__(self):
         self.test_results = {}
         self.test_categories = {
@@ -53,7 +53,7 @@ class UnifiedTestManager:
             logger.warning("Plugin manager not available")
             
     async def run_tests(self, categories: Optional[List[str]] = None, 
-                       verbose: bool = False, save_report: bool = True) -> Dict[str, Any]:
+                    verbose: bool = False, save_report: bool = True) -> Dict[str, Any]:
         """Run comprehensive test suite."""
         start_time = time.time()
         
@@ -588,6 +588,6 @@ unified_test_manager = UnifiedTestManager()
 
 # Main function for CLI integration
 async def run_tests(categories: Optional[List[str]] = None, 
-                   verbose: bool = False, save_report: bool = True) -> Dict[str, Any]:
+                verbose: bool = False, save_report: bool = True) -> Dict[str, Any]:
     """Run tests - main entry point."""
     return await unified_test_manager.run_tests(categories, verbose, save_report)

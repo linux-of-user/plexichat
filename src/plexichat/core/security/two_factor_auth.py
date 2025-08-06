@@ -11,7 +11,7 @@ Comprehensive 2FA implementation with:
 - Rate limiting and security monitoring
 - Recovery mechanisms
 - Admin override capabilities
-"""
+
 
 import asyncio
 import secrets
@@ -37,7 +37,7 @@ logger = get_logger(__name__)
 
 class TwoFactorMethod(Enum):
     """Two-factor authentication methods."""
-    TOTP = "totp"  # Time-based One-Time Password (Google Authenticator, etc.)
+        TOTP = "totp"  # Time-based One-Time Password (Google Authenticator, etc.)
     SMS = "sms"    # SMS-based codes
     EMAIL = "email"  # Email-based codes
     BACKUP_CODES = "backup_codes"  # Recovery backup codes
@@ -57,7 +57,7 @@ class TwoFactorStatus(Enum):
 @dataclass
 class TwoFactorConfig:
     """Two-factor authentication configuration."""
-    user_id: str
+        user_id: str
     method: TwoFactorMethod
     status: TwoFactorStatus = TwoFactorStatus.DISABLED
     
@@ -88,7 +88,7 @@ class TwoFactorConfig:
 @dataclass
 class TwoFactorAttempt:
     """Record of a 2FA attempt."""
-    attempt_id: str
+        attempt_id: str
     user_id: str
     method: TwoFactorMethod
     code_provided: str
@@ -100,9 +100,8 @@ class TwoFactorAttempt:
 
 
 class TOTPGenerator:
-    """Time-based One-Time Password generator."""
-    
-    def __init__(self, secret_key: str, time_step: int = 30, digits: int = 6):
+    """Time-based One-Time Password generator.
+        def __init__(self, secret_key: str, time_step: int = 30, digits: int = 6):
         self.secret_key = secret_key
         self.time_step = time_step
         self.digits = digits
@@ -112,7 +111,7 @@ class TOTPGenerator:
         return base64.b32encode(secrets.token_bytes(20)).decode('utf-8')
     
     def generate_totp(self, timestamp: Optional[int] = None) -> str:
-        """Generate TOTP code for given timestamp."""
+        Generate TOTP code for given timestamp."""
         if timestamp is None:
             timestamp = int(time.time())
         
@@ -172,9 +171,8 @@ class TOTPGenerator:
 
 
 class BackupCodeGenerator:
-    """Backup code generator for 2FA recovery."""
-    
-    def __init__(self, code_length: int = 8, code_count: int = 10):
+    """Backup code generator for 2FA recovery.
+        def __init__(self, code_length: int = 8, code_count: int = 10):
         self.code_length = code_length
         self.code_count = code_count
     
@@ -185,13 +183,13 @@ class BackupCodeGenerator:
         for _ in range(self.code_count):
             # Generate random code with letters and numbers
             code = ''.join(secrets.choice('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789') 
-                          for _ in range(self.code_length))
+                        for _ in range(self.code_length))
             codes.append(code)
         
         return codes
     
     def format_backup_codes(self, codes: List[str]) -> str:
-        """Format backup codes for display."""
+        Format backup codes for display."""
         formatted_codes = []
         
         for i, code in enumerate(codes, 1):
@@ -204,8 +202,7 @@ class BackupCodeGenerator:
 
 class TwoFactorAuthenticator:
     """Comprehensive two-factor authentication system."""
-    
-    def __init__(self):
+        def __init__(self):
         self.user_configs: Dict[str, List[TwoFactorConfig]] = {}
         self.attempt_history: List[TwoFactorAttempt] = []
         self.totp_generator = TOTPGenerator("")
@@ -270,12 +267,12 @@ class TwoFactorAuthenticator:
             
             correlation_tracker.finish_correlation(correlation_id)
             
-            return {}
+            return {
                 'secret_key': secret_key,
                 'qr_code': base64.b64encode(qr_code_data).decode('utf-8'),
                 'backup_codes': backup_codes,
                 'formatted_backup_codes': self.backup_generator.format_backup_codes(backup_codes),
-                'setup_uri': f"otpauth://totp/PlexiChat:{user_email}?secret={secret_key}&issuer=PlexiChat"
+                'setup_uri': f"otpauth://totp/PlexiChat:{user_email}}?secret={secret_key}&issuer=PlexiChat"
             }
             
         except Exception as e:
@@ -328,12 +325,12 @@ class TwoFactorAuthenticator:
             # Check rate limiting
             if not self._check_rate_limit(user_id, ip_address):
                 correlation_tracker.finish_correlation(correlation_id, error_count=1)
-                return {}
+                return {
                     'success': False,
                     'error': 'rate_limit_exceeded',
                     'message': 'Too many attempts. Please try again later.',
                     'retry_after': self.rate_limit_window
-                }
+                }}
             
             # Get user configurations
             user_configs = self.user_configs.get(user_id, [])
@@ -341,11 +338,11 @@ class TwoFactorAuthenticator:
             
             if not enabled_configs:
                 correlation_tracker.finish_correlation(correlation_id, error_count=1)
-                return {}
+                return {
                     'success': False,
                     'error': 'no_2fa_enabled',
                     'message': 'Two-factor authentication is not enabled for this user.'
-                }
+                }}
             
             # Try to verify with specified method or all enabled methods
             configs_to_try = []
@@ -369,11 +366,11 @@ class TwoFactorAuthenticator:
                     config.last_success_ip = ip_address
                     
                     correlation_tracker.finish_correlation(correlation_id)
-                    return {}
+                    return {
                         'success': True,
                         'method': config.method.value,
                         'message': 'Two-factor authentication successful.'
-                    }
+                    }}
                 else:
                     # Record failed attempt
                     config.failed_attempts += 1
@@ -386,11 +383,11 @@ class TwoFactorAuthenticator:
                     self._record_attempt(user_id, config.method, code, False, ip_address, verification_result.get('error', 'Invalid code'), user_agent)
             
             correlation_tracker.finish_correlation(correlation_id, error_count=1)
-            return {}
+            return {
                 'success': False,
                 'error': 'invalid_code',
                 'message': 'Invalid two-factor authentication code.'
-            }
+            }}
             
         except Exception as e:
             logger.error(f"2FA verification failed for user {user_id}: {e}")
@@ -399,11 +396,11 @@ class TwoFactorAuthenticator:
                 error_count=1,
                 error_types=[type(e).__name__]
             )
-            return {}
+            return {
                 'success': False,
                 'error': 'system_error',
                 'message': 'System error during verification.'
-            }
+            }}
     
     async def _verify_code_for_method(self, config: TwoFactorConfig, code: str, ip_address: str, user_agent: str) -> Dict[str, Any]:
         """Verify code for specific 2FA method."""
@@ -412,9 +409,9 @@ class TwoFactorAuthenticator:
                 totp = TOTPGenerator(config.secret_key)
                 if totp.verify_totp(code, window=self.code_validity_window):
                     self._record_attempt(config.user_id, config.method, code, True, ip_address, "", user_agent)
-                    return {}'success': True}
+                    return {'success': True}}
                 else:
-                    return {}'success': False, 'error': 'Invalid TOTP code'}
+                    return {'success': False, 'error': 'Invalid TOTP code'}}
             
             elif config.method == TwoFactorMethod.BACKUP_CODES:
                 # Check if code is a valid unused backup code
@@ -427,20 +424,20 @@ class TwoFactorAuthenticator:
                     if remaining_codes <= 2:
                         logger.warning(f"User {config.user_id} has only {remaining_codes} backup codes remaining")
                     
-                    return {}'success': True, 'remaining_backup_codes': remaining_codes}
+                    return {'success': True, 'remaining_backup_codes': remaining_codes}}
                 else:
-                    return {}'success': False, 'error': 'Invalid or used backup code'}
+                    return {'success': False, 'error': 'Invalid or used backup code'}}
             
             # Add other methods (SMS, Email, etc.) here
             else:
-                return {}'success': False, 'error': 'Method not implemented'}
+                return {'success': False, 'error': 'Method not implemented'}}
                 
         except Exception as e:
             logger.error(f"Code verification failed for method {config.method.value}: {e}")
-            return {}'success': False, 'error': 'Verification error'}
+            return {'success': False, 'error': 'Verification error'}}
     
     def _get_user_config(self, user_id: str, method: TwoFactorMethod) -> Optional[TwoFactorConfig]:
-        """Get user configuration for specific method."""
+        """Get user configuration for specific method.
         user_configs = self.user_configs.get(user_id, [])
         for config in user_configs:
             if config.method == method:
@@ -537,7 +534,7 @@ class TwoFactorAuthenticator:
             return False
     
     async def get_user_2fa_status(self, user_id: str) -> Dict[str, Any]:
-        """Get user's 2FA status and configuration."""
+        """Get user's 2FA status and configuration.
         user_configs = self.user_configs.get(user_id, [])
         
         methods_status = {}
@@ -567,7 +564,7 @@ class TwoFactorAuthenticator:
             if status['enabled']
         ]
         
-        return {}
+        return {
             'user_id': user_id,
             'has_2fa_enabled': len(enabled_methods) > 0,
             'enabled_methods': enabled_methods,
@@ -577,7 +574,7 @@ class TwoFactorAuthenticator:
                 a.success for a in self.attempt_history[-100:]
                 if a.user_id == user_id and a.timestamp > datetime.now() - timedelta(days=7)
             )
-        }
+        }}
     
     async def generate_new_backup_codes(self, user_id: str) -> Optional[List[str]]:
         """Generate new backup codes for user."""
@@ -629,7 +626,7 @@ class TwoFactorAuthenticator:
             if recent_attempts else 0
         )
         
-        return {}
+        return {
             'total_users': total_users,
             'enabled_users': enabled_users,
             'adoption_rate': (enabled_users / total_users * 100) if total_users > 0 else 0,
@@ -637,7 +634,7 @@ class TwoFactorAuthenticator:
             'recent_attempts_24h': len(recent_attempts),
             'success_rate_24h': success_rate,
             'total_attempts_recorded': len(self.attempt_history)
-        }
+        }}
 
 
 # Global two-factor authenticator instance
