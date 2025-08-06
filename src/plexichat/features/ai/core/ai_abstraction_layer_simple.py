@@ -373,7 +373,7 @@ class AIAbstractionLayer:
 
     async def health_check(self) -> Dict[str, Any]:
         """Perform health check."""
-        return {}
+        return {
             "status": "healthy",
             "providers": len(self.providers),
             "models": len(self.models),

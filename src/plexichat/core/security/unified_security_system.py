@@ -887,7 +887,7 @@ class UnifiedSecurityManager:
 
 
 # Global unified security manager instance
-# unified_security_manager = UnifiedSecurityManager()
+unified_security_manager = UnifiedSecurityManager()
 
 # Backward compatibility functions
 def hash_password(password: str) -> str:

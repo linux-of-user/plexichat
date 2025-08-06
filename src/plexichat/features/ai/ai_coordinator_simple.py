@@ -116,7 +116,7 @@ class AICoordinator:
             self.performance_metrics["total_requests"] += 1
             self.performance_metrics["successful_requests"] += 1
 
-            return {}
+            return {
                 "success": True,
                 "analysis": results,
                 "text_length": len(text),
@@ -151,7 +151,7 @@ class AICoordinator:
             # Update analytics
             self.usage_analytics["moderation_checks"] += 1
 
-            return {}
+            return {
                 "success": True,
                 "moderation": moderation_result,
                 "sentiment": sentiment_result,
@@ -201,7 +201,7 @@ class AICoordinator:
 
     async def health_check(self) -> Dict[str, Any]:
         """Perform health check."""
-        return {}
+        return {
             "status": "healthy",
             "usage_analytics": self.usage_analytics,
             "performance_metrics": self.performance_metrics,

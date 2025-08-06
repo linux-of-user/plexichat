@@ -506,10 +506,19 @@ class UnifiedLoggingManager:
             log_file = log_dir / 'plexichat.log'
 
             # Use custom rotating file handler with compression
+            max_file_size = getattr(self.config.logging, 'max_file_size', 10*1024*1024)
+            backup_count = getattr(self.config.logging, 'backup_count', 5)
+
+            # Ensure values are integers
+            if isinstance(max_file_size, str):
+                max_file_size = int(max_file_size) if max_file_size.isdigit() else 10*1024*1024
+            if isinstance(backup_count, str):
+                backup_count = int(backup_count) if backup_count.isdigit() else 5
+
             file_handler = CompressingRotatingFileHandler(
                 log_file,
-                maxBytes=getattr(self.config.logging, 'max_file_size', 10*1024*1024),
-                backupCount=getattr(self.config.logging, 'backup_count', 5),
+                maxBytes=max_file_size,
+                backupCount=backup_count,
                 log_dir=log_dir
             )
 
@@ -621,10 +630,20 @@ class UnifiedLoggingManager:
             structured_file = log_dir / 'plexichat-structured.log'
 
             from logging.handlers import RotatingFileHandler
+
+            max_file_size = getattr(self.config.logging, 'max_file_size', 10*1024*1024)
+            backup_count = getattr(self.config.logging, 'backup_count', 5)
+
+            # Ensure values are integers
+            if isinstance(max_file_size, str):
+                max_file_size = int(max_file_size) if max_file_size.isdigit() else 10*1024*1024
+            if isinstance(backup_count, str):
+                backup_count = int(backup_count) if backup_count.isdigit() else 5
+
             structured_handler = RotatingFileHandler(
                 structured_file,
-                maxBytes=getattr(self.config.logging, 'max_file_size', 10*1024*1024),
-                backupCount=getattr(self.config.logging, 'backup_count', 5)
+                maxBytes=max_file_size,
+                backupCount=backup_count
             )
 
             # Set level

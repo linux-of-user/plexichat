@@ -285,7 +285,7 @@ class AIProviderManager:
         # In production, this would use the actual OpenAI client
         await asyncio.sleep(0.1)  # Simulate API call
 
-        return {}
+        return {
             "response": f"OpenAI {model.name} response to: {prompt[:50]}...",
             "tokens_used": len(prompt.split()) * 2,
             "model": model.model_id,
@@ -297,7 +297,7 @@ class AIProviderManager:
         # Placeholder for Anthropic API call
         await asyncio.sleep(0.1)  # Simulate API call
 
-        return {}
+        return {
             "response": f"Anthropic {model.name} response to: {prompt[:50]}...",
             "tokens_used": len(prompt.split()) * 2,
             "model": model.model_id,
@@ -309,7 +309,7 @@ class AIProviderManager:
         # Placeholder for local model inference
         await asyncio.sleep(0.05)  # Simulate local inference
 
-        return {}
+        return {
             "response": f"Local {model.name} response to: {prompt[:50]}...",
             "tokens_used": len(prompt.split()),
             "model": model.model_id,
@@ -556,7 +556,7 @@ class IntelligentAssistant:
                 "context_factors": []
             }
 
-            return {}
+            return {
                 "success": True,
                 "analysis": analysis,
                 "model_used": model.model_id

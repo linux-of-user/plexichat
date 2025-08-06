@@ -14,7 +14,11 @@ Advanced dependency management for plugins with:
 import subprocess
 import sys
 import json
-import pkg_resources
+try:
+    from importlib.metadata import version, distributions
+except ImportError:
+    # Fallback for Python < 3.8
+    from importlib_metadata import version, distributions
 import importlib
 import importlib.util
 from typing import Dict, List, Set, Optional, Tuple, Any
@@ -258,9 +262,9 @@ class PluginDependencyManager:
         # Check with package mapping
         mapped_name = self.package_mapping.get(package_name, package_name)
         try:
-            pkg_resources.get_distribution(mapped_name)
+            version(mapped_name)
             return True
-        except pkg_resources.DistributionNotFound:
+        except Exception:  # ImportError or PackageNotFoundError
             return False
     
     async def install_plugin_dependencies(self, plugin_name: str, force_reinstall: bool = False) -> bool:
@@ -405,11 +409,11 @@ class PluginDependencyManager:
         """Update dependency information after installation."""
         try:
             # Get package information
-            dist = pkg_resources.get_distribution(package_name)
-            
+            package_version = version(package_name)
+
             dep_info = DependencyInfo(
                 name=dependency,
-                version=dist.version,
+                version=package_version,
                 installed=True,
                 installation_time=datetime.now(),
                 description=getattr(dist, 'summary', ''),

@@ -44,7 +44,7 @@ from ..database.manager import database_manager
 
 # Enhanced plugin systems
 try:
-    # from .enhanced_plugin_security import enhanced_plugin_security, SecurityLevel as EnhancedSecurityLevel
+    from .enhanced_plugin_security import enhanced_plugin_security, SecurityLevel as EnhancedSecurityLevel
     from .plugin_dependency_manager import plugin_dependency_manager
 except ImportError:
     enhanced_plugin_security = None

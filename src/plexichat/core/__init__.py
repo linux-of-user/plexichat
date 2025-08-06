@@ -109,7 +109,7 @@ except ImportError:
     core_manager.register_component("backup", False)
 
 try:
-    # importlib.import_module("plexichat.core.plugins")
+    importlib.import_module("plexichat.core.plugins")
     core_manager.register_component("plugins", True)
 except ImportError:
     core_manager.register_component("plugins", False)
