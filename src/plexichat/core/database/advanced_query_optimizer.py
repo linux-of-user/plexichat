@@ -129,7 +129,7 @@ class QueryAnalyzer:
             
         except Exception as e:
             logger.error(f"Error analyzing query: {e}")
-            return {}}
+            return {}
     
     def _identify_query_type(self, query: str) -> QueryType:
         """Identify the type of query."""
@@ -427,7 +427,7 @@ class QueryOptimizer:
             elif strategy == OptimizationStrategy.PREDICATE_PUSHDOWN:
                 return await self._pushdown_predicates(query, analysis)
             else:
-                return {}'success': False, 'optimized_query': query}
+                return {'success': False, 'optimized_query': query}
                 
         except Exception as e:
             logger.error(f"Optimization strategy {strategy} failed: {e}")
