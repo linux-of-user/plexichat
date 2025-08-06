@@ -109,11 +109,11 @@ class ApplicationStartup:
             self.logger.log_startup("LoggingSystem", "SUCCESS", "ASCII-only logging initialized")
             self.startup_stats["phases_completed"] += 1
             
-            print("   ✅ Logging system initialized")
+            print("    Logging system initialized")
             return True
             
         except Exception as e:
-            print(f"   ❌ Logging initialization failed: {e}")
+            print(f"    Logging initialization failed: {e}")
             self.startup_stats["errors"].append(f"Logging: {e}")
             return False
     
@@ -286,7 +286,7 @@ class ApplicationStartup:
     def _print_startup_summary(self):
         """Print startup summary."""
         print("\n" + "=" * 60)
-        print("🚀 PLEXICHAT STARTUP SUMMARY")
+        print(" PLEXICHAT STARTUP SUMMARY")
         print("=" * 60)
         
         total_time = time.time() - self.startup_time
@@ -307,10 +307,10 @@ class ApplicationStartup:
             print("\nService Status:")
             status = self.service_loader.get_service_status()
             for name, info in status.items():
-                state_icon = "✅" if info["state"] == "running" else "⚠️" if info["state"] == "loaded" else "❌"
+                state_icon = "" if info["state"] == "running" else "" if info["state"] == "loaded" else ""
                 print(f"  {state_icon} {name}: {info['state']}")
         
-        print("\n🎉 PlexiChat is ready!")
+        print("\n PlexiChat is ready!")
         print("=" * 60)
     
     async def shutdown(self):

@@ -22,7 +22,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 def test_basic_functionality():
     """Test basic functionality of integrated protection system."""
-    print("🧪 Testing Integrated Protection System")
+    print(" Testing Integrated Protection System")
     print("=" * 50)
     
     try:
@@ -35,7 +35,7 @@ def test_basic_functionality():
         print("1. Testing system initialization...")
         config = RateLimitConfig()
         protection_system = IntegratedProtectionSystem(config)
-        print("   ✅ System initialized successfully")
+        print("    System initialized successfully")
         
         # Test 2: Account type configuration
         print("2. Testing account type configuration...")
@@ -45,9 +45,9 @@ def test_basic_functionality():
         expected_types = ["GUEST", "USER", "BOT", "MODERATOR", "ADMIN"]
         for account_type in expected_types:
             if account_type in account_limits:
-                print(f"   ✅ {account_type}: {account_limits[account_type]['requests_per_minute']} req/min")
+                print(f"    {account_type}: {account_limits[account_type]['requests_per_minute']} req/min")
             else:
-                print(f"   ❌ Missing account type: {account_type}")
+                print(f"    Missing account type: {account_type}")
                 return False
         
         # Test 3: Dynamic scaling configuration
@@ -57,9 +57,9 @@ def test_basic_functionality():
         
         for level in expected_levels:
             if level in multipliers:
-                print(f"   ✅ {level.value}: {multipliers[level]}x multiplier")
+                print(f"    {level.value}: {multipliers[level]}x multiplier")
             else:
-                print(f"   ❌ Missing load level: {level.value}")
+                print(f"    Missing load level: {level.value}")
                 return False
         
         # Test 4: System metrics
@@ -69,9 +69,9 @@ def test_basic_functionality():
         
         for metric in required_metrics:
             if metric in system_metrics:
-                print(f"   ✅ {metric}: {system_metrics[metric]}")
+                print(f"    {metric}: {system_metrics[metric]}")
             else:
-                print(f"   ❌ Missing metric: {metric}")
+                print(f"    Missing metric: {metric}")
                 return False
         
         # Test 5: Protection statistics
@@ -81,21 +81,21 @@ def test_basic_functionality():
         
         for stat in required_stats:
             if stat in protection_stats:
-                print(f"   ✅ {stat}: {protection_stats[stat]}")
+                print(f"    {stat}: {protection_stats[stat]}")
             else:
-                print(f"   ❌ Missing stat: {stat}")
+                print(f"    Missing stat: {stat}")
                 return False
         
-        print("\n🎉 All basic functionality tests passed!")
+        print("\n All basic functionality tests passed!")
         return True
         
     except Exception as e:
-        print(f"❌ Test failed: {e}")
+        print(f" Test failed: {e}")
         return False
 
 async def test_request_processing():
     """Test request processing through the protection system."""
-    print("\n🚦 Testing Request Processing")
+    print("\n Testing Request Processing")
     print("=" * 50)
     
     try:
@@ -127,9 +127,9 @@ async def test_request_processing():
         
         result = await protection_system.check_request(request)
         if result is None:
-            print("   ✅ Normal request allowed")
+            print("    Normal request allowed")
         else:
-            print(f"   ❌ Normal request blocked: {result}")
+            print(f"    Normal request blocked: {result}")
             return False
         
         # Test 2: Rate limiting
@@ -139,11 +139,11 @@ async def test_request_processing():
             result = await protection_system.check_request(request)
             if result and result.get("blocked"):
                 blocked = True
-                print(f"   ✅ Request blocked after {i+1} attempts: {result['reason']}")
+                print(f"    Request blocked after {i+1} attempts: {result['reason']}")
                 break
         
         if not blocked:
-            print("   ❌ Rate limiting not working")
+            print("    Rate limiting not working")
             return False
         
         # Test 3: Different account types
@@ -157,8 +157,8 @@ async def test_request_processing():
         bot_request = MockRequest(ip="192.168.1.102", user_id="bot_user", account_type="BOT")
         bot_result = await protection_system.check_request(bot_request)
         
-        print(f"   ✅ Guest request: {'allowed' if guest_result is None else 'blocked'}")
-        print(f"   ✅ Bot request: {'allowed' if bot_result is None else 'blocked'}")
+        print(f"    Guest request: {'allowed' if guest_result is None else 'blocked'}")
+        print(f"    Bot request: {'allowed' if bot_result is None else 'blocked'}")
         
         # Test 4: System load simulation
         print("4. Testing system load adaptation...")
@@ -171,20 +171,20 @@ async def test_request_processing():
         # Check if limits were adjusted
         stats_after = protection_system.get_comprehensive_stats()
         load_level = stats_after["system_metrics"]["load_level"]
-        print(f"   ✅ System load level: {load_level}")
+        print(f"    System load level: {load_level}")
         
-        print("\n🎉 All request processing tests passed!")
+        print("\n All request processing tests passed!")
         return True
         
     except Exception as e:
-        print(f"❌ Request processing test failed: {e}")
+        print(f" Request processing test failed: {e}")
         import traceback
         traceback.print_exc()
         return False
 
 def test_configuration_updates():
     """Test configuration updates."""
-    print("\n⚙️  Testing Configuration Updates")
+    print("\n  Testing Configuration Updates")
     print("=" * 50)
     
     try:
@@ -213,9 +213,9 @@ def test_configuration_updates():
         user_limits = stats["account_type_limits"]["USER"]
         
         if user_limits["requests_per_minute"] == 200:
-            print("   ✅ Account limits updated successfully")
+            print("    Account limits updated successfully")
         else:
-            print(f"   ❌ Account limits not updated: {user_limits}")
+            print(f"    Account limits not updated: {user_limits}")
             return False
         
         # Test 2: Update load multipliers
@@ -232,21 +232,21 @@ def test_configuration_updates():
         
         # Verify update
         if protection_system.load_multipliers[SystemLoadLevel.LOW] == 2.0:
-            print("   ✅ Load multipliers updated successfully")
+            print("    Load multipliers updated successfully")
         else:
-            print("   ❌ Load multipliers not updated")
+            print("    Load multipliers not updated")
             return False
         
-        print("\n🎉 All configuration update tests passed!")
+        print("\n All configuration update tests passed!")
         return True
         
     except Exception as e:
-        print(f"❌ Configuration update test failed: {e}")
+        print(f" Configuration update test failed: {e}")
         return False
 
 async def run_comprehensive_test():
     """Run comprehensive test suite."""
-    print("🔒 PlexiChat Integrated Protection System Test Suite")
+    print(" PlexiChat Integrated Protection System Test Suite")
     print("=" * 60)
     
     tests = [
@@ -259,7 +259,7 @@ async def run_comprehensive_test():
     total = len(tests)
     
     for test_name, test_func in tests:
-        print(f"\n🧪 Running: {test_name}")
+        print(f"\n Running: {test_name}")
         try:
             if asyncio.iscoroutinefunction(test_func):
                 result = await test_func()
@@ -268,23 +268,23 @@ async def run_comprehensive_test():
             
             if result:
                 passed += 1
-                print(f"✅ {test_name}: PASSED")
+                print(f" {test_name}: PASSED")
             else:
-                print(f"❌ {test_name}: FAILED")
+                print(f" {test_name}: FAILED")
         except Exception as e:
-            print(f"❌ {test_name}: ERROR - {e}")
+            print(f" {test_name}: ERROR - {e}")
     
     print("\n" + "=" * 60)
-    print("🔒 TEST SUMMARY")
+    print(" TEST SUMMARY")
     print("=" * 60)
     print(f"Tests Passed: {passed}/{total}")
     print(f"Success Rate: {(passed/total)*100:.1f}%")
     
     if passed == total:
-        print("🎉 All tests passed! Integrated Protection System is working correctly.")
+        print(" All tests passed! Integrated Protection System is working correctly.")
         return True
     else:
-        print("⚠️  Some tests failed. Please check the implementation.")
+        print("  Some tests failed. Please check the implementation.")
         return False
 
 if __name__ == "__main__":

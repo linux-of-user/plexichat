@@ -283,7 +283,7 @@ try:
         """Integrated protection with DDoS prevention, rate limiting, and dynamic scaling."""
         return await protection_middleware(request, call_next)
 
-    logger.info("🛡️  Integrated Protection System enabled (DDoS + Rate Limiting + Dynamic Scaling)")
+    logger.info("  Integrated Protection System enabled (DDoS + Rate Limiting + Dynamic Scaling)")
 except Exception as e:
     logger.warning(f"Integrated protection middleware not available: {e}")
 
@@ -304,7 +304,7 @@ except Exception as e:
             """Fallback rate limiting middleware."""
             return await rate_limit_middleware(request, call_next)
 
-        logger.info("⚠️  Fallback rate limiting middleware enabled")
+        logger.info("  Fallback rate limiting middleware enabled")
     except Exception as e2:
         logger.error(f"No protection middleware available: {e2}")
 

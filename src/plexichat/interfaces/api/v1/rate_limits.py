@@ -22,11 +22,26 @@ from plexichat.core.config.rate_limit_config import (
 from plexichat.core.middleware.integrated_protection_system import (
     get_protection_system, SystemLoadLevel, AccountType
 )
-from plexichat.core.security.security_decorators import require_auth, SecurityLevel
+from plexichat.core.security.security_decorators import require_auth, require_admin, SecurityLevel
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/rate-limits", tags=["Rate Limiting"])
+
+
+class AccountLimitsUpdate(BaseModel):
+    """Request model for updating account type limits"""
+    requests_per_minute: int = Field(gt=0, le=10000, description="Requests per minute limit")
+    concurrent_requests: int = Field(gt=0, le=1000, description="Concurrent requests limit")
+    bandwidth_per_second: int = Field(gt=0, le=1000000000, description="Bandwidth per second limit (bytes)")
+
+
+class LoadMultipliersUpdate(BaseModel):
+    """Request model for updating load multipliers"""
+    low_load: float = Field(gt=0, le=10, default=1.5, description="Low load multiplier")
+    normal_load: float = Field(gt=0, le=10, default=1.0, description="Normal load multiplier")
+    high_load: float = Field(gt=0, le=10, default=0.7, description="High load multiplier")
+    critical_load: float = Field(gt=0, le=10, default=0.3, description="Critical load multiplier")
 
 # Pydantic models for API
 class RateLimitStats(BaseModel):
@@ -251,7 +266,7 @@ async def update_user_tier_multiplier(
 @router.get("/effective-limits/{user_tier}")
 async def get_effective_limits(
     user_tier: str,
-    current_user: Dict = Depends(require_security_level(SecurityLevel.ADMIN))
+    current_user: Dict = Depends(require_admin())
 ):
     """
     Get effective rate limits for a specific user tier.
@@ -278,7 +293,7 @@ async def get_effective_limits(
 async def test_rate_limits(
     request: Request,
     strategy: RateLimitStrategy = RateLimitStrategy.PER_IP,
-    current_user: Dict = Depends(require_security_level(SecurityLevel.ADMIN))
+    current_user: Dict = Depends(require_admin())
 ):
     """
     Test rate limiting for the current request.
@@ -315,7 +330,7 @@ async def test_rate_limits(
 
 @router.get("/integrated-stats")
 async def get_integrated_protection_stats(
-    current_user: Dict = Depends(require_security_level(SecurityLevel.ADMIN))
+    current_user: Dict = Depends(require_admin())
 ):
     """
     Get comprehensive integrated protection system statistics.
@@ -343,10 +358,8 @@ async def get_integrated_protection_stats(
 @router.put("/account-limits/{account_type}")
 async def update_account_type_limits(
     account_type: str,
-    requests_per_minute: int = Field(gt=0, le=10000),
-    concurrent_requests: int = Field(gt=0, le=1000),
-    bandwidth_per_second: int = Field(gt=0, le=1000000000),  # 1GB/s max
-    current_user: Dict = Depends(require_security_level(SecurityLevel.ADMIN))
+    limits: AccountLimitsUpdate,
+    current_user: Dict = Depends(require_admin())
 ):
     """
     Update rate limits for a specific account type.
@@ -370,10 +383,10 @@ async def update_account_type_limits(
         from plexichat.core.config.rate_limiting_config import AccountTypeRateLimit
         new_limits = AccountTypeRateLimit(
             account_type=account_type_enum,
-            global_requests_per_minute=requests_per_minute,
-            global_requests_per_hour=requests_per_minute * 60,
-            concurrent_requests=concurrent_requests,
-            bandwidth_per_second=bandwidth_per_second
+            global_requests_per_minute=limits.requests_per_minute,
+            global_requests_per_hour=limits.requests_per_minute * 60,
+            concurrent_requests=limits.concurrent_requests,
+            bandwidth_per_second=limits.bandwidth_per_second
         )
 
         # Update limits
@@ -404,11 +417,8 @@ async def update_account_type_limits(
 
 @router.put("/load-multipliers")
 async def update_load_multipliers(
-    low_load: float = Field(gt=0, le=10, default=1.5),
-    normal_load: float = Field(gt=0, le=10, default=1.0),
-    high_load: float = Field(gt=0, le=10, default=0.7),
-    critical_load: float = Field(gt=0, le=10, default=0.3),
-    current_user: Dict = Depends(require_security_level(SecurityLevel.ADMIN))
+    multipliers: LoadMultipliersUpdate,
+    current_user: Dict = Depends(require_admin())
 ):
     """
     Update dynamic load multipliers for rate limiting.
@@ -424,16 +434,16 @@ async def update_load_multipliers(
     try:
         protection_system = get_protection_system()
 
-        multipliers = {
-            SystemLoadLevel.LOW: low_load,
-            SystemLoadLevel.NORMAL: normal_load,
-            SystemLoadLevel.HIGH: high_load,
-            SystemLoadLevel.CRITICAL: critical_load
+        multipliers_dict = {
+            SystemLoadLevel.LOW: multipliers.low_load,
+            SystemLoadLevel.NORMAL: multipliers.normal_load,
+            SystemLoadLevel.HIGH: multipliers.high_load,
+            SystemLoadLevel.CRITICAL: multipliers.critical_load
         }
 
-        protection_system.adjust_load_multipliers(multipliers)
+        protection_system.adjust_load_multipliers(multipliers_dict)
 
-        logger.info(f"Load multipliers updated by admin {current_user.get('username', 'unknown')}: {multipliers}")
+        logger.info(f"Load multipliers updated by admin {current_user.get('username', 'unknown')}: {multipliers_dict}")
 
         return {
             "success": True,
@@ -455,7 +465,7 @@ async def update_load_multipliers(
 
 @router.get("/system-health")
 async def get_system_health(
-    current_user: Dict = Depends(require_security_level(SecurityLevel.ADMIN))
+    current_user: Dict = Depends(require_admin())
 ):
     """
     Get current system health and load information.

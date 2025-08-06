@@ -193,7 +193,7 @@ async def broadcast_presence_update(presence_event: PresenceEvent):
 @router.get("/connections")
 async def get_active_connections(current_user: dict = Depends(get_current_user)):
     """Get information about active connections."""
-    return {}
+    return {
         "total_connections": len(manager.active_connections),
         "active_users": len(manager.user_connections),
         "active_rooms": len(manager.room_connections),

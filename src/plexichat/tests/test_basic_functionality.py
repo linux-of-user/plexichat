@@ -14,20 +14,20 @@ from pathlib import Path
 
 def test_python_environment():
     """Test Python environment and basic functionality."""
-    print("🐍 Testing Python Environment...")
+    print(" Testing Python Environment...")
     
     # Test Python version
     version = sys.version_info
     if version.major >= 3 and version.minor >= 8:
-        print(f"   ✅ Python version: {version.major}.{version.minor}.{version.micro}")
+        print(f"    Python version: {version.major}.{version.minor}.{version.micro}")
         return True
     else:
-        print(f"   ❌ Python version too old: {version.major}.{version.minor}.{version.micro}")
+        print(f"    Python version too old: {version.major}.{version.minor}.{version.micro}")
         return False
 
 def test_file_structure():
     """Test project file structure."""
-    print("\n📁 Testing File Structure...")
+    print("\n Testing File Structure...")
     
     project_root = Path(__file__).parent.parent.parent.parent
     required_files = [
@@ -48,24 +48,24 @@ def test_file_structure():
     for file_path in required_files:
         full_path = project_root / file_path
         if full_path.exists():
-            print(f"   ✅ {file_path}")
+            print(f"    {file_path}")
         else:
-            print(f"   ❌ Missing: {file_path}")
+            print(f"    Missing: {file_path}")
             all_good = False
     
     for dir_path in required_dirs:
         full_path = project_root / dir_path
         if full_path.exists() and full_path.is_dir():
-            print(f"   ✅ {dir_path}/")
+            print(f"    {dir_path}/")
         else:
-            print(f"   ❌ Missing directory: {dir_path}/")
+            print(f"    Missing directory: {dir_path}/")
             all_good = False
     
     return all_good
 
 def test_basic_imports():
     """Test basic Python imports that should always work."""
-    print("\n📦 Testing Basic Imports...")
+    print("\n Testing Basic Imports...")
     
     basic_modules = [
         'json',
@@ -85,16 +85,16 @@ def test_basic_imports():
     for module in basic_modules:
         try:
             __import__(module)
-            print(f"   ✅ {module}")
+            print(f"    {module}")
         except ImportError as e:
-            print(f"   ❌ {module}: {e}")
+            print(f"    {module}: {e}")
             all_good = False
     
     return all_good
 
 def test_data_structures():
     """Test basic data structures and algorithms."""
-    print("\n🔧 Testing Data Structures...")
+    print("\n Testing Data Structures...")
     
     try:
         # Test basic rate limiting logic
@@ -131,19 +131,19 @@ def test_data_structures():
                 allowed += 1
         
         if allowed == 5:
-            print("   ✅ Basic rate limiting logic works")
+            print("    Basic rate limiting logic works")
             return True
         else:
-            print(f"   ❌ Rate limiting failed: allowed {allowed}/5")
+            print(f"    Rate limiting failed: allowed {allowed}/5")
             return False
             
     except Exception as e:
-        print(f"   ❌ Data structures test failed: {e}")
+        print(f"    Data structures test failed: {e}")
         return False
 
 def test_configuration_handling():
     """Test configuration file handling."""
-    print("\n⚙️  Testing Configuration Handling...")
+    print("\n  Testing Configuration Handling...")
     
     try:
         # Test JSON configuration
@@ -164,28 +164,28 @@ def test_configuration_handling():
         parsed_config = json.loads(json_str)
         
         if parsed_config == test_config:
-            print("   ✅ JSON configuration handling works")
+            print("    JSON configuration handling works")
         else:
-            print("   ❌ JSON configuration mismatch")
+            print("    JSON configuration mismatch")
             return False
         
         # Test configuration validation
         required_keys = ["rate_limiting", "security"]
         for key in required_keys:
             if key not in parsed_config:
-                print(f"   ❌ Missing configuration key: {key}")
+                print(f"    Missing configuration key: {key}")
                 return False
         
-        print("   ✅ Configuration validation works")
+        print("    Configuration validation works")
         return True
         
     except Exception as e:
-        print(f"   ❌ Configuration test failed: {e}")
+        print(f"    Configuration test failed: {e}")
         return False
 
 def test_security_basics():
     """Test basic security functions."""
-    print("\n🔒 Testing Security Basics...")
+    print("\n Testing Security Basics...")
     
     try:
         import hashlib
@@ -200,17 +200,17 @@ def test_security_basics():
         hashed = hashlib.sha256(combined.encode()).hexdigest()
         
         if len(hashed) == 64:  # SHA256 produces 64 character hex string
-            print("   ✅ Basic password hashing works")
+            print("    Basic password hashing works")
         else:
-            print("   ❌ Password hashing failed")
+            print("    Password hashing failed")
             return False
         
         # Test token generation
         token = secrets.token_urlsafe(32)
         if len(token) > 32:
-            print("   ✅ Secure token generation works")
+            print("    Secure token generation works")
         else:
-            print("   ❌ Token generation failed")
+            print("    Token generation failed")
             return False
         
         # Test input sanitization basics
@@ -218,20 +218,20 @@ def test_security_basics():
         sanitized = malicious_input.replace("<", "&lt;").replace(">", "&gt;")
         
         if "<script>" not in sanitized:
-            print("   ✅ Basic input sanitization works")
+            print("    Basic input sanitization works")
         else:
-            print("   ❌ Input sanitization failed")
+            print("    Input sanitization failed")
             return False
         
         return True
         
     except Exception as e:
-        print(f"   ❌ Security basics test failed: {e}")
+        print(f"    Security basics test failed: {e}")
         return False
 
 def test_performance_basics():
     """Test basic performance considerations."""
-    print("\n⚡ Testing Performance Basics...")
+    print("\n Testing Performance Basics...")
     
     try:
         import time
@@ -249,27 +249,27 @@ def test_performance_basics():
         duration = end_time - start_time
         
         if duration < 0.1:  # Should be very fast
-            print(f"   ✅ Efficient data structures (took {duration:.4f}s)")
+            print(f"    Efficient data structures (took {duration:.4f}s)")
         else:
-            print(f"   ⚠️  Data structure performance concern ({duration:.4f}s)")
+            print(f"     Data structure performance concern ({duration:.4f}s)")
         
         # Test memory efficiency
         large_list = list(range(100000))
         if len(large_list) == 100000:
-            print("   ✅ Memory allocation works")
+            print("    Memory allocation works")
         else:
-            print("   ❌ Memory allocation failed")
+            print("    Memory allocation failed")
             return False
         
         return True
         
     except Exception as e:
-        print(f"   ❌ Performance test failed: {e}")
+        print(f"    Performance test failed: {e}")
         return False
 
 def run_basic_tests():
     """Run all basic functionality tests."""
-    print("🔧 PlexiChat Basic Functionality Test Suite")
+    print(" PlexiChat Basic Functionality Test Suite")
     print("=" * 60)
     
     tests = [
@@ -290,29 +290,29 @@ def run_basic_tests():
             result = test_func()
             if result:
                 passed += 1
-                print(f"✅ {test_name}: PASSED")
+                print(f" {test_name}: PASSED")
             else:
-                print(f"❌ {test_name}: FAILED")
+                print(f" {test_name}: FAILED")
         except Exception as e:
-            print(f"❌ {test_name}: ERROR - {e}")
+            print(f" {test_name}: ERROR - {e}")
     
     print("\n" + "=" * 60)
-    print("🔧 BASIC FUNCTIONALITY TEST SUMMARY")
+    print(" BASIC FUNCTIONALITY TEST SUMMARY")
     print("=" * 60)
     print(f"Tests Passed: {passed}/{total}")
     print(f"Success Rate: {(passed/total)*100:.1f}%")
     
     if passed == total:
-        print("🎉 All basic tests passed! Core functionality is working.")
-        print("\n📋 NEXT STEPS:")
+        print(" All basic tests passed! Core functionality is working.")
+        print("\n NEXT STEPS:")
         print("1. Run 'python run.py setup --test-deps' to install testing dependencies")
         print("2. Run 'python run.py test --type protection' to test protection systems")
         print("3. Run 'python run.py test --type security' for security testing")
         print("4. Run 'python run.py' to start the server")
         return True
     else:
-        print("⚠️  Some basic tests failed. Please fix these issues first.")
-        print("\n🔧 TROUBLESHOOTING:")
+        print("  Some basic tests failed. Please fix these issues first.")
+        print("\n TROUBLESHOOTING:")
         print("1. Check Python version (requires 3.8+)")
         print("2. Verify project file structure")
         print("3. Run 'python run.py setup' to install dependencies")

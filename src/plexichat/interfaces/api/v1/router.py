@@ -68,7 +68,7 @@ if client_settings_available and client_settings_router:
 @router.get("/")
 async def api_root():
     """API v1 root endpoint with information."""
-    return {}
+    return {
         "name": "PlexiChat API",
         "version": "v1",
         "description": "Simple, secure messaging API",
@@ -93,7 +93,7 @@ async def api_root():
 @router.get("/info")
 async def api_info():
     """Get detailed API information."""
-    return {}
+    return {
         "api": {
             "name": "PlexiChat API",
             "version": "v1",

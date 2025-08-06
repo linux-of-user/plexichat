@@ -295,7 +295,7 @@ class IntegratedProtectionSystem:
                 current_config.global_requests_per_minute = new_global
                 
                 self.protection_stats["dynamic_adjustments"] += 1
-                logger.debug(f"📊 Dynamic limits adjusted: IP={new_per_ip}, User={new_per_user}, Global={new_global}")
+                logger.debug(f" Dynamic limits adjusted: IP={new_per_ip}, User={new_per_user}, Global={new_global}")
                 
         except Exception as e:
             logger.error(f"Failed to adjust dynamic limits: {e}")
@@ -504,7 +504,7 @@ class IntegratedProtectionSystem:
             except asyncio.CancelledError:
                 pass
 
-        logger.info("🛡️  Integrated Protection System shutdown")
+        logger.info("  Integrated Protection System shutdown")
 
 class IntegratedProtectionMiddleware:
     """FastAPI middleware for integrated protection system."""

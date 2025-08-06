@@ -563,7 +563,7 @@ class EnhancedSecurityManager:
 
     def configure_comprehensive_security(self, app):
         """Configure all security middleware for the FastAPI app."""
-        logger.info("? Configuring comprehensive security middleware...")
+        logger.info("Configuring comprehensive security middleware...")
 
         try:
             # 1. Setup enhanced exception handlers
@@ -586,7 +586,7 @@ class EnhancedSecurityManager:
             app.add_middleware(SecurityMiddleware)
             logger.info("[OK] Core security middleware added")
 
-            logger.info("?? Comprehensive security configuration completed successfully!")
+            logger.info("Comprehensive security configuration completed successfully!")
 
         except Exception as e:
             logger.error(f"[ERROR] Error configuring security middleware: {e}")

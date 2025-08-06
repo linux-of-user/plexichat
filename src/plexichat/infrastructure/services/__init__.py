@@ -126,7 +126,7 @@ class SecureService:
 
         # Security integration
         self.encryption_context = None
-        self.service_key = None
+        # self.service_key = None
 
         # Performance tracking
         self.performance_metrics: List[Dict[str, Any]] = []
@@ -150,7 +150,7 @@ class SecureService:
             # Setup health monitoring
             await self._setup_health_monitoring()
 
-            logger.info(f" Service initialized: {self.metadata.name}")
+            logger.info(f"Service initialized: {self.metadata.name}")
 
         except Exception as e:
             logger.error(f"Failed to initialize service {self.metadata.name}: {e}")
@@ -171,13 +171,13 @@ class SecureService:
                 "data_type": "service_communication",
                 "security_tier": "STANDARD",  # self._get_security_tier(),
                 "algorithms": [],
-                    "key_ids": [f"service_key_{self.metadata.service_id}"],
-                    "metadata": {
-                        "service_id": self.metadata.service_id,
-                        "service_type": self.metadata.service_type.value,
-                        "security_level": self.metadata.security_level,
-                    },
+                "key_ids": [f"service_key_{self.metadata.service_id}"],  # self.service_key.key_id,
+                "metadata": {
+                    "service_id": self.metadata.service_id,
+                    "service_type": self.metadata.service_type.value,
+                    "security_level": self.metadata.security_level,
                 }
+            }
 
         except Exception as e:
             logger.warning(f"Failed to setup service encryption for {self.metadata.name}: {e}")
@@ -265,7 +265,7 @@ class SecureService:
 
     async def _trigger_service_recovery(self):
         """Trigger service recovery procedures."""
-        logger.info(f" Triggering recovery for service: {self.metadata.name}")
+        logger.info(f"Triggering recovery for service: {self.metadata.name}")
 
         try:
             # Stop service gracefully
@@ -280,7 +280,7 @@ class SecureService:
                 await self.start()
 
             self.restart_count += 1
-            logger.info(f" Service recovery completed: {self.metadata.name}")
+            logger.info(f"Service recovery completed: {self.metadata.name}")
 
         except Exception as e:
             logger.error(f"Service recovery failed for {self.metadata.name}: {e}")
@@ -302,7 +302,7 @@ class SecureService:
             self.health.status = ServiceStatus.RUNNING
             self.start_time = datetime.now(timezone.utc)
 
-            logger.info(f" Service started: {self.metadata.name}")
+            logger.info(f"Service started: {self.metadata.name}")
             await self._emit_event("service_started")
 
         except Exception as e:
@@ -311,7 +311,7 @@ class SecureService:
             self.health.last_error = str(e)
             self.health.error_count += 1
 
-            logger.error(f" Failed to start service {self.metadata.name}: {e}")
+            logger.error(f"Failed to start service {self.metadata.name}: {e}")
             raise
 
     async def stop(self):
@@ -329,7 +329,7 @@ class SecureService:
             self.health.status = ServiceStatus.STOPPED
             self.stop_time = datetime.now(timezone.utc)
 
-            logger.info(f" Service stopped: {self.metadata.name}")
+            logger.info(f"Service stopped: {self.metadata.name}")
             await self._emit_event("service_stopped")
 
         except Exception as e:
@@ -338,7 +338,7 @@ class SecureService:
             self.health.last_error = str(e)
             self.health.error_count += 1
 
-            logger.error(f" Failed to stop service {self.metadata.name}: {e}")
+            logger.error(f"Failed to stop service {self.metadata.name}: {e}")
             raise
 
     async def restart(self):
