@@ -40,7 +40,8 @@ except ImportError as e:
 
 class ApplicationStartup:
     """Manages application startup process."""
-        def __init__(self):
+
+    def __init__(self):
         self.logger = None
         self.config = None
         self.service_loader = None
