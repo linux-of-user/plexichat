@@ -37,7 +37,7 @@ from ...core.unified_config import (
 # Core imports
 try:
     from ..database.manager import database_manager
-    from ..config import get_config  # type: ignore
+    from ..unified_config import get_config  # type: ignore
 except ImportError:
     database_manager = None
 
@@ -652,7 +652,11 @@ class UnifiedSecurityManager:
 
     def __init__(self, secret_key: Optional[str] = None):
         self.secret_key = secret_key or secrets.token_urlsafe(32)
-        self.config = get_config()
+        try:
+            from ..unified_config import get_unified_config
+            self.config = get_unified_config()
+        except ImportError:
+            self.config = None
 
         # Initialize components
         self.password_manager = PasswordManager()
@@ -883,7 +887,7 @@ class UnifiedSecurityManager:
 
 
 # Global unified security manager instance
-unified_security_manager = UnifiedSecurityManager()
+# unified_security_manager = UnifiedSecurityManager()
 
 # Backward compatibility functions
 def hash_password(password: str) -> str:
