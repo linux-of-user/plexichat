@@ -31,7 +31,7 @@ performance_logger = get_performance_logger() if get_performance_logger else Non
 @dataclass
 class ThreadTask:
     """Thread task definition."""
-        task_id: str
+    task_id: str
     function: Callable
     args: tuple
     kwargs: dict
