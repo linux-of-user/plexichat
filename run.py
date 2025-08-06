@@ -20,12 +20,45 @@ import re
 import tempfile
 import urllib.request
 import urllib.error
+try:
+    import yaml
+except ImportError:
+    yaml = None
 from pathlib import Path
 from typing import List, Dict, Optional, Tuple
 from urllib.parse import urlparse
 
 # Add the src directory to Python path
 sys.path.insert(0, str(Path(__file__).parent / "src"))
+
+def load_yaml_config():
+    """Load configuration from plexichat.yaml file."""
+    if yaml is None:
+        # Fallback to default values if PyYAML is not available
+        return {
+            'network': {
+                'host': 'localhost',
+                'api_port': 8000,
+                'web_port': 8080
+            }
+        }
+
+    config_file = Path(__file__).parent / "config" / "plexichat.yaml"
+    if config_file.exists():
+        try:
+            with open(config_file, 'r', encoding='utf-8') as f:
+                return yaml.safe_load(f) or {}
+        except Exception as e:
+            print(f"Warning: Could not load config from {config_file}: {e}")
+
+    # Return default values if config file doesn't exist
+    return {
+        'network': {
+            'host': 'localhost',
+            'api_port': 8000,
+            'web_port': 8080
+        }
+    }
 
 # Configuration system
 class ConfigManager:
@@ -1515,11 +1548,7 @@ Examples:
 
 
 
-    # Server command
-    server_parser = subparsers.add_parser('server', help='Start the API server')
-    server_parser.add_argument('--host', default=config_manager.get("server.host"), help='Host to bind to')
-    server_parser.add_argument('--port', type=int, default=config_manager.get("server.api_port"), help='Port to bind to')
-    server_parser.add_argument('--no-reload', action='store_true', help='Disable auto-reload')
+
 
     # Test command
     test_parser = subparsers.add_parser('test', help='Run tests')
@@ -1527,10 +1556,17 @@ Examples:
                            default='basic', help='Type of tests to run')
     test_parser.add_argument('--coverage', action='store_true', help='Generate coverage report')
 
+    # Load configuration from YAML file
+    yaml_config = load_yaml_config()
+    network_config = yaml_config.get('network', {})
+    default_host = network_config.get('host', 'localhost')
+    default_api_port = network_config.get('api_port', 8000)
+    default_web_port = network_config.get('web_port', 8080)
+
     # Server arguments (for default command)
-    parser.add_argument("--host", default=config_manager.get("server.host"), help="Host to bind to")
-    parser.add_argument("--port", type=int, default=config_manager.get("server.api_port"), help="Port to bind to")
-    parser.add_argument("--webui-port", type=int, default=config_manager.get("server.webui_port"), help="WebUI port to bind to")
+    parser.add_argument("--host", default=default_host, help=f"Host to bind to (default: {default_host})")
+    parser.add_argument("--port", type=int, default=default_api_port, help=f"API server port (default: {default_api_port})")
+    parser.add_argument("--webui-port", type=int, default=default_web_port, help=f"WebUI port (default: {default_web_port})")
     parser.add_argument("--no-reload", action="store_true", help="Disable auto-reload")
     parser.add_argument("--noserver", action="store_true", help="Don't start API server")
     parser.add_argument("--nowebui", action="store_true", help="Don't start WebUI server")
@@ -1578,17 +1614,7 @@ Examples:
         handle_update_command(args)
         sys.exit(0)
 
-    elif args.command == 'server':
-        # Simple server start without complex setup
-        try:
-            start_server(
-                host=args.host,
-                port=args.port,
-                reload=not args.no_reload
-            )
-        except Exception as e:
-            print_colored(f"[ERROR] Failed to start server: {e}", Colors.RED)
-            sys.exit(1)
+
 
 
 
