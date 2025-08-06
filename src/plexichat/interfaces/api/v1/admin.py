@@ -168,7 +168,7 @@ async def deactivate_user(
         
         logger.info(f"User deactivated: {user['username']} by admin {admin_user['username']}")
         
-        return {}
+        return {
             "success": True,
             "message": f"User {user['username']} deactivated successfully"
         }
@@ -196,7 +196,7 @@ async def activate_user(
         
         logger.info(f"User activated: {user['username']} by admin {admin_user['username']}")
         
-        return {}
+        return {
             "success": True,
             "message": f"User {user['username']} activated successfully"
         }
@@ -245,7 +245,7 @@ async def delete_user_admin(
         
         logger.info(f"User deleted by admin: {username} by {admin_user['username']}")
         
-        return {}
+        return {
             "success": True,
             "message": f"User {username} deleted successfully"
         }
@@ -299,7 +299,7 @@ async def get_recent_messages(
                 "encrypted": message['encrypted']
             })
         
-        return {}
+        return {
             "messages": messages_list,
             "count": len(messages_list),
             "total_active_messages": len(active_messages)
@@ -330,7 +330,7 @@ async def delete_message_admin(
         
         logger.info(f"Message deleted by admin: {message_id} by {admin_user['username']} - {reason}")
         
-        return {}
+        return {
             "success": True,
             "message": "Message deleted successfully",
             "reason": reason
@@ -357,7 +357,7 @@ async def make_admin(
         
         logger.info(f"User made admin: {user['username']} by {admin_user['username']}")
         
-        return {}
+        return {
             "success": True,
             "message": f"User {user['username']} is now an admin"
         }
@@ -375,7 +375,7 @@ async def admin_health_check(admin_user: dict = Depends(require_admin)):
         from .messages import messages_db
         from .files import files_db
         
-        return {}
+        return {
             "status": "healthy",
             "timestamp": datetime.now(),
             "system": {
