@@ -64,12 +64,12 @@ class BaseMiddleware(ABC):
         pass
 
     async def on_error(self, context: MiddlewareContext, error: Exception):
-        """Called when an error occurs.
+        """Called when an error occurs."""
         pass
 
 class AuthenticationMiddleware(BaseMiddleware):
     """Authentication middleware."""
-        def __init__(self, priority: int = 10):
+    def __init__(self, priority: int = 10):
         super().__init__("authentication", priority)
 
     async def process(self, context: MiddlewareContext, next_middleware: Callable) -> Any:
@@ -108,7 +108,7 @@ class AuthenticationMiddleware(BaseMiddleware):
 
 class RateLimitMiddleware(BaseMiddleware):
     """Rate limiting middleware."""
-        def __init__(self, requests_per_minute: int = 60, priority: int = 20):
+    def __init__(self, requests_per_minute: int = 60, priority: int = 20):
         super().__init__("rate_limit", priority)
         self.requests_per_minute = requests_per_minute
         self.request_counts = {}
@@ -157,7 +157,7 @@ class RateLimitMiddleware(BaseMiddleware):
 
 class ValidationMiddleware(BaseMiddleware):
     """Data validation middleware."""
-        def __init__(self, schema: Optional[Dict[str, Any]] = None, priority: int = 30):
+    def __init__(self, schema: Optional[Dict[str, Any]] = None, priority: int = 30):
         super().__init__("validation", priority)
         self.schema = schema or {}
 
@@ -196,7 +196,8 @@ class ValidationMiddleware(BaseMiddleware):
 
 class LoggingMiddleware(BaseMiddleware):
     """Logging middleware."""
-        def __init__(self, priority: int = 1000):
+
+    def __init__(self, priority: int = 1000):
         super().__init__("logging", priority)
 
     async def process(self, context: MiddlewareContext, next_middleware: Callable) -> Any:
@@ -223,7 +224,7 @@ class LoggingMiddleware(BaseMiddleware):
 
 class PerformanceMiddleware(BaseMiddleware):
     """Performance tracking middleware."""
-        def __init__(self, performance_logger=None, priority: int = 1001):
+    def __init__(self, performance_logger=None, priority: int = 1001):
         super().__init__("performance", priority)
         self.performance_logger = performance_logger
 
@@ -285,8 +286,8 @@ class PerformanceMiddleware(BaseMiddleware):
             raise
 
 class MiddlewareManager:
-    """Middleware manager with threading support.
-        def __init__(self):
+    """Middleware manager with threading support."""
+    def __init__(self):
         self.performance_logger = performance_logger
         self.async_thread_manager = async_thread_manager
 
@@ -473,7 +474,7 @@ middleware_manager.register_middleware("api", PerformanceMiddleware(performance_
 
 # Convenience functions
 def register_middleware(middleware_type: str, middleware: BaseMiddleware):
-    """Register middleware using global manager.
+    """Register middleware using global manager."""
     middleware_manager.register_middleware(middleware_type, middleware)
 
 def unregister_middleware(middleware_type: str, middleware_name: str) -> bool:
@@ -481,7 +482,7 @@ def unregister_middleware(middleware_type: str, middleware_name: str) -> bool:
     return middleware_manager.unregister_middleware(middleware_type, middleware_name)
 
 async def process_with_middleware(middleware_type: str, request_id: str, data: Dict[str, Any], **kwargs) -> Any:
-    Process request with middleware using global manager."""
+    """Process request with middleware using global manager."""
     return await middleware_manager.process(middleware_type, request_id, data, **kwargs)
 
 def get_middleware_stack(middleware_type: str) -> List[Dict[str, Any]]:
