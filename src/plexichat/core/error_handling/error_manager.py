@@ -147,7 +147,7 @@ class ErrorManager:
 
             # Start background monitoring tasks
             if self.monitoring_enabled:
-                self.background_tasks.extend([)
+                self.background_tasks.extend([
                     asyncio.create_task(self._metrics_collection_loop()),
                     asyncio.create_task(self._pattern_detection_loop()),
                     asyncio.create_task(self._health_monitoring_loop()),

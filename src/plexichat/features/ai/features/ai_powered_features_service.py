@@ -151,8 +151,7 @@ class AIPoweredFeaturesService(BaseService):
         super().__init__("ai_powered_features")
 
         # Configuration management
-        self.config_path = config_path or from pathlib import Path
-Path("config/ai_powered_features.yaml")
+        self.config_path = config_path or Path("config/ai_powered_features.yaml")
 
         # AI abstraction layer
         self.ai_layer = AIAbstractionLayer()

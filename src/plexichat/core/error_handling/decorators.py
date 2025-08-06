@@ -99,7 +99,7 @@ def error_handler(
     return decorator
 
 
-def crash_handler():
+def crash_handler(
     severity: ErrorSeverity = ErrorSeverity.CRITICAL,
     category: ErrorCategory = ErrorCategory.SYSTEM,
     component: Optional[str] = None,

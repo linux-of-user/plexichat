@@ -156,10 +156,10 @@ class FileManager:
         """Process image file and extract metadata."""
         try:
             if not Image:
-                return {}}
+                return {}
 
             with Image.open(file_path) as img:
-                return {}
+                return {
                     "width": img.width,
                     "height": img.height,
                     "format": img.format,

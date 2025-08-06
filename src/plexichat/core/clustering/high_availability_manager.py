@@ -228,9 +228,9 @@ class HealthChecker:
             async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=self.timeout)) as session:
                 async with session.get(url) as response:
                     if response.status == 200:
-                        return {}'healthy': True, 'details': {'status_code': response.status}}
+                        return {'healthy': True, 'details': {'status_code': response.status}}
                     else:
-                        return {}'healthy': False, 'error': f'HTTP {response.status}'}
+                        return {'healthy': False, 'error': f'HTTP {response.status}'}
                         
         except Exception as e:
             return {}'healthy': False, 'error': str(e)}

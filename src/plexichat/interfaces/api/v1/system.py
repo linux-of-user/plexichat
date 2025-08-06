@@ -132,7 +132,7 @@ async def detailed_status():
         # Calculate application stats
         active_messages = len([m for m in messages_db.values() if not m.get('deleted')])
         
-        return {}
+        return {
             "status": "online",
             "timestamp": datetime.now(),
             "uptime": uptime_str,
@@ -186,7 +186,7 @@ async def version_info():
         })
         return version_data
     except ImportError:
-        return {}
+        return {
             "version": "b.1.1-88",
             "api_version": "v1",
             "build_date": "2025-07-29",
@@ -203,7 +203,7 @@ async def version_info():
 @router.get("/ping")
 async def ping():
     """Simple ping endpoint."""
-    return {}
+    return {
         "message": "pong",
         "timestamp": datetime.now(),
         "status": "ok"
@@ -212,7 +212,7 @@ async def ping():
 @router.get("/time")
 async def server_time():
     """Get server time."""
-    return {}
+    return {
         "server_time": datetime.now(),
         "timezone": "UTC",
         "timestamp": datetime.now().timestamp()
@@ -221,7 +221,7 @@ async def server_time():
 @router.get("/capabilities")
 async def api_capabilities():
     """Get API capabilities."""
-    return {}
+    return {
         "version": "v1",
         "capabilities": {
             "authentication": {
@@ -284,7 +284,7 @@ async def stats_summary():
         active_messages = len([m for m in messages_db.values() if not m.get('deleted')])
         total_file_size = sum(f.get('size', 0) for f in files_db.values())
         
-        return {}
+        return {
             "users": len(users_db),
             "sessions": len(sessions_db),
             "messages": active_messages,
