@@ -8,7 +8,7 @@ Debug Manager
 
 Comprehensive debugging system for PlexiChat with advanced logging, profiling,
 error tracking, and debugging tools.
-
+"""
 
 import asyncio
 import functools
@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 
 class DebugLevel(Enum):
     """Debug levels for different types of debugging."""
-        TRACE = "trace"
+    TRACE = "trace"
     DEBUG = "debug"
     INFO = "info"
     WARNING = "warning"
@@ -54,8 +54,8 @@ class ProfilerType(Enum):
 
 @dataclass
 class DebugEvent:
-    """Debug event data structure.
-        timestamp: str
+    """Debug event data structure."""
+    timestamp: str
     level: DebugLevel
     source: str
     message: str
@@ -71,7 +71,7 @@ class DebugEvent:
 @dataclass
 class ProfileData:
     """Profiling data structure."""
-        profiler_type: ProfilerType
+    profiler_type: ProfilerType
     start_time: float
     end_time: float
     duration: float
@@ -81,8 +81,9 @@ class ProfileData:
 
 
 class DebugSession:
-    Debug session for tracking debugging activities."""
-        def __init__(self, session_id: str, name: str):
+    """Debug session for tracking debugging activities."""
+
+    def __init__(self, session_id: str, name: str):
         self.session_id = session_id
         self.name = name
         self.start_time = time.time()
@@ -92,7 +93,7 @@ class DebugSession:
         self.metadata: Dict[str, Any] = {}
 
     def add_event(self, event: DebugEvent):
-        """Add a debug event to the session.
+        """Add a debug event to the session."""
         if self.active:
             self.events.append(event)
 
@@ -102,7 +103,7 @@ class DebugSession:
             self.profiling_data.append(profile_data)
 
     def end_session(self):
-        End the debug session."""
+        """End the debug session."""
         self.active = False
         self.end_time = time.time()
         self.duration = self.end_time - self.start_time
@@ -110,7 +111,8 @@ class DebugSession:
 
 class DebugManager:
     """Comprehensive debugging manager."""
-        def __init__(self, config: Optional[Dict[str, Any]] = None):
+
+    def __init__(self, config: Optional[Dict[str, Any]] = None):
         self.config = config or {}
         self.debug_enabled = self.config.get("debug_enabled", True)
         self.log_level = DebugLevel(self.config.get("log_level", "debug"))
@@ -151,7 +153,7 @@ class DebugManager:
             file_handler = logging.FileHandler(log_file)
             file_handler.setLevel(logging.DEBUG)
 
-            formatter = logging.Formatter()
+            formatter = logging.Formatter(
                 '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
             )
             file_handler.setFormatter(formatter)
@@ -177,7 +179,7 @@ class DebugManager:
 
                 # Limit number of sessions
                 if len(self.debug_sessions) > self.max_sessions:
-                    oldest_session = min()
+                    oldest_session = min(
                         self.debug_sessions.keys(),
                         key=lambda k: self.debug_sessions[k].start_time
                     )
@@ -190,7 +192,7 @@ class DebugManager:
             logger.error(f"Error creating debug session: {e}")
             return ""
 
-    def log_event(self, level: DebugLevel, source: str, message: str, ):
+    def log_event(self, level: DebugLevel, source: str, message: str,
                 context: Optional[Dict[str, Any]] = None,
                 session_id: Optional[str] = None,
                 include_stack: bool = False):
@@ -200,7 +202,7 @@ class DebugManager:
                 return
 
             # Create debug event
-            event = DebugEvent()
+            event = DebugEvent(
                 timestamp=datetime.now().isoformat(),
                 level=level,
                 source=source,
@@ -235,7 +237,7 @@ class DebugManager:
         except Exception as e:
             logger.error(f"Error logging debug event: {e}")
 
-    def log_error(self, source: str, error: Exception, ):
+    def log_error(self, source: str, error: Exception,
                 context: Optional[Dict[str, Any]] = None,
                 session_id: Optional[str] = None):
         """Log an error with full traceback."""
@@ -249,13 +251,13 @@ class DebugManager:
 
             # Create enhanced context
             enhanced_context = context or {}
-            enhanced_context.update({)
+            enhanced_context.update({
                 "error_type": type(error).__name__,
                 "error_count": self.error_counts[error_key],
                 "traceback": traceback.format_exc()
             })
 
-            self.log_event()
+            self.log_event(
                 DebugLevel.ERROR,
                 source,
                 error_message,
@@ -276,6 +278,7 @@ class DebugManager:
 
         profiler_id = f"{function_name}_{int(time.time())}"
         start_time = time.time()
+        memory_before = None
 
         try:
             if profiler_type == ProfilerType.CPU:
@@ -286,7 +289,8 @@ class DebugManager:
                     self.active_profilers[profiler_id] = profiler
 
             # Memory snapshot before
-            memory_before = self._get_memory_usage() if profiler_type == ProfilerType.MEMORY else None
+            if profiler_type == ProfilerType.MEMORY:
+                memory_before = self._get_memory_usage()
 
             yield
 
@@ -317,21 +321,22 @@ class DebugManager:
 
                 elif profiler_type == ProfilerType.MEMORY:
                     memory_after = self._get_memory_usage()
+                    memory_before_val = memory_before if memory_before is not None else 0
                     profile_data = {
-                        "memory_before": memory_before,
+                        "memory_before": memory_before_val,
                         "memory_after": memory_after,
-                        "memory_delta": memory_after - memory_before if memory_before else 0
+                        "memory_delta": memory_after - memory_before_val
                     }
 
                 # Create profile data object
-                profile_obj = ProfileData()
+                profile_obj = ProfileData(
                     profiler_type=profiler_type,
                     start_time=start_time,
                     end_time=end_time,
                     duration=duration,
                     data=profile_data,
                     function_name=function_name,
-                    module_name=inspect.getmodule(inspect.currentframe().f_back).__name__
+                    module_name="unknown"
                 )
 
                 # Store performance metrics
@@ -350,7 +355,7 @@ class DebugManager:
                 logger.error(f"Error processing profile data: {e}")
 
     def profile_decorator(self, profiler_type: ProfilerType = ProfilerType.CPU):
-        """Decorator for profiling functions.
+        """Decorator for profiling functions."""
         def decorator(func):
             @functools.wraps(func)
             def wrapper(*args, **kwargs):
@@ -370,7 +375,7 @@ class DebugManager:
         return decorator
 
     def _get_current_performance_data(self) -> Dict[str, Any]:
-        Get current performance data."""
+        """Get current performance data."""
         try:
             process = psutil.Process()
 
@@ -381,11 +386,11 @@ class DebugManager:
                 "num_threads": process.num_threads(),
                 "num_fds": process.num_fds() if hasattr(process, 'num_fds') else 0,
                 "timestamp": time.time()
-            }}
+            }
 
         except Exception as e:
             logger.error(f"Error getting performance data: {e}")
-            return {}}
+            return {}
 
     def _get_memory_usage(self) -> float:
         """Get current memory usage in MB."""
@@ -424,7 +429,7 @@ class DebugManager:
         except Exception as e:
             logger.error(f"Error taking memory snapshot: {e}")
 
-    def get_debug_events(self, level: Optional[DebugLevel] = None,):
+    def get_debug_events(self, level: Optional[DebugLevel] = None,
                         source: Optional[str] = None,
                         limit: int = 100) -> List[DebugEvent]:
         """Get debug events with optional filtering."""
@@ -456,7 +461,7 @@ class DebugManager:
             total_errors = sum(error_counts.values())
 
             # Get top errors
-            top_errors = sorted()
+            top_errors = sorted(
                 error_counts.items(),
                 key=lambda x: x[1],
                 reverse=True
@@ -467,11 +472,11 @@ class DebugManager:
                 "unique_errors": len(error_counts),
                 "top_errors": top_errors,
                 "error_rate": total_errors / len(self.debug_events) if self.debug_events else 0
-            }}
+            }
 
         except Exception as e:
             logger.error(f"Error getting error summary: {e}")
-            return {}}
+            return {}
 
     def get_performance_summary(self) -> Dict[str, Any]:
         """Get performance summary statistics."""
@@ -495,7 +500,7 @@ class DebugManager:
 
         except Exception as e:
             logger.error(f"Error getting performance summary: {e}")
-            return {}}
+            return {}
 
     def export_debug_data(self, session_id: Optional[str] = None) -> Dict[str, Any]:
         """Export debug data for analysis."""
@@ -515,7 +520,7 @@ class DebugManager:
                                 "source": event.source,
                                 "message": event.message,
                                 "context": event.context
-                            }}
+                            }
                             for event in session.events
                         ],
                         "profiling_data": [
@@ -537,7 +542,7 @@ class DebugManager:
                                 "source": event.source,
                                 "message": event.message,
                                 "context": event.context
-                            }}
+                            }
                             for event in self.debug_events
                         ],
                         "error_summary": self.get_error_summary(),
@@ -547,7 +552,7 @@ class DebugManager:
 
         except Exception as e:
             logger.error(f"Error exporting debug data: {e}")
-            return {}}
+            return {}
 
     def clear_debug_data(self, session_id: Optional[str] = None):
         """Clear debug data."""

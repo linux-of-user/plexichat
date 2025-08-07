@@ -193,7 +193,9 @@ class BackupManager:
         """Get backup directory from config."""
         if self.config and hasattr(self.config, 'system') and hasattr(self.config.system, 'backup_directory'):
             return Path(self.config.system.backup_directory)
-        return Path("backups")
+        # Default backup directory in project root
+        project_root = Path(__file__).parent.parent.parent.parent.parent
+        return project_root / "backups"
     
     def _get_config_value(self, key: str, default: Any) -> Any:
         """Get configuration value with fallback.

@@ -66,7 +66,7 @@ Consolidated Database Manager - Single Source of Truth
 
 Replaces all previous database management systems with a unified,
 comprehensive solution supporting all database types and advanced features.
-
+"""
 
 # SQLAlchemy imports
 # Database-specific imports
@@ -1084,8 +1084,8 @@ class ConsolidatedDatabaseManager:
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
-        # Acknowledge unused parameters
         """Async context manager exit."""
+        # Acknowledge unused parameters
         _ = exc_type, exc_val, exc_tb
         await self.close_all_connections()
 

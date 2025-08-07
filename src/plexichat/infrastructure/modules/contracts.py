@@ -372,7 +372,7 @@ class ModuleContractValidator:
             try:
                 # Test with empty config
                 if not module.validate_config({}):
-                    result.add_violation()
+                    result.add_violation(
                         "info",
                         "configuration",
                         "Module rejects empty configuration (may be expected)"
@@ -380,14 +380,14 @@ class ModuleContractValidator:
 
                 # Test with invalid config
                 if module.validate_config("invalid"):
-                    result.add_violation()
+                    result.add_violation(
                         "warning",
                         "configuration",
                         "Module accepts invalid configuration type"
                     )
 
             except Exception as e:
-                result.add_violation()
+                result.add_violation(
                     "error",
                     "configuration",
                     f"Configuration validation method failed: {str(e)}"
@@ -425,7 +425,7 @@ class ModuleContractValidator:
                         inspect.iscoroutinefunction(getattr(module, name))]
 
         if len(async_methods) == 0:
-            result.add_violation()
+            result.add_violation(
                 "warning",
                 "performance",
                 "Module has no async methods - may block event loop"
@@ -462,7 +462,7 @@ class ModuleContractValidator:
         """Validate documentation compliance."""
         # Check for docstrings
         if not module.__doc__:
-            result.add_violation()
+            result.add_violation(
                 "warning",
                 "documentation",
                 "Module class lacks documentation"
@@ -471,13 +471,13 @@ class ModuleContractValidator:
         # Check for method documentation
         methods_without_docs = []
         for name in dir(module):
-            if (callable(getattr(module, name)) and)
+            if (callable(getattr(module, name)) and
                 not name.startswith('_') and
                 not getattr(module, name).__doc__):
                 methods_without_docs.append(name)
 
         if methods_without_docs:
-            result.add_violation()
+            result.add_violation(
                 "warning",
                 "documentation",
                 f"Methods lack documentation: {', '.join(methods_without_docs[:5])}"

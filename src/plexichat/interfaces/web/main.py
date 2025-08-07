@@ -2,7 +2,7 @@
 PlexiChat WebUI Main Entry Point
 
 This module provides the main entry point for the PlexiChat WebUI server.
-
+"""
 
 import logging
 import sys

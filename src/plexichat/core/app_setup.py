@@ -53,14 +53,17 @@ def setup_routers(app: FastAPI):
 def setup_static_files(app: FastAPI):
     """Setup static files and templates."""
     try:
+        # Get project root and construct paths
+        project_root = Path(__file__).parent.parent.parent.parent
+
         # Static files
-        static_path = Path("src/plexichat/interfaces/web/static")
+        static_path = project_root / "src/plexichat/interfaces/web/static"
         if static_path.exists():
             app.mount("/static", StaticFiles(directory=str(static_path)), name="static")
             logger.info("[CHECK] Static files mounted")
-        
+
         # Templates
-        templates_path = Path("src/plexichat/interfaces/web/templates")
+        templates_path = project_root / "src/plexichat/interfaces/web/templates"
         if templates_path.exists():
             templates = Jinja2Templates(directory=str(templates_path))
             logger.info("[CHECK] Templates loaded")

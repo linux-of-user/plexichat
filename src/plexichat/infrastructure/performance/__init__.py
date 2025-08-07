@@ -6,7 +6,7 @@
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
-from .edge_computing_manager import *
+# from .edge_computing_manager import *  # Temporarily disabled due to syntax errors
 
 
 __all__ = [

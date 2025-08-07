@@ -547,14 +547,15 @@ class PluginIsolationManager:
         # Convert filename to absolute path
         file_path = Path(filename).resolve()
 
-        # Define allowed directories for this plugin
+        # Define allowed directories for this plugin (relative to project root)
+        project_root = Path(__file__).parent.parent.parent.parent.parent
         allowed_dirs = [
-            Path(f"logs/plugin/{plugin_name}").resolve(),
-            Path(f"logs/plugins/{plugin_name}").resolve(),
-            Path(f"plugins/{plugin_name}/logs").resolve(),
-            Path(f"plugins/{plugin_name}/data").resolve(),
-            Path(f"plugins/{plugin_name}/cache").resolve(),
-            Path(f"plugins/{plugin_name}/temp").resolve(),
+            (project_root / f"logs/plugin/{plugin_name}").resolve(),
+            (project_root / f"logs/plugins/{plugin_name}").resolve(),
+            (project_root / f"plugins/{plugin_name}/logs").resolve(),
+            (project_root / f"plugins/{plugin_name}/data").resolve(),
+            (project_root / f"plugins/{plugin_name}/cache").resolve(),
+            (project_root / f"plugins/{plugin_name}/temp").resolve(),
         ]
 
         # Ensure plugin directories exist
@@ -679,7 +680,12 @@ class UnifiedPluginManager:
     """
         def __init__(self, plugins_dir: Optional[Path] = None):
         self.logger = logging.getLogger(__name__)
-        self.plugins_dir = plugins_dir or Path("plugins")
+        # Ensure plugins directory is relative to project root, not src
+        if plugins_dir is None:
+            project_root = Path(__file__).parent.parent.parent.parent.parent
+            self.plugins_dir = project_root / "plugins"
+        else:
+            self.plugins_dir = plugins_dir
         self.plugins_dir.mkdir(exist_ok=True)
 
         # Plugin storage
@@ -1981,18 +1987,18 @@ __all__ = [
 
 
 # Global unified plugin manager instance
-# Point to the correct installed plugins directory
+# Point to the correct plugins directory in project root
 from pathlib import Path
 import os
 
-# Get the correct path to installed plugins
-current_dir = Path(__file__).parent
-installed_plugins_dir = current_dir / "installed"
+# Get the correct path to plugins directory (project root)
+project_root = Path(__file__).parent.parent.parent.parent.parent
+plugins_dir = project_root / "plugins"
 
 # Ensure the directory exists
-installed_plugins_dir.mkdir(exist_ok=True)
+plugins_dir.mkdir(exist_ok=True)
 
-unified_plugin_manager = UnifiedPluginManager(plugins_dir=installed_plugins_dir)
+unified_plugin_manager = UnifiedPluginManager(plugins_dir=plugins_dir)
 
 # Backward compatibility functions
 async def get_plugin_manager() -> UnifiedPluginManager:

@@ -5,12 +5,13 @@ from typing import Any, Dict, Optional
 PlexiChat Authentication Exceptions
 
 Custom exception classes for authentication and authorization errors.
-
+"""
 
 
 class AuthenticationError(Exception):
     """Base authentication error."""
-        def __init__(
+
+    def __init__(
         self,
         message: str,
         error_code: Optional[str] = None,
@@ -24,7 +25,8 @@ class AuthenticationError(Exception):
 
 class AuthorizationError(Exception):
     """Authorization/permission error."""
-        def __init__(
+
+    def __init__(
         self,
         message: str,
         error_code: Optional[str] = None,
@@ -38,7 +40,8 @@ class AuthorizationError(Exception):
 
 class MFAError(Exception):
     """Multi-factor authentication error."""
-        def __init__(
+
+    def __init__(
         self,
         message: str,
         error_code: Optional[str] = None,

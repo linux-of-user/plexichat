@@ -7,11 +7,10 @@ This module consolidates ALL authentication systems from:
 - infrastructure/utils/auth.py and auth_optimized.py
 
 Provides a single, unified interface for all authentication operations.
-
+"""
 
 import os
 import time
-
 import logging
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Union
@@ -27,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 class AuthenticationMethod(Enum):
     """Supported authentication methods."""
-        PASSWORD = "password"
+    PASSWORD = "password"
     MFA_TOTP = "mfa_totp"
     MFA_SMS = "mfa_sms"
     MFA_EMAIL = "mfa_email"
@@ -41,7 +40,7 @@ API_KEY = os.getenv("API_KEY", "")
 
 
 class SecurityLevel(Enum):
-    """Security levels for authentication.
+    """Security levels for authentication."""
     PUBLIC = 0      # No authentication required
     BASIC = 1       # Basic password authentication
     ENHANCED = 2    # Password + device verification
@@ -54,7 +53,7 @@ class SecurityLevel(Enum):
 @dataclass
 class AuthSession:
     """Authentication session data."""
-        session_id: str
+    session_id: str
     user_id: str
     username: str
     security_level: SecurityLevel
@@ -69,8 +68,8 @@ class AuthSession:
 
 @dataclass
 class AuthResult:
-    Authentication result."""
-        success: bool
+    """Authentication result."""
+    success: bool
     user_id: Optional[str] = None
     username: Optional[str] = None
     session: Optional[AuthSession] = None

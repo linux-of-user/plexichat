@@ -54,14 +54,14 @@ PlexiChat Edge Computing & Auto-scaling Manager
 
 Provides distributed computing at network edges with automatic resource scaling
 based on load and intelligent traffic routing for optimal performance.
-
+"""
 
 logger = get_logger(__name__)
 
 
 class NodeType(Enum):
     """Edge node types."""
-        EDGE = "edge"
+    EDGE = "edge"
     GATEWAY = "gateway"
     COMPUTE = "compute"
     STORAGE = "storage"

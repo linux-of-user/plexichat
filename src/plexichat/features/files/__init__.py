@@ -1,1 +1,0 @@
-# If 'metadata' is used as a field in any SQLModel, rename it to 'file_metadata' or similar. 

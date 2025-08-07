@@ -182,9 +182,11 @@ async def api_add_repository(
 def get_installed_plugins() -> List[Dict[str, Any]]:
     """Get list of installed plugins."""
     try:
-        plugins_dir = Path("plugins")
+        # Get plugins directory from project root
+        project_root = Path(__file__).parent.parent.parent.parent.parent.parent
+        plugins_dir = project_root / "plugins"
         installed = []
-        
+
         if plugins_dir.exists():
             for plugin_dir in plugins_dir.iterdir():
                 if plugin_dir.is_dir() and not plugin_dir.name.startswith('_'):

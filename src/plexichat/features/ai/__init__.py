@@ -20,8 +20,8 @@ from ...shared.exceptions import ValidationError, SecurityError, RateLimitError
 
 # Import AI components
 
-from .ai_coordinator_simple import AICoordinator
-from .core.ai_abstraction_layer_simple import (
+from .ai_coordinator import AICoordinator
+from .core.ai_abstraction_layer import (
     AIAbstractionLayer,
     AIAccessControl,
     AIModel,

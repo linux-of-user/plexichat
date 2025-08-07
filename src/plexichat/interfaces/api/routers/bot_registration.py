@@ -37,7 +37,7 @@ router = APIRouter(prefix="/api/v1/bots", tags=["bot-registration"])
 # Bot registration models
 class BotType(str):
     """Bot type enumeration."""
-        CHATBOT = "chatbot"
+    CHATBOT = "chatbot"
     AUTOMATION = "automation"
     INTEGRATION = "integration"
     MODERATION = "moderation"
@@ -57,7 +57,7 @@ class BotCapability(str):
 
 class BotRegistrationRequest(BaseModel):
     """Bot registration request model."""
-        bot_name: str = Field(..., min_length=3, max_length=50, description="Bot display name")
+    bot_name: str = Field(..., min_length=3, max_length=50, description="Bot display name")
     bot_username: str = Field(..., min_length=3, max_length=30, description="Bot username (must be unique)")
     bot_description: str = Field(..., min_length=10, max_length=500, description="Bot description and purpose")
     bot_type: str = Field(..., description="Type of bot")
@@ -96,7 +96,7 @@ class BotRegistrationRequest(BaseModel):
 
     @validator('bot_capabilities')
     def validate_capabilities(cls, v):
-        """Validate bot capabilities.
+        """Validate bot capabilities."""
         valid_capabilities = [
             BotCapability.SEND_MESSAGES, BotCapability.READ_MESSAGES,
             BotCapability.MANAGE_USERS, BotCapability.MODERATE_CONTENT,
@@ -119,8 +119,8 @@ class BotRegistrationRequest(BaseModel):
         return v
 
 class BotRegistrationResponse(BaseModel):
-    Bot registration response model."""
-        success: bool
+    """Bot registration response model."""
+    success: bool
     message: str
     bot_id: Optional[str] = None
     bot_token: Optional[str] = None

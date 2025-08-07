@@ -17,20 +17,45 @@ from passlib.context import CryptContext
 
 # Use EXISTING database abstraction layer
 try:
-    from plexichat.core.database.manager import database_manager
+    from ..database.manager import DatabaseManager
+    database_manager = DatabaseManager()
 except ImportError:
     database_manager = None
 
-# Use EXISTING performance optimization engine
-try:
-    from plexichat.infrastructure.performance.optimization_engine import PerformanceOptimizationEngine
-    from plexichat.infrastructure.utils.performance import async_track_performance
-    from plexichat.core.logging_advanced.performance_logger import get_performance_logger, timer
-except ImportError:
-    PerformanceOptimizationEngine = None
-    async_track_performance = None
-    get_performance_logger = None
-    timer = None
+# Use fallback implementations for performance optimization
+PerformanceOptimizationEngine = None  # type: ignore
+
+def async_track_performance(name):  # type: ignore
+    """Fallback decorator."""
+    def decorator(func):
+        return func
+    return decorator
+
+def get_performance_logger():  # type: ignore
+    """Fallback function."""
+    return None
+
+def timer(name):  # type: ignore
+    """Fallback context manager."""
+    class DummyTimer:
+        def __enter__(self):
+            return self
+        def __exit__(self, *args):
+            pass
+    return DummyTimer()
+
+    def get_performance_logger():  # type: ignore
+        """Fallback function."""
+        return None
+
+    def timer(name):  # type: ignore
+        """Fallback context manager."""
+        class DummyTimer:
+            def __enter__(self):
+                return self
+            def __exit__(self, *args):
+                pass
+        return DummyTimer()
 
 # Configuration imports
 try:
@@ -52,8 +77,9 @@ performance_logger = get_performance_logger() if get_performance_logger else Non
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 class AuthenticationCore:
-    """Core authentication system using EXISTING database abstraction.
-        def __init__(self):
+    """Core authentication system using EXISTING database abstraction."""
+
+    def __init__(self):
         self.db_manager = database_manager
         self.performance_logger = performance_logger
         self.jwt_secret = getattr(settings, 'JWT_SECRET', 'mock-secret-key')
@@ -66,7 +92,7 @@ class AuthenticationCore:
         return pwd_context.hash(password)
 
     def verify_password(self, plain_password: str, hashed_password: str) -> bool:
-        Verify password against hash."""
+        """Verify password against hash."""
         return pwd_context.verify(plain_password, hashed_password)
 
     def create_access_token(self, data: Dict[str, Any], expires_delta: Optional[timedelta] = None) -> str:
@@ -101,7 +127,7 @@ class AuthenticationCore:
 
     @async_track_performance("user_authentication") if async_track_performance else lambda f: f
     async def authenticate_user(self, username: str, password: str) -> Optional[Dict[str, Any]]:
-        """Authenticate user using EXISTING database abstraction.
+        """Authenticate user using EXISTING database abstraction."""
         if self.db_manager:
             try:
                 query = """
@@ -266,7 +292,7 @@ class AuthenticationCore:
         return hashlib.sha256(data.encode()).hexdigest()
 
     async def validate_api_key(self, api_key: str) -> Optional[Dict[str, Any]]:
-        """Validate API key and return user data.
+        """Validate API key and return user data."""
         if self.db_manager:
             try:
                 query = """
@@ -299,7 +325,7 @@ auth_core = AuthenticationCore()
 
 # Convenience functions
 def hash_password(password: str) -> str:
-    """Hash password.
+    """Hash password."""
     return auth_core.hash_password(password)
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -307,7 +333,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     return auth_core.verify_password(plain_password, hashed_password)
 
 def create_access_token(data: Dict[str, Any], expires_delta: Optional[timedelta] = None) -> str:
-    Create access token."""
+    """Create access token."""
     return auth_core.create_access_token(data, expires_delta)
 
 def create_refresh_token(data: Dict[str, Any]) -> str:

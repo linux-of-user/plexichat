@@ -1,7 +1,7 @@
 """
 PlexiChat Infrastructure Monitoring
 Comprehensive monitoring utilities for system health, performance, and errors.
-
+"""
 
 import asyncio
 import logging
@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 class AlertLevel(Enum):
     """Alert severity levels."""
-        INFO = "info"
+    INFO = "info"
     WARNING = "warning"
     ERROR = "error"
     CRITICAL = "critical"
@@ -26,7 +26,7 @@ class AlertLevel(Enum):
 
 @dataclass
 class SystemMetrics:
-    """System performance metrics.
+    """System performance metrics."""
     cpu_percent: float
     memory_percent: float
     disk_percent: float
@@ -38,7 +38,7 @@ class SystemMetrics:
 @dataclass
 class Alert:
     """System alert."""
-        level: AlertLevel
+    level: AlertLevel
     message: str
     component: str
     timestamp: datetime
@@ -46,8 +46,9 @@ class Alert:
 
 
 class SystemMonitor:
-    System performance and health monitor."""
-        def __init__(self, alert_thresholds: Dict[str, float] = None):
+    """System performance and health monitor."""
+
+    def __init__(self, alert_thresholds: Optional[Dict[str, float]] = None):
         self.alert_thresholds = alert_thresholds or {
             "cpu_percent": 80.0,
             "memory_percent": 85.0,
@@ -157,7 +158,7 @@ class SystemMonitor:
                 logger.error(f"Alert callback failed: {e}")
     
     def add_alert_callback(self, callback: Callable[[Alert], None]):
-        """Add alert callback.
+        """Add alert callback."""
         self.alert_callbacks.append(callback)
     
     def get_recent_alerts(self, hours: int = 24) -> List[Alert]:
@@ -166,7 +167,7 @@ class SystemMonitor:
         return [alert for alert in self.alerts if alert.timestamp > cutoff]
     
     def get_metrics_summary(self, hours: int = 1) -> Dict[str, Any]:
-        Get metrics summary for the specified time period."""
+        """Get metrics summary for the specified time period."""
         cutoff = datetime.now() - timedelta(hours=hours)
         recent_metrics = [m for m in self.metrics_history if m.timestamp > cutoff]
         
@@ -195,14 +196,15 @@ class SystemMonitor:
 
 
 class ErrorMonitor:
-    """Error tracking and monitoring.
-        def __init__(self, max_errors: int = 1000):
+    """Error tracking and monitoring."""
+
+    def __init__(self, max_errors: int = 1000):
         self.max_errors = max_errors
         self.errors: deque = deque(maxlen=max_errors)
         self.error_counts: defaultdict = defaultdict(int)
         self.error_rate_window = 300  # 5 minutes
     
-    def record_error(self, error: Exception, context: Dict[str, Any] = None):
+    def record_error(self, error: Exception, context: Optional[Dict[str, Any]] = None):
         """Record an error occurrence."""
         error_info = {
             "type": type(error).__name__,
@@ -235,8 +237,9 @@ class ErrorMonitor:
 
 class HealthChecker:
     """Application health checker."""
-        def __init__(self):
-        self.health_checks: Dict[str, Callable] = {}
+
+    def __init__(self):
+        self.health_checks: Dict[str, Dict[str, Any]] = {}
         self.last_results: Dict[str, Dict[str, Any]] = {}
     
     def register_check(self, name: str, check_func: Callable[[], bool], 

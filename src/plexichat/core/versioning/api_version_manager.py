@@ -1,26 +1,6 @@
-# pyright: reportMissingImports=false
-# pyright: reportGeneralTypeIssues=false
-# pyright: reportPossiblyUnboundVariable=false
-# pyright: reportArgumentType=false
-# pyright: reportCallIssue=false
-# pyright: reportAttributeAccessIssue=false
-# pyright: reportAssignmentType=false
-# pyright: reportReturnType=false
 import json
 import logging
 from typing import Any, Dict, List, Optional
-
-
-from ..beta.ai import ai_router
-from ..beta.quantum import quantum_router
-from ..v1.analytics import analytics_router
-from ..v1.auth import auth_router, auth_router_stable
-from ..v1.collaboration import collaboration_router
-from ..v1.files import files_router, files_router_stable
-from ..v1.messages import messages_router, messages_router_stable
-from ..v1.updates import updates_router
-from ..v1.users import users_router, users_router_stable
-
 
 from fastapi import APIRouter, HTTPException, Request, status
 from fastapi.responses import JSONResponse
@@ -28,15 +8,16 @@ from fastapi.responses import JSONResponse
 """
 PlexiChat API Version Manager
 Handles API versioning, routing, and compatibility between different API versions.
-
+"""
 
 logger = logging.getLogger(__name__)
 
 
 class APIVersionManager:
     """Manages API versions and routing."""
-        def __init__(self):
-        Initialize the API version manager."""
+
+    def __init__(self):
+        """Initialize the API version manager."""
         # Get current version from centralized version manager
         try:
             from plexichat.shared.version_utils import get_version
@@ -108,7 +89,7 @@ class APIVersionManager:
         logger.info("API Version Manager initialized")
 
     def get_version_info(self, version_key: str) -> Optional[Dict[str, Any]]:
-        """Get information about a specific API version.
+        """Get information about a specific API version."""
         return self.versions.get(version_key)
 
     def get_all_versions(self) -> Dict[str, Any]:
@@ -119,10 +100,10 @@ class APIVersionManager:
             "current_development": "current",
             "current_beta": "beta",
             "compatibility_matrix": self.feature_compatibility,
-        }}
+        }
 
     def is_feature_available(self, feature: str, version: str) -> bool:
-        """Check if a feature is available in a specific version.
+        """Check if a feature is available in a specific version."""
         return version in self.feature_compatibility.get(feature, [])
 
     def get_version_from_path(self, path: str) -> str:
@@ -151,42 +132,42 @@ class APIVersionManager:
             version_info = self.get_version_info(version)
             if not version_info:
                 raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Version '{version}' not found",
-                
-        )
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Version '{version}' not found",
+                )
 
             return {
                 "version": version,
                 "features": version_info["features"],
                 "description": version_info["description"],
-            }}
+            }
 
         @router.get("/compatibility/{feature}")
         async def check_feature_compatibility(feature: str):
             """Check which versions support a specific feature."""
             if feature not in self.feature_compatibility:
                 raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Feature '{feature}' not found",
-                
-        )
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Feature '{feature}' not found",
+                )
 
             return {
                 "feature": feature,
                 "supported_versions": self.feature_compatibility[feature],
-                "latest_version": max()
+                "latest_version": max(
                     self.feature_compatibility[feature],
                     key=lambda v: ["stable", "current", "beta"].index(v),
                 ),
-            }}
+            }
 
         return router
 
 
 class APIVersionMiddleware:
-    """Middleware for API version handling.
-        def __init__(self, version_manager: APIVersionManager):
+    """Middleware for API version handling."""
+
+    def __init__(self, version_manager: APIVersionManager):
+        """Initialize the middleware with a version manager."""
         self.version_manager = version_manager
 
     async def __call__(self, request: Request, call_next):
@@ -203,7 +184,7 @@ class APIVersionMiddleware:
 
         if hasattr(response, "headers"):
             response.headers["X-API-Version"] = api_version
-            response.headers["X-API-Version-Info"] = json.dumps()
+            response.headers["X-API-Version-Info"] = json.dumps(
                 request.state.version_info
             )
 
@@ -225,14 +206,14 @@ def create_version_compatibility_decorator(required_features: List[str]):
                     unavailable_features.append(feature)
 
             if unavailable_features:
-                return JSONResponse()
+                return JSONResponse(
                     status_code=status.HTTP_501_NOT_IMPLEMENTED,
                     content={
                         "error": "Feature not available in this API version",
                         "api_version": api_version,
                         "unavailable_features": unavailable_features,
                         "available_in": {
-                            feature: version_manager.feature_compatibility.get()
+                            feature: version_manager.feature_compatibility.get(
                                 feature, []
                             )
                             for feature in unavailable_features
@@ -249,19 +230,22 @@ def create_version_compatibility_decorator(required_features: List[str]):
 
 # API Router Factory
 class APIRouterFactory:
-    """Factory for creating version-specific API routers.
-        def __init__(self, version_manager: APIVersionManager):
+    """Factory for creating version-specific API routers."""
+
+    def __init__(self, version_manager: APIVersionManager):
+        """Initialize the factory with a version manager."""
         self.version_manager = version_manager
 
     def create_stable_router(self) -> APIRouter:
         """Create router for stable API (/api)."""
         router = APIRouter(prefix="/api", tags=["Stable API"])
 
-        # Add stable endpoints here
-        router.include_router(auth_router_stable, prefix="/auth")
-        router.include_router(messages_router_stable, prefix="/messages")
-        router.include_router(files_router_stable, prefix="/files")
-        router.include_router(users_router_stable, prefix="/users")
+        # Note: Import routers when needed to avoid circular imports
+        # Add stable endpoints here when routers are available
+        # router.include_router(auth_router_stable, prefix="/auth")
+        # router.include_router(messages_router_stable, prefix="/messages")
+        # router.include_router(files_router_stable, prefix="/files")
+        # router.include_router(users_router_stable, prefix="/users")
 
         return router
 
@@ -269,14 +253,15 @@ class APIRouterFactory:
         """Create router for current API (/api/v1)."""
         router = APIRouter(prefix="/api/v1", tags=["Current API"])
 
-        # Add current endpoints here
-        router.include_router(auth_router, prefix="/auth")
-        router.include_router(messages_router, prefix="/messages")
-        router.include_router(files_router, prefix="/files")
-        router.include_router(users_router, prefix="/users")
-        router.include_router(collaboration_router, prefix="/collaboration")
-        router.include_router(updates_router, prefix="/updates")
-        router.include_router(analytics_router, prefix="/analytics")
+        # Note: Import routers when needed to avoid circular imports
+        # Add current endpoints here when routers are available
+        # router.include_router(auth_router, prefix="/auth")
+        # router.include_router(messages_router, prefix="/messages")
+        # router.include_router(files_router, prefix="/files")
+        # router.include_router(users_router, prefix="/users")
+        # router.include_router(collaboration_router, prefix="/collaboration")
+        # router.include_router(updates_router, prefix="/updates")
+        # router.include_router(analytics_router, prefix="/analytics")
 
         return router
 
@@ -284,16 +269,17 @@ class APIRouterFactory:
         """Create router for beta API (/api/beta)."""
         router = APIRouter(prefix="/api/beta", tags=["Beta API"])
 
-        # Add beta endpoints here (includes all current + experimental)
-        router.include_router(auth_router, prefix="/auth")
-        router.include_router(messages_router, prefix="/messages")
-        router.include_router(files_router, prefix="/files")
-        router.include_router(users_router, prefix="/users")
-        router.include_router(collaboration_router, prefix="/collaboration")
-        router.include_router(updates_router, prefix="/updates")
-        router.include_router(analytics_router, prefix="/analytics")
-        router.include_router(ai_router, prefix="/ai")
-        router.include_router(quantum_router, prefix="/quantum")
+        # Note: Import routers when needed to avoid circular imports
+        # Add beta endpoints here when routers are available
+        # router.include_router(auth_router, prefix="/auth")
+        # router.include_router(messages_router, prefix="/messages")
+        # router.include_router(files_router, prefix="/files")
+        # router.include_router(users_router, prefix="/users")
+        # router.include_router(collaboration_router, prefix="/collaboration")
+        # router.include_router(updates_router, prefix="/updates")
+        # router.include_router(analytics_router, prefix="/analytics")
+        # router.include_router(ai_router, prefix="/ai")
+        # router.include_router(quantum_router, prefix="/quantum")
 
         return router
 

@@ -1,13 +1,6 @@
-# pyright: reportMissingImports=false
-# pyright: reportGeneralTypeIssues=false
-# pyright: reportPossiblyUnboundVariable=false
-# pyright: reportArgumentType=false
-# pyright: reportCallIssue=false
-# pyright: reportAttributeAccessIssue=false
-# pyright: reportAssignmentType=false
-# pyright: reportReturnType=false
 import asyncio
 import logging
+import time
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from enum import Enum
@@ -16,11 +9,7 @@ from typing import Any, Dict, List, Optional
 from .canary_health_monitor import CanaryHealthMonitor
 from .canary_node_selector import CanaryNodeSelector
 
-from datetime import datetime
-
-
 """
-import time
 PlexiChat Canary Deployment Manager
 
 Advanced canary deployment system for staged rollouts with:
@@ -30,14 +19,14 @@ Advanced canary deployment system for staged rollouts with:
 - Progressive rollout strategies
 - A/B testing capabilities
 - Performance impact analysis
-
+"""
 
 logger = logging.getLogger(__name__)
 
 
 class CanaryStrategy(Enum):
     """Canary deployment strategies."""
-        PERCENTAGE_BASED = "percentage_based"
+    PERCENTAGE_BASED = "percentage_based"
     NODE_COUNT_BASED = "node_count_based"
     GEOGRAPHIC_BASED = "geographic_based"
     LOAD_BASED = "load_based"
@@ -59,7 +48,7 @@ class CanaryPhase(Enum):
 
 class HealthCheckType(Enum):
     """Types of health checks."""
-        HTTP_ENDPOINT = "http_endpoint"
+    HTTP_ENDPOINT = "http_endpoint"
     PERFORMANCE_METRICS = "performance_metrics"
     ERROR_RATE = "error_rate"
     RESPONSE_TIME = "response_time"
@@ -69,7 +58,7 @@ class HealthCheckType(Enum):
 
 @dataclass
 class CanaryNode:
-    """Node selected for canary deployment.
+    """Node selected for canary deployment."""
     node_id: str
     node_type: str
     region: str
@@ -87,8 +76,8 @@ class CanaryNode:
 
 @dataclass
 class HealthCheck:
-    Health check configuration."""
-        check_type: HealthCheckType
+    """Health check configuration."""
+    check_type: HealthCheckType
     endpoint: Optional[str] = None
     metric_name: Optional[str] = None
     threshold: float = 0.0
@@ -109,8 +98,8 @@ class HealthCheck:
 
 @dataclass
 class CanaryDeploymentPlan:
-    """Canary deployment plan.
-        deployment_id: str
+    """Canary deployment plan."""
+    deployment_id: str
     update_id: str
     strategy: CanaryStrategy
     phases: List[Dict[str, Any]] = field(default_factory=list)
@@ -134,7 +123,7 @@ class CanaryDeploymentPlan:
 @dataclass
 class CanaryDeploymentResult:
     """Result of canary deployment."""
-        deployment_id: str
+    deployment_id: str
     phase: CanaryPhase
     success: bool
     message: str
@@ -154,7 +143,9 @@ class CanaryDeploymentResult:
 
 class CanaryDeploymentManager:
     """Manages canary deployments with intelligent rollout strategies."""
-        def __init__(self):
+
+    def __init__(self):
+        """Initialize the canary deployment manager."""
         self.active_deployments: Dict[str, CanaryDeploymentResult] = {}
         self.node_selector = None
         self.health_monitor = None
@@ -162,19 +153,19 @@ class CanaryDeploymentManager:
 
         # Default health checks
         self.default_health_checks = [
-            HealthCheck()
+            HealthCheck(
                 check_type=HealthCheckType.HTTP_ENDPOINT,
                 endpoint="/api/v1/health",
                 threshold=200,
                 comparison="equals"
             ),
-            HealthCheck()
+            HealthCheck(
                 check_type=HealthCheckType.ERROR_RATE,
                 metric_name="error_rate_percent",
                 threshold=1.0,
                 comparison="less_than"
             ),
-            HealthCheck()
+            HealthCheck(
                 check_type=HealthCheckType.RESPONSE_TIME,
                 metric_name="avg_response_time_ms",
                 threshold=1000.0,
@@ -192,18 +183,20 @@ class CanaryDeploymentManager:
         # Initialize health monitor
         self.health_monitor = CanaryHealthMonitor()
 
-        await self.if node_selector and hasattr(node_selector, "initialize"): node_selector.initialize()
-        await self.if health_monitor and hasattr(health_monitor, "initialize"): health_monitor.initialize()
+        if self.node_selector and hasattr(self.node_selector, "initialize"):
+            await self.node_selector.initialize()
+        if self.health_monitor and hasattr(self.health_monitor, "initialize"):
+            await self.health_monitor.initialize()
 
         logger.info("Canary deployment manager initialized")
 
-    async def create_deployment_plan(self, update_id: str,)
-                                strategy: CanaryStrategy = CanaryStrategy.PERCENTAGE_BASED,
-                                custom_config: Optional[Dict[str, Any]] = None) -> CanaryDeploymentPlan:
+    async def create_deployment_plan(self, update_id: str,
+                                   strategy: CanaryStrategy = CanaryStrategy.PERCENTAGE_BASED,
+                                   custom_config: Optional[Dict[str, Any]] = None) -> CanaryDeploymentPlan:
         """Create canary deployment plan."""
         deployment_id = f"canary_{update_id}_{int(datetime.now().timestamp())}"
 
-        plan = CanaryDeploymentPlan()
+        plan = CanaryDeploymentPlan(
             deployment_id=deployment_id,
             update_id=update_id,
             strategy=strategy
@@ -256,7 +249,7 @@ class CanaryDeploymentManager:
         logger.info(f"Created {len(plan.phases)} deployment phases")
 
     async def _get_total_node_count(self) -> int:
-        """Get total number of available nodes.
+        """Get total number of available nodes."""
         if self.cluster_manager:
             nodes = await self.cluster_manager.get_all_nodes()
             return len(nodes)
@@ -272,7 +265,7 @@ class CanaryDeploymentManager:
 
     async def execute_canary_deployment(self, plan: CanaryDeploymentPlan) -> CanaryDeploymentResult:
         """Execute canary deployment with progressive rollout."""
-        result = CanaryDeploymentResult()
+        result = CanaryDeploymentResult(
             deployment_id=plan.deployment_id,
             phase=CanaryPhase.PREPARING,
             success=False,
@@ -297,7 +290,7 @@ class CanaryDeploymentManager:
 
                 # Deploy to selected nodes
                 result.phase = CanaryPhase.DEPLOYING
-                deployment_success = await self._deploy_to_canary_nodes()
+                deployment_success = await self._deploy_to_canary_nodes(
                     selected_nodes, plan, result
                 )
 
@@ -547,12 +540,27 @@ class CanaryDeploymentManager:
         """Get status of canary deployment."""
         return self.active_deployments.get(deployment_id)
 
+    async def _select_canary_nodes(self, plan: CanaryDeploymentPlan, phase_config: Dict[str, Any], result: CanaryDeploymentResult) -> List[CanaryNode]:
+        """Select nodes for canary deployment."""
+        # Placeholder implementation
+        return []
+
+    async def _deploy_to_canary_nodes(self, nodes: List[CanaryNode], plan: CanaryDeploymentPlan, result: CanaryDeploymentResult) -> bool:
+        """Deploy to selected canary nodes."""
+        # Placeholder implementation
+        return True
+
+    async def _monitor_canary_health(self, nodes: List[CanaryNode], plan: CanaryDeploymentPlan, result: CanaryDeploymentResult) -> bool:
+        """Monitor health of canary nodes."""
+        # Placeholder implementation
+        return True
+
     async def cleanup(self):
-        Cleanup canary deployment manager resources."""
-        if self.health_monitor:
-            await self.if health_monitor and hasattr(health_monitor, "cleanup"): health_monitor.cleanup()
-        if self.node_selector:
-            await self.if node_selector and hasattr(node_selector, "cleanup"): node_selector.cleanup()
+        """Cleanup canary deployment manager resources."""
+        if self.health_monitor and hasattr(self.health_monitor, "cleanup"):
+            await self.health_monitor.cleanup()
+        if self.node_selector and hasattr(self.node_selector, "cleanup"):
+            await self.node_selector.cleanup()
 
 
 # Global canary deployment manager instance

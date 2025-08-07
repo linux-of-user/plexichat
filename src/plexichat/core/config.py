@@ -3,7 +3,7 @@ Legacy configuration compatibility layer.
 
 This module provides backward compatibility for existing code that uses
 the old configuration system while redirecting to the unified config system.
-
+"""
 
 from typing import Optional, List
 import logging
@@ -19,11 +19,15 @@ logger = logging.getLogger(__name__)
 
 class LoggingSettings:
     """Logging configuration settings (compatibility layer)."""
-        def __init__(self):
+
+    def __init__(self):
         try:
             if UNIFIED_CONFIG_AVAILABLE:
-                from .simple_config import get_config
-                self._config = get_config()
+                try:
+                    from .simple_config import get_config
+                    self._config = get_config()
+                except ImportError:
+                    self._config = None
             else:
                 self._config = None
         except Exception:
@@ -47,11 +51,15 @@ class LoggingSettings:
 
 class Settings:
     """Main settings class (compatibility layer)."""
-        def __init__(self):
+
+    def __init__(self):
         try:
             if UNIFIED_CONFIG_AVAILABLE:
-                from .simple_config import get_config
-                self._config = get_config()
+                try:
+                    from .simple_config import get_config
+                    self._config = get_config()
+                except ImportError:
+                    self._config = None
             else:
                 self._config = None
         except Exception:
@@ -98,20 +106,28 @@ class Settings:
 # settings = Settings()
 
 def get_settings():
-    """Get global settings instance.
+    """Get global settings instance."""
     return Settings()
 
 # Backward compatibility functions
 def get_setting(key: str, default=None):
     """Get a setting value (backward compatibility)."""
     if UNIFIED_CONFIG_AVAILABLE:
-        config = get_config()
-        return config.get_config_value(key) if config else default
+        try:
+            from .simple_config import get_config
+            config = get_config()
+            # Try different possible method names
+            if hasattr(config, 'get_config_value'):
+                return config.get_config_value(key)
+            elif hasattr(config, 'get'):
+                return config.get(key, default)
+            else:
+                return default
+        except (ImportError, AttributeError):
+            return default
     return default
 
-def get_settings():
-    Get settings instance (backward compatibility)."""
-    return settings
+# Removed duplicate function definition
 
 settings = Settings()
 

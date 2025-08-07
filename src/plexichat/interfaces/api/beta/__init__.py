@@ -22,15 +22,14 @@ from ...services import get_service
 from fastapi import APIRouter, Depends, HTTPException, WebSocket, status
 from fastapi.security import HTTPBearer
 
-    from plexichat.infrastructure.utils.auth import get_current_user,
 import socket
 import time
 
-    from,
-    import,
-    plexichat.infrastructure.utils.auth,
-    verify_permissions,
-)
+try:
+    from plexichat.infrastructure.utils.auth import get_current_user, verify_permissions
+except ImportError:
+    get_current_user = None
+    verify_permissions = None
 """
 PlexiChat API Beta (Development Branch)
 
@@ -53,7 +52,7 @@ logger = logging.getLogger(__name__)
 security = HTTPBearer()
 
 # Main beta router
-beta_router = APIRouter()
+beta_router = APIRouter(
     prefix="/beta",
     tags=["beta"],
     responses={
@@ -118,17 +117,17 @@ API_VERSION_INFO = {
     }
 }
 
-@beta_router.get("/",)
+@beta_router.get("/",
             summary="API Beta Information",
             description="Get information about beta API features and experimental endpoints")
 async def get_api_info():
     """Get API beta information and capabilities."""
+    from datetime import datetime
     return {
         "api_version": "beta",
         "info": API_VERSION_INFO,
         "endpoints": ENDPOINT_CATEGORIES,
-        "timestamp": from datetime import datetime
-datetime.utcnow().isoformat(),
+        "timestamp": datetime.utcnow().isoformat(),
         "server_time": datetime.now().isoformat(),
         "warning": "Beta features are experimental and may change without notice",
         "experimental_features": {
@@ -137,10 +136,10 @@ datetime.utcnow().isoformat(),
             "edge_computing": "Distributed processing capabilities",
             "advanced_collaboration": "Next-gen real-time tools",
             "ml_analytics": "Machine learning powered insights"
-        }}
+        }
     }
 
-@beta_router.get("/health",)
+@beta_router.get("/health",
             summary="Beta API Health Check",
             description="Check beta API health and experimental feature status")
 async def health_check():
@@ -172,7 +171,7 @@ datetime.utcnow().isoformat(),
                 "quantum_security": "testing",
                 "edge_computing": "development",
                 "advanced_analytics": "beta"
-            }},
+            },
             "uptime": "calculated_uptime_here"
         }
 
@@ -184,7 +183,7 @@ datetime.utcnow().isoformat(),
         
         )
 
-@beta_router.get("/capabilities",)
+@beta_router.get("/capabilities",
             summary="Beta API Capabilities",
             description="Get detailed beta API capabilities and experimental feature flags")
 async def get_capabilities():

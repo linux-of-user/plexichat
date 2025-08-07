@@ -10,7 +10,7 @@ Provides enterprise-grade performance monitoring with:
 - Resource utilization tracking
 - Bottleneck detection and analysis
 - Performance optimization recommendations
-
+"""
 
 import asyncio
 import time
@@ -32,7 +32,7 @@ logger = get_logger(__name__)
 
 class MetricType(Enum):
     """Types of performance metrics."""
-        COUNTER = "counter"
+    COUNTER = "counter"
     GAUGE = "gauge"
     HISTOGRAM = "histogram"
     TIMER = "timer"
@@ -50,7 +50,7 @@ class AlertLevel(Enum):
 @dataclass
 class PerformanceMetric:
     """Individual performance metric data point."""
-        name: str
+    name: str
     value: float
     metric_type: MetricType
     timestamp: datetime = field(default_factory=datetime.now)

@@ -18,20 +18,9 @@ from typing import Any, Dict, List, Optional
 
 
 import psutil
-import psutil
-import psutil
-import psutil
-import psutil
-import psutil
-import psutil
-import psutil
-import psutil
-import psutil
-import psutil
-import psutil
+import time
 
 """
-import time
 PlexiChat Performance Optimization Engine
 
 Advanced performance optimization with specific success metrics:
@@ -42,7 +31,7 @@ Advanced performance optimization with specific success metrics:
 - Network optimization and compression
 - CPU usage optimization
 - Predictive performance scaling
-
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -50,7 +39,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class PerformanceMetric:
     """Performance metric data point."""
-        metric_name: str
+    metric_name: str
     value: float
     unit: str
     timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
@@ -70,7 +59,7 @@ class PerformanceMetric:
 @dataclass
 class PerformanceTarget:
     """Performance optimization target."""
-        metric_name: str
+    metric_name: str
     target_value: float
     current_value: float
     improvement_percentage: float

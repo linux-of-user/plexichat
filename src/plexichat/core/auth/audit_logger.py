@@ -9,7 +9,7 @@ Comprehensive audit logging for authentication events:
 - Account lockouts
 - Privilege escalations
 - Session management
-
+"""
 
 import json
 from dataclasses import dataclass, field
@@ -18,15 +18,25 @@ from enum import Enum
 from typing import Any, Dict, List, Optional
 from pathlib import Path
 
-from plexichat.core.logging.unified_logging_manager import get_logger
-from plexichat.core.config import get_config
+import logging
+
+def get_logger(name):
+    return logging.getLogger(name)
 
 logger = get_logger(__name__)
+
+def get_config(key=None, default=None):
+    if key is None:
+        return {}
+    return default
+
+# Define logs directory
+LOGS_DIR = Path("logs")
 
 
 class AuditEventType(Enum):
     """Types of audit events."""
-        LOGIN_SUCCESS = "login_success"
+    LOGIN_SUCCESS = "login_success"
     LOGIN_FAILURE = "login_failure"
     LOGOUT = "logout"
     PASSWORD_CHANGE = "password_change"
@@ -56,8 +66,8 @@ class RiskLevel(Enum):
 
 @dataclass
 class AuditEvent:
-    """Authentication audit event.
-        event_id: str
+    """Authentication audit event."""
+    event_id: str
     event_type: AuditEventType
     timestamp: datetime = field(default_factory=datetime.now)
     user_id: Optional[str] = None
@@ -90,7 +100,8 @@ class AuditEvent:
 
 class AuthAuditLogger:
     """Authentication audit logger."""
-        def __init__(self):
+
+    def __init__(self):
         self.audit_log_file = Path(LOGS_DIR) / "auth_audit.log"
         self.security_log_file = Path(LOGS_DIR) / "security_events.log"
 
@@ -132,8 +143,8 @@ class AuthAuditLogger:
             logger.warning(f"{log_message} - Error: {event.error_message}")
 
     def log_login_success(self, user_id: str, username: str, ip_address: str,
-                        user_agent: str = None, session_id: str = None):
-        """Log successful login.
+                        user_agent: Optional[str] = None, session_id: Optional[str] = None):
+        """Log successful login."""
         event = AuditEvent(
             event_id=self._generate_event_id(),
             event_type=AuditEventType.LOGIN_SUCCESS,
@@ -153,7 +164,7 @@ class AuthAuditLogger:
         self.log_event(event)
 
     def log_login_failure(self, username: str, ip_address: str, reason: str,
-                        user_agent: str = None):
+                        user_agent: Optional[str] = None):
         """Log failed login attempt."""
         # Track failed attempts
         if username not in self.failed_login_attempts:
@@ -199,7 +210,7 @@ class AuthAuditLogger:
             self.log_account_locked(username, ip_address, "Too many failed login attempts")
 
     def log_mfa_event(self, user_id: str, username: str, mfa_method: str,
-                    success: bool, ip_address: str = None, error_message: str = None):
+                    success: bool, ip_address: Optional[str] = None, error_message: Optional[str] = None):
         """Log MFA event."""
         event_type = AuditEventType.MFA_SUCCESS if success else AuditEventType.MFA_FAILURE
         risk_level = RiskLevel.LOW if success else RiskLevel.MEDIUM
@@ -218,7 +229,7 @@ class AuthAuditLogger:
 
         self.log_event(event)
 
-    def log_password_change(self, user_id: str, username: str, ip_address: str = None,
+    def log_password_change(self, user_id: str, username: str, ip_address: Optional[str] = None,
                         forced: bool = False):
         """Log password change."""
         event = AuditEvent(
@@ -234,7 +245,7 @@ class AuthAuditLogger:
 
         self.log_event(event)
 
-    def log_account_locked(self, username: str, ip_address: str = None, reason: str = None):
+    def log_account_locked(self, username: str, ip_address: Optional[str] = None, reason: Optional[str] = None):
         """Log account lockout."""
         event = AuditEvent(
             event_id=self._generate_event_id(),
@@ -249,7 +260,7 @@ class AuthAuditLogger:
         self.log_event(event)
 
     def log_privilege_escalation(self, user_id: str, username: str, old_role: str,
-                            new_role: str, granted_by: str = None):
+                            new_role: str, granted_by: Optional[str] = None):
         """Log privilege escalation."""
         event = AuditEvent(
             event_id=self._generate_event_id(),
@@ -267,8 +278,8 @@ class AuthAuditLogger:
 
         self.log_event(event)
 
-    def log_suspicious_activity(self, username: str = None, ip_address: str = None,
-                            activity_type: str = None, details: Dict[str, Any] = None):
+    def log_suspicious_activity(self, username: Optional[str] = None, ip_address: Optional[str] = None,
+                            activity_type: Optional[str] = None, details: Optional[Dict[str, Any]] = None):
         """Log suspicious activity."""
         event = AuditEvent(
             event_id=self._generate_event_id(),
@@ -286,7 +297,7 @@ class AuthAuditLogger:
         self.log_event(event)
 
     def get_user_login_history(self, username: str, limit: int = 50) -> List[Dict[str, Any]]:
-        """Get login history for a user.
+        """Get login history for a user."""
         user_events = []
         for event in reversed(self.recent_events):
             if (event.username == username and

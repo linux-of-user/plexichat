@@ -89,7 +89,7 @@ def require_mfa(func: Callable) -> Callable:
 
 
 def require_level(level: str):
-    """Decorator to require specific security level.
+    """Decorator to require specific security level."""
     return require_auth(security_level=level)
 
 

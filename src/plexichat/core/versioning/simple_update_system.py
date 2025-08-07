@@ -2,7 +2,7 @@
 PlexiChat Simplified Update System
 A simplified, secure update system that focuses on core functionality
 and compliance with security.txt requirements.
-
+"""
 
 import asyncio
 import hashlib
@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 class UpdateStatus(Enum):
     """Update status enumeration."""
-        PENDING = "pending"
+    PENDING = "pending"
     DOWNLOADING = "downloading"
     VERIFYING = "verifying"
     INSTALLING = "installing"
@@ -39,7 +39,7 @@ class UpdateType(Enum):
 @dataclass
 class UpdatePlan:
     """Update plan with security compliance."""
-        update_id: str
+    update_id: str
     version: str
     update_type: UpdateType
     description: str
@@ -53,7 +53,7 @@ class UpdatePlan:
 @dataclass
 class UpdateResult:
     """Update result with detailed logging."""
-        update_id: str
+    update_id: str
     success: bool = False
     status: UpdateStatus = UpdateStatus.PENDING
     message: str = ""
@@ -81,7 +81,8 @@ class SimpleUpdateSystem:
     - Comprehensive audit logging
     - Security compliance per security.txt
     """
-        def __init__(self):
+
+    def __init__(self):
         self.update_cache_dir = Path("updates")
         self.update_cache_dir.mkdir(exist_ok=True)
         
@@ -254,7 +255,7 @@ class SimpleUpdateSystem:
         return result
 
     def get_update_status(self, update_id: str) -> Optional[UpdateResult]:
-        """Get status of an update.
+        """Get status of an update."""
         return self.active_updates.get(update_id)
 
     def list_updates(self) -> List[UpdateResult]:
@@ -262,7 +263,7 @@ class SimpleUpdateSystem:
         return list(self.active_updates.values())
 
     async def execute_atomic_update(self, plan: UpdatePlan) -> UpdateResult:
-        Execute atomic update (same as regular update for now)."""
+        """Execute atomic update (same as regular update for now)."""
         return await self.execute_update(plan)
 
     def show_changelog(self, version=None, since_version=None) -> str:

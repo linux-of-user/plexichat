@@ -35,7 +35,7 @@ Features:
 @dataclass
 class LoggingConfig:
     """Comprehensive logging configuration."""
-        # General settings
+    # General settings
     directory: str = "logs"
     level: str = "INFO"
     buffer_size: int = 10000
@@ -49,7 +49,7 @@ class LoggingConfig:
     # File logging
     file_enabled: bool = True
     file_level: str = "INFO"
-    file_format: str = ()
+    file_format: str = (
         "[%(asctime)s] [%(levelname)-8s] [%(name)s:%(lineno)d] %(funcName)s() - %(message)s"
     )
     max_file_size: str = "10MB"

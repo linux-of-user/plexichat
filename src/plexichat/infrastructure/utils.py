@@ -1,7 +1,7 @@
 """
 PlexiChat Infrastructure Utilities
 Consolidated infrastructure utilities for monitoring, security, and performance.
-
+"""
 
 import asyncio
 import logging
@@ -17,16 +17,17 @@ logger = logging.getLogger(__name__)
 
 class PerformanceMonitor:
     """Simple performance monitoring."""
-        def __init__(self):
+
+    def __init__(self):
         self.metrics: Dict[str, List[float]] = defaultdict(list)
         self.start_times: Dict[str, float] = {}
-    
+
     def start_timer(self, name: str):
-        Start a performance timer."""
+        """Start a performance timer."""
         self.start_times[name] = time.time()
-    
+
     def end_timer(self, name: str) -> float:
-        """End a performance timer and record the duration.
+        """End a performance timer and record the duration."""
         if name in self.start_times:
             duration = time.time() - self.start_times[name]
             self.metrics[name].append(duration)
@@ -45,10 +46,10 @@ class PerformanceMonitor:
             self.metrics[name].append(duration)
     
     def get_stats(self, name: str) -> Dict[str, float]:
-        Get statistics for a metric."""
+        """Get statistics for a metric."""
         if name not in self.metrics or not self.metrics[name]:
             return {"count": 0, "avg": 0.0, "min": 0.0, "max": 0.0}
-        
+
         values = self.metrics[name]
         return {
             "count": len(values),
@@ -56,10 +57,10 @@ class PerformanceMonitor:
             "min": min(values),
             "max": max(values),
             "total": sum(values)
-        }}
+        }
     
     def clear_metrics(self, name: Optional[str] = None):
-        """Clear metrics for a specific name or all metrics.
+        """Clear metrics for a specific name or all metrics."""
         if name:
             self.metrics.pop(name, None)
         else:
@@ -68,13 +69,14 @@ class PerformanceMonitor:
 
 class RateLimiter:
     """Simple rate limiter implementation."""
-        def __init__(self, max_requests: int = 100, window_seconds: int = 3600):
+
+    def __init__(self, max_requests: int = 100, window_seconds: int = 3600):
         self.max_requests = max_requests
         self.window_seconds = window_seconds
         self.requests: Dict[str, deque] = defaultdict(deque)
-    
+
     def is_allowed(self, identifier: str) -> bool:
-        Check if a request is allowed for the given identifier."""
+        """Check if a request is allowed for the given identifier."""
         now = time.time()
         window_start = now - self.window_seconds
         
@@ -91,10 +93,10 @@ class RateLimiter:
         return False
     
     def get_remaining(self, identifier: str) -> int:
-        """Get remaining requests for identifier.
+        """Get remaining requests for identifier."""
         now = time.time()
         window_start = now - self.window_seconds
-        
+
         request_times = self.requests[identifier]
         # Count requests in current window
         current_requests = sum(1 for t in request_times if t >= window_start)
@@ -103,9 +105,10 @@ class RateLimiter:
 
 class SecurityUtils:
     """Security utility functions."""
-        @staticmethod
+
+    @staticmethod
     def sanitize_input(text: str, max_length: int = 1000) -> str:
-        Sanitize user input."""
+        """Sanitize user input."""
         if not isinstance(text, str):
             text = str(text)
 
@@ -117,7 +120,7 @@ class SecurityUtils:
 
     @staticmethod
     def is_safe_path(path: str, base_path: str = ".") -> bool:
-        """Check if a path is safe (no directory traversal).
+        """Check if a path is safe (no directory traversal)."""
         import os
         try:
             # Resolve paths
@@ -141,7 +144,7 @@ class SecurityUtils:
 
     @staticmethod
     def validate_file_upload(filename: str, content: bytes, max_size: int = 10*1024*1024) -> Dict[str, Any]:
-        Validate file upload for security."""
+        """Validate file upload for security."""
         result = {"valid": True, "errors": [], "warnings": []}
 
         try:
@@ -183,7 +186,7 @@ class SecurityUtils:
             return {"valid": False, "errors": ["Validation error"], "warnings": []}
 
     @staticmethod
-    def hash_sensitive_data(data: str, salt: str = None) -> str:
+    def hash_sensitive_data(data: str, salt: Optional[str] = None) -> str:
         """Hash sensitive data with salt."""
         import hashlib
         import secrets
@@ -206,8 +209,9 @@ class SecurityUtils:
 
 
 class AsyncUtils:
-    """Async utility functions.
-        @staticmethod
+    """Async utility functions."""
+
+    @staticmethod
     async def run_with_timeout(coro, timeout_seconds: float):
         """Run a coroutine with timeout."""
         try:
@@ -215,10 +219,10 @@ class AsyncUtils:
         except asyncio.TimeoutError:
             logger.warning(f"Operation timed out after {timeout_seconds} seconds")
             raise
-    
+
     @staticmethod
     async def gather_with_limit(coroutines: List, limit: int = 10):
-        """Run coroutines with concurrency limit.
+        """Run coroutines with concurrency limit."""
         semaphore = asyncio.Semaphore(limit)
         
         async def limited_coro(coro):
@@ -248,14 +252,18 @@ class AsyncUtils:
                         else:
                             logger.error(f"All {max_attempts} attempts failed")
                 
-                raise last_exception
+                if last_exception:
+                    raise last_exception
+                else:
+                    raise RuntimeError("All attempts failed but no exception was captured")
             return wrapper
         return decorator
 
 
 class CacheManager:
-    """Simple in-memory cache manager.
-        def __init__(self, default_ttl: int = 3600):
+    """Simple in-memory cache manager."""
+
+    def __init__(self, default_ttl: int = 3600):
         self.cache: Dict[str, Dict[str, Any]] = {}
         self.default_ttl = default_ttl
     
@@ -280,7 +288,7 @@ class CacheManager:
         return entry["value"]
     
     def delete(self, key: str) -> bool:
-        """Delete a cache entry.
+        """Delete a cache entry."""
         return self.cache.pop(key, None) is not None
     
     def clear(self) -> None:
@@ -288,7 +296,7 @@ class CacheManager:
         self.cache.clear()
     
     def cleanup_expired(self) -> int:
-        Remove expired entries and return count removed."""
+        """Remove expired entries and return count removed."""
         now = time.time()
         expired_keys = [
             key for key, entry in self.cache.items()

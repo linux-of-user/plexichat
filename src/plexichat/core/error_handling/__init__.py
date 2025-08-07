@@ -17,6 +17,8 @@ import asyncio
 import logging
 from typing import Any, Callable, Dict, List, Optional
 
+logger = logging.getLogger(__name__)
+
 # Import from our core exceptions module
 from plexichat.core.exceptions import (
     ErrorSeverity,

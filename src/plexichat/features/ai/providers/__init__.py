@@ -6,7 +6,7 @@
 # pyright: reportReturnType=false
 from .anthropic_provider import AnthropicConfig, AnthropicProvider
 from .base_provider import BaseAIProvider, ProviderConfig, ProviderStatus
-from .ollama_provider import OllamaConfig, OllamaModel, OllamaProvider
+from .ollama_provider import OllamaConfig, OllamaProvider
 from .openai_provider import OpenAIConfig, OpenAIProvider
 from typing import Optional
 
@@ -17,14 +17,13 @@ Comprehensive AI provider implementations with support for multiple services.
 """
 
 __all__ = [
-    "OllamaProvider",
-    "OllamaModel",
-    "OllamaConfig",
+    "BaseAIProvider",
+    "ProviderConfig",
+    "ProviderStatus",
     "OpenAIProvider",
     "OpenAIConfig",
     "AnthropicProvider",
     "AnthropicConfig",
-    "BaseAIProvider",
-    "ProviderConfig",
-    "ProviderStatus",
+    "OllamaProvider",
+    "OllamaConfig",
 ]

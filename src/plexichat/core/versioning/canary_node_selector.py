@@ -1,19 +1,8 @@
-# pyright: reportMissingImports=false
-# pyright: reportGeneralTypeIssues=false
-# pyright: reportPossiblyUnboundVariable=false
-# pyright: reportArgumentType=false
-# pyright: reportCallIssue=false
-# pyright: reportAttributeAccessIssue=false
-# pyright: reportAssignmentType=false
-# pyright: reportReturnType=false
 import logging
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set
-
-from .canary_deployment_manager import CanaryNode, CanaryStrategy
-
 
 """
 PlexiChat Canary Node Selector
@@ -24,14 +13,33 @@ Intelligent node selection for canary deployments with:
 - Health score evaluation
 - Risk assessment and mitigation
 - Custom selection strategies
-
+"""
 
 logger = logging.getLogger(__name__)
+
+# CanaryNode dataclass
+@dataclass
+class CanaryNode:
+    """Represents a node available for canary deployment."""
+    node_id: str
+    node_type: str = "unknown"
+    region: str = "unknown"
+    load_factor: float = 0.0
+    health_score: float = 1.0
+    last_deployment: Optional[datetime] = None
+    deployment_success_rate: float = 1.0
+
+class CanaryStrategy(Enum):
+    """Canary deployment strategies."""
+    PERCENTAGE_BASED = "percentage_based"
+    NODE_COUNT_BASED = "node_count_based"
+    GEOGRAPHIC_BASED = "geographic_based"
+    LOAD_BASED = "load_based"
 
 
 class NodeSelectionCriteria(Enum):
     """Criteria for node selection."""
-        LOWEST_LOAD = "lowest_load"
+    LOWEST_LOAD = "lowest_load"
     HIGHEST_HEALTH = "highest_health"
     GEOGRAPHIC_SPREAD = "geographic_spread"
     RANDOM_SAMPLE = "random_sample"
@@ -40,8 +48,7 @@ class NodeSelectionCriteria(Enum):
 
 @dataclass
 class NodeMetrics:
-    """Node performance and health metrics.
-
+    """Node performance and health metrics."""
     cpu_usage: float = 0.0
     memory_usage: float = 0.0
     disk_usage: float = 0.0
@@ -57,19 +64,19 @@ class NodeMetrics:
 
     @property
     def health_score(self) -> float:
-        Calculate overall health score (0-1, higher is better)."""
+        """Calculate overall health score (0-1, higher is better)."""
         error_penalty = min(self.error_rate * 10, 0.5)  # Max 50% penalty for errors
-        latency_penalty = min()
-            self.network_latency / 1000, 0.3
-        )  # Max 30% penalty for latency
+        latency_penalty = min(self.network_latency / 1000, 0.3)  # Max 30% penalty for latency
         uptime_score = self.uptime_percentage / 100.0
 
         return max(0.0, uptime_score - error_penalty - latency_penalty)
 
 
 class CanaryNodeSelector:
-    """Selects optimal nodes for canary deployments.
-        def __init__(self, cluster_manager=None):
+    """Selects optimal nodes for canary deployments."""
+
+    def __init__(self, cluster_manager=None):
+        """Initialize the node selector."""
         self.cluster_manager = cluster_manager
         self.node_metrics: Dict[str, NodeMetrics] = {}
         self.node_history: Dict[str, List[Dict[str, Any]]] = {}
@@ -86,7 +93,7 @@ class CanaryNodeSelector:
         await self._load_node_history()
         logger.info("Canary node selector initialized")
 
-    async def select_nodes()
+    async def select_nodes(
         self, strategy: CanaryStrategy, phase_config: Dict[str, Any]
     ) -> List[CanaryNode]:
         """Select nodes based on strategy and phase configuration."""
@@ -174,7 +181,7 @@ class CanaryNodeSelector:
             metrics = self.node_metrics.get(node_id, NodeMetrics())
 
             if metrics.health_score < self.min_health_threshold:
-                logger.debug()
+                logger.debug(
                     f"Skipping unhealthy node: {node_id} (health: {metrics.health_score:.2f})"
                 )
                 continue
@@ -328,14 +335,16 @@ class CanaryNodeSelector:
         )
 
     async def _load_node_metrics(self):
-        """Load current node metrics.
+        """Load current node metrics."""
         # Placeholder for loading actual metrics
         # This would integrate with monitoring systems
+        pass
 
     async def _load_node_history(self):
         """Load node deployment history."""
         # Placeholder for loading deployment history
         # This would load from persistent storage
+        pass
 
     def blacklist_node(self, node_id: str, reason: str = ""):
         """Add node to blacklist."""
@@ -347,5 +356,4 @@ class CanaryNodeSelector:
         self.blacklisted_nodes.discard(node_id)
         logger.info(f"Node {node_id} removed from blacklist")
 
-    async def cleanup(self):
-        """Cleanup node selector resources."""
+

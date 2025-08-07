@@ -186,9 +186,10 @@ class PluginManager:
         self.plugin_uis: Dict[str, tk.Widget] = {}
         self.language_parser = PluginLanguageParser()
         
-        # Plugin directories
+        # Plugin directories (project root and user directory)
+        project_root = Path(__file__).parent.parent.parent.parent.parent.parent
         self.plugin_dirs = [
-            Path(__file__).parent.parent.parent.parent / "plugins",
+            project_root / "plugins",
             Path.home() / ".plexichat" / "plugins"
         ]
         

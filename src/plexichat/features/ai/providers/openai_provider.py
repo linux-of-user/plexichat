@@ -1,41 +1,31 @@
-# pyright: reportPossiblyUnboundVariable=false
-# pyright: reportArgumentType=false
-# pyright: reportCallIssue=false
-# pyright: reportAttributeAccessIssue=false
-# pyright: reportAssignmentType=false
-# pyright: reportReturnType=false
+"""
+OpenAI Provider for PlexiChat
+=============================
+
+Provides integration with OpenAI's GPT models.
+"""
+
+import asyncio
 import logging
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
 try:
     import openai
-    from openai import AsyncOpenAI
+    from openai import OpenAI
+    OPENAI_AVAILABLE = True
 except ImportError:
-    openai = None
-    class AsyncOpenAI:
-        def __init__(self, **kwargs):
-            pass
-        async def chat_completions_create(self, **kwargs):
-            return {"choices": [{"message": {"content": "OpenAI not available"}}]}
-        async def models_list(self):
-            return {"data": []}
+    OPENAI_AVAILABLE = False
 
-from .base_provider import (
+from ..core.ai_abstraction_layer import (
+    AIModel,
+    AIProvider,
     AIRequest,
     AIResponse,
-    BaseAIProvider,
-    ProviderConfig,
-    ProviderStatus,
+    ModelCapability,
+    ModelStatus,
 )
-
-
-"""
-OpenAI Provider for PlexiChat AI Abstraction Layer
-Enhanced OpenAI integration with advanced features and error handling.
-
-
-OPENAI_AVAILABLE = openai is not None
+from .base_provider import BaseAIProvider, ProviderConfig, ProviderStatus
 
 logger = logging.getLogger(__name__)
 
@@ -43,228 +33,155 @@ logger = logging.getLogger(__name__)
 @dataclass
 class OpenAIConfig(ProviderConfig):
     """OpenAI-specific configuration."""
-        api_key: str
     organization: Optional[str] = None
-    base_url: str = "https://api.openai.com/v1"
-    max_tokens: int = 4096
-    temperature: float = 0.7
-    top_p: float = 1.0
-    frequency_penalty: float = 0.0
-    presence_penalty: float = 0.0
-    default_model: str = "gpt-4"
-    available_models: Optional[List[str]] = None
-
-    def __post_init__(self):
-        if self.available_models is None:
-            self.available_models = [
-                "gpt-4",
-                "gpt-4-turbo",
-                "gpt-4-turbo-preview",
-                "gpt-3.5-turbo",
-                "gpt-3.5-turbo-16k",
-                "text-davinci-003",
-                "text-curie-001",
-            ]
+    project: Optional[str] = None
 
 
 class OpenAIProvider(BaseAIProvider):
-    """Enhanced OpenAI provider with comprehensive features.
-        def __init__(self, config: OpenAIConfig):
+    """OpenAI provider implementation."""
+    
+    def __init__(self, config: OpenAIConfig):
+        """Initialize OpenAI provider."""
         super().__init__(config)
-        self.config = config
-        self.client = None
-        self._initialize_client()
-
-    def _initialize_client(self):
-        """Initialize the OpenAI client."""
+        self.config: OpenAIConfig = config
+        self.client: Optional[OpenAI] = None
+        
         if not OPENAI_AVAILABLE:
-            logger.error()
-                "OpenAI package not available - install with: pip install openai"
-            )
+            logger.error("OpenAI library not available")
             self.status = ProviderStatus.ERROR
             return
-
+            
         try:
-            self.client = AsyncOpenAI()
-                api_key=self.config.api_key,
-                organization=self.config.organization,
-                base_url=self.config.base_url,
+            self.client = OpenAI(
+                api_key=config.api_key,
+                organization=config.organization,
+                project=config.project,
+                base_url=config.base_url,
+                timeout=config.timeout,
+                max_retries=config.max_retries
             )
-            logger.info("OpenAI client initialized successfully")
+            self._load_models()
         except Exception as e:
             logger.error(f"Failed to initialize OpenAI client: {e}")
             self.status = ProviderStatus.ERROR
 
-    async def health_check(self) -> bool:
-        """Check if the provider is healthy."""
+    def _load_models(self) -> None:
+        """Load available OpenAI models."""
         try:
-            if not self.client:
-                return False
-
-            # Simple test request
-            await self.client.chat.completions.create()
-                model=self.config.default_model,
-                messages=[{"role": "user", "content": "Hello"}],
-                max_tokens=1,
-            )
-
-            self.status = ProviderStatus.ACTIVE
-            return True
-
+            # Define common OpenAI models
+            models_data = [
+                {
+                    "id": "gpt-4",
+                    "name": "GPT-4",
+                    "capabilities": [ModelCapability.CHAT, ModelCapability.TEXT_GENERATION],
+                    "max_tokens": 8192,
+                    "cost_per_token": 0.00003
+                },
+                {
+                    "id": "gpt-4-turbo",
+                    "name": "GPT-4 Turbo",
+                    "capabilities": [ModelCapability.CHAT, ModelCapability.TEXT_GENERATION],
+                    "max_tokens": 128000,
+                    "cost_per_token": 0.00001
+                },
+                {
+                    "id": "gpt-3.5-turbo",
+                    "name": "GPT-3.5 Turbo",
+                    "capabilities": [ModelCapability.CHAT, ModelCapability.TEXT_GENERATION],
+                    "max_tokens": 4096,
+                    "cost_per_token": 0.0000015
+                }
+            ]
+            
+            for model_data in models_data:
+                model = AIModel(
+                    id=model_data["id"],
+                    name=model_data["name"],
+                    provider=AIProvider.OPENAI,
+                    capabilities=model_data["capabilities"],
+                    max_tokens=model_data["max_tokens"],
+                    cost_per_token=model_data["cost_per_token"],
+                    status=ModelStatus.AVAILABLE
+                )
+                self.models[model.id] = model
+                
         except Exception as e:
-            logger.error(f"OpenAI health check failed: {e}")
-            self.status = ProviderStatus.ERROR
+            logger.error(f"Failed to load OpenAI models: {e}")
+
+    async def test_connection(self) -> bool:
+        """Test OpenAI connection."""
+        if not self.client:
+            return False
+            
+        try:
+            # Try to list models as a connection test
+            models = self.client.models.list()
+            return len(models.data) > 0
+        except Exception as e:
+            logger.error(f"OpenAI connection test failed: {e}")
             return False
 
-    async def generate_text(self, request: AIRequest) -> AIResponse:
-        """Generate text using OpenAI."""
-        try:
-            if not self.client:
-                raise Exception("OpenAI client not initialized")
+    def get_available_models(self) -> List[AIModel]:
+        """Get list of available OpenAI models."""
+        return list(self.models.values())
 
-            # Prepare messages
-            messages = []
-            if request.system_prompt:
-                messages.append({"role": "system", "content": request.system_prompt})
-            messages.append({"role": "user", "content": request.prompt})
+    def is_model_available(self, model_id: str) -> bool:
+        """Check if OpenAI model is available."""
+        return model_id in self.models and self.status == ProviderStatus.AVAILABLE
 
-            # Add conversation history if provided
-            if request.conversation_history:
-                for msg in request.conversation_history:
-                    messages.insert()
-                        -1,
-                        {
-                            "role": msg.get("role", "user"),
-                            "content": msg.get("content", ""),
-                        },
-                    )
-
-            # Make the request
-            response = await self.client.chat.completions.create()
-                model=request.model or self.config.default_model,
-                messages=messages,
-                max_tokens=request.max_tokens or self.config.max_tokens,
-                temperature=request.temperature or self.config.temperature,
-                top_p=self.config.top_p,
-                frequency_penalty=self.config.frequency_penalty,
-                presence_penalty=self.config.presence_penalty,
-                stream=request.stream,
-            )
-
-            if request.stream:
-                return self._handle_streaming_response(response, request)
-            else:
-                return self._handle_standard_response(response, request)
-
-        except Exception as e:
-            logger.error(f"OpenAI text generation failed: {e}")
-            return AIResponse()
+    async def process_request(self, request: AIRequest) -> AIResponse:
+        """Process request using OpenAI."""
+        if not self.client:
+            return AIResponse(
+                request_id=request.id,
                 content="",
-                error=str(e),
-                provider=self.name,
-                model=request.model or self.config.default_model,
-                usage={"error": True},
+                model_id=request.model_id,
+                provider=AIProvider.OPENAI.value,
+                status="error",
+                error="OpenAI client not initialized"
             )
 
-    def _handle_standard_response(self, response, request: AIRequest) -> AIResponse:
-        """Handle standard (non-streaming) response."""
-        choice = response.choices[0]
-
-        return AIResponse()
-            content=choice.message.content,
-            provider=self.name,
-            model=response.model,
-            usage={
-                "prompt_tokens": response.usage.prompt_tokens,
-                "completion_tokens": response.usage.completion_tokens,
-                "total_tokens": response.usage.total_tokens,
-            },
-            metadata={
-                "finish_reason": choice.finish_reason,
-                "response_id": response.id,
-                "created": response.created,
-            },
-        )
-
-    async def _handle_streaming_response()
-        self, response, request: AIRequest
-    ) -> AIResponse:
-        """Handle streaming response."""
-        content_chunks = []
-
-        async for chunk in response:
-            if chunk.choices and chunk.choices[0].delta.content:
-                content_chunks.append(chunk.choices[0].delta.content)
-
-        full_content = "".join(content_chunks)
-
-        return AIResponse()
-            content=full_content,
-            provider=self.name,
-            model=request.model or self.config.default_model,
-            usage={"streaming": True},
-            metadata={"streaming": True},
-        )
-
-    async def generate_embedding()
-        self, text: str, model: str = "text-embedding-ada-002"
-    ) -> List[float]:
-        """Generate embeddings using OpenAI."""
         try:
-            if not self.client:
-                raise Exception("OpenAI client not initialized")
+            # Prepare messages for chat completion
+            messages = [{"role": "user", "content": request.prompt}]
+            
+            if request.context:
+                messages.insert(0, {"role": "system", "content": request.context})
 
-            response = await self.client.embeddings.create(model=model, input=text)
+            # Make the API call
+            response = self.client.chat.completions.create(
+                model=request.model_id,
+                messages=messages,
+                max_tokens=request.parameters.get("max_tokens", 1000) if request.parameters else 1000,
+                temperature=request.parameters.get("temperature", 0.7) if request.parameters else 0.7
+            )
 
-            return response.data[0].embedding
+            # Extract response content
+            content = response.choices[0].message.content if response.choices else ""
+            
+            # Calculate usage
+            usage = {
+                "prompt_tokens": response.usage.prompt_tokens if response.usage else 0,
+                "completion_tokens": response.usage.completion_tokens if response.usage else 0,
+                "total_tokens": response.usage.total_tokens if response.usage else 0
+            }
+
+            return AIResponse(
+                request_id=request.id,
+                content=content,
+                model_id=request.model_id,
+                provider=AIProvider.OPENAI.value,
+                usage=usage,
+                metadata={"model": response.model}
+            )
 
         except Exception as e:
-            logger.error(f"OpenAI embedding generation failed: {e}")
-            return []
-
-    async def moderate_content(self, text: str) -> Dict[str, Any]:
-        """Moderate content using OpenAI's moderation API."""
-        try:
-            if not self.client:
-                raise Exception("OpenAI client not initialized")
-
-            response = await self.client.moderations.create(input=text)
-            result = response.results[0]
-
-            return {
-                "flagged": result.flagged,
-                "categories": dict(result.categories),
-                "category_scores": dict(result.category_scores),
-            }}
-
-        except Exception as e:
-            logger.error(f"OpenAI content moderation failed: {e}")
-            return {"flagged": False, "error": str(e)}
-
-    async def get_available_models(self) -> List[Dict[str, Any]]:
-        """Get list of available models."""
-        models = self.config.available_models or []
-        return [{"id": model, "name": model} for model in models]
-
-    async def estimate_cost(self, request: AIRequest) -> float:
-        """Estimate the cost of a request."""
-        # Simplified cost estimation (would need actual pricing data)
-        model = request.model or self.config.default_model
-
-        # Rough token estimation
-        prompt_tokens = len(request.prompt.split()) * 1.3  # Rough approximation
-        max_tokens = request.max_tokens or self.config.max_tokens
-
-        # Simplified pricing (per 1K tokens)
-        pricing = {
-            "gpt-4": {"input": 0.03, "output": 0.06},
-            "gpt-4-turbo": {"input": 0.01, "output": 0.03},
-            "gpt-3.5-turbo": {"input": 0.001, "output": 0.002},
-        }
-
-        model_pricing = pricing.get(model, pricing["gpt-3.5-turbo"])
-
-        input_cost = (prompt_tokens / 1000) * model_pricing["input"]
-        output_cost = (max_tokens / 1000) * model_pricing["output"]
-
-        return input_cost + output_cost
+            logger.error(f"OpenAI request failed: {e}")
+            return AIResponse(
+                request_id=request.id,
+                content="",
+                model_id=request.model_id,
+                provider=AIProvider.OPENAI.value,
+                status="error",
+                error=str(e)
+            )

@@ -1,38 +1,57 @@
-# pyright: reportMissingImports=false
-# pyright: reportGeneralTypeIssues=false
-# pyright: reportPossiblyUnboundVariable=false
-# pyright: reportArgumentType=false
-# pyright: reportCallIssue=false
-# pyright: reportAttributeAccessIssue=false
-# pyright: reportAssignmentType=false
-# pyright: reportReturnType=false
 import json
 import logging
 import re
+import shutil
+import tempfile
+import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional
-import tempfile
-import shutil
-
-from .version_manager import Version
+from typing import Any, Dict, List, Optional, TYPE_CHECKING
 
 """
-import time
 PlexiChat Changelog Management System
 
 Manages changelog generation, parsing, and integration with the version system.
 Supports multiple formats and automatic changelog generation from commits.
-
+"""
 
 logger = logging.getLogger(__name__)
+
+if TYPE_CHECKING:
+    from .version_manager import Version
+else:
+    # Runtime import to avoid circular imports
+    try:
+        from .version_manager import Version
+    except ImportError:
+        # Create a minimal Version class for runtime
+        class Version:
+            def __init__(self, major=0, type=None, minor=0, build=None):
+                self.major = major
+                self.type = type
+                self.minor = minor
+                self.build = build
+
+            @classmethod
+            def parse(cls, version_string: str):
+                """Simple version parser."""
+                return cls(major=0, minor=0)
+
+            def __str__(self):
+                return f"{self.major}.{self.minor}"
+
+            def __lt__(self, other):
+                return str(self) < str(other)
+
+            def __gt__(self, other):
+                return str(self) > str(other)
 
 
 class ChangeType(Enum):
     """Types of changes in changelog."""
-        ADDED = "Added"
+    ADDED = "Added"
     CHANGED = "Changed"
     DEPRECATED = "Deprecated"
     REMOVED = "Removed"
@@ -43,7 +62,7 @@ class ChangeType(Enum):
 
 @dataclass
 class ChangeEntry:
-    """Individual change entry.
+    """Individual change entry."""
     type: ChangeType
     description: str
     component: Optional[str] = None
@@ -66,7 +85,7 @@ class ChangeEntry:
             "issue_id": self.issue_id,
             "author": self.author,
             "commit_hash": self.commit_hash
-        }}
+        }
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'ChangeEntry':
@@ -83,8 +102,8 @@ class ChangeEntry:
 
 @dataclass
 class VersionChangelog:
-    """Changelog for a specific version.
-        version: Version
+    """Changelog for a specific version."""
+    version: Version
     release_date: datetime
     changes: Dict[ChangeType, List[ChangeEntry]] = field(default_factory=dict)
     summary: Optional[str] = None
@@ -97,11 +116,11 @@ class VersionChangelog:
         self.changes[change.type].append(change)
 
     def get_changes_by_type(self, change_type: ChangeType) -> List[ChangeEntry]:
-        Get changes by type."""
+        """Get changes by type."""
         return self.changes.get(change_type, [])
 
     def has_breaking_changes(self) -> bool:
-        """Check if version has breaking changes.
+        """Check if version has breaking changes."""
         return ChangeType.BREAKING in self.changes and len(self.changes[ChangeType.BREAKING]) > 0
 
     def to_markdown(self) -> str:
@@ -144,7 +163,7 @@ class VersionChangelog:
             "changes": {
                 change_type.value: [change.to_dict() for change in changes]
                 for change_type, changes in self.changes.items()
-            }},
+            },
             "summary": self.summary,
             "migration_notes": self.migration_notes
         }
@@ -168,8 +187,9 @@ class VersionChangelog:
 
 
 class ChangelogManager:
-    """Manages changelog generation and parsing.
-        def __init__(self, changelog_file: Optional[Path] = None):
+    """Manages changelog generation and parsing."""
+
+    def __init__(self, changelog_file: Optional[Path] = None):
         """Initialize changelog manager."""
         self.changelog_file = changelog_file or Path("CHANGELOG.md")
         self.changelog_data_file = Path("changelog.json")
@@ -181,7 +201,7 @@ class ChangelogManager:
         """Load changelog from files."""
         try:
             # Load from JSON data file if exists
-            if self.changelog_data_file.exists() if self.changelog_data_file else False:
+            if self.changelog_data_file and self.changelog_data_file.exists():
                 with open(self.changelog_data_file, 'r', encoding='utf-8') as f:
                     data = json.load(f)
 
@@ -204,7 +224,7 @@ class ChangelogManager:
                             continue
 
             # Parse markdown file if JSON doesn't exist
-            elif self.changelog_file.exists() if self.changelog_file else False:
+            elif self.changelog_file and self.changelog_file.exists():
                 self._parse_markdown_changelog()
         except Exception as e:
             logger.error(f"Failed to load changelog: {e}")
@@ -292,7 +312,7 @@ class ChangelogManager:
         logger.info(f"Added changelog for version {version_str}")
 
     def get_version_changelog(self, version: Version) -> Optional[VersionChangelog]:
-        """Get changelog for specific version.
+        """Get changelog for specific version."""
         return self.version_changelogs.get(str(version))
 
     def create_version_changelog(self, version: Version, summary: Optional[str] = None) -> VersionChangelog:
@@ -305,7 +325,7 @@ class ChangelogManager:
         return changelog
 
     def add_change(self, version: Version, change: ChangeEntry):
-        Add change to version changelog."""
+        """Add change to version changelog."""
         version_str = str(version)
         if version_str not in self.version_changelogs:
             self.version_changelogs[version_str] = self.create_version_changelog(version)
@@ -314,7 +334,7 @@ class ChangelogManager:
         self._save_changelog()
 
     def get_changes_since_version(self, since_version: Version) -> List[VersionChangelog]:
-        """Get all changes since a specific version.
+        """Get all changes since a specific version."""
         changes = []
         for changelog in self.version_changelogs.values():
             if changelog.version > since_version:
@@ -332,7 +352,7 @@ class ChangelogManager:
         return breaking_changes
 
     def generate_release_notes(self, version: Version) -> str:
-        Generate release notes for a version."""
+        """Generate release notes for a version."""
         changelog = self.get_version_changelog(version)
         if not changelog:
             return f"No changelog found for version {version}"
@@ -423,6 +443,8 @@ class ChangelogManager:
             author=author,
             commit_hash=commit_hash
         )
+
+
 
 
 # Global changelog manager instance

@@ -2,7 +2,9 @@
 PlexiChat Main API
 
 Main API application with threading and performance optimization.
+"""
 
+import json
 import logging
 import time
 from contextlib import asynccontextmanager
@@ -391,7 +393,8 @@ async def websocket_endpoint(websocket, user_id: int):
             while True:
                 # Receive message
                 data = await websocket.receive_text()
-message_data = # SECURITY: eval() removed - use safe alternativesdata)  # In production, use json.loads with proper validation
+                # SECURITY: eval() removed - use safe alternatives
+                message_data = json.loads(data)  # In production, use json.loads with proper validation
 
                 # Handle different message types
                 message_type = message_data.get("type", "unknown")

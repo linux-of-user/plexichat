@@ -23,7 +23,7 @@ try:
     JWT_AVAILABLE = True
 except ImportError:
     jwt = None
-    jwt_available = False
+    JWT_AVAILABLE = False
 
 """
 PlexiChat Unified Authentication System
@@ -33,21 +33,21 @@ Consolidates authentication functionality from:
 - src/plexichat/app/auth/ (advanced auth features)
 
 Provides comprehensive authentication with government-level security.
-
+"""
 
 logger = logging.getLogger(__name__)
 
 # Authentication security levels
 class SecurityLevel(Enum):
     """Security levels for authentication."""
-        BASIC = 1
+    BASIC = 1
     ENHANCED = 2
     GOVERNMENT = 3
     MILITARY = 4
     ZERO_KNOWLEDGE = 5
 
 class AuthAction(Enum):
-    Authentication actions for audit logging."""
+    """Authentication actions for audit logging."""
     LOGIN = "login"
     LOGOUT = "logout"
     PASSWORD_RESET_REQUEST = "password_reset_request"
@@ -61,8 +61,8 @@ class AuthAction(Enum):
 
 @dataclass
 class AuthAttempt:
-    """Authentication attempt record for audit logging.
-        timestamp: datetime
+    """Authentication attempt record for audit logging."""
+    timestamp: datetime
     username: str
     ip_address: str
     user_agent: str
@@ -76,7 +76,7 @@ class AuthAttempt:
 @dataclass
 class AuthSession:
     """Authentication session data."""
-        session_id: str
+    session_id: str
     username: str
     security_level: SecurityLevel
     created_at: datetime
@@ -88,7 +88,7 @@ class AuthSession:
     biometric_verified: bool = False
 
 class AuthManager:
-    
+    """
     Unified Authentication Manager
 
     Central authentication manager that coordinates all authentication
@@ -98,9 +98,12 @@ class AuthManager:
     - src/plexichat/core/auth/auth_manager.py
     - src/plexichat/app/auth/ modules
     """
-        def __init__(self, config_dir: str = "data/auth"):
+
+    def __init__(self, config_dir: str = "data/auth"):
         from pathlib import Path
-        self.config_dir = Path(config_dir)
+        # Ensure auth config directory is in project root, not src
+        project_root = Path(__file__).parent.parent.parent.parent.parent
+        self.config_dir = project_root / config_dir
         self.config_dir.mkdir(parents=True, exist_ok=True)
 
         # Data storage
@@ -356,7 +359,8 @@ class AuthManager:
 
 class TokenManager:
     """JWT Token management for API authentication."""
-        def __init__(self):
+
+    def __init__(self):
         # Use cryptographically secure key generation
         self.secret_key = secrets.token_bytes(64)
         self.algorithm = "HS256"
@@ -385,14 +389,16 @@ class TokenManager:
             "aud": "plexichat-api"  # Audience
         }
 
-        try:
-            token = jwt.encode(payload, self.secret_key, algorithm=self.algorithm)
-            self.issued_tokens.add(payload["jti"])
-            return token
-        except Exception as e:
-            logger.error(f"JWT token creation failed: {e}")
-            # Fallback to HMAC token
-            return self._create_hmac_token(username, security_level, user_id, scopes)
+        if JWT_AVAILABLE and jwt is not None:
+            try:
+                token = jwt.encode(payload, self.secret_key, algorithm=self.algorithm)
+                self.issued_tokens.add(payload["jti"])
+                return token
+            except Exception as e:
+                logger.error(f"JWT token creation failed: {e}")
+
+        # Fallback to HMAC token
+        return self._create_hmac_token(username, security_level, user_id, scopes)
 
     def _create_hmac_token(self, username: str, security_level: SecurityLevel,
                         user_id: str = None, scopes: List[str] = None) -> str:
@@ -444,6 +450,9 @@ class TokenManager:
 
     async def _validate_jwt_token(self, token: str) -> Dict[str, Any]:
         """Validate JWT token."""
+        if not JWT_AVAILABLE or jwt is None:
+            return {"valid": False, "error": "JWT not available"}
+
         try:
             payload = jwt.decode(
                 token,
@@ -466,10 +475,14 @@ class TokenManager:
                 "expires_at": payload.get("exp")
             }
 
-        except jwt.ExpiredSignatureError:
-            return {"valid": False, "error": "Token expired"}
-        except jwt.InvalidTokenError as e:
-            return {"valid": False, "error": f"Invalid token: {e}"}
+        except Exception as e:
+            # Handle JWT exceptions safely
+            if JWT_AVAILABLE and hasattr(jwt, 'ExpiredSignatureError') and isinstance(e, jwt.ExpiredSignatureError):
+                return {"valid": False, "error": "Token expired"}
+            elif JWT_AVAILABLE and hasattr(jwt, 'InvalidTokenError') and isinstance(e, jwt.InvalidTokenError):
+                return {"valid": False, "error": f"Invalid token: {e}"}
+            else:
+                return {"valid": False, "error": f"Token validation error: {e}"}
 
     async def _validate_hmac_token(self, token: str) -> Dict[str, Any]:
         """Validate HMAC-based token."""
@@ -517,8 +530,8 @@ class TokenManager:
     async def revoke_token(self, token: str) -> bool:
         """Revoke a token by removing its JTI from issued tokens."""
         try:
-            if JWT_AVAILABLE and "." in token and len(token.split(".")) == 3:
-                payload = jwt.decode(token, self.secret_key, algorithms=[self.algorithm])
+            if JWT_AVAILABLE and jwt is not None and "." in token and len(token.split(".")) == 3:
+                payload = jwt.decode(token, self.secret_key, algorithms=[self.algorithm], options={"verify_signature": False})
                 jti = payload.get("jti")
             else:
                 # HMAC token
@@ -538,8 +551,9 @@ class TokenManager:
             return False
 
 class SessionManager:
-    """Session management for web authentication.
-        def __init__(self, auth_manager: AuthManager):
+    """Session management for web authentication."""
+
+    def __init__(self, auth_manager: AuthManager):
         self.auth_manager = auth_manager
 
     async def validate_session(self, session_id: str) -> Optional[AuthSession]:
@@ -561,8 +575,9 @@ class SessionManager:
         return session
 
 class PasswordManager:
-    Password policy and management."""
-        def __init__(self):
+    """Password policy and management."""
+
+    def __init__(self):
         self.min_length = 12
         self.require_uppercase = True
         self.require_lowercase = True
@@ -598,14 +613,20 @@ password_manager = PasswordManager()
 
 # Placeholder classes for additional managers (to be implemented)
 class MFAManager:
-    """Multi-factor authentication management.
-    class BiometricManager:
+    """Multi-factor authentication management."""
+    pass
+
+class BiometricManager:
     """Biometric authentication management."""
+    pass
 
 class OAuthManager:
-    OAuth provider integration."""
-    class DeviceManager:
-    """Device registration and management.
+    """OAuth provider integration."""
+    pass
+
+class DeviceManager:
+    """Device registration and management."""
+    pass
 
 class AuthAuditManager:
     """Authentication audit and compliance."""

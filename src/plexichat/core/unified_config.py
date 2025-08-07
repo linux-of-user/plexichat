@@ -185,7 +185,7 @@ class WebUIConfig:
 @dataclass
 class LoggingConfig:
     """Logging configuration section."""
-        level: str = "INFO"
+    level: str = "INFO"
     format: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     file_path: str = "logs/plexichat.log"
     max_size_mb: int = 10
@@ -258,10 +258,13 @@ class FilesConfig:
 
 class UnifiedConfigManager:
     """Unified configuration manager for all PlexiChat settings."""
-        def __init__(self, config_file: Optional[Path] = None):
-        self.config_file = config_file or Path("config/plexichat.yaml")
-        self.plugin_config_dir = Path("config/plugins")
-        self.backup_dir = Path("config/backups")
+
+    def __init__(self, config_file: Optional[Path] = None):
+        # Ensure paths are relative to project root, not src
+        project_root = Path(__file__).parent.parent.parent.parent
+        self.config_file = config_file or (project_root / "config/plexichat.yaml")
+        self.plugin_config_dir = project_root / "config/plugins"
+        self.backup_dir = project_root / "config/backups"
 
         # Configuration sections
         self.system = SystemConfig()
@@ -306,13 +309,14 @@ class UnifiedConfigManager:
 
     def _ensure_directories(self):
         """Ensure all required directories exist."""
+        project_root = Path(__file__).parent.parent.parent.parent
         for directory in [
             self.config_file.parent,
             self.plugin_config_dir,
             self.backup_dir,
-            Path("logs"),
-            Path("data"),
-            Path(self.files.upload_directory)
+            project_root / "logs",
+            project_root / "data",
+            project_root / Path(self.files.upload_directory)
         ]:
             directory.mkdir(parents=True, exist_ok=True)
     

@@ -1,11 +1,3 @@
-# pyright: reportMissingImports=false
-# pyright: reportGeneralTypeIssues=false
-# pyright: reportPossiblyUnboundVariable=false
-# pyright: reportArgumentType=false
-# pyright: reportCallIssue=false
-# pyright: reportAttributeAccessIssue=false
-# pyright: reportAssignmentType=false
-# pyright: reportReturnType=false
 """
 PlexiChat Versioning System
 
@@ -33,6 +25,8 @@ Features:
 
 from typing import Optional
 import logging
+
+logger = logging.getLogger(__name__)
 
 try:
     from .changelog_manager import (
@@ -114,7 +108,7 @@ __all__ = [
 
 # Version utilities
 def get_current_version() -> Version:
-    """Get current PlexiChat version.
+    """Get current PlexiChat version."""
     return version_manager.get_current_version()
 
 def get_version_string() -> str:
@@ -122,11 +116,11 @@ def get_version_string() -> str:
     return str(version_manager.get_current_version())
 
 def parse_version(version_string: str) -> Version:
-    Parse version string into Version object."""
+    """Parse version string into Version object."""
     return Version.parse(version_string)
 
 def compare_versions(version1: str, version2: str) -> int:
-    """Compare two version strings. Returns -1, 0, or 1.
+    """Compare two version strings. Returns -1, 0, or 1."""
     v1 = Version.parse(version1)
     v2 = Version.parse(version2)
 
@@ -145,7 +139,7 @@ def is_version_compatible(current: str, target: str) -> bool:
 
 # Changelog utilities
 def get_changelog(version: Optional[str] = None, since_version: Optional[str] = None) -> str:
-    Get changelog for version or since version."""
+    """Get changelog for version or since version."""
     if version:
         v = Version.parse(version)
         return update_system.show_changelog(version=v)
@@ -166,7 +160,7 @@ async def check_for_updates():
     return await update_system.check_for_updates()
 
 async def upgrade_to_version(target_version: str, force: bool = False):
-    Upgrade to specific version."""
+    """Upgrade to specific version."""
     target = Version.parse(target_version)
     plan = await update_system.create_update_plan(target, UpdateType.UPGRADE)
 

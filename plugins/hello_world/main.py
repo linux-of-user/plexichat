@@ -91,8 +91,9 @@ class HelloWorldPlugin(PluginInterface):
         super().__init__("HelloWorld", "1.0.0")
         self.plugin_type = PluginType.FEATURE
         
-        # Plugin data directory
-        self.data_dir = Path("data/plugins/hello_world")
+        # Plugin data directory (use project root)
+        project_root = Path(__file__).parent.parent.parent
+        self.data_dir = project_root / "data/plugins/hello_world"
         self.data_dir.mkdir(parents=True, exist_ok=True)
         
         # Configuration

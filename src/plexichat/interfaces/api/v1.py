@@ -165,7 +165,7 @@ async def admin_stats():
         "total_messages": len(messages_db),
         "total_files": len(files_db),
         "system_status": "healthy"
-    }}
+    }
 
 @v1_router.delete("/admin/users/{user_id}")
 async def admin_delete_user(user_id: int):
@@ -283,7 +283,7 @@ async def admin_stats_root():
         "total_messages": len(messages_db),
         "total_files": len(files_db),
         "system_status": "healthy"
-    }}
+    }
 
 @root_router.delete("/admin/users/{user_id}")
 async def admin_delete_user_root(user_id: int):

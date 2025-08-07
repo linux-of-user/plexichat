@@ -1,195 +1,160 @@
-# pyright: reportPossiblyUnboundVariable=false
-# pyright: reportArgumentType=false
-# pyright: reportCallIssue=false
-# pyright: reportAttributeAccessIssue=false
-# pyright: reportAssignmentType=false
-# pyright: reportReturnType=false
+"""
+Base Provider for AI Services
+============================
+
+Abstract base class for all AI providers in PlexiChat.
+Provides common interface and functionality.
+"""
+
+import asyncio
 import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime
 from enum import Enum
-from typing import Any, AsyncGenerator, Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
-import aiohttp
-
-
-"""
-Base AI Provider Interface
-Common interface for all AI providers with standardized methods and error handling.
-
+from ..core.ai_abstraction_layer import (
+    AIModel,
+    AIProvider,
+    AIRequest,
+    AIResponse,
+    ModelCapability,
+    ModelStatus,
+)
 
 logger = logging.getLogger(__name__)
 
 
-class ProviderStatus(str, Enum):
-    """Provider status."""
-        AVAILABLE = "available"
+class ProviderStatus(Enum):
+    """Provider status enumeration."""
+    AVAILABLE = "available"
     UNAVAILABLE = "unavailable"
-    RATE_LIMITED = "rate_limited"
     ERROR = "error"
     MAINTENANCE = "maintenance"
-    INITIALIZING = "initializing"
+    RATE_LIMITED = "rate_limited"
 
 
 @dataclass
 class ProviderConfig:
-    """Base provider configuration.
-
-    name: str
-    provider_type: str
-    api_key: str
-    base_url: str
-    timeout_seconds: int = 30
+    """Base configuration for AI providers."""
+    api_key: Optional[str] = None
+    base_url: Optional[str] = None
+    timeout: int = 30
     max_retries: int = 3
-    rate_limit_rpm: int = 60
-    rate_limit_tpm: int = 90000
+    rate_limit: Optional[int] = None
     enabled: bool = True
-    custom_headers: Dict[str, str] = None
-
-    def __post_init__(self):
-        if self.custom_headers is None:
-            self.custom_headers = {}
-
-
-@dataclass
-class AIRequest:
-    """Standardized AI request."""
-        user_id: str
-    model_id: str
-    prompt: str
-    max_tokens: Optional[int] = None
-    temperature: float = 0.7
-    stream: bool = False
-    system_prompt: Optional[str] = None
-    context: Optional[List[Dict[str, str]]] = None
-    metadata: Optional[Dict[str, Any]] = None
-    request_id: Optional[str] = None
-
-
-@dataclass
-class AIResponse:
-    Standardized AI response."""
-        request_id: str
-    model_id: str
-    content: str
-    usage: Dict[str, Any]
-    cost: float
-    latency_ms: int
-    provider: str
-    timestamp: datetime
-    metadata: Optional[Dict[str, Any]] = None
-    success: bool = True
-    error: Optional[str] = None
-
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary."""
-        return {
-            "request_id": self.request_id,
-            "model_id": self.model_id,
-            "content": self.content,
-            "usage": self.usage,
-            "cost": self.cost,
-            "latency_ms": self.latency_ms,
-            "provider": self.provider,
-            "timestamp": self.timestamp.isoformat(),
-            "metadata": self.metadata,
-            "success": self.success,
-            "error": self.error,
-        }}
 
 
 class BaseAIProvider(ABC):
-    """Base class for all AI providers.
-        def __init__(self, config: ProviderConfig):
+    """Abstract base class for AI providers."""
+    
+    def __init__(self, config: ProviderConfig):
+        """Initialize the provider."""
         self.config = config
-        self.status = ProviderStatus.INITIALIZING
-        self.session: Optional[aiohttp.ClientSession] = None
-        self.rate_limiter = {}
-        self.last_request_time = {}
+        self.status = ProviderStatus.UNAVAILABLE
+        self.models: Dict[str, AIModel] = {}
+        self.metrics: Dict = {}
+        self.last_health_check: Optional[datetime] = None
+        
+        # Initialize provider
+        self._initialize()
 
-    async def initialize(self) -> bool:
+    def _initialize(self) -> None:
         """Initialize the provider."""
         try:
-            self.session = aiohttp.ClientSession()
-                timeout=aiohttp.ClientTimeout(total=self.config.timeout_seconds),
-                headers=self.config.custom_headers,
-            )
-
-            # Test connection
-            if await self._test_connection():
+            if self.config.enabled:
                 self.status = ProviderStatus.AVAILABLE
-                logger.info(f"Provider {self.config.name} initialized successfully")
+                logger.info(f"Initialized provider: {self.__class__.__name__}")
+            else:
+                self.status = ProviderStatus.UNAVAILABLE
+                logger.info(f"Provider disabled: {self.__class__.__name__}")
+        except Exception as e:
+            self.status = ProviderStatus.ERROR
+            logger.error(f"Failed to initialize provider {self.__class__.__name__}: {e}")
+
+    @abstractmethod
+    async def test_connection(self) -> bool:
+        """Test provider connection."""
+        pass
+
+    @abstractmethod
+    def get_available_models(self) -> List[AIModel]:
+        """Get list of available models."""
+        pass
+
+    @abstractmethod
+    def is_model_available(self, model_id: str) -> bool:
+        """Check if a specific model is available."""
+        pass
+
+    def get_model_info(self, model_id: str) -> Optional[AIModel]:
+        """Get information about a specific model."""
+        return self.models.get(model_id)
+
+    def get_model_status(self, model_id: str) -> ModelStatus:
+        """Get the status of a specific model."""
+        model = self.get_model_info(model_id)
+        if not model:
+            return ModelStatus.UNAVAILABLE
+        
+        if not self.is_model_available(model_id):
+            return ModelStatus.UNAVAILABLE
+        
+        if self.status == ProviderStatus.RATE_LIMITED:
+            return ModelStatus.RATE_LIMITED
+        elif self.status == ProviderStatus.ERROR:
+            return ModelStatus.ERROR
+        elif self.status == ProviderStatus.MAINTENANCE:
+            return ModelStatus.MAINTENANCE
+        else:
+            return ModelStatus.AVAILABLE
+
+    def get_provider_status(self) -> ProviderStatus:
+        """Get current provider status."""
+        return self.status
+
+    @abstractmethod
+    async def process_request(self, request: AIRequest) -> AIResponse:
+        """Process an AI request."""
+        pass
+
+    async def health_check(self) -> bool:
+        """Perform health check."""
+        try:
+            result = await self.test_connection()
+            self.last_health_check = datetime.now()
+            
+            if result:
+                if self.status == ProviderStatus.ERROR:
+                    self.status = ProviderStatus.AVAILABLE
                 return True
             else:
                 self.status = ProviderStatus.ERROR
-                logger.error(f"Provider {self.config.name} connection test failed")
                 return False
-
+                
         except Exception as e:
+            logger.error(f"Health check failed for {self.__class__.__name__}: {e}")
             self.status = ProviderStatus.ERROR
-            logger.error(f"Failed to initialize provider {self.config.name}: {e}")
             return False
 
-    async def cleanup(self):
-        """Cleanup resources.
-        if self.session:
-            await self.session.close()
-        self.status = ProviderStatus.UNAVAILABLE
-
-    @abstractmethod
-    async def _test_connection(self) -> bool:
-        """Test provider connection."""
-
-    @abstractmethod
-    async def generate(self, request: AIRequest) -> AIResponse:
-        Generate AI response."""
-
-    @abstractmethod
-    async def stream_generate(self, request: AIRequest) -> AsyncGenerator[str, None]:
-        """Generate streaming AI response.
-
-    @abstractmethod
-    async def get_available_models(self) -> List[Dict[str, Any]]:
-        """Get list of available models."""
-
-    async def check_rate_limit(self, model_id: str) -> bool:
-        Check if request is within rate limits."""
-        current_time = datetime.now(timezone.utc)
-
-        # Simple rate limiting implementation
-        if model_id not in self.rate_limiter:
-            self.rate_limiter[model_id] = []
-
-        # Remove old requests (older than 1 minute)
-        minute_ago = current_time.timestamp() - 60
-        self.rate_limiter[model_id] = [
-            req_time
-            for req_time in self.rate_limiter[model_id]
-            if req_time > minute_ago
-        ]
-
-        # Check if under limit
-        if len(self.rate_limiter[model_id]) >= self.config.rate_limit_rpm:
-            self.status = ProviderStatus.RATE_LIMITED
-            return False
-
-        # Add current request
-        self.rate_limiter[model_id].append(current_time.timestamp())
-        return True
-
-    def _calculate_cost(self, model_id: str, usage: Dict[str, Any]) -> float:
-        """Calculate request cost (to be overridden by providers).
-        return 0.0
-
-    def get_status(self) -> Dict[str, Any]:
-        """Get provider status information."""
+    def get_metrics(self) -> Dict[str, Any]:
+        """Get provider metrics."""
         return {
-            "name": self.config.name,
-            "provider_type": self.config.provider_type,
             "status": self.status.value,
-            "enabled": self.config.enabled,
-            "base_url": self.config.base_url,
-            "rate_limit_rpm": self.config.rate_limit_rpm,
-            "rate_limit_tpm": self.config.rate_limit_tpm,
-        }}
+            "models_count": len(self.models),
+            "last_health_check": self.last_health_check.isoformat() if self.last_health_check else None,
+            "metrics": self.metrics
+        }
+
+    def update_metrics(self, metric_name: str, value: Any) -> None:
+        """Update provider metrics."""
+        self.metrics[metric_name] = value
+
+    def __str__(self) -> str:
+        """String representation."""
+        return f"{self.__class__.__name__}(status={self.status.value})"
+
+    def __repr__(self) -> str:
+        """Detailed representation."""
+        return f"{self.__class__.__name__}(status={self.status.value}, models={len(self.models)})"

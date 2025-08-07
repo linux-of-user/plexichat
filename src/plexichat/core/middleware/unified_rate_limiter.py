@@ -46,7 +46,7 @@ except ImportError:
 
 class RateLimitStrategy(Enum):
     """Rate limiting strategies."""
-        PER_IP = "per_ip"
+    PER_IP = "per_ip"
     PER_USER = "per_user"
     PER_ROUTE = "per_route"
     PER_METHOD = "per_method"
@@ -62,8 +62,8 @@ class RateLimitAlgorithm(Enum):
 
 @dataclass
 class RateLimitRule:
-    """Rate limit rule configuration.
-        strategy: RateLimitStrategy
+    """Rate limit rule configuration."""
+    strategy: RateLimitStrategy
     algorithm: RateLimitAlgorithm
     max_requests: int
     window_seconds: int
@@ -75,7 +75,7 @@ class RateLimitRule:
 @dataclass
 class RateLimitConfig:
     """Comprehensive rate limiting configuration."""
-        # Global settings
+    # Global settings
     enabled: bool = True
     default_algorithm: RateLimitAlgorithm = RateLimitAlgorithm.SLIDING_WINDOW
     

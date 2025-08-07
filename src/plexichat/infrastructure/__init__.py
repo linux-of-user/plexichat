@@ -20,7 +20,7 @@ Comprehensive infrastructure layer with:
 - Background task processing
 
 Uses shared components for consistent error handling and type definitions.
-
+"""
 
 import logging
 from typing import Any, Dict
@@ -49,13 +49,14 @@ performance_logger = get_performance_logger() if get_performance_logger else Non
 
 class InfrastructureManager:
     """Enhanced infrastructure manager using EXISTING systems."""
-        def __init__(self):
+
+    def __init__(self):
         self.performance_logger = performance_logger
         self.optimization_engine = PerformanceOptimizationEngine() if PerformanceOptimizationEngine else None
         self.components: Dict[str, bool] = {}
 
     def register_component(self, name: str, status: bool = True):
-        Register infrastructure component."""
+        """Register infrastructure component."""
         try:
             self.components[name] = status
             logger.info(f"Registered infrastructure component: {name} (status: {status})")
@@ -67,7 +68,7 @@ class InfrastructureManager:
             logger.error(f"Error registering component {name}: {e}")
 
     def is_available(self, name: str) -> bool:
-        """Check if component is available.
+        """Check if component is available."""
         return self.components.get(name, False)
 
     def get_status(self) -> Dict[str, Any]:

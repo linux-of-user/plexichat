@@ -3,7 +3,7 @@ PlexiChat Version Utilities
 
 Centralized version loading and management utilities.
 All version information should be loaded from version.json.
-
+"""
 
 import json
 import logging
@@ -15,12 +15,13 @@ logger = logging.getLogger(__name__)
 
 class VersionManager:
     """Centralized version management."""
-        def __init__(self):
+
+    def __init__(self):
         self._version_data: Optional[Dict[str, Any]] = None
         self._load_version_data()
     
     def _load_version_data(self) -> None:
-        Load version data from version.json."""
+        """Load version data from version.json."""
         try:
             # Look for version.json in the project root
             current_file = Path(__file__)
@@ -48,10 +49,10 @@ class VersionManager:
             "api_version": "v1",
             "release_date": datetime.now().strftime("%Y-%m-%d"),
             "status": "beta"
-        }}
+        }
     
     def get_version(self) -> str:
-        """Get the current version string.
+        """Get the current version string."""
         if self._version_data:
             return self._version_data.get('version', 'b.1.1-88')
         return 'b.1.1-88'
@@ -63,13 +64,13 @@ class VersionManager:
         return 'v1'
     
     def get_version_type(self) -> str:
-        Get the version type (alpha, beta, release)."""
+        """Get the version type (alpha, beta, release)."""
         if self._version_data:
             return self._version_data.get('version_type', 'beta')
         return 'beta'
     
     def get_build_number(self) -> int:
-        """Get the build number.
+        """Get the build number."""
         if self._version_data:
             return self._version_data.get('build_number', 88)
         return 88
@@ -90,7 +91,7 @@ class VersionManager:
             "release_date": self.get_release_date(),
             "status": self._version_data.get('status', 'beta') if self._version_data else 'beta',
             "timestamp": datetime.now().isoformat()
-        }}
+        }
     
     def get_health_version_info(self) -> Dict[str, Any]:
         """Get version info suitable for health checks."""
@@ -98,10 +99,10 @@ class VersionManager:
             "version": self.get_version(),
             "status": "healthy",
             "timestamp": datetime.now().isoformat()
-        }}
+        }
     
     def reload(self) -> None:
-        """Reload version data from file.
+        """Reload version data from file."""
         self._load_version_data()
 
 # Global version manager instance
@@ -113,11 +114,11 @@ def get_version() -> str:
     return version_manager.get_version()
 
 def get_api_version() -> str:
-    Get API version string."""
+    """Get API version string."""
     return version_manager.get_api_version()
 
 def get_version_info() -> Dict[str, Any]:
-    """Get complete version information.
+    """Get complete version information."""
     return version_manager.get_full_version_info()
 
 def get_health_info() -> Dict[str, Any]:
