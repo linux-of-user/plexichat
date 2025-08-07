@@ -2,7 +2,7 @@
 PlexiChat Thread Manager
 
 Thread management with performance optimization and database integration.
-
+"""
 
 import asyncio
 import logging
@@ -43,8 +43,8 @@ class ThreadTask:
             self.created_at = time.time()
 
 class ThreadManager:
-    Thread manager with performance optimization."""
-        def __init__(self, max_workers: int = 10):
+    """Thread manager with performance optimization."""
+    def __init__(self, max_workers: int = 10):
         self.max_workers = max_workers
         self.executor = ThreadPoolExecutor(max_workers=max_workers)
         self.task_queue = Queue()
@@ -58,7 +58,7 @@ class ThreadManager:
         self._start_worker()
 
     def _start_worker(self):
-        """Start background worker thread.
+        """Start background worker thread."""
         self._worker_thread = threading.Thread(target=self._worker_loop, daemon=True)
         self._worker_thread.start()
 
@@ -106,7 +106,7 @@ class ThreadManager:
                 self.performance_logger.record_metric("thread_tasks_failed", 1, "count")
 
     async def _log_task_completion(self, task: ThreadTask, result: Any, duration: float):
-        """Log task completion to database.
+        """Log task completion to database."""
         try:
             if self.db_manager:
                 query = """
@@ -167,7 +167,7 @@ class ThreadManager:
         return self.completed_tasks.get(task_id)
 
     def is_completed(self, task_id: str) -> bool:
-        """Check if task is completed.
+        """Check if task is completed."""
         return task_id in self.completed_tasks
 
     def is_failed(self, task_id: str) -> bool:
@@ -175,7 +175,7 @@ class ThreadManager:
         return task_id in self.failed_tasks
 
     def get_status(self) -> Dict[str, Any]:
-        Get thread manager status."""
+        """Get thread manager status."""
         return {
             "max_workers": self.max_workers,
             "active_tasks": len(self.active_tasks),
@@ -186,7 +186,7 @@ class ThreadManager:
         }
 
     def shutdown(self, wait: bool = True):
-        """Shutdown thread manager.
+        """Shutdown thread manager."""
         self._shutdown = True
         if wait:
             self.task_queue.join()
@@ -194,12 +194,12 @@ class ThreadManager:
 
 class AsyncThreadManager:
     """Async thread manager for async/await integration."""
-        def __init__(self, max_workers: int = 10):
+    def __init__(self, max_workers: int = 10):
         self.executor = ThreadPoolExecutor(max_workers=max_workers)
         self.performance_logger = performance_logger
 
     async def run_in_thread(self, function: Callable, *args, **kwargs) -> Any:
-        Run function in thread pool."""
+        """Run function in thread pool."""
         loop = asyncio.get_event_loop()
 
         start_time = time.time()
@@ -231,7 +231,7 @@ class AsyncThreadManager:
         return await asyncio.gather(*futures, return_exceptions=True)
 
     def shutdown(self):
-        """Shutdown async thread manager.
+        """Shutdown async thread manager."""
         self.executor.shutdown(wait=True)
 
 # Global instances
@@ -244,11 +244,11 @@ def submit_task(task_id: str, function: Callable, *args, **kwargs) -> str:
     return thread_manager.submit_task(task_id, function, *args, **kwargs)
 
 async def run_in_thread(function: Callable, *args, **kwargs) -> Any:
-    Run function in thread using global async manager."""
+    """Run function in thread using global async manager."""
     return await async_thread_manager.run_in_thread(function, *args, **kwargs)
 
 def get_task_result(task_id: str, timeout: Optional[float] = None) -> Any:
-    """Get task result from global thread manager.
+    """Get task result from global thread manager."""
     return thread_manager.get_result(task_id, timeout)
 
 # Decorators
