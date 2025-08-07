@@ -195,7 +195,8 @@ class BackupEngine:
             
         Returns:
             Dict containing verification results
-        try:"""
+        """
+        try:
             self.logger.info(f"Verifying backup integrity: {backup_id}")
             
             # Get shard locations
@@ -243,6 +244,7 @@ class BackupEngine:
             
         Returns:
             List of backup metadata
+        """
         try:
             # This would query the database in a real implementation
             # For now, return mock data
