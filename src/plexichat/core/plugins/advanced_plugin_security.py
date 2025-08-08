@@ -109,7 +109,6 @@ class EnhancedPluginSecurity:
         logger.info("Enhanced plugin security manager initialized")
     
     def _get_default_approved_imports(self) -> Set[str]:
-        """Get default set of approved imports for plugins.
         return {
             # Standard library - safe modules
             'os', 'sys', 'json', 'time', 'datetime', 'collections',
@@ -150,7 +149,6 @@ class EnhancedPluginSecurity:
         }
     
     def create_security_profile(self, plugin_name: str, security_level: SecurityLevel = SecurityLevel.STANDARD) -> SecurityProfile:
-        """Create security profile for a plugin."""
         profile = SecurityProfile(
             plugin_name=plugin_name,
             security_level=security_level,
@@ -191,7 +189,6 @@ class EnhancedPluginSecurity:
         return profile
     
     def check_import_permission(self, plugin_name: str, module_name: str) -> bool:
-        """Check if plugin has permission to import a module."""
         profile = self.security_profiles.get(plugin_name)
         if not profile:
             # Create default profile for unknown plugins
@@ -227,7 +224,6 @@ class EnhancedPluginSecurity:
         return self._request_import_permission(plugin_name, module_name)
     
     def _is_safe_module(self, module_name: str) -> bool:
-        """Check if a module is considered safe for automatic approval.
         safe_patterns = [
             'pydantic', 'fastapi', 'sqlalchemy', 'requests', 'httpx',
             'aiofiles', 'asyncio', 'datetime', 'json', 'uuid',
@@ -242,7 +238,6 @@ class EnhancedPluginSecurity:
         return False
     
     def _request_import_permission(self, plugin_name: str, module_name: str) -> bool:
-        """Request permission for module import."""
         profile = self.security_profiles[plugin_name]
         
         # For now, auto-approve safe modules and log others
@@ -264,7 +259,6 @@ class EnhancedPluginSecurity:
         return False
     
     def install_missing_dependency(self, module_name: str) -> bool:
-        """Attempt to install missing dependency."""
         if module_name in self.dependency_cache:
             return self.dependency_cache[module_name]
 
@@ -340,7 +334,6 @@ class EnhancedPluginSecurity:
             return False
     
     def create_secure_import_hook(self, plugin_name: str):
-        """Create secure import hook for plugin."""
         profile = self.security_profiles.get(plugin_name)
         if not profile:
             profile = self.create_security_profile(plugin_name)
@@ -371,7 +364,6 @@ class EnhancedPluginSecurity:
         return secure_import
     
     def _record_security_event(self, plugin_name: str, event_type: str, details: str):
-        """Record security event for monitoring."""
         event = {
             'timestamp': datetime.now().isoformat(),
             'plugin_name': plugin_name,
@@ -394,7 +386,6 @@ class EnhancedPluginSecurity:
                 profile.security_violations.append(f"{event_type}:{details}:{datetime.now().isoformat()}")
     
     def get_plugin_security_status(self, plugin_name: str) -> Dict[str, Any]:
-        """Get security status for a plugin."""
         profile = self.security_profiles.get(plugin_name)
         if not profile:
             return {'status': 'unknown', 'message': 'No security profile found'}
@@ -414,7 +405,6 @@ class EnhancedPluginSecurity:
         }
     
     def get_security_summary(self) -> Dict[str, Any]:
-        """Get overall security summary."""
         total_plugins = len(self.security_profiles)
         total_events = len(self.security_events)
         

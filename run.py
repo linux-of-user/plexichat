@@ -1,253 +1,35 @@
-#!/usr/bin/env python3
-"""
-PlexiChat - Comprehensive Run Script
-===================================
-
-Advanced run script with intelligent environment setup, package manager fallbacks,
-and comprehensive dependency management.
-"""
-
-import os
-import sys
-import subprocess
 import argparse
-import logging
-import platform
-import shutil
-import venv
 import json
+import os
 import re
-import tempfile
-import urllib.request
-import urllib.error
-try:
-    import yaml
-except ImportError:
-    yaml = None
+import subprocess
+import venv
+
 from pathlib import Path
-from typing import List, Dict, Optional, Tuple
-from urllib.parse import urlparse
 
-# Add the src directory to Python path
-sys.path.insert(0, str(Path(__file__).parent / "src"))
+from src.plexichat.infrastructure.utils.utilities import ConfigManager
+from src.plexichat.core.logging import Colors
 
-def load_yaml_config():
-    """Load configuration from plexichat.yaml file."""
-    if yaml is None:
-        # Fallback to default values if PyYAML is not available
-        return {
-            'network': {
-                'host': 'localhost',
-                'api_port': 8000,
-                'web_port': 8080
-            }
-        }
-
-    config_file = Path(__file__).parent / "config" / "plexichat.yaml"
-    if config_file.exists():
-        try:
-            with open(config_file, 'r', encoding='utf-8') as f:
-                return yaml.safe_load(f) or {}
-        except Exception as e:
-            print(f"Warning: Could not load config from {config_file}: {e}")
-
-    # Return default values if config file doesn't exist
-    return {
-        'network': {
-            'host': 'localhost',
-            'api_port': 8000,
-            'web_port': 8080
-        }
-    }
-
-# Configuration system
-class ConfigManager:
-    """Centralized configuration management."""
-
-    def __init__(self):
-        self.project_root = Path(__file__).parent
-        self.config_file = self.project_root / "config" / "run_config.json"
-        self.version_file = self.project_root / "version.json"
-        self.config = self._load_config()
-
-    def _load_config(self) -> Dict:
-        """Load configuration from files."""
-        # Default configuration
-        defaults = {
-            "version": {
-                "current": "b.1.1-94",
-                "type": "beta",
-                "major": 1,
-                "minor": 1,
-                "build": 94
-            },
-            "github": {
-                "repo": "linux-of-user/plexichat",
-                "api_base": "https://api.github.com/repos",
-                "raw_base": "https://raw.githubusercontent.com",
-                "default_branch": "main"
-            },
-            "server": {
-                "host": "0.0.0.0",
-                "api_port": 8000,
-                "webui_port": 8080,
-                "admin_port": 8002,
-                "websocket_port": 8001,
-                "reload": True
-            },
-            "installation": {
-                "default_level": "minimal",
-                "venv_name": "venv",
-                "requirements_file": "requirements.txt"
-            },
-            "cli": {
-                "enabled": True,
-                "interactive": True,
-                "colors": True,
-                "history_size": 1000
-            },
-
-            "logging": {
-                "level": "INFO",
-                "file": "logs/run.log",
-                "max_size": "10MB",
-                "backup_count": 5
-            }
-        }
-
-        # Load from version.json if available
-        if self.version_file.exists():
-            try:
-                with open(self.version_file, 'r') as f:
-                    version_data = json.load(f)
-                    defaults["version"]["current"] = version_data.get("version", defaults["version"]["current"])
-                    defaults["version"]["build"] = version_data.get("build_number", defaults["version"]["build"])
-            except Exception as e:
-                print_colored(f"WARNING: Could not load version.json: {e}", Colors.YELLOW)
-
-        # Load from config file if available
-        if self.config_file.exists():
-            try:
-                with open(self.config_file, 'r') as f:
-                    file_config = json.load(f)
-                    self._deep_update(defaults, file_config)
-            except Exception as e:
-                print_colored(f"[WARNING]  Warning: Could not load config file: {e}", Colors.YELLOW)
-        else:
-            # Create config directory and file
-            self.config_file.parent.mkdir(parents=True, exist_ok=True)
-            self.save_config(defaults)
-
-        # Ensure all necessary directories exist
-        self._ensure_directories()
-
-        return defaults
-
-    def _deep_update(self, base_dict: Dict, update_dict: Dict):
-        """Deep update dictionary."""
-        for key, value in update_dict.items():
-            if key in base_dict and isinstance(base_dict[key], dict) and isinstance(value, dict):
-                self._deep_update(base_dict[key], value)
-            else:
-                base_dict[key] = value
-
-    def get(self, key_path: str, default=None):
-        """Get configuration value using dot notation."""
-        keys = key_path.split('.')
-        value = self.config
-
-        for key in keys:
-            if isinstance(value, dict) and key in value:
-                value = value[key]
-            else:
-                return default
-
-        return value
-
-    def set(self, key_path: str, value):
-        """Set configuration value using dot notation."""
-        keys = key_path.split('.')
-        config = self.config
-
-        for key in keys[:-1]:
-            if key not in config:
-                config[key] = {}
-            config = config[key]
-
-        config[keys[-1]] = value
-        self.save_config()
-
-    def save_config(self, config_data: Optional[Dict] = None):
-        """Save configuration to file."""
-        if config_data is None:
-            config_data = self.config
-
-        try:
-            self.config_file.parent.mkdir(parents=True, exist_ok=True)
-            with open(self.config_file, 'w') as f:
-                json.dump(config_data, f, indent=2)
-        except Exception as e:
-            print_colored(f"[WARNING]  Warning: Could not save config: {e}", Colors.YELLOW)
-
-    def _ensure_directories(self):
-        """Ensure all necessary directories exist."""
-        directories = [
-            "config",
-            "data/config",
-            "data/logs",
-            "data/uploads",
-            "data/cache",
-            "data/backups",
-            "data/runtime",
-            "data/storage",
-            "logs",
-            "temp",
-            "certs"
-        ]
-
-        for directory in directories:
-            dir_path = self.project_root / directory
-            dir_path.mkdir(parents=True, exist_ok=True)
-
-# Initialize configuration manager
+VERSION = "1.0.0"
+GITHUB_REPO = "user/repo"
 config_manager = ConfigManager()
 
-# Configuration-based constants
-VERSION = config_manager.get("version.current")
-GITHUB_REPO = config_manager.get("github.repo")
-GITHUB_API_BASE = config_manager.get("github.api_base")
-GITHUB_RAW_BASE = config_manager.get("github.raw_base")
-
-class Colors:
-    """ANSI color codes for terminal output."""
-    RED = '\033[91m'
-    GREEN = '\033[92m'
-    YELLOW = '\033[93m'
-    BLUE = '\033[94m'
-    MAGENTA = '\033[95m'
-    CYAN = '\033[96m'
-    WHITE = '\033[97m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
-    END = '\033[0m'
 
 class GitHubManager:
-    """Manage GitHub operations for PlexiChat."""
+    """Manage GitHub repository."""
 
-    def __init__(self, repo: str = GITHUB_REPO):
-        self.repo = repo
-        self.api_base = f"{GITHUB_API_BASE}/{repo}"
-        self.raw_base = f"{GITHUB_RAW_BASE}/{repo}"
+    def __init__(self, repo: str):
+        self.raw_base = f"https://raw.githubusercontent.com/{repo}/main"
+        self.api_base = f"https://api.github.com/{repo}/releases"
 
-    def get_latest_releases(self, limit: int = 10) -> List[Dict]:
+    def get_latest_releases(self, count: int) -> list[dict]:
         """Get latest releases from GitHub."""
         try:
-            url = f"{self.api_base}/releases?per_page={limit}"
+            url = f"{self.api_base}/releases?per_page={count}"
 
             # Create request with proper headers
             req = urllib.request.Request(url)
             req.add_header('User-Agent', 'PlexiChat-Installer/1.0')
-            req.add_header('Accept', 'application/vnd.github.v3+json')
 
             with urllib.request.urlopen(req, timeout=10) as response:
                 data = json.loads(response.read().decode())
@@ -1724,11 +1506,8 @@ Examples:
                 except Exception as e:
                     print_colored(f"  [ERROR] Error installing {package}: {e}", Colors.RED)
 
-        # Setup directories and initial configuration
+                # Setup directories and initial configuration
         setup_project_structure()
-
-        # Verify installation
-        verify_installation(env_manager)
 
         print_colored("[SUCCESS] Environment setup completed!", Colors.GREEN, bold=True)
         print_colored("Run 'python run.py' to start the server", Colors.CYAN)
@@ -1760,29 +1539,3 @@ Examples:
             )
         elif not args.noserver and not args.nowebui:
             print_colored("[START] Starting PlexiChat with API server and WebUI", Colors.BLUE, bold=True)
-            start_servers(
-                host=args.host,
-                port=args.port,
-                webui_port=args.webui_port,
-                reload=not args.no_reload
-            )
-        elif not args.noserver:
-            print_colored("[START] Starting PlexiChat API server only", Colors.BLUE, bold=True)
-            start_server(
-                host=args.host,
-                port=args.port,
-                reload=not args.no_reload
-            )
-        elif not args.nowebui:
-            print_colored("[WEB] Starting PlexiChat WebUI only", Colors.BLUE, bold=True)
-            start_webui_server(
-                host=args.host,
-                port=args.webui_port
-            )
-        else:
-            # Both --noserver and --nowebui specified, start CLI only
-            print_colored("[CLI] Starting PlexiChat CLI only", Colors.BLUE, bold=True)
-            start_cli()
-
-if __name__ == "__main__":
-    main()
