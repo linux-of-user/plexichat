@@ -123,14 +123,14 @@ def _get_admin_stats():
         "backup_status": "Healthy",  # Would be from backup service
         "security_events": 3,  # Would be from security monitoring
         "system_updates": 0  # Would be from update service
-    }}
+    }
 
 def get_performance_service():
     class DummyPerformanceService:
         def _calculate_health_score(self, *a, **k): return 100
         def get_current_metrics(self): return {"system": {}, "application": {}}
         def _get_active_alerts(self): return []
-        def get_performance_summary(self): return {}}
+        def get_performance_summary(self): return {}
     import asyncio
     async def dummy():
         return DummyPerformanceService()

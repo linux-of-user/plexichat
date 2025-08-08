@@ -17,6 +17,7 @@ import os
 import sys
 import time
 import threading
+import shutil
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Callable
 from enum import Enum
@@ -25,7 +26,7 @@ from pathlib import Path
 
 # Core imports
 try:
-    from ..config import get_config as _get_unified_config
+    from ..config import get_config as _get_unified_config  # type: ignore
 
     def get_config() -> Any:
         """Wrapper to provide a config object without requiring a key parameter."""
@@ -58,6 +59,151 @@ except ImportError:
         return MockConfig()
 
 logger = logging.getLogger(__name__)
+
+
+class CentralizedDirectoryManager:
+    """
+    Centralized directory manager for all PlexiChat storage needs.
+
+    This class ensures all directories are created in a clean, organized structure
+    and prevents the creation of excessive subdirectories.
+    """
+
+    def __init__(self, base_dir: Optional[Path] = None):
+        """Initialize the directory manager."""
+        # Use project root as base directory
+        if base_dir is None:
+            # Find project root by looking for key files
+            current_dir = Path(__file__).parent
+            while current_dir.parent != current_dir:
+                if (current_dir / "run.py").exists() or (current_dir / "src").exists():
+                    base_dir = current_dir
+                    break
+                current_dir = current_dir.parent
+            else:
+                # Fallback to current working directory
+                base_dir = Path.cwd()
+
+        self.base_dir = Path(base_dir)
+        self.data_dir = self.base_dir / "data"
+
+        # Define all directory paths in one place
+        self.directories = {
+            # Logging directories
+            "logs": self.data_dir / "logs",
+            "logs_archive": self.data_dir / "logs" / "archive",
+            "logs_structured": self.data_dir / "logs" / "structured",
+
+            # Storage directories
+            "storage": self.data_dir / "storage",
+            "storage_temp": self.data_dir / "storage" / "temp",
+            "storage_cache": self.data_dir / "storage" / "cache",
+
+            # Backup directories (consolidated)
+            "backups": self.data_dir / "backups",
+            "backups_metadata": self.data_dir / "backups" / "metadata",
+            "backups_versions": self.data_dir / "backups" / "versions",
+            "backups_shards": self.data_dir / "backups" / "shards",
+
+            # Config and runtime directories
+            "config": self.data_dir / "config",
+            "runtime": self.data_dir / "runtime",
+            "uploads": self.data_dir / "uploads",
+        }
+
+        # Initialize directories
+        self._initialize_directories()
+
+    def _initialize_directories(self):
+        """Create all necessary directories."""
+        try:
+            for name, path in self.directories.items():
+                path.mkdir(parents=True, exist_ok=True)
+
+            # Create .gitkeep files to preserve directory structure
+            for name, path in self.directories.items():
+                gitkeep_file = path / ".gitkeep"
+                if not gitkeep_file.exists():
+                    gitkeep_file.touch()
+
+            logger.info(f"Initialized centralized directory structure at {self.base_dir}")
+
+        except Exception as e:
+            logger.error(f"Failed to initialize directories: {e}")
+            raise
+
+    def get_directory(self, name: str) -> Path:
+        """Get a directory path by name."""
+        if name not in self.directories:
+            raise ValueError(f"Unknown directory: {name}. Available: {list(self.directories.keys())}")
+        return self.directories[name]
+
+    def get_log_directory(self) -> Path:
+        """Get the main log directory."""
+        return self.directories["logs"]
+
+    def get_backup_directory(self) -> Path:
+        """Get the main backup directory."""
+        return self.directories["backups"]
+
+    def get_storage_directory(self) -> Path:
+        """Get the main storage directory."""
+        return self.directories["storage"]
+
+    def cleanup_old_directories(self):
+        """Clean up old, unused directory structures."""
+        try:
+            # List of old directory patterns to clean up
+            old_patterns = [
+                "backup_storage",
+                "logs_*",
+                "**/backup_storage",
+                "**/logs_*",
+            ]
+
+            cleaned_count = 0
+            for pattern in old_patterns:
+                for old_dir in self.base_dir.glob(pattern):
+                    if old_dir.is_dir() and old_dir not in self.directories.values():
+                        try:
+                            # Move contents to new structure if needed
+                            self._migrate_directory_contents(old_dir)
+
+                            # Remove empty old directory
+                            if not any(old_dir.iterdir()):
+                                old_dir.rmdir()
+                                cleaned_count += 1
+                                logger.info(f"Cleaned up empty directory: {old_dir}")
+                        except Exception as e:
+                            logger.warning(f"Could not clean up directory {old_dir}: {e}")
+
+            if cleaned_count > 0:
+                logger.info(f"Cleaned up {cleaned_count} old directories")
+
+        except Exception as e:
+            logger.error(f"Error during directory cleanup: {e}")
+
+    def _migrate_directory_contents(self, old_dir: Path):
+        """Migrate contents from old directory structure to new structure."""
+        try:
+            # Determine target directory based on old directory name
+            if "backup" in old_dir.name.lower():
+                target_dir = self.directories["backups"]
+            elif "log" in old_dir.name.lower():
+                target_dir = self.directories["logs"]
+            else:
+                target_dir = self.directories["storage"]
+
+            # Move files (not directories) to avoid nested structures
+            for item in old_dir.iterdir():
+                if item.is_file():
+                    target_file = target_dir / item.name
+                    if not target_file.exists():
+                        shutil.move(str(item), str(target_file))
+                        logger.info(f"Migrated file: {item} -> {target_file}")
+
+        except Exception as e:
+            logger.warning(f"Error migrating contents from {old_dir}: {e}")
 
 
 class LogLevel(Enum):
@@ -434,11 +580,15 @@ class UnifiedLoggingManager:
 
     def __init__(self):
         self.config = get_config()
+        self.directory_manager = CentralizedDirectoryManager()
         self.loggers: Dict[str, UnifiedLogger] = {}
         self.log_buffer = LogBuffer(max_size=getattr(self.config.logging, 'buffer_size', 10000))
         self.performance_tracker = PerformanceTracker()
         self.handlers: List[logging.Handler] = []
         self.alert_callbacks: List[Callable[[LogEntry], None]] = []
+
+        # Clean up old directories first
+        self.directory_manager.cleanup_old_directories()
 
         # Setup logging system
         self._setup_logging_system()
@@ -500,9 +650,8 @@ class UnifiedLoggingManager:
     def _setup_file_handler(self):
         """Setup file logging handler with compression and cleanup."""
         try:
-            log_dir = Path(getattr(self.config.logging, 'directory', 'logs'))
-            log_dir.mkdir(exist_ok=True)
-
+            # Use centralized directory manager
+            log_dir = self.directory_manager.get_log_directory()
             log_file = log_dir / 'plexichat.log'
 
             # Use custom rotating file handler with compression
@@ -624,9 +773,8 @@ class UnifiedLoggingManager:
     def _setup_structured_handler(self):
         """Setup structured JSON logging handler."""
         try:
-            log_dir = Path(getattr(self.config.logging, 'directory', 'logs'))
-            log_dir.mkdir(exist_ok=True)
-
+            # Use centralized directory manager
+            log_dir = self.directory_manager.get_directory("logs_structured")
             structured_file = log_dir / 'plexichat-structured.log'
 
             from logging.handlers import RotatingFileHandler
@@ -684,6 +832,10 @@ class UnifiedLoggingManager:
         if name not in self.loggers:
             self.loggers[name] = UnifiedLogger(name, self)
         return self.loggers[name]
+
+    def get_directory_manager(self) -> CentralizedDirectoryManager:
+        """Get the centralized directory manager."""
+        return self.directory_manager
 
     def add_alert_callback(self, callback: Callable[[LogEntry], None]):
         """Add alert callback for critical events."""
@@ -751,6 +903,10 @@ def get_logging_manager() -> UnifiedLoggingManager:
     """Get the global logging manager instance."""
     return unified_logging_manager
 
+def get_directory_manager() -> CentralizedDirectoryManager:
+    """Get the global directory manager instance."""
+    return unified_logging_manager.get_directory_manager()
+
 def setup_module_logging(module_name: str, level: str = "INFO") -> UnifiedLogger:
     """Setup logging for a specific module."""
     logger = get_logger(module_name)
@@ -802,6 +958,7 @@ __all__ = [
     'UnifiedLoggingManager',
     'unified_logging_manager',
     'UnifiedLogger',
+    'CentralizedDirectoryManager',
 
     # Enums and data classes
     'LogLevel',
@@ -819,6 +976,7 @@ __all__ = [
     # Main functions
     'get_logger',
     'get_logging_manager',
+    'get_directory_manager',
     'setup_module_logging',
 
     # Backward compatibility functions

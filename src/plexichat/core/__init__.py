@@ -201,10 +201,10 @@ def _load_constants():
             with open(version_file, 'r') as f:
                 version_data = json.load(f)
                 app_name = "PlexiChat"
-                app_version = version_data.get('version', 'b.1.1-88')
+                app_version = version_data.get('version', 'b.1.1-94')
         else:
             app_name = "PlexiChat"
-            app_version = "b.1.1-88"
+            app_version = "b.1.1-94"
 
         # Load config from config file
         config_file = Path(__file__).parent.parent.parent / "config" / "plexichat.json"
@@ -218,7 +218,7 @@ def _load_constants():
         return app_name, app_version, default_config
     except Exception:
         core_manager.register_component("constants", False)
-        return "PlexiChat", "a.1.1-144", {}
+        return "PlexiChat", "b.1.1-94", {}
 
 APP_NAME, APP_VERSION, DEFAULT_CONFIG = _load_constants()
 

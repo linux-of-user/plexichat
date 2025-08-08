@@ -12,10 +12,12 @@ import logging
 # Import security decorators
 try:
     from ....core.security.security_decorators import (
-        require_admin, rate_limit, audit_access, SecurityLevel
+        require_admin, rate_limit, audit_access
     )
+    from ....core.security import SecurityLevel
     from ....core.config.rate_limiting_config import (
-        get_rate_limiting_config, AccountType, update_rate_limit_config
+        get_rate_limiting_config, AccountType, update_rate_limit_config,
+        DynamicRateLimitConfig, IPBlacklistConfig
     )
 except ImportError as e:
     print(f"Import error in rate limiting admin: {e}")
@@ -29,6 +31,33 @@ except ImportError as e:
     def audit_access(*args, **kwargs):
         def decorator(func): return func
         return decorator
+
+    # Fallback classes
+    class SecurityLevel:
+        BASIC = "basic"
+        ELEVATED = "elevated"
+        ADMIN = "admin"
+
+    class AccountType:
+        FREE = "free"
+        PREMIUM = "premium"
+        ENTERPRISE = "enterprise"
+        ADMIN = "admin"
+
+    class DynamicRateLimitConfig:
+        def __init__(self):
+            self.enabled = True
+
+    class IPBlacklistConfig:
+        def __init__(self):
+            self.enabled = True
+
+    # Fallback functions
+    def get_rate_limiting_config():
+        return None
+
+    def update_rate_limit_config(config):
+        return False
 
 logger = logging.getLogger(__name__)
 

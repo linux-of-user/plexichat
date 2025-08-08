@@ -210,14 +210,18 @@ class VersionManager:
 
     def __init__(self):
         """Initialize version manager."""
-        # Get current build number from GitHub releases
-        self.build_number = self._get_github_release_count()
-        self.current_version = f"b.1.1-{self.build_number}"
-        self.version_type = "beta"
-        self.major_version = 1
-        self.minor_version = 1
-        self.api_version = "v1"
-        self.release_date = datetime.now().strftime("%Y-%m-%d")
+        # Load version from version.json first
+        self._load_version_from_file()
+
+        # If no version file, get current build number from GitHub releases
+        if not hasattr(self, 'current_version'):
+            self.build_number = self._get_github_release_count()
+            self.current_version = f"b.1.1-{self.build_number}"
+            self.version_type = "beta"
+            self.major_version = 1
+            self.minor_version = 1
+            self.api_version = "v1"
+            self.release_date = datetime.now().strftime("%Y-%m-%d")
 
         # Parse version components
         self._parse_version()
@@ -227,6 +231,32 @@ class VersionManager:
 
         # Auto-generate version files if they don't exist
         self._ensure_version_files_exist()
+
+    def _load_version_from_file(self) -> None:
+        """Load version information from version.json file."""
+        try:
+            from pathlib import Path
+            import json
+
+            # Look for version.json in project root
+            version_file = Path(__file__).parent.parent.parent.parent / "version.json"
+            if version_file.exists():
+                with open(version_file, 'r', encoding='utf-8') as f:
+                    version_data = json.load(f)
+
+                self.current_version = version_data.get('version', 'b.1.1-94')
+                self.version_type = version_data.get('version_type', 'beta')
+                self.major_version = version_data.get('major_version', 1)
+                self.minor_version = version_data.get('minor_version', 1)
+                self.build_number = version_data.get('build_number', 94)
+                self.api_version = version_data.get('api_version', 'v1')
+                self.release_date = version_data.get('release_date', datetime.now().strftime("%Y-%m-%d"))
+
+                logger.info(f"Version loaded from file: {self.current_version}")
+            else:
+                logger.info("Version file not found, will use GitHub release count")
+        except Exception as e:
+            logger.warning(f"Failed to load version from file: {e}")
 
     def _get_github_release_count(self) -> int:
         """Get current build number from GitHub releases."""

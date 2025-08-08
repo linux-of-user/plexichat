@@ -36,7 +36,7 @@ class TestRunRequest(BaseModel):
 
 class TestScheduleRequest(BaseModel):
     """Test schedule request model."""
-        plugin_name: str
+    plugin_name: str
     test_name: str
     schedule_expression: str
     priority: str = "medium"

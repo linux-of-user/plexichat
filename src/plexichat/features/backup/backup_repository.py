@@ -45,15 +45,24 @@ class BackupRepository:
 
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         self.config = config or {}
-
-        # Storage setup
-        storage_root = self.config.get("storage_root", "backup_storage")
-        project_root = Path(__file__).parent.parent.parent.parent.parent
-        self.storage_root = project_root / storage_root
-        self.repository_storage = self.storage_root / "repository"
-        self.repository_storage.mkdir(exist_ok=True)
-
         self.logger = logger
+
+        # Use centralized directory manager
+        try:
+            from plexichat.core.logging import get_directory_manager
+            self.directory_manager = get_directory_manager()
+
+            # Use centralized directories
+            self.storage_root = self.directory_manager.get_backup_directory()
+            self.repository_storage = self.directory_manager.get_directory("backups_metadata")
+
+        except ImportError:
+            # Fallback to old behavior if centralized logging not available
+            storage_root = self.config.get("storage_root", "backup_storage")
+            project_root = Path(__file__).parent.parent.parent.parent.parent
+            self.storage_root = project_root / storage_root
+            self.repository_storage = self.storage_root / "repository"
+            self.repository_storage.mkdir(exist_ok=True)
 
         # Database setup
         self.db_path = self.repository_storage / "backup_metadata.db"

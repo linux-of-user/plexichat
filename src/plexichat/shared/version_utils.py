@@ -41,11 +41,11 @@ class VersionManager:
     def _get_fallback_version_data(self) -> Dict[str, Any]:
         """Get fallback version data when version.json is not available."""
         return {
-            "version": "b.1.1-88",
+            "version": "b.1.1-94",
             "version_type": "beta",
             "major_version": 1,
             "minor_version": 1,
-            "build_number": 88,
+            "build_number": 94,
             "api_version": "v1",
             "release_date": datetime.now().strftime("%Y-%m-%d"),
             "status": "beta"
@@ -54,7 +54,7 @@ class VersionManager:
     def get_version(self) -> str:
         """Get the current version string."""
         if self._version_data:
-            return self._version_data.get('version', 'b.1.1-88')
+            return self._version_data.get('version', 'b.1.1-94')
         return 'b.1.1-88'
     
     def get_api_version(self) -> str:

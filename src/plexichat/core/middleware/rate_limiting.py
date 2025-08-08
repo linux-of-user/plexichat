@@ -3,7 +3,7 @@ PlexiChat Rate Limiting Middleware
 ==================================
 
 Comprehensive rate limiting system to protect against abuse and DoS attacks.
-
+"""
 
 import time
 import logging
@@ -18,7 +18,8 @@ logger = logging.getLogger(__name__)
 
 class RateLimitConfig:
     """Configuration for rate limiting."""
-        def __init__(
+
+    def __init__(
         self,
         requests_per_minute: int = 60,
         requests_per_hour: int = 1000,
@@ -31,8 +32,9 @@ class RateLimitConfig:
         self.window_size = window_size
 
 class SlidingWindowRateLimiter:
-    Sliding window rate limiter implementation."""
-        def __init__(self, config: RateLimitConfig):
+    """Sliding window rate limiter implementation."""
+
+    def __init__(self, config: RateLimitConfig):
         self.config = config
         self.requests: Dict[str, deque] = defaultdict(deque)
         self.blocked_ips: Dict[str, float] = {}

@@ -75,11 +75,11 @@ class ConfigManager:
         # Default configuration
         defaults = {
             "version": {
-                "current": "b.1.1-93",
+                "current": "b.1.1-94",
                 "type": "beta",
                 "major": 1,
                 "minor": 1,
-                "build": 93
+                "build": 94
             },
             "github": {
                 "repo": "linux-of-user/plexichat",
@@ -138,6 +138,9 @@ class ConfigManager:
             self.config_file.parent.mkdir(parents=True, exist_ok=True)
             self.save_config(defaults)
 
+        # Ensure all necessary directories exist
+        self._ensure_directories()
+
         return defaults
 
     def _deep_update(self, base_dict: Dict, update_dict: Dict):
@@ -185,6 +188,26 @@ class ConfigManager:
                 json.dump(config_data, f, indent=2)
         except Exception as e:
             print_colored(f"[WARNING]  Warning: Could not save config: {e}", Colors.YELLOW)
+
+    def _ensure_directories(self):
+        """Ensure all necessary directories exist."""
+        directories = [
+            "config",
+            "data/config",
+            "data/logs",
+            "data/uploads",
+            "data/cache",
+            "data/backups",
+            "data/runtime",
+            "data/storage",
+            "logs",
+            "temp",
+            "certs"
+        ]
+
+        for directory in directories:
+            dir_path = self.project_root / directory
+            dir_path.mkdir(parents=True, exist_ok=True)
 
 # Initialize configuration manager
 config_manager = ConfigManager()
@@ -1086,13 +1109,21 @@ def setup_project_structure():
     """Setup project directory structure."""
     try:
         directories = [
+            "config",
             "data/config",
             "data/logs",
             "data/uploads",
             "data/cache",
             "data/backups",
+            "data/runtime",
+            "data/storage",
+            "logs",
             "tests/reports",
-            "tests/fixtures"
+            "tests/fixtures",
+            "plugins/installed",
+            "plugins/cache",
+            "temp",
+            "certs"
         ]
 
         for directory in directories:

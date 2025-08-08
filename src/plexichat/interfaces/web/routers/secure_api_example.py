@@ -106,7 +106,7 @@ async def get_public_info(request: Request):
         "message": "This is public information",
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "features": ["enhanced_security", "comprehensive_logging", "rate_limiting"]
-    }}
+    }
 
 
 # Basic authenticated endpoint
@@ -145,7 +145,7 @@ async def get_user_profile(request: Request, current_user: Dict = None):
             return {
                 "profile": profile_data,
                 "timestamp": datetime.now(timezone.utc).isoformat()
-            }}
+            }
     
     return {"error": "Logging system not available"}
 
@@ -201,7 +201,7 @@ async def create_user(
         "user_id": new_user_id,
         "created_by": current_user.get("username"),
         "timestamp": datetime.now(timezone.utc).isoformat()
-    }}
+    }
 
 
 # Admin endpoint with elevated permissions
@@ -280,7 +280,7 @@ async def update_system_config(
         "category": config_data.category,
         "updated_by": current_user.get("username"),
         "timestamp": datetime.now(timezone.utc).isoformat()
-    }}
+    }
 
 
 # Performance monitoring endpoint
@@ -347,7 +347,7 @@ async def list_messages(
             "limit": limit,
             "offset": offset,
             "has_more": offset + len(messages) < 1000
-        }}
+        }
 
 
 # File upload endpoint with security validation
@@ -386,7 +386,7 @@ async def upload_file(
         "file_id": file_id,
         "uploaded_by": current_user.get("username"),
         "timestamp": datetime.now(timezone.utc).isoformat()
-    }}
+    }
 
 
 # Health check endpoint for monitoring

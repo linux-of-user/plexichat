@@ -79,19 +79,35 @@ class VersionManager:
 
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         self.config = config or {}
-
-        # Storage setup
-        storage_root = self.config.get("storage_root", "backup_storage")
-        project_root = Path(__file__).parent.parent.parent.parent.parent
-        self.storage_root = project_root / storage_root
-        self.versions_storage = self.storage_root / "versions"
-        self.deltas_storage = self.storage_root / "deltas"
-        self.index_storage = self.storage_root / "indexes"
-
-        for directory in [self.versions_storage, self.deltas_storage, self.index_storage]:
-            directory.mkdir(exist_ok=True)
-
         self.logger = logger
+
+        # Use centralized directory manager
+        try:
+            from plexichat.core.logging import get_directory_manager
+            self.directory_manager = get_directory_manager()
+
+            # Use centralized directories
+            self.storage_root = self.directory_manager.get_backup_directory()
+            self.versions_storage = self.directory_manager.get_directory("backups_versions")
+            # Create subdirectories for deltas and indexes within versions
+            self.deltas_storage = self.versions_storage / "deltas"
+            self.index_storage = self.versions_storage / "indexes"
+
+            # Ensure subdirectories exist
+            self.deltas_storage.mkdir(exist_ok=True)
+            self.index_storage.mkdir(exist_ok=True)
+
+        except ImportError:
+            # Fallback to old behavior if centralized logging not available
+            storage_root = self.config.get("storage_root", "backup_storage")
+            project_root = Path(__file__).parent.parent.parent.parent.parent
+            self.storage_root = project_root / storage_root
+            self.versions_storage = self.storage_root / "versions"
+            self.deltas_storage = self.storage_root / "deltas"
+            self.index_storage = self.storage_root / "indexes"
+
+            for directory in [self.versions_storage, self.deltas_storage, self.index_storage]:
+                directory.mkdir(exist_ok=True)
 
         # Version tracking
         self.versions: Dict[str, VersionInfo] = {}

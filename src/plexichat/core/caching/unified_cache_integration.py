@@ -1,369 +1,461 @@
-#!/usr/bin/env python3
-"""
-Unified Cache Integration
-
-Ensures all PlexiChat components use the comprehensive multi-tier caching system.
-This module replaces all local caching implementations with the unified system.
-
-
 import asyncio
+import hashlib
+import json
 import logging
-from typing import Any, Dict, List, Optional, Callable
+import pickle
+import time
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from enum import Enum
 from functools import wraps
+from typing import Any, Callable, Dict, List, Optional, Union
+import threading
 
-from plexichat.core.performance.multi_tier_cache_manager import get_cache_manager, MultiTierCacheManager
-from plexichat.core.logging.unified_logging_manager import get_logger
-
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
-class UnifiedCacheIntegration:
-    """Unified cache integration manager."""
+class CacheBackend(Enum):
+    """Cache backend types."""
+    MEMORY = "memory"
+    REDIS = "redis"
+    MEMCACHED = "memcached"
+    DATABASE = "database"
+    FILE = "file"
 
-    def __init__(self):
-        self.cache_manager: Optional[MultiTierCacheManager] = None
-        self.initialized = False
-        self.fallback_cache: Dict[str, Any] = {}  # Emergency fallback
 
-    async def initialize(self, config: Optional[Dict[str, Any]] = None) -> bool:
-        """Initialize the unified caching system."""
-        try:
-            # Get the multi-tier cache manager
-            self.cache_manager = get_cache_manager(config)
+class CacheStrategy(Enum):
+    """Cache strategies."""
+    LRU = "lru"
+    LFU = "lfu"
+    FIFO = "fifo"
+    TTL = "ttl"
 
-            # Initialize it
-            init_result = await self.cache_manager.initialize()
 
-            self.initialized = True
-
-            logger.info("Unified cache integration initialized successfully")
-            logger.info(f"Cache tiers available: {list(init_result.keys())}")
-
-            return True
-
-        except Exception as e:
-            logger.error(f"Failed to initialize unified cache integration: {e}")
-            logger.warning("Falling back to in-memory cache")
+@dataclass
+class CacheEntry:
+    """Cache entry data structure."""
+    key: str
+    value: Any
+    created_at: datetime
+    last_accessed: datetime
+    access_count: int = 0
+    ttl_seconds: Optional[int] = None
+    tags: List[str] = field(default_factory=list)
+    metadata: Dict[str, Any] = field(default_factory=dict)
+    
+    def is_expired(self) -> bool:
+        """Check if the cache entry is expired."""
+        if self.ttl_seconds is None:
             return False
+        
+        expiry_time = self.created_at + timedelta(seconds=self.ttl_seconds)
+        return datetime.now(timezone.utc) > expiry_time
+    
+    def touch(self):
+        """Update last accessed time and increment access count."""
+        self.last_accessed = datetime.now(timezone.utc)
+        self.access_count += 1
 
+
+class UnifiedCacheManager:
+    """Enterprise-grade unified cache management system."""
+    
+    def __init__(self, config: Optional[Dict[str, Any]] = None):
+        self.config = config or {}
+        self.memory_cache: Dict[str, CacheEntry] = {}
+        self.cache_stats = {
+            "hits": 0,
+            "misses": 0,
+            "sets": 0,
+            "deletes": 0,
+            "evictions": 0
+        }
+        self._lock = threading.RLock()
+        self.max_memory_size = self.config.get("max_memory_size", 1000)
+        self.default_ttl = self.config.get("default_ttl_seconds", 3600)
+        self.strategy = CacheStrategy(self.config.get("strategy", "lru"))
+        self.compression_enabled = self.config.get("compression_enabled", False)
+        self.serialization_format = self.config.get("serialization_format", "pickle")
+        
+        # External cache backends (Redis, Memcached, etc.)
+        self.redis_client = None
+        self.memcached_client = None
+        
+        # Background cleanup
+        self._cleanup_task: Optional[asyncio.Task] = None
+        self._running = False
+        
+    async def initialize(self):
+        """Initialize the cache manager."""
+        self._running = True
+        
+        # Initialize external backends if configured
+        await self._initialize_backends()
+        
+        # Start background cleanup task
+        self._cleanup_task = asyncio.create_task(self._cleanup_loop())
+        
+        logger.info("Unified Cache Manager initialized")
+    
+    async def shutdown(self):
+        """Shutdown the cache manager."""
+        self._running = False
+        
+        if self._cleanup_task:
+            self._cleanup_task.cancel()
+            try:
+                await self._cleanup_task
+            except asyncio.CancelledError:
+                pass
+        
+        # Close external connections
+        if self.redis_client:
+            try:
+                await self.redis_client.close()
+            except:
+                pass
+        
+        logger.info("Unified Cache Manager shutdown complete")
+    
+    async def _initialize_backends(self):
+        """Initialize external cache backends."""
+        # Redis initialization
+        if self.config.get("redis_enabled", False):
+            try:
+                import aioredis  # type: ignore
+                redis_url = self.config.get("redis_url", "redis://localhost:6379")
+                self.redis_client = aioredis.from_url(redis_url)
+                logger.info("Redis cache backend initialized")
+            except ImportError:
+                logger.warning("Redis not available, skipping Redis backend")
+            except Exception as e:
+                logger.error(f"Failed to initialize Redis: {e}")
+    
     async def get(self, key: str, default: Any = None) -> Any:
-        """Get value from cache."""
-        if not self.initialized or not self.cache_manager:
-            return self.fallback_cache.get(key, default)
-
-        try:
-            result = await self.cache_manager.get(key)
-            return result if result is not None else default
-        except Exception as e:
-            logger.warning(f"Cache get error for key {key}: {e}")
-            return self.fallback_cache.get(key, default)
-
-    async def set(self, key: str, value: Any, ttl_seconds: Optional[int] = None) -> bool:
-        """Set value in cache."""
-        if not self.initialized or not self.cache_manager:
-            self.fallback_cache[key] = value
-            return True
-
-        try:
-            return await self.cache_manager.set(key, value, ttl_seconds)
-        except Exception as e:
-            logger.warning(f"Cache set error for key {key}: {e}")
-            self.fallback_cache[key] = value
-            return False
-
+        """Get a value from cache."""
+        # Try memory cache first
+        with self._lock:
+            if key in self.memory_cache:
+                entry = self.memory_cache[key]
+                
+                if entry.is_expired():
+                    del self.memory_cache[key]
+                    self.cache_stats["evictions"] += 1
+                else:
+                    entry.touch()
+                    self.cache_stats["hits"] += 1
+                    return entry.value
+        
+        # Try Redis if available
+        if self.redis_client:
+            try:
+                redis_value = await self.redis_client.get(key)
+                if redis_value:
+                    value = self._deserialize(redis_value)
+                    # Store in memory cache for faster access
+                    await self.set(key, value, ttl=self.default_ttl, skip_redis=True)
+                    self.cache_stats["hits"] += 1
+                    return value
+            except Exception as e:
+                logger.error(f"Redis get error: {e}")
+        
+        self.cache_stats["misses"] += 1
+        return default
+    
+    async def set(self, key: str, value: Any, ttl: Optional[int] = None,
+                 tags: Optional[List[str]] = None,
+                 skip_redis: bool = False) -> bool:
+        """Set a value in cache."""
+        if ttl is None:
+            ttl = self.default_ttl
+        
+        # Create cache entry
+        entry = CacheEntry(
+            key=key,
+            value=value,
+            created_at=datetime.now(timezone.utc),
+            last_accessed=datetime.now(timezone.utc),
+            ttl_seconds=ttl,
+            tags=tags or []
+        )
+        
+        # Store in memory cache
+        with self._lock:
+            # Check if we need to evict entries
+            if len(self.memory_cache) >= self.max_memory_size:
+                self._evict_entries()
+            
+            self.memory_cache[key] = entry
+            self.cache_stats["sets"] += 1
+        
+        # Store in Redis if available
+        if self.redis_client and not skip_redis:
+            try:
+                serialized_value = self._serialize(value)
+                if ttl is not None:
+                    await self.redis_client.setex(key, ttl, serialized_value)
+                else:
+                    await self.redis_client.set(key, serialized_value)
+            except Exception as e:
+                logger.error(f"Redis set error: {e}")
+        
+        return True
+    
     async def delete(self, key: str) -> bool:
-        """Delete value from cache."""
-        if not self.initialized or not self.cache_manager:
-            return self.fallback_cache.pop(key, None) is not None
-
-        try:
-            return await self.cache_manager.delete(key)
-        except Exception as e:
-            logger.warning(f"Cache delete error for key {key}: {e}")
-            return self.fallback_cache.pop(key, None) is not None
-
-    async def clear(self, pattern: Optional[str] = None) -> bool:
-        """Clear cache entries."""
-        if not self.initialized or not self.cache_manager:
-            if pattern:
-                # Clear matching keys from fallback
-                keys_to_remove = [k for k in self.fallback_cache.keys() if pattern in k]
-                for key in keys_to_remove:
-                    del self.fallback_cache[key]
-            else:
-                self.fallback_cache.clear()
-            return True
-
-        try:
-            # MultiTierCacheManager does not support pattern-based invalidation directly
-            # Only support clearing all tiers
-            return await self.cache_manager.clear()
-        except Exception as e:
-            logger.warning(f"Cache clear error: {e}")
-            return False
-
-    async def get_stats(self) -> Dict[str, Any]:
+        """Delete a key from cache."""
+        deleted = False
+        
+        # Delete from memory cache
+        with self._lock:
+            if key in self.memory_cache:
+                del self.memory_cache[key]
+                self.cache_stats["deletes"] += 1
+                deleted = True
+        
+        # Delete from Redis if available
+        if self.redis_client:
+            try:
+                await self.redis_client.delete(key)
+                deleted = True
+            except Exception as e:
+                logger.error(f"Redis delete error: {e}")
+        
+        return deleted
+    
+    async def clear(self) -> bool:
+        """Clear all cache entries."""
+        with self._lock:
+            self.memory_cache.clear()
+        
+        # Clear Redis if available
+        if self.redis_client:
+            try:
+                await self.redis_client.flushdb()
+            except Exception as e:
+                logger.error(f"Redis clear error: {e}")
+        
+        logger.info("Cache cleared")
+        return True
+    
+    def _evict_entries(self):
+        """Evict cache entries based on strategy."""
+        if not self.memory_cache:
+            return
+        
+        entries_to_remove = max(1, len(self.memory_cache) // 10)  # Remove 10%
+        
+        if self.strategy == CacheStrategy.LRU:
+            # Remove least recently used
+            sorted_entries = sorted(
+                self.memory_cache.items(),
+                key=lambda x: x[1].last_accessed
+            )
+        elif self.strategy == CacheStrategy.LFU:
+            # Remove least frequently used
+            sorted_entries = sorted(
+                self.memory_cache.items(),
+                key=lambda x: x[1].access_count
+            )
+        elif self.strategy == CacheStrategy.FIFO:
+            # Remove oldest entries
+            sorted_entries = sorted(
+                self.memory_cache.items(),
+                key=lambda x: x[1].created_at
+            )
+        else:  # TTL
+            # Remove expired entries first, then oldest
+            sorted_entries = sorted(
+                self.memory_cache.items(),
+                key=lambda x: (not x[1].is_expired(), x[1].created_at)
+            )
+        
+        for i in range(min(entries_to_remove, len(sorted_entries))):
+            key = sorted_entries[i][0]
+            del self.memory_cache[key]
+            self.cache_stats["evictions"] += 1
+    
+    def _serialize(self, value: Any) -> bytes:
+        """Serialize value for storage."""
+        if self.serialization_format == "json":
+            return json.dumps(value).encode('utf-8')
+        else:  # pickle
+            return pickle.dumps(value)
+    
+    def _deserialize(self, data: bytes) -> Any:
+        """Deserialize value from storage."""
+        if self.serialization_format == "json":
+            return json.loads(data.decode('utf-8'))
+        else:  # pickle
+            return pickle.loads(data)
+    
+    async def _cleanup_loop(self):
+        """Background cleanup of expired entries."""
+        while self._running:
+            try:
+                await asyncio.sleep(60)  # Cleanup every minute
+                
+                with self._lock:
+                    expired_keys = []
+                    for key, entry in self.memory_cache.items():
+                        if entry.is_expired():
+                            expired_keys.append(key)
+                    
+                    for key in expired_keys:
+                        del self.memory_cache[key]
+                        self.cache_stats["evictions"] += 1
+                    
+                    if expired_keys:
+                        logger.debug(f"Cleaned up {len(expired_keys)} expired cache entries")
+                        
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                logger.error(f"Error in cache cleanup: {e}")
+    
+    def get_stats(self) -> Dict[str, Any]:
         """Get cache statistics."""
-        if not self.initialized or not self.cache_manager:
+        with self._lock:
+            total_requests = self.cache_stats["hits"] + self.cache_stats["misses"]
+            hit_rate = (self.cache_stats["hits"] / total_requests) if total_requests > 0 else 0
+            
             return {
-                "status": "fallback",
-                "fallback_entries": len(self.fallback_cache),
-                "initialized": False
+                **self.cache_stats,
+                "hit_rate": hit_rate,
+                "memory_entries": len(self.memory_cache),
+                "memory_usage_percent": (len(self.memory_cache) / self.max_memory_size) * 100
             }
-
-        try:
-            return await self.cache_manager.get_stats()
-        except Exception as e:
-            logger.warning(f"Error getting cache stats: {e}")
-            return {"error": str(e)}
-
-
-# Global unified cache integration instance
-_unified_cache: Optional[UnifiedCacheIntegration] = None
-
-
-async def get_unified_cache() -> UnifiedCacheIntegration:
-    """Get or create the unified cache integration instance.
-    global _unified_cache
-
-    if _unified_cache is None:
-        _unified_cache = UnifiedCacheIntegration()
-        await _unified_cache.initialize()
-
-    return _unified_cache
-
-
-# Convenience functions that replace all other caching functions
-async def cache_get(key: str, default: Any = None) -> Any:
-    """Get from unified cache."""
-    cache = await get_unified_cache()
-    return await cache.get(key, default)
-
-
-async def cache_set(key: str, value: Any, ttl: Optional[int] = None) -> bool:
-    Set to unified cache."""
-    cache = await get_unified_cache()
-    return await cache.set(key, value, ttl)
-
-
-async def cache_delete(key: str) -> bool:
-    """Delete from unified cache.
-    cache = await get_unified_cache()
-    return await cache.delete(key)
-
-
-async def cache_clear(pattern: Optional[str] = None) -> bool:
-    """Clear unified cache."""
-    cache = await get_unified_cache()
-    return await cache.clear(pattern)
-
-
-# Synchronous wrappers for backward compatibility
-def cache_get_sync(key: str, default: Any = None) -> Any:
-    Synchronous get from unified cache."""
-    try:
-        loop = asyncio.get_event_loop()
-        return loop.run_until_complete(cache_get(key, default))
-    except RuntimeError:
-        # No event loop, create one
-        return asyncio.run(cache_get(key, default))
-
-
-def cache_set_sync(key: str, value: Any, ttl: Optional[int] = None) -> bool:
-    """Synchronous set to unified cache.
-    try:
-        loop = asyncio.get_event_loop()
-        return loop.run_until_complete(cache_set(key, value, ttl))
-    except RuntimeError:
-        # No event loop, create one
-        return asyncio.run(cache_set(key, value, ttl))
-
-
-def cache_delete_sync(key: str) -> bool:
-    """Synchronous delete from unified cache."""
-    try:
-        loop = asyncio.get_event_loop()
-        return loop.run_until_complete(cache_delete(key))
-    except RuntimeError:
-        # No event loop, create one
-        return asyncio.run(cache_delete(key))
-
-
-# Enhanced decorators that use the unified cache
-def cached(ttl: Optional[int] = None, key_func: Optional[Callable] = None):
-    Decorator to cache function results using unified cache."""
-    def decorator(func: Callable) -> Callable:
-        @wraps(func)
-        async def async_wrapper(*args, **kwargs):
-            # Generate cache key
-            if key_func:
-                cache_key = key_func(*args, **kwargs)
-            else:
-                cache_key = f"{func.__module__}.{func.__name__}_{hash(str(args) + str(kwargs))}"
-
-            # Try to get from cache
-            result = await cache_get(cache_key)
-            if result is not None:
-                return result
-
-            # Execute function and cache result
-            result = await func(*args, **kwargs)
-            await cache_set(cache_key, result, ttl)
-
-            return result
-
-        @wraps(func)
-        def sync_wrapper(*args, **kwargs):
-            # Generate cache key
-            if key_func:
-                cache_key = key_func(*args, **kwargs)
-            else:
-                cache_key = f"{func.__module__}.{func.__name__}_{hash(str(args) + str(kwargs))}"
-
-            # Try to get from cache
-            result = cache_get_sync(cache_key)
-            if result is not None:
-                return result
-
-            # Execute function and cache result
-            result = func(*args, **kwargs)
-            cache_set_sync(cache_key, result, ttl)
-
-            return result
-
-        # Return appropriate wrapper based on function type
-        if asyncio.iscoroutinefunction(func):
-            return async_wrapper
-        else:
-            return sync_wrapper
-
-    return decorator
-
-
-def cache_invalidate_on_change(cache_keys: List[str]):
-    """Decorator to invalidate cache keys when function is called.
-    def decorator(func: Callable) -> Callable:
-        @wraps(func)
-        async def async_wrapper(*args, **kwargs):
-            result = await func(*args, **kwargs)
-
-            # Invalidate cache keys
-            for key in cache_keys:
-                await cache_delete(key)
-
-            return result
-
-        @wraps(func)
-        def sync_wrapper(*args, **kwargs):
-            result = func(*args, **kwargs)
-
-            # Invalidate cache keys
-            for key in cache_keys:
-                cache_delete_sync(key)
-
-            return result
-
-        # Return appropriate wrapper based on function type
-        if asyncio.iscoroutinefunction(func):
-            return async_wrapper
-        else:
-            return sync_wrapper
-
-    return decorator
 
 
 class CacheKeyBuilder:
-    """Helper class for building consistent cache keys."""
-        @staticmethod
-    def user_key(user_id: str, suffix: str = "") -> str:
-        """Build user-specific cache key."""
-        return f"user:{user_id}:{suffix}" if suffix else f"user:{user_id}"
-
+    """Helper class for building cache keys."""
+    
     @staticmethod
-    def message_key(message_id: str, suffix: str = "") -> str:
-        """Build message-specific cache key."""
-        return f"message:{message_id}:{suffix}" if suffix else f"message:{message_id}"
-
+    def build(prefix: str, *args, **kwargs) -> str:
+        """Build a cache key from prefix and arguments."""
+        key_parts = [prefix]
+        
+        # Add positional arguments
+        for arg in args:
+            key_parts.append(str(arg))
+        
+        # Add keyword arguments (sorted for consistency)
+        for key, value in sorted(kwargs.items()):
+            key_parts.append(f"{key}:{value}")
+        
+        return ":".join(key_parts)
+    
     @staticmethod
-    def channel_key(channel_id: str, suffix: str = "") -> str:
-        """Build channel-specific cache key."""
-        return f"channel:{channel_id}:{suffix}" if suffix else f"channel:{channel_id}"
-
+    def hash_key(key: str) -> str:
+        """Create a hash of the key for consistent length."""
+        return hashlib.sha256(key.encode()).hexdigest()[:16]
+    
     @staticmethod
-    def query_key(table: str, query_hash: str) -> str:
-        """Build database query cache key."""
-        return f"query:{table}:{query_hash}"
-
+    def user_key(user_id: str) -> str:
+        """Build a user-specific cache key."""
+        return f"user:{user_id}"
+    
     @staticmethod
-    def api_key(endpoint: str, params_hash: str) -> str:
-        """Build API response cache key."""
-        return f"api:{endpoint}:{params_hash}"
-
-    @staticmethod
-    def session_key(session_id: str, suffix: str = "") -> str:
-        """Build session-specific cache key."""
-        return f"session:{session_id}:{suffix}" if suffix else f"session:{session_id}"
+    def session_key(session_id: str) -> str:
+        """Build a session-specific cache key."""
+        return f"session:{session_id}"
 
 
-# Migration helper to replace old cache imports
-class CacheMigrationHelper:
-    """Helper to migrate from old caching systems.
-        @staticmethod
-    def replace_cache_manager_imports():
-        """Log warning about deprecated cache manager usage."""
-        logger.warning(
-            "Deprecated cache manager detected. Please migrate to unified_cache_integration for optimal performance."
-        )
-
-    @staticmethod
-    def get_migration_stats() -> Dict[str, Any]:
-        """Get migration statistics."""
-        # This would track which modules are still using old caching
-        return {
-            "unified_cache_usage": "active",
-            "deprecated_cache_usage": "detected",
-            "migration_status": "in_progress"
-        }
-
-
-# Initialize the unified cache on module import
-async def _initialize_unified_cache():
-    """Initialize unified cache on module import."""
-    try:
-        await get_unified_cache()
-        logger.info("Unified cache integration ready")
-    except Exception as e:
-        logger.error(f"Failed to initialize unified cache on import: {e}")
-
-
-# Schedule initialization
-def _schedule_initialization():
-    """Schedule cache initialization."""
-    try:
-        loop = asyncio.get_event_loop()
-        loop.create_task(_initialize_unified_cache())
-    except RuntimeError:
-        # No event loop running, will initialize on first use
-        pass
-
-
-# Initialize when module is imported
-_schedule_initialization()
+def cached(ttl: int = 3600, key_func: Optional[Callable] = None,
+          tags: Optional[List[str]] = None):
+    """Decorator for caching function results."""
+    def decorator(func: Callable) -> Callable:
+        @wraps(func)
+        async def async_wrapper(*args, **kwargs):
+            # Build cache key
+            if key_func:
+                cache_key = key_func(*args, **kwargs)
+            else:
+                cache_key = CacheKeyBuilder.build(
+                    f"{func.__module__}.{func.__name__}",
+                    *args, **kwargs
+                )
+            
+            # Try to get from cache
+            cache_manager = get_cache_manager()
+            cached_result = await cache_manager.get(cache_key)
+            
+            if cached_result is not None:
+                return cached_result
+            
+            # Execute function and cache result
+            if asyncio.iscoroutinefunction(func):
+                result = await func(*args, **kwargs)
+            else:
+                result = func(*args, **kwargs)
+            
+            await cache_manager.set(cache_key, result, ttl=ttl, tags=tags)
+            return result
+        
+        @wraps(func)
+        def sync_wrapper(*args, **kwargs):
+            # For synchronous functions, use asyncio.run
+            return asyncio.run(async_wrapper(*args, **kwargs))
+        
+        if asyncio.iscoroutinefunction(func):
+            return async_wrapper
+        else:
+            return sync_wrapper
+    
+    return decorator
 
 
-# Export the main functions and classes
+# Global cache manager instance
+_cache_manager: Optional[UnifiedCacheManager] = None
+
+
+def get_cache_manager() -> UnifiedCacheManager:
+    """Get the global cache manager instance."""
+    global _cache_manager
+    if _cache_manager is None:
+        _cache_manager = UnifiedCacheManager()
+    return _cache_manager
+
+
+async def initialize_cache_manager(config: Optional[Dict[str, Any]] = None) -> UnifiedCacheManager:
+    """Initialize and return the cache manager."""
+    cache_manager = get_cache_manager()
+    if config:
+        cache_manager.config.update(config)
+    await cache_manager.initialize()
+    return cache_manager
+
+
+# Convenience functions
+async def cache_get(key: str, default: Any = None) -> Any:
+    """Get a value from cache."""
+    return await get_cache_manager().get(key, default)
+
+
+async def cache_set(key: str, value: Any, ttl: Optional[int] = None,
+                   tags: Optional[List[str]] = None) -> bool:
+    """Set a value in cache."""
+    return await get_cache_manager().set(key, value, ttl, tags)
+
+
+async def cache_delete(key: str) -> bool:
+    """Delete a key from cache."""
+    return await get_cache_manager().delete(key)
+
+
+async def cache_clear() -> bool:
+    """Clear all cache entries."""
+    return await get_cache_manager().clear()
+
+
+# Export all public functions and classes
 __all__ = [
-    "UnifiedCacheIntegration",
-    "get_unified_cache",
-    "cache_get",
-    "cache_set",
-    "cache_delete",
-    "cache_clear",
-    "cache_get_sync",
-    "cache_set_sync",
-    "cache_delete_sync",
-    "cached",
-    "cache_invalidate_on_change",
-    "CacheKeyBuilder",
-    "CacheMigrationHelper"
+    'UnifiedCacheManager',
+    'CacheKeyBuilder',
+    'cached',
+    'get_cache_manager',
+    'initialize_cache_manager',
+    'cache_get',
+    'cache_set',
+    'cache_delete',
+    'cache_clear'
 ]

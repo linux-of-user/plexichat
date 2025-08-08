@@ -394,7 +394,7 @@ class EnhancedPluginSecurity:
                 profile.security_violations.append(f"{event_type}:{details}:{datetime.now().isoformat()}")
     
     def get_plugin_security_status(self, plugin_name: str) -> Dict[str, Any]:
-        """Get security status for a plugin.
+        """Get security status for a plugin."""
         profile = self.security_profiles.get(plugin_name)
         if not profile:
             return {'status': 'unknown', 'message': 'No security profile found'}
@@ -439,7 +439,6 @@ class EnhancedPluginSecurity:
         }
     
     def approve_plugin_import(self, plugin_name: str, module_name: str, approved_by: str = "admin"):
-        """Manually approve an import for a plugin."""
         profile = self.security_profiles.get(plugin_name)
         if not profile:
             profile = self.create_security_profile(plugin_name)
@@ -460,7 +459,6 @@ class EnhancedPluginSecurity:
         logger.info(f"Manually approved import {module_name} for plugin {plugin_name} by {approved_by}")
     
     def elevate_plugin_security(self, plugin_name: str, new_level: SecurityLevel, approved_by: str = "admin"):
-        """Elevate plugin security level."""
         profile = self.security_profiles.get(plugin_name)
         if not profile:
             profile = self.create_security_profile(plugin_name, new_level)

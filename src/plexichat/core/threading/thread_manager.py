@@ -121,7 +121,8 @@ class ThreadManager:
                     "created_at": task.created_at,
                     "completed_at": time.time()
                 }
-                await self.db_manager.execute_query(query, params)
+                if hasattr(self.db_manager, 'execute_query'):
+                    await self.db_manager.execute_query(query, params)  # type: ignore
         except Exception as e:
             logger.error(f"Error logging task completion: {e}")
 

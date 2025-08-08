@@ -198,7 +198,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title=settings.app_name,
     description="Government-Level Secure Communication Platform - Microsecond Optimized",
-    version="1.0.0",
+    version=settings.version,  # Use version from config
     docs_url="/docs",
     redoc_url="/redoc",
     lifespan=lifespan,

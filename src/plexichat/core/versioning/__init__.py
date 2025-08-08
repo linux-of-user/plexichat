@@ -126,7 +126,7 @@ class VersionInfo:  # type: ignore
 
 class VersionManager:  # type: ignore
     def __init__(self):
-        self.current_version = "1.0.0"
+        self.current_version = self._load_version_from_file()
 
     def check_for_updates(self):
         return False
@@ -140,6 +140,21 @@ class VersionManager:  # type: ignore
     def _load_version_info(self, *args, **kwargs):
         pass
 
+    def _load_version_from_file(self):
+        """Load version from version.json file."""
+        try:
+            import json
+            from pathlib import Path
+
+            version_file = Path(__file__).parent.parent.parent.parent / "version.json"
+            if version_file.exists():
+                with open(version_file, 'r', encoding='utf-8') as f:
+                    version_data = json.load(f)
+                    return version_data.get('version', 'b.1.1-94')
+        except Exception:
+            pass
+        return "b.1.1-94"
+
 class VersionStatus:  # type: ignore
     CURRENT = "current"
     OUTDATED = "outdated"
@@ -152,7 +167,7 @@ class VersionType:  # type: ignore
 
 version_manager = VersionManager()
 
-__version__ = "1.0.0"
+__version__ = "b.1.1-94"
 __all__ = [
     # Version management
     "Version",

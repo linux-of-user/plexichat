@@ -64,7 +64,7 @@ class Event:
 @dataclass
 class EventHandler:
     """Event handler registration."""
-        handler_id: str
+    handler_id: str
     event_type: str
     handler_func: Callable
     priority: int
@@ -340,7 +340,7 @@ class EventManager:
             return False
 
     async def _store_event(self, event: Event, results: List[Any]):
-        """Store event in database.
+        """Store event in database."""
         try:
             if self.db_manager:
                 query = """
@@ -472,14 +472,14 @@ class EventManager:
             "average_processing_time": avg_processing_time,
             "event_types": list(self.handlers.keys()),
             "global_handlers": len(self.global_handlers)
-        }}
+        }
 
 # Global event manager
 event_manager = EventManager()
 
 # Convenience functions
 async def emit_event(event_type: str, source: str, data: Dict[str, Any], **kwargs) -> str:
-    """Emit event using global event manager.
+    """Emit event using global event manager."""
     return await event_manager.emit_event(event_type, source, data, **kwargs)
 
 def register_event_handler(event_type: str, handler_func: Callable, **kwargs) -> str:

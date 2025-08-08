@@ -108,20 +108,33 @@ class StorageManager:
         self.config = config or {}
         self.logger = logger
 
-        # Local storage setup
-        storage_root = self.config.get("storage_root", "backup_storage")
-        project_root = Path(__file__).parent.parent.parent.parent.parent
-        self.storage_root = project_root / storage_root
-        self.storage_root.mkdir(exist_ok=True)
+        # Use centralized directory manager
+        try:
+            from plexichat.core.logging import get_directory_manager
+            self.directory_manager = get_directory_manager()
 
-        # Create storage directories
-        self.shard_storage = self.storage_root / "shards"
-        self.metadata_storage = self.storage_root / "metadata"
-        self.temp_storage = self.storage_root / "temp"
-        self.cache_storage = self.storage_root / "cache"
+            # Use centralized directories
+            self.storage_root = self.directory_manager.get_backup_directory()
+            self.shard_storage = self.directory_manager.get_directory("backups_shards")
+            self.metadata_storage = self.directory_manager.get_directory("backups_metadata")
+            self.temp_storage = self.directory_manager.get_directory("storage_temp")
+            self.cache_storage = self.directory_manager.get_directory("storage_cache")
 
-        for directory in [self.shard_storage, self.metadata_storage, self.temp_storage, self.cache_storage]:
-            directory.mkdir(exist_ok=True)
+        except ImportError:
+            # Fallback to old behavior if centralized logging not available
+            storage_root = self.config.get("storage_root", "backup_storage")
+            project_root = Path(__file__).parent.parent.parent.parent.parent
+            self.storage_root = project_root / storage_root
+            self.storage_root.mkdir(exist_ok=True)
+
+            # Create storage directories
+            self.shard_storage = self.storage_root / "shards"
+            self.metadata_storage = self.storage_root / "metadata"
+            self.temp_storage = self.storage_root / "temp"
+            self.cache_storage = self.storage_root / "cache"
+
+            for directory in [self.shard_storage, self.metadata_storage, self.temp_storage, self.cache_storage]:
+                directory.mkdir(exist_ok=True)
 
         # Storage locations
         self.storage_locations: Dict[str, StorageLocation] = {}

@@ -15,7 +15,7 @@ def get_performance_service():
         def _calculate_health_score(self, *a, **k): return 100
         def get_current_metrics(self): return {"system": {}, "application": {}}
         def _get_active_alerts(self): return []
-        def get_performance_summary(self): return {}}
+        def get_performance_summary(self): return {}
         def get_historical_metrics(self, *a, **k): return []
         def _calculate_trends(self, *a, **k): return []
     import asyncio
@@ -195,7 +195,7 @@ def _calculate_component_health(component_metrics):
         "score": 85,
         "status": "healthy",
         "issues": []
-    }}
+    }
 
 # Export router
 __all__ = ["router"]

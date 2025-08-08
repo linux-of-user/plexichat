@@ -215,7 +215,7 @@ def load_plugin_info(plugin_dir: Path) -> Optional[Dict[str, Any]]:
         return {
             "name": plugin_dir.name,
             "version": "unknown",
-            "description": f"Plugin: {plugin_dir.name}}",
+            "description": f"Plugin: {plugin_dir.name}",
             "installed": True,
             "enabled": True,
             "path": str(plugin_dir)

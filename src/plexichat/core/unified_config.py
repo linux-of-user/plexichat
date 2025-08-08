@@ -61,7 +61,7 @@ class ConfigField:
 class SystemConfig:
     """System configuration section."""
     name: str = "PlexiChat"
-    version: str = "2.0.0"
+    version: str = "b.1.1-94"  # Will be loaded from version.json
     environment: str = "production"
     debug: bool = False
     timezone: str = "UTC"
@@ -70,6 +70,8 @@ class SystemConfig:
     auto_backup: bool = True
     backup_interval_hours: int = 24
     data_retention_days: int = 365
+    version_file: str = "version.json"
+    changelog_file: str = "changelog.json"
 
 
 @dataclass
@@ -136,6 +138,20 @@ class CachingConfig:
     redis_password: str = ""
     default_timeout: int = 300
     max_entries: int = 10000
+    # Enhanced caching config for unified system
+    l1_max_items: int = 1000
+    l1_memory_size_mb: int = 100
+    default_ttl_seconds: int = 300
+    compression_threshold_bytes: int = 1024
+    warming_enabled: bool = True
+    l2_redis_enabled: bool = False
+    l2_redis_host: str = "localhost"
+    l2_redis_port: int = 6379
+    l2_redis_db: int = 0
+    l2_redis_password: str = ""
+    l3_memcached_enabled: bool = False
+    l3_memcached_host: str = "localhost"
+    l3_memcached_port: int = 11211
 
 
 @dataclass
@@ -223,13 +239,18 @@ class UnifiedConfig:
 
 class UnifiedConfigManager:
     """Unified configuration manager with thread safety and persistence."""
-    
+
     def __init__(self, config_file: Optional[str] = None):
         self.config_file = Path(config_file or "config/plexichat.yaml")
+        self.project_root = Path(__file__).parent.parent.parent.parent
+        self.version_file = self.project_root / "version.json"
+        self.changelog_file = self.project_root / "changelog.json"
         self._config = UnifiedConfig()
         self._lock = threading.RLock()
         self._change_callbacks: List[Callable] = []
         self.load()
+        self._load_version_info()
+        self._ensure_directories()
     
     def load(self) -> None:
         """Load configuration from file."""
@@ -316,6 +337,78 @@ class UnifiedConfigManager:
     def reload(self) -> None:
         """Reload configuration from file."""
         self.load()
+        self._load_version_info()
+
+    def _load_version_info(self) -> None:
+        """Load version information from version.json."""
+        try:
+            if self.version_file.exists():
+                with open(self.version_file, 'r', encoding='utf-8') as f:
+                    version_data = json.load(f)
+                    self._config.system.version = version_data.get('version', self._config.system.version)
+                    logger.info(f"Version loaded from {self.version_file}: {self._config.system.version}")
+            else:
+                logger.warning(f"Version file not found: {self.version_file}")
+        except Exception as e:
+            logger.error(f"Failed to load version info: {e}")
+
+    def get_version_info(self) -> Dict[str, Any]:
+        """Get complete version information."""
+        try:
+            if self.version_file.exists():
+                with open(self.version_file, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+        except Exception as e:
+            logger.error(f"Failed to load version info: {e}")
+
+        # Return fallback version info
+        return {
+            "version": self._config.system.version,
+            "version_type": "beta",
+            "major_version": 1,
+            "minor_version": 1,
+            "build_number": 94,
+            "api_version": "v1",
+            "release_date": "2025-08-08",
+            "status": "beta"
+        }
+
+    def get_changelog_info(self) -> Dict[str, Any]:
+        """Get changelog information."""
+        try:
+            if self.changelog_file.exists():
+                with open(self.changelog_file, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+        except Exception as e:
+            logger.error(f"Failed to load changelog info: {e}")
+
+        # Return empty changelog
+        return {
+            "changelog": {"format_version": "1.0", "last_updated": "2025-08-08T00:00:00Z"},
+            "releases": []
+        }
+
+    def _ensure_directories(self) -> None:
+        """Ensure all necessary directories exist."""
+        directories = [
+            self.project_root / "config",
+            self.project_root / "data" / "config",
+            self.project_root / "data" / "logs",
+            self.project_root / "data" / "uploads",
+            self.project_root / "data" / "cache",
+            self.project_root / "data" / "backups",
+            self.project_root / "data" / "runtime",
+            self.project_root / "data" / "storage",
+            self.project_root / "logs",
+            self.project_root / "temp",
+            self.project_root / "certs"
+        ]
+
+        for directory in directories:
+            try:
+                directory.mkdir(parents=True, exist_ok=True)
+            except Exception as e:
+                logger.warning(f"Failed to create directory {directory}: {e}")
 
 
 # Global configuration manager instance

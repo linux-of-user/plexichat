@@ -52,7 +52,7 @@ class APIVersionManager:
                 ],
             },
             "beta": {
-                "version": "b.1.2-1",
+                "version": current_version,  # Use current version instead of hardcoded
                 "path": "/api/beta",
                 "description": "Beta API with experimental features",
                 "deprecated": False,

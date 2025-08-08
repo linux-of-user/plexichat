@@ -583,14 +583,14 @@ def cast_custom_field_value(field: dict[str, Any]) -> Any:
             return value
         if value is not None:
             return json.loads(value)
-        return {
+        return {}
     if type_str == 'datetime':
         if isinstance(value, str):
             return datetime.fromisoformat(value)
         return value
     return str(value) if value is not None else None
 
-@router.get("/user/{user_id}}", response_class=JSONResponse)
+@router.get("/user/{user_id}", response_class=JSONResponse)
 async def get_user(user_id: int, _: None = Depends(enforce_global_rate_limit)):
     user_service = UserModelService()
     user = await user_service.get_user_by_id(user_id)
