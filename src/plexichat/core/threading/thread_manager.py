@@ -14,13 +14,13 @@ from queue import Queue, Empty
 from dataclasses import dataclass
 
 try:
-    from plexichat.core.database.manager import database_manager
+    from plexichat.core.database.manager import database_manager  # type: ignore
 except ImportError:
     database_manager = None
 
 try:
-    from plexichat.infrastructure.performance.optimization_engine import PerformanceOptimizationEngine
-    from plexichat.core.logging_advanced.performance_logger import get_performance_logger
+    from plexichat.core.performance.optimization_engine import PerformanceOptimizationEngine  # type: ignore
+    from plexichat.core.logging_advanced.performance_logger import get_performance_logger  # type: ignore
 except ImportError:
     PerformanceOptimizationEngine = None
     get_performance_logger = None

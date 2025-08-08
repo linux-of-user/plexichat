@@ -1,25 +1,25 @@
 """
 PlexiChat System Orchestrator
 Simplified system orchestration and module management.
-
+"""
 
 import asyncio
 import importlib
 import logging
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional, Set, Callable
 
 logger = logging.getLogger(__name__)
 
 
 class ModuleManager:
     """Manages module loading and initialization."""
-        def __init__(self):
+    def __init__(self):
         self.loaded_modules: Set[str] = set()
         self.failed_modules: Set[str] = set()
         self.module_registry: Dict[str, Any] = {}
     
     def load_module(self, module_name: str) -> bool:
-        Load a single module."""
+        """Load a single module."""
         try:
             module = importlib.import_module(module_name)
             self.loaded_modules.add(module_name)
@@ -51,15 +51,15 @@ class ModuleManager:
         return results
     
     def get_module(self, module_name: str) -> Optional[Any]:
-        """Get a loaded module.
+        """Get a loaded module."""
         return self.module_registry.get(module_name)
-    
+
     def is_loaded(self, module_name: str) -> bool:
         """Check if a module is loaded."""
         return module_name in self.loaded_modules
-    
+
     def get_status(self) -> Dict[str, Any]:
-        Get module loading status."""
+        """Get module loading status."""
         return {
             "loaded_count": len(self.loaded_modules),
             "failed_count": len(self.failed_modules),
@@ -69,19 +69,19 @@ class ModuleManager:
 
 
 class SystemOrchestrator:
-    """Orchestrates system startup and shutdown.
-        def __init__(self):
+    """Orchestrates system startup and shutdown."""
+    def __init__(self):
         self.module_manager = ModuleManager()
-        self.startup_hooks: List[callable] = []
-        self.shutdown_hooks: List[callable] = []
+        self.startup_hooks: List[Callable] = []
+        self.shutdown_hooks: List[Callable] = []
         self.is_running = False
-    
-    def add_startup_hook(self, hook: callable):
+
+    def add_startup_hook(self, hook: Callable):
         """Add a startup hook."""
         self.startup_hooks.append(hook)
-    
-    def add_shutdown_hook(self, hook: callable):
-        Add a shutdown hook."""
+
+    def add_shutdown_hook(self, hook: Callable):
+        """Add a shutdown hook."""
         self.shutdown_hooks.append(hook)
     
     async def startup(self) -> bool:
@@ -166,20 +166,20 @@ class SystemOrchestrator:
 
 class ComponentRegistry:
     """Registry for system components."""
-        def __init__(self):
+    def __init__(self):
         self.components: Dict[str, Any] = {}
         self.component_types: Dict[str, str] = {}
-    
+
     def register(self, name: str, component: Any, component_type: str = "unknown"):
         """Register a component."""
         self.components[name] = component
         self.component_types[name] = component_type
         logger.debug(f"Registered component: {name} ({component_type})")
-    
+
     def get(self, name: str) -> Optional[Any]:
-        """Get a component by name.
+        """Get a component by name."""
         return self.components.get(name)
-    
+
     def get_by_type(self, component_type: str) -> Dict[str, Any]:
         """Get all components of a specific type."""
         return {
@@ -187,9 +187,9 @@ class ComponentRegistry:
             for name, component in self.components.items()
             if self.component_types.get(name) == component_type
         }
-    
+
     def unregister(self, name: str) -> bool:
-        Unregister a component."""
+        """Unregister a component."""
         if name in self.components:
             del self.components[name]
             self.component_types.pop(name, None)
@@ -210,7 +210,7 @@ component_registry = ComponentRegistry()
 
 # Convenience functions
 def register_component(name: str, component: Any, component_type: str = "unknown"):
-    """Register a component in the global registry.
+    """Register a component in the global registry."""
     component_registry.register(name, component, component_type)
 
 
@@ -220,12 +220,12 @@ def get_component(name: str) -> Optional[Any]:
 
 
 def load_module(module_name: str) -> bool:
-    Load a module using the global module manager."""
+    """Load a module using the global module manager."""
     return module_manager.load_module(module_name)
 
 
 async def startup_system() -> bool:
-    """Start the system using the global orchestrator.
+    """Start the system using the global orchestrator."""
     return await system_orchestrator.startup()
 
 

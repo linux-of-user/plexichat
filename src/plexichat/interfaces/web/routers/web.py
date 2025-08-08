@@ -29,7 +29,7 @@ except ImportError:
 
 # Use EXISTING performance optimization engine
 try:
-    from plexichat.infrastructure.performance.optimization_engine import PerformanceOptimizationEngine
+    from plexichat.core.performance.optimization_engine import PerformanceOptimizationEngine
     from plexichat.infrastructure.utils.performance import async_track_performance
     from plexichat.core.logging_advanced.performance_logger import get_performance_logger, timer
 except ImportError:
@@ -64,7 +64,8 @@ optimization_engine = PerformanceOptimizationEngine() if PerformanceOptimization
 
 class WebService:
     """Service class for web operations using EXISTING database abstraction layer."""
-        def __init__(self):
+
+    def __init__(self):
         # Use EXISTING database manager
         self.db_manager = database_manager
         self.performance_logger = performance_logger

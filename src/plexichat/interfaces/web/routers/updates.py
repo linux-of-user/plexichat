@@ -30,7 +30,7 @@ except ImportError:
 
 # Use EXISTING performance optimization engine
 try:
-    from plexichat.infrastructure.performance.optimization_engine import PerformanceOptimizationEngine
+    from plexichat.core.performance.optimization_engine import PerformanceOptimizationEngine
     from plexichat.infrastructure.utils.performance import async_track_performance
     from plexichat.core.logging_advanced.performance_logger import get_performance_logger, timer
 except ImportError:
@@ -96,7 +96,8 @@ class UpdateHistory(BaseModel):
 
 class UpdateService:
     """Service class for update operations using EXISTING database abstraction layer."""
-        def __init__(self):
+
+    def __init__(self):
         # Use EXISTING database manager
         self.db_manager = database_manager
         self.performance_logger = performance_logger
@@ -159,14 +160,14 @@ class UpdateService:
 
     @async_track_performance("update_history") if async_track_performance else lambda f: f
     async def get_update_history(self, limit: int = 50) -> List[UpdateHistory]:
-        """Get update history using EXISTING database abstraction layer.
+        """Get update history using EXISTING database abstraction layer."""
         if self.db_manager:
             try:
                 query = """
                     SELECT id, version_from, version_to, status, started_at, completed_at, error_message
                     FROM update_history
                     ORDER BY started_at DESC
-                    LIMIT ?
+                    LIMIT :limit
                 """
                 params = {"limit": limit}
 
@@ -199,12 +200,12 @@ class UpdateService:
 
     @async_track_performance("update_log") if async_track_performance else lambda f: f
     async def log_update_attempt(self, version_from: str, version_to: str, status: str, error_message: Optional[str] = None) -> int:
-        """Log update attempt using EXISTING database abstraction layer.
+        """Log update attempt using EXISTING database abstraction layer."""
         if self.db_manager:
             try:
                 query = """
                     INSERT INTO update_history (version_from, version_to, status, started_at, completed_at, error_message)
-                    VALUES (?, ?, ?, ?, ?, ?)
+                    VALUES (:version_from, :version_to, :status, :started_at, :completed_at, :error_message)
                     RETURNING id
                 """
                 params = {

@@ -15,7 +15,7 @@ import logging
 
 # Import our enhanced error handling
 try:
-    from ....core.error_handling.enhanced_error_responses import check_for_teapot_condition
+    from ....core.error_handling.structured_error_responses import check_for_teapot_condition
     from ....core.security.security_decorators import rate_limit, audit_access
 except ImportError as e:
     print(f"Import error in easter eggs: {e}")

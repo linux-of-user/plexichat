@@ -34,8 +34,7 @@ logger = logging.getLogger(__name__)
 
 # Initialize templates
 from pathlib import Path
-templates_dir = Path
-Path(__file__).parent / "templates"
+templates_dir = Path(__file__).parent / "templates"
 templates_dir.mkdir(exist_ok=True)
 templates = Jinja2Templates(directory=str(templates_dir))
 
@@ -370,7 +369,7 @@ async def test_ai_request(
                 "cached": response.cached,
                 "fallback_used": response.fallback_used,
                 "error": response.error
-            }}
+            }
         }
 
     except Exception as e:

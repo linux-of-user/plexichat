@@ -11,8 +11,8 @@ try:
     from .websocket_manager import WebSocketConnection as _WebSocketConnection
 
     # Use the imported classes
-    WebSocketManager = _WebSocketManager
-    WebSocketConnection = _WebSocketConnection
+    WebSocketManager = _WebSocketManager  # type: ignore
+    WebSocketConnection = _WebSocketConnection  # type: ignore
 
 except ImportError:
     logger.warning("Using fallback WebSocket implementations")

@@ -8,7 +8,11 @@ RESTful API endpoints for AI moderation functionality.
 import logging
 import uuid
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from fastapi import APIRouter, HTTPException, BackgroundTasks
+    from pydantic import BaseModel, Field
 
 try:
     from fastapi import APIRouter, HTTPException, BackgroundTasks
@@ -16,6 +20,11 @@ try:
     FASTAPI_AVAILABLE = True
 except ImportError:
     FASTAPI_AVAILABLE = False
+    BaseModel = None
+    Field = None
+    APIRouter = None
+    HTTPException = None
+    BackgroundTasks = None
 
 from ..ai_coordinator import AICoordinator
 
@@ -26,15 +35,15 @@ ai_coordinator = AICoordinator()
 
 # API Models (only if FastAPI is available)
 if FASTAPI_AVAILABLE:
-    class ModerationRequest(BaseModel):
+    class ModerationRequest(BaseModel):  # type: ignore
         """API model for moderation requests."""
         content: str
         user_id: Optional[str] = None
         context: Optional[Dict[str, Any]] = None
-        severity_threshold: float = Field(default=0.5, ge=0.0, le=1.0)
+        severity_threshold: float = Field(default=0.5, ge=0.0, le=1.0)  # type: ignore
         categories: Optional[List[str]] = None
 
-    class ModerationResponse(BaseModel):
+    class ModerationResponse(BaseModel):  # type: ignore
         """API model for moderation responses."""
         request_id: str
         is_appropriate: bool
@@ -45,7 +54,7 @@ if FASTAPI_AVAILABLE:
         reason: Optional[str] = None
         timestamp: datetime
 
-    class FeedbackRequest(BaseModel):
+    class FeedbackRequest(BaseModel):  # type: ignore
         """API model for moderation feedback."""
         moderation_id: str
         user_id: str
@@ -53,7 +62,7 @@ if FASTAPI_AVAILABLE:
         comments: Optional[str] = None
 
     # Create API router
-    router = APIRouter(prefix="/ai/moderation", tags=["AI Moderation"])
+    router = APIRouter(prefix="/ai/moderation", tags=["AI Moderation"])  # type: ignore
 
     @router.post("/moderate", response_model=ModerationResponse)
     async def moderate_content(request: ModerationRequest):
@@ -78,10 +87,10 @@ if FASTAPI_AVAILABLE:
 
         except Exception as e:
             logger.error(f"Content moderation failed: {e}")
-            raise HTTPException(status_code=500, detail=str(e))
+            raise HTTPException(status_code=500, detail=str(e))  # type: ignore
 
     @router.post("/feedback")
-    async def submit_feedback(request: FeedbackRequest, background_tasks: BackgroundTasks):
+    async def submit_feedback(request: FeedbackRequest, background_tasks: BackgroundTasks):  # type: ignore
         """Submit feedback on moderation results."""
         try:
             # Process feedback in background
@@ -97,7 +106,7 @@ if FASTAPI_AVAILABLE:
 
         except Exception as e:
             logger.error(f"Feedback submission failed: {e}")
-            raise HTTPException(status_code=500, detail=str(e))
+            raise HTTPException(status_code=500, detail=str(e))  # type: ignore
 
     @router.get("/health")
     async def moderation_health():
@@ -111,7 +120,7 @@ if FASTAPI_AVAILABLE:
             }
         except Exception as e:
             logger.error(f"Moderation health check failed: {e}")
-            raise HTTPException(status_code=500, detail=str(e))
+            raise HTTPException(status_code=500, detail=str(e))  # type: ignore
 
     async def _process_moderation_feedback(
         moderation_id: str,

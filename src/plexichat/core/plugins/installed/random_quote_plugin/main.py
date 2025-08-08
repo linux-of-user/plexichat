@@ -38,7 +38,8 @@ class RandomQuotePlugin(PluginInterface):
     """
     Example Random Quote plugin for PlexiChat.
     """
-        def __init__(self):
+
+    def __init__(self):
         super().__init__(name="RandomQuotePlugin", version="1.0.0")
         self.router = router
 
@@ -52,4 +53,4 @@ class RandomQuotePlugin(PluginInterface):
             "version": "1.0.0",
             "description": "A plugin that returns a random inspirational quote.",
             "plugin_type": "utility"
-        }}
+        }

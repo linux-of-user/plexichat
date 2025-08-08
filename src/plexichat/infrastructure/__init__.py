@@ -36,7 +36,7 @@ from ..shared.exceptions import ServiceUnavailableError, ValidationError
 
 # Use EXISTING performance optimization engine
 try:
-    from plexichat.infrastructure.performance.optimization_engine import PerformanceOptimizationEngine
+    from plexichat.core.performance.optimization_engine import PerformanceOptimizationEngine
     from plexichat.core.logging_advanced.performance_logger import get_performance_logger
 except ImportError:
     PerformanceOptimizationEngine = None
@@ -191,7 +191,7 @@ def import_infrastructure_modules():
         # Performance optimization
         if performance_available():
             try:
-                importlib.import_module("plexichat.infrastructure.performance")
+                importlib.import_module("plexichat.core.performance")
                 logger.info("Performance optimization imported successfully")
             except ImportError as e:
                 logger.warning(f"Could not import performance optimization: {e}")

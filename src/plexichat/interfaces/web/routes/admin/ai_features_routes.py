@@ -20,7 +20,7 @@ PlexiChat AI-Powered Features Admin Routes
 
 Flask routes for managing AI-powered features including summarization,
 content suggestions, sentiment analysis, semantic search, and moderation.
-
+"""
 
 logger = get_logger(__name__)
 
@@ -43,7 +43,7 @@ def route_wrapper(bp, *args, **kwargs):
 @route_wrapper(ai_features_bp, '/')
 @require_admin
 def dashboard():
-    AI features management dashboard."""
+    """AI features management dashboard."""
     try:
         service = get_ai_features_service()
         stats = asyncio.run(service.get_feature_statistics())

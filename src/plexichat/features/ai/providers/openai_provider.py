@@ -11,11 +11,13 @@ from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
 try:
-    import openai
-    from openai import OpenAI
+    import openai  # type: ignore
+    from openai import OpenAI  # type: ignore
     OPENAI_AVAILABLE = True
 except ImportError:
     OPENAI_AVAILABLE = False
+    openai = None
+    OpenAI = None
 
 from ..core.ai_abstraction_layer import (
     AIModel,
@@ -44,7 +46,7 @@ class OpenAIProvider(BaseAIProvider):
         """Initialize OpenAI provider."""
         super().__init__(config)
         self.config: OpenAIConfig = config
-        self.client: Optional[OpenAI] = None
+        self.client: Optional[Any] = None
         
         if not OPENAI_AVAILABLE:
             logger.error("OpenAI library not available")
@@ -52,10 +54,11 @@ class OpenAIProvider(BaseAIProvider):
             return
             
         try:
-            self.client = OpenAI(
-                api_key=config.api_key,
-                organization=config.organization,
-                project=config.project,
+            if OpenAI:
+                self.client = OpenAI(
+                    api_key=config.api_key,
+                    organization=config.organization,
+                    project=config.project,
                 base_url=config.base_url,
                 timeout=config.timeout,
                 max_retries=config.max_retries
@@ -149,15 +152,17 @@ class OpenAIProvider(BaseAIProvider):
                 messages.insert(0, {"role": "system", "content": request.context})
 
             # Make the API call
-            response = self.client.chat.completions.create(
+            response = self.client.chat.completions.create(  # type: ignore
                 model=request.model_id,
-                messages=messages,
+                messages=messages,  # type: ignore
                 max_tokens=request.parameters.get("max_tokens", 1000) if request.parameters else 1000,
                 temperature=request.parameters.get("temperature", 0.7) if request.parameters else 0.7
             )
 
             # Extract response content
             content = response.choices[0].message.content if response.choices else ""
+            if content is None:
+                content = ""
             
             # Calculate usage
             usage = {

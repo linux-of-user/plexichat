@@ -70,7 +70,7 @@ except ImportError as e:
     # Keep using basic logger
 
 # Load unified configuration system (required)
-from plexichat.core.unified_config import get_unified_config
+from plexichat.core.config import get_config as get_unified_config
 from plexichat.core.config import settings
 from plexichat.core.app_setup import setup_routers, setup_static_files
 
@@ -96,7 +96,7 @@ async def lifespan(app: FastAPI):
     try:
         # Initialize unified configuration system
         try:
-            from plexichat.core.unified_config import get_unified_config
+            from plexichat.core.config import get_config as get_unified_config
             config = get_unified_config()
             logger.info(f"[CONFIG] Unified configuration system initialized for environment: {config.system.environment}")
         except Exception as e:
@@ -168,7 +168,7 @@ async def lifespan(app: FastAPI):
     try:
         # Shutdown cache system
         try:
-            from plexichat.infrastructure.performance.multi_tier_cache_manager import get_cache_manager
+            from plexichat.core.performance.multi_tier_cache_manager import get_cache_manager
             cache_manager = get_cache_manager()
             if hasattr(cache_manager, 'shutdown'):
                 await cache_manager.shutdown()

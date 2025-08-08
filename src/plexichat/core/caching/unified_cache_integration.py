@@ -11,7 +11,7 @@ import logging
 from typing import Any, Dict, List, Optional, Callable
 from functools import wraps
 
-from plexichat.infrastructure.performance.multi_tier_cache_manager import get_cache_manager, MultiTierCacheManager
+from plexichat.core.performance.multi_tier_cache_manager import get_cache_manager, MultiTierCacheManager
 from plexichat.core.logging.unified_logging_manager import get_logger
 
 logger = get_logger(__name__)
@@ -19,13 +19,14 @@ logger = get_logger(__name__)
 
 class UnifiedCacheIntegration:
     """Unified cache integration manager."""
-        def __init__(self):
+
+    def __init__(self):
         self.cache_manager: Optional[MultiTierCacheManager] = None
         self.initialized = False
         self.fallback_cache: Dict[str, Any] = {}  # Emergency fallback
 
     async def initialize(self, config: Optional[Dict[str, Any]] = None) -> bool:
-        Initialize the unified caching system."""
+        """Initialize the unified caching system."""
         try:
             # Get the multi-tier cache manager
             self.cache_manager = get_cache_manager(config)

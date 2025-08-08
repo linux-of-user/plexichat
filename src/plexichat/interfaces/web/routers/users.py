@@ -28,7 +28,7 @@ except ImportError:
 
 # Use EXISTING performance optimization engine
 try:
-    from plexichat.infrastructure.performance.optimization_engine import PerformanceOptimizationEngine
+    from plexichat.core.performance.optimization_engine import PerformanceOptimizationEngine
     from plexichat.infrastructure.utils.performance import async_track_performance
     from plexichat.core.logging_advanced.performance_logger import get_performance_logger, timer
 except ImportError:
@@ -160,20 +160,21 @@ class UserListResponse(BaseModel):
 
 class UserService:
     """Service class for user operations using EXISTING database abstraction layer."""
-        def __init__(self):
+
+    def __init__(self):
         # Use EXISTING database manager
         self.db_manager = database_manager
         self.performance_logger = performance_logger
 
     @async_track_performance("user_creation") if async_track_performance else lambda f: f
     async def create_user(self, user_data: UserCreate) -> UserResponse:
-        """Create user using EXISTING database abstraction layer.
+        """Create user using EXISTING database abstraction layer."""
         if self.db_manager:
             try:
                 # Check if username or email already exists
                 check_query = """
                     SELECT COUNT(*) FROM users
-                    WHERE username = ? OR email = ?
+                    WHERE username = :username OR email = :email
                 """
                 check_params = {"username": user_data.username, "email": user_data.email}
 
@@ -195,7 +196,7 @@ class UserService:
                 hashed_password = hash_password(user_data.password)
                 create_query = """
                     INSERT INTO users (username, email, hashed_password, is_active, is_admin, created_at)
-                    VALUES (?, ?, ?, ?, ?, ?)
+                    VALUES (:username, :email, :hashed_password, :is_active, :is_admin, :created_at)
                     RETURNING id, username, email, is_active, is_admin, created_at, last_login
                 """
                 create_params = {
@@ -244,7 +245,7 @@ class UserService:
 
     @async_track_performance("user_list") if async_track_performance else lambda f: f
     async def list_users(self, limit: int = 50, offset: int = 0, search: Optional[str] = None) -> UserListResponse:
-        """List users using EXISTING database abstraction layer.
+        """List users using EXISTING database abstraction layer."""
         if self.db_manager:
             try:
                 # Build query with optional search
@@ -317,13 +318,13 @@ class UserService:
 
     @async_track_performance("user_get") if async_track_performance else lambda f: f
     async def get_user(self, user_id: int) -> UserResponse:
-        """Get user by ID using EXISTING database abstraction layer.
+        """Get user by ID using EXISTING database abstraction layer."""
         if self.db_manager:
             try:
                 query = """
                     SELECT id, username, email, is_active, is_admin, created_at, last_login
                     FROM users
-                    WHERE id = ?
+                    WHERE id = :id
                 """
                 params = {"id": user_id}
 

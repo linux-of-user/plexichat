@@ -77,7 +77,7 @@ try:
         secure_endpoint, require_auth, rate_limit, audit_access, validate_input,
         SecurityLevel, RequiredPermission, admin_endpoint
     )
-    from plexichat.core.logging_advanced.enhanced_logging_system import (
+    from plexichat.core.logging_advanced.advanced_logging_system import (
         get_enhanced_logging_system, LogCategory, LogLevel, PerformanceTracker, SecurityMetrics
     )
     ENHANCED_SECURITY_AVAILABLE = True

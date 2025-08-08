@@ -1,15 +1,21 @@
 """
 PlexiChat Core Validation
 Essential validation functions for the entire application.
-
+"""
 
 import re
+import json
 import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
 from dataclasses import dataclass
 
-from .exceptions import ValidationError
+try:
+    from .exceptions import ValidationError as _ValidationError  # type: ignore
+    ValidationError = _ValidationError  # type: ignore
+except ImportError:
+    class ValidationError(Exception):
+        pass
 
 logger = logging.getLogger(__name__)
 
@@ -17,17 +23,18 @@ logger = logging.getLogger(__name__)
 @dataclass
 class ValidationResult:
     """Validation result."""
-        valid: bool
+    valid: bool
     errors: List[str]
     warnings: List[str]
     cleaned_data: Dict[str, Any]
 
 
 class Validator:
-    Core validation class."""
-        @staticmethod
-    def validate_string(value: Any, min_length: int = 0, max_length: int = 1000, 
-                    pattern: str = None, required: bool = True) -> ValidationResult:
+    """Core validation class."""
+
+    @staticmethod
+    def validate_string(value: Any, min_length: int = 0, max_length: int = 1000,
+                    pattern: Optional[str] = None, required: bool = True) -> ValidationResult:
         """Validate string value."""
         errors = []
         warnings = []
@@ -78,7 +85,7 @@ class Validator:
         return ValidationResult(len(errors) == 0, errors, warnings, cleaned_data)
     
     @staticmethod
-    def validate_integer(value: Any, min_value: int = None, max_value: int = None,
+    def validate_integer(value: Any, min_value: Optional[int] = None, max_value: Optional[int] = None,
                         required: bool = True) -> ValidationResult:
         """Validate integer value."""
         errors = []
@@ -178,7 +185,6 @@ class Validator:
             return ValidationResult(False, errors, warnings, cleaned_data)
         
         try:
-            import json
             parsed_data = json.loads(data)
             cleaned_data["value"] = parsed_data
         except json.JSONDecodeError as e:

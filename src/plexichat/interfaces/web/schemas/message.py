@@ -2,7 +2,7 @@
 """
 Message schemas for PlexiChat API.
 Enhanced with comprehensive validation and security.
-
+"""
 
 from datetime import datetime
 from typing import Optional, List, Dict, Any
@@ -12,7 +12,7 @@ from enum import Enum
 
 class MessageType(str, Enum):
     """Message type enumeration."""
-        TEXT = "text"
+    TEXT = "text"
     IMAGE = "image"
     FILE = "file"
     SYSTEM = "system"
@@ -29,7 +29,7 @@ class MessagePriority(str, Enum):
 
 class MessageBase(BaseModel):
     """Base message schema."""
-        content: str = Field(..., min_length=1, max_length=2000, description="Message content")
+    content: str = Field(..., min_length=1, max_length=2000, description="Message content")
     message_type: MessageType = Field(default=MessageType.TEXT, description="Message type")
     priority: MessagePriority = Field(default=MessagePriority.NORMAL, description="Message priority")
 
@@ -43,14 +43,14 @@ class MessageBase(BaseModel):
 
 class MessageCreate(MessageBase):
     """Message creation schema."""
-        recipient_id: int = Field(..., description="Recipient user ID")
+    recipient_id: int = Field(..., description="Recipient user ID")
     parent_id: Optional[int] = Field(None, description="Parent message ID for threading")
     metadata: Optional[Dict[str, Any]] = Field(None, description="Additional message metadata")
 
 
 class MessageUpdate(BaseModel):
     """Message update schema."""
-        content: Optional[str] = Field(None, min_length=1, max_length=2000, description="Updated content")
+    content: Optional[str] = Field(None, min_length=1, max_length=2000, description="Updated content")
     priority: Optional[MessagePriority] = Field(None, description="Updated priority")
     metadata: Optional[Dict[str, Any]] = Field(None, description="Updated metadata")
 
@@ -64,7 +64,7 @@ class MessageUpdate(BaseModel):
 
 class MessageResponse(MessageBase):
     """Message response schema."""
-        id: int = Field(..., description="Message ID")
+    id: int = Field(..., description="Message ID")
     sender_id: int = Field(..., description="Sender user ID")
     recipient_id: int = Field(..., description="Recipient user ID")
     parent_id: Optional[int] = Field(None, description="Parent message ID")
@@ -80,7 +80,7 @@ class MessageResponse(MessageBase):
 
 class MessageListResponse(BaseModel):
     """Message list response schema."""
-        messages: List[MessageResponse] = Field(..., description="List of messages")
+    messages: List[MessageResponse] = Field(..., description="List of messages")
     total_count: int = Field(..., description="Total number of messages")
     page: int = Field(..., description="Current page number")
     per_page: int = Field(..., description="Items per page")
@@ -90,14 +90,14 @@ class MessageListResponse(BaseModel):
 
 class MessageThread(BaseModel):
     """Message thread schema."""
-        parent_message: MessageResponse = Field(..., description="Parent message")
+    parent_message: MessageResponse = Field(..., description="Parent message")
     replies: List[MessageResponse] = Field(..., description="Reply messages")
     reply_count: int = Field(..., description="Total number of replies")
 
 
 class MessageReaction(BaseModel):
     """Message reaction schema."""
-        id: int = Field(..., description="Reaction ID")
+    id: int = Field(..., description="Reaction ID")
     message_id: int = Field(..., description="Message ID")
     user_id: int = Field(..., description="User ID who reacted")
     emoji: str = Field(..., min_length=1, max_length=10, description="Reaction emoji")
@@ -106,13 +106,13 @@ class MessageReaction(BaseModel):
 
 class MessageWithReactions(MessageResponse):
     """Message with reactions schema."""
-        reactions: List[MessageReaction] = Field(default=[], description="Message reactions")
+    reactions: List[MessageReaction] = Field(default=[], description="Message reactions")
     reaction_counts: Dict[str, int] = Field(default={}, description="Reaction counts by emoji")
 
 
 class MessageSearch(BaseModel):
     """Message search schema."""
-        query: str = Field(..., min_length=1, max_length=100, description="Search query")
+    query: str = Field(..., min_length=1, max_length=100, description="Search query")
     sender_id: Optional[int] = Field(None, description="Filter by sender ID")
     recipient_id: Optional[int] = Field(None, description="Filter by recipient ID")
     message_type: Optional[MessageType] = Field(None, description="Filter by message type")
@@ -129,7 +129,7 @@ class MessageSearch(BaseModel):
 
 class MessageStats(BaseModel):
     """Message statistics schema."""
-        total_messages: int = Field(default=0, description="Total message count")
+    total_messages: int = Field(default=0, description="Total message count")
     messages_today: int = Field(default=0, description="Messages sent today")
     messages_this_week: int = Field(default=0, description="Messages sent this week")
     messages_this_month: int = Field(default=0, description="Messages sent this month")

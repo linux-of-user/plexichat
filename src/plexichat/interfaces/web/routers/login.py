@@ -26,7 +26,7 @@ except ImportError:
 
 # Use EXISTING performance optimization engine
 try:
-    from plexichat.infrastructure.performance.optimization_engine import PerformanceOptimizationEngine
+    from plexichat.core.performance.optimization_engine import PerformanceOptimizationEngine
     from plexichat.infrastructure.utils.performance import async_track_performance
     from plexichat.core.logging_advanced.performance_logger import get_performance_logger, timer
 except ImportError:
@@ -88,30 +88,27 @@ class LoginResponse(BaseModel):
 
 class LoginService:
     """Service class for login operations using EXISTING database abstraction layer."""
-        def __init__(self):
+
+    def __init__(self):
         # Use EXISTING database manager
         self.db_manager = database_manager
         self.performance_logger = performance_logger
 
     @async_track_performance("user_authentication") if async_track_performance else lambda f: f
     async def authenticate_user(self, username: str, password: str) -> Optional[User]:
-        """Authenticate user using EXISTING database abstraction layer.
+        """Authenticate user using EXISTING database abstraction layer."""
         if self.db_manager:
             try:
                 # Use EXISTING database manager with optimized query
                 query = """
                     SELECT id, username, email, hashed_password, is_active
                     FROM users
-                    WHERE username = ? AND is_active = 1
+                    WHERE username = :username AND is_active = 1
                 """
                 params = {"username": username}
 
-                # Use performance tracking if available
-                if self.performance_logger and timer:
-                    with timer("user_lookup"):
-                        result = await self.db_manager.execute_query(query, params)
-                else:
-                    result = await self.db_manager.execute_query(query, params)
+                # Use EXISTING database manager
+                result = await self.db_manager.execute_query(query, params)
 
                 if result and len(result) > 0:
                     row = result[0]
@@ -151,14 +148,10 @@ class LoginService:
         """Update user's last login timestamp."""
         if self.db_manager:
             try:
-                query = "UPDATE users SET last_login = ? WHERE id = ?"
+                query = "UPDATE users SET last_login = :last_login WHERE id = :id"
                 params = {"last_login": datetime.now(), "id": user_id}
 
-                if self.performance_logger and timer:
-                    with timer("last_login_update"):
-                        await self.db_manager.execute_query(query, params)
-                else:
-                    await self.db_manager.execute_query(query, params)
+                await self.db_manager.execute_query(query, params)
 
             except Exception as e:
                 logger.error(f"Error updating last login: {e}")

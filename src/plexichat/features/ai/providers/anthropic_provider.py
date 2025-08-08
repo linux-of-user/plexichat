@@ -11,11 +11,13 @@ from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
 try:
-    import anthropic
-    from anthropic import Anthropic
+    import anthropic  # type: ignore
+    from anthropic import Anthropic  # type: ignore
     ANTHROPIC_AVAILABLE = True
 except ImportError:
     ANTHROPIC_AVAILABLE = False
+    anthropic = None
+    Anthropic = None
 
 from ..core.ai_abstraction_layer import (
     AIModel,
@@ -43,7 +45,7 @@ class AnthropicProvider(BaseAIProvider):
         """Initialize Anthropic provider."""
         super().__init__(config)
         self.config: AnthropicConfig = config
-        self.client: Optional[Anthropic] = None
+        self.client: Optional[Any] = None
         
         if not ANTHROPIC_AVAILABLE:
             logger.error("Anthropic library not available")
@@ -51,11 +53,12 @@ class AnthropicProvider(BaseAIProvider):
             return
             
         try:
-            self.client = Anthropic(
-                api_key=config.api_key,
-                base_url=config.base_url,
-                timeout=config.timeout,
-                max_retries=config.max_retries
+            if Anthropic:
+                self.client = Anthropic(
+                    api_key=config.api_key,
+                    base_url=config.base_url,
+                    timeout=config.timeout,
+                    max_retries=config.max_retries
             )
             self._load_models()
         except Exception as e:

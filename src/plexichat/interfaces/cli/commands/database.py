@@ -25,7 +25,7 @@ from pathlib import Path
 from pathlib import Path
 
 from plexichat.core.config.config_manager import ConfigManager
-from plexichat.core.database.enhanced_abstraction import enhanced_db_manager
+from plexichat.core.database.performance_abstraction import enhanced_db_manager
 from plexichat.core.database.indexing_strategy import index_manager
 from plexichat.core.database.performance_integration import performance_optimizer
 from plexichat.core.database.db_query_optimizer import performance_monitor

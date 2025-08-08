@@ -95,7 +95,7 @@ security_manager = None
 hash_password = None
 
 try:
-    from plexichat.infrastructure.performance.optimization_engine import PerformanceOptimizationEngine
+    from plexichat.core.performance.optimization_engine import PerformanceOptimizationEngine
     from plexichat.core.logging_advanced.performance_logger import get_performance_logger
 except ImportError:
     PerformanceOptimizationEngine = None

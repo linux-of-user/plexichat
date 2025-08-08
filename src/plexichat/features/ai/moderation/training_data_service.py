@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Optional
 class TrainingDataService:
     def __init__(self):
         try:
-            from plexichat.core.database.manager import database_manager
+            from plexichat.core.database.manager import database_manager  # type: ignore
             self.db_manager = database_manager
         except ImportError:
             self.db_manager = None
@@ -23,4 +23,10 @@ class TrainingDataService:
 
     async def delete_training_data(self, training_id: int):
         if self.db_manager:
-            await self.db_manager.delete_training_data(training_id) 
+            await self.db_manager.delete_training_data(training_id)
+
+    async def get_training_stats(self) -> Dict[str, Any]:
+        """Get training statistics."""
+        if self.db_manager:
+            return await self.db_manager.get_training_stats()  # type: ignore
+        return {"total": 0, "sources": {}, "labels": {}}

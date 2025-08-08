@@ -41,7 +41,7 @@ rate_limiter = RateLimiter()
 logger = logging.getLogger(__name__)
 class LoginRequest(BaseModel):
     """Enhanced login request with validation."""
-        username: str = Field(..., min_length=3, max_length=50, description="Username or email")
+    username: str = Field(..., min_length=3, max_length=50, description="Username or email")
     password: str = Field(..., min_length=8, max_length=128, description="User password")
     remember_me: bool = Field(default=False, description="Extended session duration")
     device_info: Optional[Dict[str, str]] = Field(default=None, description="Device information")
@@ -67,7 +67,7 @@ class LoginRequest(BaseModel):
 
 class LoginResponse(BaseModel):
     """Enhanced login response with additional metadata."""
-        access_token: str
+    access_token: str
     token_type: str = "bearer"
     expires_in: int
     refresh_token: Optional[str] = None
@@ -78,12 +78,12 @@ class LoginResponse(BaseModel):
 
 class RefreshTokenRequest(BaseModel):
     """Refresh token request."""
-        refresh_token: str = Field(..., description="Valid refresh token")
+    refresh_token: str = Field(..., description="Valid refresh token")
 
 
 class PasswordChangeRequest(BaseModel):
-    """Password change request with enhanced validation.
-        current_password: str = Field(..., min_length=8, max_length=128)
+    """Password change request with enhanced validation."""
+    current_password: str = Field(..., min_length=8, max_length=128)
     new_password: str = Field(..., min_length=8, max_length=128)
     confirm_password: str = Field(..., min_length=8, max_length=128)
 
@@ -106,7 +106,7 @@ class PasswordChangeRequest(BaseModel):
 
 class TwoFactorSetupRequest(BaseModel):
     """Two-factor authentication setup request."""
-        method: str = Field(..., pattern="^(totp|sms|email)$", description="2FA method")
+    method: str = Field(..., pattern="^(totp|sms|email)$", description="2FA method")
     phone_number: Optional[str] = Field(None, description="Phone number for SMS 2FA")
 
 
@@ -410,7 +410,7 @@ async def get_current_user(
                 "session_id": token_data.get("session_id"),
                 "expires_at": token_data.get("exp"),
                 "device_fingerprint": token_data.get("device_fingerprint")
-            }}
+            }
         }
 
     except JWTError:

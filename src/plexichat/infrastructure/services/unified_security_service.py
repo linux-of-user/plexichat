@@ -11,7 +11,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from app.services.enhanced_ddos_service import enhanced_ddos_service
+from app.services.advanced_ddos_service import enhanced_ddos_service
 from app.services.security_service import SecurityService
 from app.utils.rate_limiting import rate_limiter
 

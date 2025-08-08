@@ -8,7 +8,7 @@ Implements comprehensive zero-trust security including:
 - Behavioral analysis
 - Risk-based authentication
 - Incident response
-
+"""
 
 import asyncio
 import hashlib
@@ -20,15 +20,14 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, Set, Tuple
 from collections import defaultdict
 
-from plexichat.core.logging.unified_logging_manager import get_logger
-from plexichat.shared.exceptions import SecurityError, AuthenticationError
+from ...core.logging import get_logger
 
 logger = get_logger(__name__)
 
 
 class TrustLevel(Enum):
     """Trust levels for zero-trust model."""
-        UNTRUSTED = 0
+    UNTRUSTED = 0
     LOW = 1
     MEDIUM = 2
     HIGH = 3
@@ -36,7 +35,7 @@ class TrustLevel(Enum):
 
 
 class RiskLevel(Enum):
-    Risk assessment levels."""
+    """Risk assessment levels."""
     MINIMAL = 1
     LOW = 2
     MEDIUM = 3
@@ -46,7 +45,7 @@ class RiskLevel(Enum):
 
 class IncidentSeverity(Enum):
     """Security incident severity levels."""
-        INFO = "info"
+    INFO = "info"
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
@@ -55,7 +54,7 @@ class IncidentSeverity(Enum):
 
 @dataclass
 class UserContext:
-    """User context for zero-trust evaluation.
+    """User context for zero-trust evaluation."""
     user_id: str
     ip_address: str
     user_agent: str
@@ -78,13 +77,13 @@ class UserContext:
             "last_activity": self.last_activity.isoformat(),
             "trust_level": self.trust_level.value,
             "risk_score": self.risk_score
-        }}
+        }
 
 
 @dataclass
 class SecurityIncident:
-    """Security incident record.
-        incident_id: str
+    """Security incident record."""
+    incident_id: str
     incident_type: str
     severity: IncidentSeverity
     user_id: Optional[str]
@@ -99,7 +98,7 @@ class SecurityIncident:
 @dataclass
 class BehaviorPattern:
     """User behavior pattern."""
-        user_id: str
+    user_id: str
     pattern_type: str
     typical_hours: Set[int] = field(default_factory=set)
     typical_locations: Set[str] = field(default_factory=set)
@@ -109,8 +108,9 @@ class BehaviorPattern:
 
 
 class BehavioralAnalyzer:
-    Analyzes user behavior patterns for anomaly detection."""
-        def __init__(self):
+    """Analyzes user behavior patterns for anomaly detection."""
+
+    def __init__(self):
         self.user_patterns: Dict[str, BehaviorPattern] = {}
         self.activity_history: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
         self.max_history_days = 30
@@ -215,8 +215,9 @@ class BehavioralAnalyzer:
 
 
 class ZeroTrustEngine:
-    """Zero Trust security engine.
-        def __init__(self):
+    """Zero Trust security engine."""
+
+    def __init__(self):
         self.behavioral_analyzer = BehavioralAnalyzer()
         self.user_contexts: Dict[str, UserContext] = {}
         self.security_incidents: List[SecurityIncident] = []
@@ -247,8 +248,9 @@ class ZeroTrustEngine:
             }
         }
 
-    async def evaluate_trust(self, user_id: str, context: UserContext, )
-                        requested_action: str) -> Tuple[TrustLevel, float, List[str]]:
+    async def evaluate_trust(
+        self, user_id: str, context: UserContext, requested_action: str
+    ) -> Tuple[TrustLevel, float, List[str]]:
         """Evaluate trust level for a user context and action."""
         try:
             # Record activity for behavioral analysis
@@ -306,12 +308,13 @@ class ZeroTrustEngine:
             logger.error(f"Trust evaluation failed: {e}")
             return TrustLevel.UNTRUSTED, 1.0, ["Evaluation error"]
 
-    async def verify_access(self, user_id: str, resource: str, action: str, )
-                        context: UserContext) -> Tuple[bool, str]:
+    async def verify_access(
+        self, user_id: str, resource: str, action: str, context: UserContext
+    ) -> Tuple[bool, str]:
         """Verify access using zero-trust principles."""
         try:
             # Evaluate trust
-            trust_level, risk_score, risk_factors = await self.evaluate_trust()
+            trust_level, risk_score, risk_factors = await self.evaluate_trust(
                 user_id, context, f"{action}_{resource}"
             )
 
@@ -323,7 +326,7 @@ class ZeroTrustEngine:
 
                 # Create security incident for high-risk access attempts
                 if risk_score > 0.7:
-                    await self._create_security_incident()
+                    await self._create_security_incident(
                         "unauthorized_access_attempt",
                         IncidentSeverity.HIGH,
                         user_id,
@@ -334,8 +337,8 @@ class ZeroTrustEngine:
                             "action": action,
                             "trust_level": trust_level.name,
                             "risk_score": risk_score,
-                            "risk_factors": risk_factors
-                        }
+                            "risk_factors": risk_factors,
+                        },
                     )
 
                 return False, reason
@@ -374,7 +377,7 @@ class ZeroTrustEngine:
                     if risk_score > 0.8:
                         await self._terminate_session(session_id, "High risk detected")
 
-                        await self._create_security_incident()
+                        await self._create_security_incident(
                             "session_terminated_high_risk",
                             IncidentSeverity.MEDIUM,
                             context.user_id,
@@ -383,8 +386,8 @@ class ZeroTrustEngine:
                             {
                                 "session_id": session_id,
                                 "risk_score": risk_score,
-                                "risk_factors": risk_factors
-                            }
+                                "risk_factors": risk_factors,
+                            },
                         )
 
                     # Update last verification time
@@ -393,9 +396,15 @@ class ZeroTrustEngine:
         except Exception as e:
             logger.error(f"Continuous verification failed: {e}")
 
-    async def _create_security_incident(self, incident_type: str, severity: IncidentSeverity,
-                                    user_id: str = None, ip_address: str = None,
-                                    description: str = "", evidence: Dict[str, Any] = None):
+    async def _create_security_incident(
+        self,
+        incident_type: str,
+        severity: IncidentSeverity,
+        user_id: Optional[str] = None,
+        ip_address: Optional[str] = None,
+        description: str = "",
+        evidence: Optional[Dict[str, Any]] = None,
+    ) -> None:
         """Create a security incident."""
         incident = SecurityIncident(
             incident_id=f"inc_{int(time.time() * 1000)}",
@@ -486,7 +495,7 @@ class ZeroTrustEngine:
             "trust_level_distribution": {
                 level.name: len([c for c in self.user_contexts.values() if c.trust_level == level])
                 for level in TrustLevel
-            }},
+            },
             "incident_types": {
                 incident_type: len([i for i in recent_incidents if i.incident_type == incident_type])
                 for incident_type in set(i.incident_type for i in recent_incidents)

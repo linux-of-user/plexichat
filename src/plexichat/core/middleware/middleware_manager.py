@@ -17,20 +17,20 @@ try:
 except ImportError:
     async_thread_manager = None
 
-try:
-    from plexichat.core.analytics.analytics_manager import track_event
-except ImportError:
-    track_event = None
+# Analytics tracking fallback
+async def track_event(*args, **kwargs):
+    """Fallback analytics tracking function."""
+    pass
 
-try:
-    from plexichat.infrastructure.performance.optimization_engine import PerformanceOptimizationEngine
-    from plexichat.core.logging_advanced.performance_logger import get_performance_logger
-except ImportError:
-    PerformanceOptimizationEngine = None
-    get_performance_logger = None
+# Performance optimization fallback
+PerformanceOptimizationEngine = None
+
+def get_performance_logger():
+    """Fallback performance logger function."""
+    return logging.getLogger("performance")
 
 logger = logging.getLogger(__name__)
-performance_logger = get_performance_logger() if get_performance_logger else None
+performance_logger = get_performance_logger()
 
 @dataclass
 class MiddlewareContext:
@@ -334,7 +334,7 @@ class MiddlewareManager:
             logger.error(f"Error unregistering middleware: {e}")
             return False
 
-    async def process(self, middleware_type: str, request_id: str, data: Dict[str, Any], metadata: Dict[str, Any] = None) -> Any:
+    async def process(self, middleware_type: str, request_id: str, data: Dict[str, Any], metadata: Optional[Dict[str, Any]] = None) -> Any:
         """Process request through middleware stack."""
         try:
             start_time = time.time()

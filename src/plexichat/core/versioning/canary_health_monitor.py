@@ -23,10 +23,40 @@ Real-time health monitoring for canary deployments with:
 
 logger = logging.getLogger(__name__)
 
-# Forward declarations to avoid circular imports
-CanaryNode = Any
-HealthCheck = Any
-HealthCheckType = Any
+# Import CanaryNode from canary_node_selector
+try:
+    from .canary_node_selector import CanaryNode  # type: ignore
+except ImportError:
+    CanaryNode = Any
+
+# Define HealthCheck classes
+class HealthCheckType(Enum):
+    """Health check types."""
+    HTTP = "http"
+    TCP = "tcp"
+    CUSTOM = "custom"
+    HTTP_ENDPOINT = "http_endpoint"
+    PERFORMANCE_METRICS = "performance_metrics"
+    ERROR_RATE = "error_rate"
+    RESPONSE_TIME = "response_time"
+    RESOURCE_USAGE = "resource_usage"
+
+@dataclass
+class HealthCheck:
+    """Health check configuration."""
+    name: str
+    check_type: HealthCheckType
+    endpoint: str = ""
+    expected_status: int = 200
+    timeout_seconds: int = 30
+    interval_seconds: int = 60
+    metric_name: str = ""
+    threshold: float = 0.0
+
+    def evaluate(self, value: float) -> bool:
+        """Evaluate if the health check passes."""
+        # Simple threshold evaluation
+        return value > self.threshold
 
 
 class AlertSeverity(Enum):
@@ -121,7 +151,7 @@ class MetricHistory:
             return MetricTrend.STABLE
 
     def get_average(self, window_size: int = 10) -> float:
-        """Get average value over window.
+        """Get average value over window."""
         if not self.values:
             return 0.0
 
@@ -165,8 +195,8 @@ class CanaryHealthMonitor:
         )
         logger.info("Canary health monitor initialized")
 
-    async def start_monitoring(self, nodes: List[CanaryNode],
-                             health_checks: List[HealthCheck],
+    async def start_monitoring(self, nodes: List[Any],
+                             health_checks: List["HealthCheck"],
                              duration_minutes: int = 30) -> str:
         """Start monitoring canary nodes."""
         monitoring_id = f"monitor_{int(datetime.now().timestamp())}"
@@ -195,8 +225,8 @@ class CanaryHealthMonitor:
             del self.monitoring_tasks[monitoring_id]
             logger.info(f"Stopped monitoring: {monitoring_id}")
 
-    async def _monitor_nodes(self, monitoring_id: str, nodes: List[CanaryNode],)
-                        health_checks: List[HealthCheck], duration_minutes: int):
+    async def _monitor_nodes(self, monitoring_id: str, nodes: List[Any],
+                        health_checks: List["HealthCheck"], duration_minutes: int):
         """Monitor nodes for specified duration."""
         end_time = datetime.now(timezone.utc) + timedelta(minutes=duration_minutes)
 
@@ -214,7 +244,7 @@ class CanaryHealthMonitor:
         except Exception as e:
             logger.error(f"Monitoring error: {e}")
 
-    async def _check_node_health(self, node: CanaryNode, health_checks: List[HealthCheck]):
+    async def _check_node_health(self, node: Any, health_checks: List["HealthCheck"]):
         """Check health of a single node."""
         try:
             for check in health_checks:
@@ -235,7 +265,7 @@ class CanaryHealthMonitor:
         except Exception as e:
             logger.error(f"Health check failed for node {node.node_id}: {e}")
 
-    async def _execute_health_check(self, node: CanaryNode, check: HealthCheck) -> Optional[float]:
+    async def _execute_health_check(self, node: Any, check: "HealthCheck") -> Optional[float]:
         """Execute individual health check."""
         try:
             if check.check_type == HealthCheckType.HTTP_ENDPOINT:
@@ -256,7 +286,7 @@ class CanaryHealthMonitor:
             logger.error(f"Health check execution failed: {e}")
             return None
 
-    async def _check_http_endpoint(self, node: CanaryNode, check: HealthCheck) -> Optional[float]:
+    async def _check_http_endpoint(self, node: Any, check: "HealthCheck") -> Optional[float]:
         """Check HTTP endpoint health."""
         if not check.endpoint:
             return None
@@ -265,14 +295,13 @@ class CanaryHealthMonitor:
             # Construct URL (this would need actual node endpoint)
             url = f"http://{node.node_id}:8000{check.endpoint}"
 
-start_time = datetime.now()
-datetime = datetime.now()
+            start_time = datetime.now()
             if self.session is None or self.session.closed:
                 self.session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
-            async with self.session.get(url, timeout=check.timeout_seconds) as response:
+            async with self.session.get(url, timeout=aiohttp.ClientTimeout(total=check.timeout_seconds)) as response:
                 response_time = (datetime.now() - start_time).total_seconds() * 1000
 
-                if check.metric_name == "response_time":
+                if check.name == "response_time":
                     return response_time
                 else:
                     return float(response.status)
@@ -283,23 +312,23 @@ datetime = datetime.now()
             logger.debug(f"HTTP check failed for {node.node_id}: {e}")
             return 0.0
 
-    async def _check_performance_metrics(self, node: CanaryNode, check: HealthCheck) -> Optional[float]:
-        """Check performance metrics.
+    async def _check_performance_metrics(self, node: Any, check: "HealthCheck") -> Optional[float]:
+        """Check performance metrics."""
         # Placeholder for performance metrics collection
         # This would integrate with monitoring systems like Prometheus
         return 0.5  # Simulate good performance
 
-    async def _check_error_rate(self, node: CanaryNode, check: HealthCheck) -> Optional[float]:
+    async def _check_error_rate(self, node: Any, check: "HealthCheck") -> Optional[float]:
         """Check error rate."""
         # Placeholder for error rate collection
         return 0.1  # Simulate low error rate
 
-    async def _check_response_time(self, node: CanaryNode, check: HealthCheck) -> Optional[float]:
+    async def _check_response_time(self, node: Any, check: "HealthCheck") -> Optional[float]:
         """Check response time."""
         # Placeholder for response time collection
         return 150.0  # Simulate good response time
 
-    async def _check_resource_usage(self, node: CanaryNode, check: HealthCheck) -> Optional[float]:
+    async def _check_resource_usage(self, node: Any, check: "HealthCheck") -> Optional[float]:
         """Check resource usage."""
         # Placeholder for resource usage collection
         return 0.3  # Simulate moderate resource usage
@@ -315,14 +344,14 @@ datetime = datetime.now()
         self.metric_history[node_id][metric_name].add_value(value)
 
     def _is_anomalous_value(self, node_id: str, metric_name: str, value: float) -> bool:
-        Check if value is anomalous."""
+        """Check if value is anomalous."""
         if node_id not in self.metric_history or metric_name not in self.metric_history[node_id]:
             return False
 
         history = self.metric_history[node_id][metric_name]
         return history.detect_anomaly(value, self.anomaly_sensitivity)
 
-    async def _handle_threshold_violation(self, node: CanaryNode, check: HealthCheck, value: float):
+    async def _handle_threshold_violation(self, node: Any, check: "HealthCheck", value: float):
         """Handle threshold violation."""
         alert_key = f"{node.node_id}_{check.metric_name or check.check_type.value}_threshold"
 
@@ -330,7 +359,7 @@ datetime = datetime.now()
         if self._is_alert_in_cooldown(alert_key):
             return
 
-        alert = HealthAlert()
+        alert = HealthAlert(
             alert_id=f"alert_{int(datetime.now().timestamp())}",
             node_id=node.node_id,
             severity=AlertSeverity.WARNING,
@@ -343,7 +372,7 @@ datetime = datetime.now()
         await self._emit_alert(alert)
         self.last_alert_times[alert_key] = datetime.now(timezone.utc)
 
-    async def _handle_anomaly(self, node: CanaryNode, check: HealthCheck, value: float):
+    async def _handle_anomaly(self, node: Any, check: "HealthCheck", value: float):
         """Handle anomalous value."""
         alert_key = f"{node.node_id}_{check.metric_name or check.check_type.value}_anomaly"
 
@@ -351,7 +380,7 @@ datetime = datetime.now()
         if self._is_alert_in_cooldown(alert_key):
             return
 
-        alert = HealthAlert()
+        alert = HealthAlert(
             alert_id=f"alert_{int(datetime.now().timestamp())}",
             node_id=node.node_id,
             severity=AlertSeverity.ERROR,
@@ -365,7 +394,7 @@ datetime = datetime.now()
         self.last_alert_times[alert_key] = datetime.now(timezone.utc)
 
     def _is_alert_in_cooldown(self, alert_key: str) -> bool:
-        """Check if alert is in cooldown period.
+        """Check if alert is in cooldown period."""
         if alert_key not in self.last_alert_times:
             return False
 
@@ -388,13 +417,13 @@ datetime = datetime.now()
                 logger.error(f"Alert callback failed: {e}")
 
     def register_alert_callback(self, callback: Callable[[HealthAlert], None]):
-        """Register alert callback.
+        """Register alert callback."""
         self.alert_callbacks.append(callback)
 
     def get_node_metrics(self, node_id: str) -> Dict[str, Any]:
         """Get current metrics for node."""
         if node_id not in self.metric_history:
-            return {}}
+            return {}
 
         metrics = {}
         for metric_name, history in self.metric_history[node_id].items():
@@ -408,7 +437,7 @@ datetime = datetime.now()
         return metrics
 
     def get_active_alerts(self, node_id: Optional[str] = None) -> List[HealthAlert]:
-        """Get active alerts.
+        """Get active alerts."""
         alerts = list(self.active_alerts.values())
 
         if node_id:
@@ -432,7 +461,4 @@ datetime = datetime.now()
 
         logger.info("Canary health monitor cleaned up")
 
-    async def _monitor_nodes(self, monitoring_id: str, nodes: List[CanaryNode], health_checks: List[HealthCheck], duration_minutes: int):
-        """Monitor nodes for the specified duration."""
-        # Placeholder implementation
-        pass
+

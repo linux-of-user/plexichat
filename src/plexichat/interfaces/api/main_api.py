@@ -346,32 +346,32 @@ async def get_current_user(request: Request):
 # Include routers
 if app:
     try:
-        from .routers.messages_router import router as messages_router
+        from plexichat.interfaces.api.routers.messages_router import router as messages_router
         if messages_router:
             app.include_router(messages_router)
     except ImportError:
         logger.warning("Could not import messages router")
 
     try:
-        from .routers.users_router import router as users_router
+        from plexichat.interfaces.api.routers.users_router import router as users_router
         if users_router:
             app.include_router(users_router)
     except ImportError:
         logger.warning("Could not import users router")
 
     try:
-        from .routers.files_router import router as files_router
+        from plexichat.interfaces.web.routers.files import router as files_router
         if files_router:
             app.include_router(files_router)
     except ImportError:
         logger.warning("Could not import files router")
 
     try:
-        from .routers.notifications_router import router as notifications_router
-        if notifications_router:
-            app.include_router(notifications_router)
+        from plexichat.core.notifications.notification_manager import notification_manager
+        # Create a simple notifications router if needed
+        logger.info("Notifications router not found, using notification manager directly")
     except ImportError:
-        logger.warning("Could not import notifications router")
+        logger.warning("Could not import notifications system")
 
 # WebSocket endpoint
 @app.websocket("/ws/{user_id}") if app else lambda: None

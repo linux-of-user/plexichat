@@ -1,293 +1,835 @@
-#!/usr/bin/env python3
 """
-Unified Logging System for PlexiChat
+PlexiChat Unified Logging System - SINGLE SOURCE OF TRUTH
 
-ASCII-only logging system with comprehensive coverage.
-No unicode characters, proper formatting, and structured logging.
+Consolidates ALL logging functionality from:
+- core/logging.py - INTEGRATED
+- core/logging_advanced/ - INTEGRATED
+- infrastructure/utils/enhanced_logging.py - INTEGRATED
 
+Provides a single, unified interface for all logging operations.
+"""
 
+import gzip
+import json
 import logging
 import logging.handlers
-import sys
 import os
+import sys
 import time
-import json
-import traceback
-from pathlib import Path
-from typing import Dict, Any, Optional, List
+import threading
 from datetime import datetime
+from typing import Any, Dict, List, Optional, Callable
 from enum import Enum
+from dataclasses import dataclass, field, asdict
+from pathlib import Path
+
+# Core imports
+try:
+    from ..config import get_config as _get_unified_config
+
+    def get_config() -> Any:
+        """Wrapper to provide a config object without requiring a key parameter."""
+        return type('Config', (), {
+            'logging': type('Logging', (), {
+                'level': 'INFO',
+                'format': '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                'buffer_size': 10000,
+                'max_file_size': '10MB',
+                'backup_count': 5,
+                'directory': 'logs',
+                'console_enabled': True,
+                'console_colors': True
+            })()
+        })()
+except ImportError:
+    def get_config() -> Any:
+        class MockConfig:
+            class logging:
+                level = "INFO"
+                directory = "logs"
+                buffer_size = 10000
+                console_enabled = True
+                console_colors = True
+                file_enabled = True
+                structured_enabled = True
+                performance_enabled = True
+                security_enabled = True
+                audit_enabled = True
+        return MockConfig()
+
+logger = logging.getLogger(__name__)
+
 
 class LogLevel(Enum):
-    """Log levels for the system."""
-        DEBUG = "DEBUG"
-    INFO = "INFO"
-    WARNING = "WARNING"
-    ERROR = "ERROR"
-    CRITICAL = "CRITICAL"
+    """Enhanced log levels."""
+    TRACE = 5
+    DEBUG = 10
+    INFO = 20
+    WARNING = 30
+    ERROR = 40
+    CRITICAL = 50
+    SECURITY = 60
+    AUDIT = 70
+
 
 class LogCategory(Enum):
-    """Log categories for better organization."""
-    SYSTEM = "SYSTEM"
-    SECURITY = "SECURITY"
-    PERFORMANCE = "PERFORMANCE"
-    API = "API"
-    DATABASE = "DATABASE"
-    RATE_LIMIT = "RATE_LIMIT"
-    DDOS = "DDOS"
-    AUTH = "AUTH"
-    CONFIG = "CONFIG"
-    STARTUP = "STARTUP"
+    """Log categories for organization."""
+    SYSTEM = "system"
+    SECURITY = "security"
+    PERFORMANCE = "performance"
+    API = "api"
+    DATABASE = "database"
+    AUTH = "auth"
+    PLUGIN = "plugin"
+    BACKUP = "backup"
+    CLUSTERING = "clustering"
+    MONITORING = "monitoring"
+    USER = "user"
+    AUDIT = "audit"
 
-class ASCIIFormatter(logging.Formatter):
-    """Custom formatter that ensures ASCII-only output.
-        def __init__(self, include_colors=False):
-        self.include_colors = include_colors
-        super().__init__()
-    
+
+@dataclass
+class LogContext:
+    """Log context information."""
+    user_id: Optional[str] = None
+    session_id: Optional[str] = None
+    request_id: Optional[str] = None
+    operation: Optional[str] = None
+    component: Optional[str] = None
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class LogEntry:
+    """Structured log entry."""
+    timestamp: datetime
+    level: LogLevel
+    category: LogCategory
+    message: str
+    logger_name: str
+    context: LogContext
+    extra_data: Dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary for JSON serialization."""
+        return {
+            "timestamp": self.timestamp.isoformat(),
+            "level": self.level.name,
+            "category": self.category.value,
+            "message": self.message,
+            "logger": self.logger_name,
+            "context": {
+                "user_id": self.context.user_id,
+                "session_id": self.context.session_id,
+                "request_id": self.context.request_id,
+                "operation": self.context.operation,
+                "component": self.context.component,
+                "metadata": self.context.metadata,
+            },
+            "extra": self.extra_data,
+        }
+
+
+class ColoredFormatter(logging.Formatter):
+    """Colored log formatter for console output."""
+
+    COLORS = {
+        'TRACE': '\033[90m',      # Dark gray
+        'DEBUG': '\033[36m',      # Cyan
+        'INFO': '\033[32m',       # Green
+        'WARNING': '\033[33m',    # Yellow
+        'ERROR': '\033[31m',      # Red
+        'CRITICAL': '\033[35m',   # Magenta
+        'SECURITY': '\033[91m',   # Bright red
+        'AUDIT': '\033[94m',      # Bright blue
+    }
+    RESET = '\033[0m'
+
     def format(self, record):
-        """Format log record with ASCII-only characters."""
-        # Get timestamp
-        timestamp = datetime.fromtimestamp(record.created).strftime('%Y-%m-%d %H:%M:%S')
-        
-        # Get level with padding
-        level = record.levelname.ljust(8)
-        
-        # Get category if available
-        category = getattr(record, 'category', 'GENERAL').ljust(12)
-        
-        # Get module name
-        module = record.name.split('.')[-1].ljust(15)
-        
-        # Clean message (remove unicode)
-        message = str(record.getMessage())
-        # Replace common unicode characters with ASCII equivalents
-        message = message.encode('ascii', errors='replace').decode('ascii')
-        message = message.replace('?', '?')  # Replace replacement character
-        
-        # Format the log line
-        log_line = f"{timestamp} | {level} | {category} | {module} | {message}"
-        
-        # Add exception info if present
-        if record.exc_info:
-            exc_text = self.formatException(record.exc_info)
-            # Clean exception text
-            exc_text = exc_text.encode('ascii', errors='replace').decode('ascii')
-            log_line += f"\n{exc_text}"
-        
-        return log_line
+        if hasattr(record, 'levelname') and record.levelname in self.COLORS:
+            record.levelname = f"{self.COLORS[record.levelname]}{record.levelname}{self.RESET}"
+        return super().format(record)
+
+
+class StructuredFormatter(logging.Formatter):
+    """JSON structured log formatter."""
+
+    def format(self, record):
+        log_entry = {
+            "timestamp": datetime.fromtimestamp(record.created).isoformat(),
+            "level": record.levelname,
+            "logger": record.name,
+            "message": record.getMessage(),
+            "module": record.module,
+            "function": record.funcName,
+            "line": record.lineno,
+        }
+
+        # Add extra fields
+        if hasattr(record, 'context'):
+            context = getattr(record, 'context', None)
+            if context and hasattr(context, '__dataclass_fields__'):
+                log_entry["context"] = asdict(context)  # type: ignore
+            else:
+                log_entry["context"] = context
+        if hasattr(record, 'category'):
+            log_entry["category"] = getattr(record, 'category', None)
+        if hasattr(record, 'extra_data'):
+            log_entry["extra"] = getattr(record, 'extra_data', None)
+
+        return json.dumps(log_entry)
+
+
+class PerformanceTracker:
+    """Performance tracking and metrics."""
+
+    def __init__(self):
+        self.metrics: Dict[str, List[float]] = {}
+        self.counters: Dict[str, int] = {}
+        self.lock = threading.Lock()
+
+    def record_timing(self, operation: str, duration: float):
+        """Record timing metric."""
+        with self.lock:
+            if operation not in self.metrics:
+                self.metrics[operation] = []
+            self.metrics[operation].append(duration)
+
+            # Keep only last 1000 entries
+            if len(self.metrics[operation]) > 1000:
+                self.metrics[operation] = self.metrics[operation][-1000:]
+
+    def increment_counter(self, name: str, value: int = 1):
+        """Increment counter metric."""
+        with self.lock:
+            self.counters[name] = self.counters.get(name, 0) + value
+
+    def get_stats(self, operation: str) -> Dict[str, Any]:
+        """Get statistics for an operation."""
+        with self.lock:
+            if operation not in self.metrics:
+                return {}
+
+            timings = self.metrics[operation]
+            if not timings:
+                return {}
+
+            return {
+                "count": len(timings),
+                "avg": sum(timings) / len(timings),
+                "min": min(timings),
+                "max": max(timings),
+                "total": sum(timings),
+            }
+
+
+class LogBuffer:
+    """Thread-safe log buffer for real-time streaming."""
+
+    def __init__(self, max_size: int = 10000):
+        self.max_size = max_size
+        self.entries: List[LogEntry] = []
+        self.lock = threading.Lock()
+        self.subscribers: List[Callable[[LogEntry], None]] = []
+
+    def add_entry(self, entry: LogEntry):
+        """Add log entry to buffer."""
+        with self.lock:
+            self.entries.append(entry)
+            if len(self.entries) > self.max_size:
+                self.entries = self.entries[-self.max_size:]
+
+        # Notify subscribers
+        for subscriber in self.subscribers:
+            try:
+                subscriber(entry)
+            except Exception:
+                # Don't let subscriber errors break logging
+                pass
+
+    def get_recent(self, count: int = 100) -> List[LogEntry]:
+        """Get recent log entries."""
+        with self.lock:
+            return self.entries[-count:] if self.entries else []
+
+    def subscribe(self, callback: Callable[[LogEntry], None]):
+        """Subscribe to new log entries."""
+        self.subscribers.append(callback)
+
+    def unsubscribe(self, callback: Callable[[LogEntry], None]):
+        """Unsubscribe from log entries."""
+        if callback in self.subscribers:
+            self.subscribers.remove(callback)
+
+
+class PerformanceTimer:
+    """Context manager for performance timing."""
+
+    def __init__(self, logger, operation: str, **kwargs):
+        self.logger = logger
+        self.operation = operation
+        self.kwargs = kwargs
+        self.start_time = None
+
+    def __enter__(self):
+        self.start_time = time.time()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.start_time is not None:
+            duration = time.time() - self.start_time
+            self.logger.log_performance(self.operation, duration, **self.kwargs)
+
 
 class UnifiedLogger:
-    """Unified logging system for PlexiChat."""
-        def __init__(self, name: str = "plexichat"):
+    """
+    Unified Logger - SINGLE SOURCE OF TRUTH
+
+    Consolidates all logging functionality from multiple systems.
+    """
+
+    def __init__(self, name: str, manager=None):
         self.name = name
+        self.manager = manager
         self.logger = logging.getLogger(name)
-        self.logger.setLevel(logging.DEBUG)
-        
-        # Prevent duplicate handlers
-        if self.logger.handlers:
-            self.logger.handlers.clear()
-        
-        # Setup handlers
-        self._setup_handlers()
-        
-        # Statistics
-        self.stats = {
-            "total_logs": 0,
-            "logs_by_level": {level.value: 0 for level in LogLevel},
-            "logs_by_category": {cat.value: 0 for cat in LogCategory},
-            "errors_count": 0,
-            "warnings_count": 0
-        }
-    
-    def _setup_handlers(self):
-        """Setup log handlers."""
-        # Create logs directory
-        log_dir = Path("data/logs")
-        log_dir.mkdir(parents=True, exist_ok=True)
-        
-        # Console handler
-        console_handler = logging.StreamHandler(sys.stdout)
-        console_handler.setLevel(logging.INFO)
-        console_formatter = ASCIIFormatter(include_colors=True)
-        console_handler.setFormatter(console_formatter)
-        self.logger.addHandler(console_handler)
-        
-        # File handler for all logs
-        file_handler = logging.handlers.RotatingFileHandler(
-            log_dir / "plexichat.log",
-            maxBytes=10*1024*1024,  # 10MB
-            backupCount=5,
-            encoding='ascii',
-            errors='replace'
-        )
-        file_handler.setLevel(logging.DEBUG)
-        file_formatter = ASCIIFormatter()
-        file_handler.setFormatter(file_formatter)
-        self.logger.addHandler(file_handler)
-        
-        # Error-only handler
-        error_handler = logging.handlers.RotatingFileHandler(
-            log_dir / "errors.log",
-            maxBytes=5*1024*1024,  # 5MB
-            backupCount=3,
-            encoding='ascii',
-            errors='replace'
-        )
-        error_handler.setLevel(logging.ERROR)
-        error_handler.setFormatter(file_formatter)
-        self.logger.addHandler(error_handler)
-        
-        # Security logs handler
-        security_handler = logging.handlers.RotatingFileHandler(
-            log_dir / "security.log",
-            maxBytes=5*1024*1024,  # 5MB
-            backupCount=10,  # Keep more security logs
-            encoding='ascii',
-            errors='replace'
-        )
-        security_handler.setLevel(logging.INFO)
-        security_handler.setFormatter(file_formatter)
-        security_handler.addFilter(lambda record: getattr(record, 'category', '') == 'SECURITY')
-        self.logger.addHandler(security_handler)
-    
-    def _log(self, level: LogLevel, message: str, category: LogCategory = LogCategory.SYSTEM, 
-            extra_data: Optional[Dict[str, Any]] = None, exc_info: bool = False):
+        self.context = LogContext()
+
+    def set_context(self, **kwargs):
+        """Set logging context."""
+        for key, value in kwargs.items():
+            if hasattr(self.context, key):
+                setattr(self.context, key, value)
+            else:
+                self.context.metadata[key] = value
+
+    def clear_context(self):
+        """Clear logging context."""
+        self.context = LogContext()
+
+    def _log(self, level: LogLevel, category: LogCategory, message: str, **kwargs):
         """Internal logging method."""
-        try:
-            # Update statistics
-            self.stats["total_logs"] += 1
-            self.stats["logs_by_level"][level.value] += 1
-            self.stats["logs_by_category"][category.value] += 1
-            
-            if level in [LogLevel.ERROR, LogLevel.CRITICAL]:
-                self.stats["errors_count"] += 1
-            elif level == LogLevel.WARNING:
-                self.stats["warnings_count"] += 1
-            
-            # Create log record
-            extra = {"category": category.value}
-            if extra_data:
-                # Convert extra data to ASCII-safe string
-                extra_str = json.dumps(extra_data, ensure_ascii=True, default=str)
-                message += f" | Data: {extra_str}"
-            
-            # Log the message
-            log_method = getattr(self.logger, level.value.lower())
-            log_method(message, extra=extra, exc_info=exc_info)
-            
-        except Exception as e:
-            # Fallback logging to stderr
-            print(f"LOGGING ERROR: {e}", file=sys.stderr)
-            print(f"Original message: {message}", file=sys.stderr)
-    
-    def debug(self, message: str, category: LogCategory = LogCategory.SYSTEM, 
-            extra_data: Optional[Dict[str, Any]] = None):
-        """Log debug message.
-        self._log(LogLevel.DEBUG, message, category, extra_data)
-    
-    def info(self, message: str, category: LogCategory = LogCategory.SYSTEM, 
-            extra_data: Optional[Dict[str, Any]] = None):
+        entry = LogEntry(
+            timestamp=datetime.now(),
+            level=level,
+            category=category,
+            message=message,
+            logger_name=self.name,
+            context=self.context,
+            extra_data=kwargs
+        )
+
+        # Add to buffer if manager exists
+        if self.manager and hasattr(self.manager, 'log_buffer'):
+            self.manager.log_buffer.add_entry(entry)
+
+        # Log to standard logger
+        log_level = getattr(logging, level.name, logging.INFO)
+        extra = {
+            'context': self.context,
+            'category': category.value,
+            'extra_data': kwargs
+        }
+        self.logger.log(log_level, message, extra=extra)
+
+    def trace(self, message: str, category: LogCategory = LogCategory.SYSTEM, **kwargs):
+        """Log trace message."""
+        self._log(LogLevel.TRACE, category, message, **kwargs)
+
+    def debug(self, message: str, category: LogCategory = LogCategory.SYSTEM, **kwargs):
+        """Log debug message."""
+        self._log(LogLevel.DEBUG, category, message, **kwargs)
+
+    def info(self, message: str, category: LogCategory = LogCategory.SYSTEM, **kwargs):
         """Log info message."""
-        self._log(LogLevel.INFO, message, category, extra_data)
-    
-    def warning(self, message: str, category: LogCategory = LogCategory.SYSTEM, 
-                extra_data: Optional[Dict[str, Any]] = None):
-        Log warning message."""
-        self._log(LogLevel.WARNING, message, category, extra_data)
-    
-    def error(self, message: str, category: LogCategory = LogCategory.SYSTEM, 
-            extra_data: Optional[Dict[str, Any]] = None, exc_info: bool = True):
-        """Log error message.
-        self._log(LogLevel.ERROR, message, category, extra_data, exc_info)
-    
-    def critical(self, message: str, category: LogCategory = LogCategory.SYSTEM, 
-                extra_data: Optional[Dict[str, Any]] = None, exc_info: bool = True):
+        self._log(LogLevel.INFO, category, message, **kwargs)
+
+    def warning(self, message: str, category: LogCategory = LogCategory.SYSTEM, **kwargs):
+        """Log warning message."""
+        self._log(LogLevel.WARNING, category, message, **kwargs)
+
+    def error(self, message: str, category: LogCategory = LogCategory.SYSTEM, **kwargs):
+        """Log error message."""
+        self._log(LogLevel.ERROR, category, message, **kwargs)
+
+    def critical(self, message: str, category: LogCategory = LogCategory.SYSTEM, **kwargs):
         """Log critical message."""
-        self._log(LogLevel.CRITICAL, message, category, extra_data, exc_info)
-    
-    def log_startup(self, component: str, status: str, details: Optional[str] = None):
-        Log startup information."""
-        message = f"STARTUP: {component} - {status}"
-        if details:
-            message += f" - {details}"
-        self.info(message, LogCategory.STARTUP)
-    
-    def log_security_event(self, event_type: str, details: Dict[str, Any]):
+        self._log(LogLevel.CRITICAL, category, message, **kwargs)
+
+    def security(self, message: str, **kwargs):
         """Log security event."""
-        message = f"SECURITY EVENT: {event_type}"
-        self.warning(message, LogCategory.SECURITY, details)
-    
-    def log_rate_limit_violation(self, client_id: str, strategy: str, limit: int, current: int):
-        """Log rate limit violation."""
-        message = f"RATE LIMIT VIOLATION: {strategy} - Client: {client_id} - {current}/{limit}"
-        self.warning(message, LogCategory.RATE_LIMIT, {
-            "client_id": client_id,
-            "strategy": strategy,
-            "limit": limit,
-            "current": current
-        })
-    
-    def log_ddos_event(self, ip: str, threat_level: str, action: str):
-        """Log DDoS event."""
-        message = f"DDOS EVENT: IP {ip} - Threat: {threat_level} - Action: {action}"
-        self.warning(message, LogCategory.DDOS, {
-            "ip": ip,
-            "threat_level": threat_level,
-            "action": action
-        })
-    
-    def log_api_request(self, method: str, path: str, status_code: int, 
-                    response_time: float, client_ip: str):
-        """Log API request."""
-        message = f"API: {method} {path} - {status_code} - {response_time:.3f}ms - {client_ip}"
-        level = LogLevel.INFO if status_code < 400 else LogLevel.WARNING
-        self._log(level, message, LogCategory.API, {
-            "method": method,
-            "path": path,
-            "status_code": status_code,
-            "response_time": response_time,
-            "client_ip": client_ip
-        })
-    
-    def log_performance_metric(self, metric_name: str, value: float, unit: str = ""):
+        self._log(LogLevel.SECURITY, LogCategory.SECURITY, message, **kwargs)
+
+    def audit(self, message: str, **kwargs):
+        """Log audit event."""
+        self._log(LogLevel.AUDIT, LogCategory.AUDIT, message, **kwargs)
+
+    def performance(self, operation: str, duration: float, **kwargs):
         """Log performance metric."""
-        message = f"PERFORMANCE: {metric_name} = {value}{unit}"
-        self.debug(message, LogCategory.PERFORMANCE, {
-            "metric": metric_name,
-            "value": value,
-            "unit": unit
-        })
-    
-    def get_stats(self) -> Dict[str, Any]:
-        """Get logging statistics.
-        return self.stats.copy()
-    
-    def flush(self):
-        """Flush all handlers."""
-        for handler in self.logger.handlers:
-            handler.flush()
+        message = f"Performance: {operation} took {duration:.3f}s"
+        self._log(LogLevel.INFO, LogCategory.PERFORMANCE, message, operation=operation, duration=duration, **kwargs)
 
-# Global logger instance
-_global_logger: Optional[UnifiedLogger] = None
+        # Record in performance tracker
+        if self.manager and hasattr(self.manager, 'performance_tracker'):
+            self.manager.performance_tracker.record_timing(operation, duration)
 
+    def request(self, method: str, path: str, status_code: int, duration: float, **kwargs):
+        """Log HTTP request."""
+        message = f"{method} {path} {status_code} ({duration:.3f}s)"
+        self._log(LogLevel.INFO, LogCategory.API, message, method=method, path=path, status_code=status_code, duration=duration, **kwargs)
+
+    def timer(self, operation: str, **kwargs):
+        """Get performance timer context manager."""
+        return PerformanceTimer(self, operation, **kwargs)
+
+    def log_performance(self, operation: str, duration: float, **kwargs):
+        """Log performance timing (for timer context manager)."""
+        self.performance(operation, duration, **kwargs)
+
+
+class CompressingRotatingFileHandler(logging.handlers.RotatingFileHandler):
+    """Rotating file handler that compresses old log files and manages cleanup."""
+
+    def __init__(self, filename, mode='a', maxBytes=0, backupCount=0, encoding=None, delay=False, log_dir=None):
+        super().__init__(filename, mode, maxBytes, backupCount, encoding, delay)
+        self.log_dir = Path(log_dir) if log_dir else Path(filename).parent
+
+    def doRollover(self):
+        """Perform rollover with compression."""
+        if self.stream:
+            self.stream.close()
+            self.stream = None  # type: ignore
+
+        if self.backupCount > 0:
+            for i in range(self.backupCount - 1, 0, -1):
+                sfn = f"{self.baseFilename}.{i}"
+                dfn = f"{self.baseFilename}.{i+1}"
+                if os.path.exists(sfn):
+                    if os.path.exists(dfn):
+                        os.remove(dfn)
+                    os.rename(sfn, dfn)
+
+            # Compress the current log file
+            dfn = f"{self.baseFilename}.1"
+            if os.path.exists(self.baseFilename):
+                # Compress to .gz
+                with open(self.baseFilename, 'rb') as f_in:
+                    with gzip.open(f"{dfn}.gz", 'wb') as f_out:
+                        f_out.writelines(f_in)
+                os.remove(self.baseFilename)
+
+                # Remove uncompressed backup if it exists
+                if os.path.exists(dfn):
+                    os.remove(dfn)
+
+        if not self.delay:
+            self.stream = self._open()
+
+
+class UnifiedLoggingManager:
+    """
+    Unified Logging Manager - SINGLE SOURCE OF TRUTH
+
+    Consolidates all logging management functionality.
+    """
+
+    def __init__(self):
+        self.config = get_config()
+        self.loggers: Dict[str, UnifiedLogger] = {}
+        self.log_buffer = LogBuffer(max_size=getattr(self.config.logging, 'buffer_size', 10000))
+        self.performance_tracker = PerformanceTracker()
+        self.handlers: List[logging.Handler] = []
+        self.alert_callbacks: List[Callable[[LogEntry], None]] = []
+
+        # Setup logging system
+        self._setup_logging_system()
+
+    def _setup_logging_system(self):
+        """Setup the unified logging system."""
+        try:
+            # Configure root logger
+            root_logger = logging.getLogger()
+            root_logger.setLevel(logging.NOTSET)  # Let handlers control levels
+            root_logger.handlers.clear()
+
+            # Setup console handler
+            if getattr(self.config.logging, 'console_enabled', True):
+                self._setup_console_handler()
+
+            # Setup file handler
+            if getattr(self.config.logging, 'file_enabled', True):
+                self._setup_file_handler()
+
+            # Setup structured logging handler
+            if getattr(self.config.logging, 'structured_enabled', True):
+                self._setup_structured_handler()
+
+            # Configure third-party loggers
+            self._configure_third_party_loggers()
+
+            logger.info("Unified logging system initialized")
+
+        except Exception as e:
+            print(f"Error setting up logging system: {e}")
+
+    def _setup_console_handler(self):
+        """Setup console logging handler."""
+        try:
+            console_handler = logging.StreamHandler(sys.stdout)
+
+            # Set level
+            level_name = getattr(self.config.logging, 'console_level', 'INFO')
+            level = getattr(logging, level_name.upper(), logging.INFO)
+            console_handler.setLevel(level)
+
+            # Set formatter
+            if getattr(self.config.logging, 'console_colors', True):
+                formatter = ColoredFormatter()
+                formatter = logging.Formatter('[%(asctime)s] [%(levelname)-8s] %(name)s: %(message)s')
+            else:
+                formatter = logging.Formatter('[%(asctime)s] [%(levelname)-8s] %(name)s: %(message)s')
+
+            console_handler.setFormatter(formatter)
+
+            # Add to root logger
+            logging.getLogger().addHandler(console_handler)
+            self.handlers.append(console_handler)
+
+        except Exception as e:
+            print(f"Error setting up console handler: {e}")
+
+    def _setup_file_handler(self):
+        """Setup file logging handler with compression and cleanup."""
+        try:
+            log_dir = Path(getattr(self.config.logging, 'directory', 'logs'))
+            log_dir.mkdir(exist_ok=True)
+
+            log_file = log_dir / 'plexichat.log'
+
+            # Use custom rotating file handler with compression
+            max_file_size = getattr(self.config.logging, 'max_file_size', 10*1024*1024)
+            backup_count = getattr(self.config.logging, 'backup_count', 5)
+
+            # Ensure values are integers
+            if isinstance(max_file_size, str):
+                max_file_size = int(max_file_size) if max_file_size.isdigit() else 10*1024*1024
+            if isinstance(backup_count, str):
+                backup_count = int(backup_count) if backup_count.isdigit() else 5
+
+            file_handler = CompressingRotatingFileHandler(
+                log_file,
+                maxBytes=max_file_size,
+                backupCount=backup_count,
+                log_dir=log_dir
+            )
+
+            # Set level
+            level_name = getattr(self.config.logging, 'file_level', 'INFO')
+            level = getattr(logging, level_name.upper(), logging.INFO)
+            file_handler.setLevel(level)
+
+            # Set formatter
+            formatter = logging.Formatter('[%(asctime)s] [%(levelname)-8s] [%(name)s:%(lineno)d] %(funcName)s() - %(message)s')
+            file_handler.setFormatter(formatter)
+
+            # Add to root logger
+            logging.getLogger().addHandler(file_handler)
+            self.handlers.append(file_handler)
+
+            # Schedule log cleanup
+            self._schedule_log_cleanup(log_dir)
+
+        except Exception as e:
+            print(f"Error setting up file handler: {e}")
+
+    def _schedule_log_cleanup(self, log_dir: Path):
+        """Schedule periodic log cleanup."""
+        try:
+            import threading
+            import time
+
+            def cleanup_logs():
+                while True:
+                    try:
+                        self._cleanup_old_logs(log_dir)
+                        time.sleep(24 * 3600)  # Run daily
+                    except Exception as e:
+                        logger.error(f"Error in log cleanup: {e}")
+
+            cleanup_thread = threading.Thread(target=cleanup_logs, daemon=True)
+            cleanup_thread.start()
+
+        except Exception as e:
+            logger.error(f"Error scheduling log cleanup: {e}")
+
+    def _cleanup_old_logs(self, log_dir: Path):
+        """Clean up old log files."""
+        try:
+            # Get configuration values with fallbacks
+            max_age_days = 30
+            max_total_size_mb = 1000
+
+            try:
+                max_age_days = getattr(self.config.logging, 'max_age_days', 30)
+                max_total_size_mb = getattr(self.config.logging, 'max_total_size_mb', 1000)
+            except AttributeError:
+                # Fallback to environment variables or defaults
+                max_age_days = int(os.environ.get('LOG_MAX_AGE_DAYS', '30'))
+                max_total_size_mb = int(os.environ.get('LOG_MAX_TOTAL_SIZE_MB', '1000'))
+
+            current_time = time.time()
+            cutoff_time = current_time - (max_age_days * 24 * 3600)
+
+            log_files = []
+            total_size = 0
+
+            # Collect all log files with their info
+            for log_file in log_dir.glob("*.log*"):
+                if log_file.is_file():
+                    stat = log_file.stat()
+                    log_files.append({
+                        'path': log_file,
+                        'mtime': stat.st_mtime,
+                        'size': stat.st_size
+                    })
+                    total_size += stat.st_size
+
+            # Sort by modification time (oldest first)
+            log_files.sort(key=lambda x: x['mtime'])
+
+            # Remove files older than max_age_days
+            for log_info in log_files[:]:
+                if log_info['mtime'] < cutoff_time:
+                    try:
+                        log_info['path'].unlink()
+                        total_size -= log_info['size']
+                        log_files.remove(log_info)
+                        logger.info(f"Deleted old log file: {log_info['path']}")
+                    except Exception as e:
+                        logger.error(f"Error deleting log file {log_info['path']}: {e}")
+
+            # Remove files if total size exceeds limit
+            max_total_size_bytes = max_total_size_mb * 1024 * 1024
+            while total_size > max_total_size_bytes and log_files:
+                oldest = log_files.pop(0)
+                try:
+                    oldest['path'].unlink()
+                    total_size -= oldest['size']
+                    logger.info(f"Deleted log file due to size limit: {oldest['path']}")
+                except Exception as e:
+                    logger.error(f"Error deleting log file {oldest['path']}: {e}")
+
+        except Exception as e:
+            logger.error(f"Error in log cleanup: {e}")
+
+    def _setup_structured_handler(self):
+        """Setup structured JSON logging handler."""
+        try:
+            log_dir = Path(getattr(self.config.logging, 'directory', 'logs'))
+            log_dir.mkdir(exist_ok=True)
+
+            structured_file = log_dir / 'plexichat-structured.log'
+
+            from logging.handlers import RotatingFileHandler
+
+            max_file_size = getattr(self.config.logging, 'max_file_size', 10*1024*1024)
+            backup_count = getattr(self.config.logging, 'backup_count', 5)
+
+            # Ensure values are integers
+            if isinstance(max_file_size, str):
+                max_file_size = int(max_file_size) if max_file_size.isdigit() else 10*1024*1024
+            if isinstance(backup_count, str):
+                backup_count = int(backup_count) if backup_count.isdigit() else 5
+
+            structured_handler = RotatingFileHandler(
+                structured_file,
+                maxBytes=max_file_size,
+                backupCount=backup_count
+            )
+
+            # Set level
+            level_name = getattr(self.config.logging, 'structured_level', 'INFO')
+            level = getattr(logging, level_name.upper(), logging.INFO)
+            structured_handler.setLevel(level)
+
+            # Set structured formatter
+            structured_handler.setFormatter(StructuredFormatter())
+
+            # Add to root logger
+            logging.getLogger().addHandler(structured_handler)
+            self.handlers.append(structured_handler)
+
+        except Exception as e:
+            print(f"Error setting up structured handler: {e}")
+
+    def _configure_third_party_loggers(self):
+        """Configure third-party library loggers."""
+        try:
+            third_party_loggers = [
+                "urllib3", "requests", "asyncio", "websockets",
+                "sqlalchemy", "uvicorn", "fastapi"
+            ]
+
+            level_name = getattr(self.config.logging, 'third_party_level', 'WARNING')
+            level = getattr(logging, level_name.upper(), logging.WARNING)
+
+            for logger_name in third_party_loggers:
+                third_party_logger = logging.getLogger(logger_name)
+                third_party_logger.setLevel(level)
+
+        except Exception as e:
+            print(f"Error configuring third-party loggers: {e}")
+
+    def get_logger(self, name: str) -> UnifiedLogger:
+        """Get a unified logger instance."""
+        if name not in self.loggers:
+            self.loggers[name] = UnifiedLogger(name, self)
+        return self.loggers[name]
+
+    def add_alert_callback(self, callback: Callable[[LogEntry], None]):
+        """Add alert callback for critical events."""
+        self.alert_callbacks.append(callback)
+
+    def remove_alert_callback(self, callback: Callable[[LogEntry], None]):
+        """Remove alert callback."""
+        if callback in self.alert_callbacks:
+            self.alert_callbacks.remove(callback)
+
+    def get_performance_stats(self) -> Dict[str, Any]:
+        """Get performance statistics."""
+        return {
+            "operations": {
+                op: self.performance_tracker.get_stats(op)
+                for op in self.performance_tracker.metrics.keys()
+            },
+            "counters": dict(self.performance_tracker.counters)
+        }
+
+    def get_recent_logs(self, count: int = 100) -> List[Dict[str, Any]]:
+        """Get recent log entries as dictionaries."""
+        entries = self.log_buffer.get_recent(count)
+        return [entry.to_dict() for entry in entries]
+
+    def flush_logs(self):
+        """Flush all log handlers."""
+        for handler in self.handlers:
+            try:
+                handler.flush()
+            except Exception as e:
+                print(f"Error flushing handler: {e}")
+
+    def shutdown(self):
+        """Shutdown logging system."""
+        try:
+            self.flush_logs()
+
+            # Close all handlers
+            for handler in self.handlers:
+                try:
+                    handler.close()
+                except Exception as e:
+                    print(f"Error closing handler: {e}")
+
+            # Clear handlers
+            logging.getLogger().handlers.clear()
+            self.handlers.clear()
+
+            logger.info("Unified logging system shut down")
+
+        except Exception as e:
+            print(f"Error shutting down logging system: {e}")
+
+
+# Global unified logging manager instance
+unified_logging_manager = UnifiedLoggingManager()
+
+# Backward compatibility functions
 def get_logger(name: str = "plexichat") -> UnifiedLogger:
-    """Get the global logger instance."""
-    global _global_logger
-    if _global_logger is None:
-        _global_logger = UnifiedLogger(name)
-    return _global_logger
+    """Get unified logger instance."""
+    return unified_logging_manager.get_logger(name)
 
-def setup_logging(log_level: str = "INFO", log_dir: str = "data/logs"):
-    """Setup logging system."""
-    # Create log directory
-    Path(log_dir).mkdir(parents=True, exist_ok=True)
-    
-    # Initialize global logger
-    logger = get_logger()
-    logger.info("Logging system initialized", LogCategory.STARTUP, {
-        "log_level": log_level,
-        "log_dir": log_dir
-    })
-    
+def get_logging_manager() -> UnifiedLoggingManager:
+    """Get the global logging manager instance."""
+    return unified_logging_manager
+
+def setup_module_logging(module_name: str, level: str = "INFO") -> UnifiedLogger:
+    """Setup logging for a specific module."""
+    logger = get_logger(module_name)
+    # Set level on underlying logger
+    log_level = getattr(logging, level.upper(), logging.INFO)
+    logger.logger.setLevel(log_level)
     return logger
+
+def log_performance(operation: str, duration: float, **kwargs):
+    """Log performance metric (backward compatibility)."""
+    logger = get_logger("plexichat.performance")
+    logger.performance(operation, duration, **kwargs)
+
+def log_request(method: str, path: str, status_code: int, duration: float, **kwargs):
+    """Log HTTP request (backward compatibility)."""
+    logger = get_logger("plexichat.access")
+    logger.request(method, path, status_code, duration, **kwargs)
+
+def log_error(error: Exception, context: str = "", **kwargs):
+    """Log error with context (backward compatibility)."""
+    logger = get_logger("plexichat.error")
+    logger.error(f"{context}: {str(error)}", error_type=type(error).__name__, **kwargs)
+
+def log_audit_event(event_type: str, user_id: Optional[str], details: Dict[str, Any]):
+    """Log audit event (backward compatibility)."""
+    logger = get_logger("plexichat.audit")
+    logger.audit(f"Audit: {event_type}", user_id=user_id, event_type=event_type, details=details)
+
+def timer(operation: str, **kwargs):
+    """Decorator for performance timing (backward compatibility)."""
+    def decorator(func):
+        def wrapper(*args, **func_kwargs):
+            logger = get_logger("plexichat.performance")
+            with logger.timer(operation, **kwargs):
+                return func(*args, **func_kwargs)
+        return wrapper
+    return decorator
+
+def flush_logs():
+    """Flush all logs (backward compatibility)."""
+    unified_logging_manager.flush_logs()
+
+# Backward compatibility aliases
+logging_manager = unified_logging_manager
+LoggingManager = UnifiedLoggingManager
+
+__all__ = [
+    # Main classes
+    'UnifiedLoggingManager',
+    'unified_logging_manager',
+    'UnifiedLogger',
+
+    # Enums and data classes
+    'LogLevel',
+    'LogCategory',
+    'LogContext',
+    'LogEntry',
+
+    # Formatters and utilities
+    'ColoredFormatter',
+    'StructuredFormatter',
+    'PerformanceTracker',
+    'LogBuffer',
+    'PerformanceTimer',
+
+    # Main functions
+    'get_logger',
+    'get_logging_manager',
+    'setup_module_logging',
+
+    # Backward compatibility functions
+    'log_performance',
+    'log_request',
+    'log_error',
+    'log_audit_event',
+    'timer',
+    'flush_logs',
+
+    # Backward compatibility aliases
+    'logging_manager',
+    'LoggingManager',
+]

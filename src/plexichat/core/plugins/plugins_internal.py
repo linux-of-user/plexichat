@@ -1,99 +1,121 @@
 """
-PlexiChat Plugins Internal API - SINGLE SOURCE OF TRUTH
+Legacy plugin system for PlexiChat.
 
-This file provides the internal API that existing plugins expect.
-It bridges the gap between the old plugin system and the new unified system.
-
-GENERATED AUTOMATICALLY - DO NOT EDIT MANUALLY
-
+This module provides backward compatibility for existing plugins
+while internally using the new unified plugin system.
+"""
 
 import logging
 from typing import Any, Dict, List, Optional, Callable
 from abc import ABC, abstractmethod
 
+# Try to import components individually to handle missing modules gracefully
 try:
-    from .unified_plugin_manager import (
-        PluginInterface as UnifiedPluginInterface,
-        PluginMetadata,
-        PluginInfo,
-        PluginType,
-        SecurityLevel,
-        PluginStatus,
-        unified_plugin_manager
-    )
-    from .sdk import EnhancedPluginAPI, EnhancedPluginConfig, EnhancedBasePlugin
+    from .unified_plugin_manager import unified_plugin_manager
+except ImportError:
+    unified_plugin_manager = None
+
+try:
+    from .sdk import EnhancedPluginAPI, EnhancedPluginConfig
+except ImportError:
+    EnhancedPluginAPI = None
+    EnhancedPluginConfig = None
+
+try:
     from ..logging import get_logger
-    from ..config.manager import get_config
-    
     logger = get_logger(__name__)
-    config = get_config()
 except ImportError:
     logger = logging.getLogger(__name__)
+
+try:
+    from ..config.manager import get_config
+    config = get_config()
+except ImportError:
     config = {}
-    UnifiedPluginInterface = object
-    PluginMetadata = object
-    PluginInfo = object
-    PluginType = None
-    SecurityLevel = None
-    PluginStatus = None
-    unified_plugin_manager = None
+
+# Create placeholder classes for compatibility
+class PluginMetadata:
+    """Placeholder for plugin metadata."""
+    pass
+
+class PluginInfo:
+    """Placeholder for plugin info."""
+    pass
+
+class PluginType:
+    """Placeholder for plugin type."""
+    pass
+
+class SecurityLevel:
+    """Placeholder for security level."""
+    pass
+
+class PluginStatus:
+    """Placeholder for plugin status."""
+    pass
 
 
 class PluginInterface(ABC):
-    """
-    Legacy plugin interface for backward compatibility.
+    """Legacy plugin interface for backward compatibility."""
     
-    This class provides the interface that existing plugins expect,
-    while internally using the new unified plugin system.
-    """
-        def __init__(self, name: str, version: str = "1.0.0", description: str = ""):
+    def __init__(self, name: str, version: str = "1.0.0", description: str = ""):
         self.name = name
         self.version = version
         self.description = description
-        self.logger = logging.getLogger(f"plugin.{name}")
         self._initialized = False
+        self._config = None
         self._api = None
         
-        # Create enhanced config for internal use
-        self._config = EnhancedPluginConfig(
-            name=name,
-            version=version,
-            description=description,
-            author="Unknown",
-            plugin_type="feature",
-            security_level="sandboxed"
-        )
-        
-        # Initialize enhanced API
+        # Create enhanced config for internal use (if available)
         try:
-            self._api = EnhancedPluginAPI(name, self._config)
+            if EnhancedPluginConfig is not None:
+                self._config = EnhancedPluginConfig(
+                    name=name,
+                    version=version,
+                    description=description,
+                    author="Unknown",
+                    plugin_type="feature",
+                    security_level="sandboxed"
+                )
+            else:
+                self._config = None
+        except Exception:
+            self._config = None
+        
+        # Initialize enhanced API (if available)
+        try:
+            if EnhancedPluginAPI is not None and self._config:
+                self._api = EnhancedPluginAPI(name, self._config)
+            else:
+                self._api = None
         except Exception as e:
             logger.error(f"Failed to initialize enhanced API for plugin {name}: {e}")
+            self._api = None
     
     @abstractmethod
     async def initialize(self) -> bool:
-        """Initialize the plugin.
+        """Initialize the plugin."""
         pass
     
     async def cleanup(self):
         """Cleanup plugin resources."""
-        pass
+        self._initialized = False
     
     def get_info(self) -> Dict[str, Any]:
-        Get plugin information."""
+        """Get plugin information."""
         return {
             "name": self.name,
             "version": self.version,
             "description": self.description,
             "initialized": self._initialized
-        }}
+        }
     
-    # Provide access to enhanced API features
     @property
-    def api(self) -> Optional[EnhancedPluginAPI]:
-        """Get access to enhanced plugin API.
+    def api(self) -> Optional[Any]:
+        """Get access to enhanced plugin API."""
         return self._api
     
+    # Legacy cache methods (wrappers)
     async def cache_get(self, key: str) -> Optional[Any]:
         """Get value from cache (legacy wrapper)."""
         if self._api:
@@ -101,32 +123,22 @@ class PluginInterface(ABC):
         return None
     
     async def cache_set(self, key: str, value: Any, ttl: Optional[int] = None) -> bool:
-        Set value in cache (legacy wrapper)."""
+        """Set value in cache (legacy wrapper)."""
         if self._api:
             return await self._api.cache_set(key, value, ttl)
         return False
     
     async def get_config(self, key: str, default: Any = None) -> Any:
-        """Get configuration value (legacy wrapper).
+        """Get configuration value (legacy wrapper)."""
         if self._api:
             return await self._api.get_config(key, default)
         return default
-    
-    async def set_config(self, key: str, value: Any) -> bool:
-        """Set configuration value (legacy wrapper)."""
-        if self._api:
-            return await self._api.set_config(key, value)
-        return False
 
 
 class PluginManager:
+    """Legacy plugin manager for backward compatibility."""
     
-    Legacy plugin manager for backward compatibility.
-    
-    This class provides the interface that existing code expects,
-    while internally using the new unified plugin system.
-    """
-        def __init__(self):
+    def __init__(self):
         self.plugins = {}
         self.logger = logging.getLogger("plugin_manager")
         self._unified_manager = unified_plugin_manager
@@ -152,10 +164,10 @@ class PluginManager:
             return False
     
     async def get_plugin(self, plugin_name: str) -> Optional[PluginInterface]:
-        """Get a loaded plugin by name."""
+        """Get a plugin by name."""
         try:
-            if self._unified_manager and plugin_name in self._unified_manager.loaded_plugins:
-                return self._unified_manager.loaded_plugins[plugin_name]
+            if self._unified_manager:
+                return await self._unified_manager.get_plugin(plugin_name)
             return None
         except Exception as e:
             self.logger.error(f"Failed to get plugin {plugin_name}: {e}")
@@ -165,18 +177,17 @@ class PluginManager:
         """Get all loaded plugins."""
         try:
             if self._unified_manager:
-                return self._unified_manager.loaded_plugins
-            return {}}
+                return self._unified_manager.get_all_plugins()
+            return {}
         except Exception as e:
             self.logger.error(f"Failed to get all plugins: {e}")
-            return {}}
+            return {}
     
     async def discover_plugins(self) -> List[str]:
         """Discover available plugins."""
         try:
             if self._unified_manager:
-                await self._unified_manager.discover_plugins()
-                return list(self._unified_manager.plugin_info.keys())
+                return await self._unified_manager.discover_plugins()
             return []
         except Exception as e:
             self.logger.error(f"Failed to discover plugins: {e}")
@@ -186,21 +197,20 @@ class PluginManager:
         """Reload a plugin."""
         try:
             if self._unified_manager:
-                await self._unified_manager.unload_plugin(plugin_name)
-                return await self._unified_manager.load_plugin(plugin_name, force_reload=True)
+                return await self._unified_manager.reload_plugin(plugin_name)
             return False
         except Exception as e:
             self.logger.error(f"Failed to reload plugin {plugin_name}: {e}")
             return False
 
 
-# Create global instances for backward compatibility
+# Global plugin manager instance
 plugin_manager = PluginManager()
 
 
 # Legacy functions for backward compatibility
 async def load_plugin(plugin_name: str) -> bool:
-    """Load a plugin (legacy function).
+    """Load a plugin (legacy function)."""
     return await plugin_manager.load_plugin(plugin_name)
 
 
@@ -210,12 +220,12 @@ async def unload_plugin(plugin_name: str) -> bool:
 
 
 async def get_plugin(plugin_name: str) -> Optional[PluginInterface]:
-    Get a plugin (legacy function)."""
+    """Get a plugin (legacy function)."""
     return await plugin_manager.get_plugin(plugin_name)
 
 
 def get_all_plugins() -> Dict[str, PluginInterface]:
-    """Get all plugins (legacy function).
+    """Get all plugins (legacy function)."""
     return plugin_manager.get_all_plugins()
 
 
@@ -225,7 +235,7 @@ async def discover_plugins() -> List[str]:
 
 
 async def reload_plugin(plugin_name: str) -> bool:
-    Reload a plugin (legacy function)."""
+    """Reload a plugin (legacy function)."""
     return await plugin_manager.reload_plugin(plugin_name)
 
 

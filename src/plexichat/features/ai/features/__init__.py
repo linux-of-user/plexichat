@@ -27,7 +27,7 @@ _ai_features_service = None
 
 
 def get_ai_features_service() -> AIPoweredFeaturesService:
-    """Get the global AI features service instance.
+    """Get the global AI features service instance."""
     global _ai_features_service
     if _ai_features_service is None:
         _ai_features_service = AIPoweredFeaturesService()

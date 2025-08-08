@@ -1,13 +1,13 @@
 """
-import threading
 PlexiChat Event Manager
 
 Event management with threading and performance optimization.
-
+"""
 
 import asyncio
 import json
 import logging
+import threading
 import time
 from datetime import datetime
 from enum import Enum
@@ -16,12 +16,12 @@ from dataclasses import dataclass
 from uuid import uuid4
 
 try:
-    from plexichat.core.database.manager import database_manager
+    from plexichat.core.database.manager import database_manager  # type: ignore
 except ImportError:
     database_manager = None
 
 try:
-    from plexichat.core.threading.thread_manager import async_thread_manager, submit_task
+    from plexichat.core.threading.thread_manager import async_thread_manager, submit_task  # type: ignore
 except ImportError:
     async_thread_manager = None
     submit_task = None
@@ -30,8 +30,8 @@ except ImportError:
 track_event = None
 
 try:
-    from plexichat.infrastructure.performance.optimization_engine import PerformanceOptimizationEngine
-    from plexichat.core.logging_advanced.performance_logger import get_performance_logger
+    from plexichat.core.performance.optimization_engine import PerformanceOptimizationEngine  # type: ignore
+    from plexichat.core.logging_advanced.performance_logger import get_performance_logger  # type: ignore
 except ImportError:
     PerformanceOptimizationEngine = None
     get_performance_logger = None
@@ -39,9 +39,12 @@ except ImportError:
 logger = logging.getLogger(__name__)
 performance_logger = get_performance_logger() if get_performance_logger else None
 
+# Set up logger
+logger = logging.getLogger(__name__)
+
 class EventPriority(Enum):
     """Event priority levels."""
-        LOW = "low"
+    LOW = "low"
     NORMAL = "normal"
     HIGH = "high"
     CRITICAL = "critical"
@@ -69,8 +72,9 @@ class EventHandler:
     filter_func: Optional[Callable] = None
 
 class EventManager:
-    Event manager with threading support."""
-        def __init__(self):
+    """Event manager with threading support."""
+
+    def __init__(self):
         self.db_manager = database_manager
         self.performance_logger = performance_logger
         self.async_thread_manager = async_thread_manager
@@ -267,7 +271,7 @@ class EventManager:
             raise
 
     def _get_priority_value(self, priority: EventPriority) -> int:
-        """Get numeric priority value (lower = higher priority).
+        """Get numeric priority value (lower = higher priority)."""
         priority_map = {
             EventPriority.CRITICAL: 0,
             EventPriority.HIGH: 1,
@@ -340,7 +344,7 @@ class EventManager:
         try:
             if self.db_manager:
                 query = """
-                    INSERT INTO events ()
+                    INSERT INTO events (
                         event_id, event_type, source, timestamp, priority,
                         data, metadata, processed, results
                     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)

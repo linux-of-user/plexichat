@@ -1,7 +1,7 @@
 """
 PlexiChat Core Utilities
 Consolidated utility functions for the entire application.
-
+"""
 
 import hashlib
 import json
@@ -18,14 +18,15 @@ logger = logging.getLogger(__name__)
 
 class StringUtils:
     """String utility functions."""
-        @staticmethod
+
+    @staticmethod
     def generate_id(prefix: str = "") -> str:
         """Generate a unique ID."""
         return f"{prefix}{uuid.uuid4().hex[:8]}" if prefix else uuid.uuid4().hex[:12]
-    
+
     @staticmethod
     def sanitize_string(text: str, max_length: int = 255) -> str:
-        """Sanitize and truncate string.
+        """Sanitize and truncate string."""
         if not isinstance(text, str):
             text = str(text)
         # Remove control characters and limit length
@@ -42,15 +43,16 @@ class StringUtils:
 
 
 class DateTimeUtils:
-    """DateTime utility functions.
-        @staticmethod
+    """DateTime utility functions."""
+
+    @staticmethod
     def current_timestamp() -> str:
         """Get current timestamp as ISO string."""
         return datetime.now(timezone.utc).isoformat()
-    
+
     @staticmethod
     def timestamp_to_datetime(timestamp: Union[str, float, int]) -> datetime:
-        Convert timestamp to datetime."""
+        """Convert timestamp to datetime."""
         if isinstance(timestamp, str):
             return datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
         return datetime.fromtimestamp(timestamp, tz=timezone.utc)
@@ -70,21 +72,21 @@ class DateTimeUtils:
 
 class HashUtils:
     """Hashing utility functions."""
-        @staticmethod
+    @staticmethod
     def hash_string(text: str, algorithm: str = "sha256") -> str:
-        """Hash a string.
+        """Hash a string."""
         hasher = hashlib.new(algorithm)
         hasher.update(text.encode('utf-8'))
         return hasher.hexdigest()
-    
+
     @staticmethod
     def generate_token(length: int = 32) -> str:
         """Generate a secure random token."""
         return secrets.token_urlsafe(length)
-    
+
     @staticmethod
     def hash_password(password: str) -> str:
-        Hash a password with salt."""
+        """Hash a password with salt."""
         try:
             import bcrypt
             return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
@@ -108,18 +110,19 @@ class HashUtils:
 
 
 class JsonUtils:
-    """JSON utility functions.
-        @staticmethod
+    """JSON utility functions."""
+
+    @staticmethod
     def safe_loads(text: str, default: Any = None) -> Any:
         """Safely load JSON with fallback."""
         try:
             return json.loads(text)
         except (json.JSONDecodeError, TypeError):
             return default
-    
+
     @staticmethod
     def safe_dumps(obj: Any, default: str = "{}") -> str:
-        """Safely dump JSON with fallback.
+        """Safely dump JSON with fallback."""
         try:
             return json.dumps(obj, default=str, ensure_ascii=False)
         except (TypeError, ValueError):
@@ -128,16 +131,17 @@ class JsonUtils:
 
 class FileUtils:
     """File utility functions."""
-        @staticmethod
+
+    @staticmethod
     def ensure_dir(path: Union[str, Path]) -> Path:
-        Ensure directory exists."""
+        """Ensure directory exists."""
         path = Path(path)
         path.mkdir(parents=True, exist_ok=True)
         return path
-    
+
     @staticmethod
     def safe_read(path: Union[str, Path], default: str = "") -> str:
-        """Safely read file with fallback.
+        """Safely read file with fallback."""
         try:
             return Path(path).read_text(encoding='utf-8')
         except (FileNotFoundError, PermissionError, UnicodeDecodeError):
@@ -156,17 +160,19 @@ class FileUtils:
     
     @staticmethod
     def format_bytes(bytes_count: int) -> str:
-        Format bytes in human readable format."""
+        """Format bytes in human readable format."""
+        size = float(bytes_count)
         for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
-            if bytes_count < 1024.0:
-                return f"{bytes_count:.1f}{unit}"
-            bytes_count /= 1024.0
-        return f"{bytes_count:.1f}PB"
+            if size < 1024.0:
+                return f"{size:.1f}{unit}"
+            size /= 1024.0
+        return f"{size:.1f}PB"
 
 
 class ValidationUtils:
-    """Validation utility functions.
-        @staticmethod
+    """Validation utility functions."""
+
+    @staticmethod
     def safe_int(value: Any, default: int = 0) -> int:
         """Safely convert to int."""
         try:
@@ -176,7 +182,7 @@ class ValidationUtils:
     
     @staticmethod
     def safe_float(value: Any, default: float = 0.0) -> float:
-        Safely convert to float."""
+        """Safely convert to float."""
         try:
             return float(value)
         except (ValueError, TypeError):
@@ -184,7 +190,7 @@ class ValidationUtils:
     
     @staticmethod
     def safe_bool(value: Any, default: bool = False) -> bool:
-        """Safely convert to bool.
+        """Safely convert to bool."""
         if isinstance(value, bool):
             return value
         if isinstance(value, str):

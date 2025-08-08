@@ -5,12 +5,13 @@ from typing import Any, Dict, Optional
 PlexiChat Authentication Exceptions
 
 Custom exception classes for authentication and authorization errors.
-
+"""
 
 
 class AuthenticationError(Exception):
     """Base authentication error."""
-        def __init__(
+
+    def __init__(
         self, message: str, error_code: Optional[str] = None, details: Optional[Dict[str, Any]] = None
     ):
         super().__init__(message)
@@ -21,7 +22,8 @@ class AuthenticationError(Exception):
 
 class AuthorizationError(Exception):
     """Authorization/permission error."""
-        def __init__(
+
+    def __init__(
         self, message: str, error_code: Optional[str] = None, required_level: Optional[str] = None
     ):
         super().__init__(message)
@@ -32,7 +34,8 @@ class AuthorizationError(Exception):
 
 class MFAError(Exception):
     """Multi-factor authentication error."""
-        def __init__(
+
+    def __init__(
         self, message: str, error_code: Optional[str] = None, available_methods: Optional[list] = None
     ):
         super().__init__(message)
@@ -43,7 +46,8 @@ class MFAError(Exception):
 
 class TokenError(Exception):
     """Token-related error."""
-        def __init__(self, message: str, error_code: Optional[str] = None, token_type: Optional[str] = None):
+
+    def __init__(self, message: str, error_code: Optional[str] = None, token_type: Optional[str] = None):
         super().__init__(message)
         self.message = message
         self.error_code = error_code or "TOKEN_ERROR"
@@ -52,7 +56,8 @@ class TokenError(Exception):
 
 class SessionError(Exception):
     """Session-related error."""
-        def __init__(self, message: str, error_code: Optional[str] = None, session_id: Optional[str] = None):
+
+    def __init__(self, message: str, error_code: Optional[str] = None, session_id: Optional[str] = None):
         super().__init__(message)
         self.message = message
         self.error_code = error_code or "SESSION_ERROR"
@@ -61,7 +66,8 @@ class SessionError(Exception):
 
 class PasswordError(Exception):
     """Password-related error."""
-        def __init__(
+
+    def __init__(
         self, message: str, error_code: Optional[str] = None, requirements: Optional[Dict[str, Any]] = None
     ):
         super().__init__(message)
@@ -72,7 +78,8 @@ class PasswordError(Exception):
 
 class BiometricError(Exception):
     """Biometric authentication error."""
-        def __init__(
+
+    def __init__(
         self, message: str, error_code: Optional[str] = None, biometric_type: Optional[str] = None
     ):
         super().__init__(message)
@@ -83,7 +90,8 @@ class BiometricError(Exception):
 
 class DeviceError(Exception):
     """Device-related error."""
-        def __init__(self, message: str, error_code: Optional[str] = None, device_id: Optional[str] = None):
+
+    def __init__(self, message: str, error_code: Optional[str] = None, device_id: Optional[str] = None):
         super().__init__(message)
         self.message = message
         self.error_code = error_code or "DEVICE_ERROR"
@@ -92,7 +100,8 @@ class DeviceError(Exception):
 
 class OAuthError(Exception):
     """OAuth-related error."""
-        def __init__(self, message: str, error_code: Optional[str] = None, provider: Optional[str] = None):
+
+    def __init__(self, message: str, error_code: Optional[str] = None, provider: Optional[str] = None):
         super().__init__(message)
         self.message = message
         self.error_code = error_code or "OAUTH_ERROR"
@@ -101,7 +110,8 @@ class OAuthError(Exception):
 
 class RateLimitError(Exception):
     """Rate limiting error."""
-        def __init__(self, message: str, error_code: Optional[str] = None, retry_after: Optional[int] = None):
+
+    def __init__(self, message: str, error_code: Optional[str] = None, retry_after: Optional[int] = None):
         super().__init__(message)
         self.message = message
         self.error_code = error_code or "RATE_LIMIT_ERROR"
@@ -110,7 +120,8 @@ class RateLimitError(Exception):
 
 class AccountLockError(Exception):
     """Account locked error."""
-        def __init__(self, message: str, error_code: Optional[str] = None, locked_until: Optional[str] = None):
+
+    def __init__(self, message: str, error_code: Optional[str] = None, locked_until: Optional[str] = None):
         super().__init__(message)
         self.message = message
         self.error_code = error_code or "ACCOUNT_LOCKED"

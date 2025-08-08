@@ -1,10 +1,10 @@
 """
-import threading
 PlexiChat Task Scheduler
 
 Task scheduling with threading and performance optimization.
+"""
 
-
+import threading
 import asyncio
 import logging
 import time
@@ -20,8 +20,9 @@ except ImportError:
     croniter = None
 
 try:
-    from plexichat.core.database.manager import database_manager
-except ImportError:
+    from ...core.services.database_service import DatabaseService  # type: ignore
+    database_manager = DatabaseService()  # type: ignore[reportCallIssue]
+except Exception:
     database_manager = None
 
 try:
@@ -31,23 +32,28 @@ except ImportError:
     submit_task = None
 
 try:
-    from plexichat.core.analytics.analytics_manager import track_event
-except ImportError:
-    track_event = None
+    from ...core.logging import get_logger as _get_logger
+    async def track_event(event_name: str, properties: Dict[str, Any] | None = None) -> None:  # type: ignore
+        logger = _get_logger(__name__)
+        logger.debug(f"analytics event: {event_name} - {properties}")
+except Exception:
+    async def track_event(event_name: str, properties: Dict[str, Any] | None = None) -> None:  # type: ignore
+        return None
 
 try:
-    from plexichat.infrastructure.performance.optimization_engine import PerformanceOptimizationEngine
-    from plexichat.core.logging_advanced.performance_logger import get_performance_logger
-except ImportError:
+    from ...core.logging import get_logger as get_performance_logger  # type: ignore
     PerformanceOptimizationEngine = None
-    get_performance_logger = None
+except Exception:
+    PerformanceOptimizationEngine = None
+    def get_performance_logger():  # type: ignore
+        return None
 
 logger = logging.getLogger(__name__)
 performance_logger = get_performance_logger() if get_performance_logger else None
 
 class TaskStatus(Enum):
     """Task status enumeration."""
-        PENDING = "pending"
+    PENDING = "pending"
     RUNNING = "running"
     COMPLETED = "completed"
     FAILED = "failed"
@@ -61,10 +67,10 @@ class TaskType(Enum):
 
 @dataclass
 class ScheduledTask:
-    """Scheduled task definition.
-        task_id: str
+    """Scheduled task definition."""
+    task_id: str
     name: str
-    function: Callable
+    function: Callable[..., Any]
     args: tuple
     kwargs: dict
     task_type: TaskType
@@ -84,7 +90,7 @@ class ScheduledTask:
 
 class TaskScheduler:
     """Task scheduler with threading support."""
-        def __init__(self):
+    def __init__(self):
         self.db_manager = database_manager
         self.performance_logger = performance_logger
         self.async_thread_manager = async_thread_manager
@@ -103,7 +109,7 @@ class TaskScheduler:
         self.total_execution_time = 0.0
 
     async def start(self):
-        Start the task scheduler."""
+        """Start the task scheduler."""
         if self.running:
             return
 
@@ -245,12 +251,13 @@ class TaskScheduler:
 
             # Track analytics
             if track_event:
-                await track_event("scheduled_task_completed", properties={
+                props: Dict[str, Any] = {
                     "task_name": task.name,
                     "task_type": task.task_type.value,
                     "execution_time": execution_time,
-                    "run_count": task.run_count
-                })
+                    "run_count": task.run_count,
+                }
+                await track_event("scheduled_task_completed", properties=props)  # type: ignore[arg-type]
 
             logger.info(f"Task completed: {task.name} ({task.task_id}) in {execution_time:.2f}s")
 
@@ -271,7 +278,7 @@ class TaskScheduler:
             await self._update_task_in_db(task)
 
     async def _run_task_async(self, task: ScheduledTask):
-        """Run task asynchronously.
+        """Run task asynchronously."""
         if asyncio.iscoroutinefunction(task.function):
             return await task.function(*task.args, **task.kwargs)
         else:
@@ -347,7 +354,7 @@ class TaskScheduler:
         except Exception as e:
             logger.error(f"Error cleaning up completed tasks: {e}")
 
-    async def schedule_once(self, name: str, function: Callable, scheduled_at: datetime, args: tuple = (), kwargs: dict = None, timeout_seconds: int = 300, max_retries: int = 3, metadata: dict = None) -> str:
+    async def schedule_once(self, name: str, function: Callable[..., Any], scheduled_at: datetime, args: tuple = (), kwargs: Optional[Dict[str, Any]] = None, timeout_seconds: int = 300, max_retries: int = 3, metadata: Optional[Dict[str, Any]] = None) -> str:
         """Schedule a one-time task."""
         try:
             task_id = str(uuid4())
@@ -384,7 +391,7 @@ class TaskScheduler:
             logger.error(f"Error scheduling one-time task: {e}")
             raise
 
-    async def schedule_recurring(self, name: str, function: Callable, interval_seconds: int, args: tuple = (), kwargs: dict = None, timeout_seconds: int = 300, max_runs: Optional[int] = None, max_retries: int = 3, metadata: dict = None) -> str:
+    async def schedule_recurring(self, name: str, function: Callable[..., Any], interval_seconds: int, args: tuple = (), kwargs: Optional[Dict[str, Any]] = None, timeout_seconds: int = 300, max_runs: Optional[int] = None, max_retries: int = 3, metadata: Optional[Dict[str, Any]] = None) -> str:
         """Schedule a recurring task."""
         try:
             task_id = str(uuid4())
@@ -422,7 +429,7 @@ class TaskScheduler:
             logger.error(f"Error scheduling recurring task: {e}")
             raise
 
-    async def schedule_cron(self, name: str, function: Callable, cron_expression: str, args: tuple = (), kwargs: dict = None, timeout_seconds: int = 300, max_runs: Optional[int] = None, max_retries: int = 3, metadata: dict = None) -> str:
+    async def schedule_cron(self, name: str, function: Callable[..., Any], cron_expression: str, args: tuple = (), kwargs: Optional[Dict[str, Any]] = None, timeout_seconds: int = 300, max_runs: Optional[int] = None, max_retries: int = 3, metadata: Optional[Dict[str, Any]] = None) -> str:
         """Schedule a cron-based task."""
         try:
             if not croniter:
@@ -489,16 +496,16 @@ class TaskScheduler:
             return False
 
     async def _save_task_to_db(self, task: ScheduledTask):
-        """Save task to database.
+        """Save task to database."""
         try:
             if self.db_manager:
-                query = """
-                    INSERT INTO scheduled_tasks (
-                        task_id, name, task_type, status, created_at, scheduled_at,
-                        next_run, last_run, run_count, max_runs, cron_expression,
-                        interval_seconds, timeout_seconds, retry_count, max_retries, metadata
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """
+                query = (
+                    "INSERT INTO scheduled_tasks ("
+                    "task_id, name, task_type, status, created_at, scheduled_at, "
+                    "next_run, last_run, run_count, max_runs, cron_expression, "
+                    "interval_seconds, timeout_seconds, retry_count, max_retries, metadata"
+                    ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+                )
                 params = {
                     "task_id": task.task_id,
                     "name": task.name,
@@ -515,30 +522,30 @@ class TaskScheduler:
                     "timeout_seconds": task.timeout_seconds,
                     "retry_count": task.retry_count,
                     "max_retries": task.max_retries,
-                    "metadata": str(task.metadata)
+                    "metadata": str(task.metadata),
                 }
-                await self.db_manager.execute_query(query, params)
+                await self.db_manager.execute_query(query, params)  # type: ignore[reportUnknownMemberType]
         except Exception as e:
             logger.error(f"Error saving task to database: {e}")
 
     async def _update_task_in_db(self, task: ScheduledTask):
-        """Update task in database.
+        """Update task in database."""
         try:
             if self.db_manager:
-                query = """
-                    UPDATE scheduled_tasks SET
-                        status = ?, next_run = ?, last_run = ?, run_count = ?, retry_count = ?
-                    WHERE task_id = ?
-                """
+                query = (
+                    "UPDATE scheduled_tasks SET "
+                    "status = ?, next_run = ?, last_run = ?, run_count = ?, retry_count = ? "
+                    "WHERE task_id = ?"
+                )
                 params = {
                     "status": task.status.value,
                     "next_run": task.next_run,
                     "last_run": task.last_run,
                     "run_count": task.run_count,
                     "retry_count": task.retry_count,
-                    "task_id": task.task_id
+                    "task_id": task.task_id,
                 }
-                await self.db_manager.execute_query(query, params)
+                await self.db_manager.execute_query(query, params)  # type: ignore[reportUnknownMemberType]
         except Exception as e:
             logger.error(f"Error updating task in database: {e}")
 
@@ -604,7 +611,7 @@ task_scheduler = TaskScheduler()
 
 # Convenience functions
 async def schedule_once(name: str, function: Callable, scheduled_at: datetime, **kwargs) -> str:
-    """Schedule one-time task.
+    """Schedule one-time task."""
     return await task_scheduler.schedule_once(name, function, scheduled_at, **kwargs)
 
 async def schedule_recurring(name: str, function: Callable, interval_seconds: int, **kwargs) -> str:
@@ -612,11 +619,11 @@ async def schedule_recurring(name: str, function: Callable, interval_seconds: in
     return await task_scheduler.schedule_recurring(name, function, interval_seconds, **kwargs)
 
 async def schedule_cron(name: str, function: Callable, cron_expression: str, **kwargs) -> str:
-    Schedule cron task."""
+    """Schedule cron task."""
     return await task_scheduler.schedule_cron(name, function, cron_expression, **kwargs)
 
 async def cancel_task(task_id: str) -> bool:
-    """Cancel task.
+    """Cancel task."""
     return await task_scheduler.cancel_task(task_id)
 
 def get_scheduled_tasks() -> List[Dict[str, Any]]:

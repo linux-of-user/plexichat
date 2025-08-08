@@ -9,7 +9,7 @@ Advanced dependency management for plugins with:
 - Dependency caching and optimization
 - Security scanning of dependencies
 - Performance monitoring of dependency loading
-
+"""
 
 import subprocess
 import sys
@@ -40,7 +40,7 @@ logger = get_logger(__name__)
 @dataclass
 class DependencyInfo:
     """Information about a dependency."""
-        name: str
+    name: str
     version: Optional[str] = None
     required_version: Optional[str] = None
     installed: bool = False
@@ -62,8 +62,8 @@ class DependencyInfo:
 
 @dataclass
 class PluginDependencies:
-    """Dependencies for a specific plugin.
-        plugin_name: str
+    """Dependencies for a specific plugin."""
+    plugin_name: str
     required_dependencies: List[str] = field(default_factory=list)
     optional_dependencies: List[str] = field(default_factory=list)
     installed_dependencies: Set[str] = field(default_factory=set)
@@ -77,7 +77,8 @@ class PluginDependencies:
 
 class PluginDependencyManager:
     """Advanced plugin dependency management system."""
-        def __init__(self):
+
+    def __init__(self):
         self.dependencies: Dict[str, DependencyInfo] = {}
         self.plugin_dependencies: Dict[str, PluginDependencies] = {}
         self.installation_cache: Dict[str, bool] = {}

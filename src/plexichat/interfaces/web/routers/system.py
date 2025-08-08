@@ -25,7 +25,7 @@ except ImportError:
 
 # Use EXISTING performance optimization engine
 try:
-    from plexichat.infrastructure.performance.optimization_engine import PerformanceOptimizationEngine
+    from plexichat.core.performance.optimization_engine import PerformanceOptimizationEngine
     from plexichat.infrastructure.utils.performance import async_track_performance
     from plexichat.core.logging_advanced.performance_logger import get_performance_logger
 except ImportError:
@@ -77,7 +77,7 @@ try:
         secure_endpoint, require_auth, rate_limit, audit_access, validate_input,
         SecurityLevel, RequiredPermission, admin_endpoint
     )
-    from plexichat.core.logging_advanced.enhanced_logging_system import (
+    from plexichat.core.logging_advanced.advanced_logging_system import (
         get_enhanced_logging_system, LogCategory, LogLevel, PerformanceTracker, SecurityMetrics
     )
     ENHANCED_SECURITY_AVAILABLE = True
@@ -140,7 +140,8 @@ class TestResults(BaseModel):
 
 class SystemService:
     """Service class for system operations using EXISTING database abstraction layer."""
-        def __init__(self):
+
+    def __init__(self):
         # Use EXISTING database manager
         self.db_manager = database_manager
         self.performance_logger = performance_logger

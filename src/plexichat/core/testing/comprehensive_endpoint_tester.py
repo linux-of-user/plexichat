@@ -11,7 +11,7 @@ Provides systematic testing of all API endpoints with:
 - Error handling verification
 - Authentication and authorization testing
 - Real-time monitoring and reporting
-
+"""
 
 import asyncio
 import json
@@ -24,15 +24,47 @@ import aiohttp
 import re
 from urllib.parse import urljoin, urlparse
 
-from ..logging.unified_logging import get_logger
-from ..logging.correlation_tracker import correlation_tracker, CorrelationType
+# Logging imports with fallbacks
+import logging
+def get_logger(name):
+    return logging.getLogger(name)
+
+# Fallback correlation tracker
+class CorrelationType:
+    REQUEST = "request"
+    RESPONSE = "response"
+    BACKGROUND_TASK = "background_task"
+
+class correlation_tracker:
+    @staticmethod
+    def start_correlation(correlation_type, **kwargs):
+        return "fallback_correlation_id"
+
+    @staticmethod
+    def finish_correlation(correlation_id):
+        pass
 
 logger = get_logger(__name__)
 
 
+def ensure_session(func):
+    """Decorator to ensure test session is available."""
+    import functools
+
+    @functools.wraps(func)
+    async def wrapper(self, *args, **kwargs):
+        if not self.test_session:
+            # Create a temporary session if none exists
+            self.test_session = aiohttp.ClientSession(
+                timeout=aiohttp.ClientTimeout(total=getattr(self, 'test_timeout', 30))
+            )
+        return await func(self, *args, **kwargs)
+    return wrapper
+
+
 class TestType(Enum):
     """Types of endpoint tests."""
-        FUNCTIONAL = "functional"
+    FUNCTIONAL = "functional"
     SECURITY = "security"
     PERFORMANCE = "performance"
     VALIDATION = "validation"
@@ -55,7 +87,7 @@ class TestStatus(Enum):
 @dataclass
 class EndpointInfo:
     """Information about an API endpoint."""
-        path: str
+    path: str
     method: str
     description: str = ""
     parameters: Dict[str, Any] = field(default_factory=dict)
@@ -76,7 +108,7 @@ class EndpointInfo:
 @dataclass
 class TestResult:
     """Result of an endpoint test."""
-        test_id: str
+    test_id: str
     endpoint: EndpointInfo
     test_type: TestType
     status: TestStatus
@@ -112,7 +144,7 @@ class TestResult:
     performance_issues: List[str] = field(default_factory=list)
     
     def finish(self, status: TestStatus, error_message: str = ""):
-        """Mark test as finished.
+        """Mark test as finished."""
         self.end_time = datetime.now()
         self.status = status
         self.error_message = error_message
@@ -123,12 +155,12 @@ class TestResult:
 
 class EndpointDiscovery:
     """Automatic endpoint discovery system."""
-        def __init__(self, base_url: str):
+    def __init__(self, base_url: str):
         self.base_url = base_url.rstrip('/')
         self.discovered_endpoints: Dict[str, EndpointInfo] = {}
         
     async def discover_endpoints(self) -> List[EndpointInfo]:
-        Discover all available endpoints."""
+        """Discover all available endpoints."""
         endpoints = []
         
         # Try to get OpenAPI/Swagger documentation
@@ -267,7 +299,7 @@ class EndpointDiscovery:
         return endpoints
     
     async def _discover_from_routes(self) -> List[EndpointInfo]:
-        """Discover endpoints from application routes.
+        """Discover endpoints from application routes."""
         # This would integrate with the FastAPI app to get actual routes
         # For now, return empty list
         return []
@@ -287,8 +319,8 @@ class EndpointDiscovery:
 
 
 class ComprehensiveEndpointTester:
-    Comprehensive endpoint testing system."""
-        def __init__(self, base_url: str):
+    """Comprehensive endpoint testing system."""
+    def __init__(self, base_url: str):
         self.base_url = base_url.rstrip('/')
         self.discovery = EndpointDiscovery(base_url)
         self.test_results: List[TestResult] = []
@@ -384,11 +416,7 @@ class ComprehensiveEndpointTester:
             
         except Exception as e:
             logger.error(f"Comprehensive testing failed: {e}")
-            correlation_tracker.finish_correlation(
-                correlation_id,
-                error_count=1,
-                error_types=[type(e).__name__]
-            )
+            correlation_tracker.finish_correlation(correlation_id)
             raise
         finally:
             if self.test_session:
@@ -397,9 +425,12 @@ class ComprehensiveEndpointTester:
     async def _setup_authentication(self):
         """Setup authentication for testing."""
         try:
+            if not self.test_session:
+                return
+
             # Try to login and get auth token
             login_url = urljoin(self.base_url, '/api/v1/auth/login')
-            
+
             async with self.test_session.post(login_url, json=self.test_user_credentials) as response:
                 if response.status == 200:
                     data = await response.json()
@@ -412,7 +443,7 @@ class ComprehensiveEndpointTester:
             logger.warning(f"Authentication setup error: {e}")
     
     async def _run_functional_tests(self, endpoints: List[EndpointInfo]) -> List[TestResult]:
-        """Run functional tests on endpoints.
+        """Run functional tests on endpoints."""
         results = []
         
         for endpoint in endpoints:
@@ -421,6 +452,7 @@ class ComprehensiveEndpointTester:
         
         return results
     
+    @ensure_session
     async def _test_endpoint_functionality(self, endpoint: EndpointInfo) -> TestResult:
         """Test basic functionality of an endpoint."""
         test_id = f"func_{endpoint.method}_{endpoint.path}_{int(time.time())}"
@@ -449,6 +481,7 @@ class ComprehensiveEndpointTester:
             start_time = time.time()
             
             if endpoint.method == 'GET':
+                assert self.test_session is not None
                 async with self.test_session.get(url, headers=headers) as response:
                     response_data = await self._safe_json_response(response)
                     test_result.response_status = response.status
@@ -456,6 +489,7 @@ class ComprehensiveEndpointTester:
                     test_result.response_headers = dict(response.headers)
             
             elif endpoint.method == 'POST':
+                assert self.test_session is not None
                 async with self.test_session.post(url, json=test_data, headers=headers) as response:
                     response_data = await self._safe_json_response(response)
                     test_result.response_status = response.status
@@ -463,6 +497,7 @@ class ComprehensiveEndpointTester:
                     test_result.response_headers = dict(response.headers)
             
             elif endpoint.method == 'PUT':
+                assert self.test_session is not None
                 async with self.test_session.put(url, json=test_data, headers=headers) as response:
                     response_data = await self._safe_json_response(response)
                     test_result.response_status = response.status
@@ -470,6 +505,7 @@ class ComprehensiveEndpointTester:
                     test_result.response_headers = dict(response.headers)
             
             elif endpoint.method == 'DELETE':
+                assert self.test_session is not None
                 async with self.test_session.delete(url, headers=headers) as response:
                     response_data = await self._safe_json_response(response)
                     test_result.response_status = response.status
@@ -493,7 +529,7 @@ class ComprehensiveEndpointTester:
         return test_result
     
     def _get_test_data_for_endpoint(self, endpoint: EndpointInfo) -> Optional[Dict]:
-        """Get appropriate test data for an endpoint.
+        """Get appropriate test data for an endpoint."""
         if endpoint.method == 'GET' or endpoint.method == 'DELETE':
             return None
         
@@ -529,7 +565,7 @@ class ComprehensiveEndpointTester:
             return None
     
     async def _run_security_tests(self, endpoints: List[EndpointInfo]) -> List[TestResult]:
-        Run security tests on endpoints."""
+        """Run security tests on endpoints."""
         results = []
         
         # Test common security vulnerabilities
@@ -548,6 +584,7 @@ class ComprehensiveEndpointTester:
         
         return results
     
+    @ensure_session
     async def _test_sql_injection(self, endpoint: EndpointInfo) -> TestResult:
         """Test for SQL injection vulnerabilities."""
         test_id = f"sql_{endpoint.method}_{endpoint.path}_{int(time.time())}"
@@ -572,6 +609,7 @@ class ComprehensiveEndpointTester:
             
             url = urljoin(self.base_url, endpoint.path.replace('{id}', sql_payloads[0]))
             
+            assert self.test_session is not None
             async with self.test_session.get(url) as response:
                 test_result.response_status = response.status
                 response_data = await self._safe_json_response(response)
@@ -589,6 +627,7 @@ class ComprehensiveEndpointTester:
         
         return test_result
     
+    @ensure_session
     async def _test_xss_vulnerability(self, endpoint: EndpointInfo) -> TestResult:
         """Test for XSS vulnerabilities."""
         test_id = f"xss_{endpoint.method}_{endpoint.path}_{int(time.time())}"
@@ -610,6 +649,7 @@ class ComprehensiveEndpointTester:
                 test_data = {'content': xss_payload, 'message': xss_payload}
                 url = urljoin(self.base_url, endpoint.path)
                 
+                assert self.test_session is not None
                 async with self.test_session.post(url, json=test_data) as response:
                     test_result.response_status = response.status
                     response_data = await self._safe_json_response(response)
@@ -629,6 +669,7 @@ class ComprehensiveEndpointTester:
         
         return test_result
     
+    @ensure_session
     async def _test_authentication_bypass(self, endpoint: EndpointInfo) -> TestResult:
         """Test for authentication bypass vulnerabilities."""
         test_id = f"auth_{endpoint.method}_{endpoint.path}_{int(time.time())}"
@@ -650,8 +691,9 @@ class ComprehensiveEndpointTester:
             # Test without authentication
             url = urljoin(self.base_url, endpoint.path.replace('{id}', '1'))
             
-            async with self.test_session.get(url) as response:
-                test_result.response_status = response.status
+            if self.test_session:
+                async with self.test_session.get(url) as response:
+                    test_result.response_status = response.status
             
             # Should return 401 Unauthorized
             if test_result.response_status == 401:
@@ -666,7 +708,7 @@ class ComprehensiveEndpointTester:
         return test_result
     
     async def _run_performance_tests(self, endpoints: List[EndpointInfo]) -> List[TestResult]:
-        """Run performance tests on endpoints.
+        """Run performance tests on endpoints."""
         results = []
         
         for endpoint in endpoints:
@@ -675,6 +717,7 @@ class ComprehensiveEndpointTester:
         
         return results
     
+    @ensure_session
     async def _test_endpoint_performance(self, endpoint: EndpointInfo) -> TestResult:
         """Test endpoint performance."""
         test_id = f"perf_{endpoint.method}_{endpoint.path}_{int(time.time())}"
@@ -701,13 +744,14 @@ class ComprehensiveEndpointTester:
                 if endpoint.requires_auth and self.auth_token:
                     headers['Authorization'] = f'Bearer {self.auth_token}'
                 
-                async with self.test_session.get(url, headers=headers) as response:
-                    await response.read()  # Ensure full response is received
-                    response_time = (time.time() - start_time) * 1000
-                    response_times.append(response_time)
-                    
-                    if not test_result.response_status:
-                        test_result.response_status = response.status
+                if self.test_session:
+                    async with self.test_session.get(url, headers=headers) as response:
+                        await response.read()  # Ensure full response is received
+                        response_time = (time.time() - start_time) * 1000
+                        response_times.append(response_time)
+
+                        if not test_result.response_status:
+                            test_result.response_status = response.status
             
             # Calculate performance metrics
             avg_response_time = sum(response_times) / len(response_times)
@@ -734,7 +778,7 @@ class ComprehensiveEndpointTester:
         return test_result
     
     async def _run_validation_tests(self, endpoints: List[EndpointInfo]) -> List[TestResult]:
-        """Run input validation tests on endpoints.
+        """Run input validation tests on endpoints."""
         results = []
         
         for endpoint in endpoints:
@@ -743,6 +787,7 @@ class ComprehensiveEndpointTester:
         
         return results
     
+    @ensure_session
     async def _test_input_validation(self, endpoint: EndpointInfo) -> TestResult:
         """Test input validation for an endpoint."""
         test_id = f"val_{endpoint.method}_{endpoint.path}_{int(time.time())}"
@@ -775,11 +820,12 @@ class ComprehensiveEndpointTester:
             
             for invalid_data in invalid_data_sets:
                 try:
-                    async with self.test_session.post(url, json=invalid_data) as response:
-                        # Should return 400 for invalid data
-                        if response.status != 400:
-                            validation_passed = False
-                            break
+                    if self.test_session:
+                        async with self.test_session.post(url, json=invalid_data) as response:
+                            # Should return 400 for invalid data
+                            if response.status != 400:
+                                validation_passed = False
+                                break
                 except Exception:
                     pass  # Connection errors are expected for some invalid data
             
@@ -836,7 +882,7 @@ class ComprehensiveEndpointTester:
                 'error': error_tests,
                 'skipped': skipped_tests,
                 'success_rate': (passed_tests / total_tests * 100) if total_tests > 0 else 0
-            }},
+            },
             'results_by_type': results_by_type,
             'performance': {
                 'average_response_time_ms': avg_response_time,

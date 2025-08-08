@@ -32,7 +32,7 @@ except ImportError:
 
 # Use EXISTING performance optimization engine
 try:
-    from plexichat.infrastructure.performance.optimization_engine import PerformanceOptimizationEngine
+    from plexichat.core.performance.optimization_engine import PerformanceOptimizationEngine
     from plexichat.infrastructure.utils.performance import async_track_performance
     from plexichat.core.logging_advanced.performance_logger import get_performance_logger, timer
 except ImportError:
@@ -183,20 +183,21 @@ class WebhookDelivery(BaseModel):
 
 class WebhookService:
     """Service class for webhook operations using EXISTING database abstraction layer."""
-        def __init__(self):
+
+    def __init__(self):
         # Use EXISTING database manager
         self.db_manager = database_manager
         self.performance_logger = performance_logger
 
     @async_track_performance("webhook_creation") if async_track_performance else lambda f: f
     async def create_webhook(self, webhook_data: WebhookCreate, user_id: int) -> WebhookResponse:
-        """Create webhook using EXISTING database abstraction layer.
+        """Create webhook using EXISTING database abstraction layer."""
         if self.db_manager:
             try:
                 # Create webhook
                 create_query = """
                     INSERT INTO webhooks (name, url, secret, events, is_active, user_id, created_at)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                    VALUES (:name, :url, :secret, :events, :is_active, :user_id, :created_at)
                     RETURNING id, name, url, events, is_active, created_at, last_triggered
                 """
                 create_params = {
@@ -244,15 +245,15 @@ class WebhookService:
 
     @async_track_performance("webhook_list") if async_track_performance else lambda f: f
     async def list_webhooks(self, user_id: int, limit: int = 50, offset: int = 0) -> List[WebhookResponse]:
-        """List webhooks using EXISTING database abstraction layer.
+        """List webhooks using EXISTING database abstraction layer."""
         if self.db_manager:
             try:
                 query = """
                     SELECT id, name, url, events, is_active, created_at, last_triggered
                     FROM webhooks
-                    WHERE user_id = ?
+                    WHERE user_id = :user_id
                     ORDER BY created_at DESC
-                    LIMIT ? OFFSET ?
+                    LIMIT :limit OFFSET :offset
                 """
                 params = {"user_id": user_id, "limit": limit, "offset": offset}
 
@@ -285,7 +286,7 @@ class WebhookService:
 
     @async_track_performance("webhook_trigger") if async_track_performance else lambda f: f
     async def trigger_webhook(self, webhook_id: int, event: WebhookEvent) -> bool:
-        """Trigger webhook delivery using EXISTING database abstraction layer.
+        """Trigger webhook delivery using EXISTING database abstraction layer."""
         if self.db_manager:
             try:
                 # Get webhook details

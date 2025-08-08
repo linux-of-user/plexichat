@@ -36,10 +36,10 @@ if templates_path.exists():
 @rate_limit(requests_per_minute=60)
 @audit_access("view", "webui")
 async def webui_home(request: Request):
-    """Main WebUI dashboard.
+    """Main WebUI dashboard."""
     if not templates:
         # Fallback HTML if templates not available
-        html_content = f"""
+        html_content = """
         <!DOCTYPE html>
         <html>
         <head>
@@ -139,8 +139,8 @@ async def webui_home(request: Request):
 @router.get("/login", response_class=HTMLResponse)
 @rate_limit(requests_per_minute=30)
 async def webui_login(request: Request):
-    """WebUI login page.
-    html_content = f"""
+    """WebUI login page."""
+    html_content = """
     <!DOCTYPE html>
     <html>
     <head>
@@ -204,8 +204,8 @@ async def webui_login(request: Request):
 @require_auth()
 @rate_limit(requests_per_minute=60)
 async def webui_dashboard(request: Request):
-    """Authenticated user dashboard.
-    html_content = f"""
+    """Authenticated user dashboard."""
+    html_content = """
     <!DOCTYPE html>
     <html>
     <head>

@@ -151,7 +151,7 @@ except ImportError as e:
         return None
 
     def get_all_plugins_info():
-        return {
+        return {}
 
     async def execute_command(command_name: str, *args, **kwargs):
         raise PluginError("Plugin system not available")
@@ -180,11 +180,11 @@ async def initialize_plugin_system() -> bool:
     except Exception as e:
         import logging
         logger = logging.getLogger(__name__)
-        logger.error(f"Failed to initialize plugin system: {e}}")
+        logger.error(f"Failed to initialize plugin system: {e}")
         return False
 
 async def get_plugin_manager_instance():
-    """Get the plugin manager instance (backward compatibility).
+    """Get the plugin manager instance (backward compatibility)."""
     return unified_plugin_manager
 
 # Legacy aliases for backward compatibility

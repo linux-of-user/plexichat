@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Optional
 class AnalyticsDataService:
     def __init__(self):
         try:
-            from plexichat.core.database.manager import database_manager
+            from plexichat.core.database.manager import database_manager  # type: ignore
             self.db_manager = database_manager
         except ImportError:
             self.db_manager = None
@@ -23,4 +23,25 @@ class AnalyticsDataService:
 
     async def delete_metric(self, metric_id: int):
         if self.db_manager:
-            await self.db_manager.delete_analytics_metric(metric_id) 
+            await self.db_manager.delete_analytics_metric(metric_id)
+
+    async def save_usage_metrics(self, metrics: List[Any]):
+        """Save usage metrics."""
+        if self.db_manager:
+            await self.db_manager.save_usage_metrics(metrics)  # type: ignore
+
+    async def save_performance_metrics(self, metrics: List[Any]):
+        """Save performance metrics."""
+        if self.db_manager:
+            await self.db_manager.save_performance_metrics(metrics)  # type: ignore
+
+    async def save_alert(self, alert_data: Dict[str, Any]):
+        """Save alert data."""
+        if self.db_manager:
+            await self.db_manager.save_alert(alert_data)  # type: ignore
+
+    async def get_usage_stats(self, start_time: Any, end_time: Any, provider: Any, model: Any) -> Dict[str, Any]:
+        """Get usage statistics."""
+        if self.db_manager:
+            return await self.db_manager.get_usage_stats(start_time, end_time, provider, model)  # type: ignore
+        return {"total": 0, "cost": 0, "latency": 0}

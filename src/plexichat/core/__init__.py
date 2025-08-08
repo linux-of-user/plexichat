@@ -16,37 +16,75 @@ Uses EXISTING database abstraction and optimization systems.
 from typing import Any, Dict
 import importlib
 
-# Use EXISTING performance optimization engine
+# Import consolidated systems
 try:
-    from plexichat.core.logging_advanced.performance_logger import get_performance_logger
+    from .logging import get_logger
+    logger = get_logger(__name__)
 except ImportError:
-    get_performance_logger = None
+    import logging
+    logger = logging.getLogger(__name__)
 
-from .logging import get_logger
-logger = get_logger(__name__)
+try:
+    from .configuration import get_config
+    config = get_config()
+except ImportError:
+    config = None
+    logger.warning("Configuration system not available")
 
-# Initialize EXISTING performance systems
-performance_logger = get_performance_logger() if get_performance_logger else None
+try:
+    from .security import get_security_manager
+    security_manager = get_security_manager()
+except ImportError:
+    security_manager = None
+    logger.warning("Security system not available")
 
-from .config import Settings
-settings = Settings()
+try:
+    from .authentication import get_auth_manager
+    auth_manager = get_auth_manager()
+except ImportError:
+    auth_manager = None
+    logger.warning("Authentication system not available")
+
+try:
+    from .data import get_database_manager
+    database_manager = get_database_manager()
+except ImportError:
+    database_manager = None
+    logger.warning("Database system not available")
+
+try:
+    from .errors import get_error_manager
+    error_manager = get_error_manager()
+except ImportError:
+    error_manager = None
+    logger.warning("Error handling system not available")
+
+try:
+    from .services import get_service_manager
+    service_manager = get_service_manager()
+except ImportError:
+    service_manager = None
+    logger.warning("Service management system not available")
 
 class CoreManager:
-    """Enhanced core manager using EXISTING systems."""
+    """Enhanced core manager using consolidated systems."""
 
     def __init__(self):
-        self.performance_logger = performance_logger
         self.components: Dict[str, bool] = {}
+        self.managers = {
+            'config': config,
+            'security': security_manager,
+            'auth': auth_manager,
+            'database': database_manager,
+            'errors': error_manager,
+            'services': service_manager
+        }
 
     def register_component(self, name: str, status: bool = True):
         """Register core component."""
         try:
             self.components[name] = status
             logger.info(f"Registered core component: {name} (status: {status})")
-
-            if self.performance_logger:
-                self.performance_logger.record_metric("core_components_registered", 1, "count")
-
         except Exception as e:
             logger.error(f"Error registering component {name}: {e}")
 
@@ -58,9 +96,21 @@ class CoreManager:
         """Get core status."""
         return {
             "components": self.components.copy(),
+            "managers": {name: manager is not None for name, manager in self.managers.items()},
             "total_components": len(self.components),
-            "active_components": sum(1 for status in self.components.values() if status)
+            "active_components": sum(1 for status in self.components.values() if status),
+            "available_managers": sum(1 for manager in self.managers.values() if manager is not None)
         }
+
+    def get_manager(self, name: str):
+        """Get a specific manager."""
+        return self.managers.get(name)
+
+    def is_secure(self) -> bool:
+        """Check if security systems are properly initialized."""
+        return (self.managers['security'] is not None and
+                self.managers['auth'] is not None and
+                self.managers['errors'] is not None)
 
 # Global core manager
 core_manager = CoreManager()
@@ -200,7 +250,7 @@ def register_core_components():
         # Authentication
         try:
             importlib.import_module("plexichat.core.auth.auth_core")
-            importlib.import_module("plexichat.core.auth.manager_auth")
+            importlib.import_module("plexichat.core.auth.auth_manager")
             core_manager.register_component("auth", True)
         except ImportError:
             core_manager.register_component("auth", False)

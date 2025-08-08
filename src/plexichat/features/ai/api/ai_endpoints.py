@@ -7,7 +7,11 @@ RESTful API endpoints for AI functionality.
 
 import logging
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from fastapi import APIRouter, HTTPException
+    from pydantic import BaseModel, Field
 
 try:
     from fastapi import APIRouter, HTTPException
@@ -15,6 +19,10 @@ try:
     FASTAPI_AVAILABLE = True
 except ImportError:
     FASTAPI_AVAILABLE = False
+    BaseModel = None
+    Field = None
+    APIRouter = None
+    HTTPException = None
 
 from ..core.ai_abstraction_layer import (
     AIAbstractionLayer,
@@ -34,21 +42,21 @@ ai_coordinator = AICoordinator()
 
 # API Models (only if FastAPI is available)
 if FASTAPI_AVAILABLE:
-    class AIRequestModel(BaseModel):
+    class AIRequestModel(BaseModel):  # type: ignore
         """API model for AI requests."""
         user_id: str
         model_id: str
         prompt: str
         max_tokens: Optional[int] = None
-        temperature: float = Field(default=0.7, ge=0.0, le=2.0)
+        temperature: float = Field(default=0.7, ge=0.0, le=2.0)  # type: ignore
         stream: bool = False
         system_prompt: Optional[str] = None
         context: Optional[str] = None
         metadata: Optional[Dict[str, Any]] = None
-        priority: int = Field(default=1, ge=1, le=10)
-        timeout_seconds: int = Field(default=30, ge=5, le=300)
+        priority: int = Field(default=1, ge=1, le=10)  # type: ignore
+        timeout_seconds: int = Field(default=30, ge=5, le=300)  # type: ignore
 
-    class AIResponseModel(BaseModel):
+    class AIResponseModel(BaseModel):  # type: ignore
         """API model for AI responses."""
         request_id: str
         model_id: str
@@ -64,7 +72,7 @@ if FASTAPI_AVAILABLE:
         fallback_used: bool = False
         fallback_model: Optional[str] = None
 
-    class ModelInfoModel(BaseModel):
+    class ModelInfoModel(BaseModel):  # type: ignore
         """API model for model information."""
         id: str
         name: str
@@ -76,7 +84,7 @@ if FASTAPI_AVAILABLE:
         description: Optional[str] = None
 
     # Create API router
-    router = APIRouter(prefix="/ai", tags=["AI"])
+    router = APIRouter(prefix="/ai", tags=["AI"])  # type: ignore
 
     @router.post("/chat", response_model=AIResponseModel)
     async def chat_completion(request: AIRequestModel):
@@ -114,7 +122,7 @@ if FASTAPI_AVAILABLE:
 
         except Exception as e:
             logger.error(f"Chat completion failed: {e}")
-            raise HTTPException(status_code=500, detail=str(e))
+            raise HTTPException(status_code=500, detail=str(e))  # type: ignore
 
     @router.get("/models", response_model=List[ModelInfoModel])
     async def list_models():
@@ -136,7 +144,7 @@ if FASTAPI_AVAILABLE:
             ]
         except Exception as e:
             logger.error(f"Failed to list models: {e}")
-            raise HTTPException(status_code=500, detail=str(e))
+            raise HTTPException(status_code=500, detail=str(e))  # type: ignore
 
     @router.get("/models/{model_id}", response_model=ModelInfoModel)
     async def get_model(model_id: str):
@@ -144,7 +152,7 @@ if FASTAPI_AVAILABLE:
         try:
             model = ai_coordinator.get_model_info(model_id)
             if not model:
-                raise HTTPException(status_code=404, detail="Model not found")
+                raise HTTPException(status_code=404, detail="Model not found")  # type: ignore
 
             return ModelInfoModel(
                 id=model.id,
@@ -156,11 +164,11 @@ if FASTAPI_AVAILABLE:
                 status=model.status.value,
                 description=model.description
             )
-        except HTTPException:
+        except HTTPException:  # type: ignore
             raise
         except Exception as e:
             logger.error(f"Failed to get model {model_id}: {e}")
-            raise HTTPException(status_code=500, detail=str(e))
+            raise HTTPException(status_code=500, detail=str(e))  # type: ignore
 
     @router.get("/health")
     async def health_check():
@@ -170,7 +178,7 @@ if FASTAPI_AVAILABLE:
             return {"status": "healthy", "details": status}
         except Exception as e:
             logger.error(f"Health check failed: {e}")
-            raise HTTPException(status_code=500, detail=str(e))
+            raise HTTPException(status_code=500, detail=str(e))  # type: ignore
 
 else:
     # Fallback when FastAPI is not available

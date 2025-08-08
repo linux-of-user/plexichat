@@ -28,7 +28,7 @@ try:
     from ..logging import get_logger
     from ..config.manager import get_config
     from ..database.manager import get_database_manager
-    from ...infrastructure.performance.cache_manager import get_cache_manager
+    from ...core.performance.cache_manager import get_cache_manager
     from ...infrastructure.monitoring import get_performance_monitor
     
     logger = get_logger(__name__)

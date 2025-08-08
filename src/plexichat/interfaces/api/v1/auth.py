@@ -35,7 +35,7 @@ try:
     from plexichat.core.security.unified_security_system import unified_security_manager, SecurityRequest, SecurityLevel
     from plexichat.core.auth.unified_auth_manager import unified_auth_manager
     from plexichat.core.security.two_factor_auth import two_factor_authenticator, TwoFactorMethod
-    from plexichat.infrastructure.performance.performance_logger import performance_logger
+    from plexichat.core.performance.performance_logger import performance_logger
 except ImportError as e:
     # Fallback implementations
     database_manager = None

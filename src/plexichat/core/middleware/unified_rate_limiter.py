@@ -117,8 +117,8 @@ class RateLimitConfig:
     })
 
 class TokenBucket:
-    """Token bucket implementation for rate limiting.
-        def __init__(self, capacity: int, refill_rate: float):
+    """Token bucket implementation for rate limiting."""
+    def __init__(self, capacity: int, refill_rate: float):
         self.capacity = capacity
         self.tokens = capacity
         self.refill_rate = refill_rate  # tokens per second
@@ -144,7 +144,7 @@ class TokenBucket:
             return False
     
     def get_info(self) -> Dict[str, float]:
-        Get current bucket information."""
+        """Get current bucket information."""
         return {
             "capacity": self.capacity,
             "tokens": self.tokens,
@@ -152,8 +152,8 @@ class TokenBucket:
         }
 
 class SlidingWindow:
-    """Sliding window implementation for rate limiting.
-        def __init__(self, window_seconds: int, max_requests: int):
+    """Sliding window implementation for rate limiting."""
+    def __init__(self, window_seconds: int, max_requests: int):
         self.window_seconds = window_seconds
         self.max_requests = max_requests
         self.requests = deque()
@@ -177,7 +177,7 @@ class SlidingWindow:
             return True
     
     def get_count(self) -> int:
-        Get current request count in window."""
+        """Get current request count in window."""
         current_time = time.time()
         # Clean old requests
         while self.requests and self.requests[0] <= current_time - self.window_seconds:
@@ -185,8 +185,8 @@ class SlidingWindow:
         return len(self.requests)
 
 class FixedWindow:
-    """Fixed window implementation for rate limiting.
-        def __init__(self, window_seconds: int, max_requests: int):
+    """Fixed window implementation for rate limiting."""
+    def __init__(self, window_seconds: int, max_requests: int):
         self.window_seconds = window_seconds
         self.max_requests = max_requests
         self.current_window_start = 0
@@ -212,7 +212,7 @@ class FixedWindow:
             return True
     
     def get_count(self) -> int:
-        Get current request count in window."""
+        """Get current request count in window."""
         current_time = time.time()
         window_start = int(current_time // self.window_seconds) * self.window_seconds
         
@@ -221,8 +221,8 @@ class FixedWindow:
         return self.current_count
 
 class RateLimitViolation:
-    """Rate limit violation information.
-        def __init__(self, strategy: RateLimitStrategy, key: str, 
+    """Rate limit violation information."""
+    def __init__(self, strategy: RateLimitStrategy, key: str,
                 limit: int, current: int, retry_after: int):
         self.strategy = strategy
         self.key = key
@@ -233,7 +233,7 @@ class RateLimitViolation:
 
 class UnifiedRateLimiter:
     """Unified rate limiting system with multiple strategies and algorithms."""
-        def __init__(self, config: RateLimitConfig):
+    def __init__(self, config: RateLimitConfig):
         self.config = config
         self.token_buckets: Dict[str, TokenBucket] = {}
         self.sliding_windows: Dict[str, SlidingWindow] = {}
@@ -325,7 +325,7 @@ class UnifiedRateLimiter:
 
     async def _check_rate_limit_with_algorithm(self, key: str, algorithm: RateLimitAlgorithm,
                                             max_requests: int, window_seconds: int) -> bool:
-        """Check rate limit using specified algorithm.
+        """Check rate limit using specified algorithm."""
         if algorithm == RateLimitAlgorithm.TOKEN_BUCKET:
             if key not in self.token_buckets:
                 refill_rate = max_requests / window_seconds
@@ -444,7 +444,7 @@ class UnifiedRateLimiter:
         return 0
 
     def _get_block_duration(self, strategy: RateLimitStrategy) -> int:
-        """Get block duration for a strategy.
+        """Get block duration for a strategy."""
         if strategy == RateLimitStrategy.PER_IP:
             return self.config.per_ip_block_duration
         elif strategy == RateLimitStrategy.PER_USER:
@@ -486,8 +486,8 @@ class UnifiedRateLimiter:
             print(f"[DEBUG] Cleaned up {len(expired_blocks)} expired blocks")
 
 class RateLimitMiddleware:
-    """FastAPI middleware for unified rate limiting.
-        def __init__(self, config: Optional[RateLimitConfig] = None):
+    """FastAPI middleware for unified rate limiting."""
+    def __init__(self, config: Optional[RateLimitConfig] = None):
         self.config = config or RateLimitConfig()
         self.rate_limiter = UnifiedRateLimiter(self.config)
         self.cleanup_task = None
@@ -570,7 +570,7 @@ class RateLimitMiddleware:
             return await call_next(request)
 
     def get_stats(self) -> Dict[str, Any]:
-        """Get rate limiting statistics.
+        """Get rate limiting statistics."""
         return self.rate_limiter.get_stats()
 
     async def shutdown(self):
@@ -587,7 +587,7 @@ def rate_limit(strategy: RateLimitStrategy = RateLimitStrategy.PER_USER,
             max_requests: int = 60,
             window_seconds: int = 60,
             algorithm: RateLimitAlgorithm = RateLimitAlgorithm.SLIDING_WINDOW):
-    Decorator for additional route-specific rate limiting."""
+    """Decorator for additional route-specific rate limiting."""
     def decorator(func):
         async def wrapper(*args, **kwargs):
             # This would be implemented to work with the middleware
@@ -600,7 +600,7 @@ def rate_limit(strategy: RateLimitStrategy = RateLimitStrategy.PER_USER,
 _global_rate_limiter: Optional[UnifiedRateLimiter] = None
 
 def get_rate_limiter() -> UnifiedRateLimiter:
-    """Get the global rate limiter instance.
+    """Get the global rate limiter instance."""
     global _global_rate_limiter
     if _global_rate_limiter is None:
         _global_rate_limiter = UnifiedRateLimiter(RateLimitConfig())

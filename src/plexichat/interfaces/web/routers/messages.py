@@ -30,7 +30,7 @@ async_track_performance = None
 get_performance_logger = None
 timer = None
 try:
-    perf_mod = importlib.import_module('plexichat.infrastructure.performance.optimization_engine')
+    perf_mod = importlib.import_module('plexichat.core.performance.optimization_engine')
     PerformanceOptimizationEngine = getattr(perf_mod, 'PerformanceOptimizationEngine', None)
 except Exception:
     pass
@@ -56,7 +56,7 @@ except ImportError:
 # Model imports - Updated for Pydantic v2 compatibility
 class Message(BaseModel):
     """Message model with Pydantic v2 compatibility."""
-        id: int = Field(..., description="Message ID")
+    id: int = Field(..., description="Message ID")
     content: str = Field(..., description="Message content")
     sender_id: int = Field(..., description="Sender user ID")
     recipient_id: int = Field(..., description="Recipient user ID")
@@ -67,7 +67,7 @@ class Message(BaseModel):
 
 class User(BaseModel):
     """User model with Pydantic v2 compatibility."""
-        id: int = Field(..., description="User ID")
+    id: int = Field(..., description="User ID")
     username: str = Field(..., description="Username")
 
     class Config:
@@ -76,10 +76,11 @@ class User(BaseModel):
 # Schema imports
 class ValidationErrorResponse(BaseModel):
     """Validation error response model."""
-        detail: str = Field(..., description="Error detail")
+    detail: str = Field(..., description="Error detail")
+
 class MessageCreate(BaseModel):
     """Message creation model with Pydantic v2 compatibility."""
-        content: str = Field(..., min_length=1, max_length=2000, description="Message content")
+    content: str = Field(..., min_length=1, max_length=2000, description="Message content")
     recipient_id: int = Field(..., description="Recipient user ID")
 
     class Config:
@@ -87,7 +88,7 @@ class MessageCreate(BaseModel):
 
 class MessageRead(BaseModel):
     """Message read model with Pydantic v2 compatibility."""
-        id: int = Field(..., description="Message ID")
+    id: int = Field(..., description="Message ID")
     content: str = Field(..., description="Message content")
     sender_id: int = Field(..., description="Sender user ID")
     recipient_id: int = Field(..., description="Recipient user ID")

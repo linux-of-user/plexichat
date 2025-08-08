@@ -17,7 +17,7 @@ import sys
 
 # Import existing PlexiChat components
 try:
-    from ..database.enhanced_db_manager import get_enhanced_db_manager
+    from ..database.performance_db_manager import get_enhanced_db_manager
     from ..monitoring.performance_analytics import performance_monitor
     from ..middleware.middleware_manager import middleware_manager
     from ..config import get_config
