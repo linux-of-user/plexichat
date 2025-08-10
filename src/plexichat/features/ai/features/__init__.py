@@ -8,7 +8,7 @@
 # pyright: reportReturnType=false
 from .ai_powered_features_service import AIPoweredFeaturesService, SummarizationResult, ContentSuggestion, SentimentAnalysisResult, SemanticSearchResult, ModerationResult, Sentiment, ModerationAction
 from typing import Optional
-from plexichat.infrastructure.modules.interfaces import ModulePriority
+from plexichat.core.plugins.manager import ModulePriority
 
 
 __all__ = [

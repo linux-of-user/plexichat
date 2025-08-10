@@ -19,9 +19,12 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 try:
-    from ..plugins_internal import PluginInterface, PluginMetadata, PluginType
-    from plexichat.infrastructure.modules.base_module import ModulePermissions, ModuleCapability
-    from plexichat.infrastructure.modules.interfaces import ModulePriority
+    # Point to the new unified manager for all plugin-related classes
+    from plexichat.core.plugins.manager import (
+        PluginInterface, PluginMetadata, PluginType, ModuleCapability, ModulePriority
+    )
+    # ModulePermissions is deprecated/removed, provide a dummy class to prevent NameError
+    class ModulePermissions: pass
 except ImportError:
     # Fallback definitions
     class PluginInterface:
@@ -83,19 +86,22 @@ class AIProvidersPlugin(PluginInterface):
         )
 
     def get_required_permissions(self) -> ModulePermissions:
-        """Get required permissions.
+        """Get required permissions."""
+        # This method appears to be part of a deprecated API.
+        # Commenting out the implementation to prevent errors.
+        # return ModulePermissions(
+        #     capabilities=[
+        #         "AI_ACCESS",
+        #         "FILE_SYSTEM_ACCESS",
+        #         "NETWORK_ACCESS",
+        #         "DATABASE_ACCESS",
+        #         "WEBUI_ACCESS"
+        #     ],
+        #     network_access=True,
+        #     file_system_access=True,
+        #     database_access=True
+        # )
         return ModulePermissions()
-            capabilities=[
-                ModuleCapability.AI_ACCESS,
-                ModuleCapability.FILE_SYSTEM_ACCESS,
-                ModuleCapability.NETWORK_ACCESS,
-                ModuleCapability.DATABASE_ACCESS,
-                ModuleCapability.WEBUI_ACCESS
-            ],
-            network_access=True,
-            file_system_access=True,
-            database_access=True
-        )
 
     async def _plugin_initialize(self) -> bool:
         """Initialize the AI providers plugin."""

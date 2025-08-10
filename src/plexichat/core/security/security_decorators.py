@@ -8,6 +8,10 @@ import functools
 import logging
 from typing import Any, Callable, Dict, List, Optional, Union
 from enum import Enum
+from itsdangerous import TimedJSONWebSignatureSerializer as Serializer, BadSignature, SignatureExpired
+from fastapi import Request, HTTPException
+
+from ..config import config
 
 try:
     from . import SecurityLevel
@@ -302,6 +306,7 @@ __all__ = [
     "sanitize_input",
     "validate_csrf",
     "secure_endpoint",
+    "protect_from_replay",
     
     # Convenience decorators
     "admin_required",
@@ -309,3 +314,51 @@ __all__ = [
     "authenticated_only",
     "public_endpoint",
 ]
+
+def protect_from_replay(max_age_seconds: int = 60):
+    """
+    Decorator to protect against replay attacks by verifying a timed signature.
+    Expects a signed token in the 'X-Plexi-Signature' header.
+    The token should contain a signature of the request body.
+    """
+    def decorator(func: Callable) -> Callable:
+        @functools.wraps(func)
+        async def wrapper(*args, **kwargs):
+            request: Optional[Request] = None
+            for arg in args:
+                if isinstance(arg, Request):
+                    request = arg
+                    break
+
+            if not request:
+                logger.error("Replay protection could not find request object.")
+                raise HTTPException(status_code=500, detail="Server configuration error.")
+
+            signed_token = request.headers.get("X-Plexi-Signature")
+            if not signed_token:
+                raise HTTPException(status_code=400, detail="Missing X-Plexi-Signature header.")
+
+            if not config or not config.security.jwt_secret:
+                logger.error("Replay protection cannot function without a JWT secret key.")
+                raise HTTPException(status_code=500, detail="Server security not configured.")
+
+            s = Serializer(config.security.jwt_secret)
+            try:
+                payload = s.loads(signed_token, max_age=max_age_seconds)
+
+                request_body = await request.body()
+
+                if payload.encode('utf-8') != request_body:
+                    logger.warning(f"Replay protection failed: signature payload does not match request body.")
+                    raise HTTPException(status_code=400, detail="Signature does not match request body.")
+
+            except SignatureExpired:
+                logger.warning(f"Replay protection failed: signature expired.")
+                raise HTTPException(status_code=400, detail="Signature has expired.")
+            except BadSignature:
+                logger.warning(f"Replay protection failed: invalid signature.")
+                raise HTTPException(status_code=400, detail="Invalid signature.")
+
+            return await func(*args, **kwargs)
+        return wrapper
+    return decorator

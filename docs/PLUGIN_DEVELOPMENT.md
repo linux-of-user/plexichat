@@ -457,7 +457,7 @@ PlexiChat plugins can now leverage a wide range of advanced extension points for
 #### Example: Using Advanced Extension Points
 
 ```python
-from plexichat.core.plugins.unified_plugin_manager import PluginInterface
+from plexichat.core.plugins.manager import PluginInterface
 
 class MyAdvancedPlugin(PluginInterface):
     def get_event_hooks(self):

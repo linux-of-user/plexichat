@@ -1,9 +1,5 @@
 """
-PlexiChat Unified Configuration System
-
-Comprehensive configuration management system that handles all aspects of
-PlexiChat configuration including server, database, security, networking,
-caching, AI, plugins, WebUI, and more.
+PlexiChat Unified Configuration System with Secure Key Vault Integration
 """
 
 import json
@@ -11,139 +7,81 @@ import logging
 import os
 import yaml
 import threading
+import base64
 from pathlib import Path
 from typing import Any, Dict, Optional, Union, List, Callable
 from dataclasses import dataclass, field, asdict
 from datetime import datetime
 from enum import Enum
 
+from Crypto.Cipher import AES
+from Crypto.Random import get_random_bytes
+
+from .security.key_vault import DistributedKeyManager
+
 logger = logging.getLogger(__name__)
-
-
-class ConfigCategory(Enum):
-    """Configuration categories for organization."""
-    SYSTEM = "system"
-    NETWORK = "network"
-    DATABASE = "database"
-    SECURITY = "security"
-    LOGGING = "logging"
-    CACHING = "caching"
-    AI = "ai"
-    PLUGINS = "plugins"
-    WEBUI = "webui"
-    MESSAGING = "messaging"
-    FILES = "files"
-    PERFORMANCE = "performance"
-    MONITORING = "monitoring"
-    BACKUP = "backup"
-
-
-@dataclass
-class ConfigField:
-    """Configuration field definition with metadata."""
-    name: str
-    value: Any
-    category: ConfigCategory
-    description: str = ""
-    data_type: str = "string"
-    required: bool = False
-    sensitive: bool = False
-    restart_required: bool = False
-    validation_func: Optional[Callable] = None
-    options: Optional[List[Any]] = None
-    min_value: Optional[Union[int, float]] = None
-    max_value: Optional[Union[int, float]] = None
-    webui_editable: bool = True
-    webui_section: str = ""
 
 
 @dataclass
 class SystemConfig:
     """System configuration section."""
     name: str = "PlexiChat"
-    version: str = "0.0.0"  # Will be loaded from version.json
+    version: str = "0.0.0"
     environment: str = "production"
     debug: bool = False
     timezone: str = "UTC"
-    max_users: int = 10000
-    maintenance_mode: bool = False
-    auto_backup: bool = True
-    backup_interval_hours: int = 24
-    data_retention_days: int = 365
-    version_file: str = "version.json"
-    changelog_file: str = "changelog.json"
 
+@dataclass
+class RateLimitConfig:
+    """Configuration for rate limiting."""
+    enabled: bool = True
+    requests_per_minute: int = 60
+    burst_limit: int = 10
+    window_size_seconds: int = 60
+    ban_duration_seconds: int = 3600
+    ban_threshold: int = 10
 
 @dataclass
 class NetworkConfig:
     """Network configuration section."""
     host: str = "0.0.0.0"
     port: int = 8080
-    api_port: int = 8000
-    admin_port: int = 8002
-    websocket_port: int = 8001
     ssl_enabled: bool = False
     ssl_cert_path: str = ""
     ssl_key_path: str = ""
     cors_origins: List[str] = field(default_factory=lambda: ["*"])
-    rate_limit_enabled: bool = True
-    rate_limit_requests_per_minute: int = 60
-    rate_limit_burst_limit: int = 10
     proxy_headers: bool = False
     max_request_size_mb: int = 100
-
-
-@dataclass
-class DatabaseConfig:
-    """Database configuration section."""
-    db_type: str = "sqlite"
-    host: str = "localhost"
-    port: int = 5432
-    name: str = "plexichat"
-    username: str = ""
-    password: str = ""
-    path: str = "data/plexichat.db"
-    pool_size: int = 10
-    max_overflow: int = 20
-    echo: bool = False
-    backup_enabled: bool = True
-    backup_interval_hours: int = 6
-
+    timeout_keep_alive: int = 5
+    rate_limiting: RateLimitConfig = field(default_factory=RateLimitConfig)
 
 @dataclass
 class SecurityConfig:
     """Security configuration section."""
-    secret_key: str = ""
-    jwt_secret: str = ""
-    jwt_expiry_hours: int = 24
-    password_min_length: int = 8
-    password_require_special: bool = True
-    password_require_numbers: bool = True
-    password_require_uppercase: bool = True
-    max_login_attempts: int = 5
-    lockout_duration_minutes: int = 30
-    session_timeout_minutes: int = 60
-    csrf_protection: bool = True
-    secure_cookies: bool = True
+    secret_key: str = "change-me"
+    jwt_secret: str = "change-me-too"
+    # ... other security settings
 
+@dataclass
+class DatabaseConfig:
+    """Database configuration section."""
+    type: str = "sqlite"
+    path: str = "data/plexichat.db"
+    host: str = "localhost"
+    port: int = 5432
+    username: str = "user"
+    password: str = "password"
+    db_name: str = "plexichat"
 
 @dataclass
 class CachingConfig:
     """Caching configuration section."""
     enabled: bool = True
-    backend: str = "memory"
-    redis_host: str = "localhost"
-    redis_port: int = 6379
-    redis_db: int = 0
-    redis_password: str = ""
-    default_timeout: int = 300
-    max_entries: int = 10000
-    # Enhanced caching config for unified system
     l1_max_items: int = 1000
-    l1_memory_size_mb: int = 100
+    l1_memory_size_mb: int = 64
     default_ttl_seconds: int = 300
     compression_threshold_bytes: int = 1024
-    warming_enabled: bool = True
+    warming_enabled: bool = False
     l2_redis_enabled: bool = False
     l2_redis_host: str = "localhost"
     l2_redis_port: int = 6379
@@ -153,105 +91,105 @@ class CachingConfig:
     l3_memcached_host: str = "localhost"
     l3_memcached_port: int = 11211
 
-
 @dataclass
 class AIConfig:
-    """AI configuration section."""
-    enabled: bool = True
-    provider: str = "openai"
-    api_key: str = ""
-    model: str = "gpt-3.5-turbo"
-    max_tokens: int = 2048
-    temperature: float = 0.7
-    timeout_seconds: int = 30
-
-
-@dataclass
-class WebUIConfig:
-    """WebUI configuration section."""
-    enabled: bool = True
-    theme: str = "default"
-    language: str = "en"
-    items_per_page: int = 20
-    auto_refresh: bool = True
-    refresh_interval_seconds: int = 30
-
+    """AI provider configuration section."""
+    default_provider: str = "openai"
+    openai_api_key: str = ""
+    anthropic_api_key: str = ""
+    google_api_key: str = ""
 
 @dataclass
 class LoggingConfig:
     """Logging configuration section."""
     level: str = "INFO"
-    format: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    file_enabled: bool = True
-    file_path: str = "logs/plexichat.log"
-    file_max_size_mb: int = 100
-    file_backup_count: int = 5
-    console_enabled: bool = True
-
+    log_to_file: bool = True
+    log_file_path: str = "logs/plexichat.log"
 
 @dataclass
-class MessagingConfig:
-    """Messaging configuration section."""
-    max_message_length: int = 4096
-    max_attachments: int = 10
-    max_attachment_size_mb: int = 50
-    allowed_file_types: List[str] = field(default_factory=lambda: [".txt", ".pdf", ".jpg", ".png"])
-    message_retention_days: int = 365
-    enable_encryption: bool = True
-
-
-@dataclass
-class PerformanceConfig:
-    """Performance configuration section."""
-    worker_processes: int = 4
-    worker_threads: int = 8
-    max_connections: int = 1000
-    connection_timeout: int = 30
-    request_timeout: int = 60
-    enable_compression: bool = True
-
-
-@dataclass
-class FilesConfig:
-    """Files configuration section."""
-    upload_dir: str = "uploads"
-    max_file_size_mb: int = 100
-    allowed_extensions: List[str] = field(default_factory=lambda: [".txt", ".pdf", ".jpg", ".png", ".gif"])
-    scan_for_viruses: bool = True
-    auto_cleanup_days: int = 30
-
+class PluginSettings:
+    """Plugin system configuration section."""
+    timeout_seconds: int = 30
+    max_memory_mb: int = 128
+    sandboxing_enabled: bool = True
 
 @dataclass
 class UnifiedConfig:
     """Main unified configuration container."""
     system: SystemConfig = field(default_factory=SystemConfig)
     network: NetworkConfig = field(default_factory=NetworkConfig)
-    database: DatabaseConfig = field(default_factory=DatabaseConfig)
     security: SecurityConfig = field(default_factory=SecurityConfig)
+    database: DatabaseConfig = field(default_factory=DatabaseConfig)
     caching: CachingConfig = field(default_factory=CachingConfig)
     ai: AIConfig = field(default_factory=AIConfig)
-    webui: WebUIConfig = field(default_factory=WebUIConfig)
     logging: LoggingConfig = field(default_factory=LoggingConfig)
-    messaging: MessagingConfig = field(default_factory=MessagingConfig)
-    performance: PerformanceConfig = field(default_factory=PerformanceConfig)
-    files: FilesConfig = field(default_factory=FilesConfig)
+    plugins: PluginSettings = field(default_factory=PluginSettings)
 
 
 class UnifiedConfigManager:
-    """Unified configuration manager with thread safety and persistence."""
+    """Unified configuration manager with Key Vault integration."""
 
     def __init__(self, config_file: Optional[str] = None):
         self.config_file = Path(config_file or "config/plexichat.yaml")
-        self.project_root = Path(__file__).parent.parent.parent.parent
-        self.version_file = self.project_root / "version.json"
-        self.changelog_file = self.project_root / "changelog.json"
         self._config = UnifiedConfig()
         self._lock = threading.RLock()
-        self._change_callbacks: List[Callable] = []
+        self.sensitive_keys = {
+            "security.secret_key",
+            "security.jwt_secret",
+            "database.password",
+            "ai.openai_api_key",
+            "ai.anthropic_api_key",
+            "ai.google_api_key",
+            "caching.l2_redis_password"
+        }
+
+        try:
+            vaults_dir = Path("vaults")
+            self.key_manager = DistributedKeyManager(vaults_dir, 5, 3)
+            self.master_key = self.key_manager.reconstruct_master_key()
+            logger.info("Master key reconstructed successfully from key vaults.")
+        except Exception as e:
+            logger.error(f"Failed to reconstruct master key: {e}. Secrets will not be available.")
+            self.master_key = None
+
         self.load()
-        self._load_version_info()
-        self._ensure_directories()
-    
+
+    def _encrypt_secret(self, plaintext: str) -> str:
+        """Encrypts a secret using AES-GCM."""
+        if not self.master_key:
+            return plaintext # Cannot encrypt without a master key
+
+        cipher = AES.new(self.master_key, AES.MODE_GCM)
+        ciphertext, tag = cipher.encrypt_and_digest(plaintext.encode('utf-8'))
+
+        encrypted_data = {
+            'nonce': base64.b64encode(cipher.nonce).decode('utf-8'),
+            'ciphertext': base64.b64encode(ciphertext).decode('utf-8'),
+            'tag': base64.b64encode(tag).decode('utf-8')
+        }
+        return "enc_v1:" + base64.b64encode(json.dumps(encrypted_data).encode('utf-8')).decode('utf-8')
+
+    def _decrypt_secret(self, encrypted_value: str) -> str:
+        """Decrypts a secret encrypted with AES-GCM."""
+        if not self.master_key or not encrypted_value.startswith("enc_v1:"):
+            return encrypted_value
+
+        try:
+            encrypted_data_b64 = encrypted_value.split("enc_v1:")[1]
+            encrypted_data_json = base64.b64decode(encrypted_data_b64).decode('utf-8')
+            encrypted_data = json.loads(encrypted_data_json)
+
+            nonce = base64.b64decode(encrypted_data['nonce'])
+            ciphertext = base64.b64decode(encrypted_data['ciphertext'])
+            tag = base64.b64decode(encrypted_data['tag'])
+
+            cipher = AES.new(self.master_key, AES.MODE_GCM, nonce=nonce)
+            plaintext = cipher.decrypt_and_verify(ciphertext, tag)
+            return plaintext.decode('utf-8')
+        except Exception as e:
+            logger.error(f"Failed to decrypt secret: {e}")
+            return "" # Return empty string on decryption failure
+
     def load(self) -> None:
         """Load configuration from file."""
         with self._lock:
@@ -266,18 +204,25 @@ class UnifiedConfigManager:
                     logger.error(f"Failed to load configuration: {e}")
             else:
                 logger.info("Configuration file not found, using defaults")
-    
+
     def save(self) -> None:
-        """Save configuration to file."""
+        """Save configuration to file, encrypting sensitive values."""
         with self._lock:
             try:
                 self.config_file.parent.mkdir(parents=True, exist_ok=True)
+                config_dict = asdict(self._config)
+
+                for key in self.sensitive_keys:
+                    section, setting = key.split('.')
+                    if section in config_dict and setting in config_dict[section]:
+                        config_dict[section][setting] = self._encrypt_secret(config_dict[section][setting])
+
                 with open(self.config_file, 'w', encoding='utf-8') as f:
-                    yaml.dump(asdict(self._config), f, default_flow_style=False)
+                    yaml.dump(config_dict, f, default_flow_style=False)
                 logger.info(f"Configuration saved to {self.config_file}")
             except Exception as e:
                 logger.error(f"Failed to save configuration: {e}")
-    
+
     def get(self, key: str, default: Any = None) -> Any:
         """Get configuration value by dot notation key."""
         with self._lock:
@@ -286,6 +231,9 @@ class UnifiedConfigManager:
                 value = self._config
                 for part in parts:
                     value = getattr(value, part)
+
+                if key in self.sensitive_keys:
+                    return self._decrypt_secret(value)
                 return value
             except (AttributeError, KeyError):
                 return default
@@ -294,126 +242,31 @@ class UnifiedConfigManager:
         """Set configuration value by dot notation key."""
         with self._lock:
             try:
+                if key in self.sensitive_keys:
+                    value = self._encrypt_secret(value)
+
                 parts = key.split('.')
                 config_obj = self._config
                 for part in parts[:-1]:
                     config_obj = getattr(config_obj, part)
                 setattr(config_obj, parts[-1], value)
-                self._notify_change_callbacks(key, value)
             except (AttributeError, KeyError) as e:
                 logger.error(f"Failed to set config key {key}: {e}")
-    
+
     def _update_config_from_dict(self, data: Dict[str, Any]) -> None:
-        """Update configuration from dictionary."""
+        """Update configuration from dictionary, decrypting sensitive values."""
         for section_name, section_data in data.items():
             if hasattr(self._config, section_name) and isinstance(section_data, dict):
                 section = getattr(self._config, section_name)
                 for key, value in section_data.items():
+                    full_key = f"{section_name}.{key}"
+                    if full_key in self.sensitive_keys:
+                        value = self._decrypt_secret(value)
+
                     if hasattr(section, key):
                         setattr(section, key, value)
-    
-    def _notify_change_callbacks(self, key: str, value: Any) -> None:
-        """Notify registered callbacks of configuration changes."""
-        for callback in self._change_callbacks:
-            try:
-                callback(key, value)
-            except Exception as e:
-                logger.error(f"Error in config change callback: {e}")
-    
-    def add_change_callback(self, callback: Callable) -> None:
-        """Add a callback to be notified of configuration changes."""
-        self._change_callbacks.append(callback)
-    
-    def remove_change_callback(self, callback: Callable) -> None:
-        """Remove a configuration change callback."""
-        if callback in self._change_callbacks:
-            self._change_callbacks.remove(callback)
-    
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert configuration to dictionary."""
-        with self._lock:
-            return asdict(self._config)
-    
-    def reload(self) -> None:
-        """Reload configuration from file."""
-        self.load()
-        self._load_version_info()
 
-    def _load_version_info(self) -> None:
-        """Load version information from version.json."""
-        try:
-            if self.version_file.exists():
-                with open(self.version_file, 'r', encoding='utf-8') as f:
-                    version_data = json.load(f)
-                    self._config.system.version = version_data.get('version', self._config.system.version)
-                    logger.info(f"Version loaded from {self.version_file}: {self._config.system.version}")
-            else:
-                logger.warning(f"Version file not found: {self.version_file}")
-        except Exception as e:
-            logger.error(f"Failed to load version info: {e}")
-
-    def get_version_info(self) -> Dict[str, Any]:
-        """Get complete version information."""
-        try:
-            if self.version_file.exists():
-                with open(self.version_file, 'r', encoding='utf-8') as f:
-                    return json.load(f)
-        except Exception as e:
-            logger.error(f"Failed to load version info: {e}")
-
-        # Return fallback version info
-        return {
-            "version": self._config.system.version,
-            "version_type": "unknown",
-            "major_version": 0,
-            "minor_version": 0,
-            "build_number": 0,
-            "api_version": "v1",
-            "release_date": "unknown",
-            "status": "unknown"
-        }
-
-    def get_changelog_info(self) -> Dict[str, Any]:
-        """Get changelog information."""
-        try:
-            if self.changelog_file.exists():
-                with open(self.changelog_file, 'r', encoding='utf-8') as f:
-                    return json.load(f)
-        except Exception as e:
-            logger.error(f"Failed to load changelog info: {e}")
-
-        # Return empty changelog
-        return {
-            "changelog": {"format_version": "1.0", "last_updated": "2025-08-08T00:00:00Z"},
-            "releases": []
-        }
-
-    def _ensure_directories(self) -> None:
-        """Ensure all necessary directories exist."""
-        directories = [
-            self.project_root / "config",
-            self.project_root / "data" / "config",
-            self.project_root / "data" / "logs",
-            self.project_root / "data" / "uploads",
-            self.project_root / "data" / "cache",
-            self.project_root / "data" / "backups",
-            self.project_root / "data" / "runtime",
-            self.project_root / "data" / "storage",
-            self.project_root / "logs",
-            self.project_root / "temp",
-            self.project_root / "certs"
-        ]
-
-        for directory in directories:
-            try:
-                directory.mkdir(parents=True, exist_ok=True)
-            except Exception as e:
-                logger.warning(f"Failed to create directory {directory}: {e}")
-
-
-# Global configuration manager instance
 _config_manager: Optional[UnifiedConfigManager] = None
-
 
 def get_config_manager() -> UnifiedConfigManager:
     """Get the global configuration manager instance."""
@@ -422,21 +275,8 @@ def get_config_manager() -> UnifiedConfigManager:
         _config_manager = UnifiedConfigManager()
     return _config_manager
 
-
 def get_config(key: str, default: Any = None) -> Any:
     """Get configuration value by key."""
     return get_config_manager().get(key, default)
 
-
-def set_config(key: str, value: Any) -> None:
-    """Set configuration value by key."""
-    get_config_manager().set(key, value)
-
-
-def reload_config() -> None:
-    """Reload configuration from file."""
-    get_config_manager().reload()
-
-
-# Create global config instance
 config = get_config_manager()._config

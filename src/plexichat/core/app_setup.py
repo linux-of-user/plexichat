@@ -6,7 +6,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from plexichat.core.plugins.unified_plugin_manager import unified_plugin_manager
+from plexichat.core.plugins.manager import unified_plugin_manager
 
 def setup_routers(app: FastAPI):
     """Setup API routers with error handling, including dynamic plugin routers."""

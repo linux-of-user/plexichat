@@ -10,6 +10,7 @@ import logging
 import hashlib
 import secrets
 import time
+import json
 from datetime import datetime, timedelta
 
 # Import security components for tight integration
@@ -191,7 +192,7 @@ class SecureAuthManager:
             }
             
             # Encrypt sensitive data
-            encrypted_data = encrypt_data(str(user_data))
+            encrypted_data = encrypt_data(json.dumps(user_data))
             self.users[username] = encrypted_data
             
             audit_log("user_created", user_id=username, details={
@@ -231,7 +232,7 @@ class SecureAuthManager:
             
             # Decrypt and verify user data
             encrypted_data = self.users[username]
-            user_data = eval(decrypt_data(encrypted_data))  # Note: In production, use proper JSON
+            user_data = json.loads(decrypt_data(encrypted_data))
             
             # Verify password
             if not self._verify_password(password, user_data["password_hash"], user_data["salt"]):
@@ -247,8 +248,8 @@ class SecureAuthManager:
                 del self.failed_attempts[username]
             
             # Update last login
-            user_data["last_login"] = datetime.now()
-            self.users[username] = encrypt_data(str(user_data))
+            user_data["last_login"] = datetime.now().isoformat()
+            self.users[username] = encrypt_data(json.dumps(user_data))
             
             # Create secure session
             session_token = self._create_session(username, user_data)
@@ -274,14 +275,14 @@ class SecureAuthManager:
             "username": username,
             "permissions": user_data.get("permissions", []),
             "security_level": user_data.get("security_level", SecurityLevel.MEDIUM),
-            "created_at": datetime.now(),
-            "expires_at": datetime.now() + self.session_timeout,
+            "created_at": datetime.now().isoformat(),
+            "expires_at": (datetime.now() + self.session_timeout).isoformat(),
             "ip_address": None,  # Should be set by the calling code
             "user_agent": None   # Should be set by the calling code
         }
         
         # Encrypt session data
-        self.sessions[session_token] = encrypt_data(str(session_data))
+        self.sessions[session_token] = encrypt_data(json.dumps(session_data))
         return session_token
     
     def validate_session(self, session_token: str) -> Tuple[bool, Optional[Dict[str, Any]]]:
@@ -292,10 +293,10 @@ class SecureAuthManager:
             
             # Decrypt session data
             encrypted_data = self.sessions[session_token]
-            session_data = eval(decrypt_data(encrypted_data))
+            session_data = json.loads(decrypt_data(encrypted_data))
             
             # Check if session has expired
-            if datetime.now() > session_data["expires_at"]:
+            if datetime.now() > datetime.fromisoformat(session_data["expires_at"]):
                 del self.sessions[session_token]
                 return False, None
             

@@ -23,7 +23,7 @@ from typing import Dict, Any, Optional, List
 
 # Import unified plugin system (NEW SINGLE SOURCE OF TRUTH)
 try:
-    from .unified_plugin_manager import (
+    from .manager import (
         # Main classes
         UnifiedPluginManager,
         unified_plugin_manager,
