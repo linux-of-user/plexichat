@@ -34,7 +34,7 @@ except ImportError:
     Prompt = None
 
 try:
-    from plexichat.core.plugins.unified_plugin_manager import unified_plugin_manager
+    from plexichat.core.plugins.manager import unified_plugin_manager
 except ImportError:
     unified_plugin_manager = None
 

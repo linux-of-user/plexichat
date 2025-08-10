@@ -18,6 +18,7 @@ from contextlib import asynccontextmanager
 # datetime import removed - not used in main.py
 from pathlib import Path
 from typing import Optional, Dict, Any
+from dataclasses import asdict
 
 # Prevent standalone execution
 if __name__ == "__main__":
@@ -73,7 +74,7 @@ except ImportError as e:
 from plexichat.core.config import get_config as get_unified_config
 from plexichat.core.config import settings
 from plexichat.core.app_setup import setup_routers, setup_static_files
-from plexichat.core.plugins.unified_plugin_manager import unified_plugin_manager
+from plexichat.core.plugins.manager import unified_plugin_manager
 
 # Initialize unified config
 config = get_unified_config()
@@ -216,6 +217,14 @@ app = FastAPI(
 setup_routers(app)
 setup_static_files(app)
 
+# Import the UnifiedSecurityMiddleware
+try:
+    from plexichat.interfaces.web.middleware.unified_security_middleware import UnifiedSecurityMiddleware
+    app.add_middleware(UnifiedSecurityMiddleware)
+    logger.info("[CHECK] Unified security middleware (CSRF, etc.) added.")
+except ImportError as e:
+    logger.warning(f"Unified security middleware not available: {e}")
+
 # Add production-ready security middleware (highest priority)
 @app.middleware("http")
 async def security_middleware(request, call_next):
@@ -337,16 +346,14 @@ try:
 except Exception as e:
     logger.warning(f"Microsecond performance middleware error: {e}")
 
-# Add rate limiting middleware (temporarily disabled)
-# try:
-#     from plexichat.core.middleware.rate_limiting import RateLimitMiddleware
-#     app.add_middleware(RateLimitMiddleware)
-#     logger.info("[CHECK] Rate limiting middleware added")
-# except ImportError as e:
-#     logger.warning(f"Rate limiting middleware not available: {e}")
-# except Exception as e:
-#     logger.warning(f"Rate limiting middleware error: {e}")
-logger.info("[CHECK] Rate limiting middleware temporarily disabled")
+try:
+    from plexichat.core.middleware.integrated_protection_system import IntegratedProtectionMiddleware
+    app.add_middleware(IntegratedProtectionMiddleware, rate_limit_config=asdict(config.network.rate_limiting))
+    logger.info("[CHECK] Integrated protection middleware added")
+except ImportError as e:
+    logger.warning(f"Integrated protection middleware not available: {e}")
+except Exception as e:
+    logger.warning(f"Integrated protection middleware error: {e}")
 
 # Configure CORS using unified config
 if production_mode:

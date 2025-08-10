@@ -274,6 +274,17 @@ ddos_protection:
     blacklist_duration_minutes: 60
 ```
 
+### Infrastructure-Level Attack Mitigation
+
+While PlexiChat includes many application-level security features, some attacks target the underlying network infrastructure and must be mitigated at that level.
+
+#### DNS Security
+- **DNS Spoofing / Cache Poisoning:** These attacks can redirect your users to malicious servers. To mitigate this, we strongly recommend using a reputable DNS provider that supports **DNSSEC (Domain Name System Security Extensions)**. DNSSEC ensures that DNS responses are authentic and have not been tampered with.
+- **DNS Amplification / NXDOMAIN Floods:** These are types of DDoS attacks that target DNS servers. A professional DNS provider or a DDoS mitigation service (as mentioned above) is the best defense against these attacks.
+
+#### BGP Security
+- **BGP Hijacking / Route Injection:** This advanced attack can redirect large portions of internet traffic. To mitigate this, we recommend working with your hosting provider or ISP to implement **Resource Public Key Infrastructure (RPKI)**, which helps prevent route hijacking. BGP monitoring services can also provide alerts on suspicious routing changes.
+
 ### TLS/SSL Configuration
 
 Strong TLS configuration with modern cipher suites:

@@ -18,7 +18,7 @@ from typing import Any, Dict, List, Optional
 import sys
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
-from plexichat.core.plugins.unified_plugin_manager import PluginInterface
+from plexichat.core.plugins.manager import PluginInterface
 
 logger = logging.getLogger(__name__)
 

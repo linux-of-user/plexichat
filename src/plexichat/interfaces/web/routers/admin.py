@@ -14,9 +14,8 @@ from pydantic import BaseModel
 
 from plexichat.core.auth.admin_manager import admin_manager
 from plexichat.core.config import settings
-from plexichat.core.plugins.unified_plugin_manager import unified_plugin_manager
+from plexichat.core.plugins.manager import unified_plugin_manager
 from plexichat.core.logging import get_logger
-from plexichat.infrastructure.utils.rate_limiting import rate_limit
 import re
 from starlette.middleware.base import BaseHTTPMiddleware
 
@@ -75,7 +74,7 @@ templates = Jinja2Templates(directory="src/plexichat/interfaces/web/templates")
 try:
     from plexichat.core.security.security_decorators import (
         secure_endpoint, require_auth, rate_limit, audit_access, validate_input,
-        SecurityLevel, RequiredPermission, admin_endpoint
+        SecurityLevel, RequiredPermission, admin_endpoint, protect_from_replay
     )
     from plexichat.core.logging_advanced.advanced_logging_system import (
         get_enhanced_logging_system, LogCategory, LogLevel, PerformanceTracker, SecurityMetrics
@@ -317,6 +316,7 @@ async def admin_users(request: Request):
 
 @router.post("/users")
 @rate_limit(requests_per_minute=20, key_func=lambda request: f"admin_create_user:{get_client_ip(request)}")
+@protect_from_replay()
 async def create_admin_user(
     request: Request,
     admin_create: AdminCreateRequest = Body(...),
@@ -362,6 +362,7 @@ class PasswordResetRequest(BaseModel):
 
 @router.post("/users/reset-password")
 @rate_limit(requests_per_minute=10, key_func=lambda request: f"admin_reset_password:{get_client_ip(request)}")
+@protect_from_replay()
 async def admin_reset_password(
     request: Request,
     reset_request: PasswordResetRequest = Body(...),
@@ -385,6 +386,7 @@ async def admin_reset_password(
 
 @router.post("/reset-password")
 @rate_limit(requests_per_minute=5, key_func=lambda request: f"self_reset_password:{get_client_ip(request)}")
+@protect_from_replay()
 async def self_reset_password(
     request: Request,
     reset_request: PasswordResetRequest = Body(...),
@@ -463,6 +465,7 @@ async def list_plugin_module_requests(request: Request):
     return {"requests": isolation_manager.get_plugin_module_requests()}
 
 @router.post("/grant-plugin-module", response_class=JSONResponse)
+@protect_from_replay()
 async def grant_plugin_module(
     plugin_name: str = Form(...),
     module_name: str = Form(...),
@@ -474,6 +477,7 @@ async def grant_plugin_module(
     return {"success": True, "plugin": plugin_name, "module": module_name}
 
 @router.post("/revoke-plugin-module", response_class=JSONResponse)
+@protect_from_replay()
 async def revoke_plugin_module(
     plugin_name: str = Form(...),
     module_name: str = Form(...),

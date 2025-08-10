@@ -104,6 +104,8 @@ class RateLimitConfig:
     burst_limit: int = 10
     window_size_seconds: int = 60
     cleanup_interval_seconds: int = 300
+    ban_duration_seconds: int = 3600
+    ban_threshold: int = 10
 
 
 class IntegratedProtectionSystem:
@@ -123,6 +125,8 @@ class IntegratedProtectionSystem:
         # Rate limiting storage
         self.ip_requests: Dict[str, deque] = defaultdict(lambda: deque(maxlen=1000))
         self.user_requests: Dict[str, deque] = defaultdict(lambda: deque(maxlen=1000))
+        self.ip_violations: Dict[str, int] = defaultdict(int)
+        self.banned_ips: Dict[str, float] = {}
         
         # Account type limits
         self.account_limits: Dict[AccountType, AccountTypeRateLimit] = {
@@ -215,7 +219,7 @@ class IntegratedProtectionSystem:
                 logger.error(f"Error updating system metrics: {e}")
     
     async def _cleanup_old_requests(self) -> None:
-        """Clean up old request records."""
+        """Clean up old request records and expired bans."""
         current_time = time.time()
         cutoff_time = current_time - self.rate_limit_config.window_size_seconds
         
@@ -232,19 +236,24 @@ class IntegratedProtectionSystem:
                 requests.popleft()
             if not requests:
                 del self.user_requests[user]
+
+        # Clean up expired bans
+        for ip, unban_time in list(self.banned_ips.items()):
+            if current_time > unban_time:
+                del self.banned_ips[ip]
+                self.ip_violations[ip] = 0
+                logger.info(f"IP {ip} unbanned.")
     
-    def _get_account_type(self, request: Any) -> AccountType:
-        """Determine account type from request."""
-        # This would typically check user authentication/session
-        # For now, return a default
+    def _get_account_type(self, request: Any) -> Tuple[AccountType, Optional[str]]:
+        """Determine account type and user ID from request."""
         try:
             if hasattr(request, 'state') and hasattr(request.state, 'user'):
                 user = getattr(request.state, 'user', None)
-                if user and hasattr(user, 'account_type'):
-                    return AccountType(user.account_type)
+                if user and hasattr(user, 'account_type') and hasattr(user, 'id'):
+                    return AccountType(user.account_type), str(user.id)
         except (AttributeError, ValueError):
             pass
-        return AccountType.FREE
+        return AccountType.FREE, None
     
     def _calculate_dynamic_limits(self, account_type: AccountType) -> DynamicLimits:
         """Calculate dynamic limits based on system load and account type."""
@@ -276,33 +285,43 @@ class IntegratedProtectionSystem:
         
         current_time = time.time()
         client_ip = getattr(request.client, 'host', '127.0.0.1')
-        account_type = self._get_account_type(request)
+
+        if client_ip in self.banned_ips:
+            if current_time < self.banned_ips[client_ip]:
+                return False, "ip_banned", {"unban_time": self.banned_ips[client_ip]}
+            else:
+                del self.banned_ips[client_ip]
+                self.ip_violations[client_ip] = 0
+
+        account_type, user_id = self._get_account_type(request)
         
         # Calculate dynamic limits
         limits = self._calculate_dynamic_limits(account_type)
         
-        # Check IP-based rate limiting
+        # IP-based rate limiting
         ip_requests = self.ip_requests[client_ip]
         ip_requests.append(current_time)
         
-        # Count recent requests
         cutoff_time = current_time - self.rate_limit_config.window_size_seconds
-        recent_requests = sum(1 for req_time in ip_requests if req_time >= cutoff_time)
+        recent_ip_requests = sum(1 for req_time in ip_requests if req_time >= cutoff_time)
         
-        if recent_requests > limits.current_limit:
-            return False, "rate_limit_exceeded", {
-                "limit": limits.current_limit,
-                "requests": recent_requests,
-                "window_seconds": self.rate_limit_config.window_size_seconds,
-                "account_type": account_type.value,
-                "load_level": self.system_metrics.load_level.value
-            }
+        if recent_ip_requests > limits.current_limit:
+            self.ip_violations[client_ip] += 1
+            if self.ip_violations[client_ip] >= self.rate_limit_config.ban_threshold:
+                unban_time = current_time + self.rate_limit_config.ban_duration_seconds
+                self.banned_ips[client_ip] = unban_time
+                logger.warning(f"IP {client_ip} banned for {self.rate_limit_config.ban_duration_seconds} seconds.")
+            return False, "rate_limit_exceeded", {"type": "ip"}
+
+        # User-based rate limiting
+        if user_id:
+            user_requests = self.user_requests[user_id]
+            user_requests.append(current_time)
+            recent_user_requests = sum(1 for req_time in user_requests if req_time >= cutoff_time)
+            if recent_user_requests > self.rate_limit_config.per_user_requests_per_minute:
+                return False, "rate_limit_exceeded", {"type": "user"}
         
-        return True, "allowed", {
-            "limit": limits.current_limit,
-            "requests": recent_requests,
-            "remaining": limits.current_limit - recent_requests
-        }
+        return True, "allowed", {}
     
     async def process_request(self, request: Any) -> Tuple[bool, Optional[Any]]:
         """

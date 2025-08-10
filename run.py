@@ -10,7 +10,7 @@ import urllib.request
 import venv
 import zipfile
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 VENV_DIR = Path("venv")
 REQUIREMENTS_FILE = Path("requirements.txt")
@@ -221,17 +221,32 @@ def handle_update(args):
     handle_install(argparse.Namespace(version=version, repo=args.repo))
     logger.info("Update complete. Please run 'setup' command if needed.")
 
-def main():
-    # Add src to python path to allow imports
-    sys.path.insert(0, str(Path("src").resolve()))
-    try:
-        from plexichat.core.logging import setup_logging
-        logger = setup_logging()
-    except ImportError:
-        import logging
-        logger = logging.getLogger("plexichat")
-        logger.warning("Could not set up custom logging.")
+def handle_generate_keys(args):
+    """Generates and distributes the master key shares."""
+    from pathlib import Path
+    from plexichat.core.security.key_vault import DistributedKeyManager
 
+    vaults_dir = Path("vaults")
+    num_vaults = 5
+    threshold = 3
+
+    logger.info(f"Generating master key with {num_vaults} shares and a threshold of {threshold}...")
+    key_manager = DistributedKeyManager(vaults_dir, num_vaults, threshold)
+    key_manager.generate_and_distribute_master_key()
+    logger.info(f"Master key shares generated successfully in {vaults_dir}.")
+
+# Add src to python path to allow imports before any other imports
+sys.path.insert(0, str(Path("src").resolve()))
+try:
+    from plexichat.core.logging import setup_logging
+    logger = setup_logging()
+except ImportError:
+    import logging
+    logger = logging.getLogger("plexichat")
+    logger.warning("Could not set up custom logging.")
+
+
+def main():
     parser = argparse.ArgumentParser(
         description="PlexiChat Runner and Management Script.",
         formatter_class=argparse.RawTextHelpFormatter,
@@ -271,6 +286,10 @@ Examples:
     update_parser.add_argument("--repo", type=str, default=GITHUB_REPO, help="GitHub repository to update from.")
     update_parser.set_defaults(func=handle_update)
 
+    # Generate Keys command
+    keys_parser = subparsers.add_parser("generate-keys", help="Generate and distribute master key shares.")
+    keys_parser.set_defaults(func=handle_generate_keys)
+
     parser.add_argument("--noserver", action="store_true", help="Do not run the API server.")
     parser.add_argument("--nowebui", action="store_true", help="Do not run the WebUI.")
     parser.add_argument("--nocli", action="store_true", help="Do not run the interactive CLI.")
@@ -308,20 +327,49 @@ Examples:
         webui_host = webui_config.get("host", "0.0.0.0")
         webui_port = webui_config.get("port", 8080)
 
-        def run_server(app, host, port):
-            uvicorn.run(app, host=host, port=port)
+        def run_server(app, host, port, network_config, ssl_config=None):
+            if ssl_config and ssl_config.get("enabled"):
+                import ssl
+
+                protocol_map = {
+                    "TLSv1.2": ssl.PROTOCOL_TLSv1_2,
+                    "TLSv1.3": ssl.PROTOCOL_TLS,
+                }
+                ssl_version = protocol_map.get(ssl_config.get("version"), ssl.PROTOCOL_TLS)
+
+                uvicorn.run(
+                    app,
+                    host=host,
+                    port=port,
+                    ssl_keyfile=ssl_config.get("key_path"),
+                    ssl_certfile=ssl_config.get("cert_path"),
+                    ssl_version=ssl_version,
+                    ssl_ciphers=ssl_config.get("ciphers"),
+                    timeout_keep_alive=network_config.timeout_keep_alive,
+                )
+            else:
+                uvicorn.run(app, host=host, port=port, timeout_keep_alive=network_config.timeout_keep_alive)
 
         threads = []
 
+        network_config = get_config("network")
+        ssl_settings = {
+            "enabled": network_config.ssl_enabled,
+            "key_path": network_config.ssl_key_path,
+            "cert_path": network_config.ssl_cert_path,
+            "version": network_config.tls_version,
+            "ciphers": network_config.tls_ciphers,
+        }
+
         if not args.noserver:
             logger.info(f"Starting API server in background on {api_host}:{api_port}...")
-            server_thread = threading.Thread(target=run_server, args=(main_app, api_host, api_port), daemon=True)
+            server_thread = threading.Thread(target=run_server, args=(main_app, api_host, api_port, network_config, ssl_settings), daemon=True)
             threads.append(server_thread)
             server_thread.start()
 
         if not args.nowebui:
             logger.info(f"Starting WebUI in background on {webui_host}:{webui_port}...")
-            webui_thread = threading.Thread(target=run_server, args=(webui_app, webui_host, webui_port), daemon=True)
+            webui_thread = threading.Thread(target=run_server, args=(webui_app, webui_host, webui_port, network_config, ssl_settings), daemon=True)
             threads.append(webui_thread)
             webui_thread.start()
 
@@ -329,7 +377,7 @@ Examples:
             logger.info("Starting interactive CLI...")
             try:
                 from plexichat.interfaces.cli.unified_cli import UnifiedCLI
-                from plexichat.core.plugins.unified_plugin_manager import unified_plugin_manager
+                from plexichat.core.plugins.manager import unified_plugin_manager
                 import asyncio
 
                 # Initialize plugin manager

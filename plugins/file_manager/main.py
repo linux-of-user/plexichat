@@ -11,6 +11,8 @@ import mimetypes
 import os
 import shutil
 import zipfile
+import magic
+import re
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
@@ -348,6 +350,105 @@ class FileManagerPlugin(PluginInterface):
                 return JSONResponse(content={"results": results})
             except Exception as e:
                 raise HTTPException(status_code=400, detail=str(e))
+
+        @self.router.post("/upload")
+        async def upload_files(path: str = "", files: List[UploadFile] = File(...)):
+            """Handle file uploads with security checks."""
+            upload_dir = self.data_dir / path
+            # Basic security check for the path
+            if not str(upload_dir.resolve()).startswith(str(self.data_dir.resolve())):
+                raise HTTPException(status_code=400, detail="Invalid upload path")
+
+            upload_dir.mkdir(parents=True, exist_ok=True)
+
+            results = []
+            for file in files:
+                try:
+                    # 1. File Size Check
+                    if file.size > self.file_manager.max_file_size:
+                        results.append({"filename": file.filename, "success": False, "error": "File size exceeds limit"})
+                        continue
+
+                    # 2. Filename Sanitization
+                    safe_filename = self._sanitize_filename(file.filename)
+                    if not safe_filename:
+                        results.append({"filename": file.filename, "success": False, "error": "Invalid filename"})
+                        continue
+
+                    # 3. File Type and Content Validation
+                    file_content = await file.read()
+                    await file.seek(0) # Reset file pointer after reading
+                    is_safe, error_msg = self._is_file_safe(safe_filename, file_content)
+                    if not is_safe:
+                        results.append({"filename": file.filename, "success": False, "error": error_msg})
+                        continue
+
+                    # Save the file
+                    destination = upload_dir / safe_filename
+                    async with aiofiles.open(destination, 'wb') as out_file:
+                        await out_file.write(file_content)
+
+                    results.append({"filename": safe_filename, "success": True, "path": str(destination)})
+
+                except Exception as e:
+                    logger.error(f"Error uploading file {file.filename}: {e}")
+                    results.append({"filename": file.filename, "success": False, "error": "An internal error occurred"})
+
+            return JSONResponse(content={"results": results})
+
+    def _sanitize_filename(self, filename: str) -> str:
+        """Sanitizes a filename to prevent path traversal and other attacks."""
+        # Remove dangerous characters (including directory traversal)
+        safe_filename = re.sub(r'[\\/..]', '', filename)
+        # Collapse multiple dots
+        safe_filename = re.sub(r'\.+', '.', safe_filename)
+        # Remove leading/trailing dots and spaces
+        safe_filename = safe_filename.strip('. ')
+        return safe_filename
+
+    def _is_file_safe(self, filename: str, content: bytes) -> (bool, str):
+        """Performs security checks on the file content and type."""
+        # Allowed MIME types (based on content, not extension)
+        ALLOWED_MIME_TYPES = {
+            'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+            'application/pdf',
+            'text/plain', 'text/markdown',
+            'application/zip', 'application/x-gzip',
+            'application/msword', # .doc
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document', # .docx
+            'application/vnd.ms-excel', # .xls
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', # .xlsx
+        }
+        # Blocklisted extensions, as a secondary defense
+        BLOCKED_EXTENSIONS = {'.php', '.py', '.sh', '.exe', '.dll', '.bat', '.cgi', '.pl', '.js', '.html', '.htm', '.css'}
+
+        # 1. Check extension blocklist
+        file_ext = Path(filename).suffix.lower()
+        if file_ext in BLOCKED_EXTENSIONS:
+            return False, f"File type ({file_ext}) is not allowed."
+
+        # 2. Check MIME type using python-magic
+        try:
+            mime_type = magic.from_buffer(content, mime=True)
+            if mime_type not in ALLOWED_MIME_TYPES:
+                return False, f"File content ({mime_type}) is not allowed."
+        except Exception as e:
+            logger.error(f"Could not determine MIME type for {filename}: {e}")
+            return False, "Could not verify file content."
+
+        # 3. Basic content scanning for web shells in text files
+        if mime_type == 'text/plain':
+            try:
+                # Decode safely, replacing errors
+                text_content = content.decode('utf-8', errors='replace')
+                dangerous_signatures = ['system(', 'exec(', 'passthru(', 'shell_exec(', 'eval(', '<script']
+                if any(sig in text_content for sig in dangerous_signatures):
+                    return False, "Potential malicious content detected."
+            except Exception:
+                # Could not decode as text, which is suspicious for a .txt file
+                return False, "File could not be read as plain text."
+
+        return True, ""
 
     async def _load_configuration(self):
         """Load plugin configuration."""
