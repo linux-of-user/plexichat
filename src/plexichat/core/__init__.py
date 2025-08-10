@@ -17,12 +17,8 @@ from typing import Any, Dict
 import importlib
 
 # Import consolidated systems
-try:
-    from .logging import get_logger
-    logger = get_logger(__name__)
-except ImportError:
-    import logging
-    logger = logging.getLogger(__name__)
+from .logging import get_logger
+logger = get_logger(__name__)
 
 try:
     from .configuration import get_config
@@ -188,39 +184,6 @@ try:
 except ImportError:
     core_manager.register_component("utils", False)
 
-# Load from config files instead of constants
-def _load_constants():
-    """Load constants from config files."""
-    try:
-        import json
-        from pathlib import Path
-
-        # Load version from version.json
-        version_file = Path(__file__).parent.parent.parent / "version.json"
-        if version_file.exists():
-            with open(version_file, 'r') as f:
-                version_data = json.load(f)
-                app_name = "PlexiChat"
-                app_version = version_data.get('version', 'b.1.1-94')
-        else:
-            app_name = "PlexiChat"
-            app_version = "b.1.1-94"
-
-        # Load config from config file
-        config_file = Path(__file__).parent.parent.parent / "config" / "plexichat.json"
-        if config_file.exists():
-            with open(config_file, 'r') as f:
-                default_config = json.load(f)
-        else:
-            default_config = {}
-
-        core_manager.register_component("constants", True)
-        return app_name, app_version, default_config
-    except Exception:
-        core_manager.register_component("constants", False)
-        return "PlexiChat", "b.1.1-94", {}
-
-APP_NAME, APP_VERSION, DEFAULT_CONFIG = _load_constants()
 
 # Register core components
 def register_core_components():
@@ -352,4 +315,5 @@ __all__ = [
 ]
 
 # Version info
-__version__ = "1.0.0"
+from plexichat.core.config import settings
+__version__ = settings.version

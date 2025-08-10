@@ -61,7 +61,7 @@ except ImportError as e:
             self.data = {}
             self.system = type('SystemConfig', (), {
                 'name': 'PlexiChat',
-                'version': 'b.1.1-94',
+                'version': '0.0.0',
                 'environment': 'production'
             })()
             self.network = type('NetworkConfig', (), {
@@ -120,7 +120,7 @@ class Settings:
         self._config = config_obj
         # Add common settings as properties
         self.app_name = getattr(config_obj.system, 'name', 'PlexiChat')
-        self.version = getattr(config_obj.system, 'version', 'b.1.1-94')
+        self.version = getattr(config_obj.system, 'version', '0.0.0')
         self.environment = getattr(config_obj.system, 'environment', 'production')
         self.debug = getattr(config_obj.system, 'debug', False)
 

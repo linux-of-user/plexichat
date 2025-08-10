@@ -6,7 +6,7 @@ Advanced data visualization with charts, graphs, real-time dashboards, and expor
 
 import asyncio
 import json
-import logging
+from plexichat.core.logging import get_logger
 import base64
 import io
 from datetime import datetime
@@ -47,7 +47,7 @@ from fastapi import APIRouter, HTTPException, UploadFile, File
 from fastapi.responses import JSONResponse, FileResponse
 from pydantic import BaseModel
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class ChartRequest(BaseModel):

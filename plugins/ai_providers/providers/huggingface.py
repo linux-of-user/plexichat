@@ -5,12 +5,12 @@ This module provides integration with HuggingFace Transformers for LLM inference
 """
 
 import asyncio
-import logging
+from plexichat.core.logging import get_logger
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 import json
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 @dataclass
@@ -61,7 +61,7 @@ class HuggingFaceProvider:
     def __init__(self, config: HFConfig):
         """Initialize HuggingFace provider."""
         self.config = config
-        self.logger = logging.getLogger(f"{__name__}.HuggingFaceProvider")
+        self.logger = get_logger(f"{__name__}.HuggingFaceProvider")
         self.model = None
         self.tokenizer = None
         self.is_initialized = False

@@ -174,47 +174,78 @@ class EnhancedPluginAPI:
             self.logger.error(f"Cache delete failed for key {key}: {e}")
             return False
     
-    # Enhanced Database Operations
-    async def db_query(self, query: str, params: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
-        """Execute database query using abstraction layer."""
+    # Plugin-specific Key-Value Store, providing a secure, namespaced data storage for plugins.
+    # Generic db_* methods have been removed to enhance security and prevent plugins
+    # from accessing arbitrary tables.
+    async def db_set_value(self, key: str, value: Any) -> bool:
+        """
+        Save a key-value pair for the plugin in the shared plugin_data table.
+        The value will be serialized to JSON.
+        """
         if not database_manager:
-            self.logger.error("Database manager not available")
-            return []
-        
-        try:
-            async with database_manager.get_session() as session:
-                result = await session.execute(query, params or {})
-                return [dict(row) for row in result.fetchall()]
-        except Exception as e:
-            self.logger.error(f"Database query failed: {e}")
-            return []
-    
-    async def db_insert(self, table: str, data: Dict[str, Any]) -> Optional[int]:
-        """Insert data into database table."""
-        if not database_manager:
-            return None
-        
-        try:
-            async with database_manager.get_session() as session:
-                result = await session.insert(table, data)
-                await session.commit()
-                return result.lastrowid
-        except Exception as e:
-            self.logger.error(f"Database insert failed: {e}")
-            return None
-    
-    async def db_update(self, table: str, data: Dict[str, Any], where: Dict[str, Any]) -> bool:
-        """Update data in database table."""
-        if not database_manager:
+            self.logger.error("Database manager not available for db_set_value.")
             return False
         
         try:
+            serialized_value = json.dumps(value)
             async with database_manager.get_session() as session:
-                await session.update(table, data, where)
+                # Using INSERT OR REPLACE functionality via raw execute
+                # The unified table is 'plugin_data' with (plugin_name, key, value)
+                query = """
+                    INSERT OR REPLACE INTO plugin_data (plugin_name, key, value)
+                    VALUES (:plugin_name, :key, :value)
+                """
+                params = {
+                    "plugin_name": self.plugin_name,
+                    "key": key,
+                    "value": serialized_value
+                }
+                await session.execute(query, params)
                 await session.commit()
-                return True
+            return True
         except Exception as e:
-            self.logger.error(f"Database update failed: {e}")
+            self.logger.error(f"Failed to set value for key '{key}': {e}")
+            return False
+
+    async def db_get_value(self, key: str, default: Any = None) -> Any:
+        """
+        Retrieve a value for a given key for the plugin.
+        """
+        if not database_manager:
+            self.logger.error("Database manager not available for db_get_value.")
+            return default
+        
+        try:
+            async with database_manager.get_session() as session:
+                query = "SELECT value FROM plugin_data WHERE plugin_name = :plugin_name AND key = :key"
+                params = {"plugin_name": self.plugin_name, "key": key}
+                row = await session.fetchone(query, params)
+
+                if row:
+                    return json.loads(row['value'])
+                return default
+        except Exception as e:
+            self.logger.error(f"Failed to get value for key '{key}': {e}")
+            return default
+
+    async def db_delete_value(self, key: str) -> bool:
+        """
+        Delete a key-value pair for the plugin.
+        """
+        if not database_manager:
+            self.logger.error("Database manager not available for db_delete_value.")
+            return False
+
+        try:
+            async with database_manager.get_session() as session:
+                await session.delete(
+                    "plugin_data",
+                    where={"plugin_name": self.plugin_name, "key": key}
+                )
+                await session.commit()
+            return True
+        except Exception as e:
+            self.logger.error(f"Failed to delete value for key '{key}': {e}")
             return False
     
     # Configuration Management

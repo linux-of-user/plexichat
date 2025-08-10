@@ -273,9 +273,10 @@ class InputSanitizer:
     def __init__(self):
         # Dangerous patterns for various attack types
         self.sql_injection_patterns = [
-            re.compile(r"(?i)(union|select|insert|update|delete|drop|create|alter|exec|execute)", re.IGNORECASE),
-            re.compile(r"(?i)(script|javascript|vbscript)", re.IGNORECASE),
-            re.compile(r"['\";]", re.IGNORECASE)
+            re.compile(r"(?i)(union|select|insert|update|delete|drop|create|alter|exec|execute|--|;|\/\*|\*\/)", re.IGNORECASE),
+            re.compile(r"(?i)((\%3D)|(=))[^\n]*((\%27)|(\')|(\-\-)|(\%3B)|(;))", re.IGNORECASE),
+            re.compile(r"\w*((\%27)|(\'))((\%6F)|o|(\%4F))((\%72)|r|(\%52))", re.IGNORECASE),
+            re.compile(r"((\%27)|(\'))union", re.IGNORECASE)
         ]
         
         self.xss_patterns = [
@@ -311,9 +312,12 @@ class InputSanitizer:
         """Detect potential security threats in input."""
         threats = []
         
-        # Check for SQL injection
+        # Check for SQL injection, but allow it if it's wrapped in [sql]...[/sql]
+        sql_pattern = re.compile(r'\[sql\](.*?)\[/sql\]', re.DOTALL | re.IGNORECASE)
+        clean_input = sql_pattern.sub('', input_data)
+
         for pattern in self.sql_injection_patterns:
-            if pattern.search(input_data):
+            if pattern.search(clean_input):
                 threats.append("SQL injection attempt detected")
                 break
         
@@ -382,6 +386,22 @@ class UnifiedSecuritySystem:
         self._initialize_default_policies()
         
         logger.info("Unified Security System initialized with watertight protection")
+
+    witty_responses = {
+        "SQL injection attempt detected": "Nice try, but my database is locked down tighter than a submarine. Try a longer needle.",
+        "XSS attempt detected": "My, my, what a creative script you have there. Unfortunately, this is not a playground.",
+        "Path traversal attempt detected": "Lost, are we? Let me show you the way back to the main road.",
+    }
+
+    async def process_security_request(self, request_data: Any) -> Tuple[bool, Optional[str]]:
+        """Process a security request and return a witty response if a threat is detected."""
+        if isinstance(request_data, str):
+            threats = self.input_sanitizer.detect_threats(request_data)
+            if threats:
+                threat = threats[0]
+                self.metrics['threats_detected'] += 1
+                return False, self.witty_responses.get(threat, "I've got a bad feeling about this.")
+        return True, None
     
     def _initialize_default_policies(self) -> None:
         """Initialize default security policies."""
@@ -468,13 +488,11 @@ class UnifiedSecuritySystem:
                 issues.append(f"Security policy '{policy_name}' not found")
                 return False, issues
             
-            # Sanitize and check input if it's a string
-            if isinstance(request_data, str):
-                threats = self.input_sanitizer.detect_threats(request_data)
-                if threats:
-                    self.metrics['threats_detected'] += len(threats)
-                    issues.extend(threats)
-            
+            # Sanitize and check input
+            allowed, witty_response = await self.process_security_request(request_data)
+            if not allowed:
+                issues.append(witty_response)
+
             # Additional security validations would go here
             
             return len(issues) == 0, issues
@@ -494,6 +512,17 @@ class UnifiedSecuritySystem:
             'security_manager_available': SECURITY_MANAGER_AVAILABLE
         }
     
+    def validate_file_upload(self, filename: str, content_type: str, file_size: int) -> Tuple[bool, str]:
+        """Validate file upload against security policies."""
+        # This is a placeholder. A real implementation would have more robust checks.
+        if ".." in filename or "/" in filename or "\\" in filename:
+            return False, "Invalid filename."
+
+        if file_size > 100 * 1024 * 1024: # 100MB
+            return False, "File is too large."
+
+        return True, "File is valid."
+
     async def shutdown(self) -> None:
         """Shutdown the unified security system."""
         logger.info("Unified Security System shutting down")

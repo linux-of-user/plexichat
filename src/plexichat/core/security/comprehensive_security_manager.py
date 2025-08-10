@@ -173,37 +173,45 @@ class ComprehensiveSecurityManager:
         logger.info("Comprehensive Security Manager initialized with watertight protection")
     
     def _initialize_threat_detection_rules(self) -> None:
-        """Initialize built-in threat detection rules."""
-        self.threat_detection_rules = [
-            ThreatDetectionRule(
-                name="SQL Injection Detection",
-                pattern=r"(?i)(union|select|insert|update|delete|drop|create|alter|exec|execute)",
-                threat_level=ThreatLevel.HIGH,
-                event_type=SecurityEventType.SQL_INJECTION_ATTEMPT,
-                description="Detects potential SQL injection attempts"
-            ),
-            ThreatDetectionRule(
-                name="XSS Detection",
-                pattern=r"(?i)(<script|javascript:|on\w+\s*=)",
-                threat_level=ThreatLevel.HIGH,
-                event_type=SecurityEventType.XSS_ATTEMPT,
-                description="Detects potential XSS attempts"
-            ),
-            ThreatDetectionRule(
-                name="Path Traversal Detection",
-                pattern=r"(\.\./|\.\.\\|%2e%2e%2f|%2e%2e%5c)",
-                threat_level=ThreatLevel.MEDIUM,
-                event_type=SecurityEventType.SUSPICIOUS_ACTIVITY,
-                description="Detects path traversal attempts"
-            ),
-            ThreatDetectionRule(
-                name="Command Injection Detection",
-                pattern=r"(?i)(;|\||&|`|\$\(|<|>)",
-                threat_level=ThreatLevel.HIGH,
-                event_type=SecurityEventType.MALICIOUS_INPUT,
-                description="Detects command injection attempts"
-            )
+        """Initialize built-in threat detection rules from multiple categories."""
+        self.threat_detection_rules = []
+
+        # SQL Injection Patterns
+        sql_patterns = [
+            (r"(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|UNION)\b)", "SQL Command"),
+            (r"(\b(OR|AND)\s+['\"]?\d+['\"]?\s*=\s*['\"]?\d+['\"]?)", "Tautology"),
+            (r"(--|\#|\/\*|\*\/)", "SQL Comment"),
+            (r"(\b(USER|DATABASE|VERSION)\s*\()", "SQL Function"),
         ]
+        for pattern, desc in sql_patterns:
+            self.threat_detection_rules.append(ThreatDetectionRule(
+                name=f"SQL Injection: {desc}", pattern=pattern, threat_level=ThreatLevel.CRITICAL,
+                event_type=SecurityEventType.SQL_INJECTION_ATTEMPT, description=f"Detects {desc.lower()} SQL injection."
+            ))
+
+        # XSS Patterns
+        xss_patterns = [
+            (r"<script[^>]*>.*?</script>", "Script Tag"),
+            (r"javascript:", "Javascript Protocol"),
+            (r"on\w+\s*=", "Event Handler"),
+            (r"<iframe[^>]*>", "Iframe Tag"),
+        ]
+        for pattern, desc in xss_patterns:
+            self.threat_detection_rules.append(ThreatDetectionRule(
+                name=f"XSS: {desc}", pattern=pattern, threat_level=ThreatLevel.HIGH,
+                event_type=SecurityEventType.XSS_ATTEMPT, description=f"Detects {desc.lower()} XSS attack."
+            ))
+
+        # Malicious URL Patterns
+        malicious_url_patterns = [
+            (r"bit\.ly/[a-zA-Z0-9]+", "Bitly Short-URL"),
+            (r"\.tk/", ".tk Domain"),
+        ]
+        for pattern, desc in malicious_url_patterns:
+             self.threat_detection_rules.append(ThreatDetectionRule(
+                name=f"Malicious Link: {desc}", pattern=pattern, threat_level=ThreatLevel.MEDIUM,
+                event_type=SecurityEventType.MALICIOUS_INPUT, description=f"Detects potentially malicious link ({desc})."
+            ))
     
     async def validate_request(self, request: Any) -> Tuple[bool, Optional[SecurityContext], Optional[str]]:
         """
@@ -265,6 +273,23 @@ class ComprehensiveSecurityManager:
             logger.error(f"Error in request validation: {e}")
             return False, None, "Internal security error"
     
+    async def scan_message_content(self, content: str) -> List[Dict[str, Any]]:
+        """
+        Scans a string of content against the threat detection rules.
+        Returns a list of found threats.
+        """
+        found_threats = []
+        for rule in self.threat_detection_rules:
+            if rule.enabled and re.search(rule.pattern, content, re.IGNORECASE):
+                threat = {
+                    'rule_name': rule.name,
+                    'description': rule.description,
+                    'threat_level': rule.threat_level,
+                    'pattern_matched': rule.pattern
+                }
+                found_threats.append(threat)
+        return found_threats
+
     async def _detect_threats(self, request: Any, context: SecurityContext) -> Tuple[bool, Dict[str, Any]]:
         """Detect threats in the request."""
         try:
@@ -277,21 +302,17 @@ class ComprehensiveSecurityManager:
                 except:
                     pass
             
-            # Add URL and headers to analysis
             if hasattr(request, 'url'):
                 request_data += str(request.url)
             if hasattr(request, 'headers'):
                 request_data += str(dict(request.headers))
             
-            # Check against threat detection rules
-            for rule in self.threat_detection_rules:
-                if rule.enabled and re.search(rule.pattern, request_data):
-                    return True, {
-                        'rule_name': rule.name,
-                        'description': rule.description,
-                        'threat_level': rule.threat_level.name,
-                        'pattern_matched': rule.pattern
-                    }
+            # Scan the combined request data
+            threats = await self.scan_message_content(request_data)
+            if threats:
+                # Return the highest priority threat found
+                highest_threat = max(threats, key=lambda t: t['threat_level'].value)
+                return True, highest_threat
             
             return False, {}
             

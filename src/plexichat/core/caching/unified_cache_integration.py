@@ -120,10 +120,13 @@ class UnifiedCacheManager:
     async def _initialize_backends(self):
         """Initialize external cache backends."""
         # Redis initialization
-        if self.config.get("redis_enabled", False):
+        if self.config.get("l2_redis_enabled", False):
             try:
                 import aioredis  # type: ignore
-                redis_url = self.config.get("redis_url", "redis://localhost:6379")
+                redis_host = self.config.get("l2_redis_host", "localhost")
+                redis_port = self.config.get("l2_redis_port", 6379)
+                redis_db = self.config.get("l2_redis_db", 0)
+                redis_url = f"redis://{redis_host}:{redis_port}/{redis_db}"
                 self.redis_client = aioredis.from_url(redis_url)
                 logger.info("Redis cache backend initialized")
             except ImportError:

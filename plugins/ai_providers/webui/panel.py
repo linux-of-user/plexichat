@@ -6,10 +6,10 @@ Web interface for managing AI providers, models, and performance monitoring.
 
 import asyncio
 import json
-import logging
+from plexichat.core.logging import get_logger
 from typing import Any, Dict, List, Optional
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 from plugin_internal import AIRequest
 

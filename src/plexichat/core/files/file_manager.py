@@ -7,6 +7,7 @@ File management with threading and performance optimization.
 
 import asyncio
 import hashlib
+import json
 import logging
 import mimetypes
 import os
@@ -24,9 +25,10 @@ except ImportError:
     Image = None
 
 try:
-    from plexichat.core.database.manager import database_manager
+    from plexichat.core.database.manager import database_manager, DatabaseSession
 except ImportError:
     database_manager = None
+    DatabaseSession = None
 
 try:
     from plexichat.core.threading.thread_manager import async_thread_manager, submit_task
@@ -39,6 +41,7 @@ try:
 except ImportError:
     cache_get = None
     cache_set = None
+    cache_delete = None
 
 try:
     from plexichat.core.security.security_manager import security_manager
@@ -72,14 +75,16 @@ class FileMetadata:
     metadata: Dict[str, Any]
 
 class FileManager:
-    File manager with threading support."""
-        def __init__(self, upload_dir: str = "uploads", max_file_size: int = 100 * 1024 * 1024):
+    """File manager with threading support."""
+
+    def __init__(self, upload_dir: str = "uploads", max_file_size: int = 100 * 1024 * 1024):
         self.upload_dir = Path(upload_dir)
         self.max_file_size = max_file_size
         self.db_manager = database_manager
         self.performance_logger = performance_logger
         self.async_thread_manager = async_thread_manager
         self.security_manager = security_manager
+        self._db_initialized = False
 
         # Create upload directory
         self.upload_dir.mkdir(parents=True, exist_ok=True)
@@ -187,7 +192,34 @@ class FileManager:
             logger.error(f"Error creating thumbnail: {e}")
             return None
 
-    async def upload_file(self, file_data: bytes, filename: str, uploaded_by: int, )
+    async def initialize(self):
+        """Initialize the file manager and ensure database table exists."""
+        if self._db_initialized or not self.db_manager:
+            return
+
+        schema = {
+            "file_id": "TEXT PRIMARY KEY",
+            "filename": "TEXT NOT NULL",
+            "original_filename": "TEXT NOT NULL",
+            "file_path": "TEXT NOT NULL",
+            "file_size": "INTEGER NOT NULL",
+            "content_type": "TEXT",
+            "checksum": "TEXT",
+            "uploaded_by": "INTEGER NOT NULL",
+            "uploaded_at": "TIMESTAMP NOT NULL",
+            "is_public": "BOOLEAN NOT NULL DEFAULT 0",
+            "tags": "TEXT",
+            "metadata": "TEXT"
+        }
+        try:
+            await self.db_manager.ensure_table_exists("files", schema)
+            self._db_initialized = True
+            logger.info("File manager database table 'files' initialized.")
+        except Exception as e:
+            logger.error(f"Failed to initialize 'files' table: {e}")
+            self._db_initialized = False
+
+    async def upload_file(self, file_data: bytes, filename: str, uploaded_by: int,
                         content_type: str = None, is_public: bool = False,
                         tags: List[str] = None) -> Optional[FileMetadata]:
         """Upload file with threading."""
@@ -213,7 +245,7 @@ class FileManager:
 
             # Save file (threaded)
             if self.async_thread_manager:
-                await self.async_thread_manager.run_in_thread()
+                await self.async_thread_manager.run_in_thread(
                     self._save_file_sync, file_data, file_path
                 )
             else:
@@ -221,7 +253,7 @@ class FileManager:
 
             # Calculate checksum (threaded)
             if self.async_thread_manager:
-                checksum = await self.async_thread_manager.run_in_thread()
+                checksum = await self.async_thread_manager.run_in_thread(
                     self._calculate_checksum, file_path
                 )
             else:
@@ -231,7 +263,7 @@ class FileManager:
             metadata = {}
             if content_type.startswith('image/'):
                 if self.async_thread_manager:
-                    image_metadata = await self.async_thread_manager.run_in_thread()
+                    image_metadata = await self.async_thread_manager.run_in_thread(
                         self._process_image, file_path
                     )
                 else:
@@ -240,7 +272,7 @@ class FileManager:
 
                 # Create thumbnail
                 if self.async_thread_manager:
-                    thumbnail_path = await self.async_thread_manager.run_in_thread()
+                    thumbnail_path = await self.async_thread_manager.run_in_thread(
                         self._create_thumbnail, file_path
                     )
                 else:
@@ -249,8 +281,8 @@ class FileManager:
                 if thumbnail_path:
                     metadata['thumbnail_path'] = str(thumbnail_path)
 
-            # Create file metadata
-            file_metadata = FileMetadata()
+            # Create file metadata object
+            file_metadata = FileMetadata(
                 file_id=file_id,
                 filename=f"{file_id}{file_ext}",
                 original_filename=filename,
@@ -268,8 +300,9 @@ class FileManager:
             # Store in database
             await self._store_file_metadata(file_metadata)
 
-            # Cache file metadata
-            await cache_set(f"file_{file_id}", file_metadata.__dict__, ttl=3600)
+            # Cache file metadata if cache is available
+            if cache_set:
+                await cache_set(f"file_{file_id}", file_metadata.__dict__, ttl=3600)
 
             # Performance tracking
             if self.performance_logger:
@@ -297,17 +330,13 @@ class FileManager:
             raise
 
     async def _store_file_metadata(self, file_metadata: FileMetadata):
-        """Store file metadata in database.
+        """Store file metadata in the database."""
+        if not self.db_manager:
+            return
         try:
-            if self.db_manager:
-                query = """
-                    INSERT INTO files ()
-                        file_id, filename, original_filename, file_path,
-                        file_size, content_type, checksum, uploaded_by,
-                        uploaded_at, is_public, tags, metadata
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """
-                params = {
+            await self.initialize()  # Ensure table exists
+            async with self.db_manager.get_session() as session:
+                insert_data = {
                     "file_id": file_metadata.file_id,
                     "filename": file_metadata.filename,
                     "original_filename": file_metadata.original_filename,
@@ -318,52 +347,56 @@ class FileManager:
                     "uploaded_by": file_metadata.uploaded_by,
                     "uploaded_at": file_metadata.uploaded_at,
                     "is_public": file_metadata.is_public,
-                    "tags": ','.join(file_metadata.tags),
-                    "metadata": str(file_metadata.metadata)
+                    "tags": ",".join(file_metadata.tags),
+                    "metadata": json.dumps(file_metadata.metadata),
                 }
-                await self.db_manager.execute_query(query, params)
+                await session.insert("files", insert_data)
+                await session.commit()
         except Exception as e:
             logger.error(f"Error storing file metadata: {e}")
+            raise
 
     async def get_file_metadata(self, file_id: str) -> Optional[FileMetadata]:
         """Get file metadata."""
         try:
             # Check cache first
-            cached_data = await cache_get(f"file_{file_id}")
+            if cache_get:
+                cached_data = await cache_get(f"file_{file_id}")
                 if cached_data:
                     return FileMetadata(**cached_data)
 
             # Get from database
-            if self.db_manager:
-                query = "SELECT * FROM files WHERE file_id = ?"
-                result = await self.db_manager.execute_query(query, {"file_id": file_id})
+            if not self.db_manager:
+                return None
 
-                if result:
-                    row = result[0]
-                    metadata = FileMetadata()
-                        file_id=row[0],
-                        filename=row[1],
-                        original_filename=row[2],
-                        file_path=row[3],
-                        file_size=row[4],
-                        content_type=row[5],
-                        checksum=row[6],
-                        uploaded_by=row[7],
-                        uploaded_at=row[8],
-                        is_public=row[9],
-                        tags=row[10].split(',') if row[10] else [],
-metadata=# SECURITY: eval() removed - use safe alternativesrow[11]) if row[11] else {}
+            await self.initialize()
+            async with self.db_manager.get_session() as session:
+                query = "SELECT * FROM files WHERE file_id = :file_id"
+                row = await session.fetchone(query, {"file_id": file_id})
+
+                if row:
+                    metadata = FileMetadata(
+                        file_id=row["file_id"],
+                        filename=row["filename"],
+                        original_filename=row["original_filename"],
+                        file_path=row["file_path"],
+                        file_size=row["file_size"],
+                        content_type=row["content_type"],
+                        checksum=row["checksum"],
+                        uploaded_by=row["uploaded_by"],
+                        uploaded_at=row["uploaded_at"],
+                        is_public=bool(row["is_public"]),
+                        tags=row["tags"].split(",") if row["tags"] else [],
+                        metadata=json.loads(row["metadata"]) if row["metadata"] else {},
                     )
 
                     # Cache result
-                    await cache_set(f"file_{file_id}", metadata.__dict__, ttl=3600)
-
+                    if cache_set:
+                        await cache_set(f"file_{file_id}", metadata.__dict__, ttl=3600)
                     return metadata
-
             return None
-
         except Exception as e:
-            logger.error(f"Error getting file metadata: {e}")
+            logger.error(f"Error getting file metadata for {file_id}: {e}")
             return None
 
     async def get_file_data(self, file_id: str) -> Optional[bytes]:
@@ -414,7 +447,7 @@ metadata=# SECURITY: eval() removed - use safe alternativesrow[11]) if row[11] e
             # Delete file (threaded)
             file_path = Path(metadata.file_path)
             if self.async_thread_manager:
-                await self.async_thread_manager.run_in_thread()
+                await self.async_thread_manager.run_in_thread(
                     self._delete_file_sync, file_path
                 )
             else:
@@ -422,12 +455,14 @@ metadata=# SECURITY: eval() removed - use safe alternativesrow[11]) if row[11] e
 
             # Delete from database
             if self.db_manager:
-                query = "DELETE FROM files WHERE file_id = ?"
-                await self.db_manager.execute_query(query, {"file_id": file_id})
+                await self.initialize()
+                async with self.db_manager.get_session() as session:
+                    await session.delete("files", where={"file_id": file_id})
+                    await session.commit()
 
             # Clear cache
-            # Would need cache_delete function
-                pass
+            if cache_delete:
+                await cache_delete(f"file_{file_id}")
 
             # Performance tracking
             if self.performance_logger:
@@ -482,8 +517,12 @@ metadata=# SECURITY: eval() removed - use safe alternativesrow[11]) if row[11] e
 file_manager = FileManager()
 
 # Convenience functions
+async def initialize_file_manager():
+    """Initialize the global file manager instance."""
+    await file_manager.initialize()
+
 async def upload_file(file_data: bytes, filename: str, uploaded_by: int, **kwargs) -> Optional[FileMetadata]:
-    """Upload file using global file manager.
+    """Upload file using global file manager."""
     return await file_manager.upload_file(file_data, filename, uploaded_by, **kwargs)
 
 async def get_file_metadata(file_id: str) -> Optional[FileMetadata]:
@@ -491,7 +530,7 @@ async def get_file_metadata(file_id: str) -> Optional[FileMetadata]:
     return await file_manager.get_file_metadata(file_id)
 
 async def get_file_data(file_id: str) -> Optional[bytes]:
-    Get file data using global file manager."""
+    """Get file data using global file manager."""
     return await file_manager.get_file_data(file_id)
 
 async def delete_file(file_id: str, user_id: int) -> bool:

@@ -1,14 +1,14 @@
 import asyncio
 import hashlib
-import logging
+from plexichat.core.logging import get_logger
 import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List
 
 import aiofiles
-import aiosqlite
 
+from plugins_internal import EnhancedPluginAPI
 from . import (
     MAX_FILE_SIZE_SCAN,
     SUSPICIOUS_EXTENSIONS,
@@ -22,45 +22,24 @@ from .hash_scanner import HashBasedScanner
 from .link_scanner import LinkSafetyScanner
 from .threat_intelligence import ThreatIntelligenceManager
 
-"""
-Advanced Antivirus Engine
-
-Main antivirus engine that coordinates all scanning components
-and provides comprehensive threat detection capabilities.
-"""
-
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class AdvancedAntivirusEngine:
     """
-    Advanced antivirus engine with multiple detection methods.
-
-    Features:
-    - Hash-based detection against public databases
-    - Behavioral analysis and heuristics
-    - Link safety checking
-    - Filename pattern analysis
-    - Real-time threat intelligence
-    - Quarantine and cleanup capabilities
+    Advanced antivirus engine that coordinates scanning components and uses the Plugin SDK.
     """
 
-    def __init__(self, data_dir: Path):
-        self.data_dir = Path(data_dir)
-        self.antivirus_dir = self.data_dir / "antivirus"
-        self.quarantine_dir = self.antivirus_dir / "quarantine"
-        self.db_path = self.antivirus_dir / "antivirus.db"
+    def __init__(self, api: EnhancedPluginAPI):
+        self.api = api
+        self.logger = api.logger
 
-        # Create directories
-        self.antivirus_dir.mkdir(parents=True, exist_ok=True)
-        self.quarantine_dir.mkdir(parents=True, exist_ok=True)
-
-        # Initialize scanning components
-        self.hash_scanner = HashBasedScanner(self.antivirus_dir)
-        self.behavioral_analyzer = BehavioralAnalyzer(self.antivirus_dir)
-        self.link_scanner = LinkSafetyScanner(self.antivirus_dir)
+        # Initialize scanning components, passing the SDK's api object to each
+        self.hash_scanner = HashBasedScanner(api=self.api)
+        self.behavioral_analyzer = BehavioralAnalyzer(api=self.api)
+        self.link_scanner = LinkSafetyScanner(api=self.api)
         self.filename_analyzer = FilenameAnalyzer()
-        self.threat_intelligence = ThreatIntelligenceManager({})
+        self.threat_intelligence = ThreatIntelligenceManager({}) # This one seems self-contained
 
         # Scan statistics
         self.scan_stats = {
@@ -78,10 +57,9 @@ class AdvancedAntivirusEngine:
         if self._initialized:
             return
 
-        logger.info("Initializing Advanced Antivirus Engine")
+        self.logger.info("Initializing Advanced Antivirus Engine")
 
-        # Initialize database
-        await self._initialize_database()
+        # Database is no longer initialized here; components handle their own persistence via SDK.
 
         # Initialize all scanning components
         if self.hash_scanner and hasattr(self.hash_scanner, "initialize"):
@@ -230,62 +208,19 @@ class AdvancedAntivirusEngine:
             logger.error(f"Failed to update threat databases: {e}")
             return False
 
-    async def _initialize_database(self):
-        """Initialize antivirus database."""
-        async with aiosqlite.connect(self.db_path) as db:
-            # Scan results table
-            await db.execute(
-                """
-                CREATE TABLE IF NOT EXISTS scan_results (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    file_path TEXT NOT NULL,
-                    file_hash TEXT NOT NULL,
-                    threat_level INTEGER NOT NULL,
-                    threat_type TEXT,
-                    threat_name TEXT,
-                    scan_type TEXT NOT NULL,
-                    scan_duration REAL NOT NULL,
-                    detected_at TEXT NOT NULL,
-                    confidence_score REAL NOT NULL,
-                    quarantined BOOLEAN DEFAULT FALSE,
-                    cleaned BOOLEAN DEFAULT FALSE,
-                    details TEXT
-                )
-            """
-            )
+    async def _log_scan_result(self, scan_result: ScanResult):
+        """Logs a scan result to the database via the SDK."""
+        # This provides an example of how the engine could log its own data
+        # if it needed to, separate from the sub-scanners.
+        log_key = f"scan_log:{scan_result.file_hash}:{int(time.time())}"
+        log_data = asdict(scan_result)
+        # Ensure enums/datetimes are serializable
+        log_data['threat_level'] = log_data['threat_level'].value
+        log_data['threat_type'] = log_data['threat_type'].value if log_data['threat_type'] else None
+        log_data['scan_type'] = log_data['scan_type'].value
+        log_data['detected_at'] = log_data['detected_at'].isoformat()
 
-            # Quarantine log table
-            await db.execute(
-                """
-                CREATE TABLE IF NOT EXISTS quarantine_log (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    file_path TEXT NOT NULL,
-                    original_location TEXT NOT NULL,
-                    quarantine_location TEXT NOT NULL,
-                    threat_name TEXT,
-                    quarantined_at TEXT NOT NULL,
-                    restored_at TEXT,
-                    deleted_at TEXT
-                )
-            """
-            )
-
-            # Statistics table
-            await db.execute(
-                """
-                CREATE TABLE IF NOT EXISTS scan_statistics (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    total_scans INTEGER DEFAULT 0,
-                    threats_detected INTEGER DEFAULT 0,
-                    files_quarantined INTEGER DEFAULT 0,
-                    false_positives INTEGER DEFAULT 0,
-                    last_update TEXT,
-                    updated_at TEXT NOT NULL
-                )
-            """
-            )
-
-            await db.commit()
+        await self.api.db_set_value(log_key, log_data)
 
     async def _calculate_file_hash(self, file_path: Path) -> str:
         """Calculate SHA-512 hash of file."""
@@ -379,56 +314,11 @@ class AdvancedAntivirusEngine:
         )
 
     async def _handle_threat(self, scan_result: ScanResult):
-        """Handle detected threat."""
-        if scan_result.threat_level.value >= ThreatLevel.HIGH_RISK.value:
-            # Quarantine high-risk files
-            await self._quarantine_file(scan_result)
-
-        # Log threat
-        logger.warning(
-            f"Threat detected: {scan_result.threat_name} in {scan_result.file_path}"
-        )
-
-    async def _quarantine_file(self, scan_result: ScanResult):
-        """Quarantine a threatening file."""
-        try:
-            self.source_path = Path(scan_result.file_path)
-            if not self.source_path.exists():
-                return
-
-            # Create quarantine filename
-            timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-            quarantine_filename = f"{timestamp}_{self.source_path.name}"
-            quarantine_path = self.quarantine_dir / quarantine_filename
-
-            # Move file to quarantine
-            self.source_path.rename(quarantine_path)
-
-            # Log quarantine action
-            async with aiosqlite.connect(self.db_path) as db:
-                await db.execute(
-                    """
-                    INSERT INTO quarantine_log
-                    (file_path, original_location, quarantine_location, threat_name, quarantined_at)
-                    VALUES (?, ?, ?, ?, ?)
-                """,
-                    (
-                        self.source_path.name,
-                        str(self.source_path),
-                        str(quarantine_path),
-                        scan_result.threat_name,
-                        datetime.now(timezone.utc).isoformat(),
-                    ),
-                )
-                await db.commit()
-
-            scan_result.quarantined = True
-            self.scan_stats["files_quarantined"] += 1
-
-            logger.info(f"File quarantined: {self.source_path} -> {quarantine_path}")
-
-        except Exception as e:
-            logger.error(f"Failed to quarantine file {scan_result.file_path}: {e}")
+        """Handle detected threat by logging it. Quarantine is handled by the manager."""
+        if scan_result.threat_level.value >= ThreatLevel.MEDIUM_RISK.value:
+            self.logger.warning(
+                f"Threat detected: {scan_result.threat_name} in {scan_result.file_path} (Level: {scan_result.threat_level.name})"
+            )
 
     async def _update_scan_statistics(self, scan_result: ScanResult):
         """Update scan statistics."""
@@ -437,54 +327,12 @@ class AdvancedAntivirusEngine:
         if scan_result.threat_level.value >= ThreatLevel.MEDIUM_RISK.value:
             self.scan_stats["threats_detected"] += 1
 
-    async def _log_scan_result(self, scan_result: ScanResult):
-        """Log scan result to database."""
-        async with aiosqlite.connect(self.db_path) as db:
-            await db.execute(
-                """
-                INSERT INTO scan_results
-                (file_path, file_hash, threat_level, threat_type, threat_name, scan_type, scan_duration, detected_at, confidence_score, quarantined, cleaned, details)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """,
-                (
-                    scan_result.file_path,
-                    scan_result.file_hash,
-                    scan_result.threat_level.value,
-                    scan_result.threat_type.value if scan_result.threat_type else None,
-                    scan_result.threat_name,
-                    scan_result.scan_type.value,
-                    scan_result.scan_duration,
-                    scan_result.detected_at.isoformat(),
-                    scan_result.confidence_score,
-                    scan_result.quarantined,
-                    scan_result.cleaned,
-                    str(scan_result.details),
-                ),
-            )
-            await db.commit()
 
     async def _load_scan_statistics(self):
-        """Load scan statistics from database."""
-        async with aiosqlite.connect(self.db_path) as db:
-            async with db.execute(
-                """
-                SELECT total_scans, threats_detected, files_quarantined,
-                       false_positives, last_update
-                FROM scan_statistics
-                ORDER BY updated_at DESC LIMIT 1
-            """
-            ) as cursor:
-                row = await cursor.fetchone()
-                if row:
-                    self.scan_stats.update(
-                        {
-                            "total_scans": row[0],
-                            "threats_detected": row[1],
-                            "files_quarantined": row[2],
-                            "false_positives": row[3],
-                            "last_update": row[4],
-                        }
-                    )
+        """Load scan statistics from database via SDK."""
+        stats = await self.api.db_get_value("scan_statistics")
+        if stats and isinstance(stats, dict):
+            self.scan_stats.update(stats)
 
     async def _background_update_task(self):
         """Background task for updating threat databases."""

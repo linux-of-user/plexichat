@@ -5,12 +5,12 @@ Comprehensive test suite for AI providers plugin.
 """
 
 import asyncio
-import logging
+from plexichat.core.logging import get_logger
 import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class TestSuite:

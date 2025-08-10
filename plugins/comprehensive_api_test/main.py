@@ -23,7 +23,7 @@ import requests
 import time
 from datetime import datetime
 from typing import Dict, List, Any, Optional
-import logging
+from plexichat.core.logging import get_logger
 
 # Plugin SDK imports
 try:
@@ -32,7 +32,7 @@ except ImportError:
     # Fallback for development
     class PluginBase:
         def __init__(self):
-            self.logger = logging.getLogger(__name__)
+            self.logger = get_logger(__name__)
     
     def command(name: str, description: str = ""):
         def decorator(func):
@@ -44,7 +44,7 @@ except ImportError:
     class PluginManager:
         pass
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 class ComprehensiveAPITest(PluginBase):
     """Comprehensive API testing plugin."""

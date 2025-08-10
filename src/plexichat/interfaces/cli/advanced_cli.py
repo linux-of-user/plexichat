@@ -189,24 +189,6 @@ class EnhancedCLISystem:
         ))
         
         self.register_command(CLICommand(
-            name="admin-gui",
-            description="Launch the administration GUI with integrated terminal",
-            category="admin",
-            handler=self._handle_admin_gui,
-            aliases=["gui", "admin"],
-            options=[
-                {"name": "--port", "type": int, "help": "GUI port (default: 8080)"},
-                {"name": "--theme", "help": "GUI theme (light/dark)"},
-                {"name": "--fullscreen", "help": "Start in fullscreen mode"}
-            ],
-            examples=[
-                "admin-gui",
-                "admin-gui --port 8081",
-                "admin-gui --theme dark --fullscreen"
-            ]
-        ))
-        
-        self.register_command(CLICommand(
             name="webui",
             description="Launch the web interface on a different port",
             category="admin",
@@ -658,20 +640,6 @@ class EnhancedCLISystem:
         self._register_development_commands()
         self._register_maintenance_commands()
     
-    async def _handle_admin_gui(self, args: List[str]) -> bool:
-        """Launch the administration GUI"""
-        print(f"{CLIColors.INFO}Launching administration GUI...{CLIColors.RESET}")
-        try:
-            from plexichat.interfaces.gui.main import start_gui
-            start_gui(integrated_terminal=True)
-            return True
-        except ImportError:
-            print(f"{CLIColors.ERROR}GUI module not found{CLIColors.RESET}")
-            return False
-        except Exception as e:
-            print(f"{CLIColors.ERROR}Failed to launch GUI: {e}{CLIColors.RESET}")
-            return False
-
     async def _handle_webui(self, args: List[str]) -> bool:
         """Launch the web UI on specified port"""
         port = 8080
@@ -760,23 +728,6 @@ class EnhancedCLISystem:
             ]
         ))
 
-        self.register_command(CLICommand(
-            name="gui-password",
-            description="Change GUI interface password",
-            category="admin",
-            handler=self._handle_gui_password,
-            aliases=["gui-passwd"],
-            options=[
-                {"name": "--current", "help": "Current GUI password"},
-                {"name": "--new", "help": "New GUI password (will prompt if not provided)"},
-                {"name": "--reset", "help": "Reset to default password (admin only)"}
-            ],
-            examples=[
-                "gui-password",
-                "gui-password --current oldpass --new newpass",
-                "gui-password --reset"
-            ]
-        ))
 
         self.register_command(CLICommand(
             name="webui-password",
@@ -1443,105 +1394,6 @@ class EnhancedCLISystem:
         print(f"{CLIColors.INFO}User will need to log in again with the new password{CLIColors.RESET}")
 
         return True
-
-    async def _handle_gui_password(self, args: List[str]) -> bool:
-        """Handle GUI password change command."""
-        # Parse options
-        current_password = None
-        new_password = None
-        reset = False
-
-        i = 0
-        while i < len(args):
-            if args[i] == "--current" and i + 1 < len(args):
-                current_password = args[i + 1]
-                i += 2
-            elif args[i] == "--new" and i + 1 < len(args):
-                new_password = args[i + 1]
-                i += 2
-            elif args[i] == "--reset":
-                reset = True
-                i += 1
-            else:
-                i += 1
-
-        if reset:
-            print(f"{CLIColors.WARNING}Resetting GUI password to default...{CLIColors.RESET}")
-            try:
-                from plexichat.core.auth.default_credentials import get_default_credentials_manager
-                manager = get_default_credentials_manager()
-                new_default_password = manager.generate_secure_password(12)
-                if manager.update_interface_password("gui", new_default_password):
-                    print(f"{CLIColors.SUCCESS}[OK] GUI password reset successfully{CLIColors.RESET}")
-                    print(f"{CLIColors.INFO}New password: {new_default_password}{CLIColors.RESET}")
-                    print(f"{CLIColors.WARNING}Please save this password securely{CLIColors.RESET}")
-                    return True
-                else:
-                    print(f"{CLIColors.ERROR}Failed to reset GUI password{CLIColors.RESET}")
-                    return False
-            except ImportError:
-                print(f"{CLIColors.ERROR}Authentication system not available{CLIColors.RESET}")
-                return False
-
-        # Prompt for passwords if not provided
-        if not new_password:
-            import getpass
-            try:
-                new_password = getpass.getpass("Enter new GUI password: ")
-                confirm_password = getpass.getpass("Confirm new GUI password: ")
-                if new_password != confirm_password:
-                    print(f"{CLIColors.ERROR}Passwords do not match{CLIColors.RESET}")
-                    return False
-            except KeyboardInterrupt:
-                print(f"\n{CLIColors.WARNING}GUI password change cancelled{CLIColors.RESET}")
-                return False
-
-        if not current_password:
-            import getpass
-            try:
-                current_password = getpass.getpass("Enter current GUI password: ")
-            except KeyboardInterrupt:
-                print(f"\n{CLIColors.WARNING}GUI password change cancelled{CLIColors.RESET}")
-                return False
-
-        # Validate new password
-        if len(new_password) < 8:
-            print(f"{CLIColors.ERROR}Password must be at least 8 characters long{CLIColors.RESET}")
-            return False
-
-        print(f"{CLIColors.INFO}Changing GUI interface password...{CLIColors.RESET}")
-
-        # Integrate with the actual GUI authentication system
-        try:
-            from plexichat.core.auth.default_credentials import get_default_credentials_manager
-            manager = get_default_credentials_manager()
-
-            # Get current credentials
-            current_creds = manager.get_interface_credentials("gui")
-            if not current_creds:
-                print(f"{CLIColors.ERROR}No GUI credentials found. Run setup first.{CLIColors.RESET}")
-                return False
-
-            # Verify current password
-            if current_password != current_creds["password"]:
-                print(f"{CLIColors.ERROR}Current password is incorrect{CLIColors.RESET}")
-                return False
-
-            # Update password
-            if manager.update_interface_password("gui", new_password):
-                print(f"{CLIColors.SUCCESS}[OK] GUI password changed successfully{CLIColors.RESET}")
-                print(f"{CLIColors.INFO}New password will be required for GUI access{CLIColors.RESET}")
-                return True
-            else:
-                print(f"{CLIColors.ERROR}Failed to update GUI password{CLIColors.RESET}")
-                return False
-
-        except ImportError:
-            print(f"{CLIColors.ERROR}Authentication system not available{CLIColors.RESET}")
-            return False
-        except Exception as e:
-            print(f"{CLIColors.ERROR}Error updating GUI password: {e}{CLIColors.RESET}")
-            return False
 
     async def _handle_webui_password(self, args: List[str]) -> bool:
         """Handle WebUI password change command."""

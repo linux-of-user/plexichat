@@ -1,6 +1,6 @@
 import asyncio
 import json
-import logging
+from plexichat.core.logging import get_logger
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional

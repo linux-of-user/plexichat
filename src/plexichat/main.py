@@ -73,6 +73,7 @@ except ImportError as e:
 from plexichat.core.config import get_config as get_unified_config
 from plexichat.core.config import settings
 from plexichat.core.app_setup import setup_routers, setup_static_files
+from plexichat.core.plugins.unified_plugin_manager import unified_plugin_manager
 
 # Initialize unified config
 config = get_unified_config()
@@ -145,6 +146,10 @@ async def lifespan(app: FastAPI):
         if database_manager:
             logger.info("Initializing database...")
             await database_manager.initialize()
+
+        # Initialize plugin manager
+        logger.info("Initializing plugin manager...")
+        await unified_plugin_manager.initialize()
 
         # Initialize microsecond optimizer
         try:

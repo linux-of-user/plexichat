@@ -86,19 +86,16 @@ created_at = datetime().now().isoformat()
 updated_at = datetime().now().isoformat()
 
 
+from plexichat.core.database.manager import database_manager
+
 class ThemingService:
-    """Advanced theming service."""
-        def __init__(self):
-        from pathlib import Path
-self.themes_directory = Path("data/themes")
-        self.themes_directory.mkdir(parents=True, exist_ok=True)
+    """Advanced theming service using a unified database for persistence."""
 
-        self.user_preferences_file = self.themes_directory / "user_preferences.json"
-        self.custom_themes_file = self.themes_directory / "custom_themes.json"
-
+    def __init__(self):
+        self.db_manager = database_manager
         self.built_in_themes = self._create_built_in_themes()
-        self.custom_themes = self._load_custom_themes()
-        self.user_preferences = self._load_user_preferences()
+        # Custom themes and user preferences are now loaded on-demand from the DB.
+        self._initialized = False
 
     def _create_built_in_themes(self) -> Dict[str, Theme]:
         """Create built-in themes."""
@@ -271,203 +268,233 @@ self.themes_directory = Path("data/themes")
 
         return themes
 
-    def _load_custom_themes(self) -> Dict[str, Theme]:
-        """Load custom themes from file."""
-        try:
-            if self.custom_themes_file.exists() if self.custom_themes_file else False:
-                with open(self.custom_themes_file, 'r') as f:
-                    data = json.load(f)
-                    return {
-                        theme_id: Theme(**theme_data)
-                        for theme_id, theme_data in data.items()
-                    }
-        except Exception as e:
-            logger.error(f"Failed to load custom themes: {e}")
+    async def initialize(self):
+        """Initializes the database tables for the theming service."""
+        if self._initialized or not self.db_manager:
+            return
 
-        return {
+        logger.info("Initializing ThemingService database tables...")
 
-    def _save_custom_themes(self):
-        """Save custom themes to file."""
-        try:
-            data = {
-                theme_id: asdict(theme)
-                for theme_id, theme in self.custom_themes.items()
-            }}
-
-            with open(self.custom_themes_file, 'w') as f:
-                json.dump(data, f, indent=2)
-
-        except Exception as e:
-            logger.error(f"Failed to save custom themes: {e}")
-
-    def _load_user_preferences(self) -> Dict[str, Any]:
-        """Load user theme preferences."""
-        try:
-            if self.user_preferences_file.exists() if self.user_preferences_file else False:
-                with open(self.user_preferences_file, 'r') as f:
-                    return json.load(f)
-        except Exception as e:
-            logger.error(f"Failed to load user preferences: {e}")
-
-        return {
-            "default_theme": "default_light",
-            "user_themes": {}},
-            "auto_dark_mode": False,
-            "dark_mode_schedule": {
-                "enabled": False,
-                "start_time": "18:00",
-                "end_time": "06:00"
-            }
+        theme_schema = {
+            "id": "TEXT PRIMARY KEY",
+            "name": "TEXT NOT NULL",
+            "description": "TEXT",
+            "is_dark": "BOOLEAN NOT NULL",
+            "theme_data": "TEXT NOT NULL", # JSON blob for colors, layout, effects
+            "created_at": "TEXT NOT NULL",
+            "updated_at": "TEXT NOT NULL"
         }
+        await self.db_manager.ensure_table_exists("themes", theme_schema)
 
-    def _save_user_preferences(self):
-        """Save user theme preferences."""
-        try:
-            with open(self.user_preferences_file, 'w') as f:
-                json.dump(self.user_preferences, f, indent=2)
-        except Exception as e:
-            logger.error(f"Failed to save user preferences: {e}")
+        user_prefs_schema = {
+            "user_id": "TEXT PRIMARY KEY",
+            "theme_id": "TEXT",
+            "auto_dark_mode": "BOOLEAN DEFAULT FALSE",
+            "raw_prefs": "TEXT" # JSON blob for other preferences
+        }
+        await self.db_manager.ensure_table_exists("user_theme_preferences", user_prefs_schema)
 
-    def get_all_themes(self) -> Dict[str, Theme]:
-        """Get all available themes.
-        all_themes = {}
-        all_themes.update(self.built_in_themes)
-        all_themes.update(self.custom_themes)
+        self._initialized = True
+        logger.info("ThemingService database tables initialized.")
+
+    async def get_all_themes(self) -> Dict[str, Theme]:
+        """Get all available themes, merging built-in and custom themes from the DB."""
+        await self.initialize()
+        all_themes = self.built_in_themes.copy()
+
+        custom_themes = await self._get_custom_themes_from_db()
+        all_themes.update(custom_themes)
+
         return all_themes
 
-    def get_theme(self, theme_id: str) -> Optional[Theme]:
-        """Get a specific theme by ID."""
-        all_themes = self.get_all_themes()
-        return all_themes.get(theme_id)
+    async def _get_custom_themes_from_db(self) -> Dict[str, Theme]:
+        """Loads custom themes from the database."""
+        if not self.db_manager:
+            return {}
 
-    def get_theme_list(self) -> List[Dict[str, Any]]:
-        Get list of themes with metadata."""
+        async with self.db_manager.get_session() as session:
+            rows = await session.fetchall("SELECT * FROM themes")
+            custom_themes = {}
+            for row in rows:
+                theme_data = json.loads(row["theme_data"])
+                custom_themes[row["id"]] = Theme(
+                    id=row["id"],
+                    name=row["name"],
+                    description=row["description"],
+                    is_dark=row["is_dark"],
+                    colors=ThemeColors(**theme_data["colors"]),
+                    layout=ThemeLayout(**theme_data["layout"]),
+                    effects=ThemeEffects(**theme_data["effects"]),
+                    created_at=row["created_at"],
+                    updated_at=row["updated_at"],
+                )
+            return custom_themes
+
+    async def get_theme(self, theme_id: str) -> Optional[Theme]:
+        """Get a specific theme by ID, checking built-in and DB themes."""
+        if theme_id in self.built_in_themes:
+            return self.built_in_themes[theme_id]
+
+        await self.initialize()
+        async with self.db_manager.get_session() as session:
+            row = await session.fetchone("SELECT * FROM themes WHERE id = :id", {"id": theme_id})
+            if row:
+                theme_data = json.loads(row["theme_data"])
+                return Theme(
+                    id=row["id"], name=row["name"], description=row["description"],
+                    is_dark=row["is_dark"], colors=ThemeColors(**theme_data["colors"]),
+                    layout=ThemeLayout(**theme_data["layout"]), effects=ThemeEffects(**theme_data["effects"]),
+                    created_at=row["created_at"], updated_at=row["updated_at"]
+                )
+        return None
+
+    async def save_custom_theme(self, theme: Theme) -> bool:
+        """Saves a custom theme to the database."""
+        await self.initialize()
+        theme_data_blob = json.dumps({
+            "colors": asdict(theme.colors),
+            "layout": asdict(theme.layout),
+            "effects": asdict(theme.effects),
+        })
+
+        async with self.db_manager.get_session() as session:
+            await session.execute(
+                """
+                INSERT OR REPLACE INTO themes (id, name, description, is_dark, theme_data, created_at, updated_at)
+                VALUES (:id, :name, :description, :is_dark, :theme_data, :created_at, :updated_at)
+                """,
+                {
+                    "id": theme.id, "name": theme.name, "description": theme.description,
+                    "is_dark": theme.is_dark, "theme_data": theme_data_blob,
+                    "created_at": theme.created_at, "updated_at": theme.updated_at
+                }
+            )
+            await session.commit()
+        return True
+
+    async def delete_custom_theme(self, theme_id: str) -> bool:
+        """Deletes a custom theme from the database."""
+        await self.initialize()
+        async with self.db_manager.get_session() as session:
+            result = await session.delete("themes", where={"id": theme_id})
+            await session.commit()
+            return result.rowcount > 0
+
+    async def get_user_preferences(self, user_id: str) -> Dict[str, Any]:
+        """Gets a user's theme preferences from the database."""
+        await self.initialize()
+        async with self.db_manager.get_session() as session:
+            row = await session.fetchone("SELECT * FROM user_theme_preferences WHERE user_id = :user_id", {"user_id": user_id})
+            if row:
+                prefs = json.loads(row.get("raw_prefs", "{}"))
+                prefs["theme_id"] = row["theme_id"]
+                prefs["auto_dark_mode"] = row["auto_dark_mode"]
+                return prefs
+        return {"theme_id": "default_light", "auto_dark_mode": False} # Default prefs
+
+    async def set_user_theme(self, user_id: str, theme_id: str) -> bool:
+        """Set theme for a specific user in the database."""
+        theme = await self.get_theme(theme_id)
+        if not theme:
+            return False
+
+        await self.initialize()
+        async with self.db_manager.get_session() as session:
+            # Simple upsert for user theme preference
+            await session.execute(
+                """
+                INSERT OR REPLACE INTO user_theme_preferences (user_id, theme_id)
+                VALUES (:user_id, :theme_id)
+                """,
+                {"user_id": user_id, "theme_id": theme_id}
+            )
+            await session.commit()
+        return True
+
+    async def get_user_theme_id(self, user_id: str) -> str:
+        """Get the theme ID for a specific user."""
+        prefs = await self.get_user_preferences(user_id)
+        return prefs.get("theme_id", "default_light")
+
+    async def get_theme_list(self) -> List[Dict[str, Any]]:
+        """Get list of themes with metadata."""
         themes = []
+        all_themes = await self.get_all_themes()
 
-        for theme_id, theme in self.get_all_themes().items():
-            themes.append({)
+        # We need to know which themes are custom by checking the DB
+        # This is slightly inefficient as get_all_themes already did this,
+        # can be optimized if needed by returning more info from get_all_themes.
+        custom_themes_from_db = await self._get_custom_themes_from_db()
+
+        for theme_id, theme in all_themes.items():
+            themes.append({
                 "id": theme.id,
                 "name": theme.name,
                 "description": theme.description,
                 "is_dark": theme.is_dark,
-                "is_custom": theme_id in self.custom_themes,
+                "is_custom": theme_id in custom_themes_from_db,
                 "created_at": theme.created_at,
-                "updated_at": theme.updated_at
+                "updated_at": theme.updated_at,
             })
-
         return sorted(themes, key=lambda x: (x["is_custom"], x["name"]))
 
-    def create_custom_theme():
-        self,
-        name: str,
-        description: str,
-        base_theme_id: str = "default_light",
-        colors: Optional[Dict[str, str]] = None,
-        layout: Optional[Dict[str, str]] = None,
+    async def create_custom_theme(
+        self, name: str, description: str, base_theme_id: str = "default_light",
+        colors: Optional[Dict[str, str]] = None, layout: Optional[Dict[str, str]] = None,
         effects: Optional[Dict[str, Any]] = None
-    ) -> Theme:
-        """Create a new custom theme."""
-
-        # Get base theme
-        base_theme = self.get_theme(base_theme_id)
+    ) -> Optional[Theme]:
+        """Create a new custom theme and save it to the database."""
+        base_theme = self.built_in_themes.get(base_theme_id)
         if not base_theme:
-            base_theme = self.built_in_themes["default_light"]
+            return None
 
-        # Generate unique ID
-        theme_id = f"custom_{name.lower().replace(' ', '_')}_{int(from datetime import datetime)
-datetime.now().timestamp())}"
+        theme_id = f"custom_{name.lower().replace(' ', '_')}_{int(datetime.now().timestamp())}"
 
-        # Create theme colors
         theme_colors = ThemeColors(**asdict(base_theme.colors))
         if colors:
             for key, value in colors.items():
-                if hasattr(theme_colors, key):
-                    setattr(theme_colors, key, value)
+                if hasattr(theme_colors, key): setattr(theme_colors, key, value)
 
-        # Create theme layout
         theme_layout = ThemeLayout(**asdict(base_theme.layout))
         if layout:
             for key, value in layout.items():
-                if hasattr(theme_layout, key):
-                    setattr(theme_layout, key, value)
+                if hasattr(theme_layout, key): setattr(theme_layout, key, value)
 
-        # Create theme effects
         theme_effects = ThemeEffects(**asdict(base_theme.effects))
         if effects:
             for key, value in effects.items():
-                if hasattr(theme_effects, key):
-                    setattr(theme_effects, key, value)
+                if hasattr(theme_effects, key): setattr(theme_effects, key, value)
 
-        # Create new theme
-        new_theme = Theme()
-            id=theme_id,
-            name=name,
-            description=description,
-            colors=theme_colors,
-            layout=theme_layout,
-            effects=theme_effects,
-            is_dark=base_theme.is_dark
+        new_theme = Theme(
+            id=theme_id, name=name, description=description,
+            colors=theme_colors, layout=theme_layout, effects=theme_effects,
+            is_dark=base_theme.is_dark,
+            created_at=datetime.now().isoformat(),
+            updated_at=datetime.now().isoformat()
         )
 
-        # Save to custom themes
-        self.custom_themes[theme_id] = new_theme
-        self._save_custom_themes()
+        if await self.save_custom_theme(new_theme):
+            logger.info(f"Created custom theme: {name} ({theme_id})")
+            return new_theme
+        return None
 
-        logger.info(f"Created custom theme: {name} ({theme_id})")
-        return new_theme
-
-    def update_custom_theme(self, theme_id: str, updates: Dict[str, Any]) -> bool:
-        """Update a custom theme."""
-        if theme_id not in self.custom_themes:
+    async def update_custom_theme(self, theme_id: str, updates: Dict[str, Any]) -> bool:
+        """Update a custom theme in the database."""
+        theme = await self.get_theme(theme_id)
+        if not theme or theme_id in self.built_in_themes:
             return False
 
-        theme = self.custom_themes[theme_id]
-
-        # Update theme properties
+        # This is a simplified update. A more robust one would handle nested dicts.
         for key, value in updates.items():
             if hasattr(theme, key):
                 setattr(theme, key, value)
 
-        theme.from datetime import datetime
-updated_at = datetime().now().isoformat()
+        theme.updated_at = datetime.now().isoformat()
+        return await self.save_custom_theme(theme)
 
-        self._save_custom_themes()
-        logger.info(f"Updated custom theme: {theme_id}")
-        return True
-
-    def delete_custom_theme(self, theme_id: str) -> bool:
-        """Delete a custom theme."""
-        if theme_id not in self.custom_themes:
-            return False
-
-        del self.custom_themes[theme_id]
-        self._save_custom_themes()
-
-        logger.info(f"Deleted custom theme: {theme_id}")
-        return True
-
-    def set_user_theme(self, user_id: int, theme_id: str) -> bool:
-        """Set theme for a specific user."""
-        if not self.get_theme(theme_id):
-            return False
-
-        self.user_preferences["user_themes"][str(user_id)] = theme_id
-        self._save_user_preferences()
-
-        logger.info(f"Set theme {theme_id} for user {user_id}")
-        return True
-
-    def get_user_theme(self, user_id: int) -> str:
-        """Get theme for a specific user."""
-        user_theme = self.user_preferences["user_themes"].get(str(user_id))
-        if user_theme and self.get_theme(user_theme):
-            return user_theme
-
-        return self.user_preferences["default_theme"]
-
-    def generate_css(self, theme_id: str) -> str:
+    async def generate_css(self, theme_id: str) -> str:
         """Generate CSS for a theme."""
-        theme = self.get_theme(theme_id)
+        theme = await self.get_theme(theme_id)
         if not theme:
             theme = self.built_in_themes["default_light"]
 
@@ -562,40 +589,32 @@ body {{
 
         return css.strip()
 
-    def export_theme(self, theme_id: str) -> Optional[Dict[str, Any]]:
-        """Export a theme as JSON.
-        theme = self.get_theme(theme_id)
+    async def export_theme(self, theme_id: str) -> Optional[Dict[str, Any]]:
+        """Export a theme as JSON."""
+        theme = await self.get_theme(theme_id)
         if not theme:
             return None
-
         return asdict(theme)
 
-    def import_theme(self, theme_data: Dict[str, Any]) -> Optional[Theme]:
-        """Import a theme from JSON data."""
+    async def import_theme(self, theme_data: Dict[str, Any]) -> Optional[Theme]:
+        """Import a theme from JSON data and save to DB."""
         try:
-            # Validate required fields
             required_fields = ["id", "name", "description", "colors", "layout", "effects"]
             if not all(field in theme_data for field in required_fields):
                 return None
 
-            # Create theme object
-            theme = Theme()
-                id=theme_data["id"],
-                name=theme_data["name"],
-                description=theme_data["description"],
-                colors=ThemeColors(**theme_data["colors"]),
-                layout=ThemeLayout(**theme_data["layout"]),
-                effects=ThemeEffects(**theme_data["effects"]),
-                is_dark=theme_data.get("is_dark", False)
+            theme = Theme(
+                id=theme_data["id"], name=theme_data["name"], description=theme_data["description"],
+                colors=ThemeColors(**theme_data["colors"]), layout=ThemeLayout(**theme_data["layout"]),
+                effects=ThemeEffects(**theme_data["effects"]), is_dark=theme_data.get("is_dark", False),
+                created_at=theme_data.get("created_at", datetime.now().isoformat()),
+                updated_at=datetime.now().isoformat()
             )
 
-            # Add to custom themes
-            self.custom_themes[theme.id] = theme
-            self._save_custom_themes()
-
-            logger.info(f"Imported theme: {theme.name} ({theme.id})")
-            return theme
-
+            if await self.save_custom_theme(theme):
+                logger.info(f"Imported theme: {theme.name} ({theme.id})")
+                return theme
+            return None
         except Exception as e:
             logger.error(f"Failed to import theme: {e}")
             return None

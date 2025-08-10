@@ -251,7 +251,7 @@ class NotificationManager:
             # Get from database
             if self.db_manager:
                 query = "SELECT preferences FROM user_notification_preferences WHERE user_id = ?"
-                result = await self.db_manager.execute_query(query, {"user_id": user_id})
+                result = await self.db_manager.execute_query(query, (user_id,))
 
                 if result:
                     preferences = json.loads(result[0][0])
@@ -298,24 +298,27 @@ class NotificationManager:
         """Store notification in database.
         try:
             if self.db_manager:
-                query = """
-                    INSERT INTO notifications ()
-                        notification_id, user_id, notification_type, title,
-                        message, priority, created_at, data, expires_at
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """
-                params = {
-                    "notification_id": notification.notification_id,
-                    "user_id": notification.user_id,
-                    "notification_type": notification.notification_type.value,
-                    "title": notification.title,
-                    "message": notification.message,
-                    "priority": notification.priority.value,
-                    "created_at": notification.created_at,
-                    "data": json.dumps(notification.data),
-                    "expires_at": notification.expires_at
-                }
-                await self.db_manager.execute_query(query, params)
+                async with self.db_manager.get_session() as session:
+                    await session.execute(
+                        """
+                        INSERT INTO notifications (
+                            notification_id, user_id, notification_type, title,
+                            message, priority, created_at, data, expires_at
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                        (
+                            notification.notification_id,
+                            notification.user_id,
+                            notification.notification_type.value,
+                            notification.title,
+                            notification.message,
+                            notification.priority.value,
+                            notification.created_at,
+                            json.dumps(notification.data),
+                            notification.expires_at,
+                        ),
+                    )
+                    await session.commit()
         except Exception as e:
             logger.error(f"Error storing notification: {e}")
 
@@ -377,19 +380,18 @@ class NotificationManager:
         """Mark notification as read.
         try:
             if self.db_manager:
-                query = """
-                    UPDATE notifications
-                    SET read_at = ?
-                    WHERE notification_id = ? AND user_id = ? AND read_at IS NULL
-                """
-                params = {
-                    "read_at": datetime.now(),
-                    "notification_id": notification_id,
-                    "user_id": user_id
-                }
-                result = await self.db_manager.execute_query(query, params)
+                async with self.db_manager.get_session() as session:
+                    result = await session.execute(
+                        """
+                        UPDATE notifications
+                        SET read_at = ?
+                        WHERE notification_id = ? AND user_id = ? AND read_at IS NULL
+                    """,
+                        (datetime.now(), notification_id, user_id),
+                    )
+                    await session.commit()
 
-                if result:
+                if result.rowcount > 0:
                     self.notifications_read += 1
                     if self.performance_logger:
                         self.performance_logger.record_metric("notifications_read", 1, "count")

@@ -8,16 +8,25 @@ connection pooling, transactions, and performance optimization.
 import asyncio
 import logging
 import inspect
-from typing import Any, Dict, List, Optional, Union, AsyncContextManager
+from typing import Any, Dict, List, Optional, Set, AsyncContextManager
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from enum import Enum
 
 try:
     from ..unified_config import get_config
+    from ..auth.permissions import check_permission, format_permission, DBOperation, ResourceType, PermissionError
     config = get_config("database")
 except ImportError:
+    # This fallback is for when the module is used in a context where the full app isn't available.
     config = None
+    # Define dummy classes and functions for type hinting and to avoid runtime errors.
+    def check_permission(required, user_permissions): pass
+    def format_permission(rt, op, rn): return ""
+    class DBOperation(Enum): READ="read"; WRITE="write"; DELETE="delete"; EXECUTE_RAW="execute_raw"
+    class ResourceType(Enum): TABLE="table"; DATABASE="db"
+    class PermissionError(Exception): pass
+
 
 logger = logging.getLogger(__name__)
 
@@ -48,56 +57,70 @@ class DatabaseConfig:
 
 
 class DatabaseSession:
-    """Database session wrapper."""
+    """
+    Database session wrapper with fine-grained access control.
+    """
     
-    def __init__(self, connection):
+    def __init__(self, connection, user_permissions: Optional[Set[str]] = None):
         self.connection = connection
         self._transaction = None
-    
+        self.user_permissions = user_permissions
+
+    def _check_permission(self, operation: DBOperation, resource_name: str):
+        """Checks if the user has permission to perform the operation on the resource."""
+        # If no permissions are passed, we assume system-level access and allow the operation.
+        if self.user_permissions is None:
+            return
+
+        required_permission = format_permission(ResourceType.TABLE, operation, resource_name)
+        check_permission(required_permission, self.user_permissions)
+
     async def execute(self, query: str, params: Optional[Dict[str, Any]] = None) -> Any:
-        """Execute a query."""
+        """Execute a raw SQL query. Requires special permission."""
+        if self.user_permissions is not None:
+            required_permission = format_permission(ResourceType.DATABASE, DBOperation.EXECUTE_RAW, "any")
+            check_permission(required_permission, self.user_permissions)
+
         try:
-            if params:
-                return await self.connection.execute(query, params)
-            else:
-                return await self.connection.execute(query)
+            return await self.connection.execute(query, params or {})
         except Exception as e:
             logger.error(f"Query execution failed: {e}")
             raise
     
     async def fetchall(self, query: str, params: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
-        """Fetch all results from a query."""
+        """Fetch all results from a query. Requires raw execution permission."""
         result = await self.execute(query, params)
-        return [dict(row) for row in result.fetchall()]
+        return [dict(row) for row in await result.fetchall()]
     
     async def fetchone(self, query: str, params: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
-        """Fetch one result from a query."""
+        """Fetch one result from a query. Requires raw execution permission."""
         result = await self.execute(query, params)
-        row = result.fetchone()
+        row = await result.fetchone()
         return dict(row) if row else None
     
     async def insert(self, table: str, data: Dict[str, Any]) -> Any:
-        """Insert data into a table."""
+        """Insert data into a table after a permission check."""
+        self._check_permission(DBOperation.WRITE, table)
         columns = ", ".join(data.keys())
         placeholders = ", ".join([f":{key}" for key in data.keys()])
         query = f"INSERT INTO {table} ({columns}) VALUES ({placeholders})"
-        return await self.execute(query, data)
+        return await self.connection.execute(query, data)
     
     async def update(self, table: str, data: Dict[str, Any], where: Dict[str, Any]) -> Any:
-        """Update data in a table."""
+        """Update data in a table after a permission check."""
+        self._check_permission(DBOperation.WRITE, table)
         set_clause = ", ".join([f"{key} = :{key}" for key in data.keys()])
         where_clause = " AND ".join([f"{key} = :where_{key}" for key in where.keys()])
         query = f"UPDATE {table} SET {set_clause} WHERE {where_clause}"
-        
-        # Combine data and where parameters
         params = {**data, **{f"where_{k}": v for k, v in where.items()}}
-        return await self.execute(query, params)
+        return await self.connection.execute(query, params)
     
     async def delete(self, table: str, where: Dict[str, Any]) -> Any:
-        """Delete data from a table."""
+        """Delete data from a table after a permission check."""
+        self._check_permission(DBOperation.DELETE, table)
         where_clause = " AND ".join([f"{key} = :{key}" for key in where.keys()])
         query = f"DELETE FROM {table} WHERE {where_clause}"
-        return await self.execute(query, where)
+        return await self.connection.execute(query, where)
     
     async def commit(self):
         """Commit the current transaction."""
@@ -182,6 +205,15 @@ class DatabaseManager:
             else:
                 raise ValueError(f"Unsupported database type: {self.config.db_type}")
             
+            await self.ensure_table_exists(
+                "plugin_data",
+                {
+                    "plugin_name": "TEXT",
+                    "key": "TEXT",
+                    "value": "TEXT",
+                    "PRIMARY KEY": "(plugin_name, key)",
+                },
+            )
             self._initialized = True
             self.logger.info("Database manager initialized successfully")
             return True
@@ -268,24 +300,23 @@ class DatabaseManager:
             raise
     
     @asynccontextmanager
-    async def get_session(self):
-        """Get a database session."""
+    async def get_session(self, user_permissions: Optional[Set[str]] = None) -> AsyncContextManager[DatabaseSession]:
+        """Get a database session, optionally with user permissions for access control."""
         if not self._initialized:
             await self.initialize()
 
         session: Optional[DatabaseSession] = None
         try:
             if self.config.db_type == "sqlite":
-                session = await self._get_sqlite_session()
+                session = await self._get_sqlite_session(user_permissions)
             elif self.config.db_type in ["postgresql", "postgres"]:
-                session = await self._get_postgresql_session()
+                session = await self._get_postgresql_session(user_permissions)
             elif self.config.db_type == "mysql":
-                session = await self._get_mysql_session()
+                session = await self._get_mysql_session(user_permissions)
             else:
                 raise ValueError(f"Unsupported database type: {self.config.db_type}")
 
             yield session
-
         except Exception as e:
             if session is not None:
                 await session.rollback()
@@ -293,8 +324,8 @@ class DatabaseManager:
         finally:
             if session is not None:
                 await session.close()
-    
-    async def _get_sqlite_session(self) -> DatabaseSession:
+
+    async def _get_sqlite_session(self, user_permissions: Optional[Set[str]] = None) -> DatabaseSession:
         """Get SQLite session."""
         try:
             import aiosqlite
@@ -303,9 +334,9 @@ class DatabaseManager:
 
         conn = await aiosqlite.connect(self.config.path)
         conn.row_factory = aiosqlite.Row
-        return DatabaseSession(conn)
+        return DatabaseSession(conn, user_permissions)
 
-    async def _get_postgresql_session(self) -> DatabaseSession:
+    async def _get_postgresql_session(self, user_permissions: Optional[Set[str]] = None) -> DatabaseSession:
         """Get PostgreSQL session."""
         try:
             # Import asyncpg conditionally
@@ -320,9 +351,9 @@ class DatabaseManager:
             user=self.config.username,
             password=self.config.password
         )
-        return DatabaseSession(conn)
+        return DatabaseSession(conn, user_permissions)
 
-    async def _get_mysql_session(self) -> DatabaseSession:
+    async def _get_mysql_session(self, user_permissions: Optional[Set[str]] = None) -> DatabaseSession:
         """Get MySQL session."""
         try:
             import aiomysql
@@ -336,7 +367,7 @@ class DatabaseManager:
             user=self.config.username,
             password=self.config.password
         )
-        return DatabaseSession(conn)
+        return DatabaseSession(conn, user_permissions)
     
     async def ensure_table_exists(self, table_name: str, schema: Dict[str, str]) -> bool:
         """Ensure a table exists with the given schema."""
@@ -380,29 +411,30 @@ database_manager = DatabaseManager()
 
 
 # Convenience functions
-def get_session():
-    """Get a database session."""
-    return database_manager.get_session()
+def get_session(user_permissions: Optional[Set[str]] = None):
+    """Get a database session, optionally with user permissions."""
+    return database_manager.get_session(user_permissions)
 
 
-async def execute_query(query: str, params: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
-    """Execute a query and return results."""
-    async with database_manager.get_session() as session:
+async def execute_query(query: str, params: Optional[Dict[str, Any]] = None, user_permissions: Optional[Set[str]] = None) -> List[Dict[str, Any]]:
+    """Execute a query and return results. Requires raw execution permissions."""
+    async with database_manager.get_session(user_permissions=user_permissions) as session:
         return await session.fetchall(query, params)
 
 
-async def execute_transaction(operations: List[Dict[str, Any]]) -> bool:
-    """Execute multiple operations in a transaction."""
+async def execute_transaction(operations: List[Dict[str, Any]], user_permissions: Optional[Set[str]] = None) -> bool:
+    """Execute multiple operations in a transaction, with permission checks."""
     try:
-        async with database_manager.get_session() as session:
+        async with database_manager.get_session(user_permissions=user_permissions) as session:
             for op in operations:
-                if op['type'] == 'query':
+                op_type = op.get('type')
+                if op_type == 'query':
                     await session.execute(op['query'], op.get('params'))
-                elif op['type'] == 'insert':
+                elif op_type == 'insert':
                     await session.insert(op['table'], op['data'])
-                elif op['type'] == 'update':
+                elif op_type == 'update':
                     await session.update(op['table'], op['data'], op['where'])
-                elif op['type'] == 'delete':
+                elif op_type == 'delete':
                     await session.delete(op['table'], op['where'])
 
             await session.commit()

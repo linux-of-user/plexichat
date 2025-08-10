@@ -7,7 +7,7 @@ Provides threat intelligence feeds and analysis capabilities.
 import asyncio
 import aiohttp
 import json
-import logging
+from plexichat.core.logging import get_logger
 from datetime import datetime, timezone, timedelta
 from typing import Dict, List, Optional, Any, Set
 from dataclasses import dataclass, field
@@ -15,7 +15,7 @@ from enum import Enum
 
 from . import ThreatLevel, ThreatType, ThreatSignature
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class IntelligenceSource(Enum):

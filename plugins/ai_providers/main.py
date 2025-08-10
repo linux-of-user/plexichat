@@ -6,7 +6,7 @@ Advanced AI providers with BitNet 1-bit LLM, Llama.cpp, and HuggingFace support.
 
 import asyncio
 import logging
-import sys
+from plexichat.core.logging import get_logger
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -94,7 +94,7 @@ class AIAbstractionLayer:
     async def register_provider(self, name, provider):
         pass
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class AIProvidersPlugin(PluginInterface):

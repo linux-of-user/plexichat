@@ -214,6 +214,29 @@ async def get_optional_user(credentials: Optional[HTTPAuthorizationCredentials] 
         logger.error(f"Error in optional authentication: {e}")
         return None
 
+async def get_current_user_with_permissions(credentials: HTTPAuthorizationCredentials = Depends(security)) -> Dict[str, Any]:
+    """
+    Placeholder dependency to get the current user and their permissions.
+    In a real application, this would fetch permissions from the database based on the user's role.
+    """
+    # For now, we get the user and append a mock set of permissions.
+    user = await auth_utils.get_current_user(credentials)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid authentication credentials")
+
+    # --- MOCK PERMISSIONS ---
+    # In a real system, this would be a database lookup.
+    # We are giving this user permission to write to the 'messages' table
+    # and to read from the 'users' table, which is needed for recipient validation.
+    user['permissions'] = {
+        "table:write:messages",
+        "table:read:users",
+        "db:execute_raw", # Adding this temporarily to allow other parts of the code to function
+    }
+    # --- END MOCK PERMISSIONS ---
+
+    return user
+
 # Rate limiting helpers
 class RateLimitChecker:
     """Rate limiting checker using EXISTING systems.

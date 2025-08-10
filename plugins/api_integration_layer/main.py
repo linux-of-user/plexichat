@@ -6,7 +6,7 @@ Comprehensive API integration layer providing unified access to all v1 API endpo
 
 import asyncio
 import json
-import logging
+from plexichat.core.logging import get_logger
 import time
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -66,7 +66,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 from plugin_internal import PluginInterface, PluginMetadata, PluginType, ModulePermissions, ModuleCapability
 from typing import Optional
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class APIRequest(BaseModel):
