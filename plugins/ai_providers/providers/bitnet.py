@@ -6,12 +6,12 @@ BitNet is a novel approach to quantizing neural networks to 1-bit weights.
 """
 
 import asyncio
-import logging
+from plexichat.core.logging import get_logger
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Union
 import json
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 @dataclass
@@ -56,7 +56,7 @@ class BitNetProvider:
     def __init__(self, config: BitNetConfig):
         """Initialize BitNet provider."""
         self.config = config
-        self.logger = logging.getLogger(f"{__name__}.BitNetProvider")
+        self.logger = get_logger(f"{__name__}.BitNetProvider")
         self.model = None
         self.tokenizer = None
         self.is_initialized = False

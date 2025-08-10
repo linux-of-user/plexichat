@@ -4,10 +4,10 @@ AI Providers Package
 This package contains various AI provider implementations for the PlexiChat system.
 """
 
-import logging
+from plexichat.core.logging import get_logger
 from typing import Optional
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 # Try to import available providers
 try:

@@ -61,7 +61,7 @@ class ConfigField:
 class SystemConfig:
     """System configuration section."""
     name: str = "PlexiChat"
-    version: str = "b.1.1-94"  # Will be loaded from version.json
+    version: str = "0.0.0"  # Will be loaded from version.json
     environment: str = "production"
     debug: bool = False
     timezone: str = "UTC"
@@ -364,13 +364,13 @@ class UnifiedConfigManager:
         # Return fallback version info
         return {
             "version": self._config.system.version,
-            "version_type": "beta",
-            "major_version": 1,
-            "minor_version": 1,
-            "build_number": 94,
+            "version_type": "unknown",
+            "major_version": 0,
+            "minor_version": 0,
+            "build_number": 0,
             "api_version": "v1",
-            "release_date": "2025-08-08",
-            "status": "beta"
+            "release_date": "unknown",
+            "status": "unknown"
         }
 
     def get_changelog_info(self) -> Dict[str, Any]:

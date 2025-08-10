@@ -54,4 +54,6 @@ __all__ = [
     "get_unread_notification_count",
 ]
 
-__version__ = "1.0.0"
+from plexichat.core.unified_config import get_config
+
+__version__ = get_config("system.version", "0.0.0")

@@ -25,7 +25,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 # Version information
-__version__ = "3.0.0"
+from plexichat.core.unified_config import get_config
+
+__version__ = get_config("system.version", "0.0.0")
 __author__ = "PlexiChat Team"
 __description__ = "Shared components for PlexiChat"
 

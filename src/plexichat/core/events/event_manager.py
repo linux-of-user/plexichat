@@ -343,24 +343,27 @@ class EventManager:
         """Store event in database."""
         try:
             if self.db_manager:
-                query = """
-                    INSERT INTO events (
-                        event_id, event_type, source, timestamp, priority,
-                        data, metadata, processed, results
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """
-                params = {
-                    "event_id": event.event_id,
-                    "event_type": event.event_type,
-                    "source": event.source,
-                    "timestamp": event.timestamp,
-                    "priority": event.priority.value,
-                    "data": json.dumps(event.data),
-                    "metadata": json.dumps(event.metadata),
-                    "processed": event.processed,
-                    "results": json.dumps(results, default=str)
-                }
-                await self.db_manager.execute_query(query, params)
+                async with self.db_manager.get_session() as session:
+                    await session.execute(
+                        """
+                        INSERT INTO events (
+                            event_id, event_type, source, timestamp, priority,
+                            data, metadata, processed, results
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                        (
+                            event.event_id,
+                            event.event_type,
+                            event.source,
+                            event.timestamp,
+                            event.priority.value,
+                            json.dumps(event.data),
+                            json.dumps(event.metadata),
+                            event.processed,
+                            json.dumps(results, default=str),
+                        ),
+                    )
+                    await session.commit()
         except Exception as e:
             logger.error(f"Error storing event: {e}")
 
@@ -371,20 +374,21 @@ class EventManager:
             if not self.db_manager:
                 return []
 
-            query = "SELECT * FROM events WHERE 1=1"
+            query_parts = ["SELECT * FROM events WHERE 1=1"]
             params = {}
 
             if event_type:
-                query += " AND event_type = ?"
+                query_parts.append("AND event_type = :event_type")
                 params["event_type"] = event_type
 
             if source:
-                query += " AND source = ?"
+                query_parts.append("AND source = :source")
                 params["source"] = source
 
-            query += " ORDER BY timestamp DESC LIMIT ?"
+            query_parts.append("ORDER BY timestamp DESC LIMIT :limit")
             params["limit"] = limit
 
+            query = " ".join(query_parts)
             result = await self.db_manager.execute_query(query, params)
 
             events = []

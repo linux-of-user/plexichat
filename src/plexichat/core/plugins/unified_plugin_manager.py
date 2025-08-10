@@ -233,147 +233,9 @@ class PluginInfo:
     metrics: Optional[ModuleMetrics] = None
 
 
-class PluginContext:
-    """Context object passed to plugins, giving access to all core systems, config, and utilities."""
-
-    def __init__(self, logger, analytics, db, ai, ai_provider, backup, security, config, event_bus, middleware_manager, system_utils):
-        self.logger = logger
-        self.analytics = analytics
-        self.db = db
-        self.ai = ai
-        self.ai_provider = ai_provider
-        self.backup = backup
-        self.security = security
-        self.config = config
-        self.event_bus = event_bus
-        self.middleware_manager = middleware_manager
-        self.system_utils = system_utils
-
-class PluginInterface(ABC):
-    """Base interface for all plugins."""
-    def __init__(self, plugin_id: str, config: Optional[Dict[str, Any]] = None):
-        self.plugin_id = plugin_id
-        self.config = config or {}
-        self.logger = logging.getLogger(f"plugin.{plugin_id}")
-        self.state = ModuleState.UNLOADED
-        self.loaded_at: Optional[datetime] = None
-        self.last_error: Optional[Exception] = None
-        # Allow injection of core services
-        self.analytics: Optional[Any] = None
-        self.db: Optional[Any] = None
-        self.ai: Optional[Any] = None
-        self.ai_provider: Optional[Any] = None
-        self.backup: Optional[Any] = None
-        self.security: Optional[Any] = None
-        self.context: Optional[PluginContext] = None # Initialize context
-
-    @abstractmethod
-    async def initialize(self) -> bool:
-        """Initialize the plugin."""
-        pass
-
-    @abstractmethod
-    async def shutdown(self) -> bool:
-        """Shutdown the plugin."""
-        pass
-
-    def get_metadata(self) -> Dict[str, Any]:
-        """Get plugin metadata."""
-        return {}
-
-    def get_commands(self) -> Dict[str, Callable]:
-        """Get plugin commands."""
-        return {}
-
-    def get_event_handlers(self) -> Dict[str, Callable]:
-        """Get plugin event handlers."""
-        return {}
-
-    async def health_check(self) -> Dict[str, Any]:
-        """Perform plugin health check."""
-        return {
-            "status": "healthy",
-            "state": self.state,
-            "loaded_at": self.loaded_at.isoformat() if self.loaded_at else None,
-            "last_error": str(self.last_error) if self.last_error else None
-        }
-
-    async def self_test(self) -> Dict[str, Any]:
-        """Run plugin self-tests."""
-        return {
-            "passed": True,
-            "tests": [],
-            "message": "No tests implemented"
-        }
-    # --- New extension points ---
-    def get_routers(self) -> Dict[str, Any]:
-        """Return a dict of routers to be registered (e.g., {"/myroute": router})."""
-        return {}
-
-    def get_db_extensions(self) -> Dict[str, Any]:
-        """Return a dict of DB models, DAOs, or adapters to register."""
-        return {}
-
-    def get_security_features(self) -> Dict[str, Any]:
-        """Return a dict of security features (middleware, policies, etc.) to register."""
-        return {}
-
-    def get_services(self) -> Dict[str, Any]:
-        """Declare which core services the plugin wants injected (logger, analytics, db, ai, backup, security, etc.).
-        Return a dict like {"logger": True, "analytics": True, ...} or provide custom handlers.
-        The plugin manager will inject these as attributes or via dependency injection."""
-        return {}
-
-    def register_logging_handlers(self) -> Dict[str, Any]:
-        """Return custom logging handlers or formatters to register with the logging system."""
-        return {}
-
-    def register_analytics_hooks(self) -> Dict[str, Any]:
-        """Return analytics hooks or metrics to register with the analytics system."""
-        return {}
-
-    def get_event_hooks(self) -> Dict[str, Any]:
-        """Return a dict of event hooks: {event_name: handler_fn}."""
-        return {}
-
-    def get_config_schema(self) -> Dict[str, Any]:
-        """Return a config schema for this plugin (for validation/UI)."""
-        return {}
-
-    def get_health_checks(self) -> Dict[str, Any]:
-        """Return custom health/readiness/liveness checks."""
-        return {}
-
-    def get_backup_handlers(self) -> Dict[str, Any]:
-        """Return custom backup/restore handlers."""
-        return {}
-
-    def get_middleware(self) -> Dict[str, Any]:
-        """Return custom middleware for web, API, or CLI."""
-        return {}
-
-    def set_context(self, context: PluginContext):
-        """Set the plugin context (called by the plugin manager)."""
-        self.context = context
-    # Decorator helpers for plugin authors
-    @staticmethod
-    def on_event(event_name):
-        def decorator(fn):
-            fn._plugin_event = event_name
-            return fn
-        return decorator
-    @staticmethod
-    def register_middleware(middleware_type):
-        def decorator(fn):
-            fn._plugin_middleware = middleware_type
-            return fn
-        return decorator
-    @staticmethod
-    def register_backup_handler(handler_type):
-        def decorator(fn):
-            fn._plugin_backup_handler = handler_type
-            return fn
-        return decorator
+# The PluginInterface is now defined in the SDK.
+# This manager will work with plugins that inherit from EnhancedBasePlugin.
+from .sdk import EnhancedBasePlugin
 
 
 class PluginIsolationManager:
@@ -775,8 +637,54 @@ class UnifiedPluginManager:
         # Thread safety
         self._lock = threading.Lock()
 
-        # Auto-generate plugin SDK
+        # Auto-generate plugin SDK for sandboxing, as per user request.
         self._generate_plugin_sdk()
+
+    def _generate_plugin_sdk(self):
+        """Auto-generate the plugin SDK (plugins_internal.py) in plugins directory."""
+        try:
+            sdk_content = self._create_plugin_sdk_content()
+            # The SDK file should be in the directory that is added to sys.path for plugins
+            sdk_file = self.plugins_dir.parent / "plugins_internal.py"
+
+            with open(sdk_file, 'w') as f:
+                f.write(sdk_content)
+            self.logger.info(f"Generated plugin SDK: {sdk_file}")
+
+        except Exception as e:
+            self.logger.error(f"Failed to generate plugin SDK: {e}")
+
+    def _create_plugin_sdk_content(self) -> str:
+        """Create the content for the auto-generated plugin SDK."""
+        # This SDK is simplified and provides a safe interface for plugins.
+        # It prevents direct imports from the core application structure.
+        return f'''"""
+PlexiChat Plugin Internal SDK - Auto-Generated
+==============================================
+This file is automatically generated by the PlexiChat Plugin Manager.
+DO NOT EDIT MANUALLY - Changes will be overwritten.
+
+This SDK provides the core interfaces and utilities for developing PlexiChat plugins.
+It acts as a secure bridge to the main application's core services.
+"""
+
+import logging
+import json
+from abc import ABC, abstractmethod
+from typing import Dict, Any, List, Optional, Callable
+
+# Re-importing the core SDK classes to expose them to plugins
+from plexichat.core.plugins.sdk import EnhancedBasePlugin, EnhancedPluginConfig, EnhancedPluginAPI
+
+# This makes the core SDK classes available to plugins that `import plugins_internal`
+__all__ = [
+    'EnhancedBasePlugin',
+    'EnhancedPluginConfig',
+    'EnhancedPluginAPI',
+]
+
+# Auto-generated on: {datetime.now().isoformat()}
+'''
 
     async def initialize(self) -> bool:
         """Initialize the plugin manager."""
@@ -1135,53 +1043,32 @@ class UnifiedPluginManager:
             self.logger.error(f"Failed to load direct plugin {plugin_name}: {e}")
             return False
 
-    async def _instantiate_plugin(self, plugin_name: str, module: Any, plugin_info: PluginInfo) -> Optional[PluginInterface]:
-        """Instantiate plugin from module."""
+    async def _instantiate_plugin(self, plugin_name: str, module: Any, plugin_info: PluginInfo) -> Optional[EnhancedBasePlugin]:
+        """
+        Instantiates a plugin from its loaded module.
+        It looks for a variable named 'plugin' which should be an instance
+        of a class that inherits from EnhancedBasePlugin.
+        """
         try:
-            # Look for plugin class
-            plugin_class = None
-
-            # Common plugin class names
-            class_names = [
-                'Plugin',
-                f'{plugin_name.title()}Plugin',
-                f'{plugin_name.upper()}Plugin',
-                'Main',
-                'MainPlugin'
-            ]
-
-            for class_name in class_names:
-                if hasattr(module, class_name):
-                    plugin_class = getattr(module, class_name)
-                    break
-
-            if not plugin_class:
-                # Look for any class that inherits from PluginInterface
-                for attr_name in dir(module):
-                    attr = getattr(module, attr_name)
-                    if (isinstance(attr, type) and
-                        issubclass(attr, PluginInterface) and
-                        attr != PluginInterface):
-                        plugin_class = attr
-                        break
-
-            if not plugin_class:
-                self.logger.error(f"No plugin class found in module: {plugin_name}")
+            if not hasattr(module, 'plugin'):
+                self.logger.error(f"Plugin module '{plugin_name}' does not have a 'plugin' instance.")
                 return None
 
-            # Instantiate plugin
-            plugin_instance = plugin_class(plugin_name, plugin_info.config)
-            self.inject_services(plugin_instance)
+            plugin_instance = getattr(module, 'plugin')
 
-            # Initialize plugin
+            if not isinstance(plugin_instance, EnhancedBasePlugin):
+                self.logger.error(f"'plugin' in {plugin_name} is not an instance of EnhancedBasePlugin.")
+                return None
+
+            # Initialize the plugin
             if await plugin_instance.initialize():
                 return plugin_instance
             else:
-                self.logger.error(f"Plugin initialization failed: {plugin_name}")
+                self.logger.error(f"Plugin initialization failed for: {plugin_name}")
                 return None
 
         except Exception as e:
-            self.logger.error(f"Failed to instantiate plugin {plugin_name}: {e}")
+            self.logger.error(f"Failed to instantiate plugin {plugin_name}: {e}", exc_info=True)
             return None
 
     async def _register_plugin_components(self, plugin_name: str) -> None:
@@ -1398,313 +1285,6 @@ class UnifiedPluginManager:
         except Exception as e:
             self.logger.error(f"Failed to generate plugin SDK: {e}")
 
-    def _create_plugin_sdk_content(self) -> str:
-        """Create the content for the auto-generated plugin SDK."""
-        return '''"""
-PlexiChat Plugin SDK - Auto-Generated
-=====================================
-
-This file is automatically generated by the PlexiChat Plugin Manager.
-DO NOT EDIT MANUALLY - Changes will be overwritten.
-
-This SDK provides the core interfaces and utilities for developing PlexiChat plugins.
-"""
-
-import asyncio
-import logging
-import json
-from abc import ABC, abstractmethod
-from typing import Dict, Any, List, Optional, Callable
-from pathlib import Path
-from datetime import datetime
-
-# Plugin Base Classes
-class BasePlugin(ABC):
-    """Base class for all PlexiChat plugins."""
-    def __init__(self):
-        self.name = "Unknown Plugin"
-        self.version = "1.0.0"
-        self.description = "A PlexiChat plugin"
-        self.author = "Unknown"
-        self.type = "utility"
-        self.enabled = True
-        self.logger = logging.getLogger(f"plugin.{self.name}")
-        self.config = {}
-        self.dependencies = []
-
-    @abstractmethod
-    async def initialize(self) -> bool:
-        """Initialize the plugin. Return True if successful."""
-        pass
-
-    @abstractmethod
-    async def cleanup(self):
-        """Cleanup plugin resources."""
-        pass
-
-    def get_config_schema(self) -> Dict[str, Any]:
-        """Return the configuration schema for this plugin."""
-        return {}
-
-    def get_config(self) -> Dict[str, Any]:
-        """Get plugin configuration."""
-        return self.config
-
-    def set_config(self, config: Dict[str, Any]):
-        """Set plugin configuration."""
-        self.config = config
-
-    async def handle_event(self, event_type: str, data: Dict[str, Any]):
-        """Handle system events."""
-        pass
-
-class AIProviderPlugin(BasePlugin):
-    """Base class for AI provider plugins."""
-    def __init__(self):
-        super().__init__()
-        self.type = "ai_provider"
-
-    @abstractmethod
-    async def generate_response(self, prompt: str, context: Dict[str, Any] = None) -> str:
-        """Generate AI response."""
-        pass
-
-    async def stream_response(self, prompt: str, context: Dict[str, Any] = None):
-        """Stream AI response (optional)."""
-        response = await self.generate_response(prompt, context)
-        yield response
-
-class SecurityPlugin(BasePlugin):
-    """Base class for security plugins."""
-    def __init__(self):
-        super().__init__()
-        self.type = "security"
-
-    async def scan_file(self, file_path: str) -> Dict[str, Any]:
-        """Scan file for threats."""
-        return {"safe": True, "threats": []}
-
-    async def scan_message(self, message: str) -> Dict[str, Any]:
-        """Scan message content."""
-        return {"safe": True, "threats": []}
-
-class InterfacePlugin(BasePlugin):
-    """Base class for interface plugins."""
-    def __init__(self):
-        super().__init__()
-        self.type = "interface"
-
-    def register_routes(self, app):
-        """Register web routes."""
-        pass
-
-    def register_gui_components(self, gui):
-        """Register GUI components."""
-        pass
-
-class AutomationPlugin(BasePlugin):
-    """Base class for automation plugins."""
-    def __init__(self):
-        super().__init__()
-        self.type = "automation"
-
-    async def execute_workflow(self, workflow_id: str, data: Dict[str, Any]):
-        """Execute automation workflow."""
-        pass
-
-    def register_triggers(self) -> List[Dict[str, Any]]:
-        """Register event triggers."""
-        return []
-
-# Plugin Utilities
-class PluginConfig:
-    """Plugin configuration helper."""
-    def __init__(self, plugin_name: str):
-        self.plugin_name = plugin_name
-        self.config_file = Path(f"plugins/{plugin_name}/config.json")
-
-    def load(self) -> Dict[str, Any]:
-        """Load plugin configuration."""
-        try:
-            if self.config_file.exists():
-                with open(self.config_file, 'r') as f:
-                    return json.load(f)
-            return {
-        except Exception as e:
-            logging.error(f"Failed to load config for {self.plugin_name}}: {e}")
-            return {
-
-    def save(self, config: Dict[str, Any]):
-        """Save plugin configuration."""
-        try:
-            self.config_file.parent.mkdir(parents=True, exist_ok=True)
-            with open(self.config_file, 'w') as f:
-                json.dump(config, f, indent=2)
-        except Exception as e:
-            logging.error(f"Failed to save config for {self.plugin_name}}: {e}")
-
-class PluginLogger:
-    """Plugin logging helper."""
-    def __init__(self, plugin_name: str):
-        self.logger = logging.getLogger(f"plugin.{plugin_name}")
-
-    def info(self, message: str):
-        self.logger.info(message)
-
-    def warning(self, message: str):
-        self.logger.warning(message)
-
-    def error(self, message: str):
-        self.logger.error(message)
-
-    def debug(self, message: str):
-        self.logger.debug(message)
-
-class PluginAPI:
-    """Plugin API helper for interacting with PlexiChat core."""
-    @staticmethod
-    async def send_message(content: str, channel: str = "general"):
-        """Send a message through PlexiChat."""
-        # This would integrate with the actual messaging system
-        pass
-
-    @staticmethod
-    async def get_user_info(user_id: str) -> Dict[str, Any]:
-        """Get user information."""
-        # This would integrate with the user management system
-        return {
-
-    @staticmethod
-    async def store_data(key: str, value: Any, plugin_name: str):
-        """Store plugin data."""
-        # This would integrate with the data storage system
-        pass
-
-    @staticmethod
-    async def retrieve_data(key: str, plugin_name: str) -> Any:
-        """Retrieve plugin data."""
-        # This would integrate with the data storage system
-        return None
-
-# Plugin Decorators
-def plugin_command(name: str, description: str = ""):
-    """Decorator for plugin commands."""
-    def decorator(func):
-        func._plugin_command = True
-        func._command_name = name
-        func._command_description = description
-        return func
-    return decorator
-
-def event_handler(event_type: str):
-    """Decorator for event handlers."""
-    def decorator(func):
-        func._event_handler = True
-        func._event_type = event_type
-        return func
-    return decorator
-
-def api_route(path: str, method: str = "GET"):
-    """Decorator for API routes."""
-    def decorator(func):
-        func._api_route = True
-        func._route_path = path
-        func._route_method = method
-        return func
-    return decorator
-
-# Plugin Registration
-def register_plugin(plugin_class):
-    """Register a plugin class."""
-    # This would integrate with the plugin manager
-    pass
-
-# Plugin Marketplace
-class PluginMarketplace:
-    """Plugin marketplace interface."""
-    def __init__(self, repo_url: str = "https://github.com/linux-of-user/plexichat-plugins"):
-        self.repo_url = repo_url
-        self.custom_repos = []
-
-    def add_repository(self, name: str, url: str):
-        """Add a custom plugin repository."""
-        self.custom_repos.append({"name": name, "url": url})
-
-    async def list_available_plugins(self, repo: str = "official") -> List[Dict[str, Any]]:
-        """List available plugins from repository."""
-        # This would fetch from the actual repository
-        return []
-
-    async def install_plugin(self, plugin_name: str, repo: str = "official") -> bool:
-        """Install a plugin from repository."""
-        # This would handle the actual installation
-        return False
-
-    async def update_plugin(self, plugin_name: str) -> bool:
-        """Update an installed plugin."""
-        # This would handle plugin updates
-        return False
-
-# Default Plugin Repositories
-DEFAULT_REPOSITORIES = [
-    {
-        "name": "official",
-        "url": "https://github.com/linux-of-user/plexichat-plugins",
-        "enabled": True
-    },
-    {
-        "name": "community",
-        "url": "https://github.com/plexichat-community/plugins",
-        "enabled": False
-    }
-]
-
-# Plugin Manager Interface
-class PluginManagerInterface:
-    """Interface to the plugin manager.
-        @staticmethod
-    async def get_loaded_plugins() -> List[str]:
-        """Get list of loaded plugins."""
-        return []
-
-    @staticmethod
-    async def enable_plugin(plugin_name: str) -> bool:
-        Enable a plugin."""
-        return False
-
-    @staticmethod
-    async def disable_plugin(plugin_name: str) -> bool:
-        """Disable a plugin.
-        return False
-
-    @staticmethod
-    async def reload_plugin(plugin_name: str) -> bool:
-        """Reload a plugin."""
-        return False
-
-# Export main classes and functions
-__all__ = [
-    'BasePlugin',
-    'AIProviderPlugin',
-    'SecurityPlugin',
-    'InterfacePlugin',
-    'AutomationPlugin',
-    'PluginConfig',
-    'PluginLogger',
-    'PluginAPI',
-    'PluginMarketplace',
-    'PluginManagerInterface',
-    'plugin_command',
-    'event_handler',
-    'api_route',
-    'register_plugin',
-    'DEFAULT_REPOSITORIES'
-]
-
-# Auto-generated on: {datetime.now().isoformat()}
-# PlexiChat Version: 1.0.0
-# SDK Version: 1.0.0
-'''
 
     def _sort_plugins_by_dependencies_and_priority(self, plugin_names: List[str]) -> List[str]:
         """Sort plugins by dependencies and priority."""
@@ -1958,41 +1538,6 @@ __all__ = [
         """
         return self.plugin_docs
 
-    def inject_services(self, plugin_instance: PluginInterface):
-        """Inject requested core services into the plugin instance based on get_services()."""
-        services = plugin_instance.get_services()
-        # Example: inject logger, analytics, db, ai, backup, security, etc.
-        if services.get("logger"):
-            plugin_instance.logger = logging.getLogger(f"plugin.{plugin_instance.plugin_id}")
-        if services.get("analytics"):
-            try:
-                from plexichat.core.analytics import analytics_manager
-                plugin_instance.analytics = analytics_manager
-            except ImportError:
-                plugin_instance.analytics = None
-        if services.get("db"):
-            from plexichat.core.database import db_factory
-            plugin_instance.db = db_factory
-        if services.get("ai"):
-            plugin_instance.ai = intelligent_assistant  # Main AI assistant for plugin AI integration
-            plugin_instance.ai_provider = ai_provider_manager  # Raw provider manager for advanced use
-        if services.get("backup"):
-            from plexichat.core.backup.unified_backup_system import backup_manager
-            plugin_instance.backup = backup_manager
-        if services.get("security"):
-            from plexichat.core.security import input_validation
-            plugin_instance.security = input_validation
-        # Add more as needed
-        # Allow plugins to provide custom handlers as well
-        if hasattr(plugin_instance, "register_logging_handlers"):
-            handlers = plugin_instance.register_logging_handlers()
-            # Register handlers with logging system
-            for name, handler in handlers.items():
-                logging.getLogger(name).addHandler(handler)
-        if hasattr(plugin_instance, "register_analytics_hooks"):
-            hooks = plugin_instance.register_analytics_hooks()
-            # Register hooks with analytics system (pseudo-code)
-            # analytics_manager.register_hooks(hooks)
 
     def _get_plugin_memory_usage(self, plugin_name: str) -> float:
         """Get memory usage of a plugin in MB."""

@@ -1,4 +1,4 @@
-import logging
+from plexichat.core.logging import get_logger
 import re
 from datetime import datetime, timezone
 from pathlib import Path
@@ -14,7 +14,7 @@ from . import (
     ThreatType,
 )
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class FilenameAnalyzer:

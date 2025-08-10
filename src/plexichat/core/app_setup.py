@@ -6,49 +6,48 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def setup_routers(app: FastAPI):
-    """Setup API routers with error handling."""
-    try:
-        # Web interface routes
-        from plexichat.interfaces.web.routers.web import router as web_router
-        app.include_router(web_router, prefix="/web", tags=["web"])
-        logger.info("[CHECK] Web router loaded")
-    except ImportError as e:
-        logger.warning(f"Web router not available: {e}")
-    
-    try:
-        # Authentication routes
-        from plexichat.interfaces.web.routers.auth import router as auth_router
-        app.include_router(auth_router, prefix="/auth", tags=["auth"])
-        logger.info("[CHECK] Auth router loaded")
-    except ImportError as e:
-        logger.warning(f"Auth router not available: {e}")
-    
-    try:
-        # API v1 routes
-        from plexichat.interfaces.api.v1 import v1_router as api_v1_router
-        from plexichat.interfaces.api.v1.router import root_router as root_api_router
-        app.include_router(api_v1_router, tags=["api-v1"])
-        app.include_router(root_api_router, tags=["root-api"])
-        logger.info("[CHECK] API v1 router loaded")
-    except ImportError as e:
-        logger.warning(f"API v1 router not available: {e}")
-    
-    try:
-        # Admin routes
-        from plexichat.interfaces.web.routers.admin import router as admin_router
-        app.include_router(admin_router, prefix="/admin", tags=["admin"])
-        logger.info("[CHECK] Admin router loaded")
-    except ImportError as e:
-        logger.warning(f"Admin router not available: {e}")
+from plexichat.core.plugins.unified_plugin_manager import unified_plugin_manager
 
+def setup_routers(app: FastAPI):
+    """Setup API routers with error handling, including dynamic plugin routers."""
+    # --- Core Routers ---
+    core_routers = {
+        "web": ("plexichat.interfaces.web.routers.web", "/web"),
+        "auth": ("plexichat.interfaces.web.routers.auth", "/auth"),
+        "api_v1": ("plexichat.interfaces.api.v1", None),
+        "root_api": ("plexichat.interfaces.api.v1.router", None),
+        "admin": ("plexichat.interfaces.web.routers.admin", "/admin"),
+        "easter_eggs": ("plexichat.interfaces.api.routers.easter_eggs", None),
+    }
+
+    for name, (module_path, prefix) in core_routers.items():
+        try:
+            module = __import__(module_path, fromlist=["router"])
+            router = getattr(module, 'router', None) or getattr(module, 'v1_router', None) or getattr(module, 'root_router', None)
+            if router:
+                app.include_router(router, prefix=prefix, tags=[name])
+                logger.info(f"[CHECK] Core router '{name}' loaded.")
+            else:
+                logger.warning(f"Could not find a router in module {module_path}")
+        except ImportError as e:
+            logger.warning(f"Core router '{name}' not available: {e}")
+
+    # --- Plugin Routers ---
+    logger.info("Loading plugin routers...")
     try:
-        # Easter eggs routes (fun endpoints that don't disrupt normal operation)
-        from plexichat.interfaces.api.routers.easter_eggs import router as easter_eggs_router
-        app.include_router(easter_eggs_router, tags=["easter-eggs"])
-        logger.info("[CHECK] Easter eggs router loaded")
-    except ImportError as e:
-        logger.warning(f"Easter eggs router not available: {e}")
+        plugin_routers = unified_plugin_manager.get_all_plugin_routers()
+        if not plugin_routers:
+            logger.info("No plugin routers found to load.")
+        else:
+            for plugin_name, router_info in plugin_routers.items():
+                for prefix, router in router_info.items():
+                    try:
+                        app.include_router(router, prefix=prefix, tags=[f"plugin: {plugin_name}"])
+                        logger.info(f"[CHECK] Plugin router loaded for '{plugin_name}' at prefix '{prefix}'.")
+                    except Exception as e:
+                        logger.error(f"Failed to include router from plugin '{plugin_name}' at prefix '{prefix}': {e}")
+    except Exception as e:
+        logger.error(f"Failed to get plugin routers from manager: {e}", exc_info=True)
 
 def setup_static_files(app: FastAPI):
     """Setup static files and templates."""

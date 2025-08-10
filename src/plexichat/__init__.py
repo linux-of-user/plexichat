@@ -21,37 +21,19 @@ from pathlib import Path
 import importlib
 
 # Version information
-def get_version_from_json():
-    version_file = Path(__file__).parent.parent / "version.json"
-    if version_file.exists():
-        try:
-            with open(version_file, 'r', encoding='utf-8') as f:
-                version_data = json.load(f)
-                return version_data.get("version", "unknown")
-        except Exception:
-            pass
-    return "unknown"
-
-__version__ = get_version_from_json()
+from plexichat.core.config import settings
+__version__ = settings.version
 __author__ = "PlexiChat Team"
 __description__ = "Enhanced chat application with comprehensive features"
 
 # Use EXISTING performance optimization engine
 try:
-    from plexichat.core.logging_advanced.performance_logger import get_performance_logger
+    from plexichat.core.logging.performance_logger import get_performance_logger
 except ImportError:
     get_performance_logger = None
 
-# Setup basic logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler(sys.stdout)
-    ]
-)
-
-logger = logging.getLogger(__name__)
+from plexichat.core.logging import get_logger
+logger = get_logger(__name__)
 
 # Initialize EXISTING performance systems
 performance_logger = get_performance_logger() if get_performance_logger else None

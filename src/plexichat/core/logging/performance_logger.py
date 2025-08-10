@@ -1,5 +1,5 @@
 import asyncio
-import logging
+from plexichat.core.logging import get_logger
 import statistics
 import threading
 import time
@@ -11,7 +11,7 @@ from typing import Any, Callable, Dict, List, Optional, Union
 import psutil
 import gc
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class MetricType(Enum):

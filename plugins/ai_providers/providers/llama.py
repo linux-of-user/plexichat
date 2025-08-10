@@ -5,12 +5,12 @@ This module provides integration with Llama.cpp for local LLM inference.
 """
 
 import asyncio
-import logging
+from plexichat.core.logging import get_logger
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 import json
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 @dataclass
@@ -57,7 +57,7 @@ class LlamaProvider:
     def __init__(self, config: LlamaConfig):
         """Initialize Llama provider."""
         self.config = config
-        self.logger = logging.getLogger(f"{__name__}.LlamaProvider")
+        self.logger = get_logger(f"{__name__}.LlamaProvider")
         self.model = None
         self.is_initialized = False
         

@@ -6,7 +6,7 @@ Comprehensive development tools with code formatting, linting, testing utilities
 
 import asyncio
 import json
-import logging
+from plexichat.core.logging import get_logger
 import subprocess
 from datetime import datetime
 from pathlib import Path
@@ -22,7 +22,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
 from plugin_internal import PluginInterface, PluginMetadata, PluginType, ModulePermissions, ModuleCapability
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class FormatRequest(BaseModel):

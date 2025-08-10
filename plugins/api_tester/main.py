@@ -12,7 +12,7 @@ This plugin provides comprehensive API testing functionality including:
 
 import asyncio
 import json
-import logging
+from plexichat.core.logging import get_logger
 import random
 import string
 import time
@@ -32,7 +32,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 from plugin_internal import PluginInterface
 from typing import Optional
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class APIRequest(BaseModel):

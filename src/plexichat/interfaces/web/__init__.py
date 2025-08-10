@@ -29,30 +29,8 @@ except ImportError:
     except ImportError:
         get_performance_logger = None
 
-# Configuration imports
-config_manager = None
-try:
-    from ...core.config_manager import ConfigurationManager
-    config_manager = ConfigurationManager()
-except ImportError:
-    try:
-        from plexichat.core.config_manager import ConfigurationManager
-        config_manager = ConfigurationManager()
-    except ImportError:
-        pass
-
-if config_manager:
-    class Settings:
-        DEBUG = config_manager.get('system.debug', False)
-        APP_NAME = config_manager.get('system.name', 'PlexiChat')
-        APP_VERSION = config_manager.get('system.version', 'b.1.1-93')
-    settings = Settings()
-else:
-    class MockSettings:
-        DEBUG = False
-        APP_NAME = "PlexiChat"
-        APP_VERSION = "b.1.1-93"
-    settings = MockSettings()
+# Use the new unified config system
+from plexichat.core.unified_config import get_config
 
 logger = logging.getLogger(__name__)
 
@@ -66,12 +44,17 @@ def create_app() -> Optional[Any]:
             logger.error("FastAPI not available")
             return None
 
+        # Get settings from the unified config
+        app_name = get_config("system.name", "PlexiChat")
+        app_version = get_config("system.version", "0.0.0")
+        app_debug = get_config("system.debug", False)
+
         # Create FastAPI app
         app = FastAPI(
-            title=getattr(settings, 'APP_NAME', 'PlexiChat'),
-            version=getattr(settings, 'APP_VERSION', 'b.1.1-86'),
+            title=app_name,
+            version=app_version,
             description="Enhanced PlexiChat API with comprehensive functionality",
-            debug=getattr(settings, 'DEBUG', False)
+            debug=app_debug
         )
 
         # Add middleware
@@ -135,7 +118,7 @@ def create_app() -> Optional[Any]:
             return {
                 "status": "healthy",
                 "timestamp": "2024-01-01T00:00:00Z",
-                "version": getattr(settings, 'APP_VERSION', 'b.1.1-86')
+                "version": get_config("system.version", "0.0.0")
             }
 
         return app
@@ -217,7 +200,4 @@ __all__ = [
 ]
 
 # Version info - load from config
-try:
-    __version__ = settings.APP_VERSION
-except:
-    __version__ = "b.1.1-86"
+__version__ = get_config("system.version", "0.0.0")

@@ -492,14 +492,26 @@ else:
         else:
             print("Available commands: version, status")
 
+def get_cli_app():
+    """Returns the click CLI application."""
+    if not click:
+        return None
+    # Add commands to the CLI group
+    if admin_cmd:
+        cli.add_command(admin_cmd)
+    if backup_cmd:
+        cli.add_command(backup_cmd)
+    if system_cmd:
+        cli.add_command(system_cmd)
+    return cli
+
 # Main entry point
 def main():
     """Main CLI entry point."""
     try:
-        if click:
-            cli()
-        else:
-            cli_fallback()
+        app = get_cli_app()
+        if app:
+            app()
     except KeyboardInterrupt:
         print_message("\nOperation cancelled by user", "warning")
         # Ensure proper shutdown
@@ -513,6 +525,3 @@ def main():
         except:
             pass
         sys.exit(1)
-
-if __name__ == "__main__":
-    main()
