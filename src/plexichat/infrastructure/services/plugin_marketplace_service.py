@@ -8,31 +8,6 @@
 # Better plugin compatibility checking
 # Enhanced user experience with progress indicators
 
-# Enhanced plugin marketplace with better error handling
-# Improved security validation
-# Better plugin compatibility checking
-# Enhanced user experience with progress indicators
-
-# Enhanced plugin marketplace with better error handling
-# Improved security validation
-# Better plugin compatibility checking
-# Enhanced user experience with progress indicators
-
-# Enhanced plugin marketplace with better error handling
-# Improved security validation
-# Better plugin compatibility checking
-# Enhanced user experience with progress indicators
-
-# Enhanced plugin marketplace with better error handling
-# Improved security validation
-# Better plugin compatibility checking
-# Enhanced user experience with progress indicators
-
-# Enhanced plugin marketplace with better error handling
-# Improved security validation
-# Better plugin compatibility checking
-# Enhanced user experience with progress indicators
-
 import asyncio
 import hashlib
 import hmac
@@ -50,12 +25,6 @@ import aiohttp
 
 from ..core.logging import get_logger
 
-from pathlib import Path
-from pathlib import Path
-
-from pathlib import Path
-from pathlib import Path
-
 """
 import http.client
 import time
@@ -63,14 +32,14 @@ PlexiChat Plugin Marketplace Service
 
 Comprehensive plugin marketplace with discovery, ratings, reviews, categories,
 external service integrations, and developer tools.
-
+"""
 
 logger = get_logger(__name__)
 
 
 class WebhookEvent(Enum):
     """Webhook event types for marketplace notifications."""
-        PLUGIN_PUBLISHED = "plugin.published"
+    PLUGIN_PUBLISHED = "plugin.published"
     PLUGIN_UPDATED = "plugin.updated"
     PLUGIN_INSTALLED = "plugin.installed"
     PLUGIN_DELETED = "plugin.deleted"
@@ -82,7 +51,7 @@ class WebhookEvent(Enum):
 
 @dataclass
 class WebhookEndpoint:
-    """Webhook endpoint configuration.
+    """Webhook endpoint configuration."""
     endpoint_id: str
     url: str
     secret: str
@@ -97,7 +66,7 @@ class WebhookEndpoint:
 @dataclass
 class WebhookDelivery:
     """Webhook delivery attempt record."""
-        delivery_id: str
+    delivery_id: str
     endpoint_id: str
     event: WebhookEvent
     payload: Dict[str, Any]
@@ -109,8 +78,8 @@ class WebhookDelivery:
 
 
 class PluginCategory(Enum):
-    Plugin categories for marketplace organization."""
-        COMMUNICATION = "communication"
+    """Plugin categories for marketplace organization."""
+    COMMUNICATION = "communication"
     SECURITY = "security"
     PRODUCTIVITY = "productivity"
     ENTERTAINMENT = "entertainment"
@@ -125,7 +94,7 @@ class PluginCategory(Enum):
 
 
 class PluginRating(Enum):
-    """Plugin rating levels.
+    """Plugin rating levels."""
     ONE_STAR = 1
     TWO_STAR = 2
     THREE_STAR = 3
@@ -136,7 +105,7 @@ class PluginRating(Enum):
 @dataclass
 class PluginMarketplaceInfo:
     """Extended plugin information for marketplace."""
-        plugin_id: str
+    plugin_id: str
     name: str
     version: str
     description: str
@@ -183,8 +152,8 @@ class PluginMarketplaceInfo:
 
 @dataclass
 class PluginReview:
-    """Plugin review information.
-        review_id: str
+    """Plugin review information."""
+    review_id: str
     plugin_id: str
     user_id: str
     username: str
@@ -200,7 +169,7 @@ class PluginReview:
 @dataclass
 class PluginDeveloper:
     """Plugin developer information."""
-        developer_id: str
+    developer_id: str
     username: str
     email: str
     display_name: str
@@ -215,13 +184,11 @@ class PluginDeveloper:
 
 
 class PluginMarketplaceService:
-    Comprehensive plugin marketplace service."""
-        def __init__(self, config: Dict[str, Any] = None):
+    """Comprehensive plugin marketplace service."""
+    def __init__(self, config: Dict[str, Any] = None):
         self.config = config or self._load_default_config()
-        from pathlib import Path
-self.data_dir = Path(self.config.get("data_dir", "data/plugin_marketplace"))
-        from pathlib import Path
-self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cache"))
+        self.data_dir = Path(self.config.get("data_dir", "data/plugin_marketplace"))
+        self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cache"))
 
         # Ensure directories exist
         self.data_dir.mkdir(parents=True, exist_ok=True)
@@ -252,7 +219,7 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
             "featured_plugins": 0
         }
 
-        logger.info(" Plugin Marketplace Service initialized")
+        logger.info("Plugin Marketplace Service initialized")
 
     def _load_default_config(self) -> Dict[str, Any]:
         """Load default marketplace configuration."""
@@ -268,7 +235,7 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
                     "url": "https://plugins.plexichat.example.com/api/v1",
                     "trusted": True,
                     "enabled": True
-                }}
+                }
             ],
             "webhook_endpoints": {
                 "plugin_published": "/webhooks/plugin/published",
@@ -290,7 +257,7 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
     async def initialize(self) -> bool:
         """Initialize the marketplace service."""
         try:
-            logger.info(" Initializing Plugin Marketplace...")
+            logger.info("Initializing Plugin Marketplace...")
 
             # Load existing data
             await self._load_marketplace_data()
@@ -301,20 +268,20 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
             # Update statistics
             await self._update_statistics()
 
-            logger.info(" Plugin Marketplace initialized successfully")
+            logger.info("Plugin Marketplace initialized successfully")
             return True
 
         except Exception as e:
-            logger.error(f" Failed to initialize Plugin Marketplace: {e}")
+            logger.error(f"Failed to initialize Plugin Marketplace: {e}")
             return False
 
-    async def search_plugins(self, query: str = "", category: Optional[PluginCategory] = None,)
+    async def search_plugins(self, query: str = "", category: Optional[PluginCategory] = None,
                         tags: Optional[List[str]] = None, sort_by: str = "relevance",
                         limit: int = 20, offset: int = 0) -> Dict[str, Any]:
         """Search plugins in the marketplace."""
         try:
             # Create cache key
-            cache_key = hashlib.md5()
+            cache_key = hashlib.md5(
                 f"{query}_{category}_{tags}_{sort_by}_{limit}_{offset}".encode()
             ).hexdigest()
 
@@ -364,7 +331,7 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
                 "plugins": [],
                 "total_count": 0,
                 "error": str(e)
-            }}
+            }
 
     async def get_plugin_details(self, plugin_id: str) -> Optional[Dict[str, Any]]:
         """Get detailed information about a specific plugin."""
@@ -404,7 +371,7 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
             ]
 
             # Sort by rating and download count
-            featured.sort()
+            featured.sort(
                 key=lambda p: (p.rating_average, p.download_count),
                 reverse=True
             )
@@ -424,7 +391,7 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
             categories = {}
 
             for category in PluginCategory:
-                count = sum()
+                count = sum(
                     1 for plugin in self.plugins.values()
                     if plugin.category == category
                 )
@@ -438,11 +405,11 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
 
         except Exception as e:
             logger.error(f"Failed to get categories: {e}")
-            return {}}
+            return {}
 
     # Remote plugin installation removed - plugins managed locally through WebUI
 
-    async def add_review(self, plugin_id: str, user_id: str, username: str,)
+    async def add_review(self, plugin_id: str, user_id: str, username: str,
                         rating: PluginRating, title: str, content: str) -> Dict[str, Any]:
         """Add a review for a plugin."""
         try:
@@ -450,7 +417,7 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
                 return {"success": False, "error": "Plugin not found"}
 
             # Create review
-            review = PluginReview()
+            review = PluginReview(
                 review_id=str(uuid.uuid4()),
                 plugin_id=plugin_id,
                 user_id=user_id,
@@ -473,7 +440,7 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
             await self._save_marketplace_data()
 
             # Send webhook notification
-            await self.trigger_webhook(WebhookEvent.REVIEW_ADDED, {)
+            await self.trigger_webhook(WebhookEvent.REVIEW_ADDED, {
                 "review_id": review.review_id,
                 "plugin_id": plugin_id,
                 "plugin_name": self.plugins[plugin_id].name,
@@ -488,7 +455,7 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
                 "success": True,
                 "review_id": review.review_id,
                 "message": "Review added successfully"
-            }}
+            }
 
         except Exception as e:
             logger.error(f"Failed to add review: {e}")
@@ -503,11 +470,11 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
             "recent_plugins": await self._get_recent_plugins(5),
             "top_rated": await self._get_top_rated_plugins(5),
             "most_downloaded": await self._get_most_downloaded_plugins(5)
-        }}
+        }
 
-    def _matches_search_criteria(self, plugin: PluginMarketplaceInfo, query: str,):
-                                category: Optional[PluginCategory], tags: List[str]) -> bool:
-        """Check if plugin matches search criteria.
+    def _matches_search_criteria(self, plugin: PluginMarketplaceInfo, query: str,
+                                category: Optional[PluginCategory], tags: Optional[List[str]]) -> bool:
+        """Check if plugin matches search criteria."""
         # Category filter
         if category and plugin.category != category:
             return False
@@ -519,7 +486,7 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
         # Query filter
         if query:
             query_lower = query.lower()
-            if not any(query_lower in field.lower() for field in [)
+            if not any(query_lower in field.lower() for field in [
                 plugin.name, plugin.description, plugin.author
             ] + plugin.tags):
                 return False
@@ -575,7 +542,7 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
             "checksum": plugin.checksum,
             "security_scan_passed": plugin.security_scan_passed,
             "security_scan_date": plugin.security_scan_date.isoformat() if plugin.security_scan_date else None
-        }}
+        }
 
     def _review_to_dict(self, review: PluginReview) -> Dict[str, Any]:
         """Convert review to dictionary."""
@@ -591,7 +558,7 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
             "created_at": review.created_at.isoformat(),
             "updated_at": review.updated_at.isoformat(),
             "verified_purchase": review.verified_purchase
-        }}
+        }
 
     def _developer_to_dict(self, developer: PluginDeveloper) -> Dict[str, Any]:
         """Convert developer to dictionary."""
@@ -607,10 +574,10 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
             "total_downloads": developer.total_downloads,
             "average_rating": developer.average_rating,
             "created_at": developer.created_at.isoformat()
-        }}
+        }
 
     def _find_developer_by_plugin(self, plugin_id: str) -> Optional[PluginDeveloper]:
-        """Find developer by plugin ID.
+        """Find developer by plugin ID."""
         if plugin_id not in self.plugins:
             return None
 
@@ -734,9 +701,9 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
 
             return {
                 "success": True,
-                "file_path": temp_file,
+                "file_path": str(temp_file),
                 "message": "Plugin downloaded successfully"
-            }}
+            }
 
         except Exception as e:
             logger.error(f"Failed to download plugin: {e}")
@@ -754,13 +721,13 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
             logger.error(f"Failed to calculate checksum: {e}")
             return ""
 
-    async def _send_webhook(self, event_type: str, data: Dict[str, Any]):
+    async def _send_webhook_notification(self, event_type: str, data: Dict[str, Any]):
         """Send webhook notification."""
         try:
-            if event_type not in self.webhook_endpoints:
+            if event_type not in self.config.get("webhook_endpoints", {}):
                 return
 
-            webhook_url = self.webhook_endpoints[event_type]
+            webhook_url = self.config["webhook_endpoints"][event_type]
             payload = {
                 "event": event_type,
                 "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -793,7 +760,7 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
     async def _get_recent_plugins(self, limit: int = 5) -> List[Dict[str, Any]]:
         """Get recently added plugins."""
         try:
-            recent = sorted()
+            recent = sorted(
                 self.plugins.values(),
                 key=lambda p: p.created_at,
                 reverse=True
@@ -806,7 +773,7 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
     async def _get_top_rated_plugins(self, limit: int = 5) -> List[Dict[str, Any]]:
         """Get top-rated plugins."""
         try:
-            top_rated = sorted()
+            top_rated = sorted(
                 [p for p in self.plugins.values() if p.rating_count >= 3],
                 key=lambda p: p.rating_average,
                 reverse=True
@@ -819,7 +786,7 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
     async def _get_most_downloaded_plugins(self, limit: int = 5) -> List[Dict[str, Any]]:
         """Get most downloaded plugins."""
         try:
-            most_downloaded = sorted()
+            most_downloaded = sorted(
                 self.plugins.values(),
                 key=lambda p: p.download_count,
                 reverse=True
@@ -864,7 +831,17 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
                     developer = self._dict_to_developer(dev_data)
                     self.developers[developer.developer_id] = developer
 
-            logger.info(f" Loaded {len(self.plugins)} plugins, {len(self.developers)} developers")
+            # Load webhooks
+            webhooks_file = self.data_dir / "webhooks.json"
+            if webhooks_file.exists():
+                async with aiofiles.open(webhooks_file, 'r') as f:
+                    webhooks_data = json.loads(await f.read())
+                for webhook_data in webhooks_data:
+                    endpoint = self._dict_to_webhook(webhook_data)
+                    self.webhook_endpoints[endpoint.endpoint_id] = endpoint
+
+
+            logger.info(f"Loaded {len(self.plugins)} plugins, {len(self.developers)} developers, {len(self.webhook_endpoints)} webhooks")
 
         except Exception as e:
             logger.error(f"Failed to load marketplace data: {e}")
@@ -896,14 +873,20 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
             async with aiofiles.open(developers_file, 'w') as f:
                 await f.write(json.dumps(developers_data, indent=2, default=str))
 
-            logger.debug(" Marketplace data saved successfully")
+            # Save webhooks
+            webhooks_data = [self._webhook_to_dict(wh) for wh in self.webhook_endpoints.values()]
+            webhooks_file = self.data_dir / "webhooks.json"
+            async with aiofiles.open(webhooks_file, 'w') as f:
+                await f.write(json.dumps(webhooks_data, indent=2, default=str))
+
+            logger.debug("Marketplace data saved successfully")
 
         except Exception as e:
             logger.error(f"Failed to save marketplace data: {e}")
 
     def _dict_to_plugin(self, data: Dict[str, Any]) -> PluginMarketplaceInfo:
         """Convert dictionary to plugin info."""
-        return PluginMarketplaceInfo()
+        return PluginMarketplaceInfo(
             plugin_id=data["plugin_id"],
             name=data["name"],
             version=data["version"],
@@ -941,7 +924,7 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
 
     def _dict_to_review(self, data: Dict[str, Any]) -> PluginReview:
         """Convert dictionary to review."""
-        return PluginReview()
+        return PluginReview(
             review_id=data["review_id"],
             plugin_id=data["plugin_id"],
             user_id=data["user_id"],
@@ -957,7 +940,7 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
 
     def _dict_to_developer(self, data: Dict[str, Any]) -> PluginDeveloper:
         """Convert dictionary to developer."""
-        return PluginDeveloper()
+        return PluginDeveloper(
             developer_id=data["developer_id"],
             username=data["username"],
             email=data["email"],
@@ -972,6 +955,34 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
             created_at=datetime.fromisoformat(data["created_at"]) if isinstance(data["created_at"], str) else data["created_at"]
         )
 
+    def _dict_to_webhook(self, data: Dict[str, Any]) -> WebhookEndpoint:
+        """Convert dictionary to webhook endpoint."""
+        return WebhookEndpoint(
+            endpoint_id=data['endpoint_id'],
+            url=data['url'],
+            secret=data['secret'],
+            events=[WebhookEvent(e) for e in data['events']],
+            is_active=data['is_active'],
+            created_at=datetime.fromisoformat(data['created_at']),
+            last_triggered=datetime.fromisoformat(data['last_triggered']) if data.get('last_triggered') else None,
+            success_count=data['success_count'],
+            failure_count=data['failure_count']
+        )
+
+    def _webhook_to_dict(self, endpoint: WebhookEndpoint) -> Dict[str, Any]:
+        """Convert webhook endpoint to dictionary."""
+        return {
+            "endpoint_id": endpoint.endpoint_id,
+            "url": endpoint.url,
+            "secret": endpoint.secret,
+            "events": [e.value for e in endpoint.events],
+            "is_active": endpoint.is_active,
+            "created_at": endpoint.created_at.isoformat(),
+            "last_triggered": endpoint.last_triggered.isoformat() if endpoint.last_triggered else None,
+            "success_count": endpoint.success_count,
+            "failure_count": endpoint.failure_count,
+        }
+
     async def _sync_external_repositories(self):
         """Sync plugins from external repositories."""
         try:
@@ -979,7 +990,7 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
                 if not repo.get("enabled", True):
                     continue
 
-                logger.info(f" Syncing with repository: {repo['name']}")
+                logger.info(f"Syncing with repository: {repo['name']}")
 
                 try:
                     async with aiohttp.ClientSession() as session:
@@ -1018,7 +1029,7 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
                 return  # Already up to date
 
             # Convert external plugin data to our format
-            plugin = PluginMarketplaceInfo()
+            plugin = PluginMarketplaceInfo(
                 plugin_id=plugin_id,
                 name=plugin_data.get("name", "Unknown Plugin"),
                 version=remote_version,
@@ -1045,7 +1056,7 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
             )
 
             self.plugins[plugin_id] = plugin
-            logger.debug(f" Synced plugin: {plugin.name} v{plugin.version}")
+            logger.debug(f"Synced plugin: {plugin.name} v{plugin.version}")
 
         except Exception as e:
             logger.error(f"Failed to sync external plugin: {e}")
@@ -1067,7 +1078,7 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
             webhook_secret = secret or secrets.token_urlsafe(32)
 
             # Create webhook endpoint
-            endpoint = WebhookEndpoint()
+            endpoint = WebhookEndpoint(
                 endpoint_id=endpoint_id,
                 url=url,
                 secret=webhook_secret,
@@ -1077,14 +1088,14 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
             self.webhook_endpoints[endpoint_id] = endpoint
             await self._save_marketplace_data()
 
-            logger.info(f" Registered webhook endpoint: {url}")
+            logger.info(f"Registered webhook endpoint: {url}")
 
             return {
                 "success": True,
                 "endpoint_id": endpoint_id,
                 "secret": webhook_secret,
                 "events": [event.value for event in valid_events]
-            }}
+            }
 
         except Exception as e:
             logger.error(f"Failed to register webhook: {e}")
@@ -1105,7 +1116,7 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
             # Send webhooks asynchronously
             tasks = []
             for endpoint in matching_endpoints:
-                task = asyncio.create_task(self._send_webhook(endpoint, event, payload))
+                task = asyncio.create_task(self._send_single_webhook(endpoint, event, payload))
                 tasks.append(task)
 
             # Wait for all webhooks to complete
@@ -1114,7 +1125,7 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
         except Exception as e:
             logger.error(f"Failed to trigger webhooks: {e}")
 
-    async def _send_webhook(self, endpoint: WebhookEndpoint, event: WebhookEvent, payload: Dict[str, Any]):
+    async def _send_single_webhook(self, endpoint: WebhookEndpoint, event: WebhookEvent, payload: Dict[str, Any]):
         """Send a single webhook notification."""
         delivery_id = f"delivery_{secrets.token_urlsafe(16)}"
 
@@ -1127,7 +1138,7 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
             }
 
             # Generate signature
-            signature = self._generate_webhook_signature()
+            signature = self._generate_webhook_signature(
                 json.dumps(webhook_payload, sort_keys=True),
                 endpoint.secret
             )
@@ -1142,7 +1153,7 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
             }
 
             async with aiohttp.ClientSession() as session:
-                async with session.post()
+                async with session.post(
                     endpoint.url,
                     json=webhook_payload,
                     headers=headers,
@@ -1151,7 +1162,7 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
                     response_body = await response.text()
 
                     # Record delivery
-                    delivery = WebhookDelivery()
+                    delivery = WebhookDelivery(
                         delivery_id=delivery_id,
                         endpoint_id=endpoint.endpoint_id,
                         event=event,
@@ -1167,14 +1178,14 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
                     endpoint.last_triggered = datetime.now(timezone.utc)
                     if 200 <= response.status < 300:
                         endpoint.success_count += 1
-                        logger.debug(f" Webhook delivered: {endpoint.url} ({response.status})")
+                        logger.debug(f"Webhook delivered: {endpoint.url} ({response.status})")
                     else:
                         endpoint.failure_count += 1
-                        logger.warning(f" Webhook failed: {endpoint.url} ({response.status})")
+                        logger.warning(f"Webhook failed: {endpoint.url} ({response.status})")
 
         except Exception as e:
             # Record failed delivery
-            delivery = WebhookDelivery()
+            delivery = WebhookDelivery(
                 delivery_id=delivery_id,
                 endpoint_id=endpoint.endpoint_id,
                 event=event,
@@ -1185,11 +1196,11 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
             self.webhook_deliveries.append(delivery)
             endpoint.failure_count += 1
 
-            logger.error(f" Webhook delivery failed: {endpoint.url} - {e}")
+            logger.error(f"Webhook delivery failed: {endpoint.url} - {e}")
 
     def _generate_webhook_signature(self, payload: str, secret: str) -> str:
         """Generate HMAC signature for webhook payload."""
-        signature = hmac.new()
+        signature = hmac.new(
             secret.encode('utf-8'),
             payload.encode('utf-8'),
             hashlib.sha256
@@ -1199,16 +1210,7 @@ self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cach
     async def get_webhook_endpoints(self) -> List[Dict[str, Any]]:
         """Get all registered webhook endpoints."""
         return [
-            {
-                "endpoint_id": endpoint.endpoint_id,
-                "url": endpoint.url,
-                "events": [event.value for event in endpoint.events],
-                "is_active": endpoint.is_active,
-                "created_at": endpoint.created_at.isoformat(),
-                "last_triggered": endpoint.last_triggered.isoformat() if endpoint.last_triggered else None,
-                "success_count": endpoint.success_count,
-                "failure_count": endpoint.failure_count
-            }
+            self._webhook_to_dict(endpoint)
             for endpoint in self.webhook_endpoints.values()
         ]
 
@@ -1241,7 +1243,7 @@ _marketplace_service: Optional[PluginMarketplaceService] = None
 
 
 def get_plugin_marketplace_service() -> PluginMarketplaceService:
-    """Get the global plugin marketplace service instance.
+    """Get the global plugin marketplace service instance."""
     global _marketplace_service
     if _marketplace_service is None:
         _marketplace_service = PluginMarketplaceService()
@@ -1253,3 +1255,4 @@ async def initialize_plugin_marketplace() -> bool:
     service = get_plugin_marketplace_service()
     if service and hasattr(service, "initialize"):
         return await service.initialize()
+    return False

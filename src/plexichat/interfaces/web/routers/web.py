@@ -48,12 +48,7 @@ except ImportError:
         return {"id": 1, "username": "admin", "is_admin": True}
 
 # Model imports
-try:
-    from plexichat.features.users.user import User
-except ImportError:
-    class User:
-        id: int
-        username: str
+from plexichat.core.user import User
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/web", tags=["web"])

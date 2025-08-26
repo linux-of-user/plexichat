@@ -35,22 +35,22 @@ from collections import defaultdict, deque
 
 # Security integration
 try:
-    from ..security.unified_security_system import get_unified_security_system
-    from ..security.comprehensive_security_manager import get_security_manager
+    from plexichat.core.security.unified_security_system import get_unified_security_system
+    from plexichat.core.security.comprehensive_security_manager import get_security_manager
     SECURITY_AVAILABLE = True
 except ImportError:
     SECURITY_AVAILABLE = False
 
 # Edge computing integration
 try:
-    from .edge_computing_manager import get_edge_computing_manager
+    from plexichat.core.performance.edge_computing_manager import get_edge_computing_manager
     EDGE_COMPUTING_AVAILABLE = True
 except ImportError:
     EDGE_COMPUTING_AVAILABLE = False
 
 # Messaging integration
 try:
-    from ..messaging.unified_messaging_system import get_messaging_system
+    from plexichat.core.messaging.unified_messaging_system import get_messaging_system
     MESSAGING_AVAILABLE = True
 except ImportError:
     MESSAGING_AVAILABLE = False
@@ -423,8 +423,8 @@ class MultiTierCacheManager:
         # Security integration
         if SECURITY_AVAILABLE:
             try:
-                from ..security.unified_security_system import get_unified_security_system
-                from ..security.comprehensive_security_manager import get_security_manager
+                from plexichat.core.security.unified_security_system import get_unified_security_system
+                from plexichat.core.security.comprehensive_security_manager import get_security_manager
                 self.security_system = get_unified_security_system()
                 self.security_manager = get_security_manager()
             except ImportError:
@@ -462,14 +462,14 @@ class MultiTierCacheManager:
             # Initialize system integrations
             if EDGE_COMPUTING_AVAILABLE:
                 try:
-                    from .edge_computing_manager import get_edge_computing_manager
+                    from plexichat.core.performance.edge_computing_manager import get_edge_computing_manager
                     self.edge_manager = get_edge_computing_manager()
                 except ImportError:
                     pass
             
             if MESSAGING_AVAILABLE:
                 try:
-                    from ..messaging.unified_messaging_system import get_messaging_system
+                    from plexichat.core.messaging.unified_messaging_system import get_messaging_system
                     self.messaging_system = get_messaging_system()
                 except ImportError:
                     pass

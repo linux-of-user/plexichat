@@ -19,7 +19,7 @@ import json
 
 # Import configuration
 try:
-    from ..config.rate_limiting_config import get_rate_limiting_config, DynamicRateLimitConfig
+    from plexichat.core.rate_limit_config import get_rate_limiting_config, DynamicRateLimitConfig
 except ImportError as e:
     print(f"Import error in dynamic rate limiting middleware: {e}")
     # Fallback
@@ -30,8 +30,8 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class SystemMetrics:
-    """System performance metrics.
-        timestamp: float
+    """System performance metrics."""
+    timestamp: float
     cpu_percent: float
     memory_percent: float
     disk_io_read: float
@@ -45,7 +45,7 @@ class SystemMetrics:
 @dataclass
 class TrafficMetrics:
     """Traffic and request metrics."""
-        timestamp: float
+    timestamp: float
     requests_per_second: float
     concurrent_requests: int
     queue_length: int
@@ -55,8 +55,8 @@ class TrafficMetrics:
 
 @dataclass
 class LoadLevel:
-    System load level definition."""
-        name: str
+    """System load level definition."""
+    name: str
     cpu_threshold: float
     memory_threshold: float
     response_time_threshold: float
@@ -66,7 +66,7 @@ class LoadLevel:
 
 class DynamicRateLimitingMiddleware(BaseHTTPMiddleware):
     """Dynamic rate limiting middleware that adapts to system load."""
-        def __init__(self, app):
+    def __init__(self, app):
         super().__init__(app)
         
         # Configuration
@@ -148,7 +148,7 @@ class DynamicRateLimitingMiddleware(BaseHTTPMiddleware):
         }
     
     def _start_monitoring(self):
-        """Start background monitoring tasks.
+        """Start background monitoring tasks."""
         if not self.enabled:
             return
         
@@ -314,7 +314,7 @@ class DynamicRateLimitingMiddleware(BaseHTTPMiddleware):
         return "normal"
     
     def _calculate_avg_response_time(self) -> float:
-        """Calculate average response time from recent requests.
+        """Calculate average response time from recent requests."""
         if not self.request_times:
             return 0.0
         
@@ -344,14 +344,14 @@ class DynamicRateLimitingMiddleware(BaseHTTPMiddleware):
         return len(recent_errors) / len(recent_requests)
     
     def _estimate_bandwidth_usage(self) -> float:
-        Estimate current bandwidth usage."""
+        """Estimate current bandwidth usage."""
         # This is a simplified estimation
         # In a real implementation, you'd track actual bytes transferred
         recent_requests = len([t for t in self.request_times if t > time.time() - 1])
         return recent_requests * 1024  # Estimate 1KB per request
     
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
-        """Main middleware dispatch method.
+        """Main middleware dispatch method."""
         if not self.enabled:
             return await call_next(request)
         
@@ -400,7 +400,7 @@ class DynamicRateLimitingMiddleware(BaseHTTPMiddleware):
             logger.error(f"Error adding dynamic headers: {e}")
     
     def get_current_multiplier(self) -> float:
-        """Get current rate limit multiplier.
+        """Get current rate limit multiplier."""
         return self.current_multiplier if self.enabled else 1.0
     
     def get_load_status(self) -> Dict[str, Any]:

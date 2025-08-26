@@ -10,16 +10,14 @@ from typing import Dict, Any, Optional
 import logging
 
 # Import security decorators
-try:
-    from ....core.security.security_decorators import (
-        require_admin, rate_limit, audit_access
-    )
-    from ....core.security import SecurityLevel
-    from ....core.config.rate_limiting_config import (
-        get_rate_limiting_config, AccountType, update_rate_limit_config,
-        DynamicRateLimitConfig, IPBlacklistConfig
-    )
-except ImportError as e:
+from plexichat.core.security.security_decorators import (
+    require_admin, rate_limit, audit_access
+)
+from plexichat.core.security import SecurityLevel
+from plexichat.core.config.rate_limiting_config import (
+    get_rate_limiting_config, AccountType, update_rate_limit_config,
+    DynamicRateLimitConfig, IPBlacklistConfig
+)
     print(f"Import error in rate limiting admin: {e}")
     # Fallback decorators
     def require_admin(*args, **kwargs):

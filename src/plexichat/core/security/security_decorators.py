@@ -11,18 +11,18 @@ from enum import Enum
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer, BadSignature, SignatureExpired
 from fastapi import Request, HTTPException
 
-from ..config import config
+from plexichat.core.config import config
 
 try:
     from . import SecurityLevel
-    from ..authentication import get_auth_manager
+    from plexichat.core.authentication import get_auth_manager
 except ImportError:
     # Fallback imports
     SecurityLevel = None
     get_auth_manager = None
 
 try:
-    from ..config.rate_limiting_config import get_rate_limiting_config, AccountType
+    from plexichat.core.rate_limit_config import get_rate_limiting_config, AccountType
 except ImportError:
     get_rate_limiting_config = None
     AccountType = None

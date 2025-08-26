@@ -17,7 +17,9 @@ from fastapi import APIRouter, HTTPException, Depends, Query
 from pydantic import BaseModel
 import logging
 
-from .auth import get_current_user, users_db, sessions_db
+from plexichat.interfaces.api.v1.auth import get_current_user, users_db, sessions_db
+from plexichat.interfaces.api.v1.messages import messages_db
+from plexichat.interfaces.api.v1.files import files_db
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/admin", tags=["Admin"])
@@ -59,9 +61,6 @@ def make_user_admin(user_id: str):
 async def get_system_stats(admin_user: dict = Depends(require_admin)):
     """Get system statistics."""
     try:
-        from .messages import messages_db
-        from .files import files_db
-        
         # Calculate stats
         active_messages = len([m for m in messages_db.values() if not m.get('deleted')])
         
@@ -236,7 +235,6 @@ async def delete_user_admin(
             del sessions_db[session_id]
         
         # Mark user's messages as deleted
-        from .messages import messages_db
         for message in messages_db.values():
             if message['sender_id'] == user_id or message['recipient_id'] == user_id:
                 message['deleted'] = True
@@ -263,8 +261,6 @@ async def get_recent_messages(
 ):
     """Get recent messages for moderation."""
     try:
-        from .messages import messages_db
-        
         # Get non-deleted messages
         active_messages = [
             m for m in messages_db.values()
@@ -317,8 +313,6 @@ async def delete_message_admin(
 ):
     """Delete a message (admin moderation)."""
     try:
-        from .messages import messages_db
-        
         if message_id not in messages_db:
             raise HTTPException(status_code=404, detail="Message not found")
         
@@ -372,9 +366,6 @@ async def make_admin(
 async def admin_health_check(admin_user: dict = Depends(require_admin)):
     """Admin health check with detailed system info."""
     try:
-        from .messages import messages_db
-        from .files import files_db
-        
         return {
             "status": "healthy",
             "timestamp": datetime.now(),

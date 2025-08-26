@@ -11,28 +11,20 @@ import secrets
 from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
+import time
 
 import pyotp
 import qrcode
 from cryptography.fernet import Fernet
 
-from .config_manager import get_webui_config
-
-
-"""
-import time
-PlexiChat WebUI Multi-Factor Authentication Manager
-
-Enhanced MFA system with TOTP, backup codes, SMS, email, and biometric support.
-Provides distributed authentication storage and advanced security features.
-
+from plexichat.interfaces.web.core.config_manager import get_webui_config
 
 logger = logging.getLogger(__name__)
 
 @dataclass
 class MFADevice:
     """MFA device information."""
-        device_id: str
+    device_id: str
     device_type: str  # 'totp', 'sms', 'email', 'biometric'
     device_name: str
     secret_key: Optional[str] = None
@@ -49,8 +41,8 @@ class MFADevice:
 
 @dataclass
 class MFASession:
-    MFA session information."""
-        session_id: str
+    """MFA session information."""
+    session_id: str
     user_id: str
     username: str
     mfa_required: bool
@@ -64,7 +56,7 @@ class MFASession:
 
 class MFAManager:
     """Multi-Factor Authentication Manager."""
-        def __init__(self):
+    def __init__(self):
         self.config = get_webui_config()
         self.mfa_config = self.config.mfa_config
 
@@ -96,7 +88,7 @@ class MFAManager:
         return len(user_devices) > 0
 
     def get_available_mfa_methods(self, user_role: str = "user") -> List[str]:
-        """Get available MFA methods for a user role.
+        """Get available MFA methods for a user role."""
         return self.config.get_mfa_methods_for_user(user_role)
 
     def setup_totp_device(self, user_id: str, username: str, device_name: str) -> Dict[str, Any]:
@@ -107,7 +99,7 @@ class MFAManager:
 
             # Create TOTP URI
             totp = pyotp.TOTP(secret_key)
-            provisioning_uri = totp.provisioning_uri()
+            provisioning_uri = totp.provisioning_uri(name=username, issuer_name="PlexiChat")
             qr = qrcode.QRCode(version=1, box_size=10, border=5)
             qr.add_data(provisioning_uri)
             qr.make(fit=True)
@@ -141,7 +133,7 @@ class MFAManager:
                 'qr_code': qr_code_base64,
                 'provisioning_uri': provisioning_uri,
                 'backup_codes': self._generate_backup_codes(user_id)
-            }}
+            }
 
         except Exception as e:
             logger.error(f"Failed to setup TOTP device: {e}")
@@ -190,7 +182,7 @@ class MFAManager:
             return False
 
     def _generate_backup_codes(self, user_id: str) -> List[str]:
-        """Generate backup codes for a user.
+        """Generate backup codes for a user."""
         backup_codes = []
         for _ in range(self.mfa_config.backup_codes_count):
             code = secrets.token_hex(4).upper()
@@ -244,7 +236,7 @@ class MFAManager:
         return [d for d in devices if d.is_active]
 
     def create_mfa_session(self, user_id: str, username: str, ip_address: str, user_agent: str, user_role: str = "user") -> MFASession:
-        """Create a new MFA session.
+        """Create a new MFA session."""
         session_id = secrets.token_hex(32)
         mfa_required = self.is_mfa_required_for_user(user_id, user_role)
 
@@ -283,7 +275,7 @@ class MFAManager:
         return session.mfa_completed
 
     def is_session_valid(self, session_id: str) -> bool:
-        Check if a session is valid."""
+        """Check if a session is valid."""
         if session_id not in self.sessions_storage:
             return False
 
@@ -301,9 +293,9 @@ class MFAManager:
         return True
 
     def get_session(self, session_id: str) -> Optional[MFASession]:
-        """Get session information.
+        """Get session information."""
         if self.is_session_valid(session_id):
-            return self.sessions_storage[session_id]
+            return self.sessions_storage.get(session_id)
         return None
 
     def remove_device(self, user_id: str, device_id: str) -> bool:
@@ -330,7 +322,7 @@ class MFAManager:
             return False
 
     def _encrypt_device_data(self, device: MFADevice) -> str:
-        """Encrypt device data.
+        """Encrypt device data."""
         device_json = json.dumps(asdict(device), default=str)
         encrypted_data = self.cipher.encrypt(device_json.encode())
         return encrypted_data.decode()
@@ -349,7 +341,7 @@ class MFAManager:
         return MFADevice(**device_dict)
 
     def _get_device(self, user_id: str, device_id: str) -> Optional[MFADevice]:
-        Get a specific device for a user."""
+        """Get a specific device for a user."""
         devices = self.get_user_mfa_devices(user_id)
         for device in devices:
             if device.device_id == device_id:
@@ -357,7 +349,7 @@ class MFAManager:
         return None
 
     def _update_device(self, user_id: str, updated_device: MFADevice):
-        """Update a device in storage.
+        """Update a device in storage."""
         if user_id not in self.devices_storage:
             return
 

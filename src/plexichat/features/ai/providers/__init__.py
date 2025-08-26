@@ -4,10 +4,10 @@
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
-from .anthropic_provider import AnthropicConfig, AnthropicProvider
-from .base_provider import BaseAIProvider, ProviderConfig, ProviderStatus
-from .ollama_provider import OllamaConfig, OllamaProvider
-from .openai_provider import OpenAIConfig, OpenAIProvider
+from plexichat.features.ai.providers.anthropic_provider import AnthropicConfig, AnthropicProvider
+from plexichat.features.ai.providers.base_provider import BaseAIProvider, ProviderConfig, ProviderStatus
+from plexichat.features.ai.providers.ollama_provider import OllamaConfig, OllamaProvider
+from plexichat.features.ai.providers.openai_provider import OpenAIConfig, OpenAIProvider
 from typing import Optional
 
 

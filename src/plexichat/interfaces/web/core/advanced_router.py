@@ -13,12 +13,12 @@
 import logging
 from datetime import datetime
 from typing import Any, Dict, FastAPI, HTTPException, List, Optional, Request, status
+import time
 
-
-from .auth_storage import get_auth_storage
-from .config_manager import get_webui_config
-from .mfa_manager import get_mfa_manager
-from .self_test_manager import get_self_test_manager
+from plexichat.interfaces.web.core.auth_storage import get_auth_storage
+from plexichat.interfaces.web.core.config_manager import get_webui_config
+from plexichat.interfaces.web.core.mfa_manager import get_mfa_manager
+from plexichat.core.testing import get_self_test_manager
 
 
 import uvicorn
@@ -32,14 +32,6 @@ from fastapi.templating import Jinja2Templates
 # Import the new CLI router
 from src.plexichat.interfaces.web.routers.cli import router as cli_router
 
-"""
-import time
-PlexiChat Enhanced WebUI Router
-
-Enhanced WebUI routing system with configurable ports, MFA authentication,
-distributed storage, self-tests, and feature toggles.
-
-
 logger = logging.getLogger(__name__)
 
 # Security scheme
@@ -47,7 +39,7 @@ security = HTTPBearer()
 
 class EnhancedWebUIRouter:
     """Enhanced WebUI router with advanced features."""
-        def __init__(self):
+    def __init__(self):
         self.config = get_webui_config()
         self.mfa_manager = get_mfa_manager()
         self.auth_storage = get_auth_storage()
@@ -105,7 +97,7 @@ class EnhancedWebUIRouter:
             return response
 
     def _setup_routes(self):
-        """Setup WebUI routes.
+        """Setup WebUI routes."""
         # Authentication routes
         self._setup_auth_routes()
 
@@ -465,7 +457,7 @@ class EnhancedWebUIRouter:
         return self.mfa_manager.get_session(session_id)
 
     def _get_enabled_features(self) -> List[str]:
-        """Get list of enabled features.
+        """Get list of enabled features."""
         return self.config.feature_toggle_config.enabled_features
 
     def _get_admin_features(self) -> List[str]:
@@ -473,7 +465,7 @@ class EnhancedWebUIRouter:
         return self.config.feature_toggle_config.admin_only_features
 
     async def _get_system_status(self) -> Dict[str, Any]:
-        Get system status."""
+        """Get system status."""
         auth_health = await self.auth_storage.health_check()
 
         return {
@@ -481,7 +473,7 @@ class EnhancedWebUIRouter:
             "mfa_enabled": self.mfa_manager.is_mfa_enabled(),
             "self_tests_enabled": self.config.is_self_test_enabled(),
             "timestamp": datetime.utcnow().isoformat()
-        }}
+        }
 
     def _get_system_config(self) -> Dict[str, Any]:
         """Get system configuration."""
@@ -490,7 +482,7 @@ class EnhancedWebUIRouter:
                 "primary_port": self.config.port_config.primary_port,
                 "admin_port": self.config.port_config.admin_port,
                 "ssl_enabled": self.config.port_config.ssl_enabled
-            }},
+            },
             "mfa": {
                 "enabled": self.config.mfa_config.enabled,
                 "methods": self.config.mfa_config.methods,

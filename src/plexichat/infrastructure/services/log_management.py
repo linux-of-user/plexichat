@@ -10,27 +10,16 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
-
-
-from datetime import datetime
-from pathlib import Path
-
-
-from pathlib import Path
-
-from plexichat.app.logger_config import logger
-
-"""
+import logging
 import stat
 import time
-Advanced log management service with filtering, search, and archiving.
-Provides comprehensive log viewing and management capabilities.
 
+logger = logging.getLogger(__name__)
 
 @dataclass
 class LogEntry:
     """Individual log entry structure."""
-        timestamp: datetime
+    timestamp: datetime
     level: str
     message: str
     module: str
@@ -42,8 +31,8 @@ class LogEntry:
 
 @dataclass
 class LogFile:
-    """Log file information.
-        filename: str
+    """Log file information."""
+    filename: str
     filepath: str
     size_bytes: int
     created_at: datetime
@@ -55,23 +44,23 @@ class LogFile:
 
 class LogParser:
     """Parses different log formats."""
-        def __init__(self):
+    def __init__(self):
         # Common log patterns
         self.patterns = {
-            'standard': re.compile()
+            'standard': re.compile(
                 r'(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3}) - '
                 r'(?P<level>\w+) - '
                 r'(?P<module>[\w\.]+) - '
                 r'(?P<message>.*)'
             ),
-            'detailed': re.compile()
+            'detailed': re.compile(
                 r'(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3}) - '
                 r'(?P<level>\w+) - '
                 r'(?P<module>[\w\.]+):(?P<line>\d+) - '
                 r'(?P<function>\w+) - '
                 r'(?P<message>.*)'
             ),
-            'simple': re.compile()
+            'simple': re.compile(
                 r'(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}) '
                 r'(?P<level>\w+): '
                 r'(?P<message>.*)'
@@ -79,7 +68,7 @@ class LogParser:
         }
 
     def parse_log_line(self, line: str) -> Optional[LogEntry]:
-        Parse a single log line."""
+        """Parse a single log line."""
         line = line.strip()
         if not line:
             return None
@@ -97,7 +86,7 @@ class LogParser:
                     else:
                         timestamp = datetime.strptime(timestamp_str, '%Y-%m-%d %H:%M:%S')
 
-                    return LogEntry()
+                    return LogEntry(
                         timestamp=timestamp,
                         level=groups['level'],
                         message=groups['message'],
@@ -123,8 +112,7 @@ class LogParser:
 
 class LogManager:
     """Advanced log management with filtering and archiving."""
-        def __init__(self, log_directory: str = "logs"):
-        from pathlib import Path
+    def __init__(self, log_directory: str = "logs"):
         self.log_directory = Path(log_directory)
         self.log_directory.mkdir(exist_ok=True)
 
@@ -142,17 +130,17 @@ class LogManager:
         # Get current log files
         for log_path in self.log_directory.glob("*.log"):
             if log_path.is_file():
-                stat = log_path.stat()
+                stat_info = log_path.stat()
 
                 # Count entries (approximate)
                 entry_count = self._count_log_entries(log_path)
 
-                log_files.append(LogFile())
+                log_files.append(LogFile(
                     filename=log_path.name,
                     filepath=str(log_path),
-                    size_bytes=stat.st_size,
-                    created_at=datetime.fromtimestamp(stat.st_ctime),
-                    modified_at=datetime.fromtimestamp(stat.st_mtime),
+                    size_bytes=stat_info.st_size,
+                    created_at=datetime.fromtimestamp(stat_info.st_ctime),
+                    modified_at=datetime.fromtimestamp(stat_info.st_mtime),
                     entry_count=entry_count,
                     is_compressed=False,
                     is_archived=False
@@ -161,14 +149,14 @@ class LogManager:
         # Get archived log files
         for archive_path in self.archive_directory.glob("*.zip"):
             if archive_path.is_file():
-                stat = archive_path.stat()
+                stat_info = archive_path.stat()
 
-                log_files.append(LogFile())
+                log_files.append(LogFile(
                     filename=archive_path.name,
                     filepath=str(archive_path),
-                    size_bytes=stat.st_size,
-                    created_at=datetime.fromtimestamp(stat.st_ctime),
-                    modified_at=datetime.fromtimestamp(stat.st_mtime),
+                    size_bytes=stat_info.st_size,
+                    created_at=datetime.fromtimestamp(stat_info.st_ctime),
+                    modified_at=datetime.fromtimestamp(stat_info.st_mtime),
                     entry_count=0,  # Would need to extract to count
                     is_compressed=True,
                     is_archived=True
@@ -176,7 +164,7 @@ class LogManager:
 
         return sorted(log_files, key=lambda x: x.modified_at, reverse=True)
 
-    def read_log_entries():
+    def read_log_entries(
         self,
         filename: str,
         start_line: int = 0,
@@ -191,9 +179,9 @@ class LogManager:
         log_path = self.log_directory / filename
         if not log_path.exists():
             # Check archive
-            archive_path = self.archive_directory / filename
-            if archive_path.exists() and filename.endswith('.zip'):
-                return self._read_archived_log()
+            archive_path = self.archive_directory / filename.replace('.log', '.zip')
+            if archive_path.exists() and filename.endswith('.log'):
+                return self._read_archived_log(
                     archive_path, start_line, max_lines,
                     level_filter, search_term, start_time, end_time
                 )
@@ -241,7 +229,7 @@ class LogManager:
 
         return entries, total_lines
 
-    def search_logs():
+    def search_logs(
         self,
         search_term: str,
         filenames: Optional[List[str]] = None,
@@ -258,7 +246,7 @@ class LogManager:
 
         for filename in filenames:
             try:
-                entries, _ = self.read_log_entries()
+                entries, _ = self.read_log_entries(
                     filename=filename,
                     max_lines=max_results,
                     level_filter=level_filter,
@@ -310,24 +298,24 @@ class LogManager:
                 'time_range': {
                     'start': entries[0].timestamp.isoformat() if entries else None,
                     'end': entries[-1].timestamp.isoformat() if entries else None
-                }}
+                }
             }
 
         except Exception as e:
             logger.error(f"Failed to get statistics for {filename}: {e}")
-            return {}}
+            return {}
 
     def archive_old_logs(self, days_old: int = 7) -> List[str]:
         """Archive log files older than specified days."""
 
         archived_files = []
 
-        cutoff_date = datetime().now() - timedelta(days=days_old)
+        cutoff_date = datetime.now() - timedelta(days=days_old)
 
         for log_path in self.log_directory.glob("*.log"):
             if log_path.is_file():
-                stat = log_path.stat()
-                modified_date = datetime.fromtimestamp(stat.st_mtime)
+                stat_info = log_path.stat()
+                modified_date = datetime.fromtimestamp(stat_info.st_mtime)
 
                 if modified_date < cutoff_date:
                     try:
@@ -354,12 +342,12 @@ class LogManager:
 
         cleaned_files = []
 
-        cutoff_date = datetime().now() - timedelta(days=days_old)
+        cutoff_date = datetime.now() - timedelta(days=days_old)
 
         for archive_path in self.archive_directory.glob("*.zip"):
             if archive_path.is_file():
-                stat = archive_path.stat()
-                modified_date = datetime.fromtimestamp(stat.st_mtime)
+                stat_info = archive_path.stat()
+                modified_date = datetime.fromtimestamp(stat_info.st_mtime)
 
                 if modified_date < cutoff_date:
                     try:
@@ -372,7 +360,7 @@ class LogManager:
 
         return cleaned_files
 
-    def export_logs():
+    def export_logs(
         self,
         filenames: List[str],
         export_format: str = "json",
@@ -385,7 +373,7 @@ class LogManager:
 
         for filename in filenames:
             try:
-                entries, _ = self.read_log_entries()
+                entries, _ = self.read_log_entries(
                     filename=filename,
                     max_lines=filters.get('max_lines', 10000),
                     level_filter=filters.get('level_filter'),
@@ -395,7 +383,7 @@ class LogManager:
                 )
 
                 for entry in entries:
-                    export_data.append({)
+                    export_data.append({
                         'filename': filename,
                         'timestamp': entry.timestamp.isoformat(),
                         'level': entry.level,
@@ -421,14 +409,14 @@ class LogManager:
             raise ValueError(f"Unsupported export format: {export_format}")
 
     def _count_log_entries(self, log_path: Path) -> int:
-        """Count entries in a log file (approximate).
+        """Count entries in a log file (approximate)."""
         try:
             with open(log_path, 'r', encoding='utf-8', errors='ignore') as f:
                 return sum(1 for line in f if line.strip())
         except Exception:
             return 0
 
-    def _read_archived_log():
+    def _read_archived_log(
         self,
         archive_path: Path,
         start_line: int,

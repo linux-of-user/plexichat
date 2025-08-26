@@ -1,8 +1,9 @@
-"""
 import threading
+"""
 PlexiChat File Manager
 
 File management with threading and performance optimization.
+"""
 
 
 import asyncio
@@ -44,7 +45,7 @@ except ImportError:
     cache_delete = None
 
 try:
-    from plexichat.core.security.security_manager import security_manager
+    from plexichat.core.security import security_manager
 except ImportError:
     security_manager = None
 
@@ -61,7 +62,7 @@ performance_logger = get_performance_logger() if get_performance_logger else Non
 @dataclass
 class FileMetadata:
     """File metadata structure."""
-        file_id: str
+    file_id: str
     filename: str
     original_filename: str
     file_path: str
@@ -111,7 +112,7 @@ class FileManager:
         }
 
     def _generate_file_id(self) -> str:
-        """Generate unique file ID.
+        """Generate unique file ID."""
         return str(uuid4())
 
     def _generate_file_path(self, file_id: str, extension: str) -> Path:
@@ -160,7 +161,7 @@ class FileManager:
         """Process image file and extract metadata."""
         try:
             if not Image:
-                return {
+                return {}
 
             with Image.open(file_path) as img:
                 return {
@@ -169,10 +170,10 @@ class FileManager:
                     "format": img.format,
                     "mode": img.mode,
                     "has_transparency": img.mode in ('RGBA', 'LA') or 'transparency' in img.info
-                }}
+                }
         except Exception as e:
             logger.error(f"Error processing image: {e}")
-            return {}}
+            return {}
 
     def _create_thumbnail(self, file_path: Path, thumbnail_size: Tuple[int, int] = (200, 200)) -> Optional[Path]:
         """Create thumbnail for image."""
@@ -413,7 +414,7 @@ class FileManager:
 
             # Read file (threaded)
             if self.async_thread_manager:
-                return await self.async_thread_manager.run_in_thread()
+                return await self.async_thread_manager.run_in_thread(
                     self._read_file_sync, file_path
                 )
             else:
@@ -508,10 +509,10 @@ class FileManager:
                 "upload_dir": str(self.upload_dir),
                 "max_file_size": self.max_file_size,
                 "allowed_extensions": list(self.allowed_extensions)
-            }}
+            }
         except Exception as e:
             logger.error(f"Error getting file stats: {e}")
-            return {}}
+            return {}
 
 # Global file manager
 file_manager = FileManager()

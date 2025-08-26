@@ -22,7 +22,7 @@ import warnings
 import logging
 from typing import Any, Dict, Optional, List
 
-from .unified_security_system import (
+from plexichat.core.security.unified_security_system import (
     UnifiedSecurityManager,
     unified_security_manager,
     PasswordManager,

@@ -19,11 +19,8 @@ try:
 except ImportError:
     croniter = None
 
-try:
-    from ...core.services.database_service import DatabaseService  # type: ignore
-    database_manager = DatabaseService()  # type: ignore[reportCallIssue]
-except Exception:
-    database_manager = None
+from plexichat.core.services.core_services import DatabaseService
+database_manager = DatabaseService()
 
 try:
     from plexichat.core.threading.thread_manager import async_thread_manager, submit_task
@@ -32,7 +29,7 @@ except ImportError:
     submit_task = None
 
 try:
-    from ...core.logging import get_logger as _get_logger
+    from plexichat.core.logging import get_logger as _get_logger
     async def track_event(event_name: str, properties: Dict[str, Any] | None = None) -> None:  # type: ignore
         logger = _get_logger(__name__)
         logger.debug(f"analytics event: {event_name} - {properties}")
@@ -41,7 +38,7 @@ except Exception:
         return None
 
 try:
-    from ...core.logging import get_logger as get_performance_logger  # type: ignore
+    from plexichat.core.logging import get_logger as get_performance_logger  # type: ignore
     PerformanceOptimizationEngine = None
 except Exception:
     PerformanceOptimizationEngine = None

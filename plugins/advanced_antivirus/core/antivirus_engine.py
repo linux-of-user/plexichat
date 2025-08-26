@@ -16,11 +16,11 @@ from . import (
     ScanType,
     ThreatLevel,
 )
-from .behavioral_analyzer import BehavioralAnalyzer
-from .filename_analyzer import FilenameAnalyzer
-from .hash_scanner import HashBasedScanner
-from .link_scanner import LinkSafetyScanner
-from .threat_intelligence import ThreatIntelligenceManager
+from plugins.advanced_antivirus.core.behavioral_analyzer import BehavioralAnalyzer
+from plugins.advanced_antivirus.core.filename_analyzer import FilenameAnalyzer
+from plugins.advanced_antivirus.core.hash_scanner import HashBasedScanner
+from plugins.advanced_antivirus.core.link_scanner import LinkSafetyScanner
+from plugins.advanced_antivirus.core.threat_intelligence import ThreatIntelligenceManager
 
 logger = get_logger(__name__)
 

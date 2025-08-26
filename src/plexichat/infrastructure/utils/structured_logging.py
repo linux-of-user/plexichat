@@ -1,11 +1,6 @@
 import logging
 
-try:
-    from .monitoring.error_handler import ErrorHandler
-except ImportError:
-    class ErrorHandler:
-        def handle_error(self, error):
-            print(f"Error: {error}")
+from plexichat.core.errors.error_manager import ErrorHandler
 
 def get_enhanced_logger(name=None):
     """Return a logger with enhanced error handling."""

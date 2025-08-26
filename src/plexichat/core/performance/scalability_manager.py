@@ -41,36 +41,36 @@ import weakref
 
 # Security integration
 try:
-    from ..security.unified_security_system import get_unified_security_system
-    from ..security.comprehensive_security_manager import get_security_manager
+    from plexichat.core.security.unified_security_system import get_unified_security_system
+    from plexichat.core.security.comprehensive_security_manager import get_security_manager
     SECURITY_AVAILABLE = True
 except ImportError:
     SECURITY_AVAILABLE = False
 
 # Cache integration
 try:
-    from .multi_tier_cache_manager import get_cache_manager
+    from plexichat.core.performance.multi_tier_cache_manager import get_cache_manager
     CACHE_AVAILABLE = True
 except ImportError:
     CACHE_AVAILABLE = False
 
 # Edge computing integration
 try:
-    from .edge_computing_manager import get_edge_computing_manager
+    from plexichat.core.performance.edge_computing_manager import get_edge_computing_manager
     EDGE_AVAILABLE = True
 except ImportError:
     EDGE_AVAILABLE = False
 
 # Messaging integration
 try:
-    from ..messaging.unified_messaging_system import get_messaging_system
+    from plexichat.core.messaging.unified_messaging_system import get_messaging_system
     MESSAGING_AVAILABLE = True
 except ImportError:
     MESSAGING_AVAILABLE = False
 
 # Microsecond optimizer integration
 try:
-    from .microsecond_optimizer import get_microsecond_optimizer
+    from plexichat.core.performance.microsecond_optimizer import get_microsecond_optimizer
     OPTIMIZER_AVAILABLE = True
 except ImportError:
     OPTIMIZER_AVAILABLE = False
@@ -599,36 +599,36 @@ class UltraAdvancedScalabilityManager:
             # Initialize system integrations
             if SECURITY_AVAILABLE:
                 try:
-                    from ..security.unified_security_system import get_unified_security_system
-                    from ..security.comprehensive_security_manager import get_security_manager
+                    from plexichat.core.security.unified_security_system import get_unified_security_system
+                    from plexichat.core.security.comprehensive_security_manager import get_security_manager
                     self.security_system = get_unified_security_system()
                 except ImportError:
                     pass
             
             if CACHE_AVAILABLE:
                 try:
-                    from .multi_tier_cache_manager import get_cache_manager
+                    from plexichat.core.performance.multi_tier_cache_manager import get_cache_manager
                     self.cache_manager = get_cache_manager()
                 except ImportError:
                     pass
             
             if EDGE_AVAILABLE:
                 try:
-                    from .edge_computing_manager import get_edge_computing_manager
+                    from plexichat.core.performance.edge_computing_manager import get_edge_computing_manager
                     self.edge_manager = get_edge_computing_manager()
                 except ImportError:
                     pass
             
             if MESSAGING_AVAILABLE:
                 try:
-                    from ..messaging.unified_messaging_system import get_messaging_system
+                    from plexichat.core.messaging.unified_messaging_system import get_messaging_system
                     self.messaging_system = get_messaging_system()
                 except ImportError:
                     pass
             
             if OPTIMIZER_AVAILABLE:
                 try:
-                    from .microsecond_optimizer import get_microsecond_optimizer
+                    from plexichat.core.performance.microsecond_optimizer import get_microsecond_optimizer
                     self.optimizer = get_microsecond_optimizer()
                 except ImportError:
                     pass

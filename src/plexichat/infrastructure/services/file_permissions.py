@@ -6,49 +6,36 @@
 import hashlib
 import secrets
 from datetime import datetime
-from typing import Any, Dict, Optional, Tuple
-
-from sqlmodel import Session, select
-
-
-from fastapi import HTTPException, status
-
-from plexichat.app.logger_config import logger
-from plexichat.app.models.files import ()
+from typing import Any, Dict, Optional, Tuple, List
 import logging
 import time
 
-    Comprehensive,
-    FileAccessLevel,
-    FileAccessLog,
-    FilePermission,
-    FilePermissionType,
-    FileRecord,
-    FileShare,
-    Handles,
-    PlexiChat.,
-    """,
-    access,
-    all,
-    and,
-    audit,
-    control,
-    file,
-    for,
-    logging.,
-    permission,
-    permissions,
-    service,
-    validation,
-)
+from sqlmodel import Session, select
+from fastapi import HTTPException, status
+
+# Placeholder imports for dependencies
+class FileAccessLevel:
+    PUBLIC = "public"
+class FileAccessLog: pass
+class FilePermission: pass
+class FilePermissionType:
+    READ = "read"
+    WRITE = "write"
+    DELETE = "delete"
+    SHARE = "share"
+    ADMIN = "admin"
+class FileRecord: pass
+class FileShare: pass
+
+logger = logging.getLogger(__name__)
 
 
 class FilePermissionService:
-    Service for managing file permissions and access control."""
-        def __init__(self, session: Session):
+    """Service for managing file permissions and access control."""
+    def __init__(self, session: Session):
         self.session = session
 
-    async def check_file_access()
+    async def check_file_access(
         self,
         file_id: int,
         user_id: Optional[int],
@@ -80,7 +67,7 @@ class FilePermissionService:
             # Owner always has full access
             if user_id and file_record.uploaded_by == user_id:
                 access_context["permission_source"] = "owner"
-                await self._log_access(file_id, user_id, permission_type.value, True,)
+                await self._log_access(file_id, user_id, permission_type.value, True,
                                     ip_address, user_agent, access_context)
                 return True, None, access_context
 
@@ -88,18 +75,18 @@ class FilePermissionService:
             if file_record.access_level == FileAccessLevel.PUBLIC:
                 if permission_type == FilePermissionType.READ and file_record.allow_public_read:
                     access_context["permission_source"] = "public"
-                    await self._log_access(file_id, user_id, permission_type.value, True,)
+                    await self._log_access(file_id, user_id, permission_type.value, True,
                                         ip_address, user_agent, access_context)
                     return True, None, access_context
                 elif permission_type == FilePermissionType.READ and file_record.allow_public_download:
                     access_context["permission_source"] = "public"
-                    await self._log_access(file_id, user_id, permission_type.value, True,)
+                    await self._log_access(file_id, user_id, permission_type.value, True,
                                         ip_address, user_agent, access_context)
                     return True, None, access_context
 
             # Anonymous users can only access public files
             if not user_id:
-                await self._log_access(file_id, user_id, permission_type.value, False,)
+                await self._log_access(file_id, user_id, permission_type.value, False,
                                     ip_address, user_agent, access_context, "Access denied for anonymous user")
                 return False, "Authentication required", None
 
@@ -107,9 +94,8 @@ class FilePermissionService:
             permission = await self._get_user_permission(file_id, user_id)
             if permission and permission.is_active:
                 # Check if permission has expired
-                if permission.expires_at and permission.expires_at < from datetime import datetime
-datetime.utcnow():
-                    await self._log_access(file_id, user_id, permission_type.value, False,)
+                if permission.expires_at and permission.expires_at < datetime.utcnow():
+                    await self._log_access(file_id, user_id, permission_type.value, False,
                                         ip_address, user_agent, access_context, "Permission expired")
                     return False, "Permission expired", None
 
@@ -129,7 +115,7 @@ datetime.utcnow():
                 if has_permission:
                     access_context["permission_source"] = "permission"
                     access_context["permission_id"] = permission.id
-                    await self._log_access(file_id, user_id, permission_type.value, True,)
+                    await self._log_access(file_id, user_id, permission_type.value, True,
                                         ip_address, user_agent, access_context)
                     return True, None, access_context
 
@@ -137,16 +123,15 @@ datetime.utcnow():
             share = await self._get_user_share(file_id, user_id)
             if share and share.is_active:
                 # Check if share has expired
-                if share.expires_at and share.expires_at < from datetime import datetime
-datetime.utcnow():
-                    await self._log_access(file_id, user_id, permission_type.value, False,)
+                if share.expires_at and share.expires_at < datetime.utcnow():
+                    await self._log_access(file_id, user_id, permission_type.value, False,
                                         ip_address, user_agent, access_context, "Share expired")
                     return False, "Share expired", None
 
                 # Check download limits
-                if (permission_type == FilePermissionType.READ and)
+                if (permission_type == FilePermissionType.READ and
                     share.max_downloads and share.download_count >= share.max_downloads):
-                    await self._log_access(file_id, user_id, permission_type.value, False,)
+                    await self._log_access(file_id, user_id, permission_type.value, False,
                                         ip_address, user_agent, access_context, "Download limit exceeded")
                     return False, "Download limit exceeded", None
 
@@ -160,22 +145,22 @@ datetime.utcnow():
                 if has_share_permission:
                     access_context["permission_source"] = "share"
                     access_context["share_id"] = share.id
-                    await self._log_access(file_id, user_id, permission_type.value, True,)
+                    await self._log_access(file_id, user_id, permission_type.value, True,
                                         ip_address, user_agent, access_context)
                     return True, None, access_context
 
             # Access denied
-            await self._log_access(file_id, user_id, permission_type.value, False,)
+            await self._log_access(file_id, user_id, permission_type.value, False,
                                 ip_address, user_agent, access_context, "No valid permissions found")
             return False, "Access denied", None
 
         except Exception as e:
             logger.error(f"Error checking file access: {e}")
-            await self._log_access(file_id, user_id, permission_type.value, False,)
+            await self._log_access(file_id, user_id, permission_type.value, False,
                                 ip_address, user_agent, {}, f"System error: {str(e)}")
             return False, "System error", None
 
-    async def grant_permission()
+    async def grant_permission(
         self,
         file_id: int,
         target_user_id: int,
@@ -187,15 +172,14 @@ datetime.utcnow():
         """Grant permissions to a user for a file."""
         try:
             # Check if granter has admin permission
-            can_grant, _, _ = await self.check_file_access()
+            can_grant, _, _ = await self.check_file_access(
                 file_id, granted_by_user_id, FilePermissionType.ADMIN
             )
             if not can_grant:
                 raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Insufficient permissions to grant access"
-                
-        )
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Insufficient permissions to grant access"
+                )
 
             # Check if permission already exists
             existing_permission = await self._get_user_permission(file_id, target_user_id)
@@ -206,14 +190,12 @@ datetime.utcnow():
                 existing_permission.expires_at = expires_at
                 existing_permission.max_downloads = max_downloads
                 existing_permission.granted_by = granted_by_user_id
-                existing_permission.from datetime import datetime
-granted_at = datetime.now()
-datetime.utcnow()
+                existing_permission.granted_at = datetime.utcnow()
                 existing_permission.is_active = True
                 existing_permission.revoked_at = None
             else:
                 # Create new permission
-                new_permission = FilePermission()
+                new_permission = FilePermission(
                     file_id=file_id,
                     user_id=target_user_id,
                     granted_by=granted_by_user_id,
@@ -232,7 +214,7 @@ datetime.utcnow()
             logger.error(f"Error granting permission: {e}")
             return False
 
-    async def revoke_permission()
+    async def revoke_permission(
         self,
         file_id: int,
         target_user_id: int,
@@ -241,22 +223,19 @@ datetime.utcnow()
         """Revoke permissions for a user on a file."""
         try:
             # Check if revoker has admin permission
-            can_revoke, _, _ = await self.check_file_access()
+            can_revoke, _, _ = await self.check_file_access(
                 file_id, revoked_by_user_id, FilePermissionType.ADMIN
             )
             if not can_revoke:
                 raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Insufficient permissions to revoke access"
-                
-        )
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Insufficient permissions to revoke access"
+                )
 
             permission = await self._get_user_permission(file_id, target_user_id)
             if permission:
                 permission.is_active = False
-                permission.from datetime import datetime
-revoked_at = datetime.now()
-datetime.utcnow()
+                permission.revoked_at = datetime.utcnow()
                 self.session.commit()
                 logger.info(f"Revoked permissions for user {target_user_id} on file {file_id}")
                 return True
@@ -268,7 +247,7 @@ datetime.utcnow()
             logger.error(f"Error revoking permission: {e}")
             return False
 
-    async def create_share_link()
+    async def create_share_link(
         self,
         file_id: int,
         shared_by_user_id: int,
@@ -282,21 +261,21 @@ datetime.utcnow()
         """Create a share link for a file."""
         try:
             # Check if sharer has share permission
-            can_share, _, _ = await self.check_file_access()
+            can_share, _, _ = await self.check_file_access(
                 file_id, shared_by_user_id, FilePermissionType.SHARE
             )
             if not can_share:
                 raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Insufficient permissions to share file"
-                
-        )
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Insufficient permissions to share file"
+                )
 
-            # Generate password word = secrets.token_urlsafe(12)
-                password_hash = hashlib.sha256(password.encode()).hexdigest()
+            # Generate password
+            password = secrets.token_urlsafe(12)
+            password_hash = hashlib.sha256(password.encode()).hexdigest()
 
             # Create share record
-            share = FileShare()
+            share = FileShare(
                 file_id=file_id,
                 shared_by=shared_by_user_id,
                 shared_with=shared_with_user_id,
@@ -321,24 +300,24 @@ datetime.utcnow()
             return None
 
     async def _get_user_permission(self, file_id: int, user_id: int) -> Optional[FilePermission]:
-        """Get user's explicit permission for a file.
-        statement = select(FilePermission).where()
+        """Get user's explicit permission for a file."""
+        statement = select(FilePermission).where(
             FilePermission.file_id == file_id,
             FilePermission.user_id == user_id,
             FilePermission.is_active
         )
-return self.session.# SECURITY: exec() removed - use safe alternativesstatement).first()
+        return self.session.exec(statement).first()
 
     async def _get_user_share(self, file_id: int, user_id: int) -> Optional[FileShare]:
         """Get user's share access for a file."""
-        statement = select(FileShare).where()
+        statement = select(FileShare).where(
             FileShare.file_id == file_id,
             FileShare.shared_with == user_id,
             FileShare.is_active
         )
-return self.session.# SECURITY: exec() removed - use safe alternativesstatement).first()
+        return self.session.exec(statement).first()
 
-    async def _log_access()
+    async def _log_access(
         self,
         file_id: int,
         user_id: Optional[int],
@@ -349,9 +328,9 @@ return self.session.# SECURITY: exec() removed - use safe alternativesstatement)
         details: Optional[Dict[str, Any]] = None,
         error_message: Optional[str] = None
     ):
-        Log file access attempt."""
+        """Log file access attempt."""
         try:
-            log_entry = FileAccessLog()
+            log_entry = FileAccessLog(
                 file_id=file_id,
                 user_id=user_id,
                 action=action,

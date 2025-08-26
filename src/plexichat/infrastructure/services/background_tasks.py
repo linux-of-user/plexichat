@@ -40,8 +40,8 @@ class TaskPriority(Enum):
 
 @dataclass
 class TaskResult:
-    """Task execution result.
-        success: bool
+    """Task execution result."""
+    success: bool
     result: Any = None
     error: Optional[str] = None
     execution_time: float = 0.0
@@ -50,7 +50,7 @@ class TaskResult:
 @dataclass
 class BackgroundTask:
     """Background task definition."""
-        id: str
+    id: str
     name: str
     func: Callable
     args: tuple = field(default_factory=tuple)
@@ -67,8 +67,8 @@ class BackgroundTask:
     metadata: Dict[str, Any] = field(default_factory=dict)
 
 class TaskQueue:
-    Priority-based task queue."""
-        def __init__(self):
+    """Priority-based task queue."""
+    def __init__(self):
         self.tasks: Dict[str, BackgroundTask] = {}
         self.pending_tasks: List[str] = []
         self.running_tasks: Dict[str, asyncio.Task] = {}
@@ -94,7 +94,7 @@ class TaskQueue:
             logger.debug(f"Added task {task.id} to queue (priority: {task.priority.name})")
 
     async def get_next_task(self) -> Optional[BackgroundTask]:
-        """Get next task from queue.
+        """Get next task from queue."""
         async with self._lock:
             while self.pending_tasks:
                 task_id = self.pending_tasks.pop(0)
@@ -189,7 +189,7 @@ class TaskQueue:
                     "success": task.result.success,
                     "error": task.result.error,
                     "execution_time": task.result.execution_time
-                }} if task.result else None
+                } if task.result else None
             }
 
         return None
@@ -212,8 +212,8 @@ class TaskQueue:
             return stats
 
 class BackgroundTaskManager:
-    """Background task manager.
-        def __init__(self, max_workers: int = 5):
+    """Background task manager."""
+    def __init__(self, max_workers: int = 5):
         self.max_workers = max_workers
         self.queue = TaskQueue()
         self.workers: List[asyncio.Task] = []
@@ -297,7 +297,7 @@ class BackgroundTaskManager:
         try:
             # Execute with timeout if specified
             if task.timeout:
-                result = await asyncio.wait_for()
+                result = await asyncio.wait_for(
                     task.func(*task.args, **task.kwargs),
                     timeout=task.timeout
                 )
@@ -306,7 +306,7 @@ class BackgroundTaskManager:
 
             execution_time = (datetime.now() - start_time).total_seconds()
 
-            return TaskResult()
+            return TaskResult(
                 success=True,
                 result=result,
                 execution_time=execution_time
@@ -314,7 +314,7 @@ class BackgroundTaskManager:
 
         except asyncio.TimeoutError:
             execution_time = (datetime.now() - start_time).total_seconds()
-            return TaskResult()
+            return TaskResult(
                 success=False,
                 error=f"Task timed out after {task.timeout} seconds",
                 execution_time=execution_time
@@ -322,13 +322,13 @@ class BackgroundTaskManager:
 
         except Exception as e:
             execution_time = (datetime.now() - start_time).total_seconds()
-            return TaskResult()
+            return TaskResult(
                 success=False,
                 error=str(e),
                 execution_time=execution_time
             )
 
-    async def submit_task()
+    async def submit_task(
         self,
         func: Callable,
         *args,
@@ -345,7 +345,7 @@ class BackgroundTaskManager:
         task_id = str(uuid.uuid4())
         task_name = name or f"{func.__name__}_{task_id[:8]}"
 
-        task = BackgroundTask()
+        task = BackgroundTask(
             id=task_id,
             name=task_name,
             func=func,
@@ -364,7 +364,7 @@ class BackgroundTaskManager:
         return task_id
 
     async def get_task_status(self, task_id: str) -> Optional[Dict[str, Any]]:
-        """Get task status.
+        """Get task status."""
         return await self.queue.get_task_status(task_id)
 
     async def cancel_task(self, task_id: str) -> bool:
@@ -372,7 +372,7 @@ class BackgroundTaskManager:
         return await self.queue.cancel_task(task_id)
 
     async def get_stats(self) -> Dict[str, Any]:
-        Get manager statistics."""
+        """Get manager statistics."""
         queue_stats = await self.queue.get_queue_stats()
 
         return {
@@ -380,32 +380,32 @@ class BackgroundTaskManager:
             "max_workers": self.max_workers,
             "active_workers": len([w for w in self.workers if not w.done()]),
             "queue_stats": queue_stats
-        }}
+        }
 
 # Global task manager
-task_manager = BackgroundTaskManager()
+task_manager = BackgroundTaskManager(
     max_workers=settings.get('background_tasks', {}).get('max_workers', 5)
 )
 
 # Convenience functions
 async def submit_task(func: Callable, *args, **kwargs) -> str:
-    """Submit a background task.
+    """Submit a background task."""
     return await task_manager.submit_task(func, *args, **kwargs)
 
-async def submit_scheduled_task()
+async def submit_scheduled_task(
     func: Callable,
     scheduled_at: datetime,
     *args,
     **kwargs
 ) -> str:
     """Submit a scheduled background task."""
-    return await task_manager.submit_task()
+    return await task_manager.submit_task(
         func, *args, scheduled_at=scheduled_at, **kwargs
     )
 
 async def submit_high_priority_task(func: Callable, *args, **kwargs) -> str:
-    Submit a high priority background task."""
-    return await task_manager.submit_task()
+    """Submit a high priority background task."""
+    return await task_manager.submit_task(
         func, *args, priority=TaskPriority.HIGH, **kwargs
     )
 

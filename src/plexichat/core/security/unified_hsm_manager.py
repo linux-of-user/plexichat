@@ -13,9 +13,9 @@ from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from ...core.config import get_config
-from ...core.logging import get_logger
-from .unified_audit_system import (
+from plexichat.core.config import get_config
+from plexichat.core.logging import get_logger
+from plexichat.core.security.unified_audit_system import (
     get_unified_audit_system,
     SecurityEventType,
     SecuritySeverity,

@@ -20,7 +20,7 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, Set, Tuple
 from collections import defaultdict
 
-from ...core.logging import get_logger
+from plexichat.core.logging import get_logger
 
 logger = get_logger(__name__)
 

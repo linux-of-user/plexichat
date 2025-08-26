@@ -20,8 +20,8 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from ...core.config import get_config
-from ...core.logging import get_logger
+from plexichat.core.config import get_config
+from plexichat.core.logging import get_logger
 
 """
 PlexiChat Unified Audit System - SINGLE SOURCE OF TRUTH

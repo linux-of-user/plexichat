@@ -40,7 +40,7 @@ class SlidingWindowRateLimiter:
         self.blocked_ips: Dict[str, float] = {}
         
     def _clean_old_requests(self, client_id: str, current_time: float):
-        """Remove old requests outside the window.
+        """Remove old requests outside the window."""
         if client_id not in self.requests:
             return
             
@@ -76,7 +76,7 @@ class SlidingWindowRateLimiter:
         return False
     
     def add_request(self, client_id: str):
-        """Add a request for the client.
+        """Add a request for the client."""
         current_time = time.time()
         self.requests[client_id].append(current_time)
     
@@ -97,8 +97,8 @@ class SlidingWindowRateLimiter:
         }
 
 class TokenBucketRateLimiter:
-    """Token bucket rate limiter for more flexible rate limiting.
-        def __init__(self, capacity: int = 60, refill_rate: float = 1.0):
+    """Token bucket rate limiter for more flexible rate limiting."""
+    def __init__(self, capacity: int = 60, refill_rate: float = 1.0):
         self.capacity = capacity
         self.refill_rate = refill_rate
         self.tokens: Dict[str, float] = defaultdict(float)
@@ -121,7 +121,7 @@ class TokenBucketRateLimiter:
         self.last_refill[client_id] = current_time
     
     def consume_token(self, client_id: str) -> bool:
-        Consume a token for the client."""
+        """Consume a token for the client."""
         current_time = time.time()
         self._refill_tokens(client_id, current_time)
         
@@ -143,8 +143,8 @@ class TokenBucketRateLimiter:
         }
 
 class RateLimitMiddleware:
-    """FastAPI middleware for rate limiting.
-        def __init__(self, config: Optional[RateLimitConfig] = None):
+    """FastAPI middleware for rate limiting."""
+    def __init__(self, config: Optional[RateLimitConfig] = None):
         self.config = config or RateLimitConfig()
         self.sliding_limiter = SlidingWindowRateLimiter(self.config)
         self.token_limiter = TokenBucketRateLimiter()

@@ -55,12 +55,8 @@ except ImportError as e:
     logger.warning(f"Database manager not available: {e}")
     database_manager = None
 
-try:
-    from plexichat.core.auth.unified_auth_manager import UnifiedAuthManager
-    logger.info("Auth manager imported successfully")
-except ImportError as e:
-    logger.warning(f"Auth manager not available: {e}")
-    UnifiedAuthManager = None
+from plexichat.core.authentication import UnifiedAuthManager
+logger.info("Auth manager imported successfully")
 
 try:
     from plexichat.core.logging_advanced.enhanced_logging_system import get_logger
@@ -388,7 +384,7 @@ from plexichat.core.app_setup import setup_routers, setup_static_files
 setup_routers(app)
 templates = setup_static_files(app)
 
-from plexichat.core.error_handlers import not_found_handler, internal_error_handler
+from plexichat.core.errors import not_found_handler, internal_error_handler
 
 app.add_exception_handler(404, not_found_handler)
 app.add_exception_handler(500, internal_error_handler)

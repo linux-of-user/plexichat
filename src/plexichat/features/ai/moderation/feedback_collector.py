@@ -14,17 +14,13 @@ from typing import Any, Dict, List, Optional
 
 # Import with fallbacks
 try:
-    from .moderation_engine import ModerationAction, ModerationCategory, ModerationSeverity  # type: ignore
+    from plexichat.features.ai.moderation.moderation_engine import ModerationAction, ModerationCategory, ModerationSeverity  # type: ignore
 except ImportError:
     ModerationAction = str
     ModerationCategory = str
     ModerationSeverity = str
 
-try:
-    from .training_system import ModerationTrainingSystem, TrainingDataSource  # type: ignore
-except ImportError:
-    ModerationTrainingSystem = None
-    TrainingDataSource = None
+from plexichat.features.ai.moderation.training_data_service import ModerationTrainingSystem, TrainingDataSource
 
 logger = logging.getLogger(__name__)
 
@@ -95,7 +91,7 @@ class FeedbackCollector:
         """Initialize feedback database."""
         try:
             # Use FeedbackDataService for all DB initialization and CRUD
-            from .feedback_data_service import FeedbackDataService
+            from plexichat.features.ai.moderation.feedback_data_service import FeedbackDataService
             self.feedback_service = FeedbackDataService()
         except ImportError:
             logger.warning("FeedbackDataService not available, using fallback")

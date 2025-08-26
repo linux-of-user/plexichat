@@ -4,7 +4,7 @@
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
-from .ai_management import router
+from plexichat.features.ai.webui.ai_management import router
 from typing import Optional
 
 

@@ -62,15 +62,7 @@ except ImportError:
     settings = MockSettings()
 
 # Model imports
-try:
-    from plexichat.features.users.user import User
-except ImportError:
-    class User:
-        id: int
-        username: str
-        email: str
-        hashed_password: str
-        is_active: bool = True
+from plexichat.core.user import User
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/login", tags=["login"])

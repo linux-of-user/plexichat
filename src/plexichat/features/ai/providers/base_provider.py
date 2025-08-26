@@ -14,7 +14,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from ..core.ai_abstraction_layer import (
+from plexichat.features.ai.core.ai_abstraction_layer import (
     AIModel,
     AIProvider,
     AIRequest,

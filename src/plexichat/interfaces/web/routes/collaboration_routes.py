@@ -8,7 +8,7 @@ import logging
 from fastapi import APIRouter
 
 # Only import submodules that exist and are non-empty/meaningful
-from .collaboration import chat, whiteboard
+from plexichat.interfaces.web.routes.collaboration import chat, whiteboard
 
 logger = logging.getLogger(__name__)
 

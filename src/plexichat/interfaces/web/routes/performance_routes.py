@@ -6,7 +6,7 @@
 from datetime import datetime, timezone
 from pathlib import Path
 
-from plexichat.core.auth.dependencies import require_auth, require_admin_auth
+from plexichat.core.authentication import require_auth, require_admin_auth
 from plexichat.core.logging import get_logger
 # from ...services.performance_service import get_performance_service
 
@@ -29,12 +29,12 @@ from fastapi.templating import Jinja2Templates
 from typing import Optional
 
 """
-import time
 PlexiChat Performance Dashboard Web Routes
 
 Web routes for the performance monitoring dashboard and related pages.
 Provides HTML interfaces for viewing system performance, metrics, and alerts.
 """
+import time
 
 # Initialize router and templates
 router = APIRouter(prefix="/performance", tags=["Performance Dashboard"])

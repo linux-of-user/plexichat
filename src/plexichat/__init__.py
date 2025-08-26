@@ -21,8 +21,7 @@ from pathlib import Path
 import importlib
 
 # Version information
-from plexichat.core.config import settings
-__version__ = settings.version
+from plexichat.version import __version__
 __author__ = "PlexiChat Team"
 __description__ = "Enhanced chat application with comprehensive features"
 

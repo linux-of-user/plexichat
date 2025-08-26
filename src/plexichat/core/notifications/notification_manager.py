@@ -1,9 +1,10 @@
-"""
 import socket
 import threading
+"""
 PlexiChat Notification Manager
 
 Notification management with threading and performance optimization.
+"""
 
 
 import asyncio
@@ -50,7 +51,7 @@ performance_logger = get_performance_logger() if get_performance_logger else Non
 
 class NotificationType(Enum):
     """Notification types."""
-        MESSAGE = "message"
+    MESSAGE = "message"
     MENTION = "mention"
     FRIEND_REQUEST = "friend_request"
     SYSTEM = "system"
@@ -67,8 +68,8 @@ class NotificationPriority(Enum):
 
 @dataclass
 class Notification:
-    """Notification data structure.
-        notification_id: str
+    """Notification data structure."""
+    notification_id: str
     user_id: int
     notification_type: NotificationType
     title: str
@@ -81,7 +82,7 @@ class Notification:
 
 class NotificationManager:
     """Notification manager with threading support."""
-        def __init__(self):
+    def __init__(self):
         self.db_manager = database_manager
         self.performance_logger = performance_logger
         self.async_thread_manager = async_thread_manager
@@ -99,7 +100,7 @@ class NotificationManager:
         self.notifications_expired = 0
 
     async def start_processing(self):
-        Start notification processing loop."""
+        """Start notification processing loop."""
         if self.processing:
             return
 
@@ -121,7 +122,7 @@ class NotificationManager:
 
                 # Process notification
                 if self.async_thread_manager:
-                    await self.async_thread_manager.run_in_thread()
+                    await self.async_thread_manager.run_in_thread(
                         self._process_notification_sync, notification
                     )
                 else:
@@ -156,7 +157,7 @@ class NotificationManager:
 
             # Send real-time notification via WebSocket
             if send_to_user:
-                await send_to_user(notification.user_id, {)
+                await send_to_user(notification.user_id, {
                     "type": "notification",
                     "notification": {
                         "id": notification.notification_id,
@@ -244,7 +245,8 @@ class NotificationManager:
         try:
             # Check cache first
             cache_key = f"notification_prefs_{user_id}"
-            cached_prefs = await cache_get(cache_key)
+            if cache_get:
+                cached_prefs = await cache_get(cache_key)
                 if cached_prefs:
                     return cached_prefs
 
@@ -274,7 +276,8 @@ class NotificationManager:
                     }
 
                 # Cache preferences
-                await cache_set(cache_key, preferences, ttl=3600)
+                if cache_set:
+                    await cache_set(cache_key, preferences, ttl=3600)
 
                 return preferences
 
@@ -295,7 +298,7 @@ class NotificationManager:
             return {"notifications_enabled": True}
 
     async def _store_notification(self, notification: Notification):
-        """Store notification in database.
+        """Store notification in database."""
         try:
             if self.db_manager:
                 async with self.db_manager.get_session() as session:
@@ -339,7 +342,7 @@ class NotificationManager:
         except Exception as e:
             logger.error(f"Error sending email notification: {e}")
 
-    async def create_notification(self, user_id: int, notification_type: NotificationType,)
+    async def create_notification(self, user_id: int, notification_type: NotificationType,
                                 title: str, message: str, priority: NotificationPriority = NotificationPriority.NORMAL,
                                 data: Dict[str, Any] = None, expires_in_hours: Optional[int] = None) -> str:
         """Create and queue notification."""
@@ -350,7 +353,7 @@ class NotificationManager:
             if expires_in_hours:
                 expires_at = datetime.now() + timedelta(hours=expires_in_hours)
 
-            notification = Notification()
+            notification = Notification(
                 notification_id=notification_id,
                 user_id=user_id,
                 notification_type=notification_type,
@@ -377,7 +380,7 @@ class NotificationManager:
             raise
 
     async def mark_as_read(self, notification_id: str, user_id: int) -> bool:
-        """Mark notification as read.
+        """Mark notification as read."""
         try:
             if self.db_manager:
                 async with self.db_manager.get_session() as session:
@@ -403,9 +406,9 @@ class NotificationManager:
             logger.error(f"Error marking notification as read: {e}")
             return False
 
-    async def get_user_notifications(self, user_id: int, limit: int = 50, )
+    async def get_user_notifications(self, user_id: int, limit: int = 50,
                                 unread_only: bool = False) -> List[Dict[str, Any]]:
-        """Get user notifications.
+        """Get user notifications."""
         try:
             if not self.db_manager:
                 return []
@@ -450,7 +453,7 @@ class NotificationManager:
             return []
 
     async def get_unread_count(self, user_id: int) -> int:
-        """Get unread notification count for user.
+        """Get unread notification count for user."""
         try:
             if not self.db_manager:
                 return 0
@@ -519,14 +522,14 @@ async def send_notification(user_id: int, notification_type: str, title: str, me
         except ValueError:
             pass
 
-    return await notification_manager.create_notification()
+    return await notification_manager.create_notification(
         user_id, ntype, title, message, priority,
         data=kwargs.get("data"),
         expires_in_hours=kwargs.get("expires_in_hours")
     )
 
 async def mark_notification_read(notification_id: str, user_id: int) -> bool:
-    """Mark notification as read using global manager.
+    """Mark notification as read using global manager."""
     return await notification_manager.mark_as_read(notification_id, user_id)
 
 async def get_notifications(user_id: int, limit: int = 50, unread_only: bool = False) -> List[Dict[str, Any]]:
@@ -534,5 +537,5 @@ async def get_notifications(user_id: int, limit: int = 50, unread_only: bool = F
     return await notification_manager.get_user_notifications(user_id, limit, unread_only)
 
 async def get_unread_notification_count(user_id: int) -> int:
-    Get unread count using global manager."""
+    """Get unread count using global manager."""
     return await notification_manager.get_unread_count(user_id)

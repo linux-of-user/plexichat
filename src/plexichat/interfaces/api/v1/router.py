@@ -12,20 +12,20 @@ import logging
 logger = logging.getLogger(__name__)
 
 # Import all endpoint routers
-from .auth import router as auth_router
-from .users import router as users_router
-from .messages import router as messages_router
-from .files import router as files_router
-from .admin import router as admin_router
-from .system import router as system_router
-from .realtime import router as realtime_router
-from .groups import router as groups_router
-from .search import router as search_router
-from .notifications import router as notifications_router
+from plexichat.interfaces.api.v1.auth import router as auth_router
+from plexichat.interfaces.api.v1.users import router as users_router
+from plexichat.interfaces.api.v1.messages import router as messages_router
+from plexichat.interfaces.api.v1.files import router as files_router
+from plexichat.interfaces.api.v1.admin import router as admin_router
+from plexichat.interfaces.api.v1.system import router as system_router
+from plexichat.interfaces.api.v1.realtime import router as realtime_router
+from plexichat.interfaces.api.v1.groups import router as groups_router
+from plexichat.interfaces.api.v1.search import router as search_router
+from plexichat.interfaces.api.v1.notifications import router as notifications_router
 
 # Try to import user_settings router with fallback
 try:
-    from .user_settings import router as user_settings_router
+    from plexichat.interfaces.api.v1.user_settings import router as user_settings_router
     user_settings_available = True
 except ImportError as e:
     logger.warning(f"User settings router not available: {e}")
@@ -34,7 +34,7 @@ except ImportError as e:
 
 # Try to import client_settings router with fallback
 try:
-    from .client_settings import router as client_settings_router
+    from plexichat.interfaces.api.v1.client_settings import router as client_settings_router
     client_settings_available = True
 except ImportError as e:
     logger.warning(f"Client settings router not available: {e}")

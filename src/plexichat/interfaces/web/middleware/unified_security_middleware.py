@@ -18,12 +18,11 @@ from starlette.responses import Response
 
 from plexichat.core.config import get_config
 from plexichat.core.logging import get_logger
-from plexichat.core.security.input_validation import get_input_validator, InputType, ValidationLevel
-from plexichat.core.security.unified_audit_system import get_unified_audit_system, UnifiedAuditSystem
-from plexichat.core.auth.unified_auth_manager import get_unified_auth_manager, SecurityLevel as AuthSecurityLevel
-# import plexichat.core.security.unified_security_manager  # REMOVED: module does not exist
-from plexichat.features.security.network_protection import get_network_protection, RateLimitRequest
-from plexichat.features.security.core.security_monitoring import SecurityEventType, Severity as SecuritySeverity, ThreatLevel
+from plexichat.core.security import get_input_validator, InputType, ValidationLevel
+from plexichat.core.security.unified_audit_system import get_unified_audit_system
+from plexichat.core.authentication import get_auth_manager as get_unified_auth_manager
+from plexichat.core.security import get_network_protection, RateLimitRequest
+from plexichat.core.security import SecurityEventType, Severity as SecuritySeverity, ThreatLevel
 
 logger = get_logger(__name__)
 
@@ -356,7 +355,7 @@ class UnifiedSecurityMiddleware(BaseHTTPMiddleware):
             }
 
     def _constant_time_compare(self, a: str, b: str) -> bool:
-        """Constant-time string comparison to prevent timing attacks.
+        """Constant-time string comparison to prevent timing attacks."""
         if len(a) != len(b):
             return False
 

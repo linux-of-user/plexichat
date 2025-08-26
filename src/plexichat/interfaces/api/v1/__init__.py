@@ -20,13 +20,13 @@ import logging
 logger = logging.getLogger(__name__)
 
 # Import all routers
-from . import auth
-from . import users
-from . import messages
-from . import files
-from . import admin
-from . import system
-from . import rate_limits
+from plexichat.interfaces.api.v1 import auth
+from plexichat.interfaces.api.v1 import users
+from plexichat.interfaces.api.v1 import messages
+from plexichat.interfaces.api.v1 import files
+from plexichat.interfaces.api.v1 import admin
+from plexichat.interfaces.api.v1 import system
+from plexichat.interfaces.api.v1 import rate_limits
 
 # Import Easter eggs router
 try:

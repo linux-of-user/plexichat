@@ -7,9 +7,10 @@ import json
 import logging
 from abc import ABC, abstractmethod
 from dataclasses import asdict, dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+import time
 
 # Import database abstraction layer
 try:
@@ -19,22 +20,14 @@ except ImportError:
 
 from cryptography.fernet import Fernet
 
-from .config_manager import get_webui_config
-
-"""
-import time
-PlexiChat WebUI Distributed Authentication Storage
-
-Advanced distributed authentication storage system with multiple backends,
-automatic failover, data replication, and encryption.
-
+from plexichat.interfaces.web.core.config_manager import get_webui_config
 
 logger = logging.getLogger(__name__)
 
 @dataclass
 class AuthRecord:
     """Authentication record."""
-        user_id: str
+    user_id: str
     username: str
     password_hash: str
     salt: str
@@ -49,34 +42,40 @@ class AuthRecord:
     locked_until: Optional[datetime] = None
 
 class AuthStorageBackend(ABC):
-    Abstract base class for authentication storage backends."""
-        @abstractmethod
+    """Abstract base class for authentication storage backends."""
+    @abstractmethod
     async def store_auth_record(self, record: AuthRecord) -> bool:
-        """Store an authentication record.
+        """Store an authentication record."""
+        pass
 
     @abstractmethod
     async def get_auth_record(self, user_id: str) -> Optional[AuthRecord]:
         """Get an authentication record."""
+        pass
 
     @abstractmethod
     async def update_auth_record(self, record: AuthRecord) -> bool:
-        Update an authentication record."""
+        """Update an authentication record."""
+        pass
 
     @abstractmethod
     async def delete_auth_record(self, user_id: str) -> bool:
-        """Delete an authentication record.
+        """Delete an authentication record."""
+        pass
 
     @abstractmethod
     async def list_auth_records(self) -> List[AuthRecord]:
         """List all authentication records."""
+        pass
 
     @abstractmethod
     async def is_healthy(self) -> bool:
-        Check if the backend is healthy."""
+        """Check if the backend is healthy."""
+        pass
 
 class DatabaseAuthStorage(AuthStorageBackend):
     """Database-based authentication storage."""
-        def __init__(self, db_path: str = "config/auth.db"):
+    def __init__(self, db_path: str = "config/auth.db"):
         self.db_path = Path(db_path)
         self.db_path.parent.mkdir(exist_ok=True)
         self._init_database()
@@ -157,8 +156,7 @@ class DatabaseAuthStorage(AuthStorageBackend):
             return None
 
     async def update_auth_record(self, record: AuthRecord) -> bool:
-        """Update an authentication record.
-        from datetime import timezone
+        """Update an authentication record."""
         record.updated_at = datetime.now(timezone.utc)
         return await self.store_auth_record(record)
 
@@ -190,7 +188,7 @@ class DatabaseAuthStorage(AuthStorageBackend):
             return []
 
     async def is_healthy(self) -> bool:
-        """Check if the backend is healthy using abstraction layer.
+        """Check if the backend is healthy using abstraction layer."""
         try:
             if database_manager:
                 # Use database abstraction layer health check
@@ -220,7 +218,7 @@ class DatabaseAuthStorage(AuthStorageBackend):
         )
 
     def _row_to_record(self, row) -> AuthRecord:
-        """Convert database row to AuthRecord.
+        """Convert database row to AuthRecord."""
         return AuthRecord(
             user_id=row[0],
             username=row[1],
@@ -239,7 +237,7 @@ class DatabaseAuthStorage(AuthStorageBackend):
 
 class FileAuthStorage(AuthStorageBackend):
     """File-based authentication storage."""
-        def __init__(self, storage_dir: str = "config/auth_storage"):
+    def __init__(self, storage_dir: str = "config/auth_storage"):
         self.storage_dir = Path(storage_dir)
         self.storage_dir.mkdir(exist_ok=True)
         self.cipher = Fernet(Fernet.generate_key())  # In production, use proper key management
@@ -289,8 +287,7 @@ class FileAuthStorage(AuthStorageBackend):
             return None
 
     async def update_auth_record(self, record: AuthRecord) -> bool:
-        """Update an authentication record.
-        from datetime import timezone
+        """Update an authentication record."""
         record.updated_at = datetime.now(timezone.utc)
         return await self.store_auth_record(record)
 
@@ -320,21 +317,21 @@ class FileAuthStorage(AuthStorageBackend):
         return records
 
     async def is_healthy(self) -> bool:
-        """Check if the backend is healthy.
+        """Check if the backend is healthy."""
         try:
-            return self.storage_dir.exists() if self.storage_dir else False and self.storage_dir.is_dir()
+            return self.storage_dir.exists() and self.storage_dir.is_dir()
         except Exception:
             return False
 
 class DistributedAuthStorage:
     """Distributed authentication storage with multiple backends."""
-        def __init__(self):
+    def __init__(self):
         self.config = get_webui_config()
         self.auth_config = self.config.get_auth_storage_config()
 
         # Initialize storage backends
-        self.primary_backend = None
-        self.backup_backends = []
+        self.primary_backend: Optional[AuthStorageBackend] = None
+        self.backup_backends: List[AuthStorageBackend] = []
 
         self._init_backends()
 
@@ -412,7 +409,7 @@ class DistributedAuthStorage:
         return None
 
     async def update_auth_record(self, record: AuthRecord) -> bool:
-        """Update authentication record across all backends.
+        """Update authentication record across all backends."""
         return await self.store_auth_record(record)
 
     async def delete_auth_record(self, user_id: str) -> bool:
@@ -455,7 +452,7 @@ class DistributedAuthStorage:
             logger.error(f"Failed to sync backends: {e}")
 
     async def health_check(self) -> Dict[str, bool]:
-        """Check health of all backends.
+        """Check health of all backends."""
         health_status = {}
 
         if self.primary_backend:

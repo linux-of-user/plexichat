@@ -50,17 +50,7 @@ except ImportError:
         return {"id": 1, "username": "admin"}
 
 # Model imports
-try:
-    from plexichat.features.users.files import FileRecord
-except ImportError:
-    class FileRecord:
-        id: int
-        filename: str
-        file_path: str
-        file_size: int
-        content_type: str
-        upload_date: datetime
-        user_id: int
+from plexichat.core.files import FileRecord
 
 # Optional imports for enhanced functionality
 try:

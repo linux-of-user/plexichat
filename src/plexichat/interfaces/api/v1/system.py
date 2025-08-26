@@ -42,6 +42,11 @@ class PerformanceMetrics(BaseModel):
     network_sent: int
     network_recv: int
 
+from plexichat.core.versioning.changelog_manager import get_version, get_version_info
+from plexichat.interfaces.api.v1.auth import users_db, sessions_db
+from plexichat.interfaces.api.v1.messages import messages_db
+from plexichat.interfaces.api.v1.files import files_db
+
 # System startup time
 STARTUP_TIME = datetime.now()
 
@@ -50,7 +55,6 @@ STARTUP_TIME = datetime.now()
 async def health_check():
     """Basic health check endpoint."""
     try:
-        from plexichat.shared.version_utils import get_version
         version = get_version()
     except ImportError:
         version = "b.1.1-86"
@@ -116,10 +120,6 @@ async def performance_metrics():
 async def detailed_status():
     """Get detailed system status."""
     try:
-        from .auth import users_db, sessions_db
-        from .messages import messages_db
-        from .files import files_db
-        
         # Calculate uptime
         uptime = datetime.now() - STARTUP_TIME
         uptime_str = str(uptime).split('.')[0]
@@ -171,7 +171,6 @@ async def detailed_status():
 async def version_info():
     """Get version information."""
     try:
-        from plexichat.shared.version_utils import get_version_info
         version_data = get_version_info()
         # Add additional system info
         version_data.update({
@@ -276,10 +275,6 @@ async def api_capabilities():
 async def stats_summary():
     """Get quick stats summary."""
     try:
-        from .auth import users_db, sessions_db
-        from .messages import messages_db
-        from .files import files_db
-        
         # Calculate basic stats
         active_messages = len([m for m in messages_db.values() if not m.get('deleted')])
         total_file_size = sum(f.get('size', 0) for f in files_db.values())

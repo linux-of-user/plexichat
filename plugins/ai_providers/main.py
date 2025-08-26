@@ -10,9 +10,6 @@ from plexichat.core.logging import get_logger
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-# Add src to path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
-
 # Plugin interface imports
 from plugin_internal import PluginInterface, PluginMetadata, PluginType, ModulePermissions, ModuleCapability
 # Configuration classes for AI providers
@@ -269,7 +266,7 @@ class AIProvidersPlugin(PluginInterface):
             # Initialize available providers
             for provider_name in ["bitnet", "llama", "huggingface"]:
                 try:
-                    from .providers import create_provider
+                    from plugins.ai_providers.providers import create_provider
                     provider = create_provider(provider_name)
                     if provider:
                         setattr(self, provider_name.replace("huggingface", "hf"), provider)

@@ -3,19 +3,18 @@
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
-"""
-PlexiChat Helper Utilities
-
-Enhanced helper utilities with comprehensive functionality and performance optimization.
-Uses EXISTING database abstraction and optimization systems.
-
-
 import asyncio
 import json
 import logging
 import uuid
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union, Callable
+import secrets
+import string
+import math
+import re
+import hashlib
+import time
 
 # Use EXISTING performance optimization engine
 try:
@@ -34,17 +33,15 @@ performance_logger = get_performance_logger() if get_performance_logger else Non
 
 class HelperUtilities:
     """Enhanced helper utilities using EXISTING systems."""
-        def __init__(self):
+    def __init__(self):
         self.performance_logger = performance_logger
 
     def generate_uuid(self) -> str:
-        Generate UUID string."""
+        """Generate UUID string."""
         return str(uuid.uuid4())
 
     def generate_short_id(self, length: int = 8) -> str:
         """Generate short ID."""
-        import secrets
-        import string
         alphabet = string.ascii_letters + string.digits
         return ''.join(secrets.choice(alphabet) for _ in range(length))
 
@@ -71,7 +68,6 @@ class HelperUtilities:
                 return "0 B"
 
             size_names = ["B", "KB", "MB", "GB", "TB"]
-            import math
             i = int(math.floor(math.log(size_bytes, 1024)))
             p = math.pow(1024, i)
             s = round(size_bytes / p, 2)
@@ -97,8 +93,6 @@ class HelperUtilities:
     def slugify(self, text: str) -> str:
         """Convert text to URL-friendly slug."""
         try:
-            import re
-
             # Convert to lowercase
             text = text.lower()
 
@@ -149,7 +143,6 @@ class HelperUtilities:
     def extract_mentions(self, text: str) -> List[str]:
         """Extract @mentions from text."""
         try:
-            import re
             mentions = re.findall(r'@(\w+)', text)
             return list(set(mentions))  # Remove duplicates
         except Exception as e:
@@ -159,7 +152,6 @@ class HelperUtilities:
     def extract_hashtags(self, text: str) -> List[str]:
         """Extract #hashtags from text."""
         try:
-            import re
             hashtags = re.findall(r'#(\w+)', text)
             return list(set(hashtags))  # Remove duplicates
         except Exception as e:
@@ -169,7 +161,6 @@ class HelperUtilities:
     def extract_urls(self, text: str) -> List[str]:
         """Extract URLs from text."""
         try:
-            import re
             url_pattern = r'https?://[^\s<>"{}|\\^`\[\]]+'
             urls = re.findall(url_pattern, text)
             return list(set(urls))  # Remove duplicates
@@ -190,8 +181,6 @@ class HelperUtilities:
     def generate_color_from_string(self, text: str) -> str:
         """Generate consistent color hex code from string."""
         try:
-            import hashlib
-
             # Create hash of the string
             hash_object = hashlib.md5(text.encode())
             hex_dig = hash_object.hexdigest()
@@ -223,7 +212,7 @@ class HelperUtilities:
                 "total_pages": total_pages,
                 "has_next": page < total_pages,
                 "has_prev": page > 1
-            }}
+            }
         except Exception as e:
             logger.error(f"Pagination error: {e}")
             return {
@@ -234,15 +223,14 @@ class HelperUtilities:
                 "total_pages": 0,
                 "has_next": False,
                 "has_prev": False
-            }}
+            }
 
     def debounce(self, wait_time: float):
-        """Debounce decorator for functions.
+        """Debounce decorator for functions."""
         def decorator(func):
             last_called = [0.0]
 
             def wrapper(*args, **kwargs):
-                import time
                 now = time.time()
 
                 if now - last_called[0] >= wait_time:
@@ -266,12 +254,12 @@ class HelperUtilities:
                     except Exception as e:
                         last_exception = e
                         if attempt < max_retries:
-                            import time
                             time.sleep(delay * (attempt + 1))
                         else:
                             logger.error(f"Function {func.__name__} failed after {max_retries} retries: {e}")
 
-                raise last_exception
+                if last_exception:
+                    raise last_exception
 
             return wrapper
         return decorator
@@ -292,7 +280,8 @@ class HelperUtilities:
                         else:
                             logger.error(f"Async function {func.__name__} failed after {max_retries} retries: {e}")
 
-                raise last_exception
+                if last_exception:
+                    raise last_exception
 
             return wrapper
         return decorator
@@ -302,7 +291,7 @@ helper_utils = HelperUtilities()
 
 # Convenience functions
 def generate_uuid() -> str:
-    """Generate UUID string.
+    """Generate UUID string."""
     return helper_utils.generate_uuid()
 
 def generate_short_id(length: int = 8) -> str:
@@ -314,7 +303,7 @@ def format_datetime(dt: datetime, format_str: str = "%Y-%m-%d %H:%M:%S") -> str:
     return helper_utils.format_datetime(dt, format_str)
 
 def parse_datetime(dt_str: str, format_str: str = "%Y-%m-%d %H:%M:%S") -> Optional[datetime]:
-    """Parse datetime from string.
+    """Parse datetime from string."""
     return helper_utils.parse_datetime(dt_str, format_str)
 
 def format_file_size(size_bytes: int) -> str:
@@ -322,7 +311,7 @@ def format_file_size(size_bytes: int) -> str:
     return helper_utils.format_file_size(size_bytes)
 
 def truncate_text(text: str, max_length: int = 100, suffix: str = "...") -> str:
-    """Truncate text to specified length.
+    """Truncate text to specified length."""
     return helper_utils.truncate_text(text, max_length, suffix)
 
 def slugify(text: str) -> str:
@@ -330,11 +319,11 @@ def slugify(text: str) -> str:
     return helper_utils.slugify(text)
 
 def safe_json_loads(json_str: str, default: Any = None) -> Any:
-    Safely load JSON with default fallback."""
+    """Safely load JSON with default fallback."""
     return helper_utils.safe_json_loads(json_str, default)
 
 def safe_json_dumps(data: Any, default: str = "{}") -> str:
-    """Safely dump JSON with default fallback.
+    """Safely dump JSON with default fallback."""
     return helper_utils.safe_json_dumps(data, default)
 
 def extract_mentions(text: str) -> List[str]:
@@ -342,11 +331,11 @@ def extract_mentions(text: str) -> List[str]:
     return helper_utils.extract_mentions(text)
 
 def extract_hashtags(text: str) -> List[str]:
-    Extract #hashtags from text."""
+    """Extract #hashtags from text."""
     return helper_utils.extract_hashtags(text)
 
 def extract_urls(text: str) -> List[str]:
-    """Extract URLs from text.
+    """Extract URLs from text."""
     return helper_utils.extract_urls(text)
 
 def paginate_list(items: List[Any], page: int, per_page: int) -> Dict[str, Any]:

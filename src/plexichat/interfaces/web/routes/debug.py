@@ -22,13 +22,7 @@ from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 
 from plexichat.infrastructure.debugging.debug_manager import get_debug_manager, DebugLevel
-try:
-    from plexichat.infrastructure.debugging.debug_utils import create_debug_dump, analyze_performance_bottlenecks
-except ImportError:
-    def create_debug_dump():
-        return None
-    def analyze_performance_bottlenecks():
-        return []
+from plexichat.infrastructure.debugging import create_debug_dump, analyze_performance_bottlenecks
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +33,7 @@ templates = Jinja2Templates(directory="src/plexichat/interfaces/web/templates")
 
 class DebugQuery(BaseModel):
     """Debug query parameters."""
-        level: Optional[str] = None
+    level: Optional[str] = None
     source: Optional[str] = None
     limit: int = 100
     start_time: Optional[str] = None

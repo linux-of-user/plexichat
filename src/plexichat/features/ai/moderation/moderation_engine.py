@@ -152,7 +152,7 @@ class ModerationEngine:
     def _init_database(self):
         """Initialize the database connection."""
         try:
-            from .moderation_data_service import ModerationDataService
+            from plexichat.features.ai.moderation.moderation_data_service import ModerationDataService
             self.data_service = ModerationDataService()
         except ImportError:
             logger.warning("ModerationDataService not available")

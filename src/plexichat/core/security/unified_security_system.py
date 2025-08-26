@@ -23,7 +23,7 @@ import ipaddress
 # Core security imports
 SECURITY_MANAGER_AVAILABLE = False
 try:
-    from . import comprehensive_security_manager
+    from plexichat.core.security import comprehensive_security_manager
     SECURITY_MANAGER_AVAILABLE = True
 except ImportError:
     pass
@@ -365,7 +365,7 @@ class UnifiedSecuritySystem:
         # Get comprehensive security manager if available
         if SECURITY_MANAGER_AVAILABLE:
             try:
-                from .comprehensive_security_manager import get_security_manager
+                from plexichat.core.security.comprehensive_security_manager import get_security_manager
                 self.security_manager = get_security_manager()
             except ImportError:
                 self.security_manager = None

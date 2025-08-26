@@ -4,7 +4,7 @@ import logging
 from typing import Any, Callable, Optional
 
 try:
-    from .thread_manager import (
+    from plexichat.core.threading.thread_manager import (
         ThreadManager, AsyncThreadManager, ThreadTask,
         thread_manager, async_thread_manager,
         submit_task, run_in_thread, get_task_result,

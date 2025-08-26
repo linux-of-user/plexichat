@@ -10,12 +10,7 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
 from dataclasses import dataclass
 
-try:
-    from .exceptions import ValidationError as _ValidationError  # type: ignore
-    ValidationError = _ValidationError  # type: ignore
-except ImportError:
-    class ValidationError(Exception):
-        pass
+from plexichat.core.errors.exceptions import ValidationError
 
 logger = logging.getLogger(__name__)
 

@@ -1,7 +1,7 @@
 """
 MITM-Resistant Encryption System
 Implements time-based encryption with key rotation for enhanced security.
-
+"""
 
 import asyncio
 import base64
@@ -33,7 +33,7 @@ class MITMProtectionManager:
     - Replay protection with timestamps and nonces
     - Perfect forward secrecy
     """
-        def __init__(self):
+    def __init__(self):
         self.sessions: Dict[str, Dict[str, Any]] = {}
         self.key_rotation_interval = 60  # 1 minute
         self.max_timestamp_skew = 30  # 30 seconds
@@ -98,7 +98,7 @@ class MITMProtectionManager:
                 "session_id": session_id,
                 "server_public_key": server_public_key_pem,
                 "key_rotation_interval": self.key_rotation_interval
-            }}
+            }
             
         except Exception as e:
             logger.error(f"Key exchange failed: {e}")
@@ -303,7 +303,7 @@ class MITMProtectionManager:
             "created_at": session["created_at"],
             "last_used": session["last_used"],
             "age_seconds": time.time() - session["created_at"]
-        }}
+        }
 
 # Global instance
 mitm_protection = MITMProtectionManager()
@@ -339,7 +339,7 @@ async def require_mitm_protection(request: Request) -> Dict[str, Any]:
                     pass
         
         # Return empty dict if no encrypted payload
-        return {}}
+        return {}
         
     except Exception as e:
         logger.error(f"MITM protection dependency failed: {e}")
@@ -366,4 +366,4 @@ async def encrypt_response(session_id: str, response_data: Dict[str, Any]) -> Di
         "encrypted_payload": encrypted_payload,
         "session_id": session_id,
         "encryption_type": "aes-gcm-time-based"
-    }}
+    }

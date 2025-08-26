@@ -417,6 +417,68 @@ def collect_imports_and_usage(source: str, filename: str) -> Tuple[List[ImportRe
     return imports, used_names, exported_names
 
 # --------------------------
+# Dependency analysis
+# --------------------------
+
+def detect_cycles(graph: Dict[str, Set[str]]) -> List[List[str]]:
+    """
+    Detects cycles in a directed graph using DFS.
+    Returns a list of cycles, where each cycle is a list of nodes.
+    """
+    path: List[str] = []
+    visiting: Set[str] = set()  # Nodes currently in the recursion stack for DFS
+    visited: Set[str] = set()   # All nodes that have been visited at least once
+    cycles: List[List[str]] = []
+    cycle_nodes: Set[str] = set() # Nodes that are part of any detected cycle
+
+    def dfs(node: str):
+        path.append(node)
+        visiting.add(node)
+        visited.add(node)
+
+        for neighbor in sorted(list(graph.get(node, []))):
+            if neighbor in cycle_nodes: # Optimization: if neighbor is already in a cycle, don't traverse again
+                continue
+            if neighbor in visiting:
+                # Cycle detected
+                try:
+                    cycle_start_index = path.index(neighbor)
+                    cycle = path[cycle_start_index:]
+                    cycles.append(cycle)
+                    cycle_nodes.update(cycle)
+                except ValueError:
+                    # Should not happen if logic is correct
+                    pass
+            elif neighbor not in visited:
+                dfs(neighbor)
+
+        path.pop()
+        visiting.remove(node)
+
+    sorted_nodes = sorted(graph.keys())
+    for node in sorted_nodes:
+        if node not in visited:
+            dfs(node)
+
+    # Post-process to simplify and unique cycles
+    unique_cycles = []
+    seen_cycles = set()
+    for cycle in sorted(cycles, key=lambda c: (len(c), c)):
+        # Normalize the cycle by finding the lexicographically smallest representation
+        smallest_repr = tuple(cycle)
+        current_cycle = list(cycle)
+        for _ in range(len(current_cycle) -1):
+            current_cycle = current_cycle[1:] + current_cycle[:1]
+            if tuple(current_cycle) < smallest_repr:
+                smallest_repr = tuple(current_cycle)
+
+        if smallest_repr not in seen_cycles:
+            unique_cycles.append(list(smallest_repr))
+            seen_cycles.add(smallest_repr)
+
+    return unique_cycles
+
+# --------------------------
 # Core analysis
 # --------------------------
 
@@ -444,7 +506,7 @@ def analyze_file(
     ignore_unused_in_init: bool,
     external_packages: Set[str],
     test_imports: bool = False
-) -> Tuple[List[Dict], List[Dict], List[Dict]]:
+) -> Tuple[List[Dict], List[Dict], List[Dict], List[str]]:
     text = path.read_text(encoding="utf-8", errors="replace")
     imports, used_names, exported_names = collect_imports_and_usage(text, str(path))
 
@@ -536,7 +598,42 @@ def analyze_file(
         for failure in import_test_failures:
             failure["file"] = str(path)
 
-    return broken, unused, import_test_failures
+    # Collect local dependencies for cycle analysis
+    local_deps: Set[str] = set()
+    for rec in imports:
+        if rec.in_type_checking:
+            continue
+
+        resolved_parts: Optional[List[str]] = None
+        is_local = False
+
+        if rec.level > 0:  # Relative import
+            base_mod_parts = rec.full_module.split('.') if rec.full_module else []
+            resolved_parts = resolve_relative_base(base_mod_parts, rec.level, pkg_parts)
+            is_local = True
+        elif rec.full_module and is_local_absolute_import(rec.full_module, import_roots, allow_namespace, ignore_local_roots, external_packages):
+            resolved_parts = rec.full_module.split('.')
+            is_local = True
+
+        if not is_local or resolved_parts is None:
+            continue
+
+        # At this point, we have a resolved path for a local import.
+        final_parts = resolved_parts
+        # If it's a `from` import, the subname could be another module
+        if rec.is_from and rec.subname and rec.subname != "*":
+            potential_submodule_parts = resolved_parts + [rec.subname]
+            if module_path_exists(potential_submodule_parts, import_roots, allow_namespace):
+                final_parts = potential_submodule_parts
+
+        # The dependency is on the longest valid module path
+        if module_path_exists(final_parts, import_roots, allow_namespace):
+            local_deps.add(".".join(final_parts))
+        elif len(final_parts) > 1 and module_path_exists(final_parts[:-1], import_roots, allow_namespace):
+            # This could be `from module import attribute`, so the dependency is on the module
+            local_deps.add(".".join(final_parts[:-1]))
+
+    return broken, unused, import_test_failures, sorted(list(local_deps))
 
 # --------------------------
 # CLI
@@ -557,6 +654,7 @@ def main() -> int:
     p.add_argument("--broken-csv", default=None, help="Write broken imports to CSV")
     p.add_argument("--unused-csv", default=None, help="Write unused imports to CSV")
     p.add_argument("--import-test-csv", default=None, help="Write import test failures to CSV")
+    p.add_argument("--find-cycles", action="store_true", help="Detect circular dependencies between modules")
     p.add_argument("-q","--quiet", action="store_true", help="Only print file paths with issues")
     p.add_argument("-f","--fail-on-issues", action="store_true", help="Exit code 2 if any issues found")
 
@@ -598,18 +696,47 @@ def main() -> int:
     all_broken: List[Dict] = []
     all_unused: List[Dict] = []
     all_import_test_failures: List[Dict] = []
+    dependency_graph = defaultdict(set)
+
+    def file_to_module_path(path: Path, import_roots: List[Path], allow_namespace: bool) -> str:
+        pkg_parts = compute_package_parts(path, import_roots, allow_namespace)
+        stem = path.stem
+        if stem == "__init__":
+            # for .../pkg/__init__.py -> "pkg"
+            return ".".join(pkg_parts)
+        else:
+            # for .../pkg/mod.py -> "pkg.mod"
+            return ".".join(pkg_parts + [stem])
+
+    # Pre-calculate all module paths
+    module_to_file_map: Dict[str, Path] = {}
+    for f in files:
+        if any(part.lower() in exclude_names_lower for part in f.parts):
+            continue
+        module_path = file_to_module_path(f, import_roots, args.allow_namespace)
+        if module_path:
+            module_to_file_map[module_path] = f
 
     for f in files:
         if any(part.lower() in exclude_names_lower for part in f.parts):
             continue
         try:
-            broken, unused, import_test_failures = analyze_file(
+            broken, unused, import_test_failures, local_deps = analyze_file(
                 f, import_roots, args.allow_namespace, ignore_local_roots, args.ignore_unused_in_init, external_packages, args.test_imports
             )
             total_files += 1
             all_broken.extend(broken)
             all_unused.extend(unused)
             all_import_test_failures.extend(import_test_failures)
+
+            if args.find_cycles:
+                current_module = file_to_module_path(f, import_roots, args.allow_namespace)
+                if current_module:
+                    for dep in local_deps:
+                        # Only add dependencies that are part of the scanned project
+                        if dep in module_to_file_map and dep != current_module:
+                            dependency_graph[current_module].add(dep)
+
         except SyntaxError as se:
             # Skip files with syntax errors
             print(f"Warning: Skipping {f} due to syntax error at line {se.lineno}: {se.msg}", file=sys.stderr)
@@ -619,6 +746,10 @@ def main() -> int:
     broken_count = len(all_broken)
     unused_count = len(all_unused)
     import_test_failures_count = len(all_import_test_failures)
+    cycles = []
+    if args.find_cycles:
+        cycles = detect_cycles(dependency_graph)
+
 
     if args.broken_csv and all_broken:
         with open(args.broken_csv, "w", newline="", encoding="utf-8") as out:
@@ -638,9 +769,22 @@ def main() -> int:
 
     if args.quiet:
         paths_with_issues = sorted(set([r["file"] for r in all_broken + all_unused + all_import_test_failures]))
-        for pth in paths_with_issues:
+        if args.find_cycles and cycles:
+            # In quiet mode, just list files involved in cycles
+            for cycle in cycles:
+                for module in cycle:
+                    if module in module_to_file_map:
+                         paths_with_issues.append(str(module_to_file_map[module]))
+        for pth in sorted(list(set(paths_with_issues))):
             print(pth)
     else:
+        if args.find_cycles:
+            print(f"Circular dependencies: {len(cycles)} found")
+            if cycles:
+                for i, cycle in enumerate(cycles):
+                    print(f"  Cycle {i+1}: {' -> '.join(cycle)} -> {cycle[0]}")
+            print()
+
         print(f"Scanned files: {total_files}")
         print(f"Broken local imports: {broken_count}")
         print(f"Unused imports: {unused_count}")
@@ -672,7 +816,7 @@ def main() -> int:
         if args.import_test_csv:
             print(f"Import test CSV: {args.import_test_csv}")
 
-    if args.fail_on_issues and (broken_count or unused_count or import_test_failures_count):
+    if args.fail_on_issues and (broken_count or unused_count or import_test_failures_count or (args.find_cycles and cycles)):
         return 2
     return 0
 

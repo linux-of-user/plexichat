@@ -24,7 +24,7 @@ logger.info("Using compatibility wrapper - please migrate to unified monitoring 
 
 # Re-export everything from the unified monitoring system
 try:
-    from ..monitoring.unified_monitoring_system import (
+    from plexichat.core.monitoring.unified_monitoring_system import (
         # Main classes
         UnifiedMonitoringManager,
         unified_monitoring_manager,

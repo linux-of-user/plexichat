@@ -16,10 +16,10 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 from dataclasses import dataclass, field
 from enum import Enum
 
-from .encryption_service import EncryptionService
-from .storage_manager import StorageManager
-from .version_manager import VersionManager
-from .backup_repository import BackupRepository
+from plexichat.features.backup.encryption_service import EncryptionService
+from plexichat.features.backup.storage_manager import StorageManager
+from plexichat.features.backup.version_manager import VersionManager
+from plexichat.features.backup.backup_repository import BackupRepository
 
 logger = logging.getLogger(__name__)
 

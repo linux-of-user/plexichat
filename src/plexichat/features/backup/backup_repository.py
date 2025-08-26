@@ -17,7 +17,7 @@ from contextlib import asynccontextmanager
 
 # Import backup types
 try:
-    from .backup_engine import BackupMetadata, BackupStatus, BackupType, SecurityLevel
+    from plexichat.features.backup.backup_engine import BackupMetadata, BackupStatus, BackupType, SecurityLevel
 except ImportError:
     # Fallback for circular import issues
     BackupMetadata = Any

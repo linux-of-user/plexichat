@@ -26,7 +26,7 @@ except ImportError:
     HTTPException = None
     BackgroundTasks = None
 
-from ..ai_coordinator import AICoordinator
+from plexichat.features.ai.ai_coordinator import AICoordinator
 
 logger = logging.getLogger(__name__)
 

@@ -17,7 +17,8 @@ from enum import Enum
 from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
 
-from .security.key_vault import DistributedKeyManager
+from plexichat.version import __version__
+from plexichat.core.security.key_vault import DistributedKeyManager
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +27,7 @@ logger = logging.getLogger(__name__)
 class SystemConfig:
     """System configuration section."""
     name: str = "PlexiChat"
-    version: str = "0.0.0"
+    version: str = __version__
     environment: str = "production"
     debug: bool = False
     timezone: str = "UTC"

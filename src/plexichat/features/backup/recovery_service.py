@@ -8,8 +8,8 @@ import logging
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-from .encryption_service import EncryptionService
-from .storage_manager import StorageManager
+from plexichat.features.backup.encryption_service import EncryptionService
+from plexichat.features.backup.storage_manager import StorageManager
 
 logger = logging.getLogger(__name__)
 

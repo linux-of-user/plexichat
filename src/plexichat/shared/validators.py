@@ -12,8 +12,8 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Callable
 from urllib.parse import urlparse
 
-from .exceptions import ValidationError, SecurityError
-from .models import Priority, Status
+from plexichat.shared.exceptions import SecurityError, ValidationError
+from plexichat.shared.models import Priority, Status
 
 
 # Validation constants

@@ -1,6 +1,6 @@
 from plugins_internal import EnhancedPluginAPI
-from .core import ScanResult, ScanType, ThreatLevel
-from .core.antivirus_engine import AdvancedAntivirusEngine
+from plugins.advanced_antivirus.core import ScanResult, ScanType, ThreatLevel
+from plugins.advanced_antivirus.core.antivirus_engine import AdvancedAntivirusEngine
 import asyncio
 from typing import Any, Callable, Dict, List, Optional
 from datetime import datetime, timezone, timedelta

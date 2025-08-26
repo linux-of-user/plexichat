@@ -17,7 +17,7 @@ from datetime import datetime, timedelta
 
 # Import configuration
 try:
-    from ..config.rate_limiting_config import (
+    from plexichat.core.rate_limit_config import (
         get_rate_limiting_config, AccountType, get_account_rate_limit
     )
 except ImportError as e:
@@ -39,8 +39,8 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class RateLimitInfo:
-    """Information about rate limiting for a request.
-        account_type: AccountType
+    """Information about rate limiting for a request."""
+    account_type: AccountType
     endpoint: str
     requests_per_minute: int
     requests_per_hour: int
@@ -52,7 +52,7 @@ class RateLimitInfo:
 @dataclass
 class RequestRecord:
     """Record of a single request for rate limiting."""
-        timestamp: float
+    timestamp: float
     endpoint: str
     ip_address: str
     user_id: Optional[str]
@@ -60,8 +60,8 @@ class RequestRecord:
     bytes_transferred: int = 0
 
 class AccountRateLimitingMiddleware(BaseHTTPMiddleware):
-    Account-type based rate limiting middleware."""
-        def __init__(self, app):
+    """Account-type based rate limiting middleware."""
+    def __init__(self, app):
         super().__init__(app)
         self.request_history: Dict[str, deque] = defaultdict(lambda: deque(maxlen=1000))
         self.concurrent_requests: Dict[str, int] = defaultdict(int)
@@ -88,7 +88,7 @@ class AccountRateLimitingMiddleware(BaseHTTPMiddleware):
             self._cleanup_task = asyncio.create_task(cleanup_old_records())
     
     async def _cleanup_old_records(self):
-        """Clean up old request records.
+        """Clean up old request records."""
         current_time = time.time()
         cutoff_time = current_time - 3600  # Keep records for 1 hour
         

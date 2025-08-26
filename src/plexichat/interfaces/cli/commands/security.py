@@ -4,21 +4,18 @@
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
 from datetime import datetime
-from typing import List, Optional
-
-
 import logging
 from typing import List, Optional
-
 import time
-from plexichat.app.security.permissions import (
+
+from plexichat.core.authentication import (
     Permission,
     PermissionManager,
     PermissionScope,
     Role,
     UserPermissions,
 )
-from plexichat.app.security.rate_limiter import (
+from plexichat.core.middleware.unified_rate_limiter import (
     ComprehensiveRateLimiter,
     RateLimitAction,
     RateLimitRule,
@@ -29,7 +26,7 @@ from plexichat.app.security.rate_limiter import (
 logger = logging.getLogger(__name__)
 class SecurityCLI:
     """CLI for security management."""
-        def __init__(self):
+    def __init__(self):
         self.rate_limiter = ComprehensiveRateLimiter()
         self.permission_manager = PermissionManager()
 

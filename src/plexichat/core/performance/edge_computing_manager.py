@@ -25,8 +25,8 @@ import logging
 
 # Security integration
 try:
-    from ..security.unified_security_system import get_unified_security_system
-    from ..security.comprehensive_security_manager import get_security_manager
+    from plexichat.core.security.unified_security_system import get_unified_security_system
+    from plexichat.core.security.comprehensive_security_manager import get_security_manager
     SECURITY_AVAILABLE = True
 except ImportError:
     SECURITY_AVAILABLE = False
@@ -427,8 +427,8 @@ class EdgeComputingManager:
         # Security integration
         if SECURITY_AVAILABLE:
             try:
-                from ..security.unified_security_system import get_unified_security_system
-                from ..security.comprehensive_security_manager import get_security_manager
+                from plexichat.core.security.unified_security_system import get_unified_security_system
+                from plexichat.core.security.comprehensive_security_manager import get_security_manager
                 self.security_system = get_unified_security_system()
                 self.security_manager = get_security_manager()
             except ImportError:

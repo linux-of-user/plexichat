@@ -21,13 +21,7 @@ except ImportError:
     StaticFiles = None
 
 # Use EXISTING performance optimization engine
-try:
-    from ...core.logging_advanced.performance_logger import get_performance_logger
-except ImportError:
-    try:
-        from plexichat.core.logging_advanced.performance_logger import get_performance_logger
-    except ImportError:
-        get_performance_logger = None
+from plexichat.core.logging_advanced.performance_logger import get_performance_logger
 
 # Use the new unified config system
 from plexichat.core.unified_config import get_config
@@ -71,17 +65,10 @@ def create_app() -> Optional[Any]:
             app.add_middleware(GZipMiddleware, minimum_size=1000)
 
         # Add custom middleware
-        try:
-            from plexichat.interfaces.web.middleware.rate_limiting import RateLimitingMiddleware  # type: ignore
-            app.add_middleware(RateLimitingMiddleware)
-        except ImportError:
-            logger.warning("Rate limiting middleware not available")
-
-        try:
-            from plexichat.interfaces.web.middleware.government_security import GovernmentSecurityMiddleware  # type: ignore
-            app.add_middleware(GovernmentSecurityMiddleware)
-        except ImportError:
-            logger.warning("Government security middleware not available")
+        from plexichat.core.middleware.rate_limiting import RateLimitingMiddleware
+        app.add_middleware(RateLimitingMiddleware)
+        from plexichat.interfaces.web.middleware.comprehensive_security_middleware import GovernmentSecurityMiddleware
+        app.add_middleware(GovernmentSecurityMiddleware)
 
         # Include routers
         _include_routers(app)

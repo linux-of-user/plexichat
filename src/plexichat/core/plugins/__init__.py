@@ -23,7 +23,7 @@ from typing import Dict, Any, Optional, List
 
 # Import unified plugin system (NEW SINGLE SOURCE OF TRUTH)
 try:
-    from .manager import (
+    from plexichat.core.plugins.manager import (
         # Main classes
         UnifiedPluginManager,
         unified_plugin_manager,

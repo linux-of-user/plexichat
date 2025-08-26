@@ -17,46 +17,46 @@ from typing import Any, Dict
 import importlib
 
 # Import consolidated systems
-from .logging import get_logger
+from plexichat.core.logging import get_logger
 logger = get_logger(__name__)
 
 try:
-    from .configuration import get_config
+    from plexichat.core.config import get_config
     config = get_config()
 except ImportError:
     config = None
     logger.warning("Configuration system not available")
 
 try:
-    from .security import get_security_manager
+    from plexichat.core.security import get_security_manager
     security_manager = get_security_manager()
 except ImportError:
     security_manager = None
     logger.warning("Security system not available")
 
 try:
-    from .authentication import get_auth_manager
+    from plexichat.core.authentication import get_auth_manager
     auth_manager = get_auth_manager()
 except ImportError:
     auth_manager = None
     logger.warning("Authentication system not available")
 
 try:
-    from .data import get_database_manager
+    from plexichat.core.database import get_database_manager
     database_manager = get_database_manager()
 except ImportError:
     database_manager = None
     logger.warning("Database system not available")
 
 try:
-    from .errors import get_error_manager
+    from src.plexichat.core.errors import get_error_manager
     error_manager = get_error_manager()
 except ImportError:
     error_manager = None
     logger.warning("Error handling system not available")
 
 try:
-    from .services import get_service_manager
+    from src.plexichat.core.services import get_service_manager
     service_manager = get_service_manager()
 except ImportError:
     service_manager = None

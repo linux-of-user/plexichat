@@ -4,34 +4,17 @@
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
-from .core.antivirus_engine import AdvancedAntivirusEngine
-from .core.behavioral_analyzer import BehavioralAnalyzer
-from .core.filename_analyzer import FilenameAnalyzer
-from .core.hash_scanner import HashBasedScanner
-from .core.link_scanner import LinkSafetyScanner
-from .core.threat_intelligence import ThreatIntelligenceEngine
+from plugins.advanced_antivirus.core.antivirus_engine import AdvancedAntivirusEngine
 
 
 """
 PlexiChat Advanced Antivirus System
 
-Comprehensive antivirus and security scanning system with:
-- Real-time file scanning with multiple engines
-- Hash-based virus database checking
-- Suspicious filename detection
-- Link safety analysis
-- Network-based threat intelligence
-- Behavioral analysis and heuristics
-- Integration with public virus databases
+This package provides the main entry point for the Advanced Antivirus Engine.
 """
 
 __all__ = [
     "AdvancedAntivirusEngine",
-    "HashBasedScanner",
-    "BehavioralAnalyzer",
-    "LinkSafetyScanner",
-    "FilenameAnalyzer",
-    "ThreatIntelligenceEngine",
 ]
 
 # Antivirus system capabilities

@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 # Import CanaryNode from canary_node_selector
 try:
-    from .canary_node_selector import CanaryNode  # type: ignore
+    from plexichat.core.versioning.canary_node_selector import CanaryNode  # type: ignore
 except ImportError:
     CanaryNode = Any
 

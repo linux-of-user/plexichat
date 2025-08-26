@@ -9,15 +9,13 @@ from fastapi import APIRouter, Request, HTTPException, status, Depends
 from pydantic import BaseModel
 
 # Import enhanced security decorators
-try:
-    from ....core.security.security_decorators import (
-        require_auth, require_admin, rate_limit, audit_access, validate_input,
-        secure_endpoint, admin_endpoint, SecurityLevel, RequiredPermission
-    )
-    from ....core.logging_advanced.advanced_logging_system import (
-        get_enhanced_logging_system, LogCategory, LogLevel, PerformanceMetrics, PerformanceTracker
-    )
-except ImportError as e:
+from plexichat.core.security.security_decorators import (
+    require_auth, require_admin, rate_limit, audit_access, validate_input,
+    secure_endpoint, admin_endpoint, SecurityLevel, RequiredPermission
+)
+from plexichat.core.logging_advanced.advanced_logging_system import (
+    get_enhanced_logging_system, LogCategory, LogLevel, PerformanceMetrics, PerformanceTracker
+)
     print(f"Security decorators import error: {e}")
     # Fallback decorators that do nothing
     def require_auth(*args, **kwargs):

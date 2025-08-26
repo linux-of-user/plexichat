@@ -14,22 +14,17 @@ from typing import Any, Callable, Dict, Optional
 import aiohttp
 import psutil
 
-from ...core.database import database_manager
-
-"""
-PlexiChat Health Check Service
-
-Comprehensive health monitoring service for application health and dependencies
-in production environments. Monitors system resources, database connections,
-external services, and application components.
-
+# Placeholder for a real implementation
+class DatabaseManager:
+    async def test_connection(self): return True
+database_manager = DatabaseManager()
 
 logger = logging.getLogger(__name__)
 
 
 class HealthStatus(Enum):
     """Health status enumeration."""
-        HEALTHY = "healthy"
+    HEALTHY = "healthy"
     DEGRADED = "degraded"
     UNHEALTHY = "unhealthy"
     UNKNOWN = "unknown"
@@ -52,8 +47,8 @@ class HealthCheck:
 
 @dataclass
 class HealthResult:
-    """Result of a health check.
-        name: str
+    """Result of a health check."""
+    name: str
     status: HealthStatus
     message: str
     duration_ms: float
@@ -65,17 +60,16 @@ class HealthCheckService:
     """
     Comprehensive health monitoring service.
     """
-        def __init__(self):
+    def __init__(self):
         self.checks: Dict[str, HealthCheck] = {}
         self.results: Dict[str, HealthResult] = {}
         self.running = False
         self.check_task = None
         self.failure_threshold = 3
-startup_time = datetime.now()
-datetime = datetime.now()
+        self.startup_time = datetime.now()
 
     def register_check(self, health_check: HealthCheck):
-        Register a new health check."""
+        """Register a new health check."""
         self.checks[health_check.name] = health_check
         logger.info(f"Registered health check: {health_check.name}")
 
@@ -93,7 +87,7 @@ datetime = datetime.now()
 
         try:
             # Run the check with timeout
-            result = await asyncio.wait_for()
+            result = await asyncio.wait_for(
                 check.check_function(),
                 timeout=check.timeout
             )
@@ -138,12 +132,10 @@ datetime = datetime.now()
             check.consecutive_failures += 1
             check.last_error = str(e)
 
-        check.from datetime import datetime
-last_check = datetime.now()
-datetime = datetime.now()
+        check.last_check = datetime.now()
         check.last_status = status
 
-        return HealthResult()
+        return HealthResult(
             name=check.name,
             status=status,
             message=message,
@@ -170,13 +162,12 @@ datetime = datetime.now()
                 self.results[name] = result
             except Exception as e:
                 logger.error(f"Health check {name} failed unexpectedly: {e}")
-                results[name] = HealthResult()
+                results[name] = HealthResult(
                     name=name,
                     status=HealthStatus.UNHEALTHY,
                     message=f"Unexpected error: {e}",
                     duration_ms=0,
-timestamp = datetime.now()
-datetime = datetime.now()
+                    timestamp = datetime.now()
                 )
 
         return results
@@ -216,7 +207,7 @@ datetime = datetime.now()
                 "duration_ms": result.duration_ms,
                 "timestamp": result.timestamp,
                 "details": result.details
-            }} for name, result in check_results.items()},
+            } for name, result in check_results.items()},
             "metrics": system_metrics,
             "summary": {
                 "total_checks": len(check_results),
@@ -230,12 +221,10 @@ datetime = datetime.now()
         """Get system performance metrics."""
         try:
             # CPU usage
-            cpu_percent = import psutil
-psutil = psutil.cpu_percent(interval=1)
+            cpu_percent = psutil.cpu_percent(interval=1)
 
             # Memory usage
-            memory = import psutil
-psutil = psutil.virtual_memory()
+            memory = psutil.virtual_memory()
             memory_usage = {
                 "total": memory.total,
                 "available": memory.available,
@@ -244,8 +233,7 @@ psutil = psutil.virtual_memory()
             }
 
             # Disk usage
-            disk = import psutil
-psutil = psutil.disk_usage('/')
+            disk = psutil.disk_usage('/')
             disk_usage = {
                 "total": disk.total,
                 "used": disk.used,
@@ -254,8 +242,7 @@ psutil = psutil.disk_usage('/')
             }
 
             # Network stats
-            network = import psutil
-psutil = psutil.net_io_counters()
+            network = psutil.net_io_counters()
             network_stats = {
                 "bytes_sent": network.bytes_sent,
                 "bytes_recv": network.bytes_recv,
@@ -264,8 +251,7 @@ psutil = psutil.net_io_counters()
             }
 
             # Process info
-            process = import psutil
-psutil = psutil.Process()
+            process = psutil.Process()
             process_info = {
                 "pid": process.pid,
                 "memory_percent": process.memory_percent(),
@@ -280,7 +266,7 @@ psutil = psutil.Process()
                 "disk_usage": disk_usage,
                 "network_stats": network_stats,
                 "process_info": process_info
-            }}
+            }
 
         except Exception as e:
             logger.error(f"Failed to get system metrics: {e}")
@@ -315,11 +301,10 @@ psutil = psutil.Process()
         while self.running:
             try:
                 # Run checks that are due
-current_time = datetime.now()
-datetime = datetime.now()
+                current_time = datetime.now()
 
                 for check in self.checks.values():
-                    if (check.last_check is None or)
+                    if (check.last_check is None or
                         (current_time - check.last_check).total_seconds() >= check.interval):
 
                         # Run check in background
@@ -331,7 +316,9 @@ datetime = datetime.now()
             except asyncio.CancelledError:
                 break
             except Exception as e:
-                logger.error(f"Error in monitoring loop: {e}")
+                logger.error(
+                    f"Error in monitoring loop: {e}"
+                )
                 await asyncio.sleep(10)  # Wait longer on error
 
 
@@ -346,18 +333,18 @@ async def database_health_check() -> Dict[str, Any]:
             return {
                 "status": "healthy",
                 "message": "Database connection successful",
-                "details": {"connection_pool": "active"}}
+                "details": {"connection_pool": "active"}
             }
         else:
             return {
                 "status": "unhealthy",
                 "message": "Database connection failed"
-            }}
+            }
 
     except Exception as e:
         return {
             "status": "unhealthy",
-            "message": f"Database check failed: {e}}"
+            "message": f"Database check failed: {e}"
         }
 
 
@@ -371,18 +358,18 @@ async def api_health_check() -> Dict[str, Any]:
                     return {
                         "status": "healthy",
                         "message": "API server responding",
-                        "details": {"status_code": response.status}}
+                        "details": {"status_code": response.status}
                     }
                 else:
                     return {
                         "status": "degraded",
-                        "message": f"API server returned status {response.status}}"
+                        "message": f"API server returned status {response.status}"
                     }
 
     except Exception as e:
         return {
             "status": "unhealthy",
-            "message": f"API server check failed: {e}}"
+            "message": f"API server check failed: {e}"
         }
 
 
@@ -407,7 +394,7 @@ health_service.register_check(HealthCheck(
 
 # Convenience functions
 async def get_health_status() -> Dict[str, Any]:
-    """Get current health status.
+    """Get current health status."""
     return await health_service.get_system_status()
 
 

@@ -5,20 +5,11 @@
 # pyright: reportReturnType=false
 import logging
 from typing import Any, Dict, List, Optional
-
-
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from plexichat.core.auth.dependencies import ()
-    from plexichat.infrastructure.utils.auth import require_admin,
-from plexichat.core.performance.multi_tier_cache_manager import ()
-
-    from,
-    import,
-    plexichat.infrastructure.utils.auth,
-    require_auth,
-)
+from plexichat.infrastructure.utils.auth import require_admin, require_auth
+from plexichat.core.performance.multi_tier_cache_manager import (
     CacheTier,
     MessagePriority,
     get_cache_manager,
@@ -52,31 +43,31 @@ router = APIRouter(prefix="/api/cache", tags=["Multi-Tier Cache"])
 
 class CacheSetRequest(BaseModel):
     """Request model for setting cache values."""
-        value: Any = Field(..., description="Value to cache")
+    value: Any = Field(..., description="Value to cache")
     ttl_seconds: Optional[int] = Field(None, description="Time to live in seconds")
     priority: Optional[str] = Field("normal", description="Cache priority (low, normal, high, critical)")
     headers: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Additional headers")
 
 class CacheResponse(BaseModel):
     """Response model for cache operations."""
-        success: bool = Field(..., description="Operation success status")
+    success: bool = Field(..., description="Operation success status")
     message: str = Field(..., description="Response message")
     data: Optional[Any] = Field(None, description="Response data")
     timestamp: str = Field(..., description="Response timestamp")
 
 class CacheClearRequest(BaseModel):
     """Request model for clearing cache."""
-        tier: Optional[str] = Field(None, description="Specific tier to clear (l1_memory, l2_redis, l3_memcached, l4_cdn)")
+    tier: Optional[str] = Field(None, description="Specific tier to clear (l1_memory, l2_redis, l3_memcached, l4_cdn)")
     confirm: bool = Field(False, description="Confirmation flag for destructive operation")
 
 class CacheWarmRequest(BaseModel):
     """Request model for cache warming."""
-        patterns: Optional[List[str]] = Field(None, description="Specific patterns to warm")
+    patterns: Optional[List[str]] = Field(None, description="Specific patterns to warm")
     force: bool = Field(False, description="Force warming even if recently completed")
 
 class CacheInvalidateRequest(BaseModel):
     """Request model for cache invalidation."""
-        patterns: List[str] = Field(..., description="Patterns to invalidate")
+    patterns: List[str] = Field(..., description="Patterns to invalidate")
     cascade: bool = Field(True, description="Cascade invalidation to related keys")
 
 
@@ -96,7 +87,7 @@ async def get_cache_status(current_user: Dict = Depends(require_auth)):
         stats = await cache_manager.get_stats()
 
         return {
-            "status": "healthy" if stats.get("availability", {}}).get("l1_memory", False) else "degraded",
+            "status": "healthy" if stats.get("availability", {}).get("l1_memory", False) else "degraded",
             "initialized": cache_manager.initialized,
             "statistics": stats,
             "timestamp": "2025-01-07T12:00:00Z"
@@ -108,7 +99,7 @@ async def get_cache_status(current_user: Dict = Depends(require_auth)):
 
 
 @router.get("/stats", response_model=Dict[str, Any])
-async def get_cache_stats()
+async def get_cache_stats(
     tier: Optional[str] = Query(None, description="Specific tier to get stats for"),
     detailed: bool = Query(False, description="Include detailed statistics"),
     current_user: Dict = Depends(require_auth)
@@ -135,7 +126,7 @@ async def get_cache_stats()
             return {
                 "tier": tier,
                 "statistics": tier_stats,
-                "availability": stats.get("availability", {}}).get(tier, False),
+                "availability": stats.get("availability", {}).get(tier, False),
                 "timestamp": "2025-01-07T12:00:00Z"
             }
 
@@ -161,7 +152,7 @@ async def get_cache_stats()
 
 
 @router.get("/{key}", response_model=Dict[str, Any])
-async def get_cached_value()
+async def get_cached_value(
     key: str,
     default: Optional[str] = Query(None, description="Default value if key not found"),
     current_user: Dict = Depends(require_auth)
@@ -188,7 +179,7 @@ async def get_cached_value()
             "value": value,
             "found": value is not None,
             "timestamp": "2025-01-07T12:00:00Z"
-        }}
+        }
 
     except HTTPException:
         raise
@@ -198,7 +189,7 @@ async def get_cached_value()
 
 
 @router.post("/{key}", response_model=CacheResponse)
-async def set_cached_value()
+async def set_cached_value(
     key: str,
     request: CacheSetRequest,
     current_user: Dict = Depends(require_auth)
@@ -223,18 +214,19 @@ async def set_cached_value()
             "critical": MessagePriority.CRITICAL
         }
 
-        priority_map.get(request.priority, MessagePriority.NORMAL)
+        priority = priority_map.get(request.priority, MessagePriority.NORMAL)
 
-        success = await cache_manager.set()
+        success = await cache_manager.set(
             key=key,
             value=request.value,
-            ttl_seconds=request.ttl_seconds
+            ttl_seconds=request.ttl_seconds,
+            priority=priority
         )
 
         if not success:
             raise HTTPException(status_code=500, detail="Failed to set cached value")
 
-        return CacheResponse()
+        return CacheResponse(
             success=True,
             message=f"Successfully cached key '{key}'",
             data={"key": key, "ttl_seconds": request.ttl_seconds},
@@ -249,7 +241,7 @@ async def set_cached_value()
 
 
 @router.delete("/{key}", response_model=CacheResponse)
-async def delete_cached_value()
+async def delete_cached_value(
     key: str,
     current_user: Dict = Depends(require_auth)
 ):
@@ -275,7 +267,7 @@ async def delete_cached_value()
         if not success:
             raise HTTPException(status_code=500, detail="Failed to delete cached value")
 
-        return CacheResponse()
+        return CacheResponse(
             success=True,
             message=f"Successfully deleted key '{key}' from cache",
             data={"key": key},
@@ -290,9 +282,9 @@ async def delete_cached_value()
 
 
 @router.post("/clear", response_model=CacheResponse)
-async def clear_cache()
+async def clear_cache(
     request: CacheClearRequest,
-    current_user: Dict = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin)
+    current_user: Dict = Depends(require_admin)
 ):
     """
     Clear cache tier(s).
@@ -303,10 +295,9 @@ async def clear_cache()
     try:
         if not request.confirm:
             raise HTTPException(
-            status_code=400,
-            detail="Confirmation required for destructive cache clear operation"
-            
-        )
+                status_code=400,
+                detail="Confirmation required for destructive cache clear operation"
+            )
 
         cache_manager = get_cache_manager()
 
@@ -336,7 +327,7 @@ async def clear_cache()
         if not success:
             raise HTTPException(status_code=500, detail="Failed to clear cache")
 
-        return CacheResponse()
+        return CacheResponse(
             success=True,
             message=message,
             data={"tier": request.tier or "all"},
@@ -381,7 +372,7 @@ async def get_cache_health(current_user: Dict = Depends(require_auth)):
             "tier_availability": availability,
             "healthy_tiers": healthy_tiers,
             "total_tiers": total_tiers,
-            "global_stats": stats.get("global", {}}),
+            "global_stats": stats.get("global", {}),
             "timestamp": "2025-01-07T12:00:00Z"
         }
 
@@ -391,9 +382,9 @@ async def get_cache_health(current_user: Dict = Depends(require_auth)):
 
 
 @router.post("/warm", response_model=CacheResponse)
-async def trigger_cache_warming()
+async def trigger_cache_warming(
     request: CacheWarmRequest,
-    current_user: Dict = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin)
+    current_user: Dict = Depends(require_admin)
 ):
     """
     Trigger cache warming.
@@ -411,7 +402,7 @@ async def trigger_cache_warming()
         # For now, return success response
         patterns = request.patterns or ["all_patterns"]
 
-        return CacheResponse()
+        return CacheResponse(
             success=True,
             message=f"Cache warming triggered for patterns: {', '.join(patterns)}",
             data={"patterns": patterns, "force": request.force},
@@ -426,7 +417,7 @@ async def trigger_cache_warming()
 
 
 @router.get("/config", response_model=Dict[str, Any])
-async def get_cache_config(current_user: Dict = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin)):
+async def get_cache_config(current_user: Dict = Depends(require_admin)):
     """
     Get cache configuration.
 
@@ -443,7 +434,7 @@ async def get_cache_config(current_user: Dict = Depends(from plexichat.infrastru
 
         return {
             "configuration": config,
-            "availability": stats.get("availability", {}}),
+            "availability": stats.get("availability", {}),
             "timestamp": "2025-01-07T12:00:00Z"
         }
 
@@ -453,9 +444,9 @@ async def get_cache_config(current_user: Dict = Depends(from plexichat.infrastru
 
 
 @router.post("/invalidate", response_model=CacheResponse)
-async def invalidate_cache_patterns()
+async def invalidate_cache_patterns(
     request: CacheInvalidateRequest,
-    current_user: Dict = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin)
+    current_user: Dict = Depends(require_admin)
 ):
     """
     Invalidate cache patterns.
@@ -473,7 +464,7 @@ async def invalidate_cache_patterns()
         # For now, return success response
         invalidated_count = len(request.patterns)  # Placeholder
 
-        return CacheResponse()
+        return CacheResponse(
             success=True,
             message=f"Invalidated {invalidated_count} cache patterns",
             data={

@@ -15,7 +15,7 @@ to maintain backward compatibility with existing imports.
 """
 
 # Re-export everything from interfaces to maintain compatibility
-from .interfaces import ()
+from plexichat.infrastructure.modules.interfaces import (
     # Enums and types
     ModuleCapability,
     ModulePriority,
