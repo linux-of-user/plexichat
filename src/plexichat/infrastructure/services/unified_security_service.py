@@ -11,17 +11,10 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from app.services.advanced_ddos_service import enhanced_ddos_service
-from app.services.security_service import SecurityService
-from app.utils.rate_limiting import rate_limiter
-
-
-from pathlib import Path
-
-
-from pathlib import Path
-
-from plexichat.antivirus.core.message_scanner import MessageAntivirusScanner
+from plexichat.infrastructure.services.advanced_ddos_service import enhanced_ddos_service
+from plexichat.core.security.comprehensive_security_manager import SecurityService
+from plexichat.infrastructure.utils.rate_limiting import rate_limiter
+from plugins.advanced_antivirus.core.message_scanner import MessageAntivirusScanner
 
 """
 import time
@@ -34,13 +27,13 @@ Coordinates all security systems including:
 - Input validation and sanitization
 - Threat intelligence and reporting
 - Security metrics and monitoring
-
+"""
 
 logger = logging.getLogger(__name__)
 
 class SecurityAction(Enum):
     """Security actions that can be taken."""
-        ALLOW = "allow"
+    ALLOW = "allow"
     WARN = "warn"
     BLOCK = "block"
     QUARANTINE = "quarantine"
@@ -59,8 +52,8 @@ class SecurityThreatType(Enum):
 
 @dataclass
 class SecurityAssessment:
-    """Comprehensive security assessment result.
-        request_id: str
+    """Comprehensive security assessment result."""
+    request_id: str
     client_ip: str
     user_id: Optional[str]
     endpoint: str
@@ -104,7 +97,7 @@ class UnifiedSecurityService:
     - Input validation
     - Threat intelligence
     """
-        def __init__(self):
+    def __init__(self):
         self.enabled = True
 
         # Initialize security services
@@ -190,7 +183,7 @@ class UnifiedSecurityService:
             ]
         }
 
-        logger.info(" Unified Security Service initialized")
+        logger.info("Unified Security Service initialized")
 
     def _initialize_security_services(self):
         """Initialize all security service components."""
@@ -202,8 +195,7 @@ class UnifiedSecurityService:
             self.security_service = None
 
         try:
-            self.message_scanner = MessageAntivirusScanner(from pathlib import Path)
-Path("data"))
+            self.message_scanner = MessageAntivirusScanner(Path("data"))
         except ImportError:
             logger.warning("Message antivirus scanner not available")
             self.message_scanner = None
@@ -220,7 +212,7 @@ Path("data"))
             logger.warning("Rate limiter not available")
             self.rate_limiter = None
 
-    async def assess_request_security(self,)
+    async def assess_request_security(self,
                                     request_data: Dict[str, Any],
                                     content: Optional[str] = None) -> SecurityAssessment:
         """
@@ -243,7 +235,7 @@ Path("data"))
         request_data.get('user_agent', '')
 
         # Create assessment object
-        assessment = SecurityAssessment()
+        assessment = SecurityAssessment(
             request_id=f"sec_{int(start_time.timestamp())}_{hash(client_ip) % 10000}",
             client_ip=client_ip,
             user_id=user_id,
@@ -275,13 +267,13 @@ Path("data"))
 
         # Log assessment if threat detected
         if assessment.threat_detected:
-            logger.warning(f"Security threat detected: {assessment.threat_type.value} ")
+            logger.warning(f"Security threat detected: {assessment.threat_type.value} "
                         f"from {client_ip} on {endpoint} "
                         f"(confidence: {assessment.confidence_score:.2f})")
 
         return assessment
 
-    async def _check_ddos_protection(self, assessment: SecurityAssessment,)
+    async def _check_ddos_protection(self, assessment: SecurityAssessment,
                                 request_data: Dict[str, Any]):
         """Check DDoS protection."""
         if not self.security_policy["ddos_protection"]["enabled"] or not self.ddos_service:
@@ -290,7 +282,7 @@ Path("data"))
         assessment.systems_checked.append("ddos_protection")
 
         try:
-            allowed, reason, metadata = await self.ddos_service.check_request()
+            allowed, reason, metadata = await self.ddos_service.check_request(
                 assessment.client_ip,
                 request_data.get('user_agent', ''),
                 assessment.endpoint,
@@ -315,7 +307,7 @@ Path("data"))
         except Exception as e:
             logger.error(f"DDoS protection check failed: {e}")
 
-    async def _check_rate_limiting(self, assessment: SecurityAssessment,)
+    async def _check_rate_limiting(self, assessment: SecurityAssessment,
                                 request_data: Dict[str, Any]):
         """Check rate limiting."""
         if not self.security_policy["rate_limiting"]["enabled"] or not self.rate_limiter:
@@ -326,7 +318,7 @@ Path("data"))
         try:
             # Check rate limit
             rate_limit_key = f"ip:{assessment.client_ip}"
-            allowed = self.rate_limiter.check_rate_limit()
+            allowed = self.rate_limiter.check_rate_limit(
                 key=rate_limit_key,
                 max_attempts=100,  # Default limit
                 window_minutes=1,
@@ -350,7 +342,7 @@ Path("data"))
         except Exception as e:
             logger.error(f"Rate limiting check failed: {e}")
 
-    async def _check_sql_injection(self, assessment: SecurityAssessment,)
+    async def _check_sql_injection(self, assessment: SecurityAssessment,
                                 content: str, client_ip: str):
         """Check for SQL injection."""
         if not self.security_policy["sql_injection"]["enabled"] or not self.security_service:
@@ -378,7 +370,7 @@ Path("data"))
         except Exception as e:
             logger.error(f"SQL injection check failed: {e}")
 
-    async def _check_antivirus(self, assessment: SecurityAssessment,)
+    async def _check_antivirus(self, assessment: SecurityAssessment,
                             content: str, request_data: Dict[str, Any]):
         """Check antivirus scanning."""
         if not self.security_policy["antivirus"]["enabled"] or not self.message_scanner:
@@ -387,7 +379,7 @@ Path("data"))
         assessment.systems_checked.append("antivirus")
 
         try:
-            scan_result = await self.message_scanner.scan_message()
+            scan_result = await self.message_scanner.scan_message(
                 content,
                 sender_info={"ip": assessment.client_ip, "user_agent": request_data.get('user_agent', '')}
             )
@@ -452,7 +444,7 @@ Path("data"))
     def _correlate_threats(self, assessment: SecurityAssessment):
         """Correlate threat results and determine final action."""
         # If multiple systems detected threats, escalate
-        threat_systems = sum(1 for system in assessment.systems_checked)
+        threat_systems = sum(1 for system in assessment.systems_checked
                         if getattr(assessment, f"{system}_result", {}).get("detected") or
                             getattr(assessment, f"{system}_result", {}).get("threat_level", 0) > 0)
 
@@ -468,7 +460,7 @@ Path("data"))
 
     def _get_witty_response(self, threat_type: SecurityThreatType) -> str:
         """Get a witty response for the threat type."""
-        responses = self.witty_responses.get(threat_type, ["Security violation detected! "])
+        responses = self.witty_responses.get(threat_type, ["Security violation detected!"])
         return random.choice(responses)
 
     def get_security_status(self) -> Dict[str, Any]:
@@ -480,7 +472,7 @@ Path("data"))
                 "message_scanner": self.message_scanner is not None,
                 "ddos_service": self.ddos_service is not None,
                 "rate_limiter": self.rate_limiter is not None
-            }},
+            },
             "policy": self.security_policy,
             "timestamp": datetime.now(timezone.utc).isoformat()
         }
@@ -499,7 +491,7 @@ Path("data"))
             return {
                 "status": "allowed",
                 "message": "Request processed successfully"
-            }}
+            }
 
         # Generate response based on recommended action
         if assessment.recommended_action == SecurityAction.ALLOW:
@@ -507,7 +499,7 @@ Path("data"))
                 "status": "allowed",
                 "message": "Request allowed with warnings",
                 "warnings": [assessment.threat_type.value]
-            }}
+            }
 
         elif assessment.recommended_action == SecurityAction.WARN:
             return {
@@ -516,7 +508,7 @@ Path("data"))
                 "threat_type": assessment.threat_type.value,
                 "witty_response": assessment.witty_response,
                 "confidence": assessment.confidence_score
-            }}
+            }
 
         elif assessment.recommended_action in [SecurityAction.BLOCK, SecurityAction.QUARANTINE]:
             response = {
@@ -542,18 +534,18 @@ Path("data"))
                 "status": "escalated",
                 "error": "Critical Security Violation",
                 "message": "Request escalated to security team",
-                "witty_response": " Security team has been notified! This incident will be reported!",
+                "witty_response": "Security team has been notified! This incident will be reported!",
                 "threat_level": assessment.threat_level,
                 "confidence": assessment.confidence_score,
                 "request_id": assessment.request_id
-            }}
+            }
 
         # Default response
         return {
             "status": "blocked",
             "error": "Security Violation",
             "message": "Request blocked by security systems"
-        }}
+        }
 
 # Global unified security service
 unified_security_service = UnifiedSecurityService()

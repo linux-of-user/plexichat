@@ -12,15 +12,16 @@ import logging
 import re
 import secrets
 import string
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Union
+import bcrypt
 
 logger = logging.getLogger(__name__)
 
 class ValidationUtils:
-    """Common validation utilities.
-        @staticmethod
+    """Common validation utilities."""
+    @staticmethod
     def validate_email(email: str) -> bool:
         """Validate email format."""
         pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
@@ -28,7 +29,7 @@ class ValidationUtils:
 
     @staticmethod
     def validate_username(username: str, min_length: int = 3, max_length: int = 20) -> Dict[str, Any]:
-        Validate username format."""
+        """Validate username format."""
         errors = []
 
         if len(username) < min_length:
@@ -74,22 +75,21 @@ class ValidationUtils:
         }
 
 class SecurityUtils:
-    """Common security utilities.
-        @staticmethod
+    """Common security utilities."""
+    @staticmethod
     def generate_secure_token(length: int = 32) -> str:
         """Generate secure random token."""
         return secrets.token_urlsafe(length)
 
     @staticmethod
     def hash_password(password: str, salt: Optional[str] = None) -> Dict[str, str]:
-        
+        """
         Hash password using secure bcrypt algorithm.
 
         SECURITY WARNING: Previous SHA256 implementation was insecure.
         This now uses bcrypt with proper salt and work factor.
         """
         try:
-            import bcrypt
             # Generate salt and hash password
             if salt is None:
                 bcrypt_salt = bcrypt.gensalt(rounds=12)
@@ -138,7 +138,6 @@ class SecurityUtils:
                 return computed_hash.hex() == stored_hash
             elif hashed.startswith('$2b$') or hashed.startswith('$2a$') or hashed.startswith('$2y$'):
                 # bcrypt format
-                import bcrypt
                 return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
             else:
                 # Legacy format - check if salt is provided
@@ -173,19 +172,19 @@ class SecurityUtils:
 
     @staticmethod
     def generate_csrf_token() -> str:
-        """Generate CSRF token.
+        """Generate CSRF token."""
         return secrets.token_hex(32)
 
 class DateTimeUtils:
     """Common datetime utilities."""
-        @staticmethod
+    @staticmethod
     def now_iso() -> str:
-        Get current datetime in ISO format."""
-        return datetime.now().isoformat()
+        """Get current datetime in ISO format."""
+        return datetime.now(timezone.utc).isoformat()
 
     @staticmethod
     def parse_iso(iso_string: str) -> Optional[datetime]:
-        """Parse ISO datetime string.
+        """Parse ISO datetime string."""
         try:
             return datetime.fromisoformat(iso_string.replace('Z', '+00:00'))
         except (ValueError, AttributeError):
@@ -194,10 +193,7 @@ class DateTimeUtils:
     @staticmethod
     def format_relative_time(dt: datetime) -> str:
         """Format datetime as relative time (e.g., '2 hours ago')."""
-        now = datetime.now()
-        if dt.tzinfo is not None:
-            now = now.replace(tzinfo=dt.tzinfo)
-
+        now = datetime.now(dt.tzinfo)
         diff = now - dt
 
         if diff.days > 0:
@@ -213,18 +209,15 @@ class DateTimeUtils:
 
     @staticmethod
     def is_expired(dt: datetime, ttl_seconds: int) -> bool:
-        """Check if datetime is expired based on TTL.
-        now = datetime.now()
-        if dt.tzinfo is not None:
-            now = now.replace(tzinfo=dt.tzinfo)
-
+        """Check if datetime is expired based on TTL."""
+        now = datetime.now(dt.tzinfo)
         return (now - dt).total_seconds() > ttl_seconds
 
 class FileUtils:
     """Common file utilities."""
-        @staticmethod
+    @staticmethod
     def ensure_directory(path: Union[str, Path]) -> Path:
-        Ensure directory exists."""
+        """Ensure directory exists."""
         path = Path(path)
         path.mkdir(parents=True, exist_ok=True)
         return path
@@ -272,7 +265,7 @@ class FileUtils:
 
 class ResponseUtils:
     """Common API response utilities."""
-        @staticmethod
+    @staticmethod
     def success_response(data: Optional[Any] = None, message: str = "Success") -> Dict[str, Any]:
         """Create success response."""
         response = {
@@ -325,9 +318,9 @@ class ResponseUtils:
 
 class LoggingUtils:
     """Common logging utilities."""
-        @staticmethod
+    @staticmethod
     def setup_logger(name: str, level: str = "INFO", format_string: Optional[str] = None) -> logging.Logger:
-        """Setup logger with common configuration.
+        """Setup logger with common configuration."""
         logger = logging.getLogger(name)
         logger.setLevel(getattr(logging, level.upper()))
 
@@ -355,8 +348,8 @@ class LoggingUtils:
             logger.debug(f"Performance: {func_name} took {duration:.3f}s")
 
 class AsyncUtils:
-    """Common async utilities.
-        @staticmethod
+    """Common async utilities."""
+    @staticmethod
     async def run_with_timeout(coro, timeout: float):
         """Run coroutine with timeout."""
         try:
@@ -367,7 +360,7 @@ class AsyncUtils:
 
     @staticmethod
     async def retry_async(coro_func: Callable, max_retries: int = 3, delay: float = 1.0, backoff: float = 2.0):
-        """Retry async function with exponential backoff.
+        """Retry async function with exponential backoff."""
         last_exception = None
 
         for attempt in range(max_retries):
@@ -378,7 +371,8 @@ class AsyncUtils:
                 if attempt < max_retries - 1:
                     await asyncio.sleep(delay * (backoff ** attempt))
 
-        raise last_exception
+        if last_exception:
+            raise last_exception
 
     @staticmethod
     async def gather_with_concurrency(tasks: List, max_concurrent: int = 10):
@@ -392,29 +386,29 @@ class AsyncUtils:
         return await asyncio.gather(*[controlled_task(task) for task in tasks])
 
 def monitor_performance(logger: Optional[logging.Logger] = None):
-    Decorator to monitor function performance."""
+    """Decorator to monitor function performance."""
     def decorator(func):
         def wrapper(*args, **kwargs):
-            start_time = datetime.now()
+            start_time = datetime.now(timezone.utc)
             try:
                 result = func(*args, **kwargs)
-                duration = (datetime.now() - start_time).total_seconds()
+                duration = (datetime.now(timezone.utc) - start_time).total_seconds()
                 LoggingUtils.log_performance(func.__name__, duration, logger)
                 return result
             except Exception:
-                duration = (datetime.now() - start_time).total_seconds()
+                duration = (datetime.now(timezone.utc) - start_time).total_seconds()
                 LoggingUtils.log_performance(f"{func.__name__} (error)", duration, logger)
                 raise
 
         async def async_wrapper(*args, **kwargs):
-            start_time = datetime.now()
+            start_time = datetime.now(timezone.utc)
             try:
                 result = await func(*args, **kwargs)
-                duration = (datetime.now() - start_time).total_seconds()
+                duration = (datetime.now(timezone.utc) - start_time).total_seconds()
                 LoggingUtils.log_performance(func.__name__, duration, logger)
                 return result
             except Exception:
-                duration = (datetime.now() - start_time).total_seconds()
+                duration = (datetime.now(timezone.utc) - start_time).total_seconds()
                 LoggingUtils.log_performance(f"{func.__name__} (error)", duration, logger)
                 raise
 

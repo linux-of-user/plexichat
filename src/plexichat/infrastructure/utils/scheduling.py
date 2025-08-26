@@ -6,7 +6,7 @@
 import logging
 import traceback
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Callable
 import time
 
 try:
@@ -37,8 +37,8 @@ class Settings:
 settings = Settings()
 
 class TaskScheduler:
-    """Advanced task scheduling with monitoring and error handling.
-        def __init__(self):
+    """Advanced task scheduling with monitoring and error handling."""
+    def __init__(self):
         self.scheduler = None
         self.tasks = {}
         self.running = False
@@ -69,7 +69,7 @@ class TaskScheduler:
             except Exception as e:
                 logger.error(f"Error stopping task scheduler: {e}")
 
-    def add_task(self, task_id: str, func, trigger: str = 'interval',
+    def add_task(self, task_id: str, func: Callable, trigger: str = 'interval',
                 minutes: int = 5, **kwargs):
         """Add a scheduled task."""
         if not self.running or not self.scheduler:
@@ -121,7 +121,7 @@ class TaskScheduler:
                     "status": "SCHEDULED",
                     "next_run": job.next_run_time.isoformat() if job.next_run_time else None,
                     "trigger": str(job.trigger)
-                }}
+                }
             else:
                 return {"status": "NOT_FOUND"}
         except Exception as e:
@@ -146,12 +146,12 @@ class TaskScheduler:
                 "status": "RUNNING",
                 "task_count": len(jobs),
                 "tasks": task_status
-            }}
+            }
         except Exception as e:
             return {"status": "ERROR", "error": str(e)}
 
-def schedule_task(func, trigger: str = 'interval', minutes: int = 5, **kwargs):
-    """Decorator to schedule a function as a task.
+def schedule_task(func: Callable, trigger: str = 'interval', minutes: int = 5, **kwargs):
+    """Decorator to schedule a function as a task."""
     def decorator(func):
         # This would be implemented based on your scheduler setup
         return func
@@ -206,7 +206,7 @@ def run_comprehensive_self_tests() -> Dict[str, Any]:
             "success_rate": success_rate,
             "failure_count": _failure_count,
             "last_success": _last_success_time.isoformat() + "Z" if _last_success_time else None
-        }}
+        }
 
     except Exception as e:
         _failure_count += 1
@@ -223,7 +223,7 @@ def run_comprehensive_self_tests() -> Dict[str, Any]:
             "status": "ERROR",
             "error_details": error_details,
             "timestamp": start_time.isoformat() + "Z"
-        }}
+        }
 
 def _job_listener(event):
     """Listen to scheduler job events for monitoring."""
@@ -333,7 +333,7 @@ def get_scheduler_status() -> Dict[str, Any]:
             "last_success": _last_success_time.isoformat() + "Z" if _last_success_time else None,
             "interval_minutes": settings.SELFTEST_INTERVAL_MINUTES,
             "job_count": len(jobs)
-        }}
+        }
 
     except Exception as e:
         return {"status": "ERROR", "message": str(e)}

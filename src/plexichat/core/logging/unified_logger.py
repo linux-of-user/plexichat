@@ -26,7 +26,7 @@ from pathlib import Path
 
 # Core imports
 try:
-    from ..config import get_config as _get_unified_config  # type: ignore
+    from plexichat.core.config import get_config as _get_unified_config  # type: ignore
 
     def get_config() -> Any:
         """Wrapper to provide a config object without requiring a key parameter."""

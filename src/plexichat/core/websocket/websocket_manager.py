@@ -63,9 +63,6 @@ class CacheKeyBuilder:
     def build(self, *args, **kwargs):
         return "cache_key"
 
-class PerformanceOptimizationEngine:
-    def optimize(self, *args, **kwargs):
-        pass
 def get_performance_logger():
     return PerformanceLogger()
 

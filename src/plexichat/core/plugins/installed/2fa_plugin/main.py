@@ -12,7 +12,7 @@ import string
 from datetime import datetime, timedelta, timezone
 from typing import Dict, Any, Optional
 
-from ..plugins_internal import PluginInterface
+from plexichat.core.plugins.sdk import PluginInterface
 from fastapi import APIRouter, HTTPException, Request
 
 logger = logging.getLogger(__name__)
@@ -26,22 +26,24 @@ class TwoFactorAuthPlugin(PluginInterface):
     """
     Example 2FA plugin for PlexiChat. Provides endpoints to enable, verify, and manage 2FA for users.
     """
-        def __init__(self):
+    def __init__(self):
         super().__init__(name="2FAPlugin", version="1.0.0")
         self.router = router
 
     async def _plugin_initialize(self) -> bool:
+        """Initializes the 2FA plugin."""
         logger.info("Initializing 2FA Plugin...")
         # Register endpoints, setup config, etc.
         return True
 
     def get_metadata(self):
+        """Returns the plugin's metadata."""
         return {
             "name": "2FA Plugin",
             "version": "1.0.0",
             "description": "Provides two-factor authentication endpoints for users.",
             "plugin_type": "security"
-        }}
+        }
 
 # --- 2FA Endpoints ---
 

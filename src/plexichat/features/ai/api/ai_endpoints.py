@@ -24,7 +24,7 @@ except ImportError:
     APIRouter = None
     HTTPException = None
 
-from ..core.ai_abstraction_layer import (
+from plexichat.features.ai.core.ai_abstraction_layer import (
     AIAbstractionLayer,
     AIModel,
     AIProvider,
@@ -33,7 +33,7 @@ from ..core.ai_abstraction_layer import (
     ModelCapability,
     ModelStatus,
 )
-from ..ai_coordinator import AICoordinator
+from plexichat.features.ai.ai_coordinator import AICoordinator
 
 logger = logging.getLogger(__name__)
 

@@ -9,37 +9,27 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set
-
-import yaml
-
-from ..ai import get_ai_manager
-from ..core.logging import get_logger
-from .base_service import BaseService, ServiceState
-
-from pathlib import Path
-from pathlib import Path
-from pathlib import Path
-from pathlib import Path
-
-from pathlib import Path
-from pathlib import Path
-from pathlib import Path
-from pathlib import Path
-
-"""
+from typing import Any, Dict, List, Optional, Set, Tuple
 import time
-PlexiChat Advanced Communication Service
+import yaml
+import logging
 
-Enhanced communication features including voice messages, reactions,
-thread management, translation, and AI-powered smart notifications.
-
+# Placeholder imports for dependencies
+def get_ai_manager(): return None
+def get_logger(name): return logging.getLogger(name)
+class BaseService:
+    def __init__(self, name):
+        self.name = name
+        self.logger = logging.getLogger(name)
+    async def start(self): pass
+    async def stop(self): pass
+    async def get_health_status(self): return {}
 
 logger = get_logger(__name__)
 
 class MessageType(Enum):
     """Message types for advanced communication."""
-        TEXT = "text"
+    TEXT = "text"
     VOICE = "voice"
     IMAGE = "image"
     FILE = "file"
@@ -50,18 +40,18 @@ class MessageType(Enum):
 
 class ReactionType(Enum):
     """Available reaction types."""
-    LIKE = ""
-    LOVE = ""
-    LAUGH = ""
-    WOW = ""
-    SAD = ""
-    ANGRY = ""
-    CELEBRATE = ""
-    THUMBS_DOWN = ""
+    LIKE = "like"
+    LOVE = "love"
+    LAUGH = "laugh"
+    WOW = "wow"
+    SAD = "sad"
+    ANGRY = "angry"
+    CELEBRATE = "celebrate"
+    THUMBS_DOWN = "thumbs_down"
 
 class NotificationPriority(Enum):
     """Notification priority levels."""
-        LOW = "low"
+    LOW = "low"
     NORMAL = "normal"
     HIGH = "high"
     URGENT = "urgent"
@@ -74,8 +64,8 @@ class ThreadStatus(Enum):
 
 @dataclass
 class VoiceMessage:
-    """Voice message data structure.
-        message_id: str
+    """Voice message data structure."""
+    message_id: str
     user_id: str
     chat_id: str
     file_path: str
@@ -88,7 +78,7 @@ class VoiceMessage:
 @dataclass
 class MessageReaction:
     """Message reaction data structure."""
-        reaction_id: str
+    reaction_id: str
     message_id: str
     user_id: str
     reaction_type: ReactionType
@@ -96,8 +86,8 @@ class MessageReaction:
 
 @dataclass
 class MessageThread:
-    Message thread data structure."""
-        thread_id: str
+    """Message thread data structure."""
+    thread_id: str
     parent_message_id: str
     chat_id: str
     title: Optional[str] = None
@@ -110,8 +100,8 @@ class MessageThread:
 
 @dataclass
 class TranslationRequest:
-    """Translation request data structure.
-        request_id: str
+    """Translation request data structure."""
+    request_id: str
     message_id: str
     user_id: str
     source_language: str
@@ -125,7 +115,7 @@ class TranslationRequest:
 @dataclass
 class SmartNotification:
     """Smart notification data structure."""
-        notification_id: str
+    notification_id: str
     user_id: str
     message_id: str
     chat_id: str
@@ -141,13 +131,12 @@ class SmartNotification:
     expires_at: Optional[datetime] = None
 
 class CommunicationService(BaseService):
-    Advanced communication service with enhanced features."""
-        def __init__(self, config_path: Optional[Path] = None):
+    """Advanced communication service with enhanced features."""
+    def __init__(self, config_path: Optional[Path] = None):
         super().__init__("communication")
 
         # Configuration management
-        self.config_path = config_path or from pathlib import Path
-Path("config/communication.yaml")
+        self.config_path = config_path or Path("config/communication.yaml")
 
         # Storage for communication data
         self.voice_messages: Dict[str, VoiceMessage] = {}
@@ -159,142 +148,11 @@ Path("config/communication.yaml")
         # AI manager for smart features
         self.ai_manager = None
 
-        # Configuration (will be loaded from config service)
-        self.config = {
-            # Voice Message Settings
-            "voice_messages": {
-                "enabled": True,
-                "storage_path": "data/voice_messages",
-                "max_duration_seconds": 300,
-                "max_file_size_mb": 50,
-                "auto_transcription": True,
-                "transcription_language": "auto",
-                "compression_enabled": True,
-                "compression_quality": 0.8,
-                "allowed_formats": ["wav", "mp3", "ogg", "m4a"],
-                "cleanup_after_days": 90
-            },
-
-            # Message Reactions Settings
-            "reactions": {
-                "enabled": True,
-                "max_reactions_per_message": 50,
-                "max_reactions_per_user": 10,
-                "custom_reactions_enabled": True,
-                "reaction_analytics": True,
-                "rate_limit_per_minute": 30
-            },
-
-            # Thread Management Settings
-            "threads": {
-                "enabled": True,
-                "max_thread_depth": 5,
-                "max_participants": 100,
-                "auto_archive_after_days": 30,
-                "thread_notifications": True,
-                "thread_search_enabled": True,
-                "max_threads_per_message": 3
-            },
-
-            # Translation Settings
-            "translation": {
-                "enabled": True,
-                "supported_languages": ["en", "es", "fr", "de", "it", "pt", "ru", "zh", "ja", "ko", "ar", "hi", "tr", "pl", "nl"],
-                "auto_detect_language": True,
-                "translation_provider": "openai",  # openai, google, azure, aws
-                "fallback_providers": ["google", "azure"],
-                "cache_translations": True,
-                "cache_duration_hours": 24,
-                "confidence_threshold": 0.7,
-                "rate_limit_per_hour": 1000,
-                "batch_translation_enabled": True
-            },
-
-            # Smart Notifications Settings
-            "notifications": {
-                "enabled": True,
-                "ai_analysis_enabled": True,
-                "priority_adjustment": True,
-                "smart_scheduling": True,
-                "digest_notifications": True,
-                "digest_frequency_hours": 4,
-                "max_notifications_per_user": 1000,
-                "notification_retention_days": 30,
-                "push_notifications": True,
-                "email_notifications": True,
-                "sms_notifications": False,
-                "quiet_hours_start": "22:00",
-                "quiet_hours_end": "08:00",
-                "weekend_quiet_mode": False
-            },
-
-            # AI Integration Settings
-            "ai_features": {
-                "enabled": True,
-                "sentiment_analysis": True,
-                "content_moderation": True,
-                "smart_replies": True,
-                "message_summarization": True,
-                "topic_detection": True,
-                "language_detection": True,
-                "spam_detection": True,
-                "ai_provider": "openai",
-                "fallback_providers": ["anthropic", "google"],
-                "confidence_threshold": 0.8,
-                "rate_limit_per_minute": 100
-            },
-
-            # Security & Privacy Settings
-            "security": {
-                "message_encryption": True,
-                "end_to_end_encryption": True,
-                "message_retention_days": 365,
-                "auto_delete_sensitive": True,
-                "audit_logging": True,
-                "rate_limiting": True,
-                "ip_whitelisting": False,
-                "allowed_ips": [],
-                "blocked_ips": [],
-                "content_filtering": True,
-                "profanity_filter": True,
-                "link_scanning": True,
-                "file_scanning": True
-            },
-
-            # Performance Settings
-            "performance": {
-                "max_concurrent_operations": 1000,
-                "cache_size_mb": 512,
-                "background_processing": True,
-                "batch_processing": True,
-                "compression_enabled": True,
-                "cdn_enabled": False,
-                "cdn_provider": "",
-                "load_balancing": False,
-                "auto_scaling": False,
-                "metrics_collection": True
-            },
-
-            # Integration Settings
-            "integrations": {
-                "webhook_notifications": False,
-                "webhook_url": "",
-                "webhook_secret": "",
-                "external_storage": False,
-                "storage_provider": "local",  # local, s3, azure, gcp
-                "storage_config": {},
-                "third_party_apis": {},
-                "plugin_support": True,
-                "custom_handlers": True
-            }
-        }
-
         # Load configuration from file or use defaults
         self.config = self._load_configuration()
 
         # Configuration-derived properties
-        from pathlib import Path
-self.voice_storage_path = Path(self.config["voice_messages"]["storage_path"])
+        self.voice_storage_path = Path(self.config["voice_messages"]["storage_path"])
         self.max_voice_duration = self.config["voice_messages"]["max_duration_seconds"]
         self.supported_languages = self.config["translation"]["supported_languages"]
 
@@ -305,7 +163,7 @@ self.voice_storage_path = Path(self.config["voice_messages"]["storage_path"])
     def _load_configuration(self) -> Dict[str, Any]:
         """Load configuration from YAML file or return defaults."""
         try:
-            if self.config_path.exists() if self.config_path else False:
+            if self.config_path and self.config_path.exists():
                 with open(self.config_path, 'r', encoding='utf-8') as f:
                     loaded_config = yaml.safe_load(f)
                     if loaded_config:
@@ -325,140 +183,64 @@ self.voice_storage_path = Path(self.config["voice_messages"]["storage_path"])
     def _get_default_configuration(self) -> Dict[str, Any]:
         """Get default configuration."""
         return {
-            # Voice Message Settings
             "voice_messages": {
-                "enabled": True,
-                "storage_path": "data/voice_messages",
-                "max_duration_seconds": 300,
-                "max_file_size_mb": 50,
-                "auto_transcription": True,
-                "transcription_language": "auto",
-                "compression_enabled": True,
-                "compression_quality": 0.8,
-                "allowed_formats": ["wav", "mp3", "ogg", "m4a"],
-                "cleanup_after_days": 90
-            }},
-
-            # Message Reactions Settings
+                "enabled": True, "storage_path": "data/voice_messages", "max_duration_seconds": 300,
+                "max_file_size_mb": 50, "auto_transcription": True, "transcription_language": "auto",
+                "compression_enabled": True, "compression_quality": 0.8,
+                "allowed_formats": ["wav", "mp3", "ogg", "m4a"], "cleanup_after_days": 90
+            },
             "reactions": {
-                "enabled": True,
-                "max_reactions_per_message": 50,
-                "max_reactions_per_user": 10,
-                "custom_reactions_enabled": True,
-                "reaction_analytics": True,
-                "rate_limit_per_minute": 30
+                "enabled": True, "max_reactions_per_message": 50, "max_reactions_per_user": 10,
+                "custom_reactions_enabled": True, "reaction_analytics": True, "rate_limit_per_minute": 30
             },
-
-            # Thread Management Settings
             "threads": {
-                "enabled": True,
-                "max_thread_depth": 5,
-                "max_participants": 100,
-                "auto_archive_after_days": 30,
-                "thread_notifications": True,
-                "thread_search_enabled": True,
-                "max_threads_per_message": 3
+                "enabled": True, "max_thread_depth": 5, "max_participants": 100,
+                "auto_archive_after_days": 30, "thread_notifications": True,
+                "thread_search_enabled": True, "max_threads_per_message": 3
             },
-
-            # Translation Settings
             "translation": {
-                "enabled": True,
-                "supported_languages": ["en", "es", "fr", "de", "it", "pt", "ru", "zh", "ja", "ko", "ar", "hi", "tr", "pl", "nl"],
-                "auto_detect_language": True,
-                "translation_provider": "openai",
-                "fallback_providers": ["google", "azure"],
-                "cache_translations": True,
-                "cache_duration_hours": 24,
-                "confidence_threshold": 0.7,
-                "rate_limit_per_hour": 1000,
-                "batch_translation_enabled": True
+                "enabled": True, "supported_languages": ["en", "es", "fr", "de", "it", "pt", "ru", "zh", "ja", "ko", "ar", "hi", "tr", "pl", "nl"],
+                "auto_detect_language": True, "translation_provider": "openai",
+                "fallback_providers": ["google", "azure"], "cache_translations": True,
+                "cache_duration_hours": 24, "confidence_threshold": 0.7,
+                "rate_limit_per_hour": 1000, "batch_translation_enabled": True
             },
-
-            # Smart Notifications Settings
             "notifications": {
-                "enabled": True,
-                "ai_analysis_enabled": True,
-                "priority_adjustment": True,
-                "smart_scheduling": True,
-                "digest_notifications": True,
-                "digest_frequency_hours": 4,
-                "max_notifications_per_user": 1000,
-                "notification_retention_days": 30,
-                "push_notifications": True,
-                "email_notifications": True,
-                "sms_notifications": False,
-                "quiet_hours_start": "22:00",
-                "quiet_hours_end": "08:00",
-                "weekend_quiet_mode": False
+                "enabled": True, "ai_analysis_enabled": True, "priority_adjustment": True,
+                "smart_scheduling": True, "digest_notifications": True, "digest_frequency_hours": 4,
+                "max_notifications_per_user": 1000, "notification_retention_days": 30,
+                "push_notifications": True, "email_notifications": True, "sms_notifications": False,
+                "quiet_hours_start": "22:00", "quiet_hours_end": "08:00", "weekend_quiet_mode": False
             },
-
-            # AI Features Settings
             "ai_features": {
-                "enabled": True,
-                "sentiment_analysis": True,
-                "content_moderation": True,
-                "smart_replies": True,
-                "message_summarization": True,
-                "language_detection": True,
-                "spam_detection": True,
-                "ai_provider": "openai",
-                "fallback_providers": ["anthropic", "google"],
-                "confidence_threshold": 0.8,
-                "rate_limit_per_hour": 5000,
-                "cache_ai_responses": True,
+                "enabled": True, "sentiment_analysis": True, "content_moderation": True,
+                "smart_replies": True, "message_summarization": True, "language_detection": True,
+                "spam_detection": True, "ai_provider": "openai", "fallback_providers": ["anthropic", "google"],
+                "confidence_threshold": 0.8, "rate_limit_per_hour": 5000, "cache_ai_responses": True,
                 "cache_duration_hours": 12
             },
-
-            # Security Settings
             "security": {
-                "message_encryption": True,
-                "end_to_end_encryption": True,
-                "content_filtering": True,
-                "audit_logging": True,
-                "rate_limiting": True,
-                "ip_whitelisting": False,
-                "user_verification": True,
-                "message_retention_days": 365,
-                "auto_delete_sensitive": True,
+                "message_encryption": True, "end_to_end_encryption": True, "content_filtering": True,
+                "audit_logging": True, "rate_limiting": True, "ip_whitelisting": False,
+                "user_verification": True, "message_retention_days": 365, "auto_delete_sensitive": True,
                 "encryption_algorithm": "AES-256-GCM"
             },
-
-            # Performance Settings
             "performance": {
-                "max_concurrent_operations": 1000,
-                "cache_size_mb": 512,
-                "batch_processing": True,
-                "auto_scaling": True,
-                "connection_pooling": True,
-                "compression_enabled": True,
-                "cdn_enabled": False,
-                "metrics_collection": True,
-                "performance_monitoring": True,
-                "resource_limits": {
-                    "max_memory_mb": 2048,
-                    "max_cpu_percent": 80,
-                    "max_disk_mb": 10240
-                }
+                "max_concurrent_operations": 1000, "cache_size_mb": 512, "batch_processing": True,
+                "auto_scaling": True, "connection_pooling": True, "compression_enabled": True,
+                "cdn_enabled": False, "metrics_collection": True, "performance_monitoring": True,
+                "resource_limits": {"max_memory_mb": 2048, "max_cpu_percent": 80, "max_disk_mb": 10240}
             },
-
-            # Integration Settings
             "integrations": {
-                "webhooks_enabled": True,
-                "external_storage": False,
-                "third_party_apis": {},
-                "plugin_support": True,
-                "custom_handlers": True,
-                "api_rate_limits": {
-                    "requests_per_minute": 1000,
-                    "burst_limit": 100
-                },
-                "storage_config": {},
-                "notification_services": []
+                "webhooks_enabled": True, "external_storage": False, "third_party_apis": {},
+                "plugin_support": True, "custom_handlers": True,
+                "api_rate_limits": {"requests_per_minute": 1000, "burst_limit": 100},
+                "storage_config": {}, "notification_services": []
             }
         }
 
     def _deep_merge_config(self, base: Dict[str, Any], update: Dict[str, Any]) -> Dict[str, Any]:
-        """Deep merge configuration dictionaries.
+        """Deep merge configuration dictionaries."""
         result = base.copy()
 
         for key, value in update.items():
@@ -473,13 +255,14 @@ self.voice_storage_path = Path(self.config["voice_messages"]["storage_path"])
         """Save current configuration to YAML file."""
         try:
             # Ensure config directory exists
-            self.config_path.parent.mkdir(parents=True, exist_ok=True)
+            if self.config_path:
+                self.config_path.parent.mkdir(parents=True, exist_ok=True)
 
-            # Save configuration to YAML file
-            with open(self.config_path, 'w', encoding='utf-8') as f:
-                yaml.dump(self.config, f, default_flow_style=False, indent=2, sort_keys=True)
+                # Save configuration to YAML file
+                with open(self.config_path, 'w', encoding='utf-8') as f:
+                    yaml.dump(self.config, f, default_flow_style=False, indent=2, sort_keys=True)
 
-            logger.info(f"Configuration saved to {self.config_path}")
+                logger.info(f"Configuration saved to {self.config_path}")
             return True
 
         except Exception as e:
@@ -585,12 +368,12 @@ self.voice_storage_path = Path(self.config["voice_messages"]["storage_path"])
             logger.error(f"Failed to transcribe voice message {message_id}: {e}")
 
     async def get_voice_message(self, message_id: str) -> Optional[VoiceMessage]:
-        """Get voice message by ID.
+        """Get voice message by ID."""
         return self.voice_messages.get(message_id)
 
     # Message Reaction Methods
 
-    async def add_reaction()
+    async def add_reaction(
         self,
         message_id: str,
         user_id: str,
@@ -605,7 +388,7 @@ self.voice_storage_path = Path(self.config["voice_messages"]["storage_path"])
                     raise ValueError("User already reacted with this type")
 
             # Create reaction
-            reaction = MessageReaction()
+            reaction = MessageReaction(
                 reaction_id=str(uuid.uuid4()),
                 message_id=message_id,
                 user_id=user_id,
@@ -642,12 +425,12 @@ self.voice_storage_path = Path(self.config["voice_messages"]["storage_path"])
             return False
 
     async def get_message_reactions(self, message_id: str) -> List[MessageReaction]:
-        """Get all reactions for a message.
+        """Get all reactions for a message."""
         return self.message_reactions.get(message_id, [])
 
     # Thread Management Methods
 
-    async def create_thread()
+    async def create_thread(
         self,
         parent_message_id: str,
         chat_id: str,
@@ -658,7 +441,7 @@ self.voice_storage_path = Path(self.config["voice_messages"]["storage_path"])
         try:
             thread_id = str(uuid.uuid4())
 
-            thread = MessageThread()
+            thread = MessageThread(
                 thread_id=thread_id,
                 parent_message_id=parent_message_id,
                 chat_id=chat_id,
@@ -711,7 +494,7 @@ self.voice_storage_path = Path(self.config["voice_messages"]["storage_path"])
             return False
 
     async def get_thread(self, thread_id: str) -> Optional[MessageThread]:
-        """Get thread by ID.
+        """Get thread by ID."""
         return self.message_threads.get(thread_id)
 
     async def get_chat_threads(self, chat_id: str) -> List[MessageThread]:
@@ -723,7 +506,7 @@ self.voice_storage_path = Path(self.config["voice_messages"]["storage_path"])
 
     # Translation Methods
 
-    async def translate_message()
+    async def translate_message(
         self,
         message_id: str,
         user_id: str,
@@ -738,7 +521,7 @@ self.voice_storage_path = Path(self.config["voice_messages"]["storage_path"])
 
             request_id = str(uuid.uuid4())
 
-            translation_request = TranslationRequest()
+            translation_request = TranslationRequest(
                 request_id=request_id,
                 message_id=message_id,
                 user_id=user_id,
@@ -767,7 +550,7 @@ self.voice_storage_path = Path(self.config["voice_messages"]["storage_path"])
                 return
 
             # Use AI to translate text
-            translated_text, confidence = await self.ai_manager.translate_text()
+            translated_text, confidence = await self.ai_manager.translate_text(
                 translation_request.original_text,
                 translation_request.target_language,
                 translation_request.source_language
@@ -784,12 +567,12 @@ self.voice_storage_path = Path(self.config["voice_messages"]["storage_path"])
             logger.error(f"Failed to perform translation {request_id}: {e}")
 
     async def get_translation(self, request_id: str) -> Optional[TranslationRequest]:
-        """Get translation by request ID.
+        """Get translation by request ID."""
         return self.translations.get(request_id)
 
     # Smart Notification Methods
 
-    async def create_smart_notification()
+    async def create_smart_notification(
         self,
         user_id: str,
         message_id: str,
@@ -802,7 +585,7 @@ self.voice_storage_path = Path(self.config["voice_messages"]["storage_path"])
         try:
             notification_id = str(uuid.uuid4())
 
-            notification = SmartNotification()
+            notification = SmartNotification(
                 notification_id=notification_id,
                 user_id=user_id,
                 message_id=message_id,
@@ -844,7 +627,7 @@ self.voice_storage_path = Path(self.config["voice_messages"]["storage_path"])
                 return
 
             # Use AI to analyze and summarize
-            analysis = await self.ai_manager.analyze_message_importance()
+            analysis = await self.ai_manager.analyze_message_importance(
                 notification.content,
                 notification.chat_id
             )
@@ -865,12 +648,12 @@ self.voice_storage_path = Path(self.config["voice_messages"]["storage_path"])
         except Exception as e:
             logger.error(f"Failed to analyze notification {notification_id}: {e}")
 
-    async def get_user_notifications()
+    async def get_user_notifications(
         self,
         user_id: str,
         unread_only: bool = False
     ) -> List[SmartNotification]:
-        """Get notifications for a user.
+        """Get notifications for a user."""
         notifications = self.notifications.get(user_id, [])
 
         if unread_only:
@@ -884,7 +667,7 @@ self.voice_storage_path = Path(self.config["voice_messages"]["storage_path"])
             NotificationPriority.LOW: 3
         }
 
-        return sorted()
+        return sorted(
             notifications,
             key=lambda n: (priority_order[n.priority], n.created_at),
             reverse=True
@@ -969,7 +752,7 @@ self.voice_storage_path = Path(self.config["voice_messages"]["storage_path"])
 
             for user_notifications in self.notifications.values():
                 for notification in user_notifications:
-                    if (notification.scheduled_for and )
+                    if (notification.scheduled_for and
                         notification.scheduled_for <= now and
                         not notification.delivered):
 
@@ -986,7 +769,7 @@ self.voice_storage_path = Path(self.config["voice_messages"]["storage_path"])
     # Configuration Management Methods
 
     async def get_configuration(self) -> Dict[str, Any]:
-        """Get current service configuration.
+        """Get current service configuration."""
         return self.config.copy()
 
     async def update_configuration(self, config_updates: Dict[str, Any]) -> bool:
@@ -996,8 +779,7 @@ self.voice_storage_path = Path(self.config["voice_messages"]["storage_path"])
             self.config = self._deep_merge_config(self.config, config_updates)
 
             # Update derived properties
-            from pathlib import Path
-self.voice_storage_path = Path(self.config["voice_messages"]["storage_path"])
+            self.voice_storage_path = Path(self.config["voice_messages"]["storage_path"])
             self.max_voice_duration = self.config["voice_messages"]["max_duration_seconds"]
             self.supported_languages = self.config["translation"]["supported_languages"]
 
@@ -1026,8 +808,7 @@ self.voice_storage_path = Path(self.config["voice_messages"]["storage_path"])
 
                 # Update derived properties if needed
                 if section == "voice_messages":
-                    from pathlib import Path
-self.voice_storage_path = Path(self.config["voice_messages"]["storage_path"])
+                    self.voice_storage_path = Path(self.config["voice_messages"]["storage_path"])
                     self.max_voice_duration = self.config["voice_messages"]["max_duration_seconds"]
                     self.voice_storage_path.mkdir(parents=True, exist_ok=True)
                 elif section == "translation":
@@ -1073,7 +854,7 @@ self.voice_storage_path = Path(self.config["voice_messages"]["storage_path"])
 
             if not isinstance(translation_config.get("supported_languages", []), list):
                 translation_issues.append("supported_languages must be a list")
-            if translation_config.get("confidence_threshold", 0) < 0 or translation_config.get("confidence_threshold", 0) > 1:
+            if not (0 <= translation_config.get("confidence_threshold", 0) <= 1):
                 translation_issues.append("confidence_threshold must be between 0 and 1")
 
             if translation_issues:
@@ -1104,7 +885,7 @@ self.voice_storage_path = Path(self.config["voice_messages"]["storage_path"])
                 "title": "Voice Messages",
                 "description": "Configuration for voice message features",
                 "properties": {
-                    "enabled": {"type": "boolean", "title": "Enable Voice Messages", "default": True}},
+                    "enabled": {"type": "boolean", "title": "Enable Voice Messages", "default": True},
                     "storage_path": {"type": "string", "title": "Storage Path", "default": "data/voice_messages"},
                     "max_duration_seconds": {"type": "integer", "title": "Max Duration (seconds)", "minimum": 1, "maximum": 3600, "default": 300},
                     "max_file_size_mb": {"type": "integer", "title": "Max File Size (MB)", "minimum": 1, "maximum": 500, "default": 50},
@@ -1185,15 +966,15 @@ self.voice_storage_path = Path(self.config["voice_messages"]["storage_path"])
 
         communication_health = {
             "voice_messages_count": len(self.voice_messages),
-            "active_threads_count": len([)
+            "active_threads_count": len([
                 t for t in self.message_threads.values()
                 if t.status == ThreadStatus.ACTIVE
             ]),
-            "pending_translations": len([)
+            "pending_translations": len([
                 t for t in self.translations.values()
                 if t.translated_text is None
             ]),
-            "unread_notifications": sum()
+            "unread_notifications": sum(
                 len([n for n in notifications if not n.read])
                 for notifications in self.notifications.values()
             ),
@@ -1223,7 +1004,8 @@ async def get_communication_service() -> CommunicationService:
 
     if _communication_service is None:
         _communication_service = CommunicationService()
-        await if _communication_service and hasattr(_communication_service, "start"): _communication_service.start()
+        if _communication_service and hasattr(_communication_service, "start"):
+            await _communication_service.start()
 
     return _communication_service
 

@@ -1,38 +1,37 @@
-import sys, os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
+#!/usr/bin/env python3
+import sys
+import os
+import click
+import logging
+import json
+from typing import Dict, List, Any, Optional, Callable
+from pathlib import Path
+from datetime import datetime
+import time
+
 # pyright: reportArgumentType=false
 # pyright: reportCallIssue=false
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
-import click
-import logging
-import json
-import sys
-import os
-from typing import Dict, List, Any, Optional, Callable
-from pathlib import Path
-from datetime import datetime
 
-#!/usr/bin/env python3
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
 """
-import time
 Unified CLI Default Interface for PlexiChat
 ===========================================
 
 Default CLI interface that runs without subcommands.
 Provides 300+ commands in a unified interface that works
 in both terminal and web UI with identical functionality.
-
-
-
-# Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
+"""
 
 class UnifiedCLIDefault:
     """Unified CLI that runs as the default interface."""
-        def __init__(self):
+
+    def __init__(self):
         self.logger = logging.getLogger(__name__)
         self.commands = {}
         self.categories = {}
@@ -44,7 +43,7 @@ class UnifiedCLIDefault:
         self.initialize_commands()
 
     def initialize_categories(self):
-        Initialize command categories."""
+        """Initialize command categories."""
         self.categories = {
             "system": {
                 "description": "System management commands",
@@ -134,7 +133,7 @@ class UnifiedCLIDefault:
                     "bandwidth", "latency", "throughput", "load", "balancing", "failover",
                     "redundancy", "availability", "uptime", "downtime", "maintenance", "window",
                     "monitoring", "alerting", "logging", "tracing", "profiling", "debugging",
-                    "tcp", "udp", "http", "https", "ssl", "tls", "certificate"
+                    "tcp", "udp", "http", "httpss", "ssl", "tls", "certificate"
                 ]
             },
             "integration": {
@@ -164,7 +163,7 @@ class UnifiedCLIDefault:
         }
 
     def create_cli_group(self):
-        """Create the main CLI group.
+        """Create the main CLI group."""
         @click.group(invoke_without_command=True)
         @click.option('--verbose', '-v', is_flag=True, help='Enable verbose output')
         @click.option('--json', '-j', is_flag=True, help='Output in JSON format')
@@ -180,14 +179,12 @@ class UnifiedCLIDefault:
             if verbose:
                 logging.getLogger().setLevel(logging.DEBUG)
 
-            # If no subcommand is provided, show interactive mode
             if ctx.invoked_subcommand is None:
                 self.run_interactive_mode(ctx)
-
         return cli
 
     def run_interactive_mode(self, ctx):
-        Run interactive CLI mode."""
+        """Run interactive CLI mode."""
         print("=== PlexiChat Unified CLI - Interactive Mode ===")
         print(f"Available commands: {len(self.commands)}")
         print("Type 'help' for command list, 'quit' to exit")
@@ -208,12 +205,10 @@ class UnifiedCLIDefault:
                     self.show_help()
                     continue
 
-                # Parse command and arguments
                 parts = command_input.split()
                 command = parts[0]
-                args = parts[1:] if len(parts) > 1 else []
+                args = parts[1:]
 
-                # Execute command
                 result = self.execute_command(command, args, ctx.obj)
 
                 if ctx.obj.get('json'):
@@ -231,47 +226,21 @@ class UnifiedCLIDefault:
         """Execute a command."""
         if command not in self.commands:
             return {
-                "error": f"Unknown command: {command}}",
+                "error": f"Unknown command: {command}",
                 "suggestions": self.get_suggestions(command)
             }
 
         command_info = self.commands[command]
         category = command_info["category"]
 
-        # Execute based on category
-        if category == "system":
-            return self.execute_system_command(command, args, context)
-        elif category == "user_management":
-            return self.execute_user_command(command, args, context)
-        elif category == "messaging":
-            return self.execute_messaging_command(command, args, context)
-        elif category == "ai_features":
-            return self.execute_ai_command(command, args, context)
-        elif category == "security":
-            return self.execute_security_command(command, args, context)
-        elif category == "administration":
-            return self.execute_admin_command(command, args, context)
-        elif category == "development":
-            return self.execute_dev_command(command, args, context)
-        elif category == "data_management":
-            return self.execute_data_command(command, args, context)
-        elif category == "network":
-            return self.execute_network_command(command, args, context)
-        elif category == "integration":
-            return self.execute_integration_command(command, args, context)
-        else:
-            return {
-                "error": f"Unknown category: {category}}",
-                "command": command
-            }
+        handler_name = f"execute_{category}_command"
+        handler = getattr(self, handler_name, self.execute_default_command)
+        return handler(command, args, context)
 
     def get_suggestions(self, partial_command: str) -> List[str]:
-        """Get command suggestions for partial input.
-        suggestions = []
-        for cmd in self.commands.keys():
-            if cmd.startswith(partial_command):
-                suggestions.append(cmd)
-        return suggestions[:5]  # Limit to 5 suggestions
+        """Get command suggestions for partial input."""
+        suggestions = [cmd for cmd in self.commands.keys() if cmd.startswith(partial_command)]
+        return suggestions[:5]
 
     def show_help(self):
         """Show help information."""
@@ -281,7 +250,10 @@ class UnifiedCLIDefault:
 
         for category, info in self.categories.items():
             print(f"  {category}: {info['description']}")
-            print(f"    Commands: {', '.join(info['commands'][:5])}{'...' if len(info['commands']) > 5 else ''}")
+            cmd_list = ", ".join(info['commands'][:5])
+            if len(info['commands']) > 5:
+                cmd_list += "..."
+            print(f"    Commands: {cmd_list}")
 
         print("\nUsage:")
         print("  <command> [options] - Execute a command")
@@ -294,119 +266,25 @@ class UnifiedCLIDefault:
         print("  ai chat              - Start AI chat")
         print()
 
-    # Command execution methods
-    def execute_system_command(self, command: str, args: List[str], context: Dict[str, Any]) -> Dict[str, Any]:
-        """Execute a system command."""
+    def execute_default_command(self, command: str, args: List[str], context: Dict[str, Any]) -> Dict[str, Any]:
+        """Default command executor."""
+        category = self.commands.get(command, {}).get("category", "unknown")
         return {
             "command": command,
-            "category": "system",
+            "category": category,
             "status": "success",
             "timestamp": datetime.now().isoformat(),
-            "message": f"System command '{command}}' executed successfully",
+            "message": f"'{command}' executed successfully",
             "args": args
         }
 
-    def execute_user_command(self, command: str, args: List[str], context: Dict[str, Any]) -> Dict[str, Any]:
-        """Execute a user management command."""
-        return {
-            "command": command,
-            "category": "user_management",
-            "status": "success",
-            "timestamp": datetime.now().isoformat(),
-            "message": f"User command '{command}}' executed successfully",
-            "args": args
-        }
-
-    def execute_messaging_command(self, command: str, args: List[str], context: Dict[str, Any]) -> Dict[str, Any]:
-        """Execute a messaging command."""
-        return {
-            "command": command,
-            "category": "messaging",
-            "status": "success",
-            "timestamp": datetime.now().isoformat(),
-            "message": f"Messaging command '{command}}' executed successfully",
-            "args": args
-        }
-
-    def execute_ai_command(self, command: str, args: List[str], context: Dict[str, Any]) -> Dict[str, Any]:
-        """Execute an AI command."""
-        return {
-            "command": command,
-            "category": "ai_features",
-            "status": "success",
-            "timestamp": datetime.now().isoformat(),
-            "message": f"AI command '{command}}' executed successfully",
-            "args": args
-        }
-
-    def execute_security_command(self, command: str, args: List[str], context: Dict[str, Any]) -> Dict[str, Any]:
-        """Execute a security command."""
-        return {
-            "command": command,
-            "category": "security",
-            "status": "success",
-            "timestamp": datetime.now().isoformat(),
-            "message": f"Security command '{command}}' executed successfully",
-            "args": args
-        }
-
-    def execute_admin_command(self, command: str, args: List[str], context: Dict[str, Any]) -> Dict[str, Any]:
-        """Execute an administrative command."""
-        return {
-            "command": command,
-            "category": "administration",
-            "status": "success",
-            "timestamp": datetime.now().isoformat(),
-            "message": f"Admin command '{command}}' executed successfully",
-            "args": args
-        }
-
-    def execute_dev_command(self, command: str, args: List[str], context: Dict[str, Any]) -> Dict[str, Any]:
-        """Execute a development command."""
-        return {
-            "command": command,
-            "category": "development",
-            "status": "success",
-            "timestamp": datetime.now().isoformat(),
-            "message": f"Dev command '{command}}' executed successfully",
-            "args": args
-        }
-
-    def execute_data_command(self, command: str, args: List[str], context: Dict[str, Any]) -> Dict[str, Any]:
-        """Execute a data management command."""
-        return {
-            "command": command,
-            "category": "data_management",
-            "status": "success",
-            "timestamp": datetime.now().isoformat(),
-            "message": f"Data command '{command}}' executed successfully",
-            "args": args
-        }
-
-    def execute_network_command(self, command: str, args: List[str], context: Dict[str, Any]) -> Dict[str, Any]:
-        """Execute a network command."""
-        return {
-            "command": command,
-            "category": "network",
-            "status": "success",
-            "timestamp": datetime.now().isoformat(),
-            "message": f"Network command '{command}}' executed successfully",
-            "args": args
-        }
-
-    def execute_integration_command(self, command: str, args: List[str], context: Dict[str, Any]) -> Dict[str, Any]:
-        """Execute an integration command."""
-        return {
-            "command": command,
-            "category": "integration",
-            "status": "success",
-            "timestamp": datetime.now().isoformat(),
-            "message": f"Integration command '{command}}' executed successfully",
-            "args": args
-        }
+    def __getattr__(self, name: str) -> Callable[..., Dict[str, Any]]:
+        if name.startswith("execute_") and name.endswith("_command"):
+            return self.execute_default_command
+        raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
 
     def get_command_count(self) -> int:
-        """Get total number of commands.
+        """Get total number of commands."""
         return len(self.commands)
 
     def get_category_info(self) -> Dict[str, Any]:
@@ -414,30 +292,27 @@ class UnifiedCLIDefault:
         return {
             "total_commands": self.get_command_count(),
             "categories": self.categories
-        }}
+        }
 
     def run_terminal(self):
-        """Run the terminal interface.
+        """Run the terminal interface."""
         cli = self.create_cli_group()
         cli()
 
     def run_web(self):
         """Run the web interface."""
         self.logger.info("Starting web interface")
-        # Web interface implementation would go here
         pass
 
     def run_api(self):
         """Run the API interface."""
         self.logger.info("Starting API interface")
-        # API interface implementation would go here
         pass
 
 def main():
     """Main entry point."""
     cli = UnifiedCLIDefault()
 
-    # Determine interface type from arguments
     if len(sys.argv) > 1 and sys.argv[1] == '--web':
         cli.run_web()
     elif len(sys.argv) > 1 and sys.argv[1] == '--api':

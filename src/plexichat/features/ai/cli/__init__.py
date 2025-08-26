@@ -4,7 +4,7 @@
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
-from .ai_cli import AICommandLineInterface
+from plexichat.features.ai.cli.ai_cli import AICommandLineInterface
 from typing import Optional
 
 

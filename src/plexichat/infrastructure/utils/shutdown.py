@@ -9,6 +9,7 @@ import sys
 import time
 from pathlib import Path
 from typing import Dict, List, Optional
+import argparse
 
 try:
     import psutil
@@ -56,8 +57,8 @@ def print_header(text: str):
     print_colored(f"{'='*50}", Colors.CYAN)
 
 class CleanShutdown:
-    """Clean shutdown manager for PlexiChat.
-        def __init__(self):
+    """Clean shutdown manager for PlexiChat."""
+    def __init__(self):
         self.processes_found = []
         self.ports_to_check = [8000, 8001, 8080, 3000]  # Common ports
 
@@ -223,7 +224,6 @@ class CleanShutdown:
         if log_dir.exists():
             try:
                 # Remove old log files (older than 7 days)
-                import time
                 current_time = time.time()
                 for log_file in log_dir.glob("*.log"):
                     if current_time - log_file.stat().st_mtime > 7 * 24 * 3600:
@@ -287,8 +287,6 @@ class CleanShutdown:
 
 def main():
     """Main entry point for the shutdown script."""
-    import argparse
-
     parser = argparse.ArgumentParser(description="Clean shutdown for PlexiChat")
     parser.add_argument("--force", action="store_true", help="Force kill processes")
     parser.add_argument("--non-interactive", action="store_true", help="Run without user interaction")

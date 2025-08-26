@@ -13,7 +13,7 @@ Comprehensive setup wizard supporting all database types with:
 - Security configuration
 - Migration assistance
 - Best practices recommendations
-
+"""
 
 import asyncio
 import logging
@@ -23,14 +23,17 @@ from enum import Enum
 import json
 
 from plexichat.core.database import DatabaseType
-from plexichat.core.database.adapters.optimized_adapters import DatabaseCategory
+from plexichat.core.database.manager import DatabaseCategory
+from plexichat.core.database.manager import CassandraAdapter
+from plexichat.core.database.manager import ElasticsearchAdapter
+from plexichat.core.database.manager import RedisAdapter
 
 logger = logging.getLogger(__name__)
 
 
 class WizardStep(str, Enum):
     """Enhanced wizard steps."""
-        WELCOME = "welcome"
+    WELCOME = "welcome"
     DATABASE_SELECTION = "database_selection"
     CONNECTION_CONFIG = "connection_config"
     AUTHENTICATION = "authentication"
@@ -66,8 +69,8 @@ class DatabaseTemplate:
 
 @dataclass
 class WizardProgress:
-    """Enhanced wizard progress tracking.
-        current_step: WizardStep = WizardStep.WELCOME
+    """Enhanced wizard progress tracking."""
+    current_step: WizardStep = WizardStep.WELCOME
     completed_steps: List[WizardStep] = field(default_factory=list)
     database_type: Optional[DatabaseType] = None
     database_category: Optional[DatabaseCategory] = None
@@ -87,13 +90,13 @@ class WizardProgress:
 
 class EnhancedDatabaseWizard:
     """Enhanced database setup wizard with comprehensive support."""
-        def __init__(self):
+    def __init__(self):
         self.progress = WizardProgress()
         self.templates = self._load_database_templates()
         self.current_template = None
 
     def _load_database_templates(self) -> Dict[DatabaseType, DatabaseTemplate]:
-        Load database configuration templates."""
+        """Load database configuration templates."""
         templates = {}
 
         # PostgreSQL
@@ -235,7 +238,7 @@ class EnhancedDatabaseWizard:
             "message": "Database setup wizard started",
             "available_databases": list(self.templates.keys()),
             "wizard_info": {
-                "total_steps": len(WizardStep),
+                "total_steps": len(list(WizardStep)),
                 "estimated_time": "10-30 minutes",
                 "features": [
                     "Guided configuration",
@@ -244,7 +247,7 @@ class EnhancedDatabaseWizard:
                     "Security setup",
                     "Migration assistance"
                 ]
-            }}
+            }
         }
 
     async def select_database(self, database_type: str) -> Dict[str, Any]:
@@ -255,7 +258,7 @@ class EnhancedDatabaseWizard:
             if db_type not in self.templates:
                 return {
                     "success": False,
-                    "error": f"Database type {database_type}} not supported"
+                    "error": f"Database type {database_type} not supported"
                 }
 
             self.progress.database_type = db_type
@@ -273,7 +276,7 @@ class EnhancedDatabaseWizard:
                     "category": self.current_template.category,
                     "use_cases": self.current_template.use_cases,
                     "complexity": self.current_template.complexity
-                }},
+                },
                 "configuration_template": {
                     "default_config": self.current_template.default_config,
                     "required_fields": self.current_template.required_fields,
@@ -288,7 +291,7 @@ class EnhancedDatabaseWizard:
         except ValueError:
             return {
                 "success": False,
-                "error": f"Invalid database type: {database_type}}"
+                "error": f"Invalid database type: {database_type}"
             }
 
     async def configure_connection(self, config: Dict[str, Any]) -> Dict[str, Any]:
@@ -298,7 +301,7 @@ class EnhancedDatabaseWizard:
                 return {
                     "success": False,
                     "error": "No database type selected"
-                }}
+                }
 
             # Validate required fields
             missing_fields = []
@@ -309,7 +312,7 @@ class EnhancedDatabaseWizard:
             if missing_fields:
                 return {
                     "success": False,
-                    "error": f"Missing required fields: {', '.join(missing_fields)}}"
+                    "error": f"Missing required fields: {', '.join(missing_fields)}"
                 }
 
             # Merge with default config
@@ -329,13 +332,13 @@ class EnhancedDatabaseWizard:
                 "next_step_info": {
                     "title": "Authentication Setup",
                     "description": "Configure database authentication and security"
-                }}
+                }
             }
 
         except Exception as e:
             return {
                 "success": False,
-                "error": f"Configuration error: {str(e)}}"
+                "error": f"Configuration error: {str(e)}"
             }
 
     async def test_connection(self) -> Dict[str, Any]:
@@ -345,14 +348,14 @@ class EnhancedDatabaseWizard:
                 return {
                     "success": False,
                     "error": "No connection configuration found"
-                }}
+                }
 
             # Import appropriate adapter
             adapter_class = self._get_adapter_class(self.progress.database_type)
             if not adapter_class:
                 return {
                     "success": False,
-                    "error": f"No adapter available for {self.progress.database_type}}"
+                    "error": f"No adapter available for {self.progress.database_type}"
                 }
 
             # Create adapter and test connection
@@ -376,28 +379,24 @@ class EnhancedDatabaseWizard:
                     "health_info": health_info,
                     "capabilities": adapter.capabilities.__dict__,
                     "recommendations": self._get_connection_recommendations(health_info)
-                }}
+                }
             else:
                 return {
                     "success": False,
                     "error": "Failed to connect to database",
                     "troubleshooting": self._get_troubleshooting_tips()
-                }}
+                }
 
         except Exception as e:
             logger.error(f"Connection test failed: {e}")
             return {
                 "success": False,
-                "error": f"Connection test error: {str(e)}}",
+                "error": f"Connection test error: {str(e)}",
                 "troubleshooting": self._get_troubleshooting_tips()
             }
 
     def _get_adapter_class(self, db_type: DatabaseType):
-        """Get appropriate adapter class for database type.
-        from plexichat.core.database.adapters.enhanced_adapters import (
-            RedisAdapter, CassandraAdapter, ElasticsearchAdapter
-        )
-
+        """Get appropriate adapter class for database type."""
         adapter_map = {
             DatabaseType.REDIS: RedisAdapter,
             DatabaseType.CASSANDRA: CassandraAdapter,

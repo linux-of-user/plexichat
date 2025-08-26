@@ -52,15 +52,8 @@ try:
 except ImportError:
     notification_manager = None
 
-try:
-    from plexichat.core.analytics.analytics_manager import analytics_manager
-except ImportError:
-    analytics_manager = None
-
-try:
-    from plexichat.core.security.security_manager import security_manager
-except ImportError:
-    security_manager = None
+from plexichat.infrastructure.analytics.engine import analytics_manager
+from plexichat.core.security.comprehensive_security_manager import security_manager
 
 try:
     from plexichat.core.logging_advanced.performance_logger import get_performance_logger

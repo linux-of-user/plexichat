@@ -3,7 +3,7 @@ Memory Management System
 
 Advanced memory management with pooling, leak detection, usage monitoring,
 and automatic optimization for optimal performance.
-
+"""
 
 import asyncio
 import gc
@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class MemoryMetrics:
     """Memory usage metrics."""
-        total_memory_mb: float = 0.0
+    total_memory_mb: float = 0.0
     used_memory_mb: float = 0.0
     available_memory_mb: float = 0.0
     memory_percent: float = 0.0
@@ -39,8 +39,8 @@ class MemoryMetrics:
 
 @dataclass
 class ObjectPoolStats:
-    Object pool statistics."""
-        pool_name: str
+    """Object pool statistics."""
+    pool_name: str
     object_type: str
     pool_size: int = 0
     active_objects: int = 0
@@ -51,21 +51,21 @@ class ObjectPoolStats:
 
 class ObjectPool:
     """Generic object pool for memory optimization."""
-        def __init__(self, object_class: Type, max_size: int = 100, ):
+    def __init__(self, object_class: Type, max_size: int = 100,
                 factory_func: Optional[callable] = None):
         self.object_class = object_class
         self.max_size = max_size
         self.factory_func = factory_func or object_class
         self.pool: deque = deque()
         self.active_objects: Set[Any] = set()
-        self.stats = ObjectPoolStats()
+        self.stats = ObjectPoolStats(
             pool_name=f"{object_class.__name__}Pool",
             object_type=object_class.__name__
         )
         self.lock = threading.Lock()
 
     def acquire(self) -> Any:
-        """Acquire an object from the pool.
+        """Acquire an object from the pool."""
         with self.lock:
             if self.pool:
                 obj = self.pool.popleft()
@@ -131,7 +131,7 @@ class ObjectPool:
             self._update_stats()
 
     def _update_stats(self):
-        """Update pool statistics.
+        """Update pool statistics."""
         self.stats.pool_size = len(self.pool)
         self.stats.active_objects = len(self.active_objects)
 
@@ -146,8 +146,8 @@ class ObjectPool:
 
 
 class MemoryLeakDetector:
-    Memory leak detection system."""
-        def __init__(self, check_interval: int = 300):
+    """Memory leak detection system."""
+    def __init__(self, check_interval: int = 300):
         self.check_interval = check_interval
         self.object_counts: Dict[str, deque] = defaultdict(lambda: deque(maxlen=10))
         self.weak_refs: Set[weakref.ref] = set()
@@ -225,7 +225,7 @@ class MemoryLeakDetector:
 
 class MemoryManager:
     """Advanced memory management system."""
-        def __init__(self, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, config: Optional[Dict[str, Any]] = None):
         self.config = config or {}
         self.metrics = MemoryMetrics()
 
@@ -233,7 +233,7 @@ class MemoryManager:
         self.object_pools: Dict[str, ObjectPool] = {}
 
         # Memory monitoring
-        self.leak_detector = MemoryLeakDetector()
+        self.leak_detector = MemoryLeakDetector(
             self.config.get('leak_check_interval', 300)
         )
 
@@ -291,7 +291,7 @@ class MemoryManager:
         except Exception as e:
             logger.error(f"Error during memory management shutdown: {e}")
 
-    def create_object_pool(self, name: str, object_class: Type, ):
+    def create_object_pool(self, name: str, object_class: Type,
                         max_size: int = 100, factory_func: Optional[callable] = None) -> ObjectPool:
         """Create a new object pool."""
         pool = ObjectPool(object_class, max_size, factory_func)
@@ -300,7 +300,7 @@ class MemoryManager:
         return pool
 
     def get_object_pool(self, name: str) -> Optional[ObjectPool]:
-        """Get an existing object pool.
+        """Get an existing object pool."""
         return self.object_pools.get(name)
 
     async def start_monitoring(self):
@@ -407,17 +407,17 @@ class MemoryManager:
                 'gc_collected': collected
             }
 
-            logger.info(f"[DELETE] GC completed: freed {stats['memory_freed_mb']:.1f}MB, ")
+            logger.info(f"[DELETE] GC completed: freed {stats['memory_freed_mb']:.1f}MB, "
                     f"collected {stats['objects_collected']} objects")
 
             return stats
 
         except Exception as e:
             logger.error(f"Error during garbage collection: {e}")
-            return {
+            return {}
 
     def get_memory_stats(self) -> Dict[str, Any]:
-        """Get comprehensive memory statistics.
+        """Get comprehensive memory statistics."""
         return {
             'system_memory': {
                 'total_mb': self.metrics.total_memory_mb,
@@ -425,7 +425,7 @@ class MemoryManager:
                 'available_mb': self.metrics.available_memory_mb,
                 'usage_percent': self.metrics.memory_percent,
                 'peak_usage_mb': self.metrics.peak_memory_mb
-            }},
+            },
             'garbage_collection': {
                 'collections': self.metrics.gc_collections,
                 'objects': self.metrics.gc_objects,

@@ -18,98 +18,18 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status, Backgrou
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, Field
 
-# Use EXISTING database abstraction layer
-try:
-    from plexichat.core.database.manager import database_manager
-    from plexichat.core.database import get_session, execute_query
-except ImportError:
-    database_manager = None
-    get_session = None
-    execute_query = None
-
-# Use EXISTING performance optimization engine
-try:
-    from plexichat.core.performance.optimization_engine import PerformanceOptimizationEngine
-    from plexichat.infrastructure.utils.performance import async_track_performance
-    from plexichat.core.logging_advanced.performance_logger import get_performance_logger, timer
-except ImportError:
-    PerformanceOptimizationEngine = None
-    async_track_performance = None
-    get_performance_logger = None
-    timer = None
-
-# Security imports
-try:
-    from plexichat.infrastructure.utils.security import create_access_token, verify_password, hash_password
-except ImportError:
-    def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
-        return "mock-token"
-    def verify_password(plain_password: str, hashed_password: str):
-        return plain_password == "password"
-    def hash_password(password: str):
-        return f"hashed_{password}"
-
-# Security audit decorator
-try:
-    from plexichat.infrastructure.utils.security import security_audit
-except ImportError:
-    def security_audit(**kwargs):
-        """Mock security audit decorator
-        def decorator(func):
-            return func
-        return decorator
-
-# Input validation decorator
-try:
-    from plexichat.infrastructure.utils.validation import input_validation
-except ImportError:
-    def input_validation(**kwargs):
-        """Mock input validation decorator"""
-        def decorator(func):
-            return func
-        return decorator
-
-# Rate limiting decorator
-try:
-    from plexichat.infrastructure.utils.rate_limiting import rate_limit
-except ImportError:
-    def rate_limit(**kwargs):
-        Mock rate limiting decorator"""
-        def decorator(func):
-            return func
-        return decorator
-
-# JWT imports
-try:
-    from jose import JWTError, jwt  # type: ignore
-except ImportError:
-    try:
-        import jwt  # type: ignore
-        JWTError = Exception
-    except ImportError:
-        jwt = None
-        JWTError = Exception
-
-# Configuration imports
-try:
-    from plexichat.core.config import settings
-except ImportError:
-    class MockSettings:
-        JWT_SECRET = "mock-secret"
-        JWT_ALGORITHM = "HS256"
-        ACCESS_TOKEN_EXPIRE_MINUTES = 30
-    settings = MockSettings()
-
-# Model imports
-try:
-    from plexichat.features.users.user import User
-except ImportError:
-    class User:
-        id: int
-        username: str
-        email: str
-        hashed_password: str
-        is_active: bool = True
+from plexichat.core.database.manager import database_manager
+from plexichat.core.database import get_session, execute_query
+from plexichat.core.performance.optimization_engine import PerformanceOptimizationEngine
+from plexichat.infrastructure.utils.performance import async_track_performance
+from plexichat.core.logging_advanced.performance_logger import get_performance_logger, timer
+from plexichat.infrastructure.utils.security import create_access_token, verify_password, hash_password
+from plexichat.infrastructure.utils.security import security_audit
+from plexichat.infrastructure.utils.validation import input_validation
+from plexichat.infrastructure.utils.rate_limiting import rate_limit
+from jose import JWTError, jwt
+from plexichat.core.config import settings
+from plexichat.core.user import User
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/auth", tags=["authentication"])
@@ -210,21 +130,21 @@ class ErrorDetail(BaseModel):
 
 class AuthService:
     """Service class for authentication operations using EXISTING database abstraction layer."""
-        def __init__(self):
+    def __init__(self):
         # Use EXISTING database manager
         self.db_manager = database_manager
         self.performance_logger = performance_logger
 
     @async_track_performance("user_authentication") if async_track_performance else lambda f: f
     async def authenticate_user(self, username: str, password: str) -> Optional[User]:
-        """Authenticate user using EXISTING database abstraction layer.
+        """Authenticate user using EXISTING database abstraction layer."""
         if self.db_manager:
             try:
                 # Use EXISTING database manager with optimized query
                 query = """
                     SELECT id, username, email, hashed_password, is_active
                     FROM users
-                    WHERE username = ? AND is_active = 1
+                    WHERE username = :username AND is_active = 1
                 """
                 params = {"username": username}
 
@@ -269,14 +189,14 @@ class AuthService:
 
     @async_track_performance("user_lookup") if async_track_performance else lambda f: f
     async def get_user_by_id(self, user_id: int) -> Optional[User]:
-        """Get user by ID using EXISTING database abstraction layer.
+        """Get user by ID using EXISTING database abstraction layer."""
         if self.db_manager:
             try:
                 # Use EXISTING database manager with optimized query
                 query = """
                     SELECT id, username, email, hashed_password, is_active
                     FROM users
-                    WHERE id = ? AND is_active = 1
+                    WHERE id = :id AND is_active = 1
                 """
                 params = {"id": user_id}
 
@@ -344,6 +264,9 @@ async def register(
     Creates a new user account with the provided credentials.
     Returns an access token upon successful registration.
     """
+    if not enhanced_logger:
+        raise HTTPException(status_code=500, detail="Logger not available")
+
     enhanced_logger.info(f"Registration attempt for user '{user_data.username}'")
 
     with PerformanceTracker("user_registration", enhanced_logger) as tracker:

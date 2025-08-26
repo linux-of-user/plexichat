@@ -38,7 +38,7 @@ except ImportError:
 
 # Import logging safely
 try:
-    from ..logging.unified_logger import get_logger, LogCategory
+    from plexichat.core.logging.unified_logger import get_logger, LogCategory
     logger = get_logger("rate_limiter")
 except ImportError:
     import logging

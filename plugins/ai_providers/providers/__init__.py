@@ -11,7 +11,7 @@ logger = get_logger(__name__)
 
 # Try to import available providers
 try:
-    from .bitnet import BitNetProvider, BitNetConfig
+    from plugins.ai_providers.providers.bitnet import BitNetProvider, BitNetConfig
     bitnet_available = True
 except ImportError as e:
     logger.warning(f"BitNet provider not available: {e}")
@@ -20,7 +20,7 @@ except ImportError as e:
     BitNetConfig = None
 
 try:
-    from .llama import LlamaProvider, LlamaConfig
+    from plugins.ai_providers.providers.llama import LlamaProvider, LlamaConfig
     llama_available = True
 except ImportError as e:
     logger.warning(f"Llama provider not available: {e}")
@@ -29,7 +29,7 @@ except ImportError as e:
     LlamaConfig = None
 
 try:
-    from .huggingface import HuggingFaceProvider, HFConfig
+    from plugins.ai_providers.providers.huggingface import HuggingFaceProvider, HFConfig
     hf_available = True
 except ImportError as e:
     logger.warning(f"HuggingFace provider not available: {e}")

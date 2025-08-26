@@ -12,7 +12,7 @@ from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 
-from plexichat.core.auth.admin_manager import admin_manager
+from plexichat.core.authentication import admin_manager
 from plexichat.core.config import settings
 from plexichat.core.plugins.manager import unified_plugin_manager
 from plexichat.core.logging import get_logger
@@ -113,13 +113,13 @@ except ImportError as e:
     logging_system = None
 
 class AdminLoginRequest(BaseModel):
-    """Admin login request model.
-        username: str
+    """Admin login request model."""
+    username: str
     password: str
 
 class AdminCreateRequest(BaseModel):
     """Admin creation request model."""
-        username: str
+    username: str
     email: str
     password: str
     role: str = "admin"

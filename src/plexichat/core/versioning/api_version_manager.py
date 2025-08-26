@@ -20,7 +20,7 @@ class APIVersionManager:
         """Initialize the API version manager."""
         # Get current version from centralized version manager
         try:
-            from plexichat.shared.version_utils import get_version
+            from plexichat.version import __version__ as get_version
             current_version = get_version()
         except ImportError:
             current_version = "b.1.1-86"

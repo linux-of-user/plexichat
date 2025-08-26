@@ -14,15 +14,12 @@ from pathlib import Path
 from pydantic import BaseModel
 
 # Import backup system
-try:
-    from plexichat.core.backup import (
-        get_backup_manager, BackupType, BackupStatus,
-        create_database_backup, create_files_backup, create_full_backup,
-        restore_backup, list_backups
-    )
-    BACKUP_AVAILABLE = True
-except ImportError:
-    BACKUP_AVAILABLE = False
+from plexichat.features.backup import (
+    get_backup_manager, BackupType, BackupStatus,
+    create_database_backup, create_files_backup, create_full_backup,
+    restore_backup, list_backups
+)
+BACKUP_AVAILABLE = True
 
 # Import authentication
 try:
@@ -44,14 +41,14 @@ if templates_path.exists():
     templates = Jinja2Templates(directory=str(templates_path))
 
 class BackupCreateRequest(BaseModel):
-    """Backup creation request model.
-        backup_type: str
+    """Backup creation request model."""
+    backup_type: str
     name: Optional[str] = None
     include_paths: Optional[List[str]] = None
 
 class RestoreRequest(BaseModel):
     """Restore request model."""
-        backup_id: str
+    backup_id: str
     restore_path: Optional[str] = None
 
 @router.get("/", response_class=HTMLResponse)

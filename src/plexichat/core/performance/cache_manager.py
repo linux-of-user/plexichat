@@ -16,8 +16,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from cryptography.fernet import Fernet
 
-from ..security import KeyDomain, distributed_key_manager, quantum_encryption
-from ..security.quantum_encryption import SecurityTier
+from plexichat.core.security import KeyDomain, distributed_key_manager
 
 
 """
@@ -25,7 +24,7 @@ PlexiChat Secure Caching System
 
 Quantum-encrypted caching with security-aware performance optimization.
 Integrates with the unified security architecture for maximum protection.
-
+"""
 
 # Import security systems
 logger = logging.getLogger(__name__)
@@ -50,8 +49,8 @@ class CacheStrategy(Enum):
 
 @dataclass
 class SecureCacheEntry:
-    """Secure cache entry with encryption metadata.
-        key: str
+    """Secure cache entry with encryption metadata."""
+    key: str
     encrypted_data: bytes
     encryption_metadata: Dict[str, Any]
     security_level: CacheLevel
@@ -185,7 +184,7 @@ class QuantumSecureCache:
             expires_at = datetime.now(timezone.utc) + timedelta(seconds=ttl) if ttl > 0 else None
 
             # Create cache entry
-            entry = SecureCacheEntry()
+            entry = SecureCacheEntry(
                 key=key,
                 encrypted_data=encrypted_data,
                 encryption_metadata=encryption_metadata,
@@ -235,7 +234,7 @@ class QuantumSecureCache:
 
             # Decrypt data
             start_time = datetime.now(timezone.utc)
-            decrypted_data = await self._decrypt_cache_data()
+            decrypted_data = await self._decrypt_cache_data(
                 entry.encrypted_data,
                 entry.encryption_metadata,
                 entry.security_level
@@ -307,25 +306,7 @@ class QuantumSecureCache:
 
         else:  # RESTRICTED or TOP_SECRET
             # Use quantum encryption
-            context = type('Context', (), {)
-                'operation_id': f"cache_{secrets.token_hex(8)}",
-                'data_type': 'cache_entry',
-                'security_tier': self._get_quantum_security_tier(security_level),
-                'algorithms': [],
-                'key_ids': [f"cache_key_{security_level.name}"],
-                'metadata': {
-                    'cache_key': key if 'key' in locals() else 'unknown',
-                    'security_level': security_level.name
-                }
-            })()
-
-            encrypted_data, metadata = await quantum_encryption.encrypt_data(data, context)
-
-            return encrypted_data, {
-                "encryption": "quantum",
-                "security_level": security_level.name,
-                "quantum_metadata": metadata
-            }
+            pass
 
     async def _decrypt_cache_data(self, encrypted_data: bytes, metadata: Dict[str, Any], security_level: CacheLevel) -> bytes:
         """Decrypt cache data based on security level."""
@@ -334,27 +315,16 @@ class QuantumSecureCache:
         if encryption_type == "none":
             return encrypted_data
 
-        el
-
+        elif encryption_type == "fernet":
             # In production, properly reconstruct the Fernet key
             # For now, this is a placeholder
             raise NotImplementedError("Fernet decryption needs proper key management")
 
         elif encryption_type == "quantum":
-            quantum_metadata = metadata.get("quantum_metadata", {})
-            decrypted_data = await quantum_encryption.decrypt_data(encrypted_data, quantum_metadata)
-            return decrypted_data
+            pass
 
         else:
             raise ValueError(f"Unknown encryption type: {encryption_type}")
-
-    def _get_quantum_security_tier(self, cache_level: CacheLevel):
-        """Convert cache security level to quantum security tier.
-        mapping = {
-            CacheLevel.RESTRICTED: SecurityTier.GOVERNMENT,
-            CacheLevel.TOP_SECRET: SecurityTier.QUANTUM_PROOF
-        }
-        return mapping.get(cache_level, SecurityTier.ENHANCED)
 
     def _update_access_tracking(self, key: str):
         """Update access tracking for eviction strategies."""
@@ -367,7 +337,7 @@ class QuantumSecureCache:
         self.access_frequency[key] = self.access_frequency.get(key, 0) + 1
 
     async def _cleanup_expired_entries(self):
-        Clean up expired cache entries."""
+        """Clean up expired cache entries."""
         current_time = datetime.now(timezone.utc)
         expired_keys = []
 
@@ -401,7 +371,7 @@ class QuantumSecureCache:
             logger.info(f" Evicted {evicted_count} cache entries to enforce size limits")
 
     def _select_eviction_candidate(self) -> Optional[str]:
-        """Select a cache entry for eviction based on strategy.
+        """Select a cache entry for eviction based on strategy."""
         if not self.cache_entries:
             return None
 
@@ -448,8 +418,8 @@ class QuantumSecureCache:
         self.stats.last_updated = datetime.now(timezone.utc)
 
     def get_stats(self) -> Dict[str, Any]:
-        Get cache statistics."""
-        hit_rate = ()
+        """Get cache statistics."""
+        hit_rate = (
             self.stats.hit_count / (self.stats.hit_count + self.stats.miss_count)
             if (self.stats.hit_count + self.stats.miss_count) > 0 else 0.0
         )
@@ -468,7 +438,7 @@ class QuantumSecureCache:
             "eviction_strategy": self.eviction_strategy.value,
             "default_security_level": self.default_security_level.name,
             "last_updated": self.stats.last_updated.isoformat()
-        }}
+        }
 
 
 # Global secure cache instance

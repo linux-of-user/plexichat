@@ -19,30 +19,22 @@ except ImportError:
     redis = None
 
 try:
-    from plexichat.core.database.unified_engines import db_cluster
+    from plexichat.core.database.manager import database_manager as db_cluster
 except ImportError:
     db_cluster = None
 
 try:
-    from plexichat.core.logging import get_logger
+    from plexichat.core.logging.logger import get_logger
     logger = get_logger(__name__)
 except ImportError:
     logger = None
 
 try:
-    from plexichat.features.channels.models import Channel
+    from plexichat.shared.models import Channel, FileRecord, Message, Guild, GuildMember, User
 except ImportError:
     Channel = None
-
-try:
-    from plexichat.shared.models import FileRecord, Message
-except ImportError:
     FileRecord = None
     Message = None
-
-try:
-    from plexichat.features.users.models import Guild, GuildMember, User
-except ImportError:
     Guild = None
     GuildMember = None
     User = None

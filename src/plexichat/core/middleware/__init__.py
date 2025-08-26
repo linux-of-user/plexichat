@@ -4,7 +4,7 @@ import logging
 # Typing imports not used
 
 try:
-    from .middleware_manager import (
+    from plexichat.core.middleware.middleware_manager import (
         MiddlewareManager, BaseMiddleware, MiddlewareContext,
         AuthenticationMiddleware, RateLimitMiddleware, ValidationMiddleware,
         LoggingMiddleware, PerformanceMiddleware,

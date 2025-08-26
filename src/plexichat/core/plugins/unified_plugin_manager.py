@@ -28,7 +28,7 @@ from dataclasses import dataclass, field
 
 # Import shared components (with fallbacks)
 try:
-    from ...shared.models import Plugin, Event, Priority, Status
+    from plexichat.shared.models import Plugin, Event, Priority, Status
 except ImportError:
     # Create placeholder classes
     class Plugin:
@@ -41,7 +41,7 @@ except ImportError:
         pass
 
 try:
-    from ...shared.types import PluginId, PluginConfig, PluginResult
+    from plexichat.shared.types import PluginId, PluginConfig, PluginResult
 except ImportError:
     # Use basic types as fallbacks
     PluginId = str
@@ -49,7 +49,7 @@ except ImportError:
     PluginResult = dict
 
 try:
-    from ...shared.exceptions import PluginError, ValidationError, SecurityError
+    from plexichat.shared.exceptions import PluginError, ValidationError, SecurityError
 except ImportError:
     # Create basic exception classes
     class PluginError(Exception):
@@ -60,7 +60,7 @@ except ImportError:
         pass
 
 try:
-    from ...core.unified_config import get_plugin_timeout, get_max_plugin_memory, get_plugin_sandbox_enabled
+    from plexichat.core.unified_config import get_plugin_timeout, get_max_plugin_memory, get_plugin_sandbox_enabled
 except ImportError:
     # Provide default functions
     def get_plugin_timeout():
@@ -72,28 +72,28 @@ except ImportError:
 
 # Core imports (with fallbacks)
 try:
-    from ..database.manager import database_manager
+    from plexichat.core.database.manager import database_manager
 except ImportError:
     database_manager = None
 
 # Enhanced plugin systems
-try:
-    from .advanced_plugin_security import enhanced_plugin_security, SecurityLevel as EnhancedSecurityLevel
-    from .plugin_dependency_manager import plugin_dependency_manager
-except ImportError:
-    enhanced_plugin_security = None
-    plugin_dependency_manager = None
-    EnhancedSecurityLevel = None
+# try:
+#     from .advanced_plugin_security import enhanced_plugin_security, SecurityLevel as EnhancedSecurityLevel
+#     from .plugin_dependency_manager import plugin_dependency_manager
+# except ImportError:
+enhanced_plugin_security = None
+plugin_dependency_manager = None
+EnhancedSecurityLevel = None
 
 # Top-level imports for AI integration (with fallbacks)
-try:
-    from plexichat.features.ai.advanced_ai_system import intelligent_assistant
-except ImportError:
-    intelligent_assistant = None
-try:
-    from plexichat.features.ai.advanced_ai_system import ai_provider_manager
-except ImportError:
-    ai_provider_manager = None
+# try:
+#     from plexichat.features.ai.advanced_ai_system import intelligent_assistant
+# except ImportError:
+intelligent_assistant = None
+# try:
+#     from plexichat.features.ai.advanced_ai_system import ai_provider_manager
+# except ImportError:
+ai_provider_manager = None
 
 class ModuleCapability:
     CORE = "core"
@@ -235,7 +235,7 @@ class PluginInfo:
 
 # The PluginInterface is now defined in the SDK.
 # This manager will work with plugins that inherit from EnhancedBasePlugin.
-from .sdk import EnhancedBasePlugin
+from plexichat.core.plugins.sdk import EnhancedBasePlugin
 
 
 class PluginIsolationManager:

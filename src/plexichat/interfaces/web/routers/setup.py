@@ -16,13 +16,11 @@ from pathlib import Path
 from typing import Dict, Any, Optional, Union, List
 
 # Import database abstraction layer
-try:
-    from plexichat.core.database.manager import database_manager
-    from plexichat.features.users.models import User, UserRole, UserStatus
-    from plexichat.features.users.user import UserService, UserCreate
-    from plexichat.features.users.models import UserModelService
-    from plexichat.features.users.message import MessageUpdate
-except ImportError:
+from plexichat.core.database.manager import database_manager
+from plexichat.features.users.models import User, UserRole, UserStatus
+from plexichat.features.users.user import UserService, UserCreate
+from plexichat.features.users.models import UserModelService
+from plexichat.features.users.message import MessageUpdate
     database_manager = None
     User = None
     UserRole = None

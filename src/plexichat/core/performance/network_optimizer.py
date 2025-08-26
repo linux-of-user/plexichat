@@ -1,10 +1,9 @@
 """
-import http.client
 Network Optimization Manager
 
 Advanced network optimization with connection pooling, compression,
 monitoring, and CDN integration for optimal performance.
-
+"""
 
 import asyncio
 import gzip
@@ -15,6 +14,7 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Union
 import aiohttp
 import ssl
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class ConnectionMetrics:
     """Connection performance metrics."""
-        total_connections: int = 0
+    total_connections: int = 0
     active_connections: int = 0
     failed_connections: int = 0
     avg_connection_time: float = 0.0
@@ -35,8 +35,8 @@ class ConnectionMetrics:
 
 @dataclass
 class NetworkConfig:
-    Network optimization configuration."""
-        # Connection pooling
+    """Network optimization configuration."""
+    # Connection pooling
     max_connections: int = 100
     max_connections_per_host: int = 30
     connection_timeout: float = 30.0
@@ -64,7 +64,7 @@ class NetworkConfig:
 
 class NetworkOptimizer:
     """Advanced network optimization manager."""
-        def __init__(self, config: Optional[NetworkConfig] = None):
+    def __init__(self, config: Optional[NetworkConfig] = None):
         self.config = config or NetworkConfig()
         self.metrics = ConnectionMetrics()
 
@@ -84,8 +84,8 @@ class NetworkOptimizer:
         self.cdn_cache: Dict[str, Any] = {}
 
         # Background tasks
-        self._monitoring_task = None
-        self._cleanup_task = None
+        self._monitoring_task: Optional[asyncio.Task] = None
+        self._cleanup_task: Optional[asyncio.Task] = None
         self._running = False
 
         logger.info("[WEB] Network Optimizer initialized")
@@ -97,7 +97,7 @@ class NetworkOptimizer:
             ssl_context = self._create_ssl_context()
 
             # Create main HTTP session with optimized connector
-            connector = aiohttp.TCPConnector()
+            connector = aiohttp.TCPConnector(
                 limit=self.config.max_connections,
                 limit_per_host=self.config.max_connections_per_host,
                 ttl_dns_cache=300,
@@ -107,13 +107,13 @@ class NetworkOptimizer:
                 ssl=ssl_context if self.config.ssl_verify else False
             )
 
-            timeout = aiohttp.ClientTimeout()
+            timeout = aiohttp.ClientTimeout(
                 total=self.config.connection_timeout,
                 connect=self.config.connection_timeout,
                 sock_read=self.config.read_timeout
             )
 
-            self.http_session = aiohttp.ClientSession()
+            self.http_session = aiohttp.ClientSession(
                 connector=connector,
                 timeout=timeout,
                 headers={
@@ -164,12 +164,14 @@ class NetworkOptimizer:
         except Exception as e:
             logger.error(f"Error during network optimizer shutdown: {e}")
 
-    async def make_request(self, method: str, url: str, )
+    async def make_request(self, method: str, url: str,
                         data: Optional[Union[str, bytes, Dict]] = None,
                         headers: Optional[Dict[str, str]] = None,
                         compress: bool = True) -> Dict[str, Any]:
         """Make optimized HTTP request with compression and monitoring."""
         start_time = time.time()
+        if not self.http_session:
+            raise RuntimeError("NetworkOptimizer not initialized. Call initialize() first.")
 
         try:
             # Prepare headers
@@ -185,7 +187,7 @@ class NetworkOptimizer:
                     self.compression_stats['requests_compressed'] += 1
 
             # Make request
-            async with self.http_session.request()
+            async with self.http_session.request(
                 method, url, data=data, headers=request_headers
             ) as response:
 
@@ -205,7 +207,7 @@ class NetworkOptimizer:
                     'headers': dict(response.headers),
                     'data': response_data,
                     'request_time': request_time
-                }}
+                }
 
         except Exception as e:
             self.metrics.failed_connections += 1
@@ -217,7 +219,6 @@ class NetworkOptimizer:
         try:
             # Convert to bytes if needed
             if isinstance(data, dict):
-                import json
                 data_bytes = json.dumps(data).encode()
             elif isinstance(data, str):
                 data_bytes = data.encode()
@@ -242,7 +243,7 @@ class NetworkOptimizer:
             return None
 
     def _create_ssl_context(self) -> ssl.SSLContext:
-        """Create optimized SSL context.
+        """Create optimized SSL context."""
         if self.config.ssl_context:
             return self.config.ssl_context
 
@@ -263,14 +264,14 @@ class NetworkOptimizer:
     async def _initialize_cdn(self):
         """Initialize CDN integration."""
         try:
-            cdn_connector = aiohttp.TCPConnector()
+            cdn_connector = aiohttp.TCPConnector(
                 limit=50,
                 limit_per_host=20,
                 ttl_dns_cache=600,  # Longer DNS cache for CDN
                 use_dns_cache=True
             )
 
-            self.cdn_session = aiohttp.ClientSession()
+            self.cdn_session = aiohttp.ClientSession(
                 connector=cdn_connector,
                 timeout=aiohttp.ClientTimeout(total=30),
                 headers={'User-Agent': 'PlexiChat-CDN/1.0'}
@@ -309,15 +310,16 @@ class NetworkOptimizer:
         """Collect network performance metrics."""
         try:
             # Update connection metrics from session
-            if self.http_session and hasattr(self.http_session.connector, '_conns'):
+            if self.http_session and not self.http_session.closed and hasattr(self.http_session.connector, '_conns'):
                 connector = self.http_session.connector
-                self.metrics.active_connections = len(connector._conns)
+                if connector:
+                    self.metrics.active_connections = len(connector._conns)
 
             # Calculate compression ratio
             if self.compression_stats['bytes_before_compression'] > 0:
-                self.metrics.compression_ratio = ()
-                    1 - (self.compression_stats['bytes_after_compression'] / )
-                        self.compression_stats['bytes_before_compression'])
+                self.metrics.compression_ratio = (
+                    1 - (self.compression_stats['bytes_after_compression'] /
+                         self.compression_stats['bytes_before_compression'])
                 )
 
             self.metrics.last_updated = datetime.now()
@@ -326,14 +328,14 @@ class NetworkOptimizer:
             logger.error(f"Error collecting network metrics: {e}")
 
     async def _update_request_metrics(self, request_time: float, bytes_sent: int, bytes_received: int):
-        """Update request metrics.
+        """Update request metrics."""
         self.metrics.total_connections += 1
         self.metrics.bytes_sent += bytes_sent
         self.metrics.bytes_received += bytes_received
 
         # Update average response time
         if self.metrics.total_connections > 1:
-            self.metrics.avg_response_time = ()
+            self.metrics.avg_response_time = (
                 (self.metrics.avg_response_time * (self.metrics.total_connections - 1) + request_time) /
                 self.metrics.total_connections
             )
@@ -364,17 +366,17 @@ class NetworkOptimizer:
                 await asyncio.sleep(60)
 
     def get_network_stats(self) -> Dict[str, Any]:
-        """Get comprehensive network statistics.
+        """Get comprehensive network statistics."""
         return {
             'connections': {
                 'total': self.metrics.total_connections,
                 'active': self.metrics.active_connections,
                 'failed': self.metrics.failed_connections,
-                'success_rate': ()
+                'success_rate': (
                     (self.metrics.total_connections - self.metrics.failed_connections) /
                     self.metrics.total_connections
                 ) if self.metrics.total_connections > 0 else 0
-            }},
+            },
             'performance': {
                 'avg_response_time_ms': self.metrics.avg_response_time * 1000,
                 'avg_connection_time_ms': self.metrics.avg_connection_time * 1000,
@@ -386,7 +388,7 @@ class NetworkOptimizer:
                 'enabled': self.config.enable_compression,
                 'requests_compressed': self.compression_stats['requests_compressed'],
                 'compression_ratio': self.metrics.compression_ratio,
-                'bytes_saved': ()
+                'bytes_saved': (
                     self.compression_stats['bytes_before_compression'] -
                     self.compression_stats['bytes_after_compression']
                 )

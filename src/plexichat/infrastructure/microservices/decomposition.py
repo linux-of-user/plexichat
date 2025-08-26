@@ -9,26 +9,49 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
+import time
 
-from ...features.ai import ai_coordinator
-from ...features.backup import backup_manager
-from ...features.messaging import messaging_manager
-from ...features.security.auth import auth_manager
-from .service_registry import ServiceEndpoint, ServiceRegistry, ServiceType
+# These are placeholder imports for a real implementation
+class ServiceType:
+    AUTHENTICATION = "authentication"
+    MESSAGING = "messaging"
+    FILE_STORAGE = "file_storage"
+    AI_SERVICES = "ai_services"
+
+class ServiceEndpoint:
+    def __init__(self, **kwargs): pass
+
+class ServiceRegistry:
+    def __init__(self): pass
+    async def start(self): pass
+    async def stop(self): pass
+    async def register_service(self, endpoint): pass
+    async def deregister_service(self, service_id): pass
+    def get_registry_status(self): return {}
+
+auth_manager = None
+messaging_manager = None
+backup_manager = None
+ai_coordinator = None
+
+# from ...features.ai import ai_coordinator
+# from ...features.backup import backup_manager
+# from ...features.messaging import messaging_manager
+# from ...features.security.auth import auth_manager
+# from .service_registry import ServiceEndpoint, ServiceRegistry, ServiceType
 
 
 """
-import time
 PlexiChat Microservices Decomposition
 Breaks down monolithic application into microservices
-
+"""
 
 logger = logging.getLogger(__name__)
 
 
 class DeploymentMode(Enum):
     """Microservice deployment modes."""
-        STANDALONE = "standalone"
+    STANDALONE = "standalone"
     CONTAINERIZED = "containerized"
     SERVERLESS = "serverless"
     HYBRID = "hybrid"
@@ -37,7 +60,6 @@ class DeploymentMode(Enum):
 @dataclass
 class MicroserviceConfig:
     """Microservice configuration."""
-
     service_name: str
     service_type: ServiceType
     port: int
@@ -53,7 +75,7 @@ class MicroserviceConfig:
 
 class BaseMicroservice(ABC):
     """Base class for all microservices."""
-        def __init__(self, config: MicroserviceConfig, registry: ServiceRegistry):
+    def __init__(self, config: MicroserviceConfig, registry: ServiceRegistry):
         self.config = config
         self.registry = registry
         self.service_id = f"{config.service_name}-{id(self)}"
@@ -68,19 +90,23 @@ class BaseMicroservice(ABC):
 
     @abstractmethod
     async def initialize(self):
-        """Initialize the microservice.
+        """Initialize the microservice."""
+        pass
 
     @abstractmethod
     async def start(self):
         """Start the microservice."""
+        pass
 
     @abstractmethod
     async def stop(self):
-        Stop the microservice."""
+        """Stop the microservice."""
+        pass
 
     @abstractmethod
     async def health_check(self) -> Dict[str, Any]:
-        """Perform health check.
+        """Perform health check."""
+        pass
 
     async def register_with_registry(self):
         """Register this service with the service registry."""
@@ -105,14 +131,14 @@ class BaseMicroservice(ABC):
         """Deregister this service from the service registry."""
         if self.endpoint:
             await self.registry.deregister_service(self.service_id)
-            logger.info()
+            logger.info(
                 f" Deregistered {self.config.service_name} from service registry"
             )
 
 
 class AuthenticationMicroservice(BaseMicroservice):
-    """Authentication microservice.
-        async def initialize(self):
+    """Authentication microservice."""
+    async def initialize(self):
         """Initialize authentication service."""
         logger.info("Initializing Authentication microservice")
         # Initialize authentication components
@@ -144,7 +170,7 @@ class AuthenticationMicroservice(BaseMicroservice):
         """Authentication service health check."""
         try:
             # Check auth manager status
-            auth_status = ()
+            auth_status = (
                 self.auth_manager.get_system_status()
                 if hasattr(self.auth_manager, "get_system_status")
                 else {"status": "unknown"}
@@ -153,7 +179,7 @@ class AuthenticationMicroservice(BaseMicroservice):
             return {
                 "status": "healthy" if self.running else "unhealthy",
                 "service": "authentication",
-                "uptime_seconds": ()
+                "uptime_seconds": (
                     (datetime.now(timezone.utc) - self.start_time).total_seconds()
                     if self.start_time
                     else 0
@@ -162,18 +188,18 @@ class AuthenticationMicroservice(BaseMicroservice):
                 "error_count": self.error_count,
                 "auth_manager_status": auth_status,
                 "timestamp": datetime.now(timezone.utc).isoformat(),
-            }}
+            }
         except Exception as e:
             return {
                 "status": "unhealthy",
                 "error": str(e),
                 "timestamp": datetime.now(timezone.utc).isoformat(),
-            }}
+            }
 
 
 class MessagingMicroservice(BaseMicroservice):
-    """Messaging microservice.
-        async def initialize(self):
+    """Messaging microservice."""
+    async def initialize(self):
         """Initialize messaging service."""
         logger.info("Initializing Messaging microservice")
         # Initialize messaging components
@@ -207,7 +233,7 @@ class MessagingMicroservice(BaseMicroservice):
             return {
                 "status": "healthy" if self.running else "unhealthy",
                 "service": "messaging",
-                "uptime_seconds": ()
+                "uptime_seconds": (
                     (datetime.now(timezone.utc) - self.start_time).total_seconds()
                     if self.start_time
                     else 0
@@ -215,18 +241,18 @@ class MessagingMicroservice(BaseMicroservice):
                 "request_count": self.request_count,
                 "error_count": self.error_count,
                 "timestamp": datetime.now(timezone.utc).isoformat(),
-            }}
+            }
         except Exception as e:
             return {
                 "status": "unhealthy",
                 "error": str(e),
                 "timestamp": datetime.now(timezone.utc).isoformat(),
-            }}
+            }
 
 
 class FileStorageMicroservice(BaseMicroservice):
-    """File storage microservice.
-        async def initialize(self):
+    """File storage microservice."""
+    async def initialize(self):
         """Initialize file storage service."""
         logger.info("Initializing File Storage microservice")
         # Initialize file storage components
@@ -260,7 +286,7 @@ class FileStorageMicroservice(BaseMicroservice):
             return {
                 "status": "healthy" if self.running else "unhealthy",
                 "service": "file_storage",
-                "uptime_seconds": ()
+                "uptime_seconds": (
                     (datetime.now(timezone.utc) - self.start_time).total_seconds()
                     if self.start_time
                     else 0
@@ -268,18 +294,18 @@ class FileStorageMicroservice(BaseMicroservice):
                 "request_count": self.request_count,
                 "error_count": self.error_count,
                 "timestamp": datetime.now(timezone.utc).isoformat(),
-            }}
+            }
         except Exception as e:
             return {
                 "status": "unhealthy",
                 "error": str(e),
                 "timestamp": datetime.now(timezone.utc).isoformat(),
-            }}
+            }
 
 
 class AIServicesMicroservice(BaseMicroservice):
-    """AI services microservice.
-        async def initialize(self):
+    """AI services microservice."""
+    async def initialize(self):
         """Initialize AI services."""
         logger.info("Initializing AI Services microservice")
         # Initialize AI components
@@ -313,7 +339,7 @@ class AIServicesMicroservice(BaseMicroservice):
             return {
                 "status": "healthy" if self.running else "unhealthy",
                 "service": "ai_services",
-                "uptime_seconds": ()
+                "uptime_seconds": (
                     (datetime.now(timezone.utc) - self.start_time).total_seconds()
                     if self.start_time
                     else 0
@@ -321,13 +347,13 @@ class AIServicesMicroservice(BaseMicroservice):
                 "request_count": self.request_count,
                 "error_count": self.error_count,
                 "timestamp": datetime.now(timezone.utc).isoformat(),
-            }}
+            }
         except Exception as e:
             return {
                 "status": "unhealthy",
                 "error": str(e),
                 "timestamp": datetime.now(timezone.utc).isoformat(),
-            }}
+            }
 
 
 class MicroservicesOrchestrator:
@@ -335,8 +361,8 @@ class MicroservicesOrchestrator:
     Microservices Orchestrator.
 
     Manages the decomposition and orchestration of microservices.
-    
-        def __init__(self, registry: ServiceRegistry):
+    """
+    def __init__(self, registry: ServiceRegistry):
         self.registry = registry
         self.services: Dict[str, BaseMicroservice] = {}
         self.service_configs: Dict[str, MicroserviceConfig] = {}
@@ -347,7 +373,7 @@ class MicroservicesOrchestrator:
     def _initialize_default_configs(self):
         """Initialize default microservice configurations."""
         self.service_configs = {
-            "authentication": MicroserviceConfig()
+            "authentication": MicroserviceConfig(
                 service_name="authentication",
                 service_type=ServiceType.AUTHENTICATION,
                 port=8001,
@@ -355,7 +381,7 @@ class MicroservicesOrchestrator:
                 dependencies=["database"],
                 scaling_config={"min_replicas": 2, "max_replicas": 10},
             ),
-            "messaging": MicroserviceConfig()
+            "messaging": MicroserviceConfig(
                 service_name="messaging",
                 service_type=ServiceType.MESSAGING,
                 port=8002,
@@ -363,7 +389,7 @@ class MicroservicesOrchestrator:
                 dependencies=["database", "cache"],
                 scaling_config={"min_replicas": 3, "max_replicas": 20},
             ),
-            "file_storage": MicroserviceConfig()
+            "file_storage": MicroserviceConfig(
                 service_name="file_storage",
                 service_type=ServiceType.FILE_STORAGE,
                 port=8003,
@@ -371,7 +397,7 @@ class MicroservicesOrchestrator:
                 dependencies=["database"],
                 scaling_config={"min_replicas": 2, "max_replicas": 15},
             ),
-            "ai_services": MicroserviceConfig()
+            "ai_services": MicroserviceConfig(
                 service_name="ai_services",
                 service_type=ServiceType.AI_SERVICES,
                 port=8004,
@@ -389,7 +415,8 @@ class MicroservicesOrchestrator:
         logger.info(" Starting microservices decomposition")
 
         # Start service registry first
-        await self.if registry and hasattr(registry, "start"): registry.start()
+        if self.registry and hasattr(self.registry, "start"):
+            await self.registry.start()
 
         # Create and start microservices
         service_classes = {
@@ -430,7 +457,8 @@ class MicroservicesOrchestrator:
                 logger.error(f" Failed to stop {service_name}: {e}")
 
         # Stop service registry
-        await self.if registry and hasattr(registry, "stop"): registry.stop()
+        if self.registry and hasattr(self.registry, "stop"):
+            await self.registry.stop()
 
         self.running = False
         logger.info(" Microservices orchestrator stopped")
@@ -443,7 +471,7 @@ class MicroservicesOrchestrator:
                 "running": service.running,
                 "service_id": service.service_id,
                 "port": service.config.port,
-                "start_time": ()
+                "start_time": (
                     service.start_time.isoformat() if service.start_time else None
                 ),
             }
@@ -454,7 +482,7 @@ class MicroservicesOrchestrator:
             "running_services": sum(1 for s in self.services.values() if s.running),
             "services": service_statuses,
             "registry_status": self.registry.get_registry_status(),
-        }}
+        }
 
 
 # Global microservices orchestrator

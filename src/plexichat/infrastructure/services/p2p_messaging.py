@@ -4,33 +4,25 @@
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
 import logging
-
 import asyncio
 import base64
 import hashlib
 import json
 import secrets
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
+import time
+import socket
 
 from cryptography.fernet import Fernet
 
-
-from plexichat.core.logging import logger
-
-"""
-import socket
-import time
-Peer-to-peer messaging service with database fallback.
-Enables messaging when database is unavailable using server as proxy.
-
-
+logger = logging.getLogger(__name__)
 
 @dataclass
 class P2PMessage:
     """Peer-to-peer message structure."""
-        id: str
+    id: str
     sender_id: int
     recipient_id: int
     content: str
@@ -55,8 +47,8 @@ class P2PMessage:
 
 @dataclass
 class PeerConnection:
-    """Peer connection information.
-        peer_id: int
+    """Peer connection information."""
+    peer_id: int
     connection_id: str
     websocket: Any
     last_seen: datetime
@@ -70,7 +62,7 @@ class PeerConnection:
 
 class MessageCache:
     """Secure message cache for offline storage."""
-        def __init__(self):
+    def __init__(self):
         self.cache: Dict[str, P2PMessage] = {}
         self.encryption_key = Fernet.generate_key()
         self.cipher = Fernet(self.encryption_key)
@@ -94,7 +86,7 @@ class MessageCache:
             return False
 
     def get_messages_for_user(self, user_id: int) -> List[P2PMessage]:
-        """Get cached messages for a user.
+        """Get cached messages for a user."""
         return [
             msg
             for msg in self.cache.values()
@@ -110,11 +102,11 @@ class MessageCache:
         return False
 
     def get_pending_database_sync(self) -> List[P2PMessage]:
-        Get messages pending database synchronization."""
+        """Get messages pending database synchronization."""
         return list(self.cache.values())
 
     def clear_synced_messages(self, message_ids: List[str]):
-        """Clear messages that have been synced to database.
+        """Clear messages that have been synced to database."""
         for msg_id in message_ids:
             self.cache.pop(msg_id, None)
         self._save_to_disk()
@@ -129,7 +121,7 @@ class MessageCache:
             del self.cache[sorted_messages[i][0]]
 
     def _save_to_disk(self):
-        Save cache to encrypted file."""
+        """Save cache to encrypted file."""
         try:
             cache_data = {msg_id: msg.to_dict() for msg_id, msg in self.cache.items()}
 
@@ -165,8 +157,8 @@ class MessageCache:
 
 
 class P2PMessagingService:
-    """Peer-to-peer messaging service with database fallback.
-        def __init__(self):
+    """Peer-to-peer messaging service with database fallback."""
+    def __init__(self):
         self.peers: Dict[int, PeerConnection] = {}
         self.message_cache = MessageCache()
         self.database_available = True
@@ -186,7 +178,7 @@ class P2PMessagingService:
         try:
             connection_id = f"p2p_{user_id}_{secrets.token_urlsafe(8)}"
 
-            peer_connection = PeerConnection()
+            peer_connection = PeerConnection(
                 peer_id=user_id,
                 connection_id=connection_id,
                 websocket=websocket,
@@ -212,7 +204,7 @@ class P2PMessagingService:
             del self.peers[user_id]
             logger.info(f" Peer {user_id} disconnected from P2P network")
 
-    async def send_message()
+    async def send_message(
         self,
         sender_id: int,
         recipient_id: int,
@@ -223,7 +215,7 @@ class P2PMessagingService:
         """Send a peer-to-peer message."""
         try:
             # Create message
-            message = P2PMessage()
+            message = P2PMessage(
                 id=f"p2p_{secrets.token_urlsafe(16)}",
                 sender_id=sender_id,
                 recipient_id=recipient_id,
@@ -247,7 +239,8 @@ class P2PMessagingService:
                     logger.info(f" Sent P2P message directly to peer {recipient_id}")
                 else:
                     # Queue for later delivery
-                    self.peers[recipient_id].message_queue.append(message)
+                    if self.peers[recipient_id].message_queue is not None:
+                        self.peers[recipient_id].message_queue.append(message)
                     logger.info(f" Queued P2P message for peer {recipient_id}")
             else:
                 # Peer offline, cache message
@@ -268,7 +261,7 @@ class P2PMessagingService:
             logger.error(f"Failed to send P2P message: {e}")
             raise
 
-    async def get_messages()
+    async def get_messages(
         self, user_id: int, other_user_id: Optional[int] = None, limit: int = 50
     ) -> List[P2PMessage]:
         """Get messages for a user (from cache and database)."""
@@ -289,7 +282,7 @@ class P2PMessagingService:
 
             # Get from database if available
             if self.database_available:
-                db_messages = await self._get_from_database()
+                db_messages = await self._get_from_database(
                     user_id, other_user_id, limit
                 )
                 messages.extend(db_messages)
@@ -322,7 +315,7 @@ class P2PMessagingService:
         """Send queued messages to newly connected peer."""
         try:
             peer = self.peers.get(user_id)
-            if not peer:
+            if not peer or peer.message_queue is None:
                 return
 
             # Send queued messages
@@ -350,7 +343,7 @@ class P2PMessagingService:
                     pending_messages = self.message_cache.get_pending_database_sync()
 
                     if pending_messages:
-                        logger.info()
+                        logger.info(
                             f" Syncing {len(pending_messages)} messages to database"
                         )
 
@@ -379,7 +372,7 @@ class P2PMessagingService:
 
                 for user_id, peer in self.peers.items():
                     # Check if peer is still responsive
-                    time_since_last_seen = ()
+                    time_since_last_seen = (
                         current_time - peer.last_seen
                     ).total_seconds()
 
@@ -446,7 +439,7 @@ class P2PMessagingService:
             self.database_available = False
             return False
 
-    async def _get_from_database()
+    async def _get_from_database(
         self, user_id: int, other_user_id: Optional[int], limit: int
     ) -> List[P2PMessage]:
         """Get messages from database (placeholder)."""
@@ -473,10 +466,10 @@ class P2PMessagingService:
             "online_peers": sum(1 for p in self.peers.values() if p.is_online),
             "cached_messages": len(self.message_cache.cache),
             "database_available": self.database_available,
-            "total_queued_messages": sum()
-                len(p.message_queue) for p in self.peers.values()
+            "total_queued_messages": sum(
+                len(p.message_queue) for p in self.peers.values() if p.message_queue
             ),
-        }}
+        }
 
 
 # Global service instance

@@ -51,7 +51,7 @@ class EventPriority(Enum):
 
 @dataclass
 class Event:
-    """Event data structure.
+    """Event data structure."""
     event_id: str
     event_type: str
     source: str
@@ -412,7 +412,7 @@ class EventManager:
             return []
 
     def _format_timestamp(self, timestamp_value: Any) -> Optional[str]:
-        """Format timestamp value safely.
+        """Format timestamp value safely."""
         if not timestamp_value:
             return None
 
@@ -454,10 +454,10 @@ class EventManager:
 
         except Exception as e:
             logger.error(f"Error getting handlers: {e}")
-            return {
+            return {}
 
     def get_queue_size(self) -> int:
-        """Get current queue size.
+        """Get current queue size."""
         return self.event_queue.qsize()
 
     def get_stats(self) -> Dict[str, Any]:
@@ -491,11 +491,11 @@ def register_event_handler(event_type: str, handler_func: Callable, **kwargs) ->
     return event_manager.register_handler(event_type, handler_func, **kwargs)
 
 def unregister_event_handler(handler_id: str) -> bool:
-    Unregister event handler using global event manager."""
+    """Unregister event handler using global event manager."""
     return event_manager.unregister_handler(handler_id)
 
 async def get_events(event_type: Optional[str] = None, source: Optional[str] = None, limit: int = 100) -> List[Dict[str, Any]]:
-    """Get events using global event manager.
+    """Get events using global event manager."""
     return await event_manager.get_events(event_type, source, limit)
 
 # Decorators
@@ -508,7 +508,7 @@ def event_handler(event_type: str, priority: int = 100, filter_func: Optional[Ca
     return decorator
 
 def global_event_handler(priority: int = 100, filter_func: Optional[Callable] = None):
-    Decorator to register global event handler."""
+    """Decorator to register global event handler."""
     def decorator(func):
         handler_id = register_event_handler("*", func, priority=priority, filter_func=filter_func)
         func._event_handler_id = handler_id

@@ -3,7 +3,7 @@ Cache Cluster Manager
 
 Advanced clustering support for distributed caching with automatic
 failover, load balancing, and consistency management.
-
+"""
 
 import asyncio
 import hashlib
@@ -33,8 +33,8 @@ class CacheNode:
 
 @dataclass
 class ClusterMetrics:
-    Cluster-wide cache metrics."""
-        total_nodes: int = 0
+    """Cluster-wide cache metrics."""
+    total_nodes: int = 0
     healthy_nodes: int = 0
     total_requests: int = 0
     total_hits: int = 0
@@ -45,7 +45,7 @@ class ClusterMetrics:
 
 class CacheClusterManager:
     """Manages distributed cache cluster with automatic failover."""
-        def __init__(self, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, config: Optional[Dict[str, Any]] = None):
         self.config = config or {}
         self.nodes: Dict[str, CacheNode] = {}
         self.healthy_nodes: Set[str] = set()
@@ -73,7 +73,7 @@ class CacheClusterManager:
         try:
             # Add nodes to cluster
             for node_config in nodes:
-                await self.add_node()
+                await self.add_node(
                     node_config['node_id'],
                     node_config['host'],
                     node_config['port'],
@@ -96,7 +96,7 @@ class CacheClusterManager:
     async def add_node(self, node_id: str, host: str, port: int, weight: float = 1.0) -> bool:
         """Add a new node to the cluster."""
         try:
-            node = CacheNode()
+            node = CacheNode(
                 node_id=node_id,
                 host=host,
                 port=port,
@@ -138,7 +138,7 @@ class CacheClusterManager:
             return False
 
     def get_node_for_key(self, key: str) -> Optional[str]:
-        """Get the appropriate node for a given key using consistent hashing.
+        """Get the appropriate node for a given key using consistent hashing."""
         if not self.healthy_nodes:
             return None
 
@@ -197,7 +197,7 @@ class CacheClusterManager:
         return replicas[:replica_count]
 
     async def start_monitoring(self):
-        Start background monitoring tasks."""
+        """Start background monitoring tasks."""
         if self._running:
             return
 
@@ -232,7 +232,7 @@ class CacheClusterManager:
                 await asyncio.sleep(5)
 
     async def _check_all_nodes_health(self):
-        """Check health of all nodes.
+        """Check health of all nodes."""
         tasks = []
         for node_id, node in self.nodes.items():
             task = asyncio.create_task(self._check_node_health(node_id, node))
@@ -335,14 +335,14 @@ class CacheClusterManager:
             logger.error(f"Error collecting cluster metrics: {e}")
 
     def get_cluster_status(self) -> Dict[str, Any]:
-        """Get comprehensive cluster status.
+        """Get comprehensive cluster status."""
         return {
             'cluster_health': {
                 'total_nodes': self.metrics.total_nodes,
                 'healthy_nodes': self.metrics.healthy_nodes,
                 'unhealthy_nodes': self.metrics.total_nodes - self.metrics.healthy_nodes,
                 'health_percentage': (self.metrics.healthy_nodes / self.metrics.total_nodes * 100) if self.metrics.total_nodes > 0 else 0
-            }},
+            },
             'performance': {
                 'avg_response_time_ms': self.metrics.avg_response_time,
                 'total_requests': self.metrics.total_requests,

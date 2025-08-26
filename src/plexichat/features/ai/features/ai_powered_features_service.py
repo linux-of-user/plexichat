@@ -38,7 +38,7 @@ except ImportError:
         return logging.getLogger(name)
 
 try:
-    from ...services.base_service import BaseService, ServiceState  # type: ignore
+    from plexichat.infrastructure.services.base_service import BaseService, ServiceState  # type: ignore
 except ImportError:
     # Fallback base service
     class ServiceState:
@@ -58,7 +58,7 @@ except ImportError:
         async def stop(self):
             self.state = ServiceState.STOPPING
 
-from ..core.ai_abstraction_layer import AIAbstractionLayer, AIRequest
+from plexichat.features.ai.core.ai_abstraction_layer import AIAbstractionLayer, AIRequest
 
 logger = get_logger(__name__)
 

@@ -12,12 +12,11 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 
-from ..core.database.coordinator import database_coordinator
-from ..features.ai.ai_coordinator import ai_coordinator
-from ..core.security.unified_security_system import unified_security_manager
-from ..infrastructure.scalability.coordinator import scalability_coordinator
-from ..core_system.resilience.manager import get_system_resilience
-
+from plexichat.core.database.manager import database_manager
+from plexichat.features.ai.ai_coordinator import ai_coordinator
+from plexichat.core.security.unified_security_system import unified_security_manager
+from plexichat.infrastructure.scalability.coordinator import scalability_coordinator
+# from ..core_system.resilience.manager import get_system_resilience # This import is broken
 
 """
 PlexiChat Master Integration Coordinator
@@ -27,14 +26,14 @@ Orchestrates all system components and provides unified system management includ
 - AI coordination
 - Database abstraction
 - System resilience
-
+"""
 logger = logging.getLogger(__name__)
 
 
 @dataclass
 class SystemMetrics:
     """Overall system metrics."""
-        total_requests: int = 0
+    total_requests: int = 0
     successful_requests: int = 0
     failed_requests: int = 0
     average_response_time: float = 0.0
@@ -46,7 +45,7 @@ class SystemMetrics:
 
 
 class PlexiChatMasterCoordinator:
-    
+    """
     PlexiChat Master Integration Coordinator.
 
     Orchestrates all system phases and provides:
@@ -57,7 +56,7 @@ class PlexiChatMasterCoordinator:
     - Performance optimization
     - Graceful shutdown
     """
-        def __init__(self):
+    def __init__(self):
         self.system_name = "PlexiChat"
         self.version = "2.0.0"
         self.initialized = False
@@ -70,7 +69,7 @@ class PlexiChatMasterCoordinator:
         self.database_coordinator = database_coordinator
 
         # System resilience manager
-        self.resilience_manager = get_system_resilience()
+        # self.resilience_manager = get_system_resilience() # This is broken
 
         # System metrics
         self.metrics = SystemMetrics()
@@ -120,33 +119,33 @@ class PlexiChatMasterCoordinator:
 
         try:
             # Phase I: Security Infrastructure
-            if self.config["enable_phase1_security"]:
+            if self.config.get("enable_phase1_security"):
                 logger.info(" Initializing Phase I: Security Infrastructure")
-                if self.phase1_security and hasattr(self.phase1_security, "initialize") and callable(self.phase1_security.initialize):
+                if hasattr(self, "phase1_security") and self.phase1_security and hasattr(self.phase1_security, "initialize") and callable(self.phase1_security.initialize):
                     await self.phase1_security.initialize()
                 self.stats["phase_status"]["phase1"] = "initialized"
                 logger.info(" Phase I: Security Infrastructure - Complete")
 
             # Phase II: Scalability & Modularity
-            if self.config["enable_phase2_scalability"]:
+            if self.config.get("enable_phase2_scalability"):
                 logger.info(" Initializing Phase II: Scalability & Modularity")
-                if self.phase2_scalability and hasattr(self.phase2_scalability, "initialize") and callable(self.phase2_scalability.initialize):
+                if hasattr(self, "phase2_scalability") and self.phase2_scalability and hasattr(self.phase2_scalability, "initialize") and callable(self.phase2_scalability.initialize):
                     await self.phase2_scalability.initialize()
                 self.stats["phase_status"]["phase2"] = "initialized"
                 logger.info(" Phase II: Scalability & Modularity - Complete")
 
             # Phase III: Artificial Intelligence
-            if self.config["enable_phase3_ai"]:
+            if self.config.get("enable_phase3_ai"):
                 logger.info(" Initializing Phase III: Artificial Intelligence")
-                if self.phase3_ai and hasattr(self.phase3_ai, "initialize") and callable(self.phase3_ai.initialize):
+                if hasattr(self, "phase3_ai") and self.phase3_ai and hasattr(self.phase3_ai, "initialize") and callable(self.phase3_ai.initialize):
                     await self.phase3_ai.initialize()
                 self.stats["phase_status"]["phase3"] = "initialized"
                 logger.info(" Phase III: Artificial Intelligence - Complete")
 
             # Phase IV: Database Abstraction
-            if self.config["enable_phase4_database"]:
+            if self.config.get("enable_phase4_database"):
                 logger.info(" Initializing Phase IV: Database Abstraction")
-                if self.phase4_database and hasattr(self.phase4_database, "initialize") and callable(self.phase4_database.initialize):
+                if hasattr(self, "phase4_database") and self.phase4_database and hasattr(self.phase4_database, "initialize") and callable(self.phase4_database.initialize):
                     await self.phase4_database.initialize()
                 self.stats["phase_status"]["phase4"] = "initialized"
                 logger.info(" Phase IV: Database Abstraction - Complete")
@@ -158,12 +157,12 @@ class PlexiChatMasterCoordinator:
             self.initialized = True
             self.running = True
 
-            initialization_time = ()
+            initialization_time = (
                 datetime.now(timezone.utc) - start_time
             ).total_seconds()
             self.stats["initialization_time"] = initialization_time
 
-            logger.info()
+            logger.info(
                 f" {self.system_name} v{self.version} initialized successfully in {initialization_time:.2f}s"
             )
 
@@ -177,12 +176,8 @@ class PlexiChatMasterCoordinator:
 
     async def _start_system_monitoring(self):
         """Start system monitoring tasks."""
-        # Start monitoring loop
         self.monitoring_task = asyncio.create_task(self._system_monitoring_loop())
-
-        # Start health check loop
         self.health_check_task = asyncio.create_task(self._health_check_loop())
-
         logger.info(" System monitoring started")
 
     async def _system_monitoring_loop(self):
@@ -213,52 +208,36 @@ class PlexiChatMasterCoordinator:
     async def _collect_system_metrics(self):
         """Collect system-wide metrics."""
         try:
-            # Calculate uptime
             if self.start_time:
                 uptime = (datetime.now(timezone.utc) - self.start_time).total_seconds()
                 self.metrics.system_uptime = uptime
                 self.stats["total_uptime"] = uptime
 
-            # Collect metrics from each phase
             phase_metrics = {}
-
-            if self.config["enable_phase1_security"]:
+            if self.config.get("enable_phase1_security") and hasattr(self, "phase1_security"):
                 phase_metrics["security"] = self.phase1_security.get_security_status()
-
-            if self.config["enable_phase2_scalability"]:
-                phase_metrics["scalability"] = ()
-                    self.phase2_scalability.get_scalability_status()
-                )
-
-            if self.config["enable_phase3_ai"]:
+            if self.config.get("enable_phase2_scalability") and hasattr(self, "phase2_scalability"):
+                phase_metrics["scalability"] = self.phase2_scalability.get_scalability_status()
+            if self.config.get("enable_phase3_ai") and hasattr(self, "phase3_ai"):
                 phase_metrics["ai"] = self.phase3_ai.get_ai_status()
-
-            if self.config["enable_phase4_database"]:
+            if self.config.get("enable_phase4_database") and hasattr(self, "phase4_database"):
                 phase_metrics["database"] = self.phase4_database.get_database_status()
 
-            # Aggregate metrics
-            total_requests = 0
-            successful_requests = 0
-            response_times = []
-
+            total_requests, successful_requests, response_times = 0, 0, []
             for phase_name, phase_data in phase_metrics.items():
                 logger.debug(f"Processing phase {phase_name}")
-                if "statistics" in phase_data:
+                if isinstance(phase_data, dict) and "statistics" in phase_data:
                     stats = phase_data["statistics"]
                     total_requests += stats.get("total_requests", 0)
                     successful_requests += stats.get("successful_requests", 0)
-
                     if "average_response_time" in stats:
                         response_times.append(stats["average_response_time"])
 
             self.metrics.total_requests = total_requests
             self.metrics.successful_requests = successful_requests
             self.metrics.failed_requests = total_requests - successful_requests
-
             if response_times:
-                self.metrics.average_response_time = sum(response_times) / len()
-                    response_times
-                )
+                self.metrics.average_response_time = sum(response_times) / len(response_times)
 
         except Exception as e:
             logger.error(f"Metrics collection error: {e}")
@@ -273,58 +252,32 @@ class PlexiChatMasterCoordinator:
                 "resilience": None,
             }
 
-            # Check each phase
-            if self.config["enable_phase1_security"]:
-                security_status = self.phase1_security.get_security_status()
-                health_status["phases"]["security"] = {
-                    "status": ()
-                        "healthy" if security_status["phase1_enabled"] else "disabled"
-                    ),
-                    "components": security_status["components"],
-                }
+            component_checks = {
+                "security": ("enable_phase1_security", "phase1_security", "phase1_enabled"),
+                "scalability": ("enable_phase2_scalability", "phase2_scalability", "phase2_enabled"),
+                "ai": ("enable_phase3_ai", "phase3_ai", "phase3_enabled"),
+                "database": ("enable_phase4_database", "phase4_database", "phase4_enabled"),
+            }
 
-            if self.config["enable_phase2_scalability"]:
-                scalability_status = self.phase2_scalability.get_scalability_status()
-                health_status["phases"]["scalability"] = {
-                    "status": ()
-                        "healthy" if scalability_status["phase2_enabled"] else "disabled"
-                    ),
-                    "components": scalability_status["components"],
-                }
+            for comp, (config_key, attr, status_key) in component_checks.items():
+                if self.config.get(config_key) and hasattr(self, attr):
+                    status = getattr(self, attr).get_status()
+                    health_status["phases"][comp] = {
+                        "status": "healthy" if status.get(status_key) else "disabled",
+                        "components": status.get("components"),
+                    }
 
-            if self.config["enable_phase3_ai"]:
-                ai_status = self.phase3_ai.get_ai_status()
-                health_status["phases"]["ai"] = {
-                    "status": "healthy" if ai_status["phase3_enabled"] else "disabled",
-                    "components": ai_status["components"],
-                }
-
-            if self.config["enable_phase4_database"]:
-                database_status = self.phase4_database.get_database_status()
-                health_status["phases"]["database"] = {
-                    "status": ()
-                        "healthy" if database_status["phase4_enabled"] else "disabled"
-                    ),
-                    "components": database_status["components"],
-                }
-
-            # Integrate system resilience check
-            try:
-                resilience_report = await self.resilience_manager.run_system_check()
-                health_status["resilience"] = resilience_report
-                if resilience_report.get("overall_status") not in ["healthy", "HEALTHY"]:
+            if hasattr(self, "resilience_manager"):
+                try:
+                    resilience_report = await self.resilience_manager.run_system_check()
+                    health_status["resilience"] = resilience_report
+                    if resilience_report.get("overall_status", "").lower() != "healthy":
+                        health_status["overall_status"] = "degraded"
+                except Exception as e:
+                    health_status["resilience"] = {"error": str(e)}
                     health_status["overall_status"] = "degraded"
-            except Exception as e:
-                health_status["resilience"] = {"error": str(e)}
-                health_status["overall_status"] = "degraded"
 
-            # Determine overall health
-            unhealthy_phases = [
-                phase
-                for phase, data in health_status["phases"].items()
-                if data["status"] not in ["healthy", "disabled"]
-            ]
-
+            unhealthy_phases = [p for p, d in health_status["phases"].items() if d.get("status") not in ["healthy", "disabled"]]
             if unhealthy_phases:
                 health_status["overall_status"] = "degraded"
                 logger.warning(f" System health degraded: {unhealthy_phases}")
@@ -337,23 +290,16 @@ class PlexiChatMasterCoordinator:
 
     async def _optimize_performance(self):
         """Perform automatic performance optimizations."""
-        if not self.config["performance_optimization"]:
+        if not self.config.get("performance_optimization"):
             return
 
         try:
-            # Check if response time is too high
-            if self.metrics.average_response_time > 1000:  # 1 second
-                logger.warning(" High response time detected, optimizing...")
-                # Trigger optimization in relevant phases
-                # This would include cache warming, connection pool adjustments, etc.
-
-            # Check if error rate is too high
+            if self.metrics.average_response_time > 1000:
+                logger.warning("High response time detected, optimizing...")
             if self.metrics.total_requests > 0:
                 error_rate = self.metrics.failed_requests / self.metrics.total_requests
-                if error_rate > 0.05:  # 5% error rate
-                    logger.warning(f" High error rate detected: {error_rate:.2%}")
-                    # Trigger error recovery mechanisms
-
+                if error_rate > 0.05:
+                    logger.warning(f"High error rate detected: {error_rate:.2%}")
         except Exception as e:
             logger.error(f"Performance optimization error: {e}")
 
@@ -362,23 +308,22 @@ class PlexiChatMasterCoordinator:
         status_lines = [
             "",
             f" {self.system_name} v{self.version} - System Status",
-            f"{'='*60}",
-            f" Phase I: Security Infrastructure - {' Active' if self.config['enable_phase1_security'] else ' Disabled'}",
-            f" Phase II: Scalability & Modularity - {' Active' if self.config['enable_phase2_scalability'] else ' Disabled'}",
-            f" Phase III: Artificial Intelligence - {' Active' if self.config['enable_phase3_ai'] else ' Disabled'}",
-            f" Phase IV: Database Abstraction - {' Active' if self.config['enable_phase4_database'] else ' Disabled'}",
+            "="*60,
+            f" Phase I: Security Infrastructure - {'Active' if self.config.get('enable_phase1_security') else 'Disabled'}",
+            f" Phase II: Scalability & Modularity - {'Active' if self.config.get('enable_phase2_scalability') else 'Disabled'}",
+            f" Phase III: Artificial Intelligence - {'Active' if self.config.get('enable_phase3_ai') else 'Disabled'}",
+            f" Phase IV: Database Abstraction - {'Active' if self.config.get('enable_phase4_database') else 'Disabled'}",
             "",
             " System Metrics:",
             f"    Uptime: {self.metrics.system_uptime:.2f} seconds",
             f"    Total Requests: {self.metrics.total_requests}",
-            f"    Success Rate: {(self.metrics.successful_requests/max(self.metrics.total_requests,1)*100):.1f}%",
+            f"    Success Rate: {(self.metrics.successful_requests / max(self.metrics.total_requests, 1) * 100):.1f}%",
             f"    Avg Response Time: {self.metrics.average_response_time:.2f}ms",
             "",
             " System ready for operation!",
-            f"{'='*60}",
+            "="*60,
             "",
         ]
-
         for line in status_lines:
             logger.info(line)
 
@@ -391,69 +336,42 @@ class PlexiChatMasterCoordinator:
                 "initialized": self.initialized,
                 "running": self.running,
                 "uptime_seconds": self.metrics.system_uptime,
-            }},
+            },
             "configuration": self.config,
             "statistics": self.stats,
-            "metrics": {
-                "total_requests": self.metrics.total_requests,
-                "successful_requests": self.metrics.successful_requests,
-                "failed_requests": self.metrics.failed_requests,
-                "average_response_time": self.metrics.average_response_time,
-                "system_uptime": self.metrics.system_uptime,
-            },
+            "metrics": self.metrics.__dict__,
             "phase_status": {
-                "phase1_security": ()
-                    self.phase1_security.get_security_status()
-                    if self.config["enable_phase1_security"]
-                    else None
-                ),
-                "phase2_scalability": ()
-                    self.phase2_scalability.get_scalability_status()
-                    if self.config["enable_phase2_scalability"]
-                    else None
-                ),
-                "phase3_ai": ()
-                    self.phase3_ai.get_ai_status()
-                    if self.config["enable_phase3_ai"]
-                    else None
-                ),
-                "phase4_database": ()
-                    self.phase4_database.get_database_status()
-                    if self.config["enable_phase4_database"]
-                    else None
-                ),
+                "phase1_security": self.phase1_security.get_security_status() if self.config.get("enable_phase1_security") and hasattr(self, "phase1_security") else None,
+                "phase2_scalability": self.phase2_scalability.get_scalability_status() if self.config.get("enable_phase2_scalability") and hasattr(self, "phase2_scalability") else None,
+                "phase3_ai": self.phase3_ai.get_ai_status() if self.config.get("enable_phase3_ai") and hasattr(self, "phase3_ai") else None,
+                "phase4_database": self.phase4_database.get_database_status() if self.config.get("enable_phase4_database") and hasattr(self, "phase4_database") else None,
             },
             "last_updated": datetime.now(timezone.utc).isoformat(),
         }
 
     async def restart_phase(self, phase_name: str) -> bool:
         """Restart a specific phase."""
-        try:
-            logger.info(f" Restarting {phase_name}")
+        phase_map = {
+            "security": "phase1_security",
+            "scalability": "phase2_scalability",
+            "ai": "phase3_ai",
+            "database": "phase4_database"
+        }
+        attr_name = phase_map.get(phase_name) or phase_name
 
-            if phase_name == "phase1" or phase_name == "security":
-                await self.phase1_security.shutdown()
-                if self.phase1_security and hasattr(self.phase1_security, "initialize") and callable(self.phase1_security.initialize):
-                    await self.phase1_security.initialize()
-            elif phase_name == "phase2" or phase_name == "scalability":
-                await self.phase2_scalability.shutdown()
-                if self.phase2_scalability and hasattr(self.phase2_scalability, "initialize") and callable(self.phase2_scalability.initialize):
-                    await self.phase2_scalability.initialize()
-            elif phase_name == "phase3" or phase_name == "ai":
-                await self.phase3_ai.shutdown()
-                if self.phase3_ai and hasattr(self.phase3_ai, "initialize") and callable(self.phase3_ai.initialize):
-                    await self.phase3_ai.initialize()
-            elif phase_name == "phase4" or phase_name == "database":
-                await self.phase4_database.shutdown()
-                if self.phase4_database and hasattr(self.phase4_database, "initialize") and callable(self.phase4_database.initialize):
-                    await self.phase4_database.initialize()
+        try:
+            logger.info(f"Restarting {attr_name}")
+            if hasattr(self, attr_name):
+                phase = getattr(self, attr_name)
+                if hasattr(phase, "shutdown") and callable(phase.shutdown):
+                    await phase.shutdown()
+                if hasattr(phase, "initialize") and callable(phase.initialize):
+                    await phase.initialize()
+                logger.info(f"{attr_name} restarted successfully")
+                return True
             else:
                 logger.error(f"Unknown phase: {phase_name}")
                 return False
-
-            logger.info(f" {phase_name} restarted successfully")
-            return True
-
         except Exception as e:
             logger.error(f"Failed to restart {phase_name}: {e}")
             return False
@@ -463,41 +381,23 @@ class PlexiChatMasterCoordinator:
         if not self.running:
             return
 
-        logger.info(f" Shutting down {self.system_name} v{self.version}")
+        logger.info(f"Shutting down {self.system_name} v{self.version}")
+        self.running = False
 
-        try:
-            self.running = False
+        if self.monitoring_task: self.monitoring_task.cancel()
+        if self.health_check_task: self.health_check_task.cancel()
 
-            # Stop monitoring tasks
-            if self.monitoring_task:
-                self.monitoring_task.cancel()
-            if self.health_check_task:
-                self.health_check_task.cancel()
+        phases = ["phase4_database", "phase3_ai", "phase2_scalability", "phase1_security"]
+        for phase_attr in phases:
+            if self.config.get(f"enable_{phase_attr.split('_')[0]}") and hasattr(self, phase_attr):
+                try:
+                    await getattr(self, phase_attr).shutdown()
+                    self.stats["phase_status"][phase_attr.split('_')[0]] = "shutdown"
+                except Exception as e:
+                    logger.error(f"Error shutting down {phase_attr}: {e}")
 
-            # Shutdown phases in reverse order
-            if self.config["enable_phase4_database"]:
-                await self.phase4_database.shutdown()
-                self.stats["phase_status"]["phase4"] = "shutdown"
-
-            if self.config["enable_phase3_ai"]:
-                await self.phase3_ai.shutdown()
-                self.stats["phase_status"]["phase3"] = "shutdown"
-
-            if self.config["enable_phase2_scalability"]:
-                await self.phase2_scalability.shutdown()
-                self.stats["phase_status"]["phase2"] = "shutdown"
-
-            if self.config["enable_phase1_security"]:
-                await self.phase1_security.shutdown()
-                self.stats["phase_status"]["phase1"] = "shutdown"
-
-            self.initialized = False
-
-            logger.info(f" {self.system_name} v{self.version} shutdown complete")
-
-        except Exception as e:
-            logger.error(f"Error during system shutdown: {e}")
+        self.initialized = False
+        logger.info(f"{self.system_name} v{self.version} shutdown complete")
 
 
-# Global master coordinator instance
 master_coordinator = PlexiChatMasterCoordinator()

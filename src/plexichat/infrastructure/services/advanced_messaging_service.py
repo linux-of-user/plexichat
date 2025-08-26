@@ -8,23 +8,15 @@ import unicodedata
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
-from sqlmodel import Session, and_, or_, select
 from sqlalchemy import desc
+from sqlmodel import Session, and_, or_, select
 
-try:
-    from plexichat.core.database import get_engine
-    from plexichat.core.logging import get_logger
-    from plexichat.features.guilds.models import Emoji
-    from plexichat.features.messaging.models import Message, MessageReaction, MessageType
-    engine = get_engine()
-    logger = get_logger(__name__)
-except ImportError:
-    engine = None
-    logger = print
-    Emoji = None
-    Message = None
-    MessageReaction = None
-    MessageType = None
+from plexichat.core.database import get_engine
+from plexichat.core.logging import get_logger
+from plexichat.shared.models import Emoji, Message, MessageReaction, MessageType
+
+engine = get_engine()
+logger = get_logger(__name__)
 
 # Import unified cache integration
 try:
@@ -45,27 +37,22 @@ except ImportError:
 """
 Enhanced Messaging Service
 Comprehensive messaging service with emoji support, replies, reactions, and resilience features.
-
-
-# Remove EmojiService and all emoji/unicode handling
-# Remove all references to emoji processing, shortcodes, unicode regex, and emoji statistics
-# Remove all emoji-related methods and usages in EnhancedMessagingService
-
+"""
 
 class ReactionService:
     """Service for handling message reactions."""
-        @classmethod
+    @classmethod
     async def add_reaction(cls, message_id: int, user_id: int, emoji: str, emoji_id: Optional[int] = None) -> bool:
-        Add a reaction to a message."""
+        """Add a reaction to a message."""
         try:
             with Session(engine) as session:
                 # Check if reaction already exists
-existing = session.# SECURITY: exec() removed - use safe alternatives
-                    select(MessageReaction).where()
-                        and_()
+                existing = session.exec(
+                    select(MessageReaction).where(
+                        and_(
                             MessageReaction.message_id == message_id,
                             MessageReaction.user_id == user_id,
-                            or_()
+                            or_(
                                 MessageReaction.emoji == emoji,
                                 MessageReaction.emoji_id == emoji_id
                             )
@@ -82,7 +69,7 @@ existing = session.# SECURITY: exec() removed - use safe alternatives
                     user_id=user_id,
                     emoji=emoji,
                     emoji_id=emoji_id,
-                    emoji_name=EmojiService.get_emoji_name(emoji) if not emoji_id else None
+                    emoji_name=None # EmojiService removed
                 )
                 session.add(reaction)
                 session.commit()
@@ -97,12 +84,12 @@ existing = session.# SECURITY: exec() removed - use safe alternatives
         """Remove a reaction from a message."""
         try:
             with Session(engine) as session:
-reaction = session.# SECURITY: exec() removed - use safe alternatives
-                    select(MessageReaction).where()
-                        and_()
+                reaction = session.exec(
+                    select(MessageReaction).where(
+                        and_(
                             MessageReaction.message_id == message_id,
                             MessageReaction.user_id == user_id,
-                            or_()
+                            or_(
                                 MessageReaction.emoji == emoji,
                                 MessageReaction.emoji_id == emoji_id
                             )
@@ -125,7 +112,7 @@ reaction = session.# SECURITY: exec() removed - use safe alternatives
         """Get all reactions for a message."""
         try:
             with Session(engine) as session:
-reactions = session.# SECURITY: exec() removed - use safe alternatives
+                reactions = session.exec(
                     select(MessageReaction).where(MessageReaction.message_id == message_id)
                 ).all()
 
@@ -152,8 +139,8 @@ reactions = session.# SECURITY: exec() removed - use safe alternatives
 
 
 class ReplyService:
-    """Service for handling message replies.
-        @classmethod
+    """Service for handling message replies."""
+    @classmethod
     async def create_reply(cls, original_message_id: int, reply_content: str, sender_id: int, **kwargs) -> Optional[Message]:
         """Create a reply to a message."""
         try:
@@ -193,7 +180,7 @@ class ReplyService:
         """Get replies to a message."""
         try:
             with Session(engine) as session:
-replies = session.# SECURITY: exec() removed - use safe alternatives
+                replies = session.exec(
                     select(Message)
                     .where(Message.referenced_message_id == message_id)
                     .order_by(Message.timestamp)
@@ -207,20 +194,16 @@ replies = session.# SECURITY: exec() removed - use safe alternatives
 
 
 class EnhancedMessagingService:
-    """Enhanced messaging service with comprehensive features.
-        def __init__(self):
-        self.emoji_service = EmojiService()
+    """Enhanced messaging service with comprehensive features."""
+    def __init__(self):
         self.reaction_service = ReactionService()
         self.reply_service = ReplyService()
-        # Using unified cache instead of local cache
+        self.message_cache = {}
         self.rate_limits = {}  # Rate limiting storage
 
     async def send_message(self, sender_id: int, content: str, **kwargs) -> Optional[Message]:
         """Send a message with emoji processing and resilience."""
         try:
-            # Process emoji shortcodes
-            processed_content = self.emoji_service.process_emoji_shortcodes(content)
-
             # Check rate limits
             if not await self._check_rate_limit(sender_id):
                 raise Exception("Rate limit exceeded")
@@ -231,7 +214,7 @@ class EnhancedMessagingService:
                     recipient_id=kwargs.get('recipient_id'),
                     channel_id=kwargs.get('channel_id'),
                     guild_id=kwargs.get('guild_id'),
-                    content=processed_content,
+                    content=content,
                     type=kwargs.get('message_type', MessageType.DEFAULT),
                     metadata=kwargs.get('metadata', {}),
                     is_system=kwargs.get('is_system', False)
@@ -254,16 +237,13 @@ class EnhancedMessagingService:
     async def send_reply(self, sender_id: int, original_message_id: int, content: str, **kwargs) -> Optional[Message]:
         """Send a reply to a message."""
         try:
-            # Process emoji shortcodes
-            processed_content = self.emoji_service.process_emoji_shortcodes(content)
-
             # Check rate limits
             if not await self._check_rate_limit(sender_id):
                 raise Exception("Rate limit exceeded")
 
             reply = await self.reply_service.create_reply(
                 original_message_id=original_message_id,
-                reply_content=processed_content,
+                reply_content=content,
                 sender_id=sender_id,
                 **kwargs
             )
@@ -292,7 +272,7 @@ class EnhancedMessagingService:
             return False
 
     async def remove_reaction(self, message_id: int, user_id: int, emoji: str) -> bool:
-        """Remove a reaction from a message.
+        """Remove a reaction from a message."""
         return await self.reaction_service.remove_reaction(message_id, user_id, emoji)
 
     async def get_messages(self, **filters) -> List[Message]:
@@ -316,7 +296,7 @@ class EnhancedMessagingService:
                 if filters.get('limit'):
                     query = query.limit(filters['limit'])
 
-messages = session.# SECURITY: exec() removed - use safe alternativesquery).all()
+                messages = session.exec(query).all()
                 return list(messages)
 
         except Exception as e:
@@ -329,7 +309,7 @@ messages = session.# SECURITY: exec() removed - use safe alternativesquery).all(
             with Session(engine) as session:
                 message = session.get(Message, message_id)
                 if not message:
-                    return {}}
+                    return {}
 
                 # Get reactions
                 reactions = await self.reaction_service.get_message_reactions(message_id)
@@ -347,13 +327,13 @@ messages = session.# SECURITY: exec() removed - use safe alternativesquery).all(
                     "reactions": reactions,
                     "replies": replies,
                     "referenced_message": referenced_message,
-                    "emoji_count": len(self.emoji_service.extract_emojis(message.content or "")),
-                    "has_emoji": self.emoji_service.has_emoji(message.content or "")
-                }}
+                    "emoji_count": 0, # EmojiService removed
+                    "has_emoji": False # EmojiService removed
+                }
 
         except Exception as e:
             logger.error(f"Failed to get message context: {e}")
-            return {}}
+            return {}
 
     async def _check_rate_limit(self, user_id: int, action: str = "message") -> bool:
         """Check if user is within rate limits."""
@@ -393,7 +373,7 @@ messages = session.# SECURITY: exec() removed - use safe alternativesquery).all(
         try:
             with Session(engine) as session:
                 search_query = select(Message).where(
-                    and_()
+                    and_(
                         not Message.is_deleted,
                         Message.content.contains(query)
                     )
@@ -414,7 +394,7 @@ messages = session.# SECURITY: exec() removed - use safe alternativesquery).all(
                 if filters.get('limit'):
                     search_query = search_query.limit(filters['limit'])
 
-messages = session.# SECURITY: exec() removed - use safe alternativessearch_query).all()
+                messages = session.exec(search_query).all()
                 return list(messages)
 
         except Exception as e:
@@ -462,11 +442,8 @@ messages = session.# SECURITY: exec() removed - use safe alternativessearch_quer
                 if not message or message.sender_id != user_id:
                     return None
 
-                # Process emoji shortcodes
-                processed_content = self.emoji_service.process_emoji_shortcodes(new_content)
-
                 # Update message
-                message.content = processed_content
+                message.content = new_content
                 message.edited_timestamp = datetime.now()
                 message.is_edited = True
 

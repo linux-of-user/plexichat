@@ -10,7 +10,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from uuid import uuid4
 
-from .manager import database_manager
+from plexichat.core.database.manager import database_manager
 
 logger = logging.getLogger(__name__)
 

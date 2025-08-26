@@ -5,12 +5,12 @@
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
 try:
-    from .feedback_collector import FeedbackCollector  # type: ignore
+    from plexichat.features.ai.moderation.feedback_collector import FeedbackCollector  # type: ignore
 except ImportError:
     FeedbackCollector = None
 
 try:
-    from .moderation_engine import ModerationEngine  # type: ignore
+    from plexichat.features.ai.moderation.moderation_engine import ModerationEngine  # type: ignore
 except ImportError:
     ModerationEngine = None
 

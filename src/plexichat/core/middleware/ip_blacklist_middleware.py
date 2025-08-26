@@ -20,7 +20,7 @@ import json
 
 # Import configuration
 try:
-    from ..config.rate_limiting_config import get_rate_limiting_config, IPBlacklistConfig
+    from plexichat.core.rate_limit_config import get_rate_limiting_config, IPBlacklistConfig
 except ImportError as e:
     print(f"Import error in IP blacklist middleware: {e}")
     # Fallback
@@ -31,8 +31,8 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class IPThreatInfo:
-    """Information about an IP threat.
-        ip_address: str
+    """Information about an IP threat."""
+    ip_address: str
     threat_level: str  # low, medium, high, critical
     threat_types: List[str]  # brute_force, ddos, spam, malware, etc.
     first_seen: datetime
@@ -46,7 +46,7 @@ class IPThreatInfo:
 @dataclass
 class RequestPattern:
     """Pattern analysis for suspicious requests."""
-        ip_address: str
+    ip_address: str
     timestamp: float
     endpoint: str
     user_agent: str
@@ -55,8 +55,8 @@ class RequestPattern:
     payload_size: int = 0
 
 class IPBlacklistMiddleware(BaseHTTPMiddleware):
-    Comprehensive IP blacklist and threat detection middleware."""
-        def __init__(self, app):
+    """Comprehensive IP blacklist and threat detection middleware."""
+    def __init__(self, app):
         super().__init__(app)
         
         # Configuration
@@ -212,7 +212,7 @@ class IPBlacklistMiddleware(BaseHTTPMiddleware):
         return request.client.host if request.client else "unknown"
     
     def _is_valid_ip(self, ip: str) -> bool:
-        """Validate IP address format.
+        """Validate IP address format."""
         try:
             ipaddress.ip_address(ip)
             return True
@@ -285,7 +285,7 @@ class IPBlacklistMiddleware(BaseHTTPMiddleware):
         return {"blocked": False, "reason": None}
     
     async def _get_ip_country(self, ip: str) -> Optional[str]:
-        """Get country for IP address (simplified implementation).
+        """Get country for IP address (simplified implementation)."""
         # In production, this would use a GeoIP database like MaxMind
         # For now, return None (no geo-blocking)
         return None

@@ -6,14 +6,13 @@
 from datetime import datetime, timezone
 from pathlib import Path
 
-from plexichat.core.auth.dependencies import require_auth, require_admin_auth
+from plexichat.core.authentication import require_auth, require_admin_auth
 from plexichat.core.logging import get_logger
 # from ...services.performance_service import get_performance_service
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-# from typing import Optional  # Unused import
 
 """
 PlexiChat Main Dashboard Web Routes
@@ -22,6 +21,7 @@ Main dashboard web routes providing overview of system status, quick access
 to key features, and navigation to specialized dashboards.
 """
 import time
+# from typing import Optional  # Unused import
 
 # Initialize router and templates
 router = APIRouter(prefix="/dashboard", tags=["Main Dashboard"])

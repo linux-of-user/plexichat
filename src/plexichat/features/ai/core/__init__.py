@@ -6,7 +6,7 @@
 # pyright: reportReturnType=false
 # Import from simplified version
 from typing import Optional
-from .ai_abstraction_layer import (
+from plexichat.features.ai.core.ai_abstraction_layer import (
     AIAbstractionLayer,
     AIAccessControl,
     AIModel,

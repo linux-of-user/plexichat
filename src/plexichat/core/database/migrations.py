@@ -8,7 +8,7 @@ import logging
 from typing import List, Dict, Any, Optional
 from datetime import datetime, timezone
 
-from .manager import database_manager
+from plexichat.core.database.manager import database_manager
 
 logger = logging.getLogger(__name__)
 

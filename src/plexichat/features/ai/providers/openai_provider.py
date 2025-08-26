@@ -19,7 +19,7 @@ except ImportError:
     openai = None
     OpenAI = None
 
-from ..core.ai_abstraction_layer import (
+from plexichat.features.ai.core.ai_abstraction_layer import (
     AIModel,
     AIProvider,
     AIRequest,
@@ -27,7 +27,7 @@ from ..core.ai_abstraction_layer import (
     ModelCapability,
     ModelStatus,
 )
-from .base_provider import BaseAIProvider, ProviderConfig, ProviderStatus
+from plexichat.features.ai.providers.base_provider import BaseAIProvider, ProviderConfig, ProviderStatus
 
 logger = logging.getLogger(__name__)
 

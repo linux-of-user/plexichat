@@ -18,6 +18,31 @@ import logging
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+# These are placeholders for classes that would be defined elsewhere
+# in a real implementation.
+class BitNetConfig:
+    def __init__(self, **kwargs): pass
+class BitNetProvider:
+    def __init__(self, config): pass
+    async def initialize(self): pass
+class LlamaConfig:
+    def __init__(self, **kwargs): pass
+class LlamaProvider:
+    def __init__(self, config): pass
+    async def initialize(self): pass
+class HuggingFaceConfig:
+    def __init__(self, **kwargs): pass
+class HuggingFaceProvider:
+    def __init__(self, config): pass
+    async def initialize(self): pass
+class AIProvidersWebUI:
+    def __init__(self, plugin): pass
+    async def initialize(self): pass
+    def get_routes(self): return []
+class AIProvidersTestSuite:
+    def __init__(self, plugin): pass
+    async def initialize(self): pass
+
 try:
     # Point to the new unified manager for all plugin-related classes
     from plexichat.core.plugins.manager import (
@@ -33,7 +58,7 @@ except ImportError:
             self.version = version
 
     class PluginMetadata:
-        pass
+        def __init__(self, **kwargs): pass
 
     class PluginType:
         AI_PROVIDER = "ai_provider"
@@ -52,12 +77,19 @@ logger = logging.getLogger(__name__)
 
 class AIProvidersPlugin(PluginInterface):
     """AI Providers Plugin with local inference capabilities."""
-        def __init__(self):
+    def __init__(self):
         super().__init__("ai_providers", "1.0.0")
 
         # Providers (to be implemented)
         self.providers: Dict[str, Any] = {}
         self.config: Dict[str, Any] = {}
+        self.bitnet_provider = None
+        self.llama_provider = None
+        self.hf_provider = None
+        self.webui = None
+        self.test_suite = None
+        self.system_access = None
+
 
         # Status
         self.initialized = False
@@ -67,7 +99,7 @@ class AIProvidersPlugin(PluginInterface):
 
     def get_metadata(self) -> PluginMetadata:
         """Get plugin metadata."""
-        return PluginMetadata()
+        return PluginMetadata(
             name="ai_providers",
             version="1.0.0",
             description="Advanced AI providers with BitNet 1-bit LLM, Llama.cpp, and HuggingFace support",
@@ -134,7 +166,7 @@ class AIProvidersPlugin(PluginInterface):
         # Initialize BitNet provider
         if config.get("bitnet", {}).get("enabled", True):
             try:
-                bitnet_config = BitNetConfig()
+                bitnet_config = BitNetConfig(
                     model_path=config.get("bitnet", {}).get("model_path", "data/bitnet_models"),
                     quantization_bits=1,
                     kernel_optimization=config.get("bitnet", {}).get("kernel_optimization", True),
@@ -144,7 +176,8 @@ class AIProvidersPlugin(PluginInterface):
                 )
 
                 self.bitnet_provider = BitNetProvider(bitnet_config)
-                await self.if bitnet_provider and hasattr(bitnet_provider, "initialize"): bitnet_provider.initialize()
+                if self.bitnet_provider and hasattr(self.bitnet_provider, "initialize"):
+                    await self.bitnet_provider.initialize()
                 logger.info("BitNet provider initialized")
 
             except Exception as e:
@@ -153,7 +186,7 @@ class AIProvidersPlugin(PluginInterface):
         # Initialize Llama provider
         if config.get("llama", {}).get("enabled", True):
             try:
-                llama_config = LlamaConfig()
+                llama_config = LlamaConfig(
                     model_path=config.get("llama", {}).get("model_path", "data/llama_models"),
                     n_ctx=config.get("llama", {}).get("n_ctx", 2048),
                     n_gpu_layers=config.get("llama", {}).get("n_gpu_layers", 0),
@@ -162,7 +195,8 @@ class AIProvidersPlugin(PluginInterface):
                 )
 
                 self.llama_provider = LlamaProvider(llama_config)
-                await self.if llama_provider and hasattr(llama_provider, "initialize"): llama_provider.initialize()
+                if self.llama_provider and hasattr(self.llama_provider, "initialize"):
+                    await self.llama_provider.initialize()
                 logger.info("Llama provider initialized")
 
             except Exception as e:
@@ -171,14 +205,15 @@ class AIProvidersPlugin(PluginInterface):
         # Initialize HuggingFace provider
         if config.get("huggingface", {}).get("enabled", True):
             try:
-                hf_config = HuggingFaceConfig()
+                hf_config = HuggingFaceConfig(
                     cache_dir=config.get("huggingface", {}).get("cache_dir", "data/hf_cache"),
                     use_auth_token=config.get("huggingface", {}).get("use_auth_token", False),
                     device="auto"
                 )
 
                 self.hf_provider = HuggingFaceProvider(hf_config)
-                await self.if hf_provider and hasattr(hf_provider, "initialize"): hf_provider.initialize()
+                if self.hf_provider and hasattr(self.hf_provider, "initialize"):
+                    await self.hf_provider.initialize()
                 logger.info("HuggingFace provider initialized")
 
             except Exception as e:
@@ -215,11 +250,12 @@ class AIProvidersPlugin(PluginInterface):
         """Initialize WebUI components."""
         try:
             self.webui = AIProvidersWebUI(self)
-            await self.if webui and hasattr(webui, "initialize"): webui.initialize()
+            if self.webui and hasattr(self.webui, "initialize"):
+                await self.webui.initialize()
 
             # Register WebUI routes with the main application
             if self.system_access and hasattr(self.system_access, 'register_webui_routes'):
-                await self.system_access.register_webui_routes()
+                await self.system_access.register_webui_routes(
                     "/ai-providers",
                     self.webui.get_routes()
                 )
@@ -233,7 +269,8 @@ class AIProvidersPlugin(PluginInterface):
         """Initialize test suite."""
         try:
             self.test_suite = AIProvidersTestSuite(self)
-            await self.if test_suite and hasattr(test_suite, "initialize"): test_suite.initialize()
+            if self.test_suite and hasattr(self.test_suite, "initialize"):
+                await self.test_suite.initialize()
             logger.info("AI Providers test suite initialized")
 
         except Exception as e:
@@ -260,13 +297,13 @@ class AIProvidersPlugin(PluginInterface):
         }
 
         # Get model information
-        if self.bitnet_provider:
+        if self.bitnet_provider and hasattr(self.bitnet_provider, 'get_available_models'):
             status["bitnet"]["models"] = await self.bitnet_provider.get_available_models()
 
-        if self.llama_provider:
+        if self.llama_provider and hasattr(self.llama_provider, 'get_available_models'):
             status["llama"]["models"] = await self.llama_provider.get_available_models()
 
-        if self.hf_provider:
+        if self.hf_provider and hasattr(self.hf_provider, 'get_available_models'):
             status["huggingface"]["models"] = await self.hf_provider.get_available_models()
 
         return status
@@ -282,13 +319,13 @@ class AIProvidersPlugin(PluginInterface):
         """Run performance benchmarks on all providers."""
         results = {}
 
-        if self.bitnet_provider:
+        if self.bitnet_provider and hasattr(self.bitnet_provider, 'run_benchmark'):
             results["bitnet"] = await self.bitnet_provider.run_benchmark()
 
-        if self.llama_provider:
+        if self.llama_provider and hasattr(self.llama_provider, 'run_benchmark'):
             results["llama"] = await self.llama_provider.run_benchmark()
 
-        if self.hf_provider:
+        if self.hf_provider and hasattr(self.hf_provider, 'run_benchmark'):
             results["huggingface"] = await self.hf_provider.run_benchmark()
 
         return results
@@ -297,13 +334,13 @@ class AIProvidersPlugin(PluginInterface):
         """Get memory usage for all providers."""
         usage = {}
 
-        if self.bitnet_provider:
+        if self.bitnet_provider and hasattr(self.bitnet_provider, 'get_memory_usage'):
             usage["bitnet"] = await self.bitnet_provider.get_memory_usage()
 
-        if self.llama_provider:
+        if self.llama_provider and hasattr(self.llama_provider, 'get_memory_usage'):
             usage["llama"] = await self.llama_provider.get_memory_usage()
 
-        if self.hf_provider:
+        if self.hf_provider and hasattr(self.hf_provider, 'get_memory_usage'):
             usage["huggingface"] = await self.hf_provider.get_memory_usage()
 
         return usage
@@ -314,17 +351,17 @@ class AIProvidersPlugin(PluginInterface):
             logger.info("Shutting down AI Providers Plugin...")
 
             # Shutdown providers
-            if self.bitnet_provider:
+            if self.bitnet_provider and hasattr(self.bitnet_provider, 'shutdown'):
                 await self.bitnet_provider.shutdown()
 
-            if self.llama_provider:
+            if self.llama_provider and hasattr(self.llama_provider, 'shutdown'):
                 await self.llama_provider.shutdown()
 
-            if self.hf_provider:
+            if self.hf_provider and hasattr(self.hf_provider, 'shutdown'):
                 await self.hf_provider.shutdown()
 
             # Shutdown WebUI
-            if self.webui:
+            if self.webui and hasattr(self.webui, 'shutdown'):
                 await self.webui.shutdown()
 
             logger.info("AI Providers Plugin shutdown complete")

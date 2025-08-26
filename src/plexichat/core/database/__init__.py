@@ -5,12 +5,12 @@ Provides a unified interface for database operations across different database t
 Supports SQLite, PostgreSQL, MySQL, and other databases through a common API.
 """
 
-from .manager import database_manager, DatabaseManager
-from .session import get_session, DatabaseSession
-from .operations import execute_query, execute_transaction
-from .models import BaseModel, create_tables, drop_tables
-from .migrations import run_migrations, create_migration
-from .connection import DatabaseConnection, ConnectionPool
+from plexichat.core.database.manager import database_manager, DatabaseManager
+from plexichat.core.database.session import get_session, DatabaseSession
+from plexichat.core.database.operations import execute_query, execute_transaction
+from plexichat.core.database.models import BaseModel, create_tables, drop_tables
+from plexichat.core.database.migrations import run_migrations, create_migration
+from plexichat.core.database.connection import DatabaseConnection, ConnectionPool
 
 # Initialize database system
 async def initialize_database_system():

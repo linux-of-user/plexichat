@@ -11,7 +11,7 @@ from typing import Optional
 from flask import Blueprint, flash, jsonify, render_template, request
 from werkzeug.exceptions import BadRequest
 from plexichat.features.ai.features.ai_powered_features_service import AIPoweredFeaturesService
-from plexichat.core.auth import require_admin
+from plexichat.core.authentication import require_admin
 from plexichat.core.logging import get_logger
 import logging
 

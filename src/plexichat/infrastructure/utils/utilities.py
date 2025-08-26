@@ -11,37 +11,20 @@ import secrets
 import threading
 import time
 import warnings
-from dataclasses import dataclass
-from datetime import datetime
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from functools import wraps
 from pathlib import Path
-from typing import Any, Callable, Dict, Generic, List, Optional, TypeVar, Union
-
-from pathlib import Path
-from pathlib import Path
-from pathlib import Path
-from pathlib import Path
-from pathlib import Path
-
-from pathlib import Path
-from pathlib import Path
-from pathlib import Path
-from pathlib import Path
-from pathlib import Path
-
-"""
+from typing import Any, Callable, Dict, Generic, List, Optional, TypeVar
 import stat
 import string
-Common Utilities Module for PlexiChat
-Provides shared functionality to reduce code duplication across the application.
-
 
 T = TypeVar('T')
 
 @dataclass
 class Result(Generic[T]):
     """Generic result wrapper for operations."""
-        success: bool
+    success: bool
     data: Optional[T] = None
     error: Optional[str] = None
     error_code: Optional[str] = None
@@ -49,18 +32,17 @@ class Result(Generic[T]):
 
     @classmethod
     def success_result(cls, data: T, metadata: Optional[Dict[str, Any]] = None) -> 'Result[T]':
-        Create a successful result."""
+        """Create a successful result."""
         return cls(success=True, data=data, metadata=metadata)
 
     @classmethod
     def error_result(cls, error: str, error_code: Optional[str] = None, metadata: Optional[Dict[str, Any]] = None) -> 'Result[T]':
-        """Create an error result.
+        """Create an error result."""
         return cls(success=False, error=error, error_code=error_code, metadata=metadata)
 
 class ConfigManager:
     """Centralized configuration management."""
-        def __init__(self, config_file: str = "config/plexichat.json"):
-        from pathlib import Path
+    def __init__(self, config_file: str = "config/plexichat.json"):
         # Ensure config file path is relative to project root
         project_root = Path(__file__).parent.parent.parent.parent.parent
         self.config_file = project_root / config_file
@@ -72,7 +54,7 @@ class ConfigManager:
     def _load_config(self):
         """Load configuration from file."""
         try:
-            if self.config_file.exists() if self.config_file else False:
+            if self.config_file.exists():
                 with open(self.config_file, 'r') as f:
                     self.config = json.load(f)
                 self.logger.info(f"Configuration loaded from {self.config_file}")
@@ -155,7 +137,7 @@ class ConfigManager:
         self.save_config()
 
     def get(self, key: str, default: Optional[Any] = None) -> Any:
-        """Get configuration value using dot notation.
+        """Get configuration value using dot notation."""
         with self.lock:
             keys = key.split('.')
             value = self.config
@@ -185,7 +167,7 @@ class ConfigManager:
             return self.save_config()
 
     def save_config(self) -> bool:
-        Save configuration to file."""
+        """Save configuration to file."""
         try:
             self.config_file.parent.mkdir(parents=True, exist_ok=True)
             with open(self.config_file, 'w') as f:
@@ -196,15 +178,15 @@ class ConfigManager:
             return False
 
     def get_all(self) -> Dict[str, Any]:
-        """Get all configuration.
+        """Get all configuration."""
         with self.lock:
             return self.config.copy()
 
 class FileManager:
     """Common file operations."""
-        @staticmethod
+    @staticmethod
     def ensure_directory(path: Union[str, Path]) -> bool:
-        Ensure directory exists."""
+        """Ensure directory exists."""
         try:
             Path(path).mkdir(parents=True, exist_ok=True)
             return True
@@ -215,9 +197,7 @@ class FileManager:
     def safe_write_file(filepath: Union[str, Path], content: Union[str, bytes], backup: bool = True) -> Result[str]:
         """Safely write file with optional backup."""
         try:
-            from pathlib import Path
-
-            self.filepath = Path(filepath)
+            filepath = Path(filepath)
 
             # Create backup if requested and file exists
             if backup and filepath.exists():
@@ -241,9 +221,7 @@ class FileManager:
     def safe_read_file(filepath: Union[str, Path], binary: bool = False) -> Result[Union[str, bytes]]:
         """Safely read file."""
         try:
-            from pathlib import Path
-
-            self.filepath = Path(filepath)
+            filepath = Path(filepath)
 
             if not filepath.exists():
                 return Result.error_result("File not found", "FILE_NOT_FOUND")
@@ -261,35 +239,33 @@ class FileManager:
     def get_file_info(filepath: Union[str, Path]) -> Optional[Dict[str, Any]]:
         """Get file information."""
         try:
-            from pathlib import Path
-
-            self.filepath = Path(filepath)
+            filepath = Path(filepath)
             if not filepath.exists():
                 return None
 
-            stat = filepath.stat()
+            stat_result = filepath.stat()
             return {
                 "name": filepath.name,
-                "size": stat.st_size,
-                "modified": datetime.fromtimestamp(stat.st_mtime),
-                "created": datetime.fromtimestamp(stat.st_ctime),
+                "size": stat_result.st_size,
+                "modified": datetime.fromtimestamp(stat_result.st_mtime),
+                "created": datetime.fromtimestamp(stat_result.st_ctime),
                 "is_file": filepath.is_file(),
                 "is_directory": filepath.is_dir()
-            }}
+            }
         except Exception:
             return None
 
 class DateTimeUtils:
-    """Common date/time utilities.
-        @staticmethod
+    """Common date/time utilities."""
+    @staticmethod
     def now() -> datetime:
         """Get current datetime."""
         return datetime.now()
 
     @staticmethod
     def utc_now() -> datetime:
-        Get current UTC datetime."""
-        return datetime.utcnow()
+        """Get current UTC datetime."""
+        return datetime.now(timezone.utc)
 
     @staticmethod
     def format_datetime(dt: datetime, format_str: str = "%Y-%m-%d %H:%M:%S") -> str:
@@ -298,7 +274,7 @@ class DateTimeUtils:
 
     @staticmethod
     def parse_datetime(dt_str: str, format_str: str = "%Y-%m-%d %H:%M:%S") -> Optional[datetime]:
-        """Parse datetime from string.
+        """Parse datetime from string."""
         try:
             return datetime.strptime(dt_str, format_str)
         except ValueError:
@@ -307,8 +283,7 @@ class DateTimeUtils:
     @staticmethod
     def time_ago(dt: datetime) -> str:
         """Get human-readable time ago string."""
-
-        now = datetime().now()
+        now = datetime.now(dt.tzinfo)
         diff = now - dt
 
         if diff.days > 0:
@@ -335,8 +310,8 @@ class DateTimeUtils:
             return f"{hours:.1f}h"
 
 class StringUtils:
-    """Common string utilities.
-        @staticmethod
+    """Common string utilities."""
+    @staticmethod
     def generate_id(length: int = 8) -> str:
         """Generate random ID."""
         return secrets.token_urlsafe(length)[:length]
@@ -350,7 +325,7 @@ class StringUtils:
 
     @staticmethod
     def truncate(text: str, max_length: int, suffix: str = "...") -> str:
-        """Truncate string to max length.
+        """Truncate string to max length."""
         if len(text) <= max_length:
             return text
         return text[:max_length - len(suffix)] + suffix
@@ -375,8 +350,8 @@ class StringUtils:
         return f"{bytes_count:.1f} PB"
 
 class ValidationUtils:
-    """Common validation utilities.
-        @staticmethod
+    """Common validation utilities."""
+    @staticmethod
     def is_valid_email(email: str) -> bool:
         """Validate email format."""
         pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
@@ -384,13 +359,13 @@ class ValidationUtils:
 
     @staticmethod
     def is_valid_url(url: str) -> bool:
-        Validate URL format."""
+        """Validate URL format."""
         pattern = r'^https?://(?:[-\w.])+(?:\:[0-9]+)?(?:/(?:[\w/_.])*(?:\?(?:[\w&=%.])*)?(?:\#(?:[\w.])*)?)?$'
         return re.match(pattern, url) is not None
 
     @staticmethod
     def is_valid_port(port: Any) -> bool:
-        """Validate port number.
+        """Validate port number."""
         try:
             port_num = int(port)
             return 1 <= port_num <= 65535
@@ -412,8 +387,8 @@ class ValidationUtils:
         return Result.success_result(data)
 
 class RetryUtils:
-    """Retry utilities for resilient operations.
-        @staticmethod
+    """Retry utilities for resilient operations."""
+    @staticmethod
     def retry_with_backoff(
         func: Callable,
         max_attempts: int = 3,
@@ -437,7 +412,7 @@ class RetryUtils:
 
 # Decorators
 def singleton(cls):
-    """Singleton decorator.
+    """Singleton decorator."""
     instances = {}
     lock = threading.Lock()
 

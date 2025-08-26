@@ -13,7 +13,7 @@
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
 import logging
-from ..plugins_internal import PluginInterface
+from plexichat.core.plugins.sdk import PluginInterface
 from fastapi import APIRouter
 from typing import Optional
 
@@ -29,7 +29,7 @@ class HelloWorldPlugin(PluginInterface):
     """
     Example Hello World plugin for PlexiChat.
     """
-        def __init__(self):
+    def __init__(self):
         super().__init__(name="HelloWorldPlugin", version="1.0.0")
         self.router = router
 
@@ -43,4 +43,4 @@ class HelloWorldPlugin(PluginInterface):
             "version": "1.0.0",
             "description": "A simple Hello World plugin for demonstration.",
             "plugin_type": "utility"
-        }}
+        }

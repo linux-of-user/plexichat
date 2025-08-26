@@ -13,15 +13,13 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse, Response
 
 # Core imports
-try:
-    from ...core.security.comprehensive_security_manager import (
-        get_enhanced_security_manager, SecurityContext, SecurityLevel
-    )
-    from ...core.logging_advanced.advanced_logging_system import (
-        get_enhanced_logging_system, LogCategory, LogLevel, PerformanceMetrics
-    )
-    from ...core.auth.unified_auth_manager import get_unified_auth_manager
-except ImportError as e:
+from plexichat.core.security.comprehensive_security_manager import (
+    get_enhanced_security_manager, SecurityContext, SecurityLevel
+)
+from plexichat.core.logging_advanced.advanced_logging_system import (
+    get_enhanced_logging_system, LogCategory, LogLevel, PerformanceMetrics
+)
+from plexichat.core.authentication import get_auth_manager as get_unified_auth_manager
     print(f"Security middleware import error: {e}")
     # Fallback implementations
     get_enhanced_security_manager = lambda: None
@@ -36,7 +34,7 @@ except ImportError as e:
 
 class EnhancedSecurityMiddleware(BaseHTTPMiddleware):
     """Enhanced security middleware with comprehensive protection."""
-        def __init__(self, app, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, app, config: Optional[Dict[str, Any]] = None):
         super().__init__(app)
         self.config = config or {}
         self.enabled = self.config.get("enabled", True)
@@ -148,7 +146,7 @@ class EnhancedSecurityMiddleware(BaseHTTPMiddleware):
         return "unknown"
     
     def _should_bypass_security(self, request: Request) -> bool:
-        """Check if request should bypass security checks.
+        """Check if request should bypass security checks."""
         path = str(request.url.path)
         return any(path.startswith(bypass) for bypass in self.bypass_endpoints)
     
@@ -176,7 +174,7 @@ class EnhancedSecurityMiddleware(BaseHTTPMiddleware):
                     "allowed": False,
                     "reason": error_info.get("error", "Security policy violation"),
                     "details": error_info
-                }}
+                }
             
             return {"allowed": True, "context": context}
             
@@ -370,12 +368,12 @@ class EnhancedSecurityMiddleware(BaseHTTPMiddleware):
             "threat_detections": self.threat_detections,
             "block_rate": self.blocked_requests / max(self.request_count, 1),
             "threat_rate": self.threat_detections / max(self.request_count, 1)
-        }}
+        }
 
 
 class SecurityAuditMiddleware(BaseHTTPMiddleware):
-    """Additional middleware for security auditing.
-        def __init__(self, app):
+    """Additional middleware for security auditing."""
+    def __init__(self, app):
         super().__init__(app)
         self.logging_system = get_enhanced_logging_system()
         

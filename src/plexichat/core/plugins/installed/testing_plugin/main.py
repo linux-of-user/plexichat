@@ -25,7 +25,7 @@ Features Tested:
 - Regression Testing (20+ tests)
 
 TOTAL: 400+ COMPREHENSIVE TESTS
-
+"""
 
 import asyncio
 import json
@@ -73,7 +73,7 @@ except ImportError:
 enhanced_cli = None
 CLICommand = None
 try:
-    from plexichat.interfaces.cli.enhanced_cli import enhanced_cli, CLICommand
+    from plexichat.interfaces.cli.advanced_cli import advanced_cli as enhanced_cli, CLICommand
 except ImportError:
     pass
 
@@ -97,7 +97,7 @@ except ImportError:
 
 class PluginBase(PluginInterface):
     """Base plugin class with safe fallback."""
-        def __init__(self, plugin_id: str = "testing_plugin", config: dict = None):
+    def __init__(self, plugin_id: str = "testing_plugin", config: dict = None):
         super().__init__(plugin_id, config or {})
         self.name = "testing_plugin"
         self.version = "2.0.0"
@@ -115,8 +115,8 @@ class PluginBase(PluginInterface):
 
 @dataclass
 class TestResult:
-    """Comprehensive test result data structure.
-        test_id: str
+    """Comprehensive test result data structure."""
+    test_id: str
     test_name: str
     test_category: str
     test_type: str  # unit, integration, security, performance, etc.
@@ -139,7 +139,7 @@ class TestResult:
 @dataclass
 class TestSuite:
     """Comprehensive test suite configuration."""
-        suite_id: str
+    suite_id: str
     name: str
     description: str
     category: str
@@ -154,8 +154,8 @@ class TestSuite:
 
 @dataclass
 class TestReport:
-    Comprehensive test report."""
-        report_id: str
+    """Comprehensive test report."""
+    report_id: str
     timestamp: datetime
     total_tests: int
     passed_tests: int
@@ -171,8 +171,8 @@ class TestReport:
 
 
 class TestDataGenerator:
-    """Generates comprehensive test data for all PlexiChat features.
-        @staticmethod
+    """Generates comprehensive test data for all PlexiChat features."""
+    @staticmethod
     def generate_user_data(count: int = 10) -> List[Dict[str, Any]]:
         """Generate test user data."""
         users = []
@@ -204,7 +204,7 @@ class TestDataGenerator:
             {"type": "code", "content": "```python\nprint('Hello, World!')\nfor i in range(10):\n    print(f'Number: {i}')\n```"},
             {"type": "emoji", "content": "Testing emojis: [LAUNCH] [SUCCESS] [SPARKLE] [COMPUTER] [HOT] [STAR] [STAR] [IDEA] [TARGET] [TROPHY]"},
             {"type": "unicode", "content": "Unicode test: nihao mrhba Zdravstvuy konnichiha [WORLD]"},
-            {"type": "special_chars", "content": "Special chars: !@#$%^&*()_+-=[]{}|;':\",./<>?"},
+            {"type": "special_chars", "content": "!@#$%^&*()_+-=[]{}|;':\",./<>?"},
             {"type": "long", "content": "A" * 1000},  # Long message
             {"type": "empty", "content": ""},
             {"type": "whitespace", "content": "   \n\t   \n   "}
@@ -324,12 +324,12 @@ class TestDataGenerator:
                 "*)(userPassword=*)",
                 "*)(mail=*)"
             ]
-        }}
+        }
 
 
 class ComprehensiveEndpointTester:
     """Most comprehensive endpoint testing system ever created."""
-        def __init__(self, base_url: str = "http://localhost:8000", timeout: int = 30):
+    def __init__(self, base_url: str = "http://localhost:8000", timeout: int = 30):
         self.base_url = base_url.rstrip('/')
         self.timeout = timeout
         self.session = requests.Session() if requests else None
@@ -433,7 +433,7 @@ class ComprehensiveEndpointTester:
         )
     
     async def test_multiple_endpoints(self, endpoints: List[Dict[str, Any]]) -> List[TestResult]:
-        """Test multiple endpoints concurrently.
+        """Test multiple endpoints concurrently."""
         tasks = []
         for endpoint_config in endpoints:
             task = self.test_endpoint(**endpoint_config)
@@ -973,7 +973,7 @@ class ComprehensiveTestingPlugin(PluginBase):
     - Integration Testing (30 tests)
     - Regression Testing (25 tests)
     """
-        def __init__(self, plugin_id: str = "testing_plugin", config: dict = None):
+    def __init__(self, plugin_id: str = "testing_plugin", config: dict = None):
         super().__init__(plugin_id, config)
         self.name = "comprehensive_testing_plugin"
         self.version = "2.0.0"
@@ -1098,7 +1098,7 @@ class ComprehensiveTestingPlugin(PluginBase):
                 return plugin_data.get("config", {})
         except Exception as e:
             self.logger.warning(f"Failed to load config: {e}")
-            return {}}
+            return {}
     
     async def register_cli_commands(self):
         """Register CLI commands with the enhanced CLI system."""
@@ -1264,7 +1264,7 @@ class ComprehensiveTestingPlugin(PluginBase):
 
             # Initialize tester if not already done
             if not self.tester:
-                self.tester = ComprehensiveTester()
+                self.tester = ComprehensiveEndpointTester()
 
             # Run all test suites
             test_suites = [
@@ -1323,7 +1323,7 @@ Success Rate: {success_rate:.1f}%
         """Run a specific test suite."""
         try:
             if not self.tester:
-                self.tester = ComprehensiveTester()
+                self.tester = ComprehensiveEndpointTester()
 
             suite_methods = {
                 "authentication": self.tester.test_authentication_comprehensive,
@@ -2543,7 +2543,7 @@ Success Rate: {success_rate:.1f}%
                 "Parallel test execution",
                 "Test cleanup and management"
             ]
-        }}
+        }
 
 
 # Plugin instance
@@ -2551,7 +2551,7 @@ plugin_instance = ComprehensiveTestingPlugin()
 
 # Plugin entry points
 async def initialize():
-    """Plugin initialization entry point.
+    """Plugin initialization entry point."""
     return await plugin_instance.initialize()
 
 async def cleanup():
@@ -2560,7 +2560,7 @@ async def cleanup():
 
 # Legacy function for compatibility
 def get_plugin_info():
-    Get plugin information (legacy compatibility)."""
+    """Get plugin information (legacy compatibility)."""
     return plugin_instance.get_plugin_info()
 
 

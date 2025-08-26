@@ -5,8 +5,10 @@
 # pyright: reportReturnType=false
 import time
 
-from plexichat.app.logger_config import logger
+from plexichat.core.logging.logger import get_logger
 from typing import Optional
+
+logger = get_logger(__name__)
 
 
 class SnowflakeGenerator:

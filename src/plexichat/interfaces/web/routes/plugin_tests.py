@@ -28,8 +28,8 @@ templates = Jinja2Templates(directory="src/plexichat/interfaces/web/templates")
 
 
 class TestRunRequest(BaseModel):
-    """Test run request model.
-        plugin_name: str
+    """Test run request model."""
+    plugin_name: str
     test_name: Optional[str] = None
     timeout: int = 300
 

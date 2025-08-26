@@ -16,16 +16,8 @@ from plexichat.features.users.user import User
 import socket
 import time
 
-try:
-    from plexichat.infrastructure.utils.auth import get_current_user_from_token
-except ImportError:
-    def get_current_user_from_token(token: str):
-        return {"id": 1, "username": f"user_{token[:8]}"} if token else None
-
-try:
-    from plexichat.websockets.messaging_websocket import messaging_websocket_manager
-except ImportError:
-    class MockWebSocketManager:
+from plexichat.infrastructure.utils.auth import get_current_user_from_token
+from plexichat.websockets.messaging_websocket import messaging_websocket_manager
         def get_stats(self):
             return {"active_connections": 0, "total_messages": 0}
 

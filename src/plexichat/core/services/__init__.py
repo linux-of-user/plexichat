@@ -4,17 +4,7 @@ PlexiChat Core Services
 Service layer providing clean interfaces between API endpoints and core systems.
 """
 
-try:
-    # from .database_service import DatabaseService, get_database_service  # type: ignore
-    pass  # Temporarily disabled
-except ImportError:
-    # Fallback implementations
-    class DatabaseService:  # type: ignore
-        def __init__(self):
-            pass
-
-    def get_database_service():  # type: ignore
-        return DatabaseService()
+from plexichat.core.services.core_services import DatabaseService, get_database_service
 
 # Use fallback implementations to avoid import issues
 from typing import Dict, Any, Optional
@@ -52,15 +42,7 @@ def list_services():  # type: ignore
     return _service_manager.list()
 
 # Import service loader if available
-try:
-    from .service_loader import ServiceLoader, load_services  # type: ignore
-except ImportError:
-    class ServiceLoader:  # type: ignore
-        def load_all(self):
-            pass
-
-    def load_services():
-        pass
+from plexichat.core.services.core_services import ServiceLoader, load_services
 
 __all__ = [
     "DatabaseService",

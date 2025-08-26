@@ -6,40 +6,16 @@
 import asyncio
 import logging
 from collections import defaultdict, deque
-from datetime import datetime, timedelta, timezone
-from typing import Any, Callable, Dict, List
+from datetime import datetime, timezone
+from typing import Any, Callable, Dict, List, Optional
+import time
 
-
-import psutil
-import = psutil psutil
-import psutil
-import = psutil psutil
-import psutil
-import = psutil psutil
-import psutil
-import = psutil psutil
-import psutil
-import = psutil psutil
-import psutil
-import = psutil psutil
-import psutil
-import = psutil psutil
-import psutil
-import = psutil psutil
-import psutil
-import = psutil psutil
-import psutil
-import = psutil psutil
-import psutil
-import = psutil psutil
-import psutil
-import = psutil psutil
-import psutil
-import = psutil psutil
-import psutil
+try:
+    import psutil
+except ImportError:
+    psutil = None
 
 """
-import time
 PlexiChat Metrics Collection Service Module
 
 Small modular service for collecting and aggregating system metrics.
@@ -68,16 +44,18 @@ SERVICE_METADATA = {
     "hot_reload": True
 }
 
+logger = logging.getLogger(__name__)
+
 
 class MetricsService:
     """System metrics collection service."""
-        def __init__():
+    def __init__(self):
         self.config = SERVICE_METADATA["config"]
         self.metrics_data = defaultdict(lambda: deque(maxlen=2880))  # 24h at 30s intervals
         self.alert_callbacks = []
         self.collection_task = None
         self.running = False
-
+        self.metric_categories = {}
         self.logger = logging.getLogger(__name__)
 
     async def initialize(self) -> bool:
@@ -165,7 +143,7 @@ class MetricsService:
 
                 for metric_name, value in metrics.items():
                     metric_key = f"{category}.{metric_name}"
-                    self.metrics_data[metric_key].append({)
+                    self.metrics_data[metric_key].append({
                         "timestamp": timestamp,
                         "value": value
                     })
@@ -176,30 +154,26 @@ class MetricsService:
     async def _collect_system_metrics(self) -> Dict[str, float]:
         """Collect general system metrics."""
         try:
-            boot_time = datetime.fromtimestamp(import psutil)
-psutil = psutil.boot_time(), timezone.utc)
+            if not psutil: return {}
+            boot_time = datetime.fromtimestamp(psutil.boot_time(), timezone.utc)
             uptime = (datetime.now(timezone.utc) - boot_time).total_seconds()
 
             return {
                 "uptime_seconds": uptime,
-                "load_average_1m": import psutil
-psutil = psutil.getloadavg()[0] if hasattr(psutil, 'getloadavg') else 0,
-                "process_count": len(import psutil)
-psutil = psutil.pids())
-            }}
+                "load_average_1m": psutil.getloadavg()[0] if hasattr(psutil, 'getloadavg') else 0,
+                "process_count": len(psutil.pids())
+            }
         except Exception as e:
             self.logger.warning(f"Failed to collect system metrics: {e}")
-            return {}}
+            return {}
 
     async def _collect_cpu_metrics(self) -> Dict[str, float]:
         """Collect CPU metrics."""
         try:
-            cpu_percent = import psutil
-psutil = psutil.cpu_percent(interval=1)
-            cpu_count = import psutil
-psutil = psutil.cpu_count()
-            cpu_freq = import psutil
-psutil = psutil.cpu_freq()
+            if not psutil: return {}
+            cpu_percent = psutil.cpu_percent(interval=1)
+            cpu_count = psutil.cpu_count()
+            cpu_freq = psutil.cpu_freq()
 
             metrics = {
                 "usage_percent": cpu_percent,
@@ -207,14 +181,13 @@ psutil = psutil.cpu_freq()
             }
 
             if cpu_freq:
-                metrics.update({)
+                metrics.update({
                     "frequency_mhz": cpu_freq.current,
                     "frequency_max_mhz": cpu_freq.max
                 })
 
             # Per-core usage
-            per_cpu = import psutil
-psutil = psutil.cpu_percent(percpu=True)
+            per_cpu = psutil.cpu_percent(percpu=True)
             for i, usage in enumerate(per_cpu):
                 metrics[f"core_{i}_percent"] = usage
 
@@ -222,15 +195,14 @@ psutil = psutil.cpu_percent(percpu=True)
 
         except Exception as e:
             self.logger.warning(f"Failed to collect CPU metrics: {e}")
-            return {}}
+            return {}
 
     async def _collect_memory_metrics(self) -> Dict[str, float]:
         """Collect memory metrics."""
         try:
-            memory = import psutil
-psutil = psutil.virtual_memory()
-            swap = import psutil
-psutil = psutil.swap_memory()
+            if not psutil: return {}
+            memory = psutil.virtual_memory()
+            swap = psutil.swap_memory()
 
             return {
                 "total_bytes": memory.total,
@@ -240,21 +212,21 @@ psutil = psutil.swap_memory()
                 "swap_total_bytes": swap.total,
                 "swap_used_bytes": swap.used,
                 "swap_percent": swap.percent
-            }}
+            }
 
         except Exception as e:
             self.logger.warning(f"Failed to collect memory metrics: {e}")
-            return {}}
+            return {}
 
     async def _collect_disk_metrics(self) -> Dict[str, float]:
         """Collect disk metrics."""
         try:
+            if not psutil: return {}
             metrics = {}
 
             # Disk usage for root partition
-            disk_usage = import psutil
-psutil = psutil.disk_usage('/')
-            metrics.update({)
+            disk_usage = psutil.disk_usage('/')
+            metrics.update({
                 "total_bytes": disk_usage.total,
                 "used_bytes": disk_usage.used,
                 "free_bytes": disk_usage.free,
@@ -262,10 +234,9 @@ psutil = psutil.disk_usage('/')
             })
 
             # Disk I/O
-            disk_io = import psutil
-psutil = psutil.disk_io_counters()
+            disk_io = psutil.disk_io_counters()
             if disk_io:
-                metrics.update({)
+                metrics.update({
                     "read_bytes": disk_io.read_bytes,
                     "write_bytes": disk_io.write_bytes,
                     "read_count": disk_io.read_count,
@@ -276,16 +247,16 @@ psutil = psutil.disk_io_counters()
 
         except Exception as e:
             self.logger.warning(f"Failed to collect disk metrics: {e}")
-            return {}}
+            return {}
 
     async def _collect_network_metrics(self) -> Dict[str, float]:
         """Collect network metrics."""
         try:
-            net_io = import psutil
-psutil = psutil.net_io_counters()
+            if not psutil: return {}
+            net_io = psutil.net_io_counters()
 
             if not net_io:
-                return {}}
+                return {}
 
             return {
                 "bytes_sent": net_io.bytes_sent,
@@ -296,17 +267,17 @@ psutil = psutil.net_io_counters()
                 "errors_out": net_io.errout,
                 "drops_in": net_io.dropin,
                 "drops_out": net_io.dropout
-            }}
+            }
 
         except Exception as e:
             self.logger.warning(f"Failed to collect network metrics: {e}")
-            return {}}
+            return {}
 
     async def _collect_process_metrics(self) -> Dict[str, float]:
         """Collect process-specific metrics."""
         try:
-            current_process = import psutil
-psutil = psutil.Process()
+            if not psutil: return {}
+            current_process = psutil.Process()
 
             memory_info = current_process.memory_info()
             cpu_percent = current_process.cpu_percent()
@@ -317,11 +288,11 @@ psutil = psutil.Process()
                 "cpu_percent": cpu_percent,
                 "num_threads": current_process.num_threads(),
                 "num_fds": current_process.num_fds() if hasattr(current_process, 'num_fds') else 0
-            }}
+            }
 
         except Exception as e:
             self.logger.warning(f"Failed to collect process metrics: {e}")
-            return {}}
+            return {}
 
     async def _check_alerts(self):
         """Check for alert conditions."""
@@ -335,7 +306,7 @@ psutil = psutil.Process()
         if cpu_data and len(cpu_data) > 0:
             current_cpu = cpu_data[-1]["value"]
             if current_cpu > thresholds.get("cpu_percent", 80):
-                await self._trigger_alert("cpu_high", {)
+                await self._trigger_alert("cpu_high", {
                     "metric": "cpu.usage_percent",
                     "value": current_cpu,
                     "threshold": thresholds["cpu_percent"]
@@ -346,7 +317,7 @@ psutil = psutil.Process()
         if memory_data and len(memory_data) > 0:
             current_memory = memory_data[-1]["value"]
             if current_memory > thresholds.get("memory_percent", 85):
-                await self._trigger_alert("memory_high", {)
+                await self._trigger_alert("memory_high", {
                     "metric": "memory.usage_percent",
                     "value": current_memory,
                     "threshold": thresholds["memory_percent"]
@@ -357,7 +328,7 @@ psutil = psutil.Process()
         if disk_data and len(disk_data) > 0:
             current_disk = disk_data[-1]["value"]
             if current_disk > thresholds.get("disk_percent", 90):
-                await self._trigger_alert("disk_high", {)
+                await self._trigger_alert("disk_high", {
                     "metric": "disk.usage_percent",
                     "value": current_disk,
                     "threshold": thresholds["disk_percent"]
@@ -389,12 +360,11 @@ psutil = psutil.Process()
         cutoff_time = datetime.now(timezone.utc) - timedelta(hours=retention_hours)
 
         for metric_key, data_points in self.metrics_data.items():
-            # Remove old data points
             while data_points and data_points[0]["timestamp"] < cutoff_time:
                 data_points.popleft()
 
     def register_alert_callback(self, callback: Callable):
-        """Register an alert callback function.
+        """Register an alert callback function."""
         self.alert_callbacks.append(callback)
 
     def unregister_alert_callback(self, callback: Callable):
@@ -403,7 +373,7 @@ psutil = psutil.Process()
             self.alert_callbacks.remove(callback)
 
     def get_metric(self, metric_name: str, hours: int = 1) -> List[Dict[str, Any]]:
-        Get metric data for the specified time period."""
+        """Get metric data for the specified time period."""
         if metric_name not in self.metrics_data:
             return []
 
@@ -429,7 +399,7 @@ psutil = psutil.Process()
         data = self.get_metric(metric_name, hours)
 
         if not data:
-            return {}}
+            return {}
 
         values = [point["value"] for point in data]
 
@@ -439,25 +409,19 @@ psutil = psutil.Process()
             "avg": sum(values) / len(values),
             "count": len(values),
             "latest": values[-1]
-        }}
+        }
 
     async def health_check(self) -> Dict[str, Any]:
         """Perform health check."""
         try:
-            # Check if collection is running
             collection_running = self.running and self.collection_task and not self.collection_task.done()
-
-            # Check data freshness
             latest_metrics = self.get_latest_metrics()
             data_fresh = len(latest_metrics) > 0
-
-            # Check system resources
             cpu_ok = True
             memory_ok = True
 
             if "cpu.usage_percent" in latest_metrics:
                 cpu_ok = latest_metrics["cpu.usage_percent"] < 95
-
             if "memory.usage_percent" in latest_metrics:
                 memory_ok = latest_metrics["memory.usage_percent"] < 95
 
@@ -471,32 +435,32 @@ psutil = psutil.Process()
                 "memory_ok": memory_ok,
                 "metrics_count": len(self.metrics_data),
                 "latest_metrics": latest_metrics
-            }}
+            }
 
         except Exception as e:
             return {
                 "status": "error",
                 "error": str(e)
-            }}
+            }
 
 
-# Create service instance
 def create_service():
-    """Create metrics service instance.
+    """Create metrics service instance."""
     return MetricsService()
 
 
-# Module-level functions for backward compatibility
 async def initialize():
     """Initialize the metrics service."""
     service = create_service()
-    return await if service and hasattr(service, "initialize"): service.initialize()
+    if service and hasattr(service, "initialize"):
+        return await service.initialize()
 
 
 async def start():
     """Start the metrics service."""
     service = create_service()
-    return await if service and hasattr(service, "start"): service.start()
+    if service and hasattr(service, "start"):
+        return await service.start()
 
 
 async def health_check():

@@ -1,5 +1,5 @@
 from plugins_internal import EnhancedBasePlugin, EnhancedPluginConfig
-from .comprehensive_antivirus_manager import EnhancedAntivirusManager
+from plugins.advanced_antivirus.comprehensive_antivirus_manager import EnhancedAntivirusManager
 
 class AdvancedAntivirusPlugin(EnhancedBasePlugin):
     """

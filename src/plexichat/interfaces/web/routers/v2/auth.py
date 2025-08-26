@@ -14,13 +14,13 @@ from jose import JWTError
 from pydantic import BaseModel, Field, field_validator
 from sqlmodel import Session, select
 
-from plexichat.core.auth import SecurityManager
+from plexichat.core.authentication import SecurityManager
 from plexichat.core.database import get_session
 from plexichat.core.security import InputSanitizer
-from plexichat.features.users.user import User
+from plexichat.core.user import User
 from plexichat.infrastructure.utils.rate_limiting import RateLimiter
-from plexichat.shared.error_handling import error_handler
-from plexichat.shared.monitoring import monitor_performance
+from plexichat.core.errors import error_handler
+from plexichat.core.monitoring import monitor_performance
 
 # app/routers/v2/auth.py
 """

@@ -4,7 +4,7 @@ Advanced Logging System
 Enhanced logging capabilities with performance tracking, categorization, and advanced features.
 """
 
-from .advanced_logging_system import (
+from plexichat.core.logging_advanced.advanced_logging_system import (
     LogLevel,
     LogCategory,
     AdvancedLogger,
@@ -18,14 +18,14 @@ from .advanced_logging_system import (
     PerformanceTracker,
 )
 
-from .enhanced_logging_system import (
+from plexichat.core.logging_advanced.enhanced_logging_system import (
     EnhancedLogger,
     enhanced_logger,
     LogContext,
     LogMetrics,
 )
 
-from .performance_logger import (
+from plexichat.core.logging_advanced.performance_logger import (
     PerformanceLogger,
     performance_logger,
     track_performance,

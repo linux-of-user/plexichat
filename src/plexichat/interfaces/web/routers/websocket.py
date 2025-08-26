@@ -76,13 +76,7 @@ except ImportError:
     psutil = None
 
 # Model imports
-try:
-    from plexichat.features.users.user import User
-except ImportError:
-    class User:
-        id: int
-        username: str
-        is_admin: bool = False
+from plexichat.core.user import User
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/ws", tags=["websocket"])

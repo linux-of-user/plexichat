@@ -83,7 +83,6 @@ class EnterprisePerformanceLogger:
     - Memory leak detection
     - Bottleneck identification
     """
-    
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         self.config = config or {}
         self.metrics: Dict[str, deque] = defaultdict(lambda: deque(maxlen=10000))

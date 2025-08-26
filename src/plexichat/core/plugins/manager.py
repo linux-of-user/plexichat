@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 
 # Shared components
 try:
-    from ...shared.models import Plugin, Event, Priority, Status
+    from plexichat.shared.models import Plugin, Event, Priority, Status
 except ImportError:
     class Plugin: pass
     class Event: pass
@@ -44,14 +44,14 @@ except ImportError:
     class Status: pass
 
 try:
-    from ...shared.types import PluginId, PluginConfig, PluginResult
+    from plexichat.shared.types import PluginId, PluginConfig, PluginResult
 except ImportError:
     PluginId = str
     PluginConfig = dict
     PluginResult = dict
 
 try:
-    from ...shared.exceptions import PluginError, ValidationError, SecurityError
+    from plexichat.shared.exceptions import PluginError, ValidationError, SecurityError
 except ImportError:
     class PluginError(Exception): pass
     class ValidationError(Exception): pass
@@ -59,7 +59,7 @@ except ImportError:
 
 # Core configurations
 try:
-    from ...core.unified_config import get_plugin_timeout, get_max_plugin_memory, get_plugin_sandbox_enabled
+    from plexichat.core.unified_config import get_plugin_timeout, get_max_plugin_memory, get_plugin_sandbox_enabled
 except ImportError:
     def get_plugin_timeout(): return 30
     def get_max_plugin_memory(): return 100 * 1024 * 1024
@@ -67,41 +67,41 @@ except ImportError:
 
 # Core services (for SDK)
 try:
-    from ..database.manager import database_manager
+    from plexichat.core.database.manager import database_manager
 except ImportError:
     database_manager = None
 try:
-    from ...core.logging import get_logger
+    from plexichat.core.logging import get_logger
 except ImportError:
     get_logger = logging.getLogger
 try:
-    from ...core.performance import performance_monitor
+    from plexichat.core.performance import performance_monitor
 except ImportError:
     performance_monitor = None
 try:
-    from ...core.redis_manager import cache_manager
+    from plexichat.core.performance.cache_manager import cache_manager
 except ImportError:
     cache_manager = None
 try:
-    from ...core.config import config
+    from plexichat.core.config import config
 except ImportError:
     config = {}
 
 # Enhanced plugin systems
-try:
-    from .advanced_plugin_security import enhanced_plugin_security, SecurityLevel as EnhancedSecurityLevel
-    from .plugin_dependency_manager import plugin_dependency_manager
-except ImportError:
-    enhanced_plugin_security = None
-    plugin_dependency_manager = None
-    EnhancedSecurityLevel = None
+# try:
+#     from .advanced_plugin_security import enhanced_plugin_security, SecurityLevel as EnhancedSecurityLevel
+#     from .plugin_dependency_manager import plugin_dependency_manager
+# except ImportError:
+enhanced_plugin_security = None
+plugin_dependency_manager = None
+EnhancedSecurityLevel = None
 
 # AI integration
-try:
-    from plexichat.features.ai.advanced_ai_system import intelligent_assistant, ai_provider_manager
-except ImportError:
-    intelligent_assistant = None
-    ai_provider_manager = None
+# try:
+#     from plexichat.features.ai.advanced_ai_system import intelligent_assistant, ai_provider_manager
+# except ImportError:
+intelligent_assistant = None
+ai_provider_manager = None
 
 
 # ==============================================================================

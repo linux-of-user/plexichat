@@ -14,9 +14,9 @@ Uses shared components for consistent error handling and type definitions.
 
 # Import shared components (NEW ARCHITECTURE) - with fallbacks
 try:
-    from ...shared.models import User, Event, Priority, Status  # type: ignore
-    from ...shared.types import UserId, JSON, ConfigDict  # type: ignore
-    from ...shared.exceptions import ValidationError, SecurityError, RateLimitError  # type: ignore
+    from plexichat.shared.models import User, Event, Priority, Status  # type: ignore
+    from plexichat.shared.types import UserId, JSON, ConfigDict  # type: ignore
+    from plexichat.shared.exceptions import ValidationError, SecurityError, RateLimitError  # type: ignore
 except ImportError:
     # Fallback types for standalone usage
     from typing import Any, Dict
@@ -39,8 +39,8 @@ except ImportError:
 
 # Import AI components
 
-from .ai_coordinator import AICoordinator
-from .core.ai_abstraction_layer import (
+from plexichat.features.ai.ai_coordinator import AICoordinator
+from plexichat.features.ai.core.ai_abstraction_layer import (
     AIAbstractionLayer,
     AIAccessControl,
     AIModel,

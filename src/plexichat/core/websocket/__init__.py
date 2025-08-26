@@ -7,8 +7,8 @@ logger = logging.getLogger(__name__)
 
 # Try to import from websocket_manager, fall back to local implementations
 try:
-    from .websocket_manager import WebSocketManager as _WebSocketManager
-    from .websocket_manager import WebSocketConnection as _WebSocketConnection
+    from plexichat.core.websocket.websocket_manager import WebSocketManager as _WebSocketManager
+    from plexichat.core.websocket.websocket_manager import WebSocketConnection as _WebSocketConnection
 
     # Use the imported classes
     WebSocketManager = _WebSocketManager  # type: ignore

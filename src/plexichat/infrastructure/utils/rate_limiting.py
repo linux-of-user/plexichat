@@ -10,7 +10,7 @@ import time
 from collections import defaultdict, deque
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Callable
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +32,7 @@ class RateLimiter:
     - Per-IP and per-user rate limiting
     - Persistent storage for rate limit data
     """
-        def __init__(self, storage_file: Optional[str] = None):
+    def __init__(self, storage_file: Optional[str] = None):
         self.storage_file = storage_file or str(Path(settings.LOG_DIR) / "rate_limits.json")
 
         # In-memory storage for rate limiting data
@@ -160,7 +160,7 @@ class RateLimiter:
                 return True
 
     def _check_token_bucket(self, key: str, max_tokens: int, refill_minutes: int) -> bool:
-        """Token bucket algorithm implementation.
+        """Token bucket algorithm implementation."""
         current_time = time.time()
 
         if key not in self.token_buckets:
@@ -207,7 +207,7 @@ class RateLimiter:
         return False
 
     def _check_fixed_window(self, key: str, max_attempts: int, window_minutes: int) -> bool:
-        Fixed window algorithm implementation."""
+        """Fixed window algorithm implementation."""
         current_time = time.time()
         window_seconds = window_minutes * 60
         window_start = (current_time // window_seconds) * window_seconds
@@ -235,7 +235,7 @@ class RateLimiter:
         return False
 
     def record_attempt(self, key: str):
-        """Record an attempt for rate limiting purposes.
+        """Record an attempt for rate limiting purposes."""
         with self._lock:
             self.attempt_counts[key].append(datetime.now(timezone.utc))
             self._save_data()
@@ -250,7 +250,7 @@ class RateLimiter:
             ])
 
     def reset_attempts(self, key: str):
-        Reset attempt count for a key."""
+        """Reset attempt count for a key."""
         with self._lock:
             if key in self.attempt_counts:
                 del self.attempt_counts[key]
@@ -275,7 +275,7 @@ class RateLimiter:
 rate_limiter = RateLimiter()
 
 def rate_limit(max_attempts: int = 10, window_minutes: int = 1,
-            algorithm: str = "sliding_window", key_func: Optional[callable] = None):
+            algorithm: str = "sliding_window", key_func: Optional[Callable] = None):
     """Decorator for rate limiting functions."""
     def decorator(func):
         def wrapper(*args, **kwargs):

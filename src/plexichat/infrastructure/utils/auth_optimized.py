@@ -3,20 +3,14 @@
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
-"""
-import time
-PlexiChat Authentication Utilities
-
-Enhanced authentication utilities with comprehensive security and performance optimization.
-Uses EXISTING database abstraction and optimization systems.
-
-
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Optional
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+import jwt
+import secrets
 
 # Use EXISTING database abstraction layer
 try:
@@ -37,9 +31,9 @@ except ImportError:
 
 # Core auth imports
 try:
-    from plexichat.core.auth.auth_core import auth_core
+    from plexichat.core.authentication import get_auth_manager
 except ImportError:
-    auth_core = None
+    get_auth_manager = None
 
 logger = logging.getLogger(__name__)
 
@@ -51,10 +45,10 @@ security = HTTPBearer()
 
 class AuthenticationUtilities:
     """Enhanced authentication utilities using EXISTING systems."""
-        def __init__(self):
+    def __init__(self):
         self.db_manager = database_manager
         self.performance_logger = performance_logger
-        self.auth_core = auth_core
+        self.auth_manager = get_auth_manager() if get_auth_manager else None
 
     @async_track_performance("token_validation") if async_track_performance else lambda f: f
     async def get_current_user(self, credentials: HTTPAuthorizationCredentials = Depends(security)) -> Dict[str, Any]:
@@ -62,53 +56,50 @@ class AuthenticationUtilities:
         try:
             token = credentials.credentials
 
-            if self.auth_core:
+            if self.auth_manager:
                 if self.performance_logger and timer:
                     with timer("token_verification"):
-                        user = await self.auth_core.get_current_user(token)
+                        valid, user_data = self.auth_manager.validate_session(token)
                 else:
-                    user = await self.auth_core.get_current_user(token)
+                    valid, user_data = self.auth_manager.validate_session(token)
 
-                if user:
+                if valid and user_data:
                     # Performance tracking
                     if self.performance_logger:
                         self.performance_logger.record_metric("successful_token_validations", 1, "count")
 
-                    return user
+                    return user_data
 
             # Performance tracking for failed validations
             if self.performance_logger:
                 self.performance_logger.record_metric("failed_token_validations", 1, "count")
 
             raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authentication credentials",
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid authentication credentials",
                 headers={"WWW-Authenticate": "Bearer"},
-            
-        )
+            )
 
         except HTTPException:
             raise
         except Exception as e:
             logger.error(f"Error validating token: {e}")
             raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authentication error",
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Authentication error",
                 headers={"WWW-Authenticate": "Bearer"},
-            
-        )
+            )
 
-    async def get_current_active_user(self, current_user: Dict[str, Any] = Depends(lambda: auth_utils.get_current_user)) -> Dict[str, Any]:
+    async def get_current_active_user(self, current_user: Dict[str, Any] = Depends(lambda: auth_utils.get_current_user())) -> Dict[str, Any]:
         """Get current active user."""
         if not current_user.get("is_active", False):
             raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Inactive user"
-            
-        )
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Inactive user"
+            )
         return current_user
 
-    async def require_admin(self, current_user: Dict[str, Any] = Depends(lambda: auth_utils.get_current_user)) -> Dict[str, Any]:
+    async def require_admin(self, current_user: Dict[str, Any] = Depends(lambda: auth_utils.get_current_user())) -> Dict[str, Any]:
         """Require admin privileges."""
         if not current_user.get("is_admin", False):
             # Log unauthorized admin access attempt
@@ -119,10 +110,9 @@ class AuthenticationUtilities:
                 self.performance_logger.record_metric("unauthorized_admin_attempts", 1, "count")
 
             raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Admin privileges required"
-            
-        )
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Admin privileges required"
+            )
 
         # Performance tracking
         if self.performance_logger:
@@ -130,33 +120,32 @@ class AuthenticationUtilities:
 
         return current_user
 
-    async def require_user_or_admin(self, user_id: int, current_user: Dict[str, Any] = Depends(lambda: auth_utils.get_current_user)) -> Dict[str, Any]:
+    async def require_user_or_admin(self, user_id: int, current_user: Dict[str, Any] = Depends(lambda: auth_utils.get_current_user())) -> Dict[str, Any]:
         """Require user to be the owner or admin."""
         if current_user.get("id") != user_id and not current_user.get("is_admin", False):
             raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Access denied"
-            
-        )
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Access denied"
+            )
         return current_user
 
     @async_track_performance("api_key_validation") if async_track_performance else lambda f: f
     async def validate_api_key(self, api_key: str) -> Optional[Dict[str, Any]]:
         """Validate API key using EXISTING authentication core."""
         try:
-            if self.auth_core:
+            if self.auth_manager:
                 if self.performance_logger and timer:
                     with timer("api_key_validation"):
-                        user = await self.auth_core.validate_api_key(api_key)
+                        user = self.auth_manager.validate_api_key(api_key)
                 else:
-                    user = await self.auth_core.validate_api_key(api_key)
+                    user = self.auth_manager.validate_api_key(api_key)
 
                 if user:
                     # Performance tracking
                     if self.performance_logger:
                         self.performance_logger.record_metric("successful_api_key_validations", 1, "count")
 
-                    return user
+                    return user.__dict__
 
             # Performance tracking for failed validations
             if self.performance_logger:
@@ -170,46 +159,22 @@ class AuthenticationUtilities:
 
     def create_access_token(self, data: Dict[str, Any], expires_delta: Optional[timedelta] = None) -> str:
         """Create access token using EXISTING authentication core."""
-        if self.auth_core:
-            return self.auth_core.create_access_token(data, expires_delta)
-
-        # Fallback token creation
-        import jwt
-        import secrets
-
-        to_encode = data.copy()
-        if expires_delta:
-            expire = datetime.utcnow() + expires_delta
-        else:
-            expire = datetime.utcnow() + timedelta(minutes=30)
-
-        to_encode.update({"exp": expire})
-        secret_key = secrets.token_hex(32)
-        encoded_jwt = jwt.encode(to_encode, secret_key, algorithm="HS256")
-        return encoded_jwt
+        if self.auth_manager:
+            return self.auth_manager.create_access_token(data, expires_delta)
+        return ""
 
     def create_refresh_token(self, data: Dict[str, Any]) -> str:
         """Create refresh token using EXISTING authentication core."""
-        if self.auth_core:
-            return self.auth_core.create_refresh_token(data)
-
-        # Fallback token creation
-        import jwt
-        import secrets
-
-        to_encode = data.copy()
-        expire = datetime.utcnow() + timedelta(days=7)
-        to_encode.update({"exp": expire, "type": "refresh"})
-        secret_key = secrets.token_hex(32)
-        encoded_jwt = jwt.encode(to_encode, secret_key, algorithm="HS256")
-        return encoded_jwt
+        if self.auth_manager:
+            return self.auth_manager.create_refresh_token(data)
+        return ""
 
 # Global authentication utilities instance
 auth_utils = AuthenticationUtilities()
 
 # Convenience dependency functions
 async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> Dict[str, Any]:
-    """Get current user dependency.
+    """Get current user dependency."""
     return await auth_utils.get_current_user(credentials)
 
 async def get_current_active_user(current_user: Dict[str, Any] = Depends(get_current_user)) -> Dict[str, Any]:
@@ -217,11 +182,11 @@ async def get_current_active_user(current_user: Dict[str, Any] = Depends(get_cur
     return await auth_utils.get_current_active_user(current_user)
 
 async def require_admin(current_user: Dict[str, Any] = Depends(get_current_user)) -> Dict[str, Any]:
-    Require admin privileges dependency."""
+    """Require admin privileges dependency."""
     return await auth_utils.require_admin(current_user)
 
 def require_user_or_admin(user_id: int):
-    """Create dependency that requires user to be owner or admin.
+    """Create dependency that requires user to be owner or admin."""
     async def _require_user_or_admin(current_user: Dict[str, Any] = Depends(get_current_user)) -> Dict[str, Any]:
         return await auth_utils.require_user_or_admin(user_id, current_user)
     return _require_user_or_admin
@@ -242,8 +207,8 @@ async def get_optional_user(credentials: Optional[HTTPAuthorizationCredentials] 
 
 # Rate limiting helpers
 class RateLimitChecker:
-    """Rate limiting checker using EXISTING systems.
-        def __init__(self):
+    """Rate limiting checker using EXISTING systems."""
+    def __init__(self):
         self.db_manager = database_manager
         self.performance_logger = performance_logger
 
@@ -253,9 +218,9 @@ class RateLimitChecker:
             try:
                 window_start = datetime.now() - timedelta(seconds=window)
 
-                query = 
+                query = """
                     SELECT COUNT(*) FROM rate_limit_log
-                    WHERE user_id = ? AND action = ? AND timestamp > ?
+                    WHERE user_id = :user_id AND action = :action AND timestamp > :timestamp
                 """
                 params = {
                     "user_id": user_id,
@@ -284,12 +249,12 @@ class RateLimitChecker:
         return True  # Allow if no database
 
     async def _log_action(self, user_id: int, action: str):
-        """Log user action for rate limiting.
+        """Log user action for rate limiting."""
         if self.db_manager:
             try:
                 query = """
                     INSERT INTO rate_limit_log (user_id, action, timestamp)
-                    VALUES (?, ?, ?)
+                    VALUES (:user_id, :action, :timestamp)
                 """
                 params = {
                     "user_id": user_id,
@@ -324,10 +289,9 @@ def rate_limit(action: str, limit: int, window: int = 60):
                     allowed = await rate_limit_checker.check_rate_limit(user_id, action, limit, window)
                     if not allowed:
                         raise HTTPException(
-            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            detail=f"Rate limit exceeded for {action}"
-                        
-        )
+                            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                            detail=f"Rate limit exceeded for {action}"
+                        )
 
             return await func(*args, **kwargs)
         return wrapper

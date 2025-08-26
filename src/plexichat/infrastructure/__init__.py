@@ -27,9 +27,9 @@ from typing import Any, Dict
 import importlib
 
 # Import shared components (NEW ARCHITECTURE)
-from ..shared.models import Event, Priority, Status
-from ..shared.types import JSON, ConfigDict
-from ..shared.exceptions import ServiceUnavailableError, ValidationError
+from plexichat.shared.models import Event, Priority, Status
+from plexichat.shared.types import JSON, ConfigDict
+from plexichat.shared.exceptions import ServiceUnavailableError, ValidationError
 # from ..shared.constants import *  # Removed due to invalid wildcard import
 
 # Infrastructure imports

@@ -5,7 +5,7 @@ import logging
 from dataclasses import dataclass, asdict, field
 
 try:
-    from ..middleware.unified_rate_limiter import RateLimitConfig, RateLimitAlgorithm  # type: ignore
+    from plexichat.core.middleware.unified_rate_limiter import RateLimitConfig, RateLimitAlgorithm  # type: ignore
 except ImportError:
     # Fallback implementations
     @dataclass

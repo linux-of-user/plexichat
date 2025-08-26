@@ -42,11 +42,7 @@ except ImportError:
     def require_admin():
         return {"id": 1, "username": "admin", "is_admin": True}
 
-# Analytics imports
-try:
-    from plexichat.core.analytics.analytics_engine import analytics_engine  # type: ignore
-except ImportError:
-    analytics_engine = None
+from plexichat.core.analytics import analytics_engine
 
 # Configuration imports
 try:
@@ -57,11 +53,7 @@ except ImportError:
         DEBUG = False
     settings = MockSettings()
 
-# Testing imports
-try:
-    from plexichat.tests.comprehensive_test_suite import test_framework  # type: ignore
-except ImportError:
-    test_framework = None
+from plexichat.core.testing import test_framework
 
 # Model imports removed - not used
 
@@ -426,11 +418,8 @@ async def trigger_optimization(
             detail="Failed to complete system optimization"
         )
 
-try:
-    from plexichat.core.resilience.manager import get_system_resilience  # type: ignore
-    resilience_manager = get_system_resilience()
-except ImportError:
-    resilience_manager = None
+from plexichat.core.resilience import get_system_resilience
+resilience_manager = get_system_resilience()
 
 @router.get("/resilience", summary="Get system resilience status")
 async def get_resilience_status():

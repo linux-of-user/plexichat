@@ -3,13 +3,6 @@
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
-"""
-PlexiChat Security Utilities
-
-Enhanced security utilities with comprehensive protection and performance optimization.
-Uses EXISTING database abstraction and optimization systems.
-"""
-
 import hashlib
 import hmac
 import logging
@@ -17,26 +10,31 @@ import secrets
 import time
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
-
-# Standard library imports
 import base64
+import html
+import re
+import os
 
 # Cryptography imports
 try:
     from cryptography.fernet import Fernet
     from cryptography.hazmat.primitives import hashes
     from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+    CRYPTOGRAPHY_AVAILABLE = True
 except ImportError:
     Fernet = None
     hashes = None
     PBKDF2HMAC = None
+    CRYPTOGRAPHY_AVAILABLE = False
 
 # Password hashing
 try:
     from passlib.context import CryptContext
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+    PASSLIB_AVAILABLE = True
 except ImportError:
     pwd_context = None
+    PASSLIB_AVAILABLE = False
 
 # Use EXISTING database abstraction layer
 try:
@@ -70,8 +68,8 @@ logger = logging.getLogger(__name__)
 performance_logger = get_performance_logger() if get_performance_logger else None
 
 class SecurityUtilities:
-    """Enhanced security utilities using EXISTING systems.
-        def __init__(self):
+    """Enhanced security utilities using EXISTING systems."""
+    def __init__(self):
         self.db_manager = database_manager
         self.performance_logger = performance_logger
         self.security_level = getattr(settings, 'SECURITY_LEVEL', 'STANDARD')
@@ -167,7 +165,7 @@ class SecurityUtilities:
         """Get or generate encryption key."""
         if self._encryption_key is None:
             try:
-                if Fernet and PBKDF2HMAC and hashes:
+                if CRYPTOGRAPHY_AVAILABLE:
                     password = getattr(settings, 'JWT_SECRET', 'mock-secret-key').encode()
                     salt = b'plexichat_salt_2024'  # In production, use random salt
 
@@ -193,7 +191,7 @@ class SecurityUtilities:
     def encrypt_data(self, data: str) -> str:
         """Encrypt sensitive data."""
         try:
-            if Fernet:
+            if CRYPTOGRAPHY_AVAILABLE:
                 key = self.get_encryption_key()
                 f = Fernet(key)
                 encrypted_data = f.encrypt(data.encode())
@@ -212,7 +210,7 @@ class SecurityUtilities:
     def decrypt_data(self, encrypted_data: str) -> str:
         """Decrypt sensitive data."""
         try:
-            if Fernet:
+            if CRYPTOGRAPHY_AVAILABLE:
                 key = self.get_encryption_key()
                 f = Fernet(key)
                 decoded_data = base64.urlsafe_b64decode(encrypted_data.encode())
@@ -233,9 +231,6 @@ class SecurityUtilities:
     def sanitize_input(self, input_data: str) -> str:
         """Sanitize user input to prevent XSS and injection attacks."""
         try:
-            import html
-            import re
-
             # HTML escape
             sanitized = html.escape(input_data)
 
@@ -276,7 +271,6 @@ class SecurityUtilities:
                 '.zip', '.tar', '.gz'  # Archives
             }
 
-            import os
             file_ext = os.path.splitext(filename)[1].lower()
             if file_ext not in allowed_extensions:
                 result["valid"] = False
@@ -307,7 +301,6 @@ class SecurityUtilities:
                 r'^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])$',  # Windows reserved names
             ]
 
-            import re
             for pattern in dangerous_filename_patterns:
                 if re.search(pattern, filename, re.IGNORECASE):
                     result["valid"] = False
@@ -321,7 +314,7 @@ class SecurityUtilities:
 
     @async_track_performance("security_audit") if async_track_performance else lambda f: f
     async def log_security_event(self, event_type: str, user_id: Optional[int], details: Dict[str, Any]):
-        """Log security event using EXISTING database abstraction.
+        """Log security event using EXISTING database abstraction."""
         try:
             if self.db_manager:
                 import json
@@ -379,7 +372,6 @@ class SecurityUtilities:
                 result["score"] += 1
 
             # Character variety checks
-            import re
             if re.search(r'[a-z]', password):
                 result["score"] += 1
             else:
@@ -424,7 +416,7 @@ security_utils = SecurityUtilities()
 
 # Convenience functions
 def hash_password(password: str) -> str:
-    """Hash password.
+    """Hash password."""
     return security_utils.hash_password(password)
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -432,11 +424,11 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     return security_utils.verify_password(plain_password, hashed_password)
 
 def generate_secure_token(length: int = 32) -> str:
-    Generate secure token."""
+    """Generate secure token."""
     return security_utils.generate_secure_token(length)
 
 def sanitize_input(input_data: str) -> str:
-    """Sanitize user input.
+    """Sanitize user input."""
     return security_utils.sanitize_input(input_data)
 
 def encrypt_data(data: str) -> str:
@@ -444,5 +436,5 @@ def encrypt_data(data: str) -> str:
     return security_utils.encrypt_data(data)
 
 def decrypt_data(encrypted_data: str) -> str:
-    Decrypt data."""
+    """Decrypt data."""
     return security_utils.decrypt_data(encrypted_data)
