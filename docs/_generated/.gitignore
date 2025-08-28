@@ -1,0 +1,39 @@
+# Generated API documentation files
+openapi.json
+openapi.yaml
+api/
+swagger/
+redoc/
+
+# MkDocs generated files
+site/
+.mkdocs_cache/
+
+# Temporary build artifacts
+*.tmp
+*.temp
+.build/
+build/
+dist/
+
+# Documentation build logs
+*.log
+build.log
+docs.log
+
+# Cache files
+.cache/
+__pycache__/
+*.pyc
+*.pyo
+
+# Editor temporary files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Keep directory structure but ignore contents
+*
+!.gitignore

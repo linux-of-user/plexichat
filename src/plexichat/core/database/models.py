@@ -145,6 +145,76 @@ EVENT_SCHEMA = {
     "metadata": "TEXT DEFAULT '{}'"
 }
 
+# New Schemas
+
+CLIENT_SETTINGS_SCHEMA = {
+    "id": "TEXT PRIMARY KEY",
+    "user_id": "TEXT NOT NULL",
+    "setting_key": "TEXT NOT NULL",
+    "setting_value": "TEXT",
+    "value_type": "TEXT DEFAULT 'json'",
+    "is_encrypted": "BOOLEAN DEFAULT FALSE",
+    "image_refs": "TEXT DEFAULT '[]'",
+    "size_bytes": "INTEGER DEFAULT 0",
+    "created_at": "TEXT NOT NULL",
+    "updated_at": "TEXT NOT NULL",
+    "metadata": "TEXT DEFAULT '{}'"
+}
+
+PLUGIN_PERMISSIONS_SCHEMA = {
+    "id": "TEXT PRIMARY KEY",
+    "plugin_id": "TEXT NOT NULL",
+    "permission": "TEXT NOT NULL",
+    "requested_by": "TEXT",
+    "requested_at": "TEXT",
+    "approved_by": "TEXT",
+    "approved_at": "TEXT",
+    "is_approved": "BOOLEAN DEFAULT FALSE",
+    "scopes": "TEXT DEFAULT '[]'",
+    "reason": "TEXT",
+    "created_at": "TEXT NOT NULL",
+    "updated_at": "TEXT NOT NULL",
+    "metadata": "TEXT DEFAULT '{}'"
+}
+
+CLUSTER_NODES_SCHEMA = {
+    "id": "TEXT PRIMARY KEY",
+    "node_id": "TEXT UNIQUE NOT NULL",
+    "hostname": "TEXT",
+    "ip_address": "TEXT",
+    "port": "INTEGER",
+    "node_type": "TEXT DEFAULT 'general'",
+    "status": "TEXT DEFAULT 'online'",
+    "last_heartbeat": "TEXT",
+    "metrics": "TEXT DEFAULT '{}'",
+    "capabilities": "TEXT DEFAULT '[]'",
+    "is_leader": "BOOLEAN DEFAULT FALSE",
+    "created_at": "TEXT NOT NULL",
+    "updated_at": "TEXT NOT NULL",
+    "metadata": "TEXT DEFAULT '{}'"
+}
+
+BACKUP_METADATA_SCHEMA = {
+    "id": "TEXT PRIMARY KEY",
+    "backup_id": "TEXT UNIQUE NOT NULL",
+    "node_id": "TEXT",
+    "status": "TEXT DEFAULT 'pending'",
+    "backup_type": "TEXT DEFAULT 'incremental'",
+    "started_at": "TEXT",
+    "completed_at": "TEXT",
+    "size_bytes": "INTEGER DEFAULT 0",
+    "shards": "TEXT DEFAULT '[]'",
+    "encryption_algo": "TEXT DEFAULT 'aes-256-gcm'",
+    "key_version": "TEXT",
+    "checksum": "TEXT",
+    "storage_location": "TEXT",
+    "retention_days": "INTEGER DEFAULT 30",
+    "verified": "BOOLEAN DEFAULT FALSE",
+    "created_at": "TEXT NOT NULL",
+    "updated_at": "TEXT NOT NULL",
+    "metadata": "TEXT DEFAULT '{}'"
+}
+
 
 async def create_tables() -> bool:
     """Create all standard tables."""
@@ -155,6 +225,11 @@ async def create_tables() -> bool:
         "sessions": SESSION_SCHEMA,
         "plugins": PLUGIN_SCHEMA,
         "events": EVENT_SCHEMA,
+        # New tables
+        "client_settings": CLIENT_SETTINGS_SCHEMA,
+        "plugin_permissions": PLUGIN_PERMISSIONS_SCHEMA,
+        "cluster_nodes": CLUSTER_NODES_SCHEMA,
+        "backup_metadata": BACKUP_METADATA_SCHEMA,
     }
     
     try:
@@ -175,7 +250,18 @@ async def create_tables() -> bool:
 async def drop_tables(table_names: Optional[List[str]] = None) -> bool:
     """Drop specified tables or all tables."""
     if table_names is None:
-        table_names = ["users", "messages", "channels", "sessions", "plugins", "events"]
+        table_names = [
+            "users",
+            "messages",
+            "channels",
+            "sessions",
+            "plugins",
+            "events",
+            "client_settings",
+            "plugin_permissions",
+            "cluster_nodes",
+            "backup_metadata",
+        ]
     
     try:
         async with database_manager.get_session() as session:
@@ -199,6 +285,10 @@ __all__ = [
     "SESSION_SCHEMA",
     "PLUGIN_SCHEMA",
     "EVENT_SCHEMA",
+    "CLIENT_SETTINGS_SCHEMA",
+    "PLUGIN_PERMISSIONS_SCHEMA",
+    "CLUSTER_NODES_SCHEMA",
+    "BACKUP_METADATA_SCHEMA",
     "create_tables",
     "drop_tables",
 ]

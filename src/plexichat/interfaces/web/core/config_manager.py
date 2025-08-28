@@ -125,7 +125,7 @@ class WebUIConfigManager:
 
         # Get unified config system
         try:
-            from plexichat.core.unified_config import get_config
+            from plexichat.src.plexichat.core.config_manager import get_config
             self.unified_config = get_config()
             self.use_unified_config = True
             logger.info("WebUI config manager using unified configuration system")

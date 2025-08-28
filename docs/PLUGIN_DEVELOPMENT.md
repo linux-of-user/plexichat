@@ -16,6 +16,7 @@ This guide provides comprehensive information for developing plugins for PlexiCh
 10. [Packaging and Distribution](#packaging-and-distribution)
 11. [Best Practices](#best-practices)
 12. [Examples](#examples)
+13. [Documentation & API Reference](#documentation--api-reference)
 
 ## Plugin Architecture
 
@@ -564,6 +565,17 @@ async def get_data():
         raise HTTPException(status_code=500, detail="Failed to fetch data")
 ```
 
+### Documenting Plugin APIs (OpenAPI)
+
+To ensure your plugin's API surface is discoverable by developers and operators, follow these guidelines:
+
+- Use FastAPI route docstrings and response models (Pydantic) to annotate request/response schemas.
+- Add clear `tags` and `summary`/`description` metadata when creating routers and endpoints.
+- Declare error responses and status codes using FastAPI's response_model and HTTPException patterns.
+- Include example request/response bodies via `response_model` examples or docstrings.
+
+If you want your plugin's endpoints to appear in the repository-level generated API reference, ensure your plugin's router is registered with the application's FastAPI app prior to exporting the OpenAPI schema (see "Accessing the Generated API Reference" below).
+
 ## UI Integration
 
 ### Creating UI Pages
@@ -794,100 +806,84 @@ zip -r my_awesome_plugin_v1.0.0.zip . -x "*.pyc" "__pycache__/*" "*.git*"
    - Provide request/response examples
    - Document error codes
 
-## Examples
+## Documentation & API Reference
 
-### Simple Plugin
+This section explains how plugin developers can contribute to documentation, ensure their plugin APIs are included in the generated API reference, and how to preview and validate documentation locally. PlexiChat uses a reproducible documentation pipeline (MkDocs + OpenAPI generation) and standardized naming/linking conventions across the docs/ directory.
 
-```python
-class SimplePlugin(PluginInterface):
-    def __init__(self):
-        super().__init__("SimplePlugin", "1.0.0")
-        self.config = {"enabled": True}
-    
-    def get_metadata(self) -> PluginMetadata:
-        return PluginMetadata(
-            name="simple_plugin",
-            version="1.0.0",
-            description="A simple plugin",
-            author="Your Name",
-            plugin_type=PluginType.FEATURE
-        )
-    
-    async def _plugin_initialize(self) -> bool:
-        self.logger.info("Simple plugin initialized")
-        return True
+### Contributing Plugin Documentation
+
+- Place plugin-specific docs under your plugin directory in a `docs/` folder (e.g., `plugins/my_plugin/docs/README.md`).
+- Provide a clear `README.md` as the main entry point for plugin docs and add smaller topic files for configuration, API examples, and runbooks.
+- To contribute plugin docs to the main repository documentation site:
+  1. Prefer adding content under your plugin's folder and reference it from the central docs if required.
+  2. If adding cross-repository documentation pages (central docs/), follow the repository naming conventions (see "Naming and Linking Conventions" below) and open a pull request.
+  3. Include examples, code snippets, and any required assets in the plugin docs folder.
+  4. Run local documentation build and lint steps (examples below) before submitting a PR.
+
+Recommended contribution workflow:
+1. Write or update docs in `plugins/<your_plugin>/docs/`.
+2. Update any central index pages if necessary (open a PR).
+3. Run the local docs build:
+   - python3 scripts/dump_openapi.py
+   - mkdocs build
+4. Run markdown lint (if your project has it): `markdownlint` or project's configured linter.
+5. Submit PR and request reviews from documentation maintainers.
+
+### Naming and Linking Conventions
+
+To keep documentation consistent and easy to maintain, follow these rules:
+
+- Filenames for primary documentation pages use UPPERCASE_WITH_UNDERSCORES.md (e.g., GETTING_STARTED.md, PLUGIN_DEVELOPMENT.md, WAF_RULES.md).
+- Use relative links inside the docs/ directory (for example, link to the API reference page with [API Reference](API.md)).
+- For generated artifacts, reference files under the _generated/ folder (for example: [_generated/openapi.json](_generated/openapi.json) or use the rendered API Reference page).
+- When referencing core docs from plugin docs, use consistent names (e.g., [SECURITY](SECURITY.md), [WAF Rules](WAF_RULES.md), [Incident Response](INCIDENT_RESPONSE.md)).
+- Keep link targets relative (no absolute file-system paths) so documentation builds work in CI and locally.
+
+### Accessing the Generated API Reference
+
+PlexiChat's API reference is produced from the running FastAPI application's OpenAPI schema. The repository pipeline generates and places the schema at docs/_generated/openapi.json and the mkdocs pipeline renders it into the site.
+
+To access or regenerate the generated API reference locally:
+
+1. Ensure your development environment can import the application (and any plugins you want included).
+2. If you want plugin endpoints included in the generated OpenAPI schema, ensure the plugin's router is registered with the application's FastAPI instance prior to dumping the schema. This typically means loading your plugin via the development plugin manager or ensuring plugin registration occurs when importing the app used by the dump script.
+3. Run the OpenAPI dump script from the repository root:
+
+```bash
+python3 scripts/dump_openapi.py
 ```
 
-### Advanced Plugin
+This will write the schema to `docs/_generated/openapi.json` (the script will create the target directory if it does not exist).
 
-```python
-class AdvancedPlugin(PluginInterface):
-    def __init__(self):
-        super().__init__("AdvancedPlugin", "1.0.0")
-        self.plugin_type = PluginType.INTEGRATION
-        
-        # Database connection
-        self.db = None
-        
-        # API router
-        self.router = APIRouter(prefix="/api/v1/advanced", tags=["Advanced Plugin"])
-        self._setup_routes()
-        
-        # Background tasks
-        self.tasks = []
-    
-    async def _plugin_initialize(self) -> bool:
-        # Initialize database
-        self.db = await self._init_database()
-        
-        # Start background tasks
-        self.tasks.append(asyncio.create_task(self._task1()))
-        self.tasks.append(asyncio.create_task(self._task2()))
-        
-        # Register with main app
-        if self.manager:
-            app = getattr(self.manager, 'app', None)
-            if app:
-                app.include_router(self.router)
-        
-        return True
-    
-    async def cleanup(self):
-        # Cancel background tasks
-        for task in self.tasks:
-            task.cancel()
-        
-        # Close database connection
-        if self.db:
-            await self.db.close()
+4. You can view the raw JSON or run mkdocs to render the site:
+
+```bash
+mkdocs serve  # for local preview (serves the rendered site)
+# or
+mkdocs build  # produces a static site in site/
 ```
 
-### Plugin with UI
+5. The human-facing API reference is at `docs/API.md`, and the generated, machine-readable schema is at `docs/_generated/openapi.json`. The MkDocs configuration is typically set up to render the OpenAPI content into the site during the build.
 
-```python
-class UIPlugin(PluginInterface):
-    def __init__(self):
-        super().__init__("UIPlugin", "1.0.0")
-        self.plugin_type = PluginType.MICRO_APP
-        
-        # UI components
-        self.ui_pages = {
-            "dashboard": {
-                "title": "UI Dashboard",
-                "path": "ui/dashboard",
-                "description": "Main dashboard"
-            }
-        }
-    
-    async def _register_ui_pages(self):
-        """Register UI pages."""
-        ui_dir = Path(__file__).parent / "ui"
-        if ui_dir.exists():
-            app = getattr(self.manager, 'app', None)
-            if app:
-                from fastapi.staticfiles import StaticFiles
-                app.mount(f"/plugins/ui/static", StaticFiles(directory=str(ui_dir / "static")), name="ui_static")
-```
+### Including Plugin APIs in Generated Schema
+
+- The OpenAPI schema is built from the FastAPI app instance. For plugin routes to appear:
+  - Register your plugin router(s) with the app before calling app.openapi().
+  - If your plugin is only registered dynamically at runtime via the plugin manager, run the same registration steps in your local dump script environment so the schema includes your endpoints.
+- Example approaches:
+  - Start a lightweight script that imports the app, loads and registers your plugin (via plugin manager or manual import), then calls app.openapi() and writes the JSON.
+  - Use the provided scripts/dump_openapi.py which imports the main app (src/plexichat/main.py) and calls app.openapi(). Adjust or extend it in development if you need to register plugins manually.
+- Ensure Pydantic models and response models used by plugin endpoints are importable when the dump script runs.
+
+### Local Preview & CI
+
+- Local preview:
+  - Run `python3 scripts/dump_openapi.py` to refresh the generated OpenAPI JSON.
+  - Run `mkdocs serve` to preview the site at http://127.0.0.1:8000/.
+- CI:
+  - CI pipelines typically re-run the dump and build steps (scripts/dump_openapi.py and mkdocs build) so the generated docs match the latest code in the branch.
+  - Add tests or checks to ensure plugin APIs expose proper schemas (for example, checking that critical endpoints are present in the generated openapi.json).
+- If your plugin documentation or API changes, include instructions in your PR to the reviewers on how to regenerate and validate docs locally.
 
 ## Plugin Documentation Folders
 
@@ -915,6 +911,7 @@ plugins/
 - Provide a `README.md` as the main entry point for your plugin docs.
 - Use clear section headings and links for navigation.
 - Keep documentation up to date with plugin features and CLI commands.
+- Follow repository naming conventions for any content promoted to the central docs/ directory (UPPERCASE_WITH_UNDERSCORES.md).
 
 This guide provides a comprehensive foundation for developing plugins for PlexiChat. Follow the best practices and examples to create robust, maintainable plugins that integrate seamlessly with the PlexiChat ecosystem. 
 
@@ -1023,4 +1020,4 @@ class MyPlugin(PluginInterface):
         return {"my_event": my_analytics_hook}
 ```
 
-See the main plugin manager and interface for all available extension points. 
+See the main plugin manager and interface for all available extension points.

@@ -305,6 +305,7 @@ src/logs/
 src/config/
 src/**/plugins_internal.py
 src/**/__pycache__/
+src/plexichat/core/plugins/generated_sdk.py
 
 # Runtime directories (should be created outside src)
 logs/
@@ -314,6 +315,17 @@ backups/
 data/
 config/security/
 certs/
+
+# Security-sensitive files and secrets
+vaults/*
+config/secrets/*
+*.key
+*.pem
+
+# Generic runtime files and sockets
+*.pid
+*.sock
+logs/*
 
 # Removed/cleaned directories
 plexichat_testing/

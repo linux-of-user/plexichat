@@ -11,7 +11,7 @@ import shutil
 import time
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union, Callable
 from dataclasses import dataclass, field
 from enum import Enum
 
@@ -27,16 +27,20 @@ except ImportError:
 
 try:
     from azure.storage.blob import BlobServiceClient  # type: ignore
+    from azure.core.exceptions import ResourceNotFoundError as AzureResourceNotFoundError  # type: ignore
     AZURE_AVAILABLE = True
 except ImportError:
     BlobServiceClient = None
+    AzureResourceNotFoundError = None
     AZURE_AVAILABLE = False
 
 try:
     from google.cloud import storage as gcs  # type: ignore
+    from google.api_core.exceptions import NotFound as GCPNotFoundError  # type: ignore
     GCP_AVAILABLE = True
 except ImportError:
     gcs = None
+    GCPNotFoundError = None
     GCP_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
@@ -208,6 +212,22 @@ class StorageManager:
             )
             self.storage_locations["azure_blob_primary"] = azure_location
 
+        if cloud_configs.get("google_cloud", {}).get("enabled", False):
+            gcp_config = cloud_configs["google_cloud"]
+            gcs_location = StorageLocation(
+                provider=StorageProvider.GOOGLE_CLOUD,
+                location_id="google_cloud_primary",
+                endpoint=gcp_config.get("bucket_name", ""),
+                credentials={
+                    "project": gcp_config.get("project", None),
+                    "credentials_json": gcp_config.get("credentials_json", None)
+                },
+                storage_class=StorageClass(gcp_config.get("storage_class", "hot")),
+                priority=4,
+                max_size_gb=gcp_config.get("max_size_gb")
+            )
+            self.storage_locations["google_cloud_primary"] = gcs_location
+
     def _initialize_cloud_clients(self):
         """Initialize cloud storage clients."""
         try:
@@ -232,11 +252,42 @@ class StorageManager:
 
             # Initialize Google Cloud Storage client
             if GCP_AVAILABLE and gcs and "google_cloud_primary" in self.storage_locations:
-                self.cloud_clients["google_cloud"] = gcs.Client()
+                # Allow passing explicit credentials JSON path via config
+                gcs_location = self.storage_locations["google_cloud_primary"]
+                credentials_json = gcs_location.credentials.get("credentials_json")
+                project = gcs_location.credentials.get("project")
+                if credentials_json:
+                    # If path to credentials provided, create client with it
+                    self.cloud_clients["google_cloud"] = gcs.Client.from_service_account_json(
+                        credentials_json, project=project
+                    )
+                else:
+                    self.cloud_clients["google_cloud"] = gcs.Client(project=project)
                 self.logger.info("Google Cloud Storage client initialized")
 
         except Exception as e:
             self.logger.warning(f"Failed to initialize some cloud clients: {str(e)}")
+
+    async def _retry_async(self, func: Callable, *args, retries: int = 3, initial_delay: float = 0.5, **kwargs):
+        """
+        Generic retry wrapper for synchronous blocking cloud SDK calls.
+        Runs the function in a thread and retries with exponential backoff on failure.
+        """
+        delay = initial_delay
+        last_exc = None
+        for attempt in range(1, retries + 1):
+            try:
+                result = await asyncio.to_thread(func, *args, **kwargs)
+                return result
+            except Exception as e:
+                last_exc = e
+                self.logger.debug(f"Attempt {attempt} failed for {func.__name__}: {str(e)}")
+                if attempt < retries:
+                    await asyncio.sleep(delay)
+                    delay *= 2
+                else:
+                    self.logger.error(f"All {retries} attempts failed for {func.__name__}: {str(e)}")
+        raise last_exc
 
     async def store_shards_async(self, shards: List[Dict[str, Any]], backup_id: str) -> List[StorageResult]:
         """Store shards across multiple storage locations with redundancy."""
@@ -265,7 +316,7 @@ class StorageManager:
                             self.storage_stats["failed_uploads"] += 1
 
                     except Exception as e:
-                        self.logger.error(f"Failed to store shard {shard['shard_id']} to {location.location_id}: {str(e)}")
+                        self.logger.error(f"Failed to store shard {shard.get('shard_id')} to {location.location_id}: {str(e)}")
                         self.storage_stats["failed_uploads"] += 1
 
                 storage_results.extend(shard_results)
@@ -320,7 +371,7 @@ class StorageManager:
                 success=False,
                 location=location.location_id,
                 provider=location.provider,
-                size_bytes=shard["size"],
+                size_bytes=shard.get("size", 0),
                 checksum="",
                 storage_path="",
                 upload_time_seconds=time.time() - start_time,
@@ -333,7 +384,7 @@ class StorageManager:
         try:
             # Create backup-specific directory
             backup_dir = self.shard_storage / backup_id
-            backup_dir.mkdir(exist_ok=True)
+            backup_dir.mkdir(parents=True, exist_ok=True)
 
             # Write shard data
             shard_path = backup_dir / f"{shard['shard_id']}.shard"
@@ -367,19 +418,19 @@ class StorageManager:
 
     async def _store_shard_s3(self, shard: Dict[str, Any], backup_id: str,
                             location: StorageLocation) -> StorageResult:
-        """Store shard to AWS S3."""
+        """Store shard to AWS S3 with retries."""
         if not AWS_AVAILABLE or "aws_s3" not in self.cloud_clients:
             raise RuntimeError("AWS S3 not available")
 
-        try:
-            s3_client = self.cloud_clients["aws_s3"]
-            bucket_name = location.endpoint
-            key = f"backups/{backup_id}/{shard['shard_id']}.shard"
+        s3_client = self.cloud_clients["aws_s3"]
+        bucket_name = location.endpoint
+        key = f"backups/{backup_id}/{shard['shard_id']}.shard"
 
-            start_time = time.time()
+        start_time = time.time()
 
-            # Upload to S3
-            s3_client.put_object(
+        def do_put():
+            # Using put_object as a simple atomic upload method
+            return s3_client.put_object(
                 Bucket=bucket_name,
                 Key=key,
                 Body=shard["data"],
@@ -387,11 +438,13 @@ class StorageManager:
                     "backup_id": backup_id,
                     "shard_id": shard["shard_id"],
                     "checksum": shard["checksum"],
-                    "created_at": shard["created_at"].isoformat()
+                    "created_at": shard["created_at"].isoformat() if hasattr(shard.get("created_at"), "isoformat") else str(shard.get("created_at"))
                 },
                 StorageClass=self._map_storage_class_to_s3(location.storage_class)
             )
 
+        try:
+            await self._retry_async(do_put, retries=self.config.get("cloud_retries", 3), initial_delay=0.5)
             upload_time = time.time() - start_time
 
             # Update location usage
@@ -408,39 +461,39 @@ class StorageManager:
             )
 
         except Exception as e:
+            self.logger.error(f"S3 upload failed for {key}: {str(e)}")
             raise RuntimeError(f"S3 storage failed: {str(e)}")
 
     async def _store_shard_azure(self, shard: Dict[str, Any], backup_id: str,
                                location: StorageLocation) -> StorageResult:
-        """Store shard to Azure Blob Storage."""
+        """Store shard to Azure Blob Storage with retries."""
         if not AZURE_AVAILABLE or "azure_blob" not in self.cloud_clients:
             raise RuntimeError("Azure Blob Storage not available")
 
-        try:
-            blob_client = self.cloud_clients["azure_blob"]
-            container_name = location.endpoint
-            blob_name = f"backups/{backup_id}/{shard['shard_id']}.shard"
+        blob_service = self.cloud_clients["azure_blob"]
+        container_name = location.endpoint
+        blob_name = f"backups/{backup_id}/{shard['shard_id']}.shard"
 
-            start_time = time.time()
+        start_time = time.time()
 
-            # Upload to Azure Blob
-            blob_client.get_blob_client(
-                container=container_name,
-                blob=blob_name
-            ).upload_blob(
+        def do_upload():
+            blob_client = blob_service.get_blob_client(container=container_name, blob=blob_name)
+            blob_client.upload_blob(
                 shard["data"],
                 metadata={
                     "backup_id": backup_id,
                     "shard_id": shard["shard_id"],
                     "checksum": shard["checksum"],
-                    "created_at": shard["created_at"].isoformat()
+                    "created_at": shard["created_at"].isoformat() if hasattr(shard.get("created_at"), "isoformat") else str(shard.get("created_at"))
                 },
                 overwrite=True
             )
+            return True
 
+        try:
+            await self._retry_async(do_upload, retries=self.config.get("cloud_retries", 3), initial_delay=0.5)
             upload_time = time.time() - start_time
 
-            # Update location usage
             location.current_usage_gb += shard["size"] / (1024 * 1024 * 1024)
 
             return StorageResult(
@@ -454,16 +507,54 @@ class StorageManager:
             )
 
         except Exception as e:
+            self.logger.error(f"Azure Blob upload failed for {blob_name}: {str(e)}")
             raise RuntimeError(f"Azure Blob storage failed: {str(e)}")
 
     async def _store_shard_gcs(self, shard: Dict[str, Any], backup_id: str,
                              location: StorageLocation) -> StorageResult:
-        """Store shard to Google Cloud Storage."""
+        """Store shard to Google Cloud Storage with retries."""
         if not GCP_AVAILABLE or "google_cloud" not in self.cloud_clients:
             raise RuntimeError("Google Cloud Storage not available")
 
-        # For demo purposes, fall back to local storage
-        return await self._store_shard_local(shard, backup_id, location)
+        gcs_client = self.cloud_clients["google_cloud"]
+        bucket_name = location.endpoint
+        blob_name = f"backups/{backup_id}/{shard['shard_id']}.shard"
+
+        start_time = time.time()
+
+        def do_upload():
+            bucket = gcs_client.bucket(bucket_name)
+            blob = bucket.blob(blob_name)
+            # set metadata if supported
+            blob.metadata = {
+                "backup_id": backup_id,
+                "shard_id": shard["shard_id"],
+                "checksum": shard["checksum"],
+                "created_at": shard["created_at"].isoformat() if hasattr(shard.get("created_at"), "isoformat") else str(shard.get("created_at"))
+            }
+            # upload_from_string handles bytes
+            blob.upload_from_string(shard["data"], content_type="application/octet-stream")
+            return True
+
+        try:
+            await self._retry_async(do_upload, retries=self.config.get("cloud_retries", 3), initial_delay=0.5)
+            upload_time = time.time() - start_time
+
+            location.current_usage_gb += shard["size"] / (1024 * 1024 * 1024)
+
+            return StorageResult(
+                success=True,
+                location=location.location_id,
+                provider=location.provider,
+                size_bytes=shard["size"],
+                checksum=shard["checksum"],
+                storage_path=f"gs://{bucket_name}/{blob_name}",
+                upload_time_seconds=upload_time
+            )
+
+        except Exception as e:
+            self.logger.error(f"GCS upload failed for {blob_name}: {str(e)}")
+            raise RuntimeError(f"Google Cloud Storage failed: {str(e)}")
 
     def _map_storage_class_to_s3(self, storage_class: StorageClass) -> str:
         """Map internal storage class to S3 storage class."""
@@ -476,36 +567,81 @@ class StorageManager:
         return mapping.get(storage_class, "STANDARD")
 
     async def cleanup_partial_backup_async(self, backup_id: str):
-        """Clean up partial backup data."""
+        """Clean up partial backup data from all configured providers."""
         try:
-            for location in self.storage_locations.values():
-                if location.provider == StorageProvider.LOCAL:
-                    backup_dir = self.shard_storage / backup_id
-                    if backup_dir.exists():
-                        shutil.rmtree(backup_dir)
-                        self.logger.info(f"Cleaned up local partial backup: {backup_id}")
+            # Local cleanup
+            try:
+                backup_dir = self.shard_storage / backup_id
+                if backup_dir.exists():
+                    shutil.rmtree(backup_dir)
+                    self.logger.info(f"Cleaned up local partial backup: {backup_id}")
+            except Exception as e:
+                self.logger.error(f"Failed to cleanup local partial backup {backup_id}: {str(e)}")
 
-                # TODO: Add cleanup for cloud storage locations
+            # Cloud cleanup - remove any partial objects for this backup
+            tasks = []
+            for location in self.storage_locations.values():
+                if not location.enabled:
+                    continue
+                if location.provider == StorageProvider.AWS_S3:
+                    tasks.append(self._delete_backup_from_s3(location.endpoint, backup_id, safe=True))
+                elif location.provider == StorageProvider.AZURE_BLOB:
+                    tasks.append(self._delete_backup_from_azure(location.endpoint, backup_id, safe=True))
+                elif location.provider == StorageProvider.GOOGLE_CLOUD:
+                    tasks.append(self._delete_backup_from_gcs(location.endpoint, backup_id, safe=True))
+
+            if tasks:
+                results = await asyncio.gather(*tasks, return_exceptions=True)
+                for res in results:
+                    if isinstance(res, Exception):
+                        self.logger.warning(f"Partial cleanup task failed: {str(res)}")
 
         except Exception as e:
             self.logger.error(f"Failed to cleanup partial backup {backup_id}: {str(e)}")
 
     async def delete_backup_shards_async(self, backup_id: str):
-        """Delete all shards for a backup."""
+        """Delete all shards for a backup across all providers."""
         try:
             deleted_count = 0
 
-            for location in self.storage_locations.values():
-                if location.provider == StorageProvider.LOCAL:
-                    backup_dir = self.shard_storage / backup_id
-                    if backup_dir.exists():
-                        shard_files = list(backup_dir.glob("*.shard"))
-                        for shard_file in shard_files:
+            # Delete local shards
+            try:
+                backup_dir = self.shard_storage / backup_id
+                if backup_dir.exists():
+                    shard_files = list(backup_dir.glob("*.shard"))
+                    for shard_file in shard_files:
+                        try:
                             shard_file.unlink()
                             deleted_count += 1
-                        backup_dir.rmdir()
+                        except Exception as e:
+                            self.logger.error(f"Failed to delete local shard file {shard_file}: {str(e)}")
+                    try:
+                        if not any(backup_dir.iterdir()):
+                            backup_dir.rmdir()
+                    except Exception:
+                        pass
+            except Exception as e:
+                self.logger.error(f"Failed to delete local shards for backup {backup_id}: {str(e)}")
 
-                # TODO: Add deletion for cloud storage locations
+            # Cloud deletions
+            tasks = []
+            for location in self.storage_locations.values():
+                if not location.enabled:
+                    continue
+                if location.provider == StorageProvider.AWS_S3:
+                    tasks.append(self._delete_backup_from_s3(location.endpoint, backup_id, safe=False))
+                elif location.provider == StorageProvider.AZURE_BLOB:
+                    tasks.append(self._delete_backup_from_azure(location.endpoint, backup_id, safe=False))
+                elif location.provider == StorageProvider.GOOGLE_CLOUD:
+                    tasks.append(self._delete_backup_from_gcs(location.endpoint, backup_id, safe=False))
+
+            if tasks:
+                results = await asyncio.gather(*tasks, return_exceptions=True)
+                for res in results:
+                    if isinstance(res, Exception):
+                        self.logger.error(f"Failed cloud deletion task: {str(res)}")
+                    elif isinstance(res, dict) and "deleted_count" in res:
+                        deleted_count += res.get("deleted_count", 0)
 
             self.logger.info(f"Deleted {deleted_count} shards for backup {backup_id}")
 
@@ -692,102 +828,9 @@ class StorageManager:
             self.logger.error(f"Failed to get storage health: {str(e)}")
             return {"overall_health": "error", "error": str(e)}
 
-    async def store_shards(self, shards: List[Dict[str, Any]], backup_id: str) -> List[Dict[str, Any]]:
-        """
-        Store shards in distributed immutable storage.
-
-        Args:
-            shards: List of shard data to store
-            backup_id: Unique backup identifier
-
-        Returns:
-            List of storage locations for each shard
-        """
-        try:
-            stored_shards = []
-
-            for i, shard in enumerate(shards):
-                shard_id = f"{backup_id}_shard_{i}"
-                shard_path = self.shard_storage / f"{shard_id}.dat"
-
-                # Write shard data
-                with open(shard_path, 'wb') as f:
-                    f.write(shard['data'])
-
-                # Calculate checksum
-                checksum = hashlib.sha256(shard['data']).hexdigest()
-
-                # Store metadata
-                metadata = {
-                    "shard_id": shard_id,
-                    "backup_id": backup_id,
-                    "shard_index": i,
-                    "size": len(shard['data']),
-                    "checksum": checksum,
-                    "stored_at": datetime.now(timezone.utc).isoformat(),
-                    "storage_path": str(shard_path)
-                }
-
-                metadata_path = self.metadata_storage / f"{shard_id}_metadata.json"
-                with open(metadata_path, 'w') as f:
-                    json.dump(metadata, f, indent=2)
-
-                stored_shards.append(metadata)
-
-            self.logger.info(f"Stored {len(shards)} shards for backup {backup_id}")
-            return stored_shards
-
-        except Exception as e:
-            self.logger.error(f"Failed to store shards: {e}")
-            raise
-
-    async def retrieve_shards(self, backup_id: str) -> List[Dict[str, Any]]:
-        """
-        Retrieve all shards for a backup.
-
-        Args:
-            backup_id: Backup identifier
-
-        Returns:
-            List of shard data
-        """
-        try:
-            shards = []
-
-            # Find all metadata files for this backup
-            for metadata_file in self.metadata_storage.glob(f"{backup_id}_shard_*_metadata.json"):
-                with open(metadata_file, 'r') as f:
-                    metadata = json.load(f)
-
-                # Read shard data
-                shard_path = Path(metadata['storage_path'])
-                if shard_path.exists():
-                    with open(shard_path, 'rb') as f:
-                        shard_data = f.read()
-
-                    # Verify checksum
-                    actual_checksum = hashlib.sha256(shard_data).hexdigest()
-                    if actual_checksum != metadata['checksum']:
-                        raise ValueError(f"Checksum mismatch for shard {metadata['shard_id']}")
-
-                    shards.append({
-                        "data": shard_data,
-                        "metadata": metadata
-                    })
-
-            # Sort by shard index
-            shards.sort(key=lambda x: x['metadata']['shard_index'])
-
-            self.logger.info(f"Retrieved {len(shards)} shards for backup {backup_id}")
-            return shards
-
-        except Exception as e:
-            self.logger.error(f"Failed to retrieve shards: {e}")
-            raise
-
     async def delete_backup(self, backup_id: str) -> bool:
         """
-        Delete all shards and metadata for a backup.
+        Delete all shards and metadata for a backup across local and cloud providers.
 
         Args:
             backup_id: Backup identifier
@@ -798,15 +841,46 @@ class StorageManager:
         try:
             deleted_count = 0
 
-            # Delete shard files
-            for shard_file in self.shard_storage.glob(f"{backup_id}_shard_*.dat"):
-                shard_file.unlink()
-                deleted_count += 1
+            # Delete local shard files and metadata
+            try:
+                for shard_file in self.shard_storage.glob(f"{backup_id}_shard_*.dat"):
+                    try:
+                        shard_file.unlink()
+                        deleted_count += 1
+                    except Exception as e:
+                        self.logger.error(f"Failed to delete shard file {shard_file}: {str(e)}")
 
-            # Delete metadata files
-            for metadata_file in self.metadata_storage.glob(f"{backup_id}_shard_*_metadata.json"):
-                metadata_file.unlink()
-                deleted_count += 1
+                for metadata_file in self.metadata_storage.glob(f"{backup_id}_shard_*_metadata.json"):
+                    try:
+                        metadata_file.unlink()
+                        deleted_count += 1
+                    except Exception as e:
+                        self.logger.error(f"Failed to delete metadata file {metadata_file}: {str(e)}")
+            except Exception as e:
+                self.logger.error(f"Error during local deletion for backup {backup_id}: {str(e)}")
+
+            # Delete cloud objects related to backup
+            tasks = []
+            for location in self.storage_locations.values():
+                if not location.enabled:
+                    continue
+                try:
+                    if location.provider == StorageProvider.AWS_S3:
+                        tasks.append(self._delete_backup_from_s3(location.endpoint, backup_id, safe=False))
+                    elif location.provider == StorageProvider.AZURE_BLOB:
+                        tasks.append(self._delete_backup_from_azure(location.endpoint, backup_id, safe=False))
+                    elif location.provider == StorageProvider.GOOGLE_CLOUD:
+                        tasks.append(self._delete_backup_from_gcs(location.endpoint, backup_id, safe=False))
+                except Exception as e:
+                    self.logger.error(f"Failed to schedule deletion for {location.location_id}: {str(e)}")
+
+            if tasks:
+                results = await asyncio.gather(*tasks, return_exceptions=True)
+                for res in results:
+                    if isinstance(res, Exception):
+                        self.logger.error(f"Cloud deletion task failed: {str(res)}")
+                    elif isinstance(res, dict) and "deleted_count" in res:
+                        deleted_count += res.get("deleted_count", 0)
 
             self.logger.info(f"Deleted {deleted_count} files for backup {backup_id}")
             return True
@@ -814,6 +888,116 @@ class StorageManager:
         except Exception as e:
             self.logger.error(f"Failed to delete backup {backup_id}: {e}")
             return False
+
+    # Cloud deletion helpers
+
+    async def _delete_backup_from_s3(self, bucket_name: str, backup_id: str, safe: bool = False) -> Dict[str, Any]:
+        """Delete all objects under backups/{backup_id}/ in S3 bucket."""
+        if not AWS_AVAILABLE or "aws_s3" not in self.cloud_clients:
+            msg = "AWS S3 not available for deletion"
+            if safe:
+                self.logger.debug(msg)
+                return {"deleted_count": 0}
+            raise RuntimeError(msg)
+
+        s3_client = self.cloud_clients["aws_s3"]
+        prefix = f"backups/{backup_id}/"
+        deleted = 0
+
+        def list_objects():
+            return s3_client.list_objects_v2(Bucket=bucket_name, Prefix=prefix)
+
+        try:
+            response = await self._retry_async(list_objects, retries=self.config.get("cloud_retries", 3))
+            # If no contents, nothing to delete
+            contents = response.get("Contents", []) if isinstance(response, dict) else []
+            if not contents:
+                return {"deleted_count": 0}
+
+            # Collect keys to delete in batches
+            keys = [{"Key": obj["Key"]} for obj in contents]
+            # AWS supports deleting up to 1000 keys per request
+            for i in range(0, len(keys), 1000):
+                batch = keys[i:i+1000]
+
+                def do_delete(batch_keys):
+                    return s3_client.delete_objects(Bucket=bucket_name, Delete={"Objects": batch_keys})
+
+                del_resp = await self._retry_async(do_delete, batch, retries=self.config.get("cloud_retries", 3))
+                deleted += len(batch)
+
+            self.logger.info(f"Deleted {deleted} objects from s3://{bucket_name}/{prefix}")
+            return {"deleted_count": deleted}
+
+        except Exception as e:
+            self.logger.error(f"Failed to delete S3 backup objects for {backup_id} in {bucket_name}: {str(e)}")
+            if safe:
+                return {"deleted_count": 0}
+            raise
+
+    async def _delete_backup_from_azure(self, container_name: str, backup_id: str, safe: bool = False) -> Dict[str, Any]:
+        """Delete all blobs under backups/{backup_id}/ in Azure container."""
+        if not AZURE_AVAILABLE or "azure_blob" not in self.cloud_clients:
+            msg = "Azure Blob Storage not available for deletion"
+            if safe:
+                self.logger.debug(msg)
+                return {"deleted_count": 0}
+            raise RuntimeError(msg)
+
+        blob_service = self.cloud_clients["azure_blob"]
+        prefix = f"backups/{backup_id}/"
+        deleted = 0
+
+        def list_and_delete():
+            container_client = blob_service.get_container_client(container_name)
+            blobs = list(container_client.list_blobs(name_starts_with=prefix))
+            for blob in blobs:
+                container_client.delete_blob(blob.name)
+            return len(blobs)
+
+        try:
+            count = await self._retry_async(list_and_delete, retries=self.config.get("cloud_retries", 3))
+            deleted += count or 0
+            self.logger.info(f"Deleted {deleted} blobs from azure://{container_name}/{prefix}")
+            return {"deleted_count": deleted}
+
+        except Exception as e:
+            self.logger.error(f"Failed to delete Azure blobs for {backup_id} in {container_name}: {str(e)}")
+            if safe:
+                return {"deleted_count": 0}
+            raise
+
+    async def _delete_backup_from_gcs(self, bucket_name: str, backup_id: str, safe: bool = False) -> Dict[str, Any]:
+        """Delete all objects under backups/{backup_id}/ in GCS bucket."""
+        if not GCP_AVAILABLE or "google_cloud" not in self.cloud_clients:
+            msg = "Google Cloud Storage not available for deletion"
+            if safe:
+                self.logger.debug(msg)
+                return {"deleted_count": 0}
+            raise RuntimeError(msg)
+
+        gcs_client = self.cloud_clients["google_cloud"]
+        prefix = f"backups/{backup_id}/"
+        deleted = 0
+
+        def do_delete():
+            bucket = gcs_client.bucket(bucket_name)
+            blobs = list(bucket.list_blobs(prefix=prefix))
+            for blob in blobs:
+                blob.delete()
+            return len(blobs)
+
+        try:
+            count = await self._retry_async(do_delete, retries=self.config.get("cloud_retries", 3))
+            deleted += count or 0
+            self.logger.info(f"Deleted {deleted} objects from gs://{bucket_name}/{prefix}")
+            return {"deleted_count": deleted}
+
+        except Exception as e:
+            self.logger.error(f"Failed to delete GCS objects for {backup_id} in {bucket_name}: {str(e)}")
+            if safe:
+                return {"deleted_count": 0}
+            raise
 
     def get_storage_stats(self) -> Dict[str, Any]:
         """

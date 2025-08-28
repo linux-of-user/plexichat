@@ -5,8 +5,9 @@ Single source of truth for all error handling functionality.
 Consolidates error_handling/, error_handlers.py, and exceptions.py into one clean system.
 """
 
-from typing import Any, Dict, Optional, Type
+from typing import Any, Dict, Optional, Type, Union, List
 import logging
+from enum import Enum, unique
 
 # Use fallback implementations to avoid import issues
 logger = logging.getLogger(__name__)
@@ -32,6 +33,10 @@ class ErrorCategory:  # type: ignore
     VALIDATION = "validation"
     DATABASE = "database"
     NETWORK = "network"
+    SECURITY = "security"
+    SYSTEM = "system"
+    FILE = "file"
+    EXTERNAL = "external"
 
 # Specific exceptions
 class AuthenticationError(BaseAPIException):  # type: ignore
@@ -77,6 +82,7 @@ class ProcessLockError(BaseAPIException):  # type: ignore
 class StartupError(BaseAPIException):  # type: ignore
     def __init__(self, message: str = "Startup error", **kwargs):
         super().__init__(message, status_code=500, **kwargs)
+
 # Utility functions
 def handle_exception(exc: Exception) -> Dict[str, Any]:
     """Handle exception and return error info."""
@@ -121,7 +127,22 @@ def handle_rate_limit_error(request, exc):
 
 def register_error_handlers(app):
     """Register error handlers with the application."""
-    pass
+    # Basic fallback implementation: attempt to register common handlers if framework methods exist.
+    # This keeps backward compatibility and avoids hard dependency on a specific web framework.
+    try:
+        if hasattr(app, "register_error_handler"):
+            # Flask-like
+            app.register_error_handler(404, handle_404)
+            app.register_error_handler(500, handle_500)
+            app.register_error_handler(ValidationError, handle_validation_error)
+            app.register_error_handler(AuthenticationError, handle_authentication_error)
+            app.register_error_handler(AuthorizationError, handle_authorization_error)
+            app.register_error_handler(RateLimitError, handle_rate_limit_error)
+    except Exception:
+        # If registration fails, log and continue - this is a best-effort fallback.
+        logger.debug("register_error_handlers: best-effort registration failed", exc_info=True)
+        pass
+
 # Fallback circuit breaker
 class CircuitBreaker:
     """Fallback circuit breaker."""
@@ -135,33 +156,214 @@ class CircuitBreaker:
 class ErrorManager:
     """Fallback error manager."""
     def __init__(self):
-        self.errors = []
+        self.errors: List[Dict[str, Any]] = []
 
-    def log_error(self, error):
-        self.errors.append(error)
+    def log_error(self, error: Union[Exception, Dict[str, Any], str]) -> None:
+        entry = {
+            "error": str(error) if not isinstance(error, dict) else error,
+            "type": type(error).__name__ if not isinstance(error, dict) else "dict",
+        }
+        self.errors.append(entry)
 
 def get_error_manager():
     """Get error manager instance."""
     return ErrorManager()
+
+# Standardized Error Code System
+@unique
+class ErrorCode(Enum):
+    # Authentication
+    AUTH_INVALID_CREDENTIALS = ("AUTH_INVALID_CREDENTIALS", 401, "Invalid credentials", ErrorCategory.AUTHENTICATION, ErrorSeverity.HIGH)
+    AUTH_TOKEN_EXPIRED = ("AUTH_TOKEN_EXPIRED", 401, "Authentication token has expired", ErrorCategory.AUTHENTICATION, ErrorSeverity.MEDIUM)
+    AUTH_NO_TOKEN = ("AUTH_NO_TOKEN", 401, "Authentication token missing", ErrorCategory.AUTHENTICATION, ErrorSeverity.MEDIUM)
+
+    # Authorization
+    AUTHZ_FORBIDDEN = ("AUTHZ_FORBIDDEN", 403, "Action is forbidden", ErrorCategory.AUTHORIZATION, ErrorSeverity.HIGH)
+
+    # Validation
+    VALIDATION_FIELD_MISSING = ("VALIDATION_FIELD_MISSING", 400, "Required field is missing", ErrorCategory.VALIDATION, ErrorSeverity.MEDIUM)
+    VALIDATION_INVALID_FORMAT = ("VALIDATION_INVALID_FORMAT", 400, "Invalid field format", ErrorCategory.VALIDATION, ErrorSeverity.MEDIUM)
+
+    # Database
+    DB_CONNECTION_FAILED = ("DB_CONNECTION_FAILED", 500, "Failed to connect to database", ErrorCategory.DATABASE, ErrorSeverity.CRITICAL)
+    DB_QUERY_FAILED = ("DB_QUERY_FAILED", 500, "Database query failed", ErrorCategory.DATABASE, ErrorSeverity.HIGH)
+
+    # Network
+    NETWORK_TIMEOUT = ("NETWORK_TIMEOUT", 503, "Network timeout", ErrorCategory.NETWORK, ErrorSeverity.MEDIUM)
+
+    # Security
+    SECURITY_SQL_INJECTION = ("SECURITY_SQL_INJECTION", 400, "Potential SQL injection detected", ErrorCategory.SECURITY, ErrorSeverity.CRITICAL)
+    SECURITY_XSS_DETECTED = ("SECURITY_XSS_DETECTED", 400, "Potential cross-site scripting detected", ErrorCategory.SECURITY, ErrorSeverity.CRITICAL)
+    SECURITY_RATE_LIMIT = ("SECURITY_RATE_LIMIT", 429, "Rate limit exceeded", ErrorCategory.SECURITY, ErrorSeverity.MEDIUM)
+
+    # System
+    SYSTEM_CONFIGURATION_ERROR = ("SYSTEM_CONFIGURATION_ERROR", 500, "System configuration error", ErrorCategory.SYSTEM, ErrorSeverity.CRITICAL)
+    SYSTEM_STARTUP_ERROR = ("SYSTEM_STARTUP_ERROR", 500, "System startup error", ErrorCategory.SYSTEM, ErrorSeverity.CRITICAL)
+
+    # File / External
+    FILE_NOT_FOUND = ("FILE_NOT_FOUND", 404, "Requested file not found", ErrorCategory.FILE, ErrorSeverity.MEDIUM)
+    EXTERNAL_SERVICE_FAILURE = ("EXTERNAL_SERVICE_FAILURE", 502, "External service failure", ErrorCategory.EXTERNAL, ErrorSeverity.HIGH)
+
+    def __init__(self, code: str, http_status: int, message: str, category: str, severity: str):
+        self._code = code
+        self._http_status = http_status
+        self._message = message
+        self._category = category
+        self._severity = severity
+
+    @property
+    def code(self) -> str:
+        return self._code
+
+    @property
+    def status(self) -> int:
+        return self._http_status
+
+    @property
+    def message(self) -> str:
+        return self._message
+
+    @property
+    def category(self) -> str:
+        return self._category
+
+    @property
+    def severity(self) -> str:
+        return self._severity
+
+# Build a map for quick lookups
+ERROR_CODE_MAP: Dict[str, ErrorCode] = {ec.code: ec for ec in ErrorCode}
+
+def get_error_code(identifier: Union[str, ErrorCode]) -> Optional[ErrorCode]:
+    """
+    Resolve an ErrorCode by string identifier or return the ErrorCode if provided.
+
+    Example:
+        get_error_code("AUTH_INVALID_CREDENTIALS") -> ErrorCode.AUTH_INVALID_CREDENTIALS
+        get_error_code(ErrorCode.AUTH_INVALID_CREDENTIALS) -> ErrorCode.AUTH_INVALID_CREDENTIALS
+    """
+    if isinstance(identifier, ErrorCode):
+        return identifier
+    if not isinstance(identifier, str):
+        return None
+    return ERROR_CODE_MAP.get(identifier)
+
+def error_to_response(error_code: Union[str, ErrorCode], details: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    """
+    Create a standardized error response dictionary from an ErrorCode.
+
+    Returns:
+        {
+            "success": False,
+            "error": {
+                "code": <code>,
+                "message": <message>,
+                "category": <category>,
+                "severity": <severity>,
+                "details": {...}
+            },
+            "status_code": <http status>
+        }
+    """
+    ec = get_error_code(error_code)
+    if ec is None:
+        # Fallback to generic error response
+        logger.debug("error_to_response: unknown error code provided: %s", error_code)
+        return {
+            "success": False,
+            "error": {
+                "code": "UNKNOWN_ERROR",
+                "message": "An unknown error occurred",
+                "category": ErrorCategory.SYSTEM,
+                "severity": ErrorSeverity.MEDIUM,
+                "details": details or {}
+            },
+            "status_code": 500
+        }
+
+    return {
+        "success": False,
+        "error": {
+            "code": ec.code,
+            "message": ec.message,
+            "category": ec.category,
+            "severity": ec.severity,
+            "details": details or {}
+        },
+        "status_code": ec.status
+    }
+
+def raise_for_code(error_code: Union[str, ErrorCode], details: Optional[Dict[str, Any]] = None) -> None:
+    """
+    Raise a BaseAPIException constructed from the provided ErrorCode.
+
+    This helper allows code to raise standardized exceptions:
+        raise_for_code("AUTH_INVALID_CREDENTIALS", {"user_id": 123})
+    """
+    ec = get_error_code(error_code)
+    if ec is None:
+        raise BaseAPIException("Unknown error code", status_code=500, details=details or {})
+    raise BaseAPIException(ec.message, status_code=ec.status, details=details or {})
+
+def list_error_codes() -> List[Dict[str, Any]]:
+    """Return a list of all standardized error codes with metadata."""
+    codes = []
+    for ec in ErrorCode:
+        codes.append({
+            "code": ec.code,
+            "status": ec.status,
+            "message": ec.message,
+            "category": ec.category,
+            "severity": ec.severity,
+        })
+    return codes
+
+# Log that the standardized error code system is available
+logger.info("Standardized ErrorCode system initialized with %d codes", len(ERROR_CODE_MAP))
 
 # Export all the main classes and functions
 __all__ = [
     # Exceptions
     "BaseAPIException",
     "AuthenticationError",
+    "AuthorizationError",
     "ValidationError",
+    "DatabaseError",
+    "NetworkError",
+    "FileError",
+    "ExternalServiceError",
+    "RateLimitError",
+    "ConfigurationError",
+    "ProcessLockError",
+    "StartupError",
     "handle_exception",
     "create_error_response",
-    
+
     # Handlers
     "handle_404",
     "handle_500",
+    "handle_validation_error",
+    "handle_authentication_error",
+    "handle_authorization_error",
+    "handle_rate_limit_error",
     "register_error_handlers",
-    
+
     # Circuit breaker
     "CircuitBreaker",
-    
+
     # Error manager
     "ErrorManager",
     "get_error_manager",
+
+    # Severity & Category
+    "ErrorSeverity",
+    "ErrorCategory",
+
+    # Standardized error codes
+    "ErrorCode",
+    "ERROR_CODE_MAP",
+    "get_error_code",
+    "error_to_response",
+    "raise_for_code",
+    "list_error_codes",
 ]

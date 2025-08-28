@@ -58,12 +58,14 @@ except ImportError as e:
 from plexichat.core.authentication import UnifiedAuthManager
 logger.info("Auth manager imported successfully")
 
+# Prefer unified logging system; fall back to basic logger if not available.
 try:
-    from plexichat.core.logging_advanced.enhanced_logging_system import get_logger
+    from plexichat.core.logging_unified import setup_logging, get_logger, get_directory_manager
+    # get_logger should be safe to call even before full config; it will return a configured logger or a fallback
     logger = get_logger('plexichat.main')
-    logger.info("Enhanced logging system initialized")
+    logger.info("Unified logging system initialized (pre-config)")
 except ImportError as e:
-    logger.warning(f"Enhanced logging not available: {e}")
+    logger.warning(f"Unified logging not available: {e}")
     # Keep using basic logger
 
 # Load unified configuration system (required)
@@ -74,6 +76,19 @@ from plexichat.core.plugins.manager import unified_plugin_manager
 
 # Initialize unified config
 config = get_unified_config()
+
+# Try to apply unified logging configuration now that config is available
+try:
+    if 'setup_logging' in globals():
+        try:
+            setup_logging(config)
+            logger = get_logger('plexichat.main')
+            logger.info("Unified logging configured with application config")
+        except Exception as e:
+            logger.warning(f"Failed to apply unified logging configuration: {e}")
+except Exception:
+    # ignore any logging setup errors - continue with best-effort logger
+    pass
 
 # Get production mode from unified config
 production_mode = config.system.environment == "production"
@@ -209,13 +224,61 @@ app = FastAPI(
     swagger_ui_parameters={"defaultModelsExpandDepth": -1}  # Reduce swagger overhead
 )
 
+# Integrate WAF middleware as the first middleware to process requests
+try:
+    # Import WAF middleware
+    from plexichat.core.security.waf_middleware import WAFMiddleware
+
+    # Build default/derived WAF configuration from unified config (safe access)
+    try:
+        waf_conf = {}
+        # config.security.waf is the expected location; use fallbacks when missing
+        security_conf = getattr(config, "security", None)
+        if security_conf is not None:
+            waf_settings = getattr(security_conf, "waf", None)
+            if waf_settings is not None:
+                # Attempt to convert dataclass-like object to dict
+                try:
+                    waf_conf = asdict(waf_settings)
+                except Exception:
+                    # Generic attribute extraction
+                    for attr in ("enabled", "block_sql_injection", "block_xss", "max_payload_bytes", "ip_reputation_blocklist", "rate_limit_integration"):
+                        if hasattr(waf_settings, attr):
+                            waf_conf[attr] = getattr(waf_settings, attr)
+        # Fill sensible defaults if keys missing
+        waf_conf.setdefault("enabled", True)
+        waf_conf.setdefault("block_sql_injection", True)
+        waf_conf.setdefault("block_xss", True)
+        waf_conf.setdefault("max_payload_bytes", getattr(config.network, "max_request_size_mb", 4) * 1024 * 1024)
+        waf_conf.setdefault("ip_reputation_blocklist", [])
+        waf_conf.setdefault("rate_limit_integration", getattr(config.network, "rate_limit_enabled", True))
+
+    except Exception as e:
+        logger.warning(f"Failed to build WAF configuration from unified config, using defaults: {e}")
+        waf_conf = {
+            "enabled": True,
+            "block_sql_injection": True,
+            "block_xss": True,
+            "max_payload_bytes": config.network.max_request_size_mb * 1024 * 1024,
+            "ip_reputation_blocklist": [],
+            "rate_limit_integration": True
+        }
+
+    # Add WAF as middleware (outermost)
+    app.add_middleware(WAFMiddleware, config=waf_conf)
+    logger.info("[WAF] Web Application Firewall middleware added as first middleware")
+except ImportError as e:
+    logger.warning(f"WAF middleware not available: {e}")
+except Exception as e:
+    logger.error(f"Error initializing WAF middleware: {e}")
+
 # Setup routers and static files
 setup_routers(app)
 setup_static_files(app)
 
 # Import the UnifiedSecurityMiddleware
 try:
-    from plexichat.interfaces.web.middleware.unified_security_middleware import UnifiedSecurityMiddleware
+    from plexichat.src.plexichat.interfaces.web.middleware.security_middleware import UnifiedSecurityMiddleware
     app.add_middleware(UnifiedSecurityMiddleware)
     logger.info("[CHECK] Unified security middleware (CSRF, etc.) added.")
 except ImportError as e:
@@ -227,20 +290,35 @@ async def security_middleware(request, call_next):
     """Production-ready security middleware optimized for 10K+ req/min."""
     from fastapi.responses import JSONResponse
 
+    # Helper to produce error responses using centralized error codes when available
+    def _make_error_response(default_status: int, default_content: Dict[str, Any]):
+        try:
+            from plexichat.core.errors.error_codes import make_error_response, ErrorCode
+            # map generic scenarios to ErrorCode when possible
+            # For our two common cases below use pre-defined enums if present
+            return make_error_response(default_status, default_content)
+        except Exception:
+            # Fallback to simple JSONResponse
+            return JSONResponse(status_code=default_status, content=default_content)
+
     # Block dangerous HTTP methods (optimized set lookup)
     dangerous_methods = {"TRACE", "CONNECT", "DEBUG"}
     if request.method in dangerous_methods:
-        return JSONResponse(
-            status_code=405,
-            content={"error": "Method Not Allowed"},
-            headers={"Allow": "GET, POST, PUT, DELETE, OPTIONS, HEAD, PATCH"}
+        return _make_error_response(
+            405,
+            {"error": "Method Not Allowed", "detail": "This HTTP method is not permitted"}
         )
 
     # Request validation using unified config
     content_length = request.headers.get("content-length")
     max_size_bytes = config.network.max_request_size_mb * 1024 * 1024
-    if content_length and int(content_length) > max_size_bytes:
-        return JSONResponse(status_code=413, content={"error": "Request Entity Too Large"})
+    if content_length:
+        try:
+            if int(content_length) > max_size_bytes:
+                return _make_error_response(413, {"error": "Request Entity Too Large"})
+        except Exception:
+            # If header malformed, reject as bad request
+            return _make_error_response(400, {"error": "Bad Request", "detail": "Invalid Content-Length header"})
 
     response = await call_next(request)
 

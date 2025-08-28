@@ -52,7 +52,7 @@ from plexichat.features.ai.core.ai_abstraction_layer import (
 )
 
 # AI features and services
-from plexichat.core.unified_config import get_config
+from plexichat.src.plexichat.core.config_manager import get_config
 
 __version__ = get_config("system.version", "0.0.0")
 __all__ = [

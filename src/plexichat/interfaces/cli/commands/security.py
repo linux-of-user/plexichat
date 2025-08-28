@@ -3,10 +3,12 @@
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
-from datetime import datetime
+from datetime import datetime, timezone
 import logging
-from typing import List, Optional
+from typing import List, Optional, Any, Dict
 import time
+import json
+import os
 
 from plexichat.core.authentication import (
     Permission,
@@ -22,13 +24,43 @@ from plexichat.core.middleware.unified_rate_limiter import (
     RateLimitType,
 )
 
+# Optional integrations - gracefully degrade if modules are missing
+try:
+    from plexichat.core.security.ddos_protection import get_ddos_protection
+except Exception:
+    get_ddos_protection = None
+
+try:
+    from plexichat.core.plugins.security_manager import (
+        plugin_security_manager,
+        PermissionType,
+        SecurityPolicy,
+        PermissionStatus,
+        get_security_manager,
+    )
+except Exception:
+    plugin_security_manager = None
+    PermissionType = None
+    SecurityPolicy = None
+    PermissionStatus = None
+    get_security_manager = None
+
+try:
+    from plexichat.core.security.key_vault import key_vault
+except Exception:
+    key_vault = None
 
 logger = logging.getLogger(__name__)
+
+
 class SecurityCLI:
     """CLI for security management."""
     def __init__(self):
         self.rate_limiter = ComprehensiveRateLimiter()
         self.permission_manager = PermissionManager()
+        self.ddos = get_ddos_protection() if get_ddos_protection else None
+        self.plugin_sec = plugin_security_manager if plugin_security_manager else None
+        self.kv = key_vault if key_vault else None
 
     def print_colored(self, text: str, color: str = "white") -> None:
         """Print colored text."""
@@ -42,7 +74,11 @@ class SecurityCLI:
             "white": "\033[97m",
             "reset": "\033[0m"
         }
-        logger.info(f"{colors.get(color, colors['white'])}{text}{colors['reset']}")
+        try:
+            print(f"{colors.get(color, colors['white'])}{text}{colors['reset']}")
+        except Exception:
+            # Fallback to logger if printing fails
+            logger.info(text)
 
     # Rate Limiting Commands
     async def list_rate_limit_rules(self) -> None:
@@ -62,13 +98,13 @@ class SecurityCLI:
             logger.info(f"   Action: {rule.action.value}")
             logger.info(f"   Status: {status}")
 
-            if rule.whitelist_ips:
+            if getattr(rule, "whitelist_ips", None):
                 logger.info(f"   Whitelisted IPs: {', '.join(rule.whitelist_ips)}")
-            if rule.blacklist_ips:
+            if getattr(rule, "blacklist_ips", None):
                 logger.info(f"   Blacklisted IPs: {', '.join(rule.blacklist_ips)}")
-            if rule.user_roles:
+            if getattr(rule, "user_roles", None):
                 logger.info(f"   User Roles: {', '.join(rule.user_roles)}")
-            if rule.endpoints:
+            if getattr(rule, "endpoints", None):
                 logger.info(f"   Endpoints: {', '.join(rule.endpoints)}")
 
     async def create_rate_limit_rule(self, args: List[str]) -> None:
@@ -103,7 +139,10 @@ class SecurityCLI:
             return
 
         self.rate_limiter.rules[name] = rule
-        self.rate_limiter.save_config()
+        try:
+            self.rate_limiter.save_config()
+        except Exception as e:
+            logger.warning(f"Could not persist rate limiter config: {e}")
         self.print_colored(f" Created rate limiting rule: {name}", "green")
 
     async def delete_rate_limit_rule(self, rule_name: str) -> None:
@@ -113,7 +152,10 @@ class SecurityCLI:
             return
 
         del self.rate_limiter.rules[rule_name]
-        self.rate_limiter.save_config()
+        try:
+            self.rate_limiter.save_config()
+        except Exception as e:
+            logger.warning(f"Could not persist rate limiter config: {e}")
         self.print_colored(f" Deleted rate limiting rule: {rule_name}", "green")
 
     async def show_rate_limit_status(self, client_ip: str, user_id: Optional[str] = None) -> None:
@@ -140,32 +182,34 @@ class SecurityCLI:
         self.print_colored(" Banned Entities", "red")
         self.print_colored("=" * 50, "red")
 
-        if self.rate_limiter.tracker.banned_ips:
+        if getattr(self.rate_limiter.tracker, "banned_ips", None):
             self.print_colored("\n Banned IPs:", "yellow")
             for ip, until in self.rate_limiter.tracker.banned_ips.items():
                 until_dt = datetime.fromtimestamp(until)
                 logger.info(f"   {ip} - until {until_dt.strftime('%Y-%m-%d %H:%M:%S')}")
 
-        if self.rate_limiter.tracker.banned_users:
+        if getattr(self.rate_limiter.tracker, "banned_users", None):
             self.print_colored("\n Banned Users:", "yellow")
             for user_id, until in self.rate_limiter.tracker.banned_users.items():
                 until_dt = datetime.fromtimestamp(until)
                 logger.info(f"   {user_id} - until {until_dt.strftime('%Y-%m-%d %H:%M:%S')}")
 
-        if self.rate_limiter.tracker.quarantined_ips:
+        if getattr(self.rate_limiter.tracker, "quarantined_ips", None):
             self.print_colored("\n Quarantined IPs:", "yellow")
             for ip, until in self.rate_limiter.tracker.quarantined_ips.items():
                 until_dt = datetime.fromtimestamp(until)
                 logger.info(f"   {ip} - until {until_dt.strftime('%Y-%m-%d %H:%M:%S')}")
 
-        if not any([self.rate_limiter.tracker.banned_ips,
-                self.rate_limiter.tracker.banned_users,
-                self.rate_limiter.tracker.quarantined_ips]):
+        if not any([
+            getattr(self.rate_limiter.tracker, "banned_ips", None),
+            getattr(self.rate_limiter.tracker, "banned_users", None),
+            getattr(self.rate_limiter.tracker, "quarantined_ips", None),
+        ]):
             self.print_colored("No banned or quarantined entities.", "green")
 
     async def unban_ip(self, ip: str) -> None:
-        """Unban an IP address."""
-        if ip in self.rate_limiter.tracker.banned_ips:
+        """Unban an IP address from rate limiter bans."""
+        if getattr(self.rate_limiter.tracker, "banned_ips", None) and ip in self.rate_limiter.tracker.banned_ips:
             del self.rate_limiter.tracker.banned_ips[ip]
             self.print_colored(f" Unbanned IP: {ip}", "green")
         else:
@@ -173,13 +217,383 @@ class SecurityCLI:
 
     async def unban_user(self, user_id: str) -> None:
         """Unban a user."""
-        if user_id in self.rate_limiter.tracker.banned_users:
+        if getattr(self.rate_limiter.tracker, "banned_users", None) and user_id in self.rate_limiter.tracker.banned_users:
             del self.rate_limiter.tracker.banned_users[user_id]
             self.print_colored(f" Unbanned user: {user_id}", "green")
         else:
             self.print_colored(f" User not found in ban list: {user_id}", "red")
 
-    # Permission Management Commands
+    # DDoS Protection Commands
+    async def show_ddos_status(self) -> None:
+        """Show DDoS protection status."""
+        if not self.ddos:
+            self.print_colored("DDoS protection subsystem not available.", "red")
+            return
+
+        status = self.ddos.get_protection_status()
+        self.print_colored(" DDoS Protection Status", "cyan")
+        self.print_colored("=" * 50, "cyan")
+        logger.info(f"Enabled: {status.get('enabled', False)}")
+        stats = status.get("stats", {})
+        for k, v in stats.items():
+            logger.info(f"{k}: {v}")
+        blocked = status.get("blocked_ips", {})
+        logger.info(f"Blocked IPs: {len(blocked)}")
+        self.print_colored(" Use 'ddos-list-blocked' and 'ddos-unblock <ip>' to manage blocks", "yellow")
+
+    async def ddos_block_ip(self, ip: str, duration_seconds: int = 3600) -> None:
+        """Manually block an IP via DDoS protection manager."""
+        if not self.ddos:
+            self.print_colored("DDoS protection subsystem not available.", "red")
+            return
+        try:
+            self.ddos.ip_block_manager.block_ip(ip, duration_seconds, reason="manual-block-via-cli")
+            self.print_colored(f"Blocked IP {ip} for {duration_seconds} seconds", "green")
+        except Exception as e:
+            self.print_colored(f"Failed to block IP: {e}", "red")
+
+    async def ddos_unblock_ip(self, ip: str) -> None:
+        """Unblock an IP from DDoS protection manager."""
+        if not self.ddos:
+            self.print_colored("DDoS protection subsystem not available.", "red")
+            return
+        try:
+            self.ddos.ip_block_manager.unblock_ip(ip)
+            self.print_colored(f"Unblocked IP {ip}", "green")
+        except Exception as e:
+            self.print_colored(f"Failed to unblock IP: {e}", "red")
+
+    async def ddos_list_blocked(self) -> None:
+        """List blocked IPs from DDoS protection manager."""
+        if not self.ddos:
+            self.print_colored("DDoS protection subsystem not available.", "red")
+            return
+        blocked = self.ddos.ip_block_manager.get_blocked_ips()
+        if not blocked:
+            self.print_colored("No blocked IPs", "green")
+            return
+        self.print_colored("Blocked IPs:", "yellow")
+        for ip, info in blocked.items():
+            expires = info.get("expires_at")
+            remaining = info.get("remaining_seconds")
+            logger.info(f" {ip} - type={info.get('type')} expires_at={expires} remaining={remaining}")
+
+    async def ddos_recent_alerts(self, hours: int = 1) -> None:
+        """Show recent DDoS alerts."""
+        if not self.ddos:
+            self.print_colored("DDoS protection subsystem not available.", "red")
+            return
+        alerts = self.ddos.alert_manager.get_recent_alerts(hours)
+        if not alerts:
+            self.print_colored("No recent alerts", "green")
+            return
+        self.print_colored(f"Recent DDoS Alerts (last {hours} hours):", "yellow")
+        for a in alerts:
+            logger.info(f"{datetime.fromtimestamp(a.timestamp).isoformat()} - {a.attack_type.value} - {a.source_ip} - {a.description}")
+
+    # Security Scanning & Audit
+    async def run_security_scan(self) -> None:
+        """Perform a quick security scan and present findings."""
+        self.print_colored(" Running quick security scan...", "cyan")
+        findings = []
+
+        # Plugin security summary
+        if self.plugin_sec:
+            try:
+                summary = self.plugin_sec.get_security_summary()
+                if summary.get("quarantined_plugins", 0) > 0:
+                    findings.append(f"Quarantined plugins: {summary.get('quarantined_plugins')}")
+                if summary.get("pending_permission_requests", 0) > 0:
+                    findings.append(f"Pending permission requests: {summary.get('pending_permission_requests')}")
+                critical_events = summary.get("last_24h_critical_events", 0)
+                if critical_events > 0:
+                    findings.append(f"Critical plugin security events in last 24h: {critical_events}")
+            except Exception as e:
+                logger.error(f"Error fetching plugin security summary: {e}")
+                findings.append("Failed to gather plugin security summary")
+
+        # DDoS status
+        if self.ddos:
+            try:
+                stats = self.ddos.get_protection_status().get("stats", {})
+                if stats.get("active_attacks", 0) > 0:
+                    findings.append(f"Active DDoS attacks detected: {stats.get('active_attacks')}")
+                if stats.get("blocked_ips", 0) > 0:
+                    findings.append(f"Blocked IPs: {stats.get('blocked_ips')}")
+            except Exception as e:
+                logger.error(f"Error fetching DDoS stats: {e}")
+                findings.append("Failed to gather DDoS stats")
+
+        # Rate limiter sanity checks
+        try:
+            if not self.rate_limiter.rules:
+                findings.append("No rate limiting rules configured - this is risky")
+        except Exception:
+            findings.append("Failed to read rate limiter configuration")
+
+        # Present findings
+        if not findings:
+            self.print_colored("No immediate issues detected by quick scan.", "green")
+        else:
+            self.print_colored(" Security Scan Findings:", "red")
+            for f in findings:
+                logger.info(f" - {f}")
+
+    async def list_audit_events(self, hours: int = 24, threat_level: Optional[str] = None) -> None:
+        """List audit events from plugin security manager."""
+        if not self.plugin_sec:
+            self.print_colored("Plugin security manager not available.", "red")
+            return
+        events = []
+        try:
+            # plugin_sec stores events in memory - use interface if available
+            summary = self.plugin_sec.get_security_summary()
+            # Access the internal list if present
+            internal = getattr(self.plugin_sec, "_audit_events", [])
+            cutoff = datetime.now(timezone.utc).timestamp() - (hours * 3600)
+            for e in internal:
+                ts = e.timestamp.timestamp() if hasattr(e.timestamp, "timestamp") else 0
+                if ts >= cutoff:
+                    if threat_level and getattr(e.threat_level, "value", None) != threat_level:
+                        continue
+                    events.append(e)
+        except Exception as e:
+            logger.error(f"Error fetching audit events: {e}")
+            self.print_colored("Failed to fetch audit events", "red")
+            return
+
+        if not events:
+            self.print_colored("No audit events found for the requested timeframe.", "green")
+            return
+
+        self.print_colored(f" Audit Events (last {hours} hours):", "yellow")
+        for e in events:
+            logger.info(f"{e.timestamp.isoformat()} - {e.event_type.value} - {e.plugin_name} - {e.threat_level.value} - {e.description}")
+
+    async def export_audit_logs(self, path: str = "audit_logs.json", hours: int = 168) -> None:
+        """Export audit logs to a JSON file."""
+        if not self.plugin_sec:
+            self.print_colored("Plugin security manager not available.", "red")
+            return
+
+        try:
+            internal = getattr(self.plugin_sec, "_audit_events", [])
+            cutoff = datetime.now(timezone.utc).timestamp() - (hours * 3600)
+            export = []
+            for e in internal:
+                ts = e.timestamp.timestamp() if hasattr(e.timestamp, "timestamp") else 0
+                if ts >= cutoff:
+                    export.append({
+                        "event_id": e.event_id,
+                        "plugin_name": e.plugin_name,
+                        "event_type": getattr(e.event_type, "value", str(e.event_type)),
+                        "threat_level": getattr(e.threat_level, "value", str(e.threat_level)),
+                        "description": e.description,
+                        "timestamp": e.timestamp.isoformat(),
+                        "details": e.details,
+                    })
+            with open(path, "w", encoding="utf-8") as fh:
+                json.dump(export, fh, indent=2)
+            self.print_colored(f"Exported {len(export)} audit events to {path}", "green")
+        except Exception as e:
+            logger.error(f"Failed to export audit logs: {e}")
+            self.print_colored(f"Failed to export audit logs: {e}", "red")
+
+    # Plugin Permission Management
+    async def list_pending_plugin_permissions(self) -> None:
+        """List pending plugin permission requests."""
+        if not self.plugin_sec:
+            self.print_colored("Plugin security manager not available.", "red")
+            return
+
+        try:
+            pending = self.plugin_sec.get_pending_permission_requests()
+            if not pending:
+                self.print_colored("No pending plugin permission requests.", "green")
+                return
+            self.print_colored(" Pending Plugin Permission Requests:", "yellow")
+            for r in pending:
+                logger.info(f"{r.plugin_name} - {r.permission_type.value} - requested_at={r.requested_at.isoformat()} - justification={r.justification}")
+        except Exception as e:
+            logger.error(f"Error listing pending permissions: {e}")
+            self.print_colored(f"Failed to fetch pending permissions: {e}", "red")
+
+    async def approve_plugin_permission(self, plugin_name: str, permission: str, approved_by: str, expires_in_days: Optional[int] = None) -> None:
+        """Approve a plugin permission."""
+        if not self.plugin_sec:
+            self.print_colored("Plugin security manager not available.", "red")
+            return
+        try:
+            if PermissionType:
+                perm = PermissionType(permission)
+            else:
+                # Fallback: try string-based handling in manager
+                perm = permission
+            result = self.plugin_sec.approve_permission(plugin_name, perm, approved_by, expires_in_days)
+            if result:
+                self.print_colored(f"Approved permission {permission} for {plugin_name}", "green")
+            else:
+                self.print_colored(f"Failed to approve permission (maybe not pending): {permission}", "red")
+        except Exception as e:
+            logger.error(f"Error approving permission: {e}")
+            self.print_colored(f"Failed to approve permission: {e}", "red")
+
+    async def deny_plugin_permission(self, plugin_name: str, permission: str, denied_by: str) -> None:
+        """Deny a plugin permission."""
+        if not self.plugin_sec:
+            self.print_colored("Plugin security manager not available.", "red")
+            return
+        try:
+            if PermissionType:
+                perm = PermissionType(permission)
+            else:
+                perm = permission
+            result = self.plugin_sec.deny_permission(plugin_name, perm, denied_by)
+            if result:
+                self.print_colored(f"Denied permission {permission} for {plugin_name}", "green")
+            else:
+                self.print_colored(f"Failed to deny permission (maybe not pending): {permission}", "red")
+        except Exception as e:
+            logger.error(f"Error denying permission: {e}")
+            self.print_colored(f"Failed to deny permission: {e}", "red")
+
+    async def revoke_plugin_permission(self, plugin_name: str, permission: str, revoked_by: str) -> None:
+        """Revoke an approved plugin permission."""
+        if not self.plugin_sec:
+            self.print_colored("Plugin security manager not available.", "red")
+            return
+        try:
+            if PermissionType:
+                perm = PermissionType(permission)
+            else:
+                perm = permission
+            result = self.plugin_sec.revoke_permission(plugin_name, perm, revoked_by)
+            if result:
+                self.print_colored(f"Revoked permission {permission} for {plugin_name}", "green")
+            else:
+                self.print_colored(f"Failed to revoke permission: {permission}", "red")
+        except Exception as e:
+            logger.error(f"Error revoking permission: {e}")
+            self.print_colored(f"Failed to revoke permission: {e}", "red")
+
+    async def show_plugin_permissions(self, plugin_name: str) -> None:
+        """Show plugin permissions and pending requests."""
+        if not self.plugin_sec:
+            self.print_colored("Plugin security manager not available.", "red")
+            return
+        try:
+            perms = self.plugin_sec.get_plugin_permissions(plugin_name)
+            self.print_colored(f" Permissions for plugin: {plugin_name}", "cyan")
+            self.print_colored("=" * 50, "cyan")
+            logger.info(f"Approved: {', '.join(perms.get('approved_permissions', [])) or 'None'}")
+            pending = perms.get("pending_requests", [])
+            if pending:
+                self.print_colored("\n Pending Requests:", "yellow")
+                for p in pending:
+                    logger.info(f" {p.get('permission_type')} - {p.get('justification')} - requested_at={p.get('requested_at')}")
+            else:
+                logger.info("No pending requests")
+            if perms.get("is_quarantined"):
+                logger.info("Plugin is currently quarantined")
+        except Exception as e:
+            logger.error(f"Error showing plugin permissions: {e}")
+            self.print_colored(f"Failed to show plugin permissions: {e}", "red")
+
+    # Security Policy Management
+    async def show_security_policy(self, plugin_name: str) -> None:
+        """Show security policy for a plugin."""
+        if not self.plugin_sec:
+            self.print_colored("Plugin security manager not available.", "red")
+            return
+        try:
+            policy = self.plugin_sec.get_security_policy(plugin_name)
+            self.print_colored(f" Security Policy: {plugin_name}", "cyan")
+            self.print_colored("=" * 50, "cyan")
+            for k, v in getattr(policy, "__dict__", {}).items():
+                logger.info(f"{k}: {v}")
+        except Exception as e:
+            logger.error(f"Error fetching security policy: {e}")
+            self.print_colored(f"Failed to fetch security policy: {e}", "red")
+
+    async def set_security_policy(self, plugin_name: str, key: str, value: str) -> None:
+        """Set a single value on a plugin's security policy."""
+        if not self.plugin_sec:
+            self.print_colored("Plugin security manager not available.", "red")
+            return
+        try:
+            policy = self.plugin_sec.get_security_policy(plugin_name)
+            if not hasattr(policy, key):
+                self.print_colored(f"Unknown policy key: {key}", "red")
+                return
+
+            current = getattr(policy, key)
+            # Try to coerce value type based on current type
+            new_value: Any = value
+            if isinstance(current, bool):
+                new_value = value.lower() in ("1", "true", "yes", "on")
+            elif isinstance(current, int):
+                new_value = int(value)
+            elif isinstance(current, float):
+                new_value = float(value)
+            elif isinstance(current, (list, tuple, set)):
+                # Accept comma-separated values
+                new_value = [v.strip() for v in value.split(",") if v.strip()]
+
+            setattr(policy, key, new_value)
+            self.plugin_sec.set_security_policy(plugin_name, policy)
+            self.print_colored(f"Updated security policy {key} for {plugin_name}", "green")
+        except Exception as e:
+            logger.error(f"Error setting security policy: {e}")
+            self.print_colored(f"Failed to set security policy: {e}", "red")
+
+    # Key Management (Key Vault integration)
+    async def list_keys(self) -> None:
+        """List keys in key vault."""
+        if not self.kv:
+            self.print_colored("Key vault not available.", "red")
+            return
+        try:
+            keys = self.kv.list_keys()
+            if not keys:
+                self.print_colored("No keys in vault.", "yellow")
+                return
+            self.print_colored(" Keys in Vault", "cyan")
+            for k in keys:
+                logger.info(f" {k.get('id')} - created_at: {k.get('created_at')} - type: {k.get('type')}")
+        except Exception as e:
+            logger.error(f"Error listing keys: {e}")
+            self.print_colored(f"Failed to list keys: {e}", "red")
+
+    async def rotate_key(self, key_id: str) -> None:
+        """Rotate a key in key vault."""
+        if not self.kv:
+            self.print_colored("Key vault not available.", "red")
+            return
+        try:
+            self.kv.rotate_key(key_id)
+            self.print_colored(f"Rotated key: {key_id}", "green")
+        except Exception as e:
+            logger.error(f"Error rotating key: {e}")
+            self.print_colored(f"Failed to rotate key: {e}", "red")
+
+    async def show_key(self, key_id: str) -> None:
+        """Show key details (non-sensitive metadata)."""
+        if not self.kv:
+            self.print_colored("Key vault not available.", "red")
+            return
+        try:
+            meta = self.kv.get_key_metadata(key_id)
+            if not meta:
+                self.print_colored("Key not found.", "red")
+                return
+            self.print_colored(f" Key: {key_id}", "cyan")
+            for k, v in meta.items():
+                logger.info(f"{k}: {v}")
+        except Exception as e:
+            logger.error(f"Error showing key metadata: {e}")
+            self.print_colored(f"Failed to show key metadata: {e}", "red")
+
+    # Permission Management Commands (existing)
     async def list_roles(self) -> None:
         """List all roles."""
         self.print_colored(" User Roles", "cyan")
@@ -361,6 +775,7 @@ class SecurityCLI:
                 perm_list = [p.value for p in perms]
                 logger.info(f"   {scope_id}: {', '.join(perm_list)}")
 
+
 async def handle_security_command(args: List[str]) -> None:
     """Handle security management commands."""
     if not args:
@@ -373,6 +788,34 @@ async def handle_security_command(args: List[str]) -> None:
         logger.info("  banned                        - Show banned entities")
         logger.info("  unban-ip <ip>                 - Unban IP address")
         logger.info("  unban-user <user_id>          - Unban user")
+        logger.info("")
+        logger.info("DDoS Protection:")
+        logger.info("  ddos-status                   - Show DDoS protection status")
+        logger.info("  ddos-list-blocked             - List blocked IPs in DDoS protection")
+        logger.info("  ddos-block <ip> [seconds]     - Manually block IP via DDoS protection")
+        logger.info("  ddos-unblock <ip>             - Unblock IP in DDoS protection")
+        logger.info("  ddos-alerts [hours]           - Show recent DDoS alerts")
+        logger.info("")
+        logger.info("Security Scanning & Audit:")
+        logger.info("  scan                          - Run quick security scan")
+        logger.info("  list-audit [hours] [level]    - List audit events")
+        logger.info("  export-audit <path> [hours]   - Export audit logs to JSON")
+        logger.info("")
+        logger.info("Key Management:")
+        logger.info("  list-keys                     - List keys in key vault")
+        logger.info("  rotate-key <key_id>           - Rotate key")
+        logger.info("  show-key <key_id>             - Show key metadata")
+        logger.info("")
+        logger.info("Plugin Permissions:")
+        logger.info("  list-pending                  - List pending plugin permission requests")
+        logger.info("  approve-perm <plugin> <perm> <approver> [days] - Approve permission")
+        logger.info("  deny-perm <plugin> <perm> <denier>          - Deny permission")
+        logger.info("  revoke-perm <plugin> <perm> <revoker>      - Revoke permission")
+        logger.info("  show-plugin <plugin>          - Show plugin permissions")
+        logger.info("")
+        logger.info("Security Policies:")
+        logger.info("  show-policy <plugin>          - Show plugin security policy")
+        logger.info("  set-policy <plugin> <key> <value> - Set policy key value")
         logger.info("")
         logger.info("Permissions:")
         logger.info("  list-roles                    - List all roles")
@@ -390,6 +833,7 @@ async def handle_security_command(args: List[str]) -> None:
     command_args = args[1:]
 
     try:
+        # Rate limiting
         if command == "list-rules":
             await cli.list_rate_limit_rules()
         elif command == "create-rule":
@@ -405,6 +849,61 @@ async def handle_security_command(args: List[str]) -> None:
             await cli.unban_ip(command_args[0])
         elif command == "unban-user" and command_args:
             await cli.unban_user(command_args[0])
+
+        # DDoS commands
+        elif command == "ddos-status":
+            await cli.show_ddos_status()
+        elif command == "ddos-list-blocked":
+            await cli.ddos_list_blocked()
+        elif command == "ddos-block" and command_args:
+            dur = int(command_args[1]) if len(command_args) > 1 else 3600
+            await cli.ddos_block_ip(command_args[0], dur)
+        elif command == "ddos-unblock" and command_args:
+            await cli.ddos_unblock_ip(command_args[0])
+        elif command == "ddos-alerts":
+            hours = int(command_args[0]) if command_args else 1
+            await cli.ddos_recent_alerts(hours)
+
+        # Security scanning & audit
+        elif command == "scan":
+            await cli.run_security_scan()
+        elif command == "list-audit":
+            hours = int(command_args[0]) if command_args else 24
+            level = command_args[1] if len(command_args) > 1 else None
+            await cli.list_audit_events(hours, level)
+        elif command == "export-audit" and command_args:
+            path = command_args[0]
+            hours = int(command_args[1]) if len(command_args) > 1 else 168
+            await cli.export_audit_logs(path, hours)
+
+        # Key management
+        elif command == "list-keys":
+            await cli.list_keys()
+        elif command == "rotate-key" and command_args:
+            await cli.rotate_key(command_args[0])
+        elif command == "show-key" and command_args:
+            await cli.show_key(command_args[0])
+
+        # Plugin permission management
+        elif command == "list-pending":
+            await cli.list_pending_plugin_permissions()
+        elif command == "approve-perm" and len(command_args) >= 3:
+            expires = int(command_args[3]) if len(command_args) > 3 else None
+            await cli.approve_plugin_permission(command_args[0], command_args[1], command_args[2], expires)
+        elif command == "deny-perm" and len(command_args) >= 3:
+            await cli.deny_plugin_permission(command_args[0], command_args[1], command_args[2])
+        elif command == "revoke-perm" and len(command_args) >= 3:
+            await cli.revoke_plugin_permission(command_args[0], command_args[1], command_args[2])
+        elif command == "show-plugin" and command_args:
+            await cli.show_plugin_permissions(command_args[0])
+
+        # Security policies
+        elif command == "show-policy" and command_args:
+            await cli.show_security_policy(command_args[0])
+        elif command == "set-policy" and len(command_args) >= 3:
+            await cli.set_security_policy(command_args[0], command_args[1], command_args[2])
+
+        # Permission management (existing)
         elif command == "list-roles":
             await cli.list_roles()
         elif command == "show-role" and command_args:

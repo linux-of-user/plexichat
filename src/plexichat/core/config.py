@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 # Try to import the unified config system
 try:
-    from plexichat.core.unified_config import (
+    from plexichat.src.plexichat.core.config_manager import (
         UnifiedConfig,
         UnifiedConfigManager,
         get_config_manager,

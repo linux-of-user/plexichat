@@ -1,0 +1,26 @@
+# Documentation Generation Requirements
+# Core MkDocs and theme
+mkdocs>=1.6.0,<2.0.0
+mkdocs-material>=9.5.21,<10.0.0
+
+# OpenAPI documentation generation
+mkdocs-openapi-markdown-plugin>=0.2.1,<1.0.0
+
+# Additional useful MkDocs plugins
+mkdocs-awesome-pages-plugin>=2.9.0,<3.0.0
+mkdocs-git-revision-date-localized-plugin>=1.2.0,<2.0.0
+mkdocs-minify-plugin>=0.8.0,<1.0.0
+mkdocs-jupyter>=0.1.0
+mkdocs-git-authors-plugin>=0.2.0
+mkdocs-macros-plugin>=1.0.0
+mkdocs-redirects>=1.1.0
+
+# Documentation quality and linting
+markdownlint-cli>=0.39.0,<1.0.0
+
+# Python dependencies for documentation scripts
+pyyaml>=6.0.0,<7.0.0
+jinja2>=3.1.0,<4.0.0
+
+# Optional: For advanced documentation features
+pymdown-extensions>=10.0.0,<11.0.0

@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Optional
 
 try:
-    from plexichat.core.unified_config import get_app_version
+    from plexichat.src.plexichat.core.config_manager import get_app_version
     PLEXICHAT_VERSION = get_app_version()
 except ImportError:
     PLEXICHAT_VERSION = "2.0.0"

@@ -24,7 +24,7 @@ except ImportError:
 from plexichat.core.logging_advanced.performance_logger import get_performance_logger
 
 # Use the new unified config system
-from plexichat.core.unified_config import get_config
+from plexichat.src.plexichat.core.config_manager import get_config
 
 logger = logging.getLogger(__name__)
 

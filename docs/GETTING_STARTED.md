@@ -10,8 +10,9 @@ This comprehensive guide will help you set up, configure, and start using PlexiC
 4. [First Run Setup](#first-run-setup)
 5. [Interface Options](#interface-options)
 6. [Basic Usage](#basic-usage)
-7. [Configuration Options](#configuration-options)
-8. [Troubleshooting](#troubleshooting)
+7. [Automated Documentation & API Schema](#automated-documentation--api-schema)
+8. [Configuration Options](#configuration-options)
+9. [Troubleshooting](#troubleshooting)
 
 ## System Requirements
 
@@ -280,7 +281,7 @@ python run.py api
 ```
 - **Features**: API server only
 - **Best for**: Headless deployment, API-only usage
-- **Access**: http://localhost:8000/docs (API documentation)
+- **Access**: http://localhost:8000/docs (Swagger UI) and http://localhost:8000/redoc (ReDoc)
 - **Benefits**: Lightweight, perfect for integrations
 
 ### 4. CLI Mode
@@ -393,6 +394,44 @@ with open("document.pdf", "rb") as f:
     )
 ```
 
+## Automated Documentation & API Schema
+
+PlexiChat provides both runtime interactive API docs and a build-time OpenAPI schema used by the documentation site.
+
+- Runtime interactive documentation:
+  - Swagger UI: http://localhost:8000/docs
+  - ReDoc: http://localhost:8000/redoc
+
+- Generated OpenAPI schema (used by the docs pipeline):
+  - Location in repository: docs/_generated/openapi.json
+  - This file is produced by a small utility script: scripts/dump_openapi.py
+  - When API endpoints, error codes, or response schemas change, regenerate the OpenAPI JSON and rebuild the site.
+
+Basic workflow to regenerate and preview documentation locally:
+
+1. Ensure the application import path is available (run from project root where src is on PYTHONPATH).
+2. Generate OpenAPI JSON:
+```bash
+python scripts/dump_openapi.py
+# This writes docs/_generated/openapi.json
+```
+3. Build or serve the documentation:
+- If using MkDocs locally:
+```bash
+mkdocs serve
+# or
+mkdocs build
+```
+- If the project provides helper scripts:
+```bash
+scripts/build_docs.sh   # runs dump_openapi.py and mkdocs build (if present)
+```
+
+Notes for contributors and maintainers:
+- Keep OpenAPI and runtime docs in sync: changes to FastAPI routes should be reflected by regenerating docs/_generated/openapi.json.
+- Documentation builds (CI or local) should include the step to run scripts/dump_openapi.py prior to mkdocs build.
+- For security-sensitive endpoints (WAF controls, admin APIs), ensure the OpenAPI schema includes accurate response shapes and error codes so security docs and runbooks can reference them.
+
 ## Configuration Options
 
 ### Core Settings
@@ -502,19 +541,25 @@ python -m plexichat check-dependencies
 
 ### Getting Help
 
-1. **Documentation**: Check the [docs/](../docs/) directory
-2. **Logs**: Check application logs in `logs/` directory
-3. **Debug Mode**: Run with `--debug` flag for verbose output
-4. **Community**: Visit our [GitHub Discussions](https://github.com/linux-of-user/plexichat/discussions)
-5. **Issues**: Report bugs on [GitHub Issues](https://github.com/linux-of-user/plexichat/issues)
+1. **Documentation**: Check the `docs/` directory in the repository for full guides and reference material.
+2. **Generated API Schema**: docs/_generated/openapi.json (regenerate with scripts/dump_openapi.py if stale)
+3. **Runtime API Docs**: http://localhost:8000/docs and http://localhost:8000/redoc
+4. **Logs**: Check application logs in `logs/` directory
+5. **Debug Mode**: Run with `--debug` flag for verbose output
+6. **Community**: Visit our [GitHub Discussions](https://github.com/linux-of-user/plexichat/discussions)
+7. **Issues**: Report bugs on [GitHub Issues](https://github.com/linux-of-user/plexichat/issues)
 
-### Next Steps
+### Next Steps & Related Documentation
 
 - [Architecture Overview](ARCHITECTURE.md) - Understand the system design
-- [Security Guide](SECURITY.md) - Learn about security features
-- [API Reference](API.md) - Explore the API endpoints
-- [Deployment Guide](DEPLOYMENT.md) - Deploy to production
-- [Plugin Development](PLUGINS.md) - Create custom plugins
+- [Security Guide](SECURITY.md) - Learn about security features and WAF integration
+- [WAF Rules](WAF_RULES.md) - Canonical WAF rule catalog and operational guidance
+- [Incident Response](INCIDENT_RESPONSE.md) - Triage, playbooks, and runbooks for incidents
+- [API Reference](API.md) - Explore the API endpoints (developer-facing docs)
+- [Deployment Guide](DEPLOYMENT.md) - Deploy PlexiChat to production
+- [Plugin Development](PLUGIN_DEVELOPMENT.md) - Create custom plugins and extend functionality
+- [Backup System](BACKUP_SYSTEM.md) - Backup and recovery procedures
+- [Maintaining Documentation](MAINTAINING_DOCUMENTATION.md) - Guidelines for contributing and maintaining docs
 
 ---
 

@@ -1,0 +1,359 @@
+name: Documentation Build and Deploy
+
+# Trigger the workflow on documentation-related changes
+on:
+  push:
+    branches:
+      - main
+      - master
+      - develop
+    paths:
+      - 'docs/**'
+      - 'src/plexichat/**'
+      - 'mkdocs.yml'
+      - 'scripts/dump_openapi.py'
+      - 'scripts/build_docs.sh'
+      - '.github/workflows/docs.yml'
+  pull_request:
+    branches:
+      - main
+      - master
+      - develop
+    paths:
+      - 'docs/**'
+      - 'src/plexichat/**'
+      - 'mkdocs.yml'
+      - 'scripts/dump_openapi.py'
+      - 'scripts/build_docs.sh'
+      - '.github/workflows/docs.yml'
+  workflow_dispatch:
+    inputs:
+      deploy_to_pages:
+        description: 'Deploy to GitHub Pages'
+        required: false
+        default: false
+        type: boolean
+
+# Set permissions for GitHub Pages deployment
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow only one concurrent deployment
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+env:
+  PYTHON_VERSION: "3.11"
+  NODE_VERSION: "18"
+
+jobs:
+  # Job 1: Lint documentation
+  lint:
+    name: Lint Documentation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install markdownlint-cli
+        run: npm install -g markdownlint-cli
+
+      - name: Cache markdownlint
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-markdownlint-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-markdownlint-
+
+      - name: Lint Markdown files
+        run: |
+          echo "Linting documentation files..."
+          markdownlint docs/**/*.md --config .markdownlint.json || true
+          echo "Markdown linting completed"
+
+      - name: Check for broken internal links
+        run: |
+          echo "Checking for broken internal links..."
+          # Simple grep-based check for common markdown link patterns
+          find docs -name "*.md" -exec grep -l "\[.*\](.*\.md)" {} \; | while read file; do
+            echo "Checking links in: $file"
+            grep -o "\[.*\](.*\.md)" "$file" | while read link; do
+              target=$(echo "$link" | sed 's/.*](\(.*\))/\1/')
+              if [[ "$target" =~ ^[^/] ]]; then
+                # Relative path - check if file exists relative to current file
+                dir=$(dirname "$file")
+                full_path="$dir/$target"
+              else
+                # Absolute path from docs root
+                full_path="docs/$target"
+              fi
+              
+              if [[ ! -f "$full_path" ]]; then
+                echo "::warning file=$file::Broken link found: $link -> $full_path"
+              fi
+            done
+          done
+
+  # Job 2: Build documentation
+  build:
+    name: Build Documentation
+    runs-on: ubuntu-latest
+    needs: lint
+    outputs:
+      artifact-id: ${{ steps.upload-artifact.outputs.artifact-id }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Cache Python dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.local/lib/python${{ env.PYTHON_VERSION }}/site-packages
+          key: ${{ runner.os }}-python-${{ env.PYTHON_VERSION }}-docs-${{ hashFiles('docs/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-python-${{ env.PYTHON_VERSION }}-docs-
+            ${{ runner.os }}-python-${{ env.PYTHON_VERSION }}-
+
+      - name: Install documentation dependencies
+        run: |
+          echo "Installing documentation dependencies..."
+          python -m pip install --upgrade pip
+          pip install -r docs/requirements.txt
+          echo "Dependencies installed successfully"
+
+      - name: Verify MkDocs installation
+        run: |
+          echo "Verifying MkDocs installation..."
+          mkdocs --version
+          python -c "import mkdocs; print(f'MkDocs version: {mkdocs.__version__}')"
+
+      - name: Create generated directory
+        run: |
+          mkdir -p docs/_generated
+          echo "Created docs/_generated directory"
+
+      - name: Install application dependencies (for OpenAPI extraction)
+        run: |
+          echo "Installing application dependencies..."
+          python -m pip install -e . || true
+          pip install -r requirements.txt || true
+          echo "Application dependencies installation attempted"
+
+      - name: Extract OpenAPI schema
+        run: |
+          echo "Extracting OpenAPI schema..."
+          cd ${{ github.workspace }}
+          python scripts/dump_openapi.py
+          
+          # Verify the schema was generated
+          if [[ -f "docs/_generated/openapi.json" ]]; then
+            echo "OpenAPI schema generated successfully"
+            echo "Schema size: $(stat -c%s docs/_generated/openapi.json) bytes"
+          else
+            echo "::error::OpenAPI schema generation failed"
+            exit 1
+          fi
+
+      - name: Validate MkDocs configuration
+        run: |
+          echo "Validating MkDocs configuration..."
+          mkdocs build --strict --verbose --clean
+          echo "MkDocs configuration is valid"
+
+      - name: Build documentation site
+        run: |
+          echo "Building documentation site..."
+          mkdocs build --strict --verbose --clean --site-dir site
+          echo "Documentation site built successfully"
+
+      - name: Verify build output
+        run: |
+          echo "Verifying build output..."
+          
+          # Check if index.html exists
+          if [[ ! -f "site/index.html" ]]; then
+            echo "::error::Build verification failed: index.html not found"
+            exit 1
+          fi
+          
+          # Count generated files
+          file_count=$(find site -type f | wc -l)
+          total_size=$(du -sh site | cut -f1)
+          
+          echo "Build verification successful:"
+          echo "  - Generated files: $file_count"
+          echo "  - Total size: $total_size"
+          
+          # Check for API documentation
+          api_files=$(find site -name "*api*" -o -name "*openapi*" | wc -l)
+          if [[ $api_files -gt 0 ]]; then
+            echo "  - API documentation files: $api_files"
+          else
+            echo "::warning::No API documentation files found"
+          fi
+
+      - name: Setup Pages
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') || github.event.inputs.deploy_to_pages == 'true'
+        uses: actions/configure-pages@v4
+
+      - name: Upload documentation artifact
+        id: upload-artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site/
+
+      - name: Upload build logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs-${{ github.run_number }}
+          path: |
+            site/
+            docs/_generated/
+          retention-days: 7
+
+  # Job 3: Deploy to GitHub Pages (only on main/master branch)
+  deploy:
+    name: Deploy to GitHub Pages
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') || github.event.inputs.deploy_to_pages == 'true'
+    runs-on: ubuntu-latest
+    needs: build
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Verify deployment
+        run: |
+          echo "Documentation deployed successfully!"
+          echo "Site URL: ${{ steps.deployment.outputs.page_url }}"
+          
+          # Wait a moment for deployment to propagate
+          sleep 10
+          
+          # Basic health check
+          if curl -f -s "${{ steps.deployment.outputs.page_url }}" > /dev/null; then
+            echo "✅ Site is accessible"
+          else
+            echo "⚠️ Site may not be immediately accessible (this is normal)"
+          fi
+
+  # Job 4: Notify on completion
+  notify:
+    name: Notify Build Status
+    runs-on: ubuntu-latest
+    needs: [lint, build, deploy]
+    if: always()
+    steps:
+      - name: Determine overall status
+        id: status
+        run: |
+          if [[ "${{ needs.lint.result }}" == "success" && "${{ needs.build.result }}" == "success" ]]; then
+            if [[ "${{ needs.deploy.result }}" == "success" || "${{ needs.deploy.result }}" == "skipped" ]]; then
+              echo "status=success" >> $GITHUB_OUTPUT
+              echo "message=Documentation build completed successfully" >> $GITHUB_OUTPUT
+            else
+              echo "status=failure" >> $GITHUB_OUTPUT
+              echo "message=Documentation deployment failed" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "status=failure" >> $GITHUB_OUTPUT
+            echo "message=Documentation build failed" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create job summary
+        run: |
+          echo "# 📚 Documentation Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Job | Status | Duration |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----|--------|----------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Lint | ${{ needs.lint.result }} | - |" >> $GITHUB_STEP_SUMMARY
+          echo "| Build | ${{ needs.build.result }} | - |" >> $GITHUB_STEP_SUMMARY
+          echo "| Deploy | ${{ needs.deploy.result }} | - |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [[ "${{ steps.status.outputs.status }}" == "success" ]]; then
+            echo "✅ **Status**: ${{ steps.status.outputs.message }}" >> $GITHUB_STEP_SUMMARY
+            if [[ "${{ needs.deploy.result }}" == "success" ]]; then
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "🌐 **Documentation Site**: [View Documentation](https://$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]' | sed 's/\//.github.io\//'))" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "❌ **Status**: ${{ steps.status.outputs.message }}" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Please check the job logs for more details." >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Triggered by**: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request' && steps.status.outputs.status == 'success'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            
+            const botComment = comments.find(comment => 
+              comment.user.type === 'Bot' && 
+              comment.body.includes('📚 Documentation Preview')
+            );
+            
+            const body = `## 📚 Documentation Preview
+            
+            The documentation has been built successfully for this PR!
+            
+            **Build Status**: ✅ Success
+            **Commit**: ${context.sha.substring(0, 7)}
+            
+            The documentation will be automatically deployed when this PR is merged to the main branch.
+            
+            ---
+            *This comment is automatically updated by the documentation workflow.*`;
+            
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body
+              });
+            }

@@ -59,7 +59,7 @@ except ImportError:
 
 # Core configurations
 try:
-    from plexichat.core.unified_config import get_plugin_timeout, get_max_plugin_memory, get_plugin_sandbox_enabled
+    from plexichat.src.plexichat.core.config_manager import get_plugin_timeout, get_max_plugin_memory, get_plugin_sandbox_enabled
 except ImportError:
     def get_plugin_timeout(): return 30
     def get_max_plugin_memory(): return 100 * 1024 * 1024

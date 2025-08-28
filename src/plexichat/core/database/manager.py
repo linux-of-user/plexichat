@@ -14,7 +14,7 @@ from dataclasses import dataclass
 from enum import Enum
 
 try:
-    from plexichat.core.unified_config import get_config
+    from plexichat.src.plexichat.core.config_manager import get_config
     from plexichat.core.auth.permissions import check_permission, format_permission, DBOperation, ResourceType, PermissionError
     config = get_config("database")
 except ImportError:

@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PlexiChat Security Dashboard</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --dark-bg: #1f2937;
+            --card-bg: #ffffff;
+            --border-color: #e5e7eb;
+            --text-primary: #111827;
+            --text-secondary: #6b7280;
+        }
+
+        body {
+            background-color: #f9fafb;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, var(--primary-color), #1d4ed8);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+
+        .sidebar {
+            background-color: var(--card-bg);
+            border-right: 1px solid var(--border-color);
+            min-height: calc(100vh - 76px);
+            padding: 1.5rem 0;
+        }
+
+        .sidebar .nav-link {
+            color: var(--text-primary);
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            margin: 0.25rem 1rem;
+            transition: all 0.2s;
+        }
+
+        .sidebar .nav-link:hover,
+        .sidebar .nav-link.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .main-content {
+            padding: 2rem;
+        }
+
+        .metric-card {
+            background: var(--card-bg);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid var(--border-color);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-label {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 0.5rem;
+        }
+
+        .status-healthy { background-color: var(--success-color); }
+        .status-warning { background-color: var(--warning-color); }
+        .status-critical { background-color: var(--danger-color); }
+
+        .threat-level {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+        }
+
+        .threat-low { background-color: #dcfce7; color: #166534; }
+        .threat-medium { background-color: #fef3c7; color: #92400e; }
+        .threat-high { background-color: #fee2e2; color: #991b1b; }
+        .threat-critical { background-color: #fecaca; color: #7f1d1d; }
+
+        .chart-container {
+            background: var(--card-bg);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid var(--border-color);
+            height: 400px;
+        }
+
+        .log-entry {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            transition: background-color 0.2s;
+        }
+
+        .log-entry:hover {
+            background-color: #f9fafb;
+        }
+
+        .log-timestamp {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .log-severity-high { border-left: 4px solid var(--danger-color); }
+        .log-severity-medium { border-left: 4px solid var(--warning-color); }
+        .log-severity-low { border-left: 4px solid var(--success-color); }
+
+        .control-panel {
+            background: var(--card-bg);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-security {
+            background: linear-gradient(135deg, var(--primary-color), #1d4ed8);
+            border: none;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn-security:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+            color: white;
+        }
+
+        .alert-banner {
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid;
+        }
+
+        .alert-critical {
+            background-color: #fef2f2;
+            border-color: var(--danger-color);
+            color: #991b1b;
+        }
+
+        .alert-warning {
+            background-color: #fffbeb;
+            border-color: var(--warning-color);
+            color: #92400e;
+        }
+
+        .real-time-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--success-color);
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .plugin-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+            background-color: #f9fafb;
+        }
+
+        .plugin-secure { border-left: 3px solid var(--success-color); }
+        .plugin-warning { border-left: 3px solid var(--warning-color); }
+        .plugin-danger { border-left: 3px solid var(--danger-color); }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+            .main-content {
+                padding: 1rem;
+            }
+            .metric-value {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-shield-alt me-2"></i>
+                PlexiChat Security Dashboard
+            </a>
+            <div class="navbar-nav ms-auto">
+                <div class="real-time-indicator">
+                    <span class="status-indicator status-healthy pulse"></span>
+                    Live Monitoring Active
+                </div>
+                <div class="nav-item dropdown ms-3">
+                    <a class="nav-link dropdown-toggle text-white" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user-circle"></i> Admin
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>Settings</a></li>
+                        <li><a class="dropdown-item" href="#"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 sidebar">
+                <nav class="nav flex-column">
+                    <a class="nav-link active" href="#overview">
+                        <i class="fas fa-tachometer-alt me-2"></i>Overview
+                    </a>
+                    <a class="nav-link" href="#ddos-protection">
+                        <i class="fas fa-shield-virus me-2"></i>DDoS Protection
+                    </a>
+                    <a class="nav-link" href="#rate-limiting">
+                        <i class="fas fa-stopwatch me-2"></i>Rate Limiting
+                    </a>
+                    <a class="nav-link" href="#plugin-security">
+                        <i class="fas fa-puzzle-piece me-2"></i>Plugin Security
+                    </a>
+                    <a class="nav-link" href="#security-events">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Security Events
+                    </a>
+                    <a class="nav-link" href="#incident-response">
+                        <i class="fas fa-ambulance me-2"></i>Incident Response
+                    </a>
+                    <a class="nav-link" href="#policies">
+                        <i class="fas fa-file-contract me-2"></i>Security Policies
+                    </a>
+                </nav>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-9 col-lg-10 main-content">
+                <!-- Alert Banners -->
+                <div id="alert-container">
+                    <!-- Dynamic alerts will be inserted here -->
+                </div>
+
+                <!-- Overview Section -->
+                <section id="overview">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2><i class="fas fa-shield-alt me-2"></i>Security Overview</h2>
+                        <div class="threat-level threat-low" id="threat-level">
+                            Threat Level: Low
+                        </div>
+                    </div>
+
+                    <!-- Key Metrics -->
+                    <div class="row mb-4">
+                        <div class="col-md-3 mb-3">
+                            <div class="metric-card">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <div class="metric-value text-success" id="security-score">98</div>
+                                        <div class="metric-label">Security Score</div>
+                                    </div>
+                                    <i class="fas fa-shield-check fa-2x text-success"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="metric-card">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <div class="metric-value text-warning" id="active-threats">3</div>
+                                        <div class="metric-label">Active Threats</div>
+                                    </div>
+                                    <i class="fas fa-exclamation-triangle fa-2x text-warning"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="metric-card">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <div class="metric-value text-info" id="blocked-requests">1,247</div>
+                                        <div class="metric-label">Blocked Requests (24h)</div>
+                                    </div>
+                                    <i class="fas fa-ban fa-2x text-info"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="metric-card">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <div class="metric-value text-primary" id="plugin-count">12</div>
+                                        <div class="metric-label">Secure Plugins</div>
+                                    </div>
+                                    <i class="fas fa-puzzle-piece fa-2x text-primary"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- System Status -->
+                    <div class="row mb-4">
+                        <div class="col-md-6 mb-3">
+                            <div class="control-panel">
+                                <h5><i class="fas fa-server me-2"></i>System Status</h5>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <span class="status-indicator status-healthy"></span>
+                                            <span>DDoS Protection</span>
+                                        </div>
+                                        <div class="d-flex align-items-center mb-2">
+                                            <span class="status-indicator status-healthy"></span>
+                                            <span>Rate Limiting</span>
+                                        </div>
+                                        <div class="d-flex align-items-center mb-2">
+                                            <span class="status-indicator status-warning"></span>
+                                            <span>Firewall</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <span class="status-indicator status-healthy"></span>
+                                            <span>Encryption</span>
+                                        </div>
+                                        <div class="d-flex align-items-center mb-2">
+                                            <span class="status-indicator status-healthy"></span>
+                                            <span>Authentication</span>
+                                        </div>
+                                        <div class="d-flex align-items-center mb-2">
+                                            <span class="status-indicator status-healthy"></span>
+                                            <span>Audit Logging</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="control-panel">
+                                <h5><i class="fas fa-chart-line me-2"></i>Real-time Metrics</h5>
+                                <canvas id="realTimeChart" width="400" height="200"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- DDoS Protection Section -->
+                <section id="ddos-protection" class="mb-5">
+                    <h3><i class="fas fa-shield-virus me-2"></i>DDoS Protection</h3>
+                    <div class="row">
+                        <div class="col-md-8 mb-3">
+                            <div class="chart-container">
+                                <h5>Traffic Analysis (Last 24 Hours)</h5>
+                                <canvas id="ddosChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="control-panel">
+                                <h5>DDoS Controls</h5>
+                                <div class="mb-3">
+                                    <label class="form-label">Protection Level</label>
+                                    <select class="form-select" id="ddos-level">
+                                        <option value="low">Low</option>
+                                        <option value="medium" selected>Medium</option>
+                                        <option value="high">High</option>
+                                        <option value="maximum">Maximum</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Auto-Block Threshold</label>
+                                    <input type="number" class="form-control" value="1000" id="auto-block-threshold">
+                                </div>
+                                <button class="btn btn-security w-100 mb-2" onclick="updateDDoSSettings()">
+                                    <i class="fas fa-save me-2"></i>Update Settings
+                                </button>
+                                <button class="btn btn-outline-danger w-100" onclick="emergencyBlock()">
+                                    <i class="fas fa-ban me-2"></i>Emergency Block
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Rate Limiting Section -->
+                <section id="rate-limiting" class="mb-5">
+                    <h3><i class="fas fa-stopwatch me-2"></i>Rate Limiting</h3>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="control-panel">
+                                <h5>Rate Limit Configuration</h5>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <label class="form-label">Requests per Minute</label>
+                                        <input type="number" class="form-control" value="60" id="rate-limit-rpm">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label">Burst Limit</label>
+                                        <input type="number" class="form-control" value="100" id="rate-limit-burst">
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <label class="form-label">User Tier Multipliers</label>
+                                    <div class="row">
+                                        <div class="col-4">
+                                            <label class="form-label small">Free</label>
+                                            <input type="number" class="form-control" value="1" step="0.1">
+                                        </div>
+                                        <div class="col-4">
+                                            <label class="form-label small">Premium</label>
+                                            <input type="number" class="form-control" value="2" step="0.1">
+                                        </div>
+                                        <div class="col-4">
+                                            <label class="form-label small">Enterprise</label>
+                                            <input type="number" class="form-control" value="5" step="0.1">
+                                        </div>
+                                    </div>
+                                </div>
+                                <button class="btn btn-security w-100 mt-3" onclick="updateRateLimits()">
+                                    <i class="fas fa-save me-2"></i>Update Rate Limits
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="chart-container">
+                                <h5>Rate Limiting Statistics</h5>
+                                <canvas id="rateLimitChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Plugin Security Section -->
+                <section id="plugin-security" class="mb-5">
+                    <h3><i class="fas fa-puzzle-piece me-2"></i>Plugin Security</h3>
+                    <div class="row">
+                        <div class="col-md-8 mb-3">
+                            <div class="control-panel">
+                                <h5>Plugin Status Overview</h5>
+                                <div id="plugin-list">
+                                    <div class="plugin-status plugin-secure mb-2">
+                                        <i class="fas fa-check-circle text-success me-2"></i>
+                                        <span class="fw-bold">Chat Enhancer v2.1</span>
+                                        <span class="badge bg-success ms-auto">Secure</span>
+                                    </div>
+                                    <div class="plugin-status plugin-warning mb-2">
+                                        <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                                        <span class="fw-bold">File Manager v1.3</span>
+                                        <span class="badge bg-warning ms-auto">Pending Review</span>
+                                    </div>
+                                    <div class="plugin-status plugin-secure mb-2">
+                                        <i class="fas fa-check-circle text-success me-2"></i>
+                                        <span class="fw-bold">Theme Customizer v3.0</span>
+                                        <span class="badge bg-success ms-auto">Secure</span>
+                                    </div>
+                                    <div class="plugin-status plugin-danger mb-2">
+                                        <i class="fas fa-times-circle text-danger me-2"></i>
+                                        <span class="fw-bold">Network Scanner v0.9</span>
+                                        <span class="badge bg-danger ms-auto">Blocked</span>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <button class="btn btn-security me-2" onclick="reviewPendingPlugins()">
+                                        <i class="fas fa-eye me-2"></i>Review Pending
+                                    </button>
+                                    <button class="btn btn-outline-primary" onclick="scanAllPlugins()">
+                                        <i class="fas fa-search me-2"></i>Scan All Plugins
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="control-panel">
+                                <h5>Security Policies</h5>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" checked id="sandbox-enabled">
+                                    <label class="form-check-label" for="sandbox-enabled">
+                                        Enable Sandboxing
+                                    </label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" checked id="permission-review">
+                                    <label class="form-check-label" for="permission-review">
+                                        Require Permission Review
+                                    </label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="auto-quarantine">
+                                    <label class="form-check-label" for="auto-quarantine">
+                                        Auto-quarantine Suspicious
+                                    </label>
+                                </div>
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" checked id="audit-logging">
+                                    <label class="form-check-label" for="audit-logging">
+                                        Enable Audit Logging
+                                    </label>
+                                </div>
+                                <button class="btn btn-security w-100" onclick="updatePluginPolicies()">
+                                    <i class="fas fa-save me-2"></i>Update Policies
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Security Events Section -->
+                <section id="security-events" class="mb-5">
+                    <h3><i class="fas fa-exclamation-triangle me-2"></i>Security Events</h3>
+                    <div class="control-panel">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5>Recent Security Events</h5>
+                            <div>
+                                <select class="form-select form-select-sm d-inline-block w-auto me-2" id="event-filter">
+                                    <option value="all">All Events</option>
+                                    <option value="high">High Severity</option>
+                                    <option value="medium">Medium Severity</option>
+                                    <option value="low">Low Severity</option>
+                                </select>
+                                <button class="btn btn-outline-primary btn-sm" onclick="refreshEvents()">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div id="security-events-list" style="max-height: 400px; overflow-y: auto;">
+                            <div class="log-entry log-severity-high">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <strong>Failed Login Attempt</strong>
+                                        <div class="log-timestamp">2024-01-15 14:32:15 UTC</div>
+                                        <div class="text-muted">Multiple failed login attempts from IP 192.168.1.100</div>
+                                    </div>
+                                    <span class="badge bg-danger">High</span>
+                                </div>
+                            </div>
+                            <div class="log-entry log-severity-medium">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <strong>Rate Limit Exceeded</strong>
+                                        <div class="log-timestamp">2024-01-15 14:28:42 UTC</div>
+                                        <div class="text-muted">User exceeded rate limit: 150 requests in 60 seconds</div>
+                                    </div>
+                                    <span class="badge bg-warning">Medium</span>
+                                </div>
+                            </div>
+                            <div class="log-entry log-severity-low">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <strong>Plugin Permission Request</strong>
+                                        <div class="log-timestamp">2024-01-15 14:25:18 UTC</div>
+                                        <div class="text-muted">File Manager plugin requested file system access</div>
+                                    </div>
+                                    <span class="badge bg-info">Low</span>
+                                </div>
+                            </div>
+                            <div class="log-entry log-severity-high">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <strong>Suspicious Plugin Activity</strong>
+                                        <div class="log-timestamp">2024-01-15 14:20:33 UTC</div>
+                                        <div class="text-muted">Network Scanner plugin attempted unauthorized network access</div>
+                                    </div>
+                                    <span class="badge bg-danger">High</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Incident Response Section -->
+                <section id="incident-response" class="mb-5">
+                    <h3><i class="fas fa-ambulance me-2"></i>Incident Response</h3>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="control-panel">
+                                <h5>Quick Actions</h5>
+                                <div class="row">
+                                    <div class="col-6 mb-2">
+                                        <button class="btn btn-danger w-100" onclick="lockdownSystem()">
+                                            <i class="fas fa-lock me-2"></i>System Lockdown
+                                        </button>
+                                    </div>
+                                    <div class="col-6 mb-2">
+                                        <button class="btn btn-warning w-100" onclick="blockSuspiciousIPs()">
+                                            <i class="fas fa-ban me-2"></i>Block Suspicious IPs
+                                        </button>
+                                    </div>
+                                    <div class="col-6 mb-2">
+                                        <button class="btn btn-info w-100" onclick="generateSecurityReport()">
+                                            <i class="fas fa-file-alt me-2"></i>Generate Report
+                                        </button>
+                                    </div>
+                                    <div class="col-6 mb-2">
+                                        <button class="btn btn-secondary w-100" onclick="notifyAdmins()">
+                                            <i class="fas fa-bell me-2"></i>Notify Admins
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="control-panel">
+                                <h5>Incident Status</h5>
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span>Active Incidents:</span>
+                                        <span class="badge bg-warning">2</span>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span>Resolved Today:</span>
+                                        <span class="badge bg-success">7</span>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span>Average Response Time:</span>
+                                        <span class="badge bg-info">3.2 min</span>
+                                    </div>
+                                </div>
+                                <button class="btn btn-security w-100" onclick="viewIncidentHistory()">
+                                    <i class="fas fa-history me-2"></i>View Incident History
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Security Policies Section -->
+                <section id="policies" class="mb-5">
+                    <h3><i class="fas fa-file-contract me-2"></i>Security Policies</h3>
+                    <div class="control-panel">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5>Authentication Policies</h5>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" checked id="mfa-required">
+                                    <label class="form-check-label" for="mfa-required">
+                                        Require Multi-Factor Authentication
+                                    </label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" checked id="password-complexity">
+                                    <label class="form-check-label" for="password-complexity">
+                                        Enforce Password Complexity
+                                    </label>
+                                </div>
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="session-timeout">
+                                    <label class="form-check-label" for="session-timeout">
+                                        Auto Session Timeout (30 min)
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <h5>Data Protection Policies</h5>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" checked id="encryption-at-rest">
+                                    <label class="form-check-label" for="encryption-at-rest">
+                                        Encryption at Rest
+                                    </label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" checked id="encryption-in-transit">
+                                    <label class="form-check-label" for="encryption-in-transit">
+                                        Encryption in Transit
+                                    </label>
+                                </div>
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" checked id="quantum-ready">
+                                    <label class="form-check-label" for="quantum-ready">
+                                        Quantum-Ready Encryption
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <button class="btn btn-security me-2" onclick="updateSecurityPolicies()">
+                                <i class="fas fa-save me-2"></i>Update Policies
+                            </button>
+                            <button class="btn btn-outline-primary" onclick="exportPolicies()">
+                                <i class="fas fa-download me-2"></i>Export Configuration
+                            </button>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Real-time data simulation and chart initialization
+        let realTimeChart, ddosChart, rateLimitChart;
+
+        // Initialize charts when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeCharts();
+            startRealTimeUpdates();
+            checkForAlerts();
+        });
+
+        function initializeCharts() {
+            // Real-time metrics chart
+            const realTimeCtx = document.getElementById('realTimeChart').getContext('2d');
+            realTimeChart = new Chart(realTimeCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Requests/sec',
+                        data: [],
+                        borderColor: '#2563eb',
+                        backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+
+            // DDoS protection chart
+            const ddosCtx = document.getElementById('ddosChart').getContext('2d');
+            ddosChart = new Chart(ddosCtx, {
+                type: 'line',
+                data: {
+                    labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '24:00'],
+                    datasets: [{
+                        label: 'Normal Traffic',
+                        data: [120, 150, 180, 220, 200, 170, 140],
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)'
+                    }, {
+                        label: 'Blocked Requests',
+                        data: [5, 8, 12, 45, 23, 15, 7],
+                        borderColor: '#ef4444',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // Rate limiting chart
+            const rateLimitCtx = document.getElementById('rateLimitChart').getContext('2d');
+            rateLimitChart = new Chart(rateLimitCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Within Limits', 'Rate Limited', 'Blocked'],
+                    datasets: [{
+                        data: [85, 12, 3],
+                        backgroundColor: ['#10b981', '#f59e0b', '#ef4444']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        function startRealTimeUpdates() {
+            // Simulate real-time data updates
+            setInterval(updateRealTimeMetrics, 5000);
+            setInterval(updateSecurityMetrics, 10000);
+        }
+
+        function updateRealTimeMetrics() {
+            const now = new Date();
+            const timeLabel = now.toLocaleTimeString();
+            const requestsPerSec = Math.floor(Math.random() * 50) + 20;
+
+            // Update real-time chart
+            if (realTimeChart.data.labels.length > 20) {
+                realTimeChart.data.labels.shift();
+                realTimeChart.data.datasets[0].data.shift();
+            }
+            
+            realTimeChart.data.labels.push(timeLabel);
+            realTimeChart.data.datasets[0].data.push(requestsPerSec);
+            realTimeChart.update('none');
+        }
+
+        function updateSecurityMetrics() {
+            // Simulate metric updates
+            const securityScore = Math.floor(Math.random() * 10) + 90;
+            const activeThreats = Math.floor(Math.random() * 5);
+            const blockedRequests = Math.floor(Math.random() * 100) + 1200;
+
+            document.getElementById('security-score').textContent = securityScore;
+            document.getElementById('active-threats').textContent = activeThreats;
+            document.getElementById('blocked-requests').textContent = blockedRequests.toLocaleString();
+
+            // Update threat level based on metrics
+            updateThreatLevel(activeThreats, securityScore);
+        }
+
+        function updateThreatLevel(threats, score) {
+            const threatLevelElement = document.getElementById('threat-level');
+            
+            if (threats > 3 || score < 85) {
+                threatLevelElement.className = 'threat-level threat-high';
+                threatLevelElement.textContent = 'Threat Level: High';
+            } else if (threats > 1 || score < 95) {
+                threatLevelElement.className = 'threat-level threat-medium';
+                threatLevelElement.textContent = 'Threat Level: Medium';
+            } else {
+                threatLevelElement.className = 'threat-level threat-low';
+                threatLevelElement.textContent = 'Threat Level: Low';
+            }
+        }
+
+        function checkForAlerts() {
+            // Simulate checking for security alerts
+            const alertContainer = document.getElementById('alert-container');
+            
+            // Example critical alert
+            if (Math.random() > 0.7) {
+                const alert = document.createElement('div');
+                alert.className = 'alert-banner alert-critical';
+                alert.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong><i class="fas fa-exclamation-triangle me-2"></i>Critical Security Alert</strong>
+                            <div>Potential DDoS attack detected from multiple IP addresses. Auto-mitigation activated.</div>
+                        </div>
+                        <button class="btn btn-sm btn-outline-danger" onclick="this.parentElement.parentElement.remove()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                `;
+                alertContainer.appendChild(alert);
+            }
+        }
+
+        // Security action functions
+        function updateDDoSSettings() {
+            const level = document.getElementById('ddos-level').value;
+            const threshold = document.getElementById('auto-block-threshold').value;
+            
+            // Simulate API call
+            showNotification('DDoS protection settings updated successfully', 'success');
+        }
+
+        function emergencyBlock() {
+            if (confirm('Are you sure you want to activate emergency blocking? This will block all suspicious traffic immediately.')) {
+                showNotification('Emergency blocking activated', 'warning');
+            }
+        }
+
+        function updateRateLimits() {
+            showNotification('Rate limiting configuration updated', 'success');
+        }
+
+        function reviewPendingPlugins() {
+            window.location.href = '/admin/plugin-security';
+        }
+
+        function scanAllPlugins() {
+            showNotification('Plugin security scan initiated', 'info');
+        }
+
+        function updatePluginPolicies() {
+            showNotification('Plugin security policies updated', 'success');
+        }
+
+        function refreshEvents() {
+            showNotification('Security events refreshed', 'info');
+        }
+
+        function lockdownSystem() {
+            if (confirm('Are you sure you want to initiate system lockdown? This will restrict all non-essential access.')) {
+                showNotification('System lockdown initiated', 'warning');
+            }
+        }
+
+        function blockSuspiciousIPs() {
+            showNotification('Suspicious IPs have been blocked', 'success');
+        }
+
+        function generateSecurityReport() {
+            showNotification('Security report generation started', 'info');
+        }
+
+        function notifyAdmins() {
+            showNotification('Admin notifications sent', 'success');
+        }
+
+        function viewIncidentHistory() {
+            window.location.href = '/admin/incident-history';
+        }
+
+        function updateSecurityPolicies() {
+            showNotification('Security policies updated successfully', 'success');
+        }
+
+        function exportPolicies() {
+            showNotification('Configuration export started', 'info');
+        }
+
+        function showNotification(message, type) {
+            // Create and show a temporary notification
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+            notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+            notification.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 5000);
+        }
+
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('.sidebar .nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href').substring(1);
+                const targetElement = document.getElementById(targetId);
+                
+                if (targetElement) {
+                    targetElement.scrollIntoView({ behavior: 'smooth' });
+                    
+                    // Update active nav link
+                    document.querySelectorAll('.sidebar .nav-link').forEach(l => l.classList.remove('active'));
+                    this.classList.add('active');
+                }
+            });
+        });
+
+        // WebSocket connection for real-time updates (placeholder)
+        function initializeWebSocket() {
+            // This would connect to the actual WebSocket endpoint
+            // const ws = new WebSocket('wss://your-domain/ws/security');
+            // ws.onmessage = function(event) {
+            //     const data = JSON.parse(event.data);
+            //     handleRealTimeUpdate(data);
+            // };
+        }
+
+        function handleRealTimeUpdate(data) {
+            // Handle real-time security updates from WebSocket
+            switch(data.type) {
+                case 'security_event':
+                    addSecurityEvent(data.event);
+                    break;
+                case 'metric_update':
+                    updateMetricDisplay(data.metric, data.value);
+                    break;
+                case 'alert':
+                    showSecurityAlert(data.alert);
+                    break;
+            }
+        }
+    </script>
+</body>
+</html>

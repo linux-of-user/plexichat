@@ -16,7 +16,7 @@ from pydantic import BaseModel
 
 # Import unified config system
 try:
-    from plexichat.core.unified_config import get_config, ConfigCategory
+    from plexichat.src.plexichat.core.config_manager import get_config, ConfigCategory
     CONFIG_AVAILABLE = True
 except ImportError:
     CONFIG_AVAILABLE = False
