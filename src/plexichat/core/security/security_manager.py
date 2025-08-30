@@ -13,6 +13,9 @@ import secrets
 import time
 import jwt
 import re
+import unicodedata
+import mimetypes
+import urllib.parse
 from datetime import datetime, timedelta, timezone
 from dataclasses import dataclass, field
 from enum import Enum
@@ -27,6 +30,9 @@ try:
     SECURITY_MANAGER_AVAILABLE = True
 except ImportError:
     pass
+
+# Import unified logger
+from plexichat.core.logging import get_logger
 
 # Define our own security enums and classes
 class SecurityLevel(Enum):
@@ -49,7 +55,7 @@ class ThreatLevel(Enum):
 
 
 class SecurityEventType(Enum):
-    """Types of security events."""
+    """Types of security events.""" 
     LOGIN_SUCCESS = "login_success"
     LOGIN_FAILURE = "login_failure"
     ACCESS_DENIED = "access_denied"
@@ -66,8 +72,8 @@ class SecurityContext:
     permissions: Set[str] = field(default_factory=set)
     security_level: SecurityLevel = SecurityLevel.PUBLIC
 
-# Logging setup
-logger = logging.getLogger(__name__)
+# Logging setup - use unified logger
+logger = get_logger(__name__)
 
 
 class AuthenticationMethod(Enum):
@@ -101,6 +107,19 @@ class SecurityPolicy:
     auto_lockout_enabled: bool = True
     max_failed_attempts: int = 5
     lockout_duration_minutes: int = 30
+
+    # File upload specific fields
+    allowed_file_extensions: List[str] = field(default_factory=lambda: [
+        "txt", "md", "json",
+        "png", "jpg", "jpeg", "gif", "webp",
+        "pdf"
+    ])
+    allowed_content_types: List[str] = field(default_factory=lambda: [
+        "text/plain", "application/json",
+        "image/png", "image/jpeg", "image/gif", "image/webp",
+        "application/pdf"
+    ])
+    max_upload_size_bytes: int = 100 * 1024 * 1024  # 100MB by default
 
 
 @dataclass
@@ -168,6 +187,7 @@ class PasswordManager:
             computed_hash, _ = self.hash_password(password, salt)
             return hmac.compare_digest(computed_hash, password_hash)
         except Exception as e:
+            # Unexpected verification error - log as security error
             logger.error(f"Password verification error: {e}")
             return False
     
@@ -206,6 +226,7 @@ class TokenManager:
     
     def create_access_token(self, user_id: str, permissions: Set[str]) -> str:
         """Create JWT access token."""
+        start = time.time()
         now = datetime.now(timezone.utc)
         payload = {
             'user_id': user_id,
@@ -218,10 +239,21 @@ class TokenManager:
         
         token = jwt.encode(payload, self.secret_key, algorithm=self.algorithm)
         self.active_tokens.add(payload['jti'])
+        duration = time.time() - start
+
+        # Log issuance as audit and record performance metric
+        try:
+            logger.audit(f"Issued access token for user '{user_id}'", user_id=user_id, token_type='access', jti=payload.get('jti'))
+            logger.performance("create_access_token", duration, user_id=user_id)
+        except Exception:
+            # Ensure logging failures don't affect token issuance
+            pass
+
         return token
     
     def create_refresh_token(self, user_id: str) -> str:
         """Create JWT refresh token."""
+        start = time.time()
         now = datetime.now(timezone.utc)
         payload = {
             'user_id': user_id,
@@ -233,6 +265,14 @@ class TokenManager:
         
         token = jwt.encode(payload, self.secret_key, algorithm=self.algorithm)
         self.active_tokens.add(payload['jti'])
+        duration = time.time() - start
+
+        try:
+            logger.audit(f"Issued refresh token for user '{user_id}'", user_id=user_id, token_type='refresh', jti=payload.get('jti'))
+            logger.performance("create_refresh_token", duration, user_id=user_id)
+        except Exception:
+            pass
+
         return token
     
     def verify_token(self, token: str) -> Tuple[bool, Optional[Dict[str, Any]]]:
@@ -242,15 +282,17 @@ class TokenManager:
             
             # Check if token is revoked
             if payload.get('jti') in self.revoked_tokens:
+                logger.security(f"Attempt to use revoked token jti={payload.get('jti')}", jti=payload.get('jti'))
                 return False, None
             
             return True, payload
             
         except jwt.ExpiredSignatureError:
-            logger.warning("Token has expired")
+            # Token expired - record as security-related event
+            logger.security("Token has expired")
             return False, None
         except jwt.InvalidTokenError as e:
-            logger.warning(f"Invalid token: {e}")
+            logger.security(f"Invalid token: {e}")
             return False, None
     
     def revoke_token(self, token: str) -> bool:
@@ -261,6 +303,10 @@ class TokenManager:
             if jti:
                 self.revoked_tokens.add(jti)
                 self.active_tokens.discard(jti)
+                try:
+                    logger.audit(f"Revoked token jti={jti}", jti=jti, user_id=payload.get('user_id'))
+                except Exception:
+                    pass
                 return True
         except Exception as e:
             logger.error(f"Error revoking token: {e}")
@@ -385,7 +431,11 @@ class SecuritySystem:
         # Initialize default security policies
         self._initialize_default_policies()
         
-        logger.info("Security System initialized with watertight protection")
+        # Audit initialization
+        try:
+            logger.audit("Security System initialized", component="security_system")
+        except Exception:
+            pass
 
     witty_responses = {
         "SQL injection attempt detected": "Nice try, but my database is locked down tighter than a submarine. Try a longer needle.",
@@ -400,6 +450,11 @@ class SecuritySystem:
             if threats:
                 threat = threats[0]
                 self.metrics['threats_detected'] += 1
+                # Log threat as security event
+                try:
+                    logger.security(f"Threat detected: {threat}", threat=threat, sample=request_data[:200])
+                except Exception:
+                    pass
                 return False, self.witty_responses.get(threat, "I've got a bad feeling about this.")
         return True, None
     
@@ -437,6 +492,10 @@ class SecuritySystem:
             # Check if user exists
             if username not in self.user_credentials:
                 self.metrics['failed_authentications'] += 1
+                try:
+                    logger.audit(f"Authentication failure: user '{username}' not found", event_type=SecurityEventType.LOGIN_FAILURE.value, user_id=username)
+                except Exception:
+                    pass
                 return False, None
             
             credentials = self.user_credentials[username]
@@ -444,6 +503,10 @@ class SecuritySystem:
             # Check if account is locked
             if credentials.locked_until and credentials.locked_until > datetime.now(timezone.utc):
                 self.metrics['failed_authentications'] += 1
+                try:
+                    logger.audit(f"Authentication failure: user '{username}' locked until {credentials.locked_until}", event_type=SecurityEventType.LOGIN_FAILURE.value, user_id=username)
+                except Exception:
+                    pass
                 return False, None
             
             # Verify password
@@ -455,6 +518,10 @@ class SecuritySystem:
                     credentials.locked_until = datetime.now(timezone.utc) + timedelta(minutes=30)
                 
                 self.metrics['failed_authentications'] += 1
+                try:
+                    logger.audit(f"Authentication failure: invalid password for user '{username}'", event_type=SecurityEventType.LOGIN_FAILURE.value, user_id=username)
+                except Exception:
+                    pass
                 return False, None
             
             # Reset failed attempts on successful authentication
@@ -470,6 +537,13 @@ class SecuritySystem:
             context.permissions = credentials.permissions
             
             self.metrics['successful_authentications'] += 1
+
+            # Audit successful login
+            try:
+                logger.audit(f"Authentication success for user '{username}'", event_type=SecurityEventType.LOGIN_SUCCESS.value, user_id=username)
+            except Exception:
+                pass
+
             return True, context
             
         except Exception as e:
@@ -512,20 +586,196 @@ class SecuritySystem:
             'security_manager_available': SECURITY_MANAGER_AVAILABLE
         }
     
-    def validate_file_upload(self, filename: str, content_type: str, file_size: int) -> Tuple[bool, str]:
-        """Validate file upload against security policies."""
-        # This is a placeholder. A real implementation would have more robust checks.
-        if ".." in filename or "/" in filename or "\\" in filename:
-            return False, "Invalid filename."
+    def _sanitize_filename(self, filename: str, replace_space_with: str = "_") -> str:
+        """
+        Sanitize a filename:
+        - Normalize unicode
+        - Strip path components
+        - Remove control characters
+        - Replace spaces with underscore (or specified string)
+        - Allow only alphanumeric characters, dots, underscores, and hyphens in name and preserve extension
+        """
+        if not isinstance(filename, str):
+            filename = str(filename)
 
-        if file_size > 100 * 1024 * 1024: # 100MB
-            return False, "File is too large."
+        # Strip any path components to prevent directory traversal via filename
+        filename = Path(filename).name
 
-        return True, "File is valid."
+        # Decode percent-encoding to reveal hidden traversal attempts
+        filename = urllib.parse.unquote(filename)
+
+        # Normalize unicode to NFKC
+        filename = unicodedata.normalize("NFKC", filename)
+
+        # Remove null bytes and control characters
+        filename = "".join(ch for ch in filename if ch.isprintable() and ch != "\x00")
+
+        # Split name and extension
+        p = Path(filename)
+        name = p.stem
+        ext = p.suffix.lower()
+
+        # Replace spaces and consecutive whitespace
+        if " " in name:
+            name = re.sub(r"\s+", replace_space_with, name)
+
+        # Keep only safe characters in name
+        name = re.sub(r"[^A-Za-z0-9._-]", "", name)
+
+        # Ensure extension contains only dot and alphanum
+        if ext:
+            ext = re.sub(r"[^A-Za-z0-9.]", "", ext)
+            # Normalize multiple leading dots to single
+            ext = "." + ext.lstrip(".")
+        sanitized = f"{name}{ext}"
+        if sanitized == "":
+            sanitized = "file"
+        return sanitized
+
+    def _detect_path_traversal(self, filename: str) -> bool:
+        """
+        Detect path traversal attempts in a filename by checking:
+        - Presence of ../ or ..\ or absolute path indicators
+        - Percent-encoded traversal sequences
+        """
+        if not filename:
+            return False
+        lower = filename.lower()
+        if ".." in lower and ("/" in lower or "\\" in lower):
+            return True
+        if lower.startswith("/") or lower.startswith("\\"):
+            return True
+        # percent-encoded traversal
+        decoded = urllib.parse.unquote(filename)
+        if ".." in decoded and ("/" in decoded or "\\" in decoded):
+            return True
+        # patterns from input_sanitizer
+        for pattern in self.input_sanitizer.path_traversal_patterns:
+            if pattern.search(filename):
+                return True
+        return False
+
+    def _extension_allowed(self, extension: str, policy: SecurityPolicy) -> bool:
+        """Check if an extension (without dot) is allowed by policy."""
+        if not extension:
+            return False
+        ext = extension.lower().lstrip(".")
+        return ext in [e.lower() for e in policy.allowed_file_extensions]
+
+    def _content_type_allowed_for_extension(self, ext: str, content_type: str) -> bool:
+        """Basic check if content type is reasonable for the extension using mimetypes."""
+        if not ext:
+            return False
+        ext = ext.lower().lstrip(".")
+        guessed, _ = mimetypes.guess_type(f"file.{ext}")
+        if guessed:
+            # Guess returns something like 'image/jpeg'
+            # Accept if top-level type matches or exact match
+            if content_type == guessed:
+                return True
+            # Accept if both are images and content_type starts with 'image/'
+
+            if guessed.split('/')[0] == 'image' and content_type.startswith('image/'):
+                return True
+            # Accept if both are text and content_type starts with 'text/' or is application/json
+            if guessed.split('/')[0] == 'text' and (content_type.startswith('text/') or content_type == 'application/json'):
+                return True
+        # fallback: allow if content_type is in a small safe list
+        safe_types = {
+            'text/plain', 'application/json',
+            'image/png', 'image/jpeg', 'image/gif', 'image/webp',
+            'application/pdf'
+        }
+        return content_type in safe_types
+
+    def validate_file_upload(self, filename: str, content_type: str, file_size: int, policy_name: str = "default") -> Tuple[bool, str]:
+        """Validate file upload against security policies.
+
+        Returns a tuple: (allowed: bool, message: str)
+        On success message includes sanitized filename; on failure message describes the specific violation.
+        """
+        try:
+            # Basic type checks
+            if not isinstance(filename, str) or filename.strip() == "":
+                logger.security("File upload rejected: filename missing or not a string", component="file_upload")
+                return False, "Filename is required and must be a non-empty string."
+
+            if not isinstance(content_type, str) or content_type.strip() == "":
+                logger.security("File upload rejected: content_type missing or not a string", component="file_upload")
+                return False, "Content type is required and must be a non-empty string."
+
+            if not isinstance(file_size, int) or file_size < 0:
+                logger.security("File upload rejected: invalid file size", component="file_upload")
+                return False, "File size must be a non-negative integer."
+
+            # Get policy
+            policy = self.security_policies.get(policy_name)
+            if not policy:
+                logger.error(f"File upload rejected: security policy '{policy_name}' not found")
+                return False, f"Security policy '{policy_name}' not found."
+
+            # Enforce filename length
+            if len(filename) > 120:
+                logger.security("File upload rejected: filename exceeds maximum length", filename_length=len(filename))
+                return False, "Filename is too long (maximum 120 characters)."
+
+            # Detect obvious traversal attempts before sanitization
+            if self._detect_path_traversal(filename):
+                self.metrics['threats_detected'] += 1
+                logger.security(f"File upload rejected: path traversal attempt detected in filename '{filename}'", filename=filename)
+                return False, "Filename contains path traversal sequences and is not allowed."
+
+            # Sanitize filename
+            sanitized = self._sanitize_filename(filename)
+            if sanitized != Path(filename).name:
+                logger.info(f"Filename sanitized from '{filename}' to '{sanitized}'")
+
+            # Extract extension and validate
+            ext = Path(sanitized).suffix.lower().lstrip(".")
+            if ext == "":
+                logger.security(f"File upload rejected: missing file extension for filename '{sanitized}'", filename=sanitized)
+                return False, "File must have an extension indicating its type."
+
+            if not self._extension_allowed(ext, policy):
+                logger.security(f"File upload rejected: extension '.{ext}' not allowed by policy '{policy_name}'", extension=ext, policy=policy_name)
+                return False, f"Files with extension '.{ext}' are not allowed."
+
+            # Validate content type against policy allowed content types
+            if policy.allowed_content_types and content_type not in policy.allowed_content_types:
+                # As a secondary check, allow if content type is reasonable for extension
+                if not self._content_type_allowed_for_extension(ext, content_type):
+                    logger.security(f"File upload rejected: content type '{content_type}' not permitted for extension '.{ext}'", content_type=content_type, extension=ext)
+                    return False, f"Content type '{content_type}' is not permitted for files of type '.{ext}'."
+
+            # File size limit
+            max_bytes = policy.max_upload_size_bytes if hasattr(policy, "max_upload_size_bytes") else 100 * 1024 * 1024
+            if file_size > max_bytes:
+                logger.security(f"File upload rejected: file size {file_size} exceeds limit {max_bytes}", file_size=file_size, max_bytes=max_bytes)
+                return False, f"File is too large. Maximum allowed size is {max_bytes} bytes."
+
+            # Threat detection on filename and content_type strings
+            threats = []
+            threats += self.input_sanitizer.detect_threats(sanitized)
+            threats += self.input_sanitizer.detect_threats(content_type)
+            if threats:
+                self.metrics['threats_detected'] += len(threats)
+                logger.security(f"File upload rejected: detected threats in upload metadata: {threats}", filename=sanitized, threats=threats)
+                return False, f"Upload rejected due to detected security threats: {', '.join(threats)}"
+
+            # All checks passed
+            logger.info(f"File upload validated: filename '{sanitized}', size {file_size} bytes, content_type '{content_type}'")
+            return True, f"File is valid. Sanitized filename: {sanitized}"
+
+        except Exception as e:
+            logger.error(f"Unexpected error during file upload validation: {e}")
+            return False, f"File validation failed due to an internal error: {str(e)}"
 
     async def shutdown(self) -> None:
         """Shutdown the security system."""
-        logger.info("Security System shutting down")
+        try:
+            logger.audit("Security System shutting down", component="security_system")
+        except Exception:
+            pass
 
 
 # Global security system instance
@@ -533,7 +783,7 @@ _global_security_system: Optional[SecuritySystem] = None
 
 
 def get_security_system() -> SecuritySystem:
-    """Get the global security system instance."""
+    """Get the global security system instance.""" 
     global _global_security_system
     if _global_security_system is None:
         _global_security_system = SecuritySystem()
@@ -541,14 +791,14 @@ def get_security_system() -> SecuritySystem:
 
 
 async def initialize_security_system(secret_key: Optional[str] = None) -> SecuritySystem:
-    """Initialize the global security system."""
+    """Initialize the global security system.""" 
     global _global_security_system
     _global_security_system = SecuritySystem(secret_key)
     return _global_security_system
 
 
 async def shutdown_security_system() -> None:
-    """Shutdown the global security system."""
+    """Shutdown the global security system.""" 
     global _global_security_system
     if _global_security_system:
         await _global_security_system.shutdown()

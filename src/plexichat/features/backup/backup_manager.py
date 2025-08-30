@@ -27,6 +27,13 @@ from plexichat.features.backup.backup_engine import (
 )
 from plexichat.core.security.key_vault import DistributedKeyManager, KeyVault
 
+# Try to import the global cluster manager getter from core clustering.
+# If unavailable, we'll operate in a standalone compatibility mode.
+try:
+    from plexichat.core.clustering.cluster_manager import get_cluster_manager
+except Exception:
+    get_cluster_manager = None  # type: ignore
+
 logger = logging.getLogger(__name__)
 
 # Enhanced Constants
@@ -80,7 +87,7 @@ class QuantumEncryptionConfig:
 
 @dataclass
 class ClusterNode:
-    """Represents a cluster node for distributed backup."""
+    """Represents a cluster node for distributed backup (local view)."""
     node_id: str
     node_type: ClusterNodeType
     endpoint: str
@@ -336,140 +343,6 @@ class QuantumEncryptionManager:
             return False
 
 
-class ClusterManager:
-    """Manages distributed cluster nodes for backup storage."""
-    
-    def __init__(self):
-        self.nodes: Dict[str, ClusterNode] = {}
-        self.logger = logging.getLogger(f"{__name__}.ClusterManager")
-        self._health_check_task: Optional[asyncio.Task] = None
-        self._sync_task: Optional[asyncio.Task] = None
-        self._running = False
-    
-    async def start(self):
-        """Start cluster management tasks."""
-        if self._running:
-            return
-        
-        self._running = True
-        self._health_check_task = asyncio.create_task(self._health_check_loop())
-        self._sync_task = asyncio.create_task(self._sync_loop())
-        self.logger.info("Cluster manager started")
-    
-    async def stop(self):
-        """Stop cluster management tasks."""
-        self._running = False
-        
-        if self._health_check_task:
-            self._health_check_task.cancel()
-            try:
-                await self._health_check_task
-            except asyncio.CancelledError:
-                pass
-        
-        if self._sync_task:
-            self._sync_task.cancel()
-            try:
-                await self._sync_task
-            except asyncio.CancelledError:
-                pass
-        
-        self.logger.info("Cluster manager stopped")
-    
-    async def register_node(self, node: ClusterNode) -> bool:
-        """Register a new cluster node."""
-        try:
-            self.nodes[node.node_id] = node
-            self.logger.info(f"Registered cluster node: {node.node_id} ({node.node_type})")
-            return True
-        except Exception as e:
-            self.logger.error(f"Failed to register node {node.node_id}: {str(e)}")
-            return False
-    
-    async def unregister_node(self, node_id: str) -> bool:
-        """Unregister a cluster node."""
-        try:
-            if node_id in self.nodes:
-                del self.nodes[node_id]
-                self.logger.info(f"Unregistered cluster node: {node_id}")
-                return True
-            return False
-        except Exception as e:
-            self.logger.error(f"Failed to unregister node {node_id}: {str(e)}")
-            return False
-    
-    async def get_optimal_nodes(self, required_capacity: int, 
-                               node_type: Optional[ClusterNodeType] = None,
-                               count: int = 3) -> List[ClusterNode]:
-        """Get optimal nodes for backup storage."""
-        try:
-            available_nodes = [
-                node for node in self.nodes.values()
-                if node.is_online and 
-                   node.available >= required_capacity and
-                   (node_type is None or node.node_type == node_type)
-            ]
-            
-            # Sort by health score and available capacity
-            available_nodes.sort(
-                key=lambda n: (n.health_score, n.available / max(n.capacity, 1)),
-                reverse=True
-            )
-            
-            return available_nodes[:count]
-        except Exception as e:
-            self.logger.error(f"Failed to get optimal nodes: {str(e)}")
-            return []
-    
-    async def update_node_usage(self, node_id: str, used_capacity: int):
-        """Update node storage usage."""
-        try:
-            if node_id in self.nodes:
-                node = self.nodes[node_id]
-                node.available = max(0, node.available - used_capacity)
-                node.backup_count += 1
-                node.last_seen = datetime.now(timezone.utc)
-        except Exception as e:
-            self.logger.error(f"Failed to update node usage for {node_id}: {str(e)}")
-    
-    async def _health_check_loop(self):
-        """Periodic health check for cluster nodes."""
-        while self._running:
-            try:
-                for node_id, node in list(self.nodes.items()):
-                    # Simulate health check (in real implementation, ping the node)
-                    time_since_seen = (datetime.now(timezone.utc) - node.last_seen).total_seconds()
-                    
-                    if time_since_seen > 300:  # 5 minutes
-                        node.is_online = False
-                        node.health_score = max(0.0, node.health_score - 0.1)
-                    else:
-                        node.is_online = True
-                        node.health_score = min(1.0, node.health_score + 0.05)
-                
-                await asyncio.sleep(60)  # Check every minute
-            except asyncio.CancelledError:
-                break
-            except Exception as e:
-                self.logger.error(f"Health check error: {str(e)}")
-                await asyncio.sleep(60)
-    
-    async def _sync_loop(self):
-        """Periodic cluster synchronization."""
-        while self._running:
-            try:
-                # Simulate cluster synchronization
-                online_nodes = [n for n in self.nodes.values() if n.is_online]
-                self.logger.debug(f"Cluster sync: {len(online_nodes)} nodes online")
-                
-                await asyncio.sleep(CLUSTER_SYNC_INTERVAL)
-            except asyncio.CancelledError:
-                break
-            except Exception as e:
-                self.logger.error(f"Cluster sync error: {str(e)}")
-                await asyncio.sleep(CLUSTER_SYNC_INTERVAL)
-
-
 class BackupManager:
     """
     Comprehensive backup manager with quantum-ready encryption and distributed storage.
@@ -488,14 +361,45 @@ class BackupManager:
     def __init__(self, 
                  backup_engine: Optional[BackupEngine] = None,
                  key_manager: Optional[DistributedKeyManager] = None,
-                 cluster_manager: Optional[ClusterManager] = None,
+                 cluster_manager: Optional[Any] = None,
                  config: Optional[Dict[str, Any]] = None):
         
         self.backup_engine = backup_engine or BackupEngine()
         self.key_manager = key_manager
-        self.cluster_manager = cluster_manager or ClusterManager()
         self.config = config or {}
         self.logger = logging.getLogger(f"{__name__}.BackupManager")
+        
+        # Dependency injection for cluster manager
+        # If a cluster_manager is supplied, use it and do not manage its lifecycle.
+        # Otherwise, try to use the global cluster manager if available and manage its lifecycle.
+        self._manage_cluster_lifecycle = False
+        if cluster_manager is not None:
+            self.cluster_manager = cluster_manager
+            self._manage_cluster_lifecycle = False
+            self.logger.debug("Using injected cluster manager instance")
+        else:
+            if get_cluster_manager:
+                try:
+                    self.cluster_manager = get_cluster_manager()
+                    # We will manage lifecycle for the global manager only if it was not already started.
+                    # To be conservative, we will default to managing its lifecycle.
+                    self._manage_cluster_lifecycle = True
+                    self.logger.debug("Using global cluster manager (managed by BackupManager)")
+                except Exception as e:
+                    self.cluster_manager = None
+                    self.logger.warning(f"Failed to get global cluster manager: {e}")
+            else:
+                self.cluster_manager = None
+                self.logger.debug("No cluster manager available; running in standalone compatibility mode")
+        
+        # If no explicit key manager provided, attempt to instantiate a local KeyVault for compatibility
+        if not self.key_manager:
+            try:
+                self.key_manager = KeyVault()
+                self.logger.debug("Initialized local KeyVault for key management")
+            except Exception:
+                self.key_manager = None
+                self.logger.debug("No key manager available; encryption metadata will be stored with backups only")
         
         # Initialize quantum encryption
         quantum_config = QuantumEncryptionConfig(
@@ -552,8 +456,15 @@ class BackupManager:
         
         self._running = True
         
-        # Start cluster manager
-        await self.cluster_manager.start()
+        # Start cluster manager if we are responsible for its lifecycle
+        if self.cluster_manager and self._manage_cluster_lifecycle:
+            try:
+                start_meth = getattr(self.cluster_manager, "start", None)
+                if start_meth and callable(start_meth):
+                    await start_meth()
+                    self.logger.debug("Managed cluster manager started")
+            except Exception as e:
+                self.logger.warning(f"Failed to start cluster manager: {e}")
         
         # Start background tasks
         self._scheduler_task = asyncio.create_task(self._scheduler_loop())
@@ -583,11 +494,21 @@ class BackupManager:
                 except asyncio.CancelledError:
                     pass
         
-        # Stop cluster manager
-        await self.cluster_manager.stop()
+        # Stop cluster manager if we manage its lifecycle
+        if self.cluster_manager and self._manage_cluster_lifecycle:
+            try:
+                stop_meth = getattr(self.cluster_manager, "stop", None)
+                if stop_meth and callable(stop_meth):
+                    await stop_meth()
+                    self.logger.debug("Managed cluster manager stopped")
+            except Exception as e:
+                self.logger.warning(f"Failed to stop cluster manager: {e}")
         
         # Shutdown thread pool
-        self._thread_pool.shutdown(wait=True)
+        try:
+            self._thread_pool.shutdown(wait=True)
+        except Exception:
+            pass
         
         self.logger.info("Backup manager stopped")
     
@@ -639,7 +560,7 @@ class BackupManager:
                 "backup_strategy": backup_strategy.value,
                 "data_source": data_source,
                 "quantum_encrypted": True,
-                "distributed_storage": bool(target_nodes or len(self.cluster_manager.nodes) > 0),
+                "distributed_storage": bool(target_nodes or (self.cluster_manager is not None and hasattr(self.cluster_manager, "nodes") and len(getattr(self.cluster_manager, "nodes", {})) > 0)),
                 "backup_context": backup_context
             })
             
@@ -654,11 +575,11 @@ class BackupManager:
                 metadata=enhanced_metadata
             )
             
-            # Apply quantum encryption to backup shards
+            # Apply quantum encryption to backup shards and manage keys
             await self._apply_quantum_encryption(backup_metadata, backup_context)
             
             # Distribute backup across cluster nodes if available
-            if target_nodes or self.cluster_manager.nodes:
+            if (target_nodes and len(target_nodes) > 0) or (self.cluster_manager is not None):
                 await self._distribute_backup(backup_metadata, target_nodes)
             
             # Update statistics
@@ -956,8 +877,11 @@ class BackupManager:
                     integrity_score -= 0.4
             
             # Check backup age and recommend actions
-            backup_age = (datetime.now(timezone.utc) - 
-                         datetime.fromisoformat(backup_metadata.get("created_at", ""))).days
+            try:
+                backup_age = (datetime.now(timezone.utc) - 
+                             datetime.fromisoformat(backup_metadata.get("created_at", ""))).days
+            except Exception:
+                backup_age = 0
             
             if backup_age > 30:
                 recommendations.append("Consider refreshing old backup")
@@ -1065,7 +989,10 @@ class BackupManager:
                 
                 # Filter by date range
                 if start_date or end_date:
-                    backup_date = datetime.fromisoformat(backup.get("created_at", ""))
+                    try:
+                        backup_date = datetime.fromisoformat(backup.get("created_at", ""))
+                    except Exception:
+                        continue
                     if start_date and backup_date < start_date:
                         continue
                     if end_date and backup_date > end_date:
@@ -1088,9 +1015,19 @@ class BackupManager:
         """Get comprehensive backup statistics."""
         try:
             # Update cluster statistics
-            self.stats["cluster_nodes_active"] = len([
-                n for n in self.cluster_manager.nodes.values() if n.is_online
-            ])
+            try:
+                if self.cluster_manager and hasattr(self.cluster_manager, "nodes"):
+                    self.stats["cluster_nodes_active"] = len([
+                        n for n in getattr(self.cluster_manager, "nodes", {}).values()
+                        if getattr(n, "is_online", True)
+                    ])
+                elif self.cluster_manager and hasattr(self.cluster_manager, "get_healthy_nodes"):
+                    healthy_nodes = await self.cluster_manager.get_healthy_nodes()
+                    self.stats["cluster_nodes_active"] = len(healthy_nodes)
+                else:
+                    self.stats["cluster_nodes_active"] = 0
+            except Exception:
+                self.stats["cluster_nodes_active"] = 0
             
             # Get engine statistics
             engine_stats = self.backup_engine.get_backup_statistics()
@@ -1117,13 +1054,13 @@ class BackupManager:
                     "last_verification": self.stats["last_verification"]
                 },
                 "cluster": {
-                    "total_nodes": len(self.cluster_manager.nodes),
+                    "total_nodes": len(getattr(self.cluster_manager, "nodes", {})) if self.cluster_manager and hasattr(self.cluster_manager, "nodes") else None,
                     "active_nodes": self.stats["cluster_nodes_active"],
                     "node_types": {
-                        node_type.value: len([n for n in self.cluster_manager.nodes.values() 
-                                            if n.node_type == node_type])
+                        node_type.value: len([n for n in getattr(self.cluster_manager, "nodes", {}).values() 
+                                            if getattr(n, "node_type", None) == node_type])
                         for node_type in ClusterNodeType
-                    }
+                    } if self.cluster_manager and hasattr(self.cluster_manager, "nodes") else {}
                 },
                 "quantum_encryption": {
                     "enabled": self.quantum_encryption.config.use_post_quantum,
@@ -1144,10 +1081,10 @@ class BackupManager:
     # Private helper methods
     
     async def _apply_quantum_encryption(self, backup_metadata: BackupMetadata, context: Dict[str, Any]):
-        """Apply quantum encryption to backup data."""
+        """Apply quantum encryption to backup data and manage keys via key manager."""
         try:
             # This would integrate with the backup engine's encryption process
-            # For now, we mark it as quantum encrypted in metadata
+            # For now, we mark it as quantum encrypted in metadata and register keys with key manager
             if not backup_metadata.metadata:
                 backup_metadata.metadata = {}
             
@@ -1155,38 +1092,271 @@ class BackupManager:
             backup_metadata.metadata["encryption_algorithm"] = self.quantum_encryption.config.primary_algorithm
             backup_metadata.metadata["hybrid_encryption"] = self.quantum_encryption.config.hybrid_mode
             
+            # Attempt to register a key or key reference with the key manager (if available)
+            key_reference = None
+            encryption_record = {
+                "algorithm": self.quantum_encryption.config.primary_algorithm,
+                "hybrid_mode": self.quantum_encryption.config.hybrid_mode,
+                "registered_at": datetime.now(timezone.utc).isoformat()
+            }
+            
+            if self.key_manager:
+                try:
+                    # Common key store API names: store_key, store_key_for_backup, register_key
+                    if hasattr(self.key_manager, "store_key_for_backup"):
+                        res = self.key_manager.store_key_for_backup(backup_metadata.backup_id, encryption_record)
+                        if asyncio.iscoroutine(res):
+                            await res
+                        key_reference = f"key_ref:{secrets.token_hex(8)}"
+                    elif hasattr(self.key_manager, "store_key"):
+                        res = self.key_manager.store_key(backup_metadata.backup_id, encryption_record)
+                        if asyncio.iscoroutine(res):
+                            await res
+                        key_reference = f"key_ref:{secrets.token_hex(8)}"
+                    elif hasattr(self.key_manager, "register_key"):
+                        res = self.key_manager.register_key(backup_metadata.backup_id, encryption_record)
+                        if asyncio.iscoroutine(res):
+                            await res
+                        key_reference = f"key_ref:{secrets.token_hex(8)}"
+                    else:
+                        # Unknown API; attempt to persist minimal metadata if possible
+                        try:
+                            # Best effort: if KeyVault class supports set_item-like API
+                            if hasattr(self.key_manager, "set"):
+                                res = self.key_manager.set(f"backup:{backup_metadata.backup_id}:encryption", encryption_record)
+                                if asyncio.iscoroutine(res):
+                                    await res
+                                key_reference = f"key_ref:{secrets.token_hex(8)}"
+                        except Exception:
+                            key_reference = None
+                except Exception as e:
+                    self.logger.warning(f"Failed to register encryption key with key manager: {e}")
+                    key_reference = None
+            
+            # If no key manager or registration failed, store a local key reference marker
+            if not key_reference:
+                key_reference = f"insecure_local_ref:{secrets.token_hex(8)}"
+                self.logger.debug("No external key manager available; using local key reference marker")
+            
+            backup_metadata.metadata["key_reference"] = key_reference
+            backup_metadata.metadata["encryption_record"] = encryption_record
+            
             self.stats["quantum_encrypted_backups"] += 1
             
         except Exception as e:
             self.logger.error(f"Failed to apply quantum encryption: {str(e)}")
             raise
     
-    async def _distribute_backup(self, backup_metadata: BackupMetadata, target_nodes: Optional[List[str]]):
-        """Distribute backup across cluster nodes."""
+    async def _select_target_nodes(self, required_capacity: int, count: int = 3,
+                                   preferred_node_type: Optional[ClusterNodeType] = None) -> List[str]:
+        """
+        Select target nodes using the injected/global cluster manager.
+
+        This function is resilient: it supports older/local cluster manager implementations
+        that might expose get_optimal_nodes/update_node_usage, as well as the newer global
+        cluster manager APIs (get_healthy_nodes/get_all_nodes). It will fallback to a
+        best-effort local selection if a cluster manager is not available.
+        """
         try:
+            # If cluster manager provides optimized selection API, use it directly
+            if self.cluster_manager is None:
+                self.logger.debug("No cluster manager available for node selection")
+                return []
+            
+            # Prefer specialized selection API if present
+            if hasattr(self.cluster_manager, "get_optimal_nodes"):
+                try:
+                    nodes = await self.cluster_manager.get_optimal_nodes(
+                        required_capacity=required_capacity,
+                        node_type=preferred_node_type,
+                        count=count
+                    )
+                    # Convert nodes to node IDs if they are objects
+                    node_ids = []
+                    for n in nodes:
+                        if isinstance(n, (str,)):
+                            node_ids.append(n)
+                        else:
+                            node_ids.append(getattr(n, "node_id", None) or getattr(n, "nodeId", None))
+                    return [nid for nid in node_ids if nid]
+                except Exception as e:
+                    self.logger.debug(f"get_optimal_nodes failed: {e}")
+            
+            # If cluster manager exposes get_healthy_nodes (global manager), use it
+            if hasattr(self.cluster_manager, "get_healthy_nodes"):
+                try:
+                    healthy_nodes = await self.cluster_manager.get_healthy_nodes()
+                    # healthy_nodes may be list of objects from core cluster manager
+                    candidates = []
+                    for n in healthy_nodes:
+                        # Support different node attribute names
+                        nid = getattr(n, "node_id", None) or getattr(n, "nodeId", None)
+                        # Determine capacity/available heuristics
+                        available = getattr(n, "available", None)
+                        capacity = getattr(n, "capacity", None)
+                        health_score = getattr(n, "metrics", None)
+                        # If metrics object exists in core ClusterNode, compute an approximate health_score
+                        if hasattr(n, "metrics") and getattr(n, "metrics") is not None:
+                            try:
+                                health_score_val = getattr(n.metrics, "health_score", None)
+                            except Exception:
+                                health_score_val = None
+                        else:
+                            health_score_val = getattr(n, "health_score", None)
+                        
+                        # Fallbacks for capacity if metadata contains storage info
+                        if available is None or capacity is None:
+                            meta = getattr(n, "metadata", {}) or {}
+                            available = available or meta.get("available")
+                            capacity = capacity or meta.get("capacity")
+                        
+                        # Use heuristic: prefer nodes with available >= required_capacity
+                        score = 0.0
+                        try:
+                            if available is not None and capacity is not None and capacity > 0:
+                                score = (available / max(capacity, 1)) * (health_score_val if health_score_val is not None else 1.0)
+                            else:
+                                score = health_score_val if health_score_val is not None else 0.5
+                        except Exception:
+                            score = 0.5
+                        
+                        if nid:
+                            candidates.append((score, nid))
+                    
+                    # Select top candidates
+                    candidates.sort(key=lambda x: x[0], reverse=True)
+                    selected = [nid for _, nid in candidates[:count]]
+                    return selected
+                except Exception as e:
+                    self.logger.debug(f"get_healthy_nodes selection failed: {e}")
+            
+            # If cluster manager exposes get_all_nodes, attempt similar selection
+            if hasattr(self.cluster_manager, "get_all_nodes"):
+                try:
+                    all_nodes = await self.cluster_manager.get_all_nodes()
+                    candidates = []
+                    for n in all_nodes:
+                        nid = getattr(n, "node_id", None) or getattr(n, "nodeId", None)
+                        available = getattr(n, "available", None)
+                        capacity = getattr(n, "capacity", None)
+                        health_score_val = getattr(n, "metrics", None)
+                        if hasattr(n, "metrics") and getattr(n, "metrics") is not None:
+                            try:
+                                health_score_val = getattr(n.metrics, "health_score", None)
+                            except Exception:
+                                health_score_val = None
+                        else:
+                            health_score_val = getattr(n, "health_score", None)
+                        
+                        if available is None or capacity is None:
+                            meta = getattr(n, "metadata", {}) or {}
+                            available = available or meta.get("available")
+                            capacity = capacity or meta.get("capacity")
+                        
+                        try:
+                            if available is not None and capacity is not None and capacity > 0:
+                                score = (available / max(capacity, 1)) * (health_score_val if health_score_val is not None else 1.0)
+                            else:
+                                score = health_score_val if health_score_val is not None else 0.5
+                        except Exception:
+                            score = 0.5
+                        
+                        if nid:
+                            candidates.append((score, nid))
+                    
+                    candidates.sort(key=lambda x: x[0], reverse=True)
+                    selected = [nid for _, nid in candidates[:count]]
+                    return selected
+                except Exception as e:
+                    self.logger.debug(f"get_all_nodes selection failed: {e}")
+            
+            # As a final fallback, if cluster_manager exposes a nodes mapping, try to use it
+            if hasattr(self.cluster_manager, "nodes"):
+                try:
+                    nodes_map = getattr(self.cluster_manager, "nodes", {}) or {}
+                    candidates = []
+                    for nid, n in nodes_map.items():
+                        available = getattr(n, "available", None)
+                        capacity = getattr(n, "capacity", None)
+                        health_score_val = getattr(n, "health_score", None) or (getattr(n, "metrics", None) and getattr(n.metrics, "health_score", None))
+                        if available is None or capacity is None:
+                            meta = getattr(n, "metadata", {}) or {}
+                            available = available or meta.get("available")
+                            capacity = capacity or meta.get("capacity")
+                        try:
+                            if available is not None and capacity is not None and capacity > 0:
+                                score = (available / max(capacity, 1)) * (health_score_val if health_score_val is not None else 1.0)
+                            else:
+                                score = health_score_val if health_score_val is not None else 0.5
+                        except Exception:
+                            score = 0.5
+                        candidates.append((score, nid))
+                    candidates.sort(key=lambda x: x[0], reverse=True)
+                    return [nid for _, nid in candidates[:count]]
+                except Exception as e:
+                    self.logger.debug(f"nodes map selection failed: {e}")
+            
+            # No cluster manager selection possible
+            return []
+        except Exception as e:
+            self.logger.error(f"Error selecting target nodes: {e}")
+            return []
+    
+    async def _distribute_backup(self, backup_metadata: BackupMetadata, target_nodes: Optional[List[str]]):
+        """Distribute backup across cluster nodes, using injected/global cluster manager."""
+        try:
+            # Determine target nodes
             if not target_nodes:
-                # Auto-select optimal nodes
-                required_capacity = backup_metadata.encrypted_size
-                optimal_nodes = await self.cluster_manager.get_optimal_nodes(
-                    required_capacity=required_capacity,
-                    count=3
-                )
-                target_nodes = [node.node_id for node in optimal_nodes]
+                required_capacity = getattr(backup_metadata, "encrypted_size", getattr(backup_metadata, "original_size", 0))
+                try:
+                    selected_nodes = await self._select_target_nodes(required_capacity=required_capacity, count=3)
+                except Exception as e:
+                    self.logger.error(f"Node selection failed: {e}")
+                    selected_nodes = []
+                target_nodes = selected_nodes
             
-            if target_nodes:
-                # Update node usage
-                shard_size = backup_metadata.encrypted_size // max(len(target_nodes), 1)
-                for node_id in target_nodes:
-                    await self.cluster_manager.update_node_usage(node_id, shard_size)
-                
-                # Update metadata
-                if not backup_metadata.metadata:
-                    backup_metadata.metadata = {}
-                backup_metadata.metadata["distributed_nodes"] = target_nodes
-                backup_metadata.metadata["distribution_strategy"] = "optimal_selection"
-                
-                self.stats["distributed_backups"] += 1
+            if not target_nodes:
+                self.logger.info("No target nodes selected for distribution; backup will remain local")
+                return
             
+            # Update node usage - be resilient to different cluster manager APIs
+            shard_size = getattr(backup_metadata, "encrypted_size", getattr(backup_metadata, "original_size", 0)) // max(len(target_nodes), 1)
+            for node_id in target_nodes:
+                try:
+                    # Preferred API: update_node_usage(node_id, used_capacity)
+                    if hasattr(self.cluster_manager, "update_node_usage"):
+                        res = self.cluster_manager.update_node_usage(node_id, shard_size)
+                        if asyncio.iscoroutine(res):
+                            await res
+                    # Alternative: update_node_metrics(node_id, NodeMetrics) - best effort (skip if not applicable)
+                    elif hasattr(self.cluster_manager, "update_node_metrics"):
+                        # Build a minimal metrics object if possible
+                        try:
+                            NodeMetricsClass = getattr(self.cluster_manager, "__class__", None)
+                        except Exception:
+                            NodeMetricsClass = None
+                        # We won't attempt to construct a complex NodeMetrics; instead, call whatever method is available if safe
+                        try:
+                            res = self.cluster_manager.update_node_metrics(node_id, shard_size)
+                            if asyncio.iscoroutine(res):
+                                await res
+                        except Exception:
+                            # ignore; node usage update not critical
+                            pass
+                    else:
+                        # If no update APIs, log the info
+                        self.logger.debug(f"No node usage update API available for node {node_id}")
+                except Exception as e:
+                    self.logger.warning(f"Failed to update usage for node {node_id}: {e}")
+            
+            # Update metadata
+            if not backup_metadata.metadata:
+                backup_metadata.metadata = {}
+            backup_metadata.metadata["distributed_nodes"] = target_nodes
+            backup_metadata.metadata["distribution_strategy"] = "optimal_selection"
+            backup_metadata.metadata.setdefault("distributed_shards", {})  # placeholder for shard references
+            
+            self.stats["distributed_backups"] += 1
         except Exception as e:
             self.logger.error(f"Failed to distribute backup: {str(e)}")
             # Don't raise - backup can still succeed without distribution
@@ -1196,8 +1366,8 @@ class BackupManager:
         try:
             self.stats["total_backups_managed"] += 1
             self.stats["successful_backups"] += 1
-            self.stats["total_data_protected"] += backup_metadata.original_size
-            self.stats["last_backup"] = backup_metadata.completed_at
+            self.stats["total_data_protected"] += getattr(backup_metadata, "original_size", 0)
+            self.stats["last_backup"] = getattr(backup_metadata, "completed_at", datetime.now(timezone.utc))
             
             if backup_strategy == BackupStrategy.INCREMENTAL:
                 self.stats["incremental_backups"] += 1
@@ -1280,7 +1450,10 @@ class BackupManager:
             for backup in all_backups:
                 backup_source = backup.get("metadata", {}).get("data_source")
                 if backup_source in backup_sources:
-                    backup_time = datetime.fromisoformat(backup.get("created_at", ""))
+                    try:
+                        backup_time = datetime.fromisoformat(backup.get("created_at", ""))
+                    except Exception:
+                        continue
                     if not target_time or backup_time <= target_time:
                         suitable_backups.append((backup_time, backup.get("backup_id")))
             
@@ -1434,13 +1607,26 @@ class BackupManager:
             
             # Check how many nodes are still online
             online_nodes = 0
+            total = len(distributed_nodes)
             for node_id in distributed_nodes:
-                if node_id in self.cluster_manager.nodes:
-                    node = self.cluster_manager.nodes[node_id]
-                    if node.is_online:
+                try:
+                    # Different cluster managers expose different APIs
+                    if hasattr(self.cluster_manager, "nodes") and node_id in getattr(self.cluster_manager, "nodes"):
+                        node = getattr(self.cluster_manager, "nodes")[node_id]
+                        if getattr(node, "is_online", True):
+                            online_nodes += 1
+                    elif hasattr(self.cluster_manager, "get_node"):
+                        node = await self.cluster_manager.get_node(node_id)
+                        if node and getattr(node, "is_healthy", False):
+                            online_nodes += 1
+                    else:
+                        # Best-effort: assume node is online if we cannot determine
                         online_nodes += 1
+                except Exception:
+                    # Count as offline on exception
+                    continue
             
-            return online_nodes / len(distributed_nodes) if distributed_nodes else 1.0
+            return online_nodes / total if total > 0 else 0.0
             
         except Exception as e:
             self.logger.error(f"Distributed storage verification failed: {str(e)}")

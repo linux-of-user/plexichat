@@ -6,7 +6,12 @@
 from datetime import datetime, timezone
 from pathlib import Path
 
-from plexichat.core.authentication import require_auth, require_admin_auth
+# Use the FastAPI auth adapter as the unified dependency provider for authentication
+from plexichat.core.auth.fastapi_adapter import (
+    get_current_user,
+    get_optional_user,
+    require_admin
+)
 from plexichat.core.logging import get_logger
 # from ...services.performance_service import get_performance_service
 
@@ -44,9 +49,10 @@ logger = get_logger(__name__)
 @router.get("/dashboard", response_class=HTMLResponse)
 async def performance_dashboard(
     request: Request,
-    current_user: dict = Depends(require_auth)
+    current_user: dict = Depends(get_current_user)
 ):
     """Performance monitoring dashboard page."""
+    start_time = time.time()
     try:
         # Get initial dashboard data
         performance_service = await get_performance_service()
@@ -59,13 +65,26 @@ async def performance_dashboard(
             "active_alerts": performance_service._get_active_alerts()
         }
 
-        return templates.TemplateResponse("performance_dashboard.html", {
+        response = templates.TemplateResponse("performance_dashboard.html", {
             "request": request,
             "user": current_user,
             "dashboard_data": dashboard_data,
             "page_title": "Performance Dashboard",
             "current_time": datetime.now(timezone.utc).isoformat()
         })
+
+        # Log performance metric using unified logging
+        elapsed = time.time() - start_time
+        try:
+            logger.log_performance("performance_dashboard.render", elapsed, user_id=current_user.get("id"))
+        except Exception:
+            # Fallback to logger.performance if log_performance is not present
+            try:
+                logger.performance("performance_dashboard.render", elapsed, user_id=current_user.get("id"))
+            except Exception:
+                pass
+
+        return response
 
     except Exception as e:
         logger.error(f"Performance dashboard error: {e}")
@@ -74,9 +93,10 @@ async def performance_dashboard(
 @router.get("/metrics", response_class=HTMLResponse)
 async def metrics_page(
     request: Request,
-    current_user: dict = Depends(require_auth)
+    current_user: dict = Depends(get_current_user)
 ):
     """Detailed metrics page."""
+    start_time = time.time()
     try:
         performance_service = await get_performance_service()
 
@@ -84,7 +104,7 @@ async def metrics_page(
         current_metrics = performance_service.get_current_metrics()
         historical_metrics = performance_service.get_historical_metrics(24)  # Last 24 hours
 
-        return templates.TemplateResponse("performance_metrics.html", {
+        response = templates.TemplateResponse("performance_metrics.html", {
             "request": request,
             "user": current_user,
             "current_metrics": current_metrics,
@@ -93,6 +113,18 @@ async def metrics_page(
             "current_time": datetime.now(timezone.utc).isoformat()
         })
 
+        # Log performance metric
+        elapsed = time.time() - start_time
+        try:
+            logger.log_performance("performance_metrics.render", elapsed, user_id=current_user.get("id"))
+        except Exception:
+            try:
+                logger.performance("performance_metrics.render", elapsed, user_id=current_user.get("id"))
+            except Exception:
+                pass
+
+        return response
+
     except Exception as e:
         logger.error(f"Metrics page error: {e}")
         raise HTTPException(status_code=500, detail=f"Metrics error: {str(e)}")
@@ -100,22 +132,35 @@ async def metrics_page(
 @router.get("/alerts", response_class=HTMLResponse)
 async def alerts_page(
     request: Request,
-    current_user: dict = Depends(require_admin_auth)
+    current_user: dict = Depends(require_admin)
 ):
     """Performance alerts management page."""
+    start_time = time.time()
     try:
         performance_service = await get_performance_service()
 
         # Get alerts data
         active_alerts = performance_service._get_active_alerts()
 
-        return templates.TemplateResponse("performance_alerts.html", {
+        response = templates.TemplateResponse("performance_alerts.html", {
             "request": request,
             "user": current_user,
             "active_alerts": active_alerts,
             "page_title": "Performance Alerts",
             "current_time": datetime.now(timezone.utc).isoformat()
         })
+
+        # Log performance metric for admin alerts page
+        elapsed = time.time() - start_time
+        try:
+            logger.log_performance("performance_alerts.render", elapsed, user_id=current_user.get("id"), admin=True)
+        except Exception:
+            try:
+                logger.performance("performance_alerts.render", elapsed, user_id=current_user.get("id"), admin=True)
+            except Exception:
+                pass
+
+        return response
 
     except Exception as e:
         logger.error(f"Alerts page error: {e}")
@@ -124,9 +169,10 @@ async def alerts_page(
 @router.get("/health", response_class=HTMLResponse)
 async def health_page(
     request: Request,
-    current_user: dict = Depends(require_auth)
+    current_user: dict = Depends(get_current_user)
 ):
     """System health overview page."""
+    start_time = time.time()
     try:
         performance_service = await get_performance_service()
 
@@ -143,7 +189,7 @@ async def health_page(
             "ai": _calculate_component_health(current_metrics.get("ai"))
         }
 
-        return templates.TemplateResponse("performance_health.html", {
+        response = templates.TemplateResponse("performance_health.html", {
             "request": request,
             "user": current_user,
             "health_score": health_score,
@@ -153,6 +199,18 @@ async def health_page(
             "current_time": datetime.now(timezone.utc).isoformat()
         })
 
+        # Log performance metric
+        elapsed = time.time() - start_time
+        try:
+            logger.log_performance("performance_health.render", elapsed, user_id=current_user.get("id"))
+        except Exception:
+            try:
+                logger.performance("performance_health.render", elapsed, user_id=current_user.get("id"))
+            except Exception:
+                pass
+
+        return response
+
     except Exception as e:
         logger.error(f"Health page error: {e}")
         raise HTTPException(status_code=500, detail=f"Health error: {str(e)}")
@@ -160,9 +218,10 @@ async def health_page(
 @router.get("/analytics", response_class=HTMLResponse)
 async def analytics_page(
     request: Request,
-    current_user: dict = Depends(require_auth)
+    current_user: dict = Depends(get_current_user)
 ):
     """Performance analytics and trends page."""
+    start_time = time.time()
     try:
         performance_service = await get_performance_service()
 
@@ -170,7 +229,7 @@ async def analytics_page(
         historical_data = performance_service.get_historical_metrics(7 * 24)  # Last 7 days
         trends = performance_service._calculate_trends(historical_data)
 
-        return templates.TemplateResponse("performance_analytics.html", {
+        response = templates.TemplateResponse("performance_analytics.html", {
             "request": request,
             "user": current_user,
             "trends": trends,
@@ -178,6 +237,18 @@ async def analytics_page(
             "page_title": "Performance Analytics",
             "current_time": datetime.now(timezone.utc).isoformat()
         })
+
+        # Log performance metric
+        elapsed = time.time() - start_time
+        try:
+            logger.log_performance("performance_analytics.render", elapsed, user_id=current_user.get("id"))
+        except Exception:
+            try:
+                logger.performance("performance_analytics.render", elapsed, user_id=current_user.get("id"))
+            except Exception:
+                pass
+
+        return response
 
     except Exception as e:
         logger.error(f"Analytics page error: {e}")

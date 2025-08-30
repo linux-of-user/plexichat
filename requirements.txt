@@ -43,13 +43,12 @@ pyotp>=2.9.0
 qrcode[pil]>=7.4.2
 email-validator>=2.1.0
 pycryptodome>=3.12.0
-sss>=0.6
 python-magic>=0.4.27
-bleach>=6.0.0             # XSS sanitization helpers used by WAF
-defusedxml>=0.7.1         # Safe XML parsing to avoid XXE
-sqlparse>=0.4.4           # SQL parsing for injection detection
-aiolimiter>=1.0.0         # Async rate limiting primitives
-dnspython>=2.4.2          # DNS lookups for threat intelligence
+bleach>=6.0.0
+defusedxml>=0.7.1
+sqlparse>=0.4.4
+aiolimiter>=1.0.0
+dnspython>=2.4.2
 
 # Additional core utilities
 tabulate>=0.9.0

@@ -7,12 +7,15 @@
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
 import asyncio
-from typing import Optional
+from typing import Optional, Callable, Any, Dict
+from functools import wraps
 from flask import Blueprint, flash, jsonify, render_template, request
 from werkzeug.exceptions import BadRequest
 from plexichat.features.ai.features.ai_powered_features_service import AIPoweredFeaturesService
-from plexichat.core.authentication import require_admin
 from plexichat.core.logging import get_logger
+from plexichat.core.auth.fastapi_adapter import get_auth_adapter
+from fastapi.security import HTTPAuthorizationCredentials
+
 import logging
 
 """
@@ -20,6 +23,9 @@ PlexiChat AI-Powered Features Admin Routes
 
 Flask routes for managing AI-powered features including summarization,
 content suggestions, sentiment analysis, semantic search, and moderation.
+
+This module uses the unified authentication adapter (FastAPI adapter) to
+validate tokens and enforce admin-only access on these routes.
 """
 
 logger = get_logger(__name__)
@@ -40,9 +46,102 @@ def get_ai_features_service() -> AIPoweredFeaturesService:
 def route_wrapper(bp, *args, **kwargs):
     return bp.route(*args, **kwargs)
 
+
+def _is_api_request() -> bool:
+    """Utility to determine if the incoming request is an API call."""
+    path = request.path or ""
+    # If path contains '/api/' we consider it an API endpoint
+    if "/api/" in path:
+        return True
+    # If Accept header prefers JSON, treat as API
+    accept = request.headers.get("Accept", "")
+    if "application/json" in accept:
+        return True
+    return False
+
+
+def _unauthorized_response(message: str = "Admin privileges required"):
+    """
+    Consistent unauthorized response for API and UI routes.
+    API endpoints return JSON with a 403 status code.
+    UI endpoints flash a message and render the admin dashboard template with empty data.
+    """
+    logger.warning(f"Unauthorized access: {message} - Path: {request.path}")
+    if _is_api_request():
+        return jsonify({"success": False, "error": "forbidden", "message": message}), 403
+    # For UI requests, flash a message and render the dashboard with empty/default context
+    flash(message, "error")
+    try:
+        return render_template('admin/ai_features_management.html', stats={}, health={}, config={}), 403
+    except Exception:
+        # Fallback simple response if template rendering fails
+        return jsonify({"success": False, "error": "forbidden", "message": message}), 403
+
+
+def require_admin(func: Callable[..., Any]) -> Callable[..., Any]:
+    """
+    Flask-compatible decorator that enforces admin privileges using the unified
+    FastAPI authentication adapter. This decorator will extract the Authorization
+    header from the incoming Flask request, validate the token via the unified
+    auth manager, and ensure the current user has admin privileges.
+
+    On failure it returns either a JSON 403 response for API calls or flashes a
+    message and renders the admin dashboard for UI calls.
+    """
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        adapter = get_auth_adapter()
+        auth_header = request.headers.get("Authorization") or request.headers.get("authorization")
+        if not auth_header:
+            return _unauthorized_response("Missing Authorization header")
+
+        # Parse possible schemes: "Bearer <token>", "Token <token>", or raw token
+        parts = auth_header.split()
+        if len(parts) == 1:
+            scheme = "Bearer"
+            token = parts[0]
+        else:
+            scheme = parts[0]
+            token = parts[1]
+
+        # Build HTTPAuthorizationCredentials expected by the FastAPI adapter
+        credentials = HTTPAuthorizationCredentials(scheme=scheme, credentials=token)
+
+        # The adapter.get_current_user is async; run it in the event loop for Flask endpoints
+        try:
+            user = asyncio.run(adapter.get_current_user(credentials))
+        except Exception as e:
+            logger.debug(f"Authentication failure while validating token: {e}")
+            return _unauthorized_response("Invalid or expired authentication token")
+
+        if not user or not isinstance(user, dict):
+            return _unauthorized_response("Invalid authentication context")
+
+        if not user.get("is_admin", False):
+            return _unauthorized_response("Admin privileges required")
+
+        # Attach the user to kwargs for convenience if the wrapped function wants it
+        # but avoid overwriting any existing 'current_user' kwarg
+        if 'current_user' not in kwargs:
+            kwargs['current_user'] = user
+
+        try:
+            return func(*args, **kwargs)
+        except Exception as e:
+            # Log unexpected exceptions here to make debugging easier
+            logger.exception(f"Unhandled exception in admin route '{func.__name__}': {e}")
+            # Re-raise so Flask's error handlers or the route's own handlers can manage it,
+            # but provide a JSON internal error for API endpoints.
+            if _is_api_request():
+                return jsonify({'success': False, 'error': 'Internal server error', 'message': str(e)}), 500
+            raise
+
+    return wrapper
+
+
 @route_wrapper(ai_features_bp, '/')
 @require_admin
-def dashboard():
+def dashboard(current_user: Optional[Dict[str, Any]] = None):
     """AI features management dashboard."""
     try:
         service = get_ai_features_service()
@@ -59,9 +158,10 @@ def dashboard():
         flash(f"Error loading dashboard: {str(e)}", 'error')
         return render_template('admin/ai_features_management.html', stats={}, health={}, config={})
 
+
 @route_wrapper(ai_features_bp, '/api/summarize', methods=['POST'])
 @require_admin
-def api_summarize():
+def api_summarize(current_user: Optional[Dict[str, Any]] = None):
     """API endpoint for text summarization."""
     try:
         data = request.get_json() or {}
@@ -70,7 +170,7 @@ def api_summarize():
         text = data['text']
         summary_type = data.get('summary_type', 'brief')
         max_length = data.get('max_length')
-        user_id = data.get('user_id', 'admin')
+        user_id = data.get('user_id', current_user.get('id') if current_user else 'admin')
         service = get_ai_features_service()
         result = asyncio.run(service.create_summary(
             text=text,
@@ -93,13 +193,17 @@ def api_summarize():
                 'created_at': result.created_at.isoformat()
             }
         })
+    except BadRequest as br:
+        logger.debug(f"Summarization API bad request: {br}")
+        return jsonify({'success': False, 'error': str(br)}), 400
     except Exception as e:
         logger.error(f"Summarization API error: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
+
 @route_wrapper(ai_features_bp, '/api/suggest-content', methods=['POST'])
 @require_admin
-def api_suggest_content():
+def api_suggest_content(current_user: Optional[Dict[str, Any]] = None):
     """API endpoint for content suggestions."""
     try:
         data = request.get_json() or {}
@@ -108,7 +212,7 @@ def api_suggest_content():
         context = data['context']
         suggestion_type = data.get('suggestion_type', 'completion')
         max_suggestions = data.get('max_suggestions', 3)
-        user_id = data.get('user_id', 'admin')
+        user_id = data.get('user_id', current_user.get('id') if current_user else 'admin')
         service = get_ai_features_service()
         suggestions = asyncio.run(service.generate_content_suggestions(
             context=context,
@@ -130,13 +234,17 @@ def api_suggest_content():
                 for s in suggestions
             ]
         })
+    except BadRequest as br:
+        logger.debug(f"Content suggestions API bad request: {br}")
+        return jsonify({'success': False, 'error': str(br)}), 400
     except Exception as e:
         logger.error(f"Content suggestions API error: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
+
 @route_wrapper(ai_features_bp, '/api/analyze-sentiment', methods=['POST'])
 @require_admin
-def api_analyze_sentiment():
+def api_analyze_sentiment(current_user: Optional[Dict[str, Any]] = None):
     """API endpoint for sentiment analysis."""
     try:
         data = request.get_json() or {}
@@ -144,7 +252,7 @@ def api_analyze_sentiment():
             raise BadRequest("Missing 'text' field in request")
         text = data['text']
         include_emotions = data.get('include_emotions', True)
-        user_id = data.get('user_id', 'admin')
+        user_id = data.get('user_id', current_user.get('id') if current_user else 'admin')
         service = get_ai_features_service()
         result = asyncio.run(service.analyze_sentiment(
             text=text,
@@ -163,13 +271,17 @@ def api_analyze_sentiment():
                 'created_at': result.created_at.isoformat()
             }
         })
+    except BadRequest as br:
+        logger.debug(f"Sentiment analysis API bad request: {br}")
+        return jsonify({'success': False, 'error': str(br)}), 400
     except Exception as e:
         logger.error(f"Sentiment analysis API error: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
+
 @route_wrapper(ai_features_bp, '/api/semantic-search', methods=['POST'])
 @require_admin
-def api_semantic_search():
+def api_semantic_search(current_user: Optional[Dict[str, Any]] = None):
     """API endpoint for semantic search."""
     try:
         data = request.get_json() or {}
@@ -200,13 +312,17 @@ def api_semantic_search():
             ],
             'total_results': len(results)
         })
+    except BadRequest as br:
+        logger.debug(f"Semantic search API bad request: {br}")
+        return jsonify({'success': False, 'error': str(br)}), 400
     except Exception as e:
         logger.error(f"Semantic search API error: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
+
 @route_wrapper(ai_features_bp, '/api/moderate-content', methods=['POST'])
 @require_admin
-def api_moderate_content():
+def api_moderate_content(current_user: Optional[Dict[str, Any]] = None):
     """API endpoint for content moderation."""
     try:
         data = request.get_json() or {}
@@ -214,7 +330,7 @@ def api_moderate_content():
             raise BadRequest("Missing 'content' field in request")
         content = data['content']
         content_id = data.get('content_id')
-        user_id = data.get('user_id', 'admin')
+        user_id = data.get('user_id', current_user.get('id') if current_user else 'admin')
         metadata = data.get('metadata')
         service = get_ai_features_service()
         result = asyncio.run(service.moderate_content(
@@ -236,13 +352,17 @@ def api_moderate_content():
                 'created_at': result.created_at.isoformat()
             }
         })
+    except BadRequest as br:
+        logger.debug(f"Content moderation API bad request: {br}")
+        return jsonify({'success': False, 'error': str(br)}), 400
     except Exception as e:
         logger.error(f"Content moderation API error: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
+
 @route_wrapper(ai_features_bp, '/api/add-to-index', methods=['POST'])
 @require_admin
-def api_add_to_index():
+def api_add_to_index(current_user: Optional[Dict[str, Any]] = None):
     """API endpoint to add content to semantic search index."""
     try:
         data = request.get_json() or {}
@@ -261,13 +381,17 @@ def api_add_to_index():
             'success': success,
             'message': 'Content added to semantic index' if success else 'Failed to add content to index'
         })
+    except BadRequest as br:
+        logger.debug(f"Add to index API bad request: {br}")
+        return jsonify({'success': False, 'error': str(br)}), 400
     except Exception as e:
         logger.error(f"Add to index API error: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
+
 @route_wrapper(ai_features_bp, '/api/statistics')
 @require_admin
-def api_statistics():
+def api_statistics(current_user: Optional[Dict[str, Any]] = None):
     """API endpoint to get feature statistics."""
     try:
         service = get_ai_features_service()
@@ -277,9 +401,10 @@ def api_statistics():
         logger.error(f"Statistics API error: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
+
 @route_wrapper(ai_features_bp, '/api/health')
 @require_admin
-def api_health():
+def api_health(current_user: Optional[Dict[str, Any]] = None):
     """API endpoint for health check."""
     try:
         service = get_ai_features_service()
@@ -289,9 +414,10 @@ def api_health():
         logger.error(f"Health check API error: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
+
 @route_wrapper(ai_features_bp, '/api/clear-cache', methods=['POST'])
 @require_admin
-def api_clear_cache():
+def api_clear_cache(current_user: Optional[Dict[str, Any]] = None):
     """API endpoint to clear feature caches."""
     try:
         data = request.get_json() or {}
@@ -303,9 +429,10 @@ def api_clear_cache():
         logger.error(f"Clear cache API error: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
+
 @route_wrapper(ai_features_bp, '/config', methods=['GET', 'POST'])
 @require_admin
-def config_management():
+def config_management(current_user: Optional[Dict[str, Any]] = None):
     """AI features configuration management."""
     service = get_ai_features_service()
     if request.method == 'POST':
@@ -321,6 +448,7 @@ def config_management():
             logger.error(f"Failed to update AI features configuration: {e}")
             flash(f'Error updating configuration: {str(e)}', 'error')
     return jsonify({'success': True, 'config': service.config})
+
 
 # Error handlers
 @ai_features_bp.errorhandler(400)

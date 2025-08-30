@@ -24,7 +24,7 @@ import threading
 import weakref
 
 try:
-    from plexichat.core.logging_unified import get_logger, performance_logger
+    from plexichat.core.logging import get_logger, performance_logger
 except ImportError:
     # Fallback for backward compatibility
     try:

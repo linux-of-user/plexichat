@@ -13,12 +13,13 @@ from pathlib import Path
 from typing import Optional
 
 try:
-    from plexichat.src.plexichat.core.config_manager import get_app_version
+    from plexichat.core.config_manager import get_app_version
     PLEXICHAT_VERSION = get_app_version()
 except ImportError:
     PLEXICHAT_VERSION = "2.0.0"
-from plexichat.core.security.security_decorators import require_auth, rate_limit, audit_access
-from plexichat.core.logging_advanced.enhanced_logging_system import get_logger
+from plexichat.core.security.security_decorators import audit_access
+from plexichat.core.auth.fastapi_adapter import get_current_user, rate_limit
+from plexichat.core.logging import get_logger
 
 # Initialize logging
 logger = get_logger('plexichat.interfaces.web.routers.webui')
@@ -201,9 +202,8 @@ async def webui_login(request: Request):
     return HTMLResponse(content=html_content)
 
 @router.get("/dashboard", response_class=HTMLResponse)
-@require_auth()
-@rate_limit(requests_per_minute=60)
-async def webui_dashboard(request: Request):
+@rate_limit(action="webui_dashboard", limit=60)
+async def webui_dashboard(request: Request, current_user: dict = Depends(get_current_user)):
     """Authenticated user dashboard."""
     html_content = """
     <!DOCTYPE html>

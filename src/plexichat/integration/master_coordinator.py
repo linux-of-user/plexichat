@@ -14,7 +14,7 @@ from typing import Any, Dict, Optional
 
 from plexichat.core.database.manager import database_manager
 from plexichat.features.ai.ai_coordinator import ai_coordinator
-from plexichat.src.plexichat.core.security.security_manager import unified_security_manager
+from plexichat.core.security.security_manager import unified_security_manager
 from plexichat.infrastructure.scalability.coordinator import scalability_coordinator
 # from ..core_system.resilience.manager import get_system_resilience # This import is broken
 

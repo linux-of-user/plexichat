@@ -23,7 +23,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 # Import configuration and dependencies
 try:
-    from plexichat.src.plexichat.core.config_manager import get_config_manager
+    from plexichat.core.config_manager import get_config_manager
     from plexichat.core.middleware.dynamic_rate_limiting_middleware import DynamicRateLimitingMiddleware
 except ImportError as e:
     print(f"Import error in DDoS protection: {e}")
@@ -405,7 +405,7 @@ class DDoSProtectionSystem:
             self.config = config_manager._config.ddos
         else:
             # Fallback configuration
-            from plexichat.src.plexichat.core.config_manager import DDoSProtectionConfig
+            from plexichat.core.config_manager import DDoSProtectionConfig
             self.config = DDoSProtectionConfig()
         
         self.enabled = self.config.enabled

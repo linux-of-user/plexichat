@@ -6,7 +6,6 @@ Provides a comprehensive web interface for managing all PlexiChat configuration
 settings through the unified configuration system.
 """
 
-import logging
 from typing import Dict, Any, List, Optional
 from fastapi import APIRouter, HTTPException, Request, Depends, Form
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -16,20 +15,17 @@ from pydantic import BaseModel
 
 # Import unified config system
 try:
-    from plexichat.src.plexichat.core.config_manager import get_config, ConfigCategory
+    from plexichat.core.config_manager import get_config, ConfigCategory
     CONFIG_AVAILABLE = True
 except ImportError:
     CONFIG_AVAILABLE = False
 
-# Import authentication
-try:
-    from plexichat.interfaces.api.v1.auth import get_current_user
-    AUTH_AVAILABLE = True
-except ImportError:
-    AUTH_AVAILABLE = False
-    async def get_current_user(): return {"id": "admin", "username": "admin", "is_admin": True}
+# Unified authentication imports (FastAPI adapter)
+from plexichat.core.auth.fastapi_adapter import get_current_user, require_admin
 
-logger = logging.getLogger(__name__)
+# Unified logging
+from plexichat.core.logging import get_logger
+logger = get_logger(__name__)
 
 # Create router
 router = APIRouter(prefix="/config", tags=["Configuration Management"])
@@ -47,14 +43,10 @@ class ConfigUpdateRequest(BaseModel):
     restart_required: bool = False
 
 @router.get("/", response_class=HTMLResponse)
-async def config_dashboard(request: Request, current_user: dict = Depends(get_current_user)):
+async def config_dashboard(request: Request, current_user: dict = Depends(require_admin)):
     """Main configuration dashboard."""
     if not CONFIG_AVAILABLE:
         raise HTTPException(status_code=503, detail="Configuration system not available")
-    
-    # Check admin permissions
-    if not current_user.get("is_admin", False):
-        raise HTTPException(status_code=403, detail="Admin access required")
     
     config = get_config()
     
@@ -133,13 +125,10 @@ async def config_dashboard(request: Request, current_user: dict = Depends(get_cu
     return HTMLResponse(content=html_content)
 
 @router.get("/api/sections")
-async def get_config_sections(current_user: dict = Depends(get_current_user)):
+async def get_config_sections(current_user: dict = Depends(require_admin)):
     """Get all configuration sections."""
     if not CONFIG_AVAILABLE:
         raise HTTPException(status_code=503, detail="Configuration system not available")
-    
-    if not current_user.get("is_admin", False):
-        raise HTTPException(status_code=403, detail="Admin access required")
     
     config = get_config()
     sections = config.get_webui_config_sections()
@@ -168,13 +157,10 @@ async def get_config_sections(current_user: dict = Depends(get_current_user)):
     return JSONResponse(content=serialized_sections)
 
 @router.get("/api/category/{category}")
-async def get_config_by_category(category: str, current_user: dict = Depends(get_current_user)):
+async def get_config_by_category(category: str, current_user: dict = Depends(require_admin)):
     """Get configuration fields by category."""
     if not CONFIG_AVAILABLE:
         raise HTTPException(status_code=503, detail="Configuration system not available")
-    
-    if not current_user.get("is_admin", False):
-        raise HTTPException(status_code=403, detail="Admin access required")
     
     try:
         config_category = ConfigCategory(category)
@@ -208,14 +194,11 @@ async def get_config_by_category(category: str, current_user: dict = Depends(get
 @router.post("/api/update")
 async def update_config_value(
     update_request: ConfigUpdateRequest,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_admin)
 ):
     """Update a configuration value."""
     if not CONFIG_AVAILABLE:
         raise HTTPException(status_code=503, detail="Configuration system not available")
-    
-    if not current_user.get("is_admin", False):
-        raise HTTPException(status_code=403, detail="Admin access required")
     
     config = get_config()
     
@@ -231,7 +214,8 @@ async def update_config_value(
     if not save_success:
         raise HTTPException(status_code=500, detail="Failed to save configuration")
     
-    logger.info(f"Configuration updated by {current_user['username']}: {update_request.field_path} = {update_request.value}")
+    username = current_user.get("username") or current_user.get("id") or "unknown"
+    logger.info(f"Configuration updated by {username}: {update_request.field_path} = {update_request.value}")
     
     return JSONResponse(content={
         "success": True,
@@ -240,13 +224,10 @@ async def update_config_value(
     })
 
 @router.get("/api/validate")
-async def validate_config(current_user: dict = Depends(get_current_user)):
+async def validate_config(current_user: dict = Depends(require_admin)):
     """Validate current configuration."""
     if not CONFIG_AVAILABLE:
         raise HTTPException(status_code=503, detail="Configuration system not available")
-    
-    if not current_user.get("is_admin", False):
-        raise HTTPException(status_code=403, detail="Admin access required")
     
     config = get_config()
     validation_results = config.validate_config()
@@ -256,36 +237,32 @@ async def validate_config(current_user: dict = Depends(get_current_user)):
 @router.get("/api/export")
 async def export_config(
     include_sensitive: bool = False,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_admin)
 ):
     """Export configuration for backup."""
     if not CONFIG_AVAILABLE:
         raise HTTPException(status_code=503, detail="Configuration system not available")
     
-    if not current_user.get("is_admin", False):
-        raise HTTPException(status_code=403, detail="Admin access required")
-    
     config = get_config()
     exported_config = config.export_config(include_sensitive=include_sensitive)
     
-    logger.info(f"Configuration exported by {current_user['username']} (include_sensitive={include_sensitive})")
+    username = current_user.get("username") or current_user.get("id") or "unknown"
+    logger.info(f"Configuration exported by {username} (include_sensitive={include_sensitive})")
     
     return JSONResponse(content=exported_config)
 
 @router.post("/api/reload")
-async def reload_config(current_user: dict = Depends(get_current_user)):
+async def reload_config(current_user: dict = Depends(require_admin)):
     """Reload configuration from file."""
     if not CONFIG_AVAILABLE:
         raise HTTPException(status_code=503, detail="Configuration system not available")
-    
-    if not current_user.get("is_admin", False):
-        raise HTTPException(status_code=403, detail="Admin access required")
     
     try:
         config = get_config()
         config.load()
         
-        logger.info(f"Configuration reloaded by {current_user['username']}")
+        username = current_user.get("username") or current_user.get("id") or "unknown"
+        logger.info(f"Configuration reloaded by {username}")
         
         return JSONResponse(content={
             "success": True,

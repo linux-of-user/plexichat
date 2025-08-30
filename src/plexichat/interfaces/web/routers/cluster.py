@@ -10,13 +10,15 @@ Enhanced cluster management with comprehensive monitoring and performance optimi
 Uses EXISTING database abstraction and optimization systems.
 """
 
-import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel, Field
 from colorama import Fore, Style
+
+from plexichat.core.logging import get_logger
+from plexichat.core.auth.fastapi_adapter import require_admin, get_current_user
 
 # Use EXISTING database abstraction layer
 try:
@@ -28,19 +30,12 @@ except ImportError:
 try:
     from plexichat.core.performance.optimization_engine import PerformanceOptimizationEngine
     from plexichat.infrastructure.utils.performance import async_track_performance
-    from plexichat.core.logging_advanced.performance_logger import get_performance_logger, timer
+    from plexichat.core.logging import get_performance_logger, timer
 except ImportError:
     PerformanceOptimizationEngine = None
     async_track_performance = None
     get_performance_logger = None
     timer = None
-
-# Authentication imports
-try:
-    from plexichat.infrastructure.utils.auth import require_admin
-except ImportError:
-    def require_admin():
-        return {"id": 1, "username": "admin", "is_admin": True}
 
 # Cluster management imports
 # Prefer to import the real cluster manager singleton factory if available
@@ -84,7 +79,7 @@ try:
 except Exception:
     performance_monitor = None
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 router = APIRouter(prefix="/cluster", tags=["cluster"])
 
 # Initialize EXISTING performance systems
@@ -677,7 +672,7 @@ async def get_cluster_status(request: Request, current_user: Dict[str, Any] = De
     # Performance tracking
     if performance_logger:
         try:
-            performance_logger.record_metric("cluster_status_requests", 1, "count")
+            performance_logger.increment_counter("cluster_status_requests", 1)
         except Exception:
             pass
         logger.debug(Fore.GREEN + "[CLUSTER] Status performance metric recorded" + Style.RESET_ALL)
@@ -693,7 +688,7 @@ async def get_cluster_nodes(request: Request, current_user: Dict[str, Any] = Dep
     # Performance tracking
     if performance_logger:
         try:
-            performance_logger.record_metric("cluster_nodes_requests", 1, "count")
+            performance_logger.increment_counter("cluster_nodes_requests", 1)
         except Exception:
             pass
         logger.debug(Fore.GREEN + "[CLUSTER] Nodes performance metric recorded" + Style.RESET_ALL)
@@ -769,7 +764,7 @@ async def get_cluster_metrics(request: Request, current_user: Dict[str, Any] = D
     # Performance tracking
     if performance_logger:
         try:
-            performance_logger.record_metric("cluster_metrics_requests", 1, "count")
+            performance_logger.increment_counter("cluster_metrics_requests", 1)
         except Exception:
             pass
         logger.debug(Fore.GREEN + "[CLUSTER] Metrics performance metric recorded" + Style.RESET_ALL)
@@ -811,7 +806,7 @@ async def scale_cluster(request: Request, target_nodes: int, current_user: Dict[
     # Performance tracking
     if performance_logger:
         try:
-            performance_logger.record_metric("cluster_scale_requests", 1, "count")
+            performance_logger.increment_counter("cluster_scale_requests", 1)
         except Exception:
             pass
         logger.debug(Fore.GREEN + "[CLUSTER] Scale performance metric recorded" + Style.RESET_ALL)
@@ -846,7 +841,7 @@ async def rebalance_cluster(request: Request, current_user: Dict[str, Any] = Dep
     # Performance tracking
     if performance_logger:
         try:
-            performance_logger.record_metric("cluster_rebalance_requests", 1, "count")
+            performance_logger.increment_counter("cluster_rebalance_requests", 1)
         except Exception:
             pass
         logger.debug(Fore.GREEN + "[CLUSTER] Rebalance performance metric recorded" + Style.RESET_ALL)

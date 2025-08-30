@@ -25,7 +25,7 @@ from typing import Any, Dict, List, Optional, Set, Callable, Union, Tuple
 from dataclasses import dataclass, field
 from uuid import uuid4
 
-from plexichat.src.plexichat.core.security import security_manager
+from plexichat.core.security import security_manager
 
 # Security integration
 SECURITY_AVAILABLE = False
@@ -145,7 +145,7 @@ class MessageValidator:
         # Security validation
         if SECURITY_AVAILABLE:
             try:
-                from plexichat.src.plexichat.core.security.security_manager import get_unified_security_system
+                from plexichat.core.security.security_manager import get_unified_security_system
                 security_system = get_unified_security_system()
                 threats = security_system.input_sanitizer.detect_threats(message.content)
                 if threats:
@@ -314,7 +314,7 @@ class UnifiedMessagingSystem:
         # Security integration
         if SECURITY_AVAILABLE:
             try:
-                from plexichat.src.plexichat.core.security.security_manager import get_unified_security_system
+                from plexichat.core.security.security_manager import get_unified_security_system
                 from plexichat.core.security.comprehensive_security_manager import get_security_manager
                 self.security_system = get_unified_security_system()
                 self.security_manager = get_security_manager()

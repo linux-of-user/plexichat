@@ -83,3 +83,7 @@ secrets.json
 !start.sh
 !start.ps1
 !README.md
+
+# Auto-generated plugin internal API
+src/plexichat/plugins_internal.py
+src/plexichat/plugins_internal.pyi

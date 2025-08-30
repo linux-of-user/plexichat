@@ -10,7 +10,6 @@ Enhanced login interface with comprehensive authentication and performance optim
 Uses EXISTING database abstraction and optimization systems.
 """
 
-import logging
 from datetime import datetime, timedelta
 from typing import Any, Dict, Optional
 
@@ -28,28 +27,18 @@ except ImportError:
 try:
     from plexichat.core.performance.optimization_engine import PerformanceOptimizationEngine
     from plexichat.infrastructure.utils.performance import async_track_performance
-    from plexichat.core.logging_advanced.performance_logger import get_performance_logger, timer
+    from plexichat.core.logging import get_performance_logger, timer
 except ImportError:
     PerformanceOptimizationEngine = None
     async_track_performance = None
     get_performance_logger = None
     timer = None
 
-# Authentication imports
-try:
-    from plexichat.infrastructure.utils.auth import get_current_user
-except ImportError:
-    def get_current_user():
-        return {"id": 1, "username": "admin", "is_admin": True}
+# Authentication imports - use unified FastAPI auth adapter
+from plexichat.core.auth.fastapi_adapter import get_current_user, get_optional_user
 
-# Security imports
-try:
-    from plexichat.infrastructure.utils.security import create_access_token, verify_password
-except ImportError:
-    def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
-        return f"mock-token-{data.get('sub', 'user')}"
-    def verify_password(plain_password: str, hashed_password: str):
-        return plain_password == hashed_password or plain_password == "password"
+# Use Unified Auth Manager for authentication operations
+from plexichat.core.authentication import get_auth_manager, AuthResult
 
 # Configuration imports
 try:
@@ -64,7 +53,9 @@ except ImportError:
 # Model imports
 from plexichat.core.user import User
 
-logger = logging.getLogger(__name__)
+# Unified logging
+from plexichat.core.logging import get_logger
+logger = get_logger(__name__)
 router = APIRouter(prefix="/login", tags=["login"])
 
 # Initialize EXISTING performance systems
@@ -79,65 +70,46 @@ class LoginResponse(BaseModel):
     user: Dict[str, Any]
 
 class LoginService:
-    """Service class for login operations using EXISTING database abstraction layer."""
+    """Service class for login operations using the UnifiedAuthManager and EXISTING database abstraction layer."""
 
     def __init__(self):
         # Use EXISTING database manager
         self.db_manager = database_manager
         self.performance_logger = performance_logger
+        # Use global auth manager
+        self.auth_manager = get_auth_manager()
 
-    @async_track_performance("user_authentication") if async_track_performance else lambda f: f
-    async def authenticate_user(self, username: str, password: str) -> Optional[User]:
-        """Authenticate user using EXISTING database abstraction layer."""
-        if self.db_manager:
-            try:
-                # Use EXISTING database manager with optimized query
-                query = """
-                    SELECT id, username, email, hashed_password, is_active
-                    FROM users
-                    WHERE username = :username AND is_active = 1
-                """
-                params = {"username": username}
+    @async_track_performance("user_authentication") if async_track_performance else (lambda f: f)
+    async def authenticate_user(self, username: str, password: str, ip_address: Optional[str] = None, user_agent: Optional[str] = None) -> Optional[AuthResult]:
+        """
+        Authenticate user using UnifiedAuthManager.
+        Returns AuthResult on success/failure.
+        """
+        try:
+            # Delegate authentication to the unified auth manager which integrates with the SecuritySystem
+            auth_result: AuthResult = await self.auth_manager.authenticate_user(username, password, ip_address=ip_address, user_agent=user_agent)
 
-                # Use EXISTING database manager
-                result = await self.db_manager.execute_query(query, params)
+            # If authentication succeeded, return the AuthResult directly
+            if auth_result and getattr(auth_result, "success", False):
+                # Optionally update last login in the database if available
+                try:
+                    if self.db_manager and auth_result.user_id:
+                        await self.update_last_login(int(auth_result.user_id))
+                except Exception as e:
+                    # Log but don't fail authentication because of last-login update issues
+                    logger.debug(f"Failed to update last login for user {auth_result.user_id}: {e}")
 
-                if result and len(result) > 0:
-                    row = result[0]
-                    user = User()
-                    user.id = row[0]  # pyright: ignore
-                    user.username = row[1]  # pyright: ignore
-                    user.email = row[2]  # pyright: ignore
-                    user.hashed_password = row[3]  # pyright: ignore
-                    user.is_active = bool(row[4])  # pyright: ignore
+                return auth_result
 
-                    # Verify password
-                    if verify_password(password, user.hashed_password):
-                        # Update last login
-                        await self.update_last_login(user.id)
-                        return user
+            return auth_result
 
-                return None
+        except Exception as e:
+            logger.error(f"Error authenticating user via UnifiedAuthManager: {e}")
+            return None
 
-            except Exception as e:
-                logger.error(f"Error authenticating user: {e}")
-                return None
-
-        # Fallback for testing
-        if username == "admin" and password == "password":
-            user = User()
-            user.id = 1  # pyright: ignore
-            user.username = "admin"  # pyright: ignore
-            user.email = "admin@example.com"  # pyright: ignore
-            user.hashed_password = "admin"  # pyright: ignore
-            user.is_active = True  # pyright: ignore
-            return user
-
-        return None
-
-    @async_track_performance("last_login_update") if async_track_performance else lambda f: f
+    @async_track_performance("last_login_update") if async_track_performance else (lambda f: f)
     async def update_last_login(self, user_id: int):
-        """Update user's last login timestamp."""
+        """Update user's last login timestamp in the database if available."""
         if self.db_manager:
             try:
                 query = "UPDATE users SET last_login = :last_login WHERE id = :id"
@@ -159,7 +131,7 @@ async def login_page(request: Request):
 
     # Performance tracking
     if performance_logger:
-        performance_logger.record_metric("login_page_requests", 1, "count")
+        performance_logger.increment_counter("login_page_requests", 1)
 
     # Generate login page HTML
     html_content = """
@@ -327,48 +299,78 @@ async def authenticate(
 
     # Performance tracking
     if performance_logger:
-        performance_logger.record_metric("login_attempts", 1, "count")
+        performance_logger.increment_counter("login_attempts", 1)
 
     try:
-        # Authenticate user using service
-        user = await login_service.authenticate_user(username, password)
+        # Authenticate user using unified auth manager via service
+        auth_result = await login_service.authenticate_user(username, password, ip_address=client_ip, user_agent=request.headers.get("user-agent", ""))
 
-        if not user:
+        if not auth_result or not getattr(auth_result, "success", False):
             # Performance tracking for failed login
             if performance_logger:
-                performance_logger.record_metric("login_failures", 1, "count")
+                performance_logger.increment_counter("login_failures", 1)
 
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Incorrect username or password"
             )
 
-        # Create access token
+        # Use the token returned by the UnifiedAuthManager if present, otherwise create one
         access_token_expires = timedelta(minutes=getattr(settings, 'ACCESS_TOKEN_EXPIRE_MINUTES', 30))
-        token_data = {
-            "sub": str(user.id),
-            "username": user.username,
-            "iat": int(datetime.now().timestamp()),
-        }
 
-        access_token = create_access_token(data=token_data, expires_delta=access_token_expires)
+        access_token = getattr(auth_result, "token", None)
+        if not access_token:
+            try:
+                # Create a token using the auth manager directly
+                access_token = login_service.auth_manager.create_access_token(
+                    str(auth_result.user_id),
+                    getattr(auth_result, "permissions", set()),
+                    expires_delta=access_token_expires
+                )
+            except Exception as e:
+                logger.error(f"Failed to create access token: {e}")
+                access_token = ""
 
         # Performance tracking for successful login
         if performance_logger:
-            performance_logger.record_metric("login_successes", 1, "count")
+            performance_logger.increment_counter("login_successes", 1)
 
-        logger.info(f"User '{user.username}' logged in successfully")
+        # Attempt to resolve user profile information (username, email) from DB if available
+        user_info = {
+            "id": auth_result.user_id,
+            "username": None,
+            "email": None,
+            "is_active": True
+        }
+        try:
+            if database_manager and auth_result.user_id:
+                query = "SELECT username, email, is_active FROM users WHERE id = :id"
+                params = {"id": int(auth_result.user_id)}
+                result = await database_manager.execute_query(query, params)
+                if result and len(result) > 0:
+                    row = result[0]
+                    user_info["username"] = row[0]
+                    user_info["email"] = row[1]
+                    user_info["is_active"] = bool(row[2])
+        except Exception as e:
+            logger.debug(f"Could not fetch user profile from DB: {e}")
+
+        # Fallback username if not resolved
+        if not user_info["username"]:
+            # Try to extract from security context if available
+            sec_ctx = getattr(auth_result, "security_context", None)
+            uname = None
+            if sec_ctx:
+                uname = getattr(sec_ctx, "username", None)
+            user_info["username"] = uname or str(auth_result.user_id)
+
+        logger.info(f"User '{user_info.get('username')}' logged in successfully")
 
         return LoginResponse(
             access_token=access_token,
             token_type="bearer",
             expires_in=int(access_token_expires.total_seconds()),
-            user={
-                "id": user.id,
-                "username": user.username,
-                "email": user.email,
-                "is_active": user.is_active
-            }
+            user=user_info
         )
 
     except HTTPException:
@@ -391,7 +393,7 @@ async def logout(
 
     # Performance tracking
     if performance_logger:
-        performance_logger.record_metric("logout_requests", 1, "count")
+        performance_logger.increment_counter("logout_requests", 1)
 
     return {"message": "Successfully logged out"}
 
@@ -408,7 +410,7 @@ async def login_status(
 
     # Performance tracking
     if performance_logger:
-        performance_logger.record_metric("login_status_checks", 1, "count")
+        performance_logger.increment_counter("login_status_checks", 1)
 
     return {
         "logged_in": True,

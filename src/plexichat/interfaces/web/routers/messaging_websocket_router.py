@@ -5,7 +5,6 @@
 # pyright: reportReturnType=false
 
 import json
-import logging
 from datetime import datetime
 from typing import Optional
 
@@ -16,22 +15,17 @@ from plexichat.features.users.user import User
 import socket
 import time
 
-from plexichat.infrastructure.utils.auth import get_current_user_from_token
+from plexichat.core.auth.fastapi_adapter import get_auth_adapter
 from plexichat.websockets.messaging_websocket import messaging_websocket_manager
-        def get_stats(self):
-            return {"active_connections": 0, "total_messages": 0}
-
-        async def broadcast_admin_message(self, message: str, channel_id=None, guild_id=None):
-            print(f"Mock broadcast: {message} to channel {channel_id} in guild {guild_id}")
-
-    messaging_websocket_manager = MockWebSocketManager()
 
 """
 Messaging WebSocket Router
 FastAPI router for real-time messaging WebSocket endpoints.
 """
 
-logger = logging.getLogger(__name__)
+from plexichat.core.logging import get_logger
+
+logger = get_logger(__name__)
 
 
 # Create router
@@ -49,17 +43,47 @@ async def get_websocket_user(websocket: WebSocket, token: Optional[str] = None) 
             await websocket.close(code=4001, reason="Authentication token required")
             return None
 
-        # Validate token and get user
-        user = get_current_user_from_token(token)
-        if not user:
+        # Validate token using unified auth adapter -> UnifiedAuthManager
+        adapter = get_auth_adapter()
+        # Use the underlying auth manager validate_token method which returns (valid, payload)
+        try:
+            valid, payload = await adapter.auth_manager.validate_token(token)
+        except Exception as e:
+            logger.error(f"Error during token validation: {e}")
             await websocket.close(code=4001, reason="Invalid authentication token")
             return None
 
-        return user
+        if not valid or not payload:
+            await websocket.close(code=4001, reason="Invalid authentication token")
+            return None
+
+        # Build a lightweight user-like object from payload
+        user_id = payload.get("user_id") or payload.get("sub") or payload.get("id")
+        username = payload.get("username") or payload.get("name") or str(user_id)
+        permissions = set(payload.get("permissions", [])) if payload.get("permissions") is not None else set()
+
+        # Create a simple user-like object with required attributes.
+        # We avoid depending on constructor signature of User and instead return a
+        # duck-typed object that has the attributes used in this module.
+        class _WSUser:
+            def __init__(self, user_id, username, permissions):
+                self.id = user_id
+                self.user_id = user_id
+                self.username = username
+                self.permissions = permissions
+                self.is_admin = "admin" in permissions
+
+        ws_user = _WSUser(user_id, username, permissions)
+
+        return ws_user
 
     except Exception as e:
         logger.error(f"WebSocket authentication error: {e}")
-        await websocket.close(code=4000, reason="Authentication error")
+        try:
+            await websocket.close(code=4000, reason="Authentication error")
+        except Exception:
+            # ignore close errors
+            pass
         return None
 
 
@@ -108,7 +132,7 @@ async def messaging_websocket(websocket: WebSocket):
             except WebSocketDisconnect:
                 break
             except Exception as e:
-                logger.error(f"Error handling WebSocket message for user {user.id}: {e}")
+                logger.error(f"Error handling WebSocket message for user {getattr(user, 'id', 'unknown')}: {e}")
                 # Send error to client but continue connection
                 try:
                     await websocket.send_text('{"type": "error", "data": {"message": "Message processing error"}}')
@@ -118,10 +142,14 @@ async def messaging_websocket(websocket: WebSocket):
     except WebSocketDisconnect:
         pass
     except Exception as e:
-        logger.error(f"WebSocket connection error for user {user.id}: {e}")
+        logger.error(f"WebSocket connection error for user {getattr(user, 'id', 'unknown')}: {e}")
     finally:
         # Disconnect user
-        await messaging_websocket_manager.disconnect(websocket)
+        try:
+            await messaging_websocket_manager.disconnect(websocket)
+        except Exception:
+            # ignore disconnect errors
+            pass
 
 
 @router.websocket("/messaging/{channel_id}")
@@ -152,7 +180,7 @@ async def channel_messaging_websocket(websocket: WebSocket, channel_id: int):
             except WebSocketDisconnect:
                 break
             except Exception as e:
-                logger.error(f"Error handling channel WebSocket message for user {user.id}: {e}")
+                logger.error(f"Error handling channel WebSocket message for user {getattr(user, 'id', 'unknown')}: {e}")
                 try:
                     await websocket.send_text('{"type": "error", "data": {"message": "Message processing error"}}')
                 except Exception:
@@ -161,9 +189,12 @@ async def channel_messaging_websocket(websocket: WebSocket, channel_id: int):
     except WebSocketDisconnect:
         pass
     except Exception as e:
-        logger.error(f"Channel WebSocket connection error for user {user.id}: {e}")
+        logger.error(f"Channel WebSocket connection error for user {getattr(user, 'id', 'unknown')}: {e}")
     finally:
-        await messaging_websocket_manager.disconnect(websocket)
+        try:
+            await messaging_websocket_manager.disconnect(websocket)
+        except Exception:
+            pass
 
 
 @router.websocket("/messaging/guild/{guild_id}")
@@ -194,7 +225,7 @@ async def guild_messaging_websocket(websocket: WebSocket, guild_id: int):
             except WebSocketDisconnect:
                 break
             except Exception as e:
-                logger.error(f"Error handling guild WebSocket message for user {user.id}: {e}")
+                logger.error(f"Error handling guild WebSocket message for user {getattr(user, 'id', 'unknown')}: {e}")
                 try:
                     await websocket.send_text('{"type": "error", "data": {"message": "Message processing error"}}')
                 except Exception:
@@ -203,13 +234,16 @@ async def guild_messaging_websocket(websocket: WebSocket, guild_id: int):
     except WebSocketDisconnect:
         pass
     except Exception as e:
-        logger.error(f"Guild WebSocket connection error for user {user.id}: {e}")
+        logger.error(f"Guild WebSocket connection error for user {getattr(user, 'id', 'unknown')}: {e}")
     finally:
-        await messaging_websocket_manager.disconnect(websocket)
+        try:
+            await messaging_websocket_manager.disconnect(websocket)
+        except Exception:
+            pass
 
 
 @router.get("/messaging/stats")
-async def get_messaging_stats(current_user: User = Depends(get_current_user_from_token)):
+async def get_messaging_stats(current_user: User = Depends(get_auth_adapter().get_current_user)):
     """
     Get real-time messaging statistics.
     Requires admin access.
@@ -240,7 +274,7 @@ async def broadcast_admin_message(
     message: str,
     channel_id: Optional[int] = None,
     guild_id: Optional[int] = None,
-    current_user: User = Depends(get_current_user_from_token)
+    current_user: User = Depends(get_auth_adapter().get_current_user)
 ):
     """
     Broadcast an admin message to all connected users or specific channel/guild.
@@ -258,7 +292,7 @@ async def broadcast_admin_message(
             'type': 'admin_broadcast',
             'data': {
                 'message': message,
-                'sender': current_user.username,
+                'sender': getattr(current_user, "username", str(getattr(current_user, "user_id", ""))),
                 'timestamp': datetime.now().isoformat(),
                 'channel_id': channel_id,
                 'guild_id': guild_id
@@ -268,13 +302,13 @@ async def broadcast_admin_message(
         # Determine target websockets
         target_websockets = set()
 
-        if channel_id and channel_id in messaging_websocket_manager.channel_subscriptions:
+        if channel_id and channel_id in getattr(messaging_websocket_manager, "channel_subscriptions", {}):
             target_websockets.update(messaging_websocket_manager.channel_subscriptions[channel_id])
-        elif guild_id and guild_id in messaging_websocket_manager.guild_subscriptions:
+        elif guild_id and guild_id in getattr(messaging_websocket_manager, "guild_subscriptions", {}):
             target_websockets.update(messaging_websocket_manager.guild_subscriptions[guild_id])
         else:
             # Broadcast to all connected users
-            for websockets in messaging_websocket_manager.active_connections.values():
+            for websockets in getattr(messaging_websocket_manager, "active_connections", {}).values():
                 target_websockets.update(websockets)
 
         # Send to all target websockets

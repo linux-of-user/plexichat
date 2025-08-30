@@ -10,13 +10,9 @@ import time
 import json
 import os
 
-from plexichat.core.authentication import (
-    Permission,
-    PermissionManager,
-    PermissionScope,
-    Role,
-    UserPermissions,
-)
+# Use the unified authentication manager and Role enum
+from plexichat.core.authentication import get_auth_manager, Role
+
 from plexichat.core.middleware.unified_rate_limiter import (
     ComprehensiveRateLimiter,
     RateLimitAction,
@@ -57,7 +53,8 @@ class SecurityCLI:
     """CLI for security management."""
     def __init__(self):
         self.rate_limiter = ComprehensiveRateLimiter()
-        self.permission_manager = PermissionManager()
+        # Use unified auth manager for permission and role operations
+        self.auth_manager = get_auth_manager()
         self.ddos = get_ddos_protection() if get_ddos_protection else None
         self.plugin_sec = plugin_security_manager if plugin_security_manager else None
         self.kv = key_vault if key_vault else None
@@ -593,187 +590,163 @@ class SecurityCLI:
             logger.error(f"Error showing key metadata: {e}")
             self.print_colored(f"Failed to show key metadata: {e}", "red")
 
-    # Permission Management Commands (existing)
+    # Permission Management Commands (updated to use unified auth manager)
     async def list_roles(self) -> None:
-        """List all roles."""
+        """List all roles using the unified auth manager."""
         self.print_colored(" User Roles", "cyan")
         self.print_colored("=" * 50, "cyan")
 
-        if not self.permission_manager.roles:
+        roles_mapping = getattr(self.auth_manager, "role_permissions", None)
+        if not roles_mapping:
             self.print_colored("No roles configured.", "yellow")
             return
 
-        # Sort by priority
-        sorted_roles = sorted(self.permission_manager.roles.values(), key=lambda r: r.priority, reverse=True)
-
-        for role in sorted_roles:
-            system_badge = " [SYSTEM]" if role.is_system else ""
-            default_badge = " [DEFAULT]" if role.is_default else ""
-            self.print_colored(f"\n {role.display_name} ({role.name}){system_badge}{default_badge}", "blue")
-            logger.info(f"   Description: {role.description}")
-            logger.info(f"   Priority: {role.priority}")
-            logger.info(f"   Color: {role.color}")
-            logger.info(f"   Permissions: {len(role.permissions)}")
-
-            if len(role.permissions) <= 10:
-                perms = ", ".join([p.value for p in role.permissions])
-                logger.info(f"    {perms}")
+        # Convert Role enum -> permission sets
+        # Present a simple summary since unified manager doesn't carry rich metadata
+        sorted_roles = sorted(roles_mapping.items(), key=lambda r: r[0].value)
+        for role_enum, perms in sorted_roles:
+            system_badge = " [SYSTEM]" if getattr(role_enum, "name", "").upper() == "SYSTEM" else ""
+            default_badge = ""
+            self.print_colored(f"\n {role_enum.value}{system_badge}{default_badge}", "blue")
+            logger.info(f"   Permissions: {len(perms)}")
+            if len(perms) <= 10:
+                perms_list = ", ".join(sorted(perms))
+                logger.info(f"    {perms_list}")
             else:
-                logger.info(f"    {len(role.permissions)} permissions (use 'show-role {role.name}' for details)")
+                logger.info(f"    {len(perms)} permissions (use 'show-role {role_enum.value}' for details)")
 
     async def show_role(self, role_name: str) -> None:
-        """Show detailed information about a role."""
-        if role_name not in self.permission_manager.roles:
+        """Show detailed information about a role from the unified auth manager."""
+        # Try to resolve role_name to Role enum by value or member name
+        role_enum = None
+        try:
+            role_enum = Role(role_name)
+        except Exception:
+            # Try by member name (e.g., ADMIN)
+            name_upper = role_name.upper()
+            if name_upper in Role.__members__:
+                role_enum = Role[name_upper]
+        if not role_enum:
             self.print_colored(f" Role '{role_name}' not found", "red")
             return
 
-        role = self.permission_manager.roles[role_name]
+        perms = getattr(self.auth_manager, "role_permissions", {}).get(role_enum, set())
 
-        self.print_colored(f" Role: {role.display_name} ({role.name})", "cyan")
+        self.print_colored(f" Role: {role_enum.value}", "cyan")
         self.print_colored("=" * 50, "cyan")
-
-        logger.info(f"Description: {role.description}")
-        logger.info(f"Priority: {role.priority}")
-        logger.info(f"Color: {role.color}")
-        logger.info(f"System Role: {'Yes' if role.is_system else 'No'}")
-        logger.info(f"Default Role: {'Yes' if role.is_default else 'No'}")
-        logger.info(f"Created: {role.created_at.strftime('%Y-%m-%d %H:%M:%S')}")
-        logger.info(f"Updated: {role.updated_at.strftime('%Y-%m-%d %H:%M:%S')}")
-
-        self.print_colored(f"\n Permissions ({len(role.permissions)}):", "yellow")
-        for perm in sorted(role.permissions, key=lambda p: p.value):
-            logger.info(f"    {perm.value}")
+        logger.info(f"Permissions: {len(perms)}")
+        if perms:
+            for perm in sorted(perms):
+                logger.info(f"    {perm}")
 
     async def create_role(self, args: List[str]) -> None:
-        """Create a new role."""
-        if len(args) < 3:
-            self.print_colored("Usage: create-role <name> <display_name> <description> [permissions...]", "red")
-            return
+        """Create a new role.
 
-        name = args[0]
-        display_name = args[1]
-        description = args[2]
-        permissions = args[3:] if len(args) > 3 else []
-
-        # Validate permissions
-        try:
-            perm_set = set(Permission(p) for p in permissions)
-        except ValueError as e:
-            self.print_colored(f" Invalid permission: {e}", "red")
-            return
-
-        role = Role(
-            name=name,
-            display_name=display_name,
-            description=description,
-            permissions=perm_set
-        )
-
-        success = self.permission_manager.create_role(role)
-        if success:
-            self.print_colored(f" Created role: {name}", "green")
-        else:
-            self.print_colored(f" Failed to create role (may already exist): {name}", "red")
+        Note: Creating new Role enum members at runtime is not supported by the unified auth manager.
+        This operation is not available; instruct the operator accordingly.
+        """
+        self.print_colored("Creating custom roles is not supported via the unified auth manager CLI.", "red")
+        self.print_colored("Define roles in code/config and restart the service to add new roles.", "yellow")
 
     async def delete_role(self, role_name: str) -> None:
-        """Delete a role."""
-        success = self.permission_manager.delete_role(role_name)
-        if success:
-            self.print_colored(f" Deleted role: {role_name}", "green")
-        else:
-            self.print_colored(f" Failed to delete role: {role_name}", "red")
+        """Delete a role.
+
+        Note: Removing Role enum members at runtime is not supported.
+        Instead, you can remove permissions from a role via update_user_permissions or update the code/config.
+        """
+        self.print_colored("Deleting roles is not supported via the unified auth manager CLI.", "red")
+        self.print_colored("Remove or change role definitions in code/config and restart the service.", "yellow")
 
     async def assign_role(self, user_id: str, role_name: str, scope: str = "global", scope_id: Optional[str] = None) -> None:
-        """Assign a role to a user."""
+        """Assign a role to a user using unified auth manager."""
+        # Resolve role_name to Role enum
+        role_enum = None
         try:
-            scope_enum = PermissionScope(scope)
-        except ValueError:
-            self.print_colored(f" Invalid scope: {scope}", "red")
+            role_enum = Role(role_name)
+        except Exception:
+            name_upper = role_name.upper()
+            if name_upper in Role.__members__:
+                role_enum = Role[name_upper]
+        if not role_enum:
+            self.print_colored(f" Invalid role: {role_name}", "red")
             return
 
-        success = self.permission_manager.assign_role(user_id, role_name, scope_enum, scope_id)
+        success = self.auth_manager.assign_role(user_id, role_enum)
         if success:
-            self.print_colored(f" Assigned role '{role_name}' to user '{user_id}' in scope '{scope}'", "green")
+            self.print_colored(f" Assigned role '{role_enum.value}' to user '{user_id}'", "green")
         else:
             self.print_colored(" Failed to assign role", "red")
 
     async def revoke_role(self, user_id: str, role_name: str, scope: str = "global", scope_id: Optional[str] = None) -> None:
-        """Revoke a role from a user."""
+        """Revoke a role from a user using unified auth manager."""
+        role_enum = None
         try:
-            scope_enum = PermissionScope(scope)
-        except ValueError:
-            self.print_colored(f" Invalid scope: {scope}", "red")
+            role_enum = Role(role_name)
+        except Exception:
+            name_upper = role_name.upper()
+            if name_upper in Role.__members__:
+                role_enum = Role[name_upper]
+        if not role_enum:
+            self.print_colored(f" Invalid role: {role_name}", "red")
             return
 
-        success = self.permission_manager.revoke_role(user_id, role_name, scope_enum, scope_id)
+        success = self.auth_manager.revoke_role(user_id, role_enum)
         if success:
-            self.print_colored(f" Revoked role '{role_name}' from user '{user_id}' in scope '{scope}'", "green")
+            self.print_colored(f" Revoked role '{role_enum.value}' from user '{user_id}'", "green")
         else:
             self.print_colored(" Failed to revoke role", "red")
 
     async def check_permission(self, user_id: str, permission: str, scope: str = "global", scope_id: Optional[str] = None) -> None:
-        """Check if a user has a specific permission."""
+        """Check if a user has a specific permission using unified auth manager."""
         try:
-            perm_enum = Permission(permission)
-            scope_enum = PermissionScope(scope)
-        except ValueError as e:
-            self.print_colored(f" Invalid parameter: {e}", "red")
+            # UnifiedAuthManager expects a permission string
+            granted = self.auth_manager.check_permission(user_id, permission)
+        except Exception as e:
+            self.print_colored(f" Invalid parameter or error: {e}", "red")
             return
 
-        check_result = self.permission_manager.check_permission(user_id, perm_enum, scope_enum, scope_id)
-
-        status = " GRANTED" if check_result.granted else " DENIED"
-        self.print_colored(f" Permission Check: {status}", "green" if check_result.granted else "red")
+        status = " GRANTED" if granted else " DENIED"
+        self.print_colored(f" Permission Check: {status}", "green" if granted else "red")
         logger.info(f"   User: {user_id}")
         logger.info(f"   Permission: {permission}")
         logger.info(f"   Scope: {scope}")
         if scope_id:
             logger.info(f"   Scope ID: {scope_id}")
-        logger.info(f"   Reason: {check_result.reason}")
-        if check_result.roles_checked:
-            logger.info(f"   Roles Checked: {', '.join(check_result.roles_checked)}")
 
     async def show_user_permissions(self, user_id: str) -> None:
-        """Show all permissions for a user."""
-        if user_id not in self.permission_manager.user_permissions:
-            self.print_colored(f" User permissions not found: {user_id}", "red")
-            return
+        """Show all permissions for a user using unified auth manager."""
+        try:
+            perms = self.auth_manager.get_user_permissions(user_id)
+            if perms is None:
+                self.print_colored(f" User permissions not found: {user_id}", "red")
+                return
 
-        user_perms = self.permission_manager.user_permissions[user_id]
+            self.print_colored(f" User Permissions: {user_id}", "cyan")
+            self.print_colored("=" * 50, "cyan")
 
-        self.print_colored(f" User Permissions: {user_id}", "cyan")
-        self.print_colored("=" * 50, "cyan")
+            # Try to fetch roles if available
+            roles = set()
+            try:
+                roles = self.auth_manager._get_user_roles(user_id)
+            except Exception:
+                # If private helper not available, skip roles listing
+                roles = set()
 
-        logger.info(f"Active: {'Yes' if user_perms.is_active else 'No'}")
-        logger.info(f"Created: {user_perms.created_at.strftime('%Y-%m-%d %H:%M:%S')}")
-        logger.info(f"Updated: {user_perms.updated_at.strftime('%Y-%m-%d %H:%M:%S')}")
+            logger.info(f"Permissions count: {len(perms)}")
+            if roles:
+                self.print_colored("\n Roles:", "yellow")
+                for role in roles:
+                    logger.info(f"    {role.value if hasattr(role, 'value') else str(role)}")
 
-        if user_perms.global_roles:
-            self.print_colored("\n Global Roles:", "yellow")
-            for role in user_perms.global_roles:
-                logger.info(f"    {role}")
-
-        if user_perms.server_roles:
-            self.print_colored("\n Server Roles:", "yellow")
-            for server_id, roles in user_perms.server_roles.items():
-                logger.info(f"   Server {server_id}: {', '.join(roles)}")
-
-        if user_perms.channel_roles:
-            self.print_colored("\n Channel Roles:", "yellow")
-            for channel_id, roles in user_perms.channel_roles.items():
-                logger.info(f"   Channel {channel_id}: {', '.join(roles)}")
-
-        if user_perms.explicit_permissions:
-            self.print_colored("\n Explicit Permissions:", "green")
-            for scope_id, perms in user_perms.explicit_permissions.items():
-                perm_list = [p.value for p in perms]
-                logger.info(f"   {scope_id}: {', '.join(perm_list)}")
-
-        if user_perms.denied_permissions:
-            self.print_colored("\n Denied Permissions:", "red")
-            for scope_id, perms in user_perms.denied_permissions.items():
-                perm_list = [p.value for p in perms]
-                logger.info(f"   {scope_id}: {', '.join(perm_list)}")
+            if perms:
+                self.print_colored("\n Explicit Permissions:", "green")
+                for p in sorted(perms):
+                    logger.info(f"   {p}")
+            else:
+                logger.info("   No explicit permissions assigned")
+        except Exception as e:
+            logger.error(f"Error showing user permissions: {e}")
+            self.print_colored(f"Failed to show user permissions: {e}", "red")
 
 
 async def handle_security_command(args: List[str]) -> None:
@@ -820,8 +793,8 @@ async def handle_security_command(args: List[str]) -> None:
         logger.info("Permissions:")
         logger.info("  list-roles                    - List all roles")
         logger.info("  show-role <name>              - Show role details")
-        logger.info("  create-role <args>            - Create new role")
-        logger.info("  delete-role <name>            - Delete role")
+        logger.info("  create-role <args>            - Create new role (not supported)")
+        logger.info("  delete-role <name>            - Delete role (not supported)")
         logger.info("  assign-role <user> <role>     - Assign role to user")
         logger.info("  revoke-role <user> <role>     - Revoke role from user")
         logger.info("  check-perm <user> <perm>      - Check user permission")
@@ -903,7 +876,7 @@ async def handle_security_command(args: List[str]) -> None:
         elif command == "set-policy" and len(command_args) >= 3:
             await cli.set_security_policy(command_args[0], command_args[1], command_args[2])
 
-        # Permission management (existing)
+        # Permission management (updated)
         elif command == "list-roles":
             await cli.list_roles()
         elif command == "show-role" and command_args:

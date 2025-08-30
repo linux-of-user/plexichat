@@ -8,7 +8,7 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from plexichat.infrastructure.utils.auth import require_admin, require_auth
+from plexichat.core.auth.fastapi_adapter import require_admin, get_current_user
 from plexichat.core.performance.multi_tier_cache_manager import (
     CacheTier,
     MessagePriority,
@@ -72,7 +72,7 @@ class CacheInvalidateRequest(BaseModel):
 
 
 @router.get("/status", response_model=Dict[str, Any])
-async def get_cache_status(current_user: Dict = Depends(require_auth)):
+async def get_cache_status(current_user: Dict = Depends(get_current_user)):
     """
     Get comprehensive cache system status and statistics.
 
@@ -102,7 +102,7 @@ async def get_cache_status(current_user: Dict = Depends(require_auth)):
 async def get_cache_stats(
     tier: Optional[str] = Query(None, description="Specific tier to get stats for"),
     detailed: bool = Query(False, description="Include detailed statistics"),
-    current_user: Dict = Depends(require_auth)
+    current_user: Dict = Depends(get_current_user)
 ):
     """
     Get detailed cache statistics by tier.
@@ -155,7 +155,7 @@ async def get_cache_stats(
 async def get_cached_value(
     key: str,
     default: Optional[str] = Query(None, description="Default value if key not found"),
-    current_user: Dict = Depends(require_auth)
+    current_user: Dict = Depends(get_current_user)
 ):
     """
     Get cached value by key.
@@ -192,7 +192,7 @@ async def get_cached_value(
 async def set_cached_value(
     key: str,
     request: CacheSetRequest,
-    current_user: Dict = Depends(require_auth)
+    current_user: Dict = Depends(get_current_user)
 ):
     """
     Set cached value by key.
@@ -243,7 +243,7 @@ async def set_cached_value(
 @router.delete("/{key}", response_model=CacheResponse)
 async def delete_cached_value(
     key: str,
-    current_user: Dict = Depends(require_auth)
+    current_user: Dict = Depends(get_current_user)
 ):
     """
     Delete cached value by key.
@@ -342,7 +342,7 @@ async def clear_cache(
 
 
 @router.get("/health", response_model=Dict[str, Any])
-async def get_cache_health(current_user: Dict = Depends(require_auth)):
+async def get_cache_health(current_user: Dict = Depends(get_current_user)):
     """
     Get cache system health status.
 

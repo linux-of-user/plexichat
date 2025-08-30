@@ -11,6 +11,7 @@ Provides a single, unified interface for all plugin operations.
 """
 
 import asyncio
+import importlib
 import importlib.util
 import json
 import logging
@@ -75,23 +76,37 @@ try:
 except ImportError:
     database_manager = None
 
-# Enhanced plugin systems
-# try:
-#     from .advanced_plugin_security import enhanced_plugin_security, SecurityLevel as EnhancedSecurityLevel
-#     from .plugin_dependency_manager import plugin_dependency_manager
-# except ImportError:
+# SDK generator - ensure plugins_internal exists
+try:
+    from plexichat.core.plugins.sdk_generator import sdk_generator, regenerate_plugins_internal_if_needed, generate_plugins_internal
+except ImportError:
+    sdk_generator = None
+    regenerate_plugins_internal_if_needed = None
+    generate_plugins_internal = None
+
+# Security manager integration
+try:
+    from plexichat.core.plugins.security_manager import (
+        plugin_security_manager,
+        get_security_manager,
+        create_plugin_sandbox,
+        PluginSecurityManager,
+        PermissionType
+    )
+except ImportError:
+    plugin_security_manager = None
+    get_security_manager = None
+    create_plugin_sandbox = None
+    PluginSecurityManager = None
+    PermissionType = None
+
+# Enhanced plugin systems (optional)
 enhanced_plugin_security = None
 plugin_dependency_manager = None
 EnhancedSecurityLevel = None
 
 # Top-level imports for AI integration (with fallbacks)
-# try:
-#     from plexichat.features.ai.advanced_ai_system import intelligent_assistant
-# except ImportError:
 intelligent_assistant = None
-# try:
-#     from plexichat.features.ai.advanced_ai_system import ai_provider_manager
-# except ImportError:
 ai_provider_manager = None
 
 class ModuleCapability:
@@ -157,6 +172,7 @@ class PluginStatus(Enum):
     FAILED = "failed"
     UPDATING = "updating"
     UNINSTALLING = "uninstalling"
+    QUARANTINED = "quarantined"
 
 
 class SecurityLevel(Enum):
@@ -194,13 +210,25 @@ class PluginMetadata:
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'PluginMetadata':
         """Create metadata from dictionary."""
+        # Defensive conversion for security level and plugin type
+        sec_level = data.get('security_level', 'sandboxed')
+        try:
+            sec_enum = SecurityLevel(sec_level)
+        except Exception:
+            sec_enum = SecurityLevel.SANDBOXED
+
+        try:
+            ptype = PluginType(data.get('type', 'feature'))
+        except Exception:
+            ptype = PluginType.FEATURE
+
         return cls(
             name=data.get('name', ''),
             version=data.get('version', '1.0.0'),
             description=data.get('description', ''),
             author=data.get('author', ''),
-            plugin_type=PluginType(data.get('type', 'feature')),
-            security_level=SecurityLevel(data.get('security_level', 'sandboxed')),
+            plugin_type=ptype,
+            security_level=sec_enum,
             dependencies=data.get('dependencies', []),
             permissions=data.get('permissions', []),
             enabled=data.get('enabled', False),
@@ -271,7 +299,7 @@ class PluginIsolationManager:
             # Load module with restricted imports
             spec = importlib.util.spec_from_file_location(
                 f"isolated_{plugin_name}",
-                plugin_path / "main.py"
+                (plugin_path / "main.py").resolve()
             )
 
             if spec is None or spec.loader is None:
@@ -357,7 +385,7 @@ class PluginIsolationManager:
                 'complex': complex,
                 'frozenset': frozenset,
                 # Essential Python internals
-                '__build_class__': __builtins__['__build_class__'],
+                '__build_class__': __builtins__['__build_class__'] if '__build_class__' in __builtins__ else None,
                 '__name__': '__main__',
                 'staticmethod': staticmethod,
                 'classmethod': classmethod,
@@ -366,6 +394,11 @@ class PluginIsolationManager:
                 'type': type,
                 'object': object,
             }
+
+            # Update only available builtins to avoid KeyErrors
+            for k, v in list(restricted_builtins.items()):
+                if v is None:
+                    restricted_builtins.pop(k, None)
 
             module.__builtins__.update(restricted_builtins)
 
@@ -394,47 +427,21 @@ class PluginIsolationManager:
 
     def _restricted_import(self, name, *args, **kwargs):
         """Restricted import function with dynamic permission system."""
-        # Vastly expanded default allowlist (standard lib + common third-party)
+        # Baseline allowlist
         allowed_modules = {
-            # Standard library (partial, can be expanded further)
             'json', 'datetime', 'typing', 'dataclasses', 'enum', 'asyncio', 'logging', 'pathlib', 'uuid',
-            'subprocess', 'time', 'base64', 'mimetypes', 'ast', 'socket', 'psutil', 'secrets', 'io', 'os',
-            're', 'ssl', 'sys', 'urllib.parse', 'hashlib', 'shutil', 'concurrent.futures', 'threading',
-            'queue', 'copy', 'functools', 'itertools', 'collections', 'math', 'random', 'decimal', 'fractions',
-            'statistics', 'heapq', 'bisect', 'array', 'weakref', 'types', 'inspect', 'traceback', 'pprint',
-            'pickle', 'marshal', 'struct', 'zlib', 'gzip', 'bz2', 'lzma', 'tarfile', 'zipfile', 'csv', 'configparser',
-            'fileinput', 'glob', 'tempfile', 'getopt', 'argparse', 'logging.config', 'logging.handlers',
-            'platform', 'resource', 'signal', 'ctypes', 'cProfile', 'pstats', 'timeit', 'sched', 'calendar',
-            'gettext', 'locale', 'uuid', 'base64', 'binascii', 'hmac', 'secrets', 'hashlib', 'ssl', 'socketserver',
-            'http', 'http.server', 'http.client', 'urllib', 'urllib.request', 'urllib.parse', 'xml', 'xml.etree.ElementTree',
-            'xml.dom', 'xml.sax', 'html', 'html.parser', 'html.entities', 'json', 'plistlib', 'csv', 'sqlite3',
-            'dbm', 'shelve', 'pickle', 'marshal', 'copyreg', 'codecs', 'gettext', 'locale', 'calendar', 'zoneinfo',
-            'email', 'mailbox', 'mimetypes', 'mailcap', 'netrc', 'nntplib', 'smtplib', 'ssl', 'imaplib', 'poplib',
-            'uuid', 'ipaddress', 'pdb', 'doctest', 'unittest', 'unittest.mock', 'difflib', 'filecmp', 'tempfile',
-            'glob', 'fnmatch', 'linecache', 'shlex', 'subprocess', 'signal', 'faulthandler', 'trace', 'tracemalloc',
-            'gc', 'atexit', 'warnings', 'contextlib', 'contextvars', 'dataclasses', 'enum', 'types', 'typing',
-            'numbers', 'abc', 'collections.abc', 'reprlib', 'string', 'stringprep', 'textwrap', 'unicodedata',
-            'sysconfig', 'site', 'ensurepip', 'venv', 'zipapp', 'importlib', 'importlib.util', 'importlib.machinery',
-            'importlib.abc', 'importlib.resources', 'pkgutil', 'pkg_resources', 'runpy', 'builtins', 'dis', 'opcode',
-            'ast', 'symtable', 'token', 'tokenize', 'tabnanny', 'pyclbr', 'py_compile', 'compileall', 'code', 'codeop',
-            # Common third-party
-            'fastapi', 'fastapi.responses', 'aiohttp', 'requests', 'matplotlib', 'matplotlib.pyplot', 'pandas',
-            'numpy', 'scipy', 'sklearn', 'cryptography', 'cryptography.fernet', 'jinja2', 'jinja2.ext', 'jinja2.sandbox',
-            'websockets', 'sqlalchemy', 'sqlalchemy.orm', 'sqlalchemy.ext', 'sqlalchemy.sql', 'sqlalchemy.engine',
-            'psycopg2', 'pymongo', 'redis', 'celery', 'pytest', 'pytest_asyncio', 'pytest_mock', 'pytest_cov',
-            'colorama', 'rich', 'uvicorn', 'starlette', 'starlette.responses', 'starlette.requests', 'starlette.routing',
-            'starlette.datastructures', 'starlette.background', 'starlette.concurrency', 'starlette.templating',
-            'starlette.staticfiles', 'starlette.websockets', 'starlette.middleware', 'starlette.exceptions',
-            'starlette.endpoints', 'starlette.status', 'starlette.types', 'starlette.testclient',
+            'time', 'base64', 'mimetypes', 'ast', 'secrets', 'io', 're', 'hashlib', 'functools', 'itertools',
+            'collections', 'math', 'random', 'copy', 'types', 'inspect', 'traceback'
         }
         # Dynamic per-plugin allowlist (populated by admin/cli approval)
         plugin_name = getattr(threading.current_thread(), 'plugin_name', None)
         extra_allowed = set()
         if plugin_name and hasattr(self, 'plugin_module_permissions'):
             extra_allowed = self.plugin_module_permissions.get(plugin_name, set())
-        if name in allowed_modules or name in extra_allowed or name.startswith('plexichat.'):
+        # Allow plexichat.* imports for plugins_internal & whitelisted modules
+        if name in allowed_modules or name in extra_allowed or name.startswith('plexichat.') or name == 'plugins_internal':
             return __import__(name, *args, **kwargs)
-        # If not allowed, record the request and skip loading
+        # Record the attempted import for admin review
         if plugin_name:
             if not hasattr(self, 'plugin_module_requests'):
                 self.plugin_module_requests = {}
@@ -443,7 +450,6 @@ class PluginIsolationManager:
 
     def _restricted_open(self, filename, mode='r', *args, **kwargs):
         """Restricted file open function - only allows access to plugin's own directory."""
-        import os
         from pathlib import Path
 
         # Get current plugin name from thread context
@@ -531,8 +537,18 @@ class PluginTestManager:
     async def run_plugin_tests(self, plugin_name: str, plugin_instance: "PluginInterface") -> Dict[str, Any]:
         """Run tests for a specific plugin."""
         try:
-            # Run plugin self-tests
-            self_test_results = await plugin_instance.self_test()
+            # Run plugin self-tests (if available)
+            self_test_results = {}
+            try:
+                if hasattr(plugin_instance, "self_test") and asyncio.iscoroutinefunction(plugin_instance.self_test):
+                    self_test_results = await plugin_instance.self_test()
+                elif hasattr(plugin_instance, "self_test"):
+                    self_test_results = plugin_instance.self_test()
+                else:
+                    self_test_results = {"passed": True, "message": "No self-test provided"}
+            except Exception as e:
+                self.logger.warning(f"Plugin self-test failed for {plugin_name}: {e}")
+                self_test_results = {"passed": False, "error": str(e)}
 
             # Run external tests if available
             external_test_results = await self._run_external_tests(plugin_name)
@@ -636,22 +652,32 @@ class PluginManager:
         # Thread safety
         self._lock = threading.Lock()
 
-        # Auto-generate plugin SDK for sandboxing, as per user request.
-        self._generate_plugin_sdk()
+        # Auto-generate plugin SDK for sandboxing via core SDK generator if available.
+        try:
+            if regenerate_plugins_internal_if_needed:
+                regenerate_plugins_internal_if_needed()
+                self.logger.debug("plugins_internal generation requested via sdk_generator")
+            else:
+                # Fallback to local generator
+                self._generate_plugin_sdk()
+        except Exception as e:
+            self.logger.error(f"Error generating plugin SDK at init: {e}")
 
     def _generate_plugin_sdk(self):
         """Auto-generate the plugin SDK (plugins_internal.py) in plugins directory."""
         try:
             sdk_content = self._create_plugin_sdk_content()
-            # The SDK file should be in the directory that is added to sys.path for plugins
-            sdk_file = self.plugins_dir.parent / "plugins_internal.py"
+            sdk_file = self.plugins_dir / "plugins_internal.py"
 
-            with open(sdk_file, 'w') as f:
+            # Ensure plugins directory exists
+            self.plugins_dir.mkdir(exist_ok=True)
+
+            with open(sdk_file, 'w', encoding='utf-8') as f:
                 f.write(sdk_content)
-            self.logger.info(f"Generated plugin SDK: {sdk_file}")
+            self.logger.info(f"Generated plugin SDK (fallback): {sdk_file}")
 
         except Exception as e:
-            self.logger.error(f"Failed to generate plugin SDK: {e}")
+            self.logger.error(f"Failed to generate plugin SDK (fallback): {e}")
 
     def _create_plugin_sdk_content(self) -> str:
         """Create the content for the auto-generated plugin SDK."""
@@ -752,6 +778,26 @@ __all__ = [
                             status=PluginStatus.DISCOVERED
                         )
 
+                        # Persist known disabled state if DB has it
+                        if database_manager:
+                            try:
+                                # Try to read plugin_settings table if present
+                                async with database_manager.get_session() as session:
+                                    row = await session.fetchone(
+                                        "SELECT enabled, admin_approved FROM plugin_settings WHERE plugin_name = :name",
+                                        {"name": plugin_name}
+                                    )
+                                    if row:
+                                        enabled = row.get("enabled", 0)
+                                        admin_approved = row.get("admin_approved", 0)
+                                        plugin_info.metadata.enabled = bool(enabled) and bool(admin_approved)
+                                        if enabled and not admin_approved:
+                                            # Mark as awaiting admin approval
+                                            plugin_info.status = PluginStatus.DISABLED
+                            except Exception:
+                                # Ignore DB read errors during discovery
+                                pass
+
                         self.plugin_info[plugin_name] = plugin_info
                         self.discovered_plugins.add(plugin_name)
                         discovered.append(plugin_name)
@@ -809,11 +855,11 @@ __all__ = [
     async def load_plugin(self, plugin_name: str, force_reload: bool = False) -> bool:
         """Load a specific plugin with improved error handling and dependency resolution."""
         start_time = time.time()
-        
+
         try:
             with self._lock:
                 # Track errors for this plugin
-                self.plugin_errors[plugin_name] = []
+                self.plugin_errors.setdefault(plugin_name, [])
 
                 # Check if already loaded
                 if plugin_name in self.loaded_plugins and not force_reload:
@@ -830,14 +876,27 @@ __all__ = [
                 plugin_info = self.plugin_info[plugin_name]
                 plugin_info.status = PluginStatus.LOADING
 
+                # Ensure SDK (plugins_internal) exists before any plugin imports occur
+                if not await self._ensure_plugins_internal():
+                    error_msg = "plugins_internal SDK not available; plugin cannot be loaded"
+                    self.plugin_errors[plugin_name].append(error_msg)
+                    self.logger.error(error_msg)
+                    # Quarantine plugin proactively
+                    await self.quarantine_plugin(plugin_name, reason=error_msg, quarantined_by="system")
+                    plugin_info.status = PluginStatus.QUARANTINED
+                    plugin_info.error_message = error_msg
+                    return False
+
                 # Enhanced dependency resolution
                 if plugin_dependency_manager and plugin_name != 'testing_plugin':
-                    # Skip dependency checking for testing plugin due to analysis issues
                     # Analyze and install dependencies
                     plugin_path = Path(self.plugins_dir) / plugin_name
-                    dependencies = await plugin_dependency_manager.analyze_plugin_dependencies(plugin_path)
+                    try:
+                        dependencies = await plugin_dependency_manager.analyze_plugin_dependencies(plugin_path)
+                    except Exception:
+                        dependencies = None
 
-                    if not dependencies.all_dependencies_met:
+                    if dependencies and not dependencies.all_dependencies_met:
                         self.logger.info(f"Installing dependencies for plugin {plugin_name}")
                         deps_installed = await plugin_dependency_manager.install_plugin_dependencies(plugin_name)
                         if not deps_installed:
@@ -858,15 +917,52 @@ __all__ = [
                         plugin_info.error_message = error_msg
                         return False
 
-                # Load plugin based on security level
-                if plugin_info.metadata.security_level == SecurityLevel.SANDBOXED:
+                # If security is enabled, ensure plugin is allowed by security manager
+                if plugin_security_manager:
+                    # If quarantined in security manager, abort
+                    if plugin_security_manager.is_quarantined(plugin_name):
+                        error_msg = f"Plugin {plugin_name} is quarantined by security manager"
+                        self.plugin_errors[plugin_name].append(error_msg)
+                        plugin_info.status = PluginStatus.QUARANTINED
+                        plugin_info.error_message = error_msg
+                        self.logger.error(error_msg)
+                        return False
+
+                    # If plugin is disabled in security manager (requires admin approval), do not load
+                    if not plugin_security_manager.is_plugin_enabled(plugin_name):
+                        self.logger.info(f"Plugin {plugin_name} is not enabled by admin approval. Marked as awaiting approval.")
+                        plugin_info.status = PluginStatus.DISABLED
+                        # Do not auto-load without admin approval
+                        return False
+
+                # Decide loading mode: sandboxed by default unless explicitly TRUSTED and security disabled
+                load_in_sandbox = True
+                if not self.security_enabled:
+                    load_in_sandbox = False
+                else:
+                    # If plugin explicitly TRUSTED and system allows trusted plugins, allow direct load
+                    if plugin_info.metadata.security_level == SecurityLevel.TRUSTED and not self.security_enabled:
+                        load_in_sandbox = False
+                    else:
+                        load_in_sandbox = True
+
+                # Legacy: if metadata explicitly TRUSTED and security is disabled, use direct
+                if plugin_info.metadata.security_level == SecurityLevel.TRUSTED and not self.security_enabled:
+                    load_in_sandbox = False
+
+                # If security is enabled, all non-TRUSTED plugins are sandboxed
+                if self.security_enabled and plugin_info.metadata.security_level != SecurityLevel.TRUSTED:
+                    load_in_sandbox = True
+
+                # Load plugin based on sandbox decision
+                if load_in_sandbox:
                     success = await self._load_plugin_sandboxed(plugin_name, plugin_info)
                 else:
                     success = await self._load_plugin_direct(plugin_name, plugin_info)
 
                 if success:
                     plugin_info.status = PluginStatus.LOADED
-                    plugin_info.loaded_at = datetime.now()
+                    plugin_info.loaded_at = datetime.now(timezone.utc)
                     self.stats["total_loaded"] += 1
 
                     # Register plugin components
@@ -875,11 +971,19 @@ __all__ = [
                     # Update load metrics
                     load_time = time.time() - start_time
                     self.plugin_load_times[plugin_name] = load_time
-                    self.plugin_metrics[plugin_name] = {
+                    self.plugin_metrics.setdefault(plugin_name, {})
+                    self.plugin_metrics[plugin_name].update({
                         "load_time": load_time,
                         "memory_usage": self._get_plugin_memory_usage(plugin_name),
                         "component_count": len(self.plugin_commands) + len(self.plugin_event_handlers)
-                    }
+                    })
+
+                    # Add security summary metrics if available
+                    try:
+                        if plugin_security_manager:
+                            self.plugin_metrics[plugin_name]["security"] = plugin_security_manager.get_plugin_permissions(plugin_name)
+                    except Exception:
+                        pass
 
                     # Add to load order
                     self.plugin_load_order.append(plugin_name)
@@ -891,15 +995,61 @@ __all__ = [
                     self.plugin_errors[plugin_name].append(error_msg)
                     plugin_info.status = PluginStatus.FAILED
                     self.stats["total_failed"] += 1
+                    # If security manager available and indicates suspicious import requests for this plugin, quarantine
+                    try:
+                        if self.isolation_manager.get_plugin_module_requests(plugin_name):
+                            await self.quarantine_plugin(plugin_name, reason="Blocked imports requested", quarantined_by="system")
+                    except Exception:
+                        pass
                     return False
 
         except Exception as e:
             error_msg = f"Error loading plugin {plugin_name}: {e}"
-            self.plugin_errors[plugin_name].append(error_msg)
+            self.plugin_errors.setdefault(plugin_name, []).append(error_msg)
             self.logger.error(error_msg, exc_info=True)
             if plugin_name in self.plugin_info:
                 self.plugin_info[plugin_name].status = PluginStatus.ERROR
                 self.plugin_info[plugin_name].error_message = str(e)
+            # Quarantine on unexpected critical error
+            try:
+                await self.quarantine_plugin(plugin_name, reason=str(e), quarantined_by="system")
+            except Exception:
+                pass
+            return False
+
+    async def _ensure_plugins_internal(self) -> bool:
+        """Ensure generated plugins_internal SDK is available and importable."""
+        try:
+            try:
+                import plugins_internal  # noqa: F401
+                return True
+            except Exception:
+                # Try to regenerate using central sdk generator
+                if sdk_generator:
+                    try:
+                        sdk_generator.regenerate_if_needed()
+                    except Exception:
+                        # fallback to calling function
+                        try:
+                            regenerate_plugins_internal_if_needed and regenerate_plugins_internal_if_needed()
+                        except Exception:
+                            pass
+                elif regenerate_plugins_internal_if_needed:
+                    try:
+                        regenerate_plugins_internal_if_needed()
+                    except Exception:
+                        pass
+                # Try importing again after generation attempt
+                try:
+                    import importlib
+                    importlib.invalidate_caches()
+                    import plugins_internal  # noqa: F401
+                    return True
+                except Exception as e:
+                    self.logger.error(f"plugins_internal import failed after generation: {e}")
+                    return False
+        except Exception as e:
+            self.logger.error(f"Unexpected error ensuring plugins_internal: {e}")
             return False
 
     async def _resolve_dependencies(self, plugin_name: str, visited: Optional[Set[str]] = None) -> bool:
@@ -924,6 +1074,20 @@ __all__ = [
                 self.logger.error(f"Missing dependency: {dependency} (required by {plugin_name})")
                 return False
 
+            # Check security policy for dependency
+            try:
+                if plugin_security_manager:
+                    if plugin_security_manager.is_quarantined(dependency):
+                        self.logger.error(f"Dependency {dependency} is quarantined; cannot satisfy dependency for {plugin_name}")
+                        return False
+                    if not plugin_security_manager.is_plugin_enabled(dependency):
+                        self.logger.error(f"Dependency {dependency} is not enabled (admin approval required); cannot load {plugin_name}")
+                        return False
+            except Exception:
+                # If security manager check fails, fail safe and prevent load
+                self.logger.error(f"Security check failed for dependency {dependency} required by {plugin_name}")
+                return False
+
             # Check if dependency is already loaded
             if dependency not in self.loaded_plugins:
                 # Recursively resolve dependency's dependencies
@@ -941,18 +1105,22 @@ __all__ = [
     async def _load_plugin_sandboxed(self, plugin_name: str, plugin_info: PluginInfo) -> bool:
         """Load plugin in sandboxed environment with enhanced security."""
         try:
-            # Create enhanced security profile
+            # Ensure plugins_internal available
+            if not await self._ensure_plugins_internal():
+                self.logger.error("plugins_internal module not available for sandboxed plugin")
+                return False
+
+            # Create enhanced security profile if available
             if enhanced_plugin_security:
-                security_level = getattr(EnhancedSecurityLevel, 'STANDARD', EnhancedSecurityLevel.STANDARD) if EnhancedSecurityLevel else None
-                if security_level:
-                    profile = enhanced_plugin_security.create_security_profile(plugin_name, security_level)
-
-                    # Create secure import hook
-                    secure_import = enhanced_plugin_security.create_secure_import_hook(plugin_name)
-
-                    # Temporarily replace __import__ for this plugin
-                    original_import = __builtins__['__import__']
-                    __builtins__['__import__'] = secure_import
+                try:
+                    security_level = getattr(EnhancedSecurityLevel, 'STANDARD', EnhancedSecurityLevel.STANDARD) if EnhancedSecurityLevel else None
+                    if security_level:
+                        profile = enhanced_plugin_security.create_security_profile(plugin_name, security_level)
+                        secure_import = enhanced_plugin_security.create_secure_import_hook(plugin_name)
+                        original_import = __builtins__['__import__']
+                        __builtins__['__import__'] = secure_import
+                except Exception:
+                    original_import = None
 
             # Use isolation manager with enhanced config
             config = {
@@ -961,7 +1129,7 @@ __all__ = [
                 'resource_limits': {
                     'memory_mb': 100,
                     'cpu_percent': 10,
-                    'network_access': True  # Allow network for enhanced plugins
+                    'network_access': True  # Default allow network via broker with checks
                 }
             }
 
@@ -971,7 +1139,7 @@ __all__ = [
 
             if success:
                 # Get plugin instance from isolated module
-                isolated_module = self.isolation_manager.isolated_modules[plugin_name]
+                isolated_module = self.isolation_manager.isolated_modules.get(plugin_name)
                 plugin_instance = await self._instantiate_plugin(plugin_name, isolated_module, plugin_info)
 
                 if plugin_instance:
@@ -979,28 +1147,38 @@ __all__ = [
                     plugin_info.instance = plugin_instance
 
                     # Restore original import if we modified it
-                    if enhanced_plugin_security and 'original_import' in locals():
-                        __builtins__['__import__'] = original_import
+                    if enhanced_plugin_security and 'original_import' in locals() and locals()['original_import']:
+                        __builtins__['__import__'] = locals()['original_import']
 
                     return True
 
             # Restore original import on failure
-            if enhanced_plugin_security and 'original_import' in locals():
-                __builtins__['__import__'] = original_import
+            if enhanced_plugin_security and 'original_import' in locals() and locals()['original_import']:
+                __builtins__['__import__'] = locals()['original_import']
 
             return False
 
         except Exception as e:
             # Restore original import on exception
-            if enhanced_plugin_security and 'original_import' in locals():
-                __builtins__['__import__'] = original_import
+            if enhanced_plugin_security and 'original_import' in locals() and locals()['original_import']:
+                __builtins__['__import__'] = locals()['original_import']
 
             self.logger.error(f"Failed to load sandboxed plugin {plugin_name}: {e}")
+            # If security manager exists, consider quarantining plugin on repeated failures
+            try:
+                await self.quarantine_plugin(plugin_name, reason=str(e), quarantined_by="system")
+            except Exception:
+                pass
             return False
 
     async def _load_plugin_direct(self, plugin_name: str, plugin_info: PluginInfo) -> bool:
         """Load plugin directly (trusted plugins)."""
         try:
+            # Ensure plugins_internal available
+            if not await self._ensure_plugins_internal():
+                self.logger.error("plugins_internal module not available for direct plugin")
+                return False
+
             # Find main module file
             main_files = [
                 plugin_info.path / "main.py",
@@ -1040,6 +1218,10 @@ __all__ = [
 
         except Exception as e:
             self.logger.error(f"Failed to load direct plugin {plugin_name}: {e}")
+            try:
+                await self.quarantine_plugin(plugin_name, reason=str(e), quarantined_by="system")
+            except Exception:
+                pass
             return False
 
     async def _instantiate_plugin(self, plugin_name: str, module: Any, plugin_info: PluginInfo) -> Optional[EnhancedBasePlugin]:
@@ -1059,8 +1241,18 @@ __all__ = [
                 self.logger.error(f"'plugin' in {plugin_name} is not an instance of EnhancedBasePlugin.")
                 return None
 
-            # Initialize the plugin
-            if await plugin_instance.initialize():
+            # Initialize the plugin (with sandbox context if available)
+            init_result = False
+            try:
+                if asyncio.iscoroutinefunction(plugin_instance.initialize):
+                    init_result = await plugin_instance.initialize()
+                else:
+                    init_result = plugin_instance.initialize()
+            except Exception as e:
+                self.logger.error(f"Plugin initialization exception for {plugin_name}: {e}", exc_info=True)
+                init_result = False
+
+            if init_result:
                 return plugin_instance
             else:
                 self.logger.error(f"Plugin initialization failed for: {plugin_name}")
@@ -1075,30 +1267,45 @@ __all__ = [
         try:
             plugin_instance = self.loaded_plugins[plugin_name]
             # Register commands
-            commands = plugin_instance.get_commands()
+            try:
+                commands = plugin_instance.get_commands()
+            except Exception:
+                commands = {}
             for cmd_name, cmd_func in commands.items():
                 full_cmd_name = f"{plugin_name}.{cmd_name}"
                 self.plugin_commands[full_cmd_name] = cmd_func
                 self.logger.debug(f"Registered command: {full_cmd_name}")
             # Register event handlers
-            event_handlers = plugin_instance.get_event_handlers()
+            try:
+                event_handlers = plugin_instance.get_event_handlers()
+            except Exception:
+                event_handlers = {}
             for event_name, handler_func in event_handlers.items():
                 if event_name not in self.plugin_event_handlers:
                     self.plugin_event_handlers[event_name] = []
                 self.plugin_event_handlers[event_name].append(handler_func)
                 self.logger.debug(f"Registered event handler: {event_name} for {plugin_name}")
             # --- Register routers ---
-            routers = plugin_instance.get_routers()
+            try:
+                routers = plugin_instance.get_routers()
+            except Exception:
+                routers = {}
             if routers:
                 self.plugin_routers[plugin_name] = routers
                 self.logger.info(f"Registered routers for plugin {plugin_name}: {list(routers.keys())}")
             # --- Register DB extensions ---
-            db_exts = plugin_instance.get_db_extensions()
+            try:
+                db_exts = plugin_instance.get_db_extensions()
+            except Exception:
+                db_exts = {}
             if db_exts:
                 self.plugin_db_extensions[plugin_name] = db_exts
                 self.logger.info(f"Registered DB extensions for plugin {plugin_name}: {list(db_exts.keys())}")
             # --- Register security features ---
-            sec_feats = plugin_instance.get_security_features()
+            try:
+                sec_feats = plugin_instance.get_security_features()
+            except Exception:
+                sec_feats = {}
             if sec_feats:
                 self.plugin_security_features[plugin_name] = sec_feats
                 self.logger.info(f"Registered security features for plugin {plugin_name}: {list(sec_feats.keys())}")
@@ -1156,7 +1363,7 @@ __all__ = [
                 if plugin_name in self.plugin_load_order:
                     self.plugin_load_order.remove(plugin_name)
 
-                self.stats["total_loaded"] -= 1
+                self.stats["total_loaded"] = max(0, self.stats.get("total_loaded", 0) - 1)
 
                 # Clear any stored errors
                 if plugin_name in self.plugin_errors:
@@ -1174,7 +1381,7 @@ __all__ = [
         try:
             # Unregister commands
             commands_to_remove = [
-                cmd_name for cmd_name in self.plugin_commands.keys()
+                cmd_name for cmd_name in list(self.plugin_commands.keys())
                 if cmd_name.startswith(f"{plugin_name}.")
             ]
             for cmd_name in commands_to_remove:
@@ -1182,16 +1389,38 @@ __all__ = [
                 self.logger.debug(f"Unregistered command: {cmd_name}")
 
             # Unregister event handlers
-            for event_name, handlers in self.plugin_event_handlers.items():
-                # Remove handlers from this plugin
-                # This is simplified - in practice, we'd need to track which handlers belong to which plugin
-                pass
+            for event_name, handlers in list(self.plugin_event_handlers.items()):
+                # Remove handlers associated with this plugin
+                new_handlers = []
+                for handler in handlers:
+                    # Best-effort removal: handlers might have __module__ or __qualname__ to inspect
+                    try:
+                        owner = getattr(handler, "__module__", None)
+                        if owner and owner.startswith(f"plugin_{plugin_name}"):
+                            continue
+                    except Exception:
+                        pass
+                    new_handlers.append(handler)
+                if new_handlers:
+                    self.plugin_event_handlers[event_name] = new_handlers
+                else:
+                    del self.plugin_event_handlers[event_name]
+
+            # Remove routers, db extensions, security features
+            self.plugin_routers.pop(plugin_name, None)
+            self.plugin_db_extensions.pop(plugin_name, None)
+            self.plugin_security_features.pop(plugin_name, None)
 
         except Exception as e:
             self.logger.error(f"Failed to unregister plugin components for {plugin_name}: {e}")
 
-    async def enable_plugin(self, plugin_name: str) -> bool:
-        """Enable a plugin."""
+    async def enable_plugin(self, plugin_name: str, approved_by: Optional[str] = None) -> bool:
+        """Enable a plugin.
+
+        Note: This method will mark plugin as enabled but will not load it unless the
+        security manager acknowledges admin approval. If security manager is present,
+        enabling without 'approved_by' will mark plugin as awaiting approval.
+        """
         try:
             if plugin_name not in self.plugin_info:
                 self.logger.error(f"Plugin not found: {plugin_name}")
@@ -1200,13 +1429,45 @@ __all__ = [
             plugin_info = self.plugin_info[plugin_name]
             plugin_info.metadata.enabled = True
 
-            # Update database if available
+            # If security manager exists, require admin approval to actually activate plugin
+            if plugin_security_manager:
+                if not approved_by:
+                    # Persist requested enabled state but not admin_approved
+                    await self._update_plugin_enabled(plugin_name, enabled=True, admin_approved=False)
+                    plugin_info.status = PluginStatus.DISABLED
+                    self.logger.info(f"Plugin enable requested for {plugin_name}; awaiting admin approval")
+                    return False
+                else:
+                    # Admin approval path
+                    try:
+                        approved = await plugin_security_manager.enable_plugin(plugin_name, approved_by)
+                        if not approved:
+                            self.logger.error(f"Security manager failed to enable plugin {plugin_name}")
+                            return False
+                        # Persist enabled state as admin approved
+                        await self._update_plugin_enabled(plugin_name, enabled=True, admin_approved=True, approved_by=approved_by)
+                        # Now load the plugin
+                        if plugin_name not in self.loaded_plugins:
+                            loaded = await self.load_plugin(plugin_name)
+                            if loaded:
+                                self.stats["total_enabled"] += 1
+                                return True
+                            return False
+                    except Exception as e:
+                        self.logger.error(f"Failed to enable plugin via security manager: {e}")
+                        return False
+
+            # No security manager: persist and load immediately
             if database_manager:
-                await self._update_plugin_enabled(plugin_name, True)
+                await self._update_plugin_enabled(plugin_name, enabled=True, admin_approved=True)
 
             # Load if not already loaded
             if plugin_name not in self.loaded_plugins:
-                return await self.load_plugin(plugin_name)
+                loaded = await self.load_plugin(plugin_name)
+                if loaded:
+                    self.stats["total_enabled"] += 1
+                    return True
+                return False
 
             self.stats["total_enabled"] += 1
             return True
@@ -1227,13 +1488,13 @@ __all__ = [
 
             # Update database if available
             if database_manager:
-                await self._update_plugin_enabled(plugin_name, False)
+                await self._update_plugin_enabled(plugin_name, False, admin_approved=False)
 
             # Unload if loaded
             if plugin_name in self.loaded_plugins:
                 await self.unload_plugin(plugin_name)
 
-            self.stats["total_enabled"] -= 1
+            self.stats["total_enabled"] = max(0, self.stats.get("total_enabled", 0) - 1)
             return True
 
         except Exception as e:
@@ -1258,7 +1519,7 @@ __all__ = [
             for plugin_name in sorted_plugins:
                 results[plugin_name] = await self.load_plugin(plugin_name)
 
-            loaded_count = sum(results.values())
+            loaded_count = sum(1 for v in results.values() if v)
             self.logger.info(f"Loaded {loaded_count}/{len(enabled_plugins)} enabled plugins")
 
             return results
@@ -1266,24 +1527,6 @@ __all__ = [
         except Exception as e:
             self.logger.error(f"Failed to load enabled plugins: {e}")
             return {}
-
-    def _generate_plugin_sdk(self):
-        """Auto-generate the plugin SDK (plugins_internal.py) in plugins directory."""
-        try:
-            # Generate SDK in plugins directory, not src
-            sdk_content = self._create_plugin_sdk_content()
-            sdk_file = self.plugins_dir / "plugins_internal.py"
-
-            # Ensure plugins directory exists
-            self.plugins_dir.mkdir(exist_ok=True)
-
-            with open(sdk_file, 'w') as f:
-                f.write(sdk_content)
-            self.logger.info(f"Generated plugin SDK: {sdk_file}")
-
-        except Exception as e:
-            self.logger.error(f"Failed to generate plugin SDK: {e}")
-
 
     def _sort_plugins_by_dependencies_and_priority(self, plugin_names: List[str]) -> List[str]:
         """Sort plugins by dependencies and priority."""
@@ -1295,7 +1538,7 @@ __all__ = [
             while remaining_plugins:
                 # Find plugins with no unresolved dependencies
                 ready_plugins = []
-                for plugin_name in remaining_plugins:
+                for plugin_name in list(remaining_plugins):
                     plugin_info = self.plugin_info[plugin_name]
                     dependencies = plugin_info.metadata.dependencies
 
@@ -1324,7 +1567,8 @@ __all__ = [
 
                 # Remove from remaining
                 for plugin_name in ready_plugins:
-                    remaining_plugins.remove(plugin_name)
+                    if plugin_name in remaining_plugins:
+                        remaining_plugins.remove(plugin_name)
 
             return sorted_plugins
 
@@ -1332,12 +1576,67 @@ __all__ = [
             self.logger.error(f"Failed to sort plugins: {e}")
             return plugin_names
 
-    async def _update_plugin_enabled(self, plugin_name: str, enabled: bool) -> None:
+    async def _update_plugin_enabled(self, plugin_name: str, enabled: bool, admin_approved: bool = False, approved_by: Optional[str] = None) -> None:
         """Update plugin enabled status in database."""
         try:
-            if database_manager:
-                # This would update the database
+            if not database_manager:
+                return
+
+            # Ensure plugin_settings table exists (best-effort)
+            try:
+                await database_manager.ensure_table_exists("plugin_settings", {
+                    "id": "INTEGER PRIMARY KEY AUTOINCREMENT",
+                    "plugin_name": "TEXT UNIQUE NOT NULL",
+                    "enabled": "BOOLEAN DEFAULT 0",
+                    "admin_approved": "BOOLEAN DEFAULT 0",
+                    "approved_by": "TEXT",
+                    "approved_at": "TIMESTAMP",
+                    "disabled_reason": "TEXT",
+                    "created_at": "TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
+                    "updated_at": "TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
+                })
+            except Exception:
+                # ignore create table errors
                 pass
+
+            async with database_manager.get_session() as session:
+                now = datetime.now(timezone.utc)
+                # Upsert pattern for sqlite
+                try:
+                    # Try an INSERT OR REPLACE (sqlite). For other DBs this may not be supported; fall back to delete+insert
+                    await session.execute("""
+                        INSERT OR REPLACE INTO plugin_settings
+                        (plugin_name, enabled, admin_approved, approved_by, approved_at, updated_at)
+                        VALUES (:plugin_name, :enabled, :admin_approved, :approved_by, :approved_at, :updated_at)
+                    """, {
+                        "plugin_name": plugin_name,
+                        "enabled": 1 if enabled else 0,
+                        "admin_approved": 1 if admin_approved else 0,
+                        "approved_by": approved_by,
+                        "approved_at": now if admin_approved else None,
+                        "updated_at": now
+                    })
+                    await session.commit()
+                except Exception:
+                    # Generic fallback: try delete then insert
+                    try:
+                        await session.execute("DELETE FROM plugin_settings WHERE plugin_name = :name", {"name": plugin_name})
+                        await session.execute("""
+                            INSERT INTO plugin_settings
+                            (plugin_name, enabled, admin_approved, approved_by, approved_at, updated_at)
+                            VALUES (:plugin_name, :enabled, :admin_approved, :approved_by, :approved_at, :updated_at)
+                        """, {
+                            "plugin_name": plugin_name,
+                            "enabled": 1 if enabled else 0,
+                            "admin_approved": 1 if admin_approved else 0,
+                            "approved_by": approved_by,
+                            "approved_at": now if admin_approved else None,
+                            "updated_at": now
+                        })
+                        await session.commit()
+                    except Exception as e:
+                        self.logger.error(f"Failed to upsert plugin_settings for {plugin_name}: {e}")
+
         except Exception as e:
             self.logger.error(f"Failed to update plugin enabled status: {e}")
 
@@ -1366,7 +1665,7 @@ __all__ = [
                 "plugin_results": {}
             }
 
-            for plugin_name in self.loaded_plugins:
+            for plugin_name in list(self.loaded_plugins.keys()):
                 test_results = await self.run_plugin_tests(plugin_name)
                 if test_results and "error" not in test_results:
                     all_results["plugins_with_tests"] += 1
@@ -1425,6 +1724,17 @@ __all__ = [
 
     def get_stats(self) -> Dict[str, Any]:
         """Get plugin manager statistics."""
+        quarantined = []
+        try:
+            if plugin_security_manager:
+                try:
+                    # security manager exposes quarantined set
+                    quarantined = list(getattr(plugin_security_manager, "_quarantined_plugins", []))
+                except Exception:
+                    quarantined = []
+        except Exception:
+            quarantined = []
+
         return {
             **self.stats,
             "discovered_plugins": list(self.discovered_plugins),
@@ -1435,8 +1745,9 @@ __all__ = [
             ],
             "failed_plugins": [
                 name for name, info in self.plugin_info.items()
-                if info.status in [PluginStatus.ERROR, PluginStatus.FAILED]
-            ]
+                if info.status in [PluginStatus.ERROR, PluginStatus.FAILED, PluginStatus.QUARANTINED]
+            ],
+            "quarantined_plugins": quarantined
         }
 
     async def execute_command(self, command_name: str, *args, **kwargs) -> Any:
@@ -1463,7 +1774,7 @@ __all__ = [
             results = []
 
             if event_name in self.plugin_event_handlers:
-                for handler in self.plugin_event_handlers[event_name]:
+                for handler in list(self.plugin_event_handlers[event_name]):
                     try:
                         if asyncio.iscoroutinefunction(handler):
                             result = await handler(*args, **kwargs)
@@ -1479,6 +1790,77 @@ __all__ = [
         except Exception as e:
             self.logger.error(f"Failed to emit event {event_name}: {e}")
             return []
+
+    async def quarantine_plugin(self, plugin_name: str, reason: str, quarantined_by: str) -> bool:
+        """Quarantine a plugin due to security violations or suspicious behavior."""
+        try:
+            if plugin_name not in self.plugin_info:
+                self.logger.error(f"Plugin not found to quarantine: {plugin_name}")
+                return False
+
+            # Unload plugin if loaded
+            if plugin_name in self.loaded_plugins:
+                try:
+                    await self.unload_plugin(plugin_name)
+                except Exception:
+                    pass
+
+            # Mark as quarantined in local state
+            self.plugin_info[plugin_name].status = PluginStatus.QUARANTINED
+            self.plugin_info[plugin_name].error_message = f"Quarantined: {reason}"
+
+            # Ask security manager to quarantine (persistent)
+            if plugin_security_manager:
+                try:
+                    plugin_security_manager.quarantine_plugin(plugin_name, reason, quarantined_by)
+                except Exception as e:
+                    self.logger.error(f"Failed to record quarantine in security manager: {e}")
+
+            # Persist quarantine in DB plugin_settings if available
+            if database_manager:
+                try:
+                    await self._update_plugin_enabled(plugin_name, enabled=False, admin_approved=False)
+                except Exception:
+                    pass
+
+            self.logger.critical(f"Plugin {plugin_name} quarantined by {quarantined_by}: {reason}")
+            return True
+
+        except Exception as e:
+            self.logger.error(f"Failed to quarantine plugin {plugin_name}: {e}")
+            return False
+
+    async def release_plugin_quarantine(self, plugin_name: str, released_by: str) -> bool:
+        """Release a plugin from quarantine."""
+        try:
+            if plugin_name not in self.plugin_info:
+                self.logger.error(f"Plugin not found to release from quarantine: {plugin_name}")
+                return False
+
+            # Ask security manager to release
+            if plugin_security_manager:
+                try:
+                    plugin_security_manager.release_from_quarantine(plugin_name, released_by)
+                except Exception as e:
+                    self.logger.error(f"Failed to release quarantine in security manager: {e}")
+
+            # Update status locally
+            self.plugin_info[plugin_name].status = PluginStatus.DISCOVERED
+            self.plugin_info[plugin_name].error_message = None
+
+            # Persist state in DB if available
+            if database_manager:
+                try:
+                    await self._update_plugin_enabled(plugin_name, enabled=False, admin_approved=False)
+                except Exception:
+                    pass
+
+            self.logger.warning(f"Plugin {plugin_name} released from quarantine by {released_by}")
+            return True
+
+        except Exception as e:
+            self.logger.error(f"Failed to release plugin {plugin_name} from quarantine: {e}")
+            return False
 
     async def shutdown(self) -> None:
         """Shutdown the plugin manager with improved cleanup."""
@@ -1543,18 +1925,15 @@ __all__ = [
         try:
             import psutil
             process = psutil.Process()
-            
+
             # Get memory before
             mem_before = process.memory_info().rss
 
-            # Import plugin module
-            plugin_info = self.plugin_info[plugin_name]
-            if plugin_info.module:
-                # Get memory after
-                mem_after = process.memory_info().rss
-                
-                # Return difference in MB
-                return (mem_after - mem_before) / (1024 * 1024)
+            # Potentially instrument plugin's thread/process etc. For now estimate.
+            mem_after = process.memory_info().rss
+
+            # Return difference in MB
+            return max(0.0, (mem_after - mem_before) / (1024 * 1024))
         except:
             pass
         return 0.0

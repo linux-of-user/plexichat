@@ -27,7 +27,7 @@ except ImportError:
 try:
     from plexichat.core.performance.optimization_engine import PerformanceOptimizationEngine
     from plexichat.infrastructure.utils.performance import async_track_performance
-    from plexichat.core.logging_advanced.performance_logger import get_performance_logger, timer
+    from plexichat.core.logging import get_performance_logger, timer
 except ImportError:
     PerformanceOptimizationEngine = None
     async_track_performance = None
@@ -84,7 +84,7 @@ class StatusService:
         """Get health status with performance tracking."""
         # Performance tracking
         if self.performance_logger:
-            self.performance_logger.record_metric("health_check_requests", 1, "count")
+            self.performance_logger.increment_counter("health_check_requests", 1)
 
         return HealthResponse(
             status="ok",
@@ -96,7 +96,7 @@ class StatusService:
         """Get uptime information with performance tracking."""
         # Performance tracking
         if self.performance_logger:
-            self.performance_logger.record_metric("uptime_requests", 1, "count")
+            self.performance_logger.increment_counter("uptime_requests", 1)
 
         now = datetime.now(timezone.utc)
         uptime_duration = now - server_start_time
@@ -159,7 +159,7 @@ class StatusService:
 
             # Performance tracking
             if self.performance_logger:
-                self.performance_logger.record_metric("metrics_requests", 1, "count")
+                self.performance_logger.increment_counter("metrics_requests", 1)
 
             return MetricsResponse(
                 users=user_count,
@@ -217,7 +217,7 @@ async def get_comprehensive_status(request: Request):
             "timestamp": datetime.now().isoformat() + "Z"
         }
         if performance_logger:
-            performance_logger.record_metric("comprehensive_status_requests", 1, "count")
+            performance_logger.increment_counter("comprehensive_status_requests", 1)
         return comprehensive_status
     except Exception as e:
         logger.error(f"Error getting comprehensive status: {e}")

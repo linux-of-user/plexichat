@@ -13,42 +13,42 @@ from plexichat.core.security.security_decorators import (
     require_auth, require_admin, rate_limit, audit_access, validate_input,
     secure_endpoint, admin_endpoint, SecurityLevel, RequiredPermission
 )
-from plexichat.core.logging_advanced.advanced_logging_system import (
-    get_enhanced_logging_system, LogCategory, LogLevel, PerformanceMetrics, PerformanceTracker
+from plexichat.core.logging import (
+    get_logging_system, LogCategory, LogLevel, PerformanceMetrics, PerformanceTracker
 )
     print(f"Security decorators import error: {e}")
     # Fallback decorators that do nothing
     def require_auth(*args, **kwargs):
         def decorator(func): return func
         return decorator
-    
+
     def require_admin(*args, **kwargs):
         def decorator(func): return func
         return decorator
-    
+
     def rate_limit(*args, **kwargs):
         def decorator(func): return func
         return decorator
-    
+
     def audit_access(*args, **kwargs):
         def decorator(func): return func
         return decorator
-    
+
     def validate_input(*args, **kwargs):
         def decorator(func): return func
         return decorator
-    
+
     def secure_endpoint(*args, **kwargs):
         def decorator(func): return func
         return decorator
-    
+
     def admin_endpoint(*args, **kwargs):
         def decorator(func): return func
         return decorator
-    
+
     SecurityLevel = type('SecurityLevel', (), {})
     RequiredPermission = type('RequiredPermission', (), {})
-    get_enhanced_logging_system = lambda: None
+    get_logging_system = lambda: None
     LogCategory = type('LogCategory', (), {})
     LogLevel = type('LogLevel', (), {})
     PerformanceMetrics = type('PerformanceMetrics', (), {})
@@ -57,7 +57,7 @@ from plexichat.core.logging_advanced.advanced_logging_system import (
 router = APIRouter()
 
 # Get logging system
-logging_system = get_enhanced_logging_system()
+logging_system = get_logging_system()
 if logging_system:
     logger = logging_system.get_logger(__name__)
 else:

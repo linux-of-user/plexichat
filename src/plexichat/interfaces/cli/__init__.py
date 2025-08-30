@@ -7,12 +7,12 @@ import logging
 logger = logging.getLogger(__name__)
 
 try:
-from plexichat.interfaces.cli.main_cli import main
-from plexichat.interfaces.cli.console_manager import EnhancedSplitScreen
-    
+    from plexichat.interfaces.cli.main_cli import main
+    from plexichat.interfaces.cli.console_manager import EnhancedSplitScreen
+
     # Create a simple CLI app reference
     cli_app = True
-    
+
     logger.info("CLI interface initialized successfully")
     
 except ImportError as e:

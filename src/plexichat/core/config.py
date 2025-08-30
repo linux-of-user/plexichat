@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 # Try to import the unified config system
 try:
-    from plexichat.src.plexichat.core.config_manager import (
+    from plexichat.core.config_manager import (
         UnifiedConfig,
         UnifiedConfigManager,
         get_config_manager,
@@ -23,11 +23,13 @@ try:
         SecurityConfig,
         CachingConfig,
         AIConfig,
-        WebUIConfig,
         LoggingConfig,
-        MessagingConfig,
-        PerformanceConfig,
-        FilesConfig
+        ClusterConfig,
+        SecurityEnhancedConfig,
+        DDoSProtectionConfig,
+        PluginSecurityConfig,
+        BackupConfig,
+        CallingServiceConfig
     )
 
     # Get the global config manager
@@ -171,11 +173,13 @@ try:
         "SecurityConfig",
         "CachingConfig",
         "AIConfig",
-        "WebUIConfig",
         "LoggingConfig",
-        "MessagingConfig",
-        "PerformanceConfig",
-        "FilesConfig",
+        "ClusterConfig",
+        "SecurityEnhancedConfig",
+        "DDoSProtectionConfig",
+        "PluginSecurityConfig",
+        "BackupConfig",
+        "CallingServiceConfig",
     ])
 except NameError:
     pass

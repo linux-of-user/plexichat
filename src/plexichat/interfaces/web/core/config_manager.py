@@ -51,21 +51,7 @@ class MFAConfig:
         if self.methods is None:
             self.methods = ['totp', 'backup_codes']
 
-@dataclass
-class AuthStorageConfig:
-    """Distributed authentication storage configuration."""
-    storage_type: str = "distributed"  # 'single', 'distributed', 'external'
-    primary_storage: str = "database"  # 'database', 'file', 'redis', 'external'
-    backup_storages: Optional[List[str]] = None  # ['file', 'redis']
-    sync_interval: int = 300  # 5 minutes
-    encryption_enabled: bool = True
-    encryption_key_rotation: int = 86400  # 24 hours
-    session_replication: bool = True
-    failover_enabled: bool = True
 
-    def __post_init__(self):
-        if self.backup_storages is None:
-            self.backup_storages = ['file']
 
 @dataclass
 class SelfTestConfig:
@@ -125,7 +111,7 @@ class WebUIConfigManager:
 
         # Get unified config system
         try:
-            from plexichat.src.plexichat.core.config_manager import get_config
+            from plexichat.core.config_manager import get_config
             self.unified_config = get_config()
             self.use_unified_config = True
             logger.info("WebUI config manager using unified configuration system")
@@ -137,7 +123,7 @@ class WebUIConfigManager:
         # Configuration objects (legacy support)
         self.port_config = WebUIPortConfig()
         self.mfa_config = MFAConfig()
-        self.auth_storage_config = AuthStorageConfig()
+        
         self.self_test_config = SelfTestConfig()
         self.feature_toggle_config = FeatureToggleConfig()
 
@@ -229,8 +215,7 @@ class WebUIConfigManager:
         if 'mfa' in config_data:
             self.mfa_config = MFAConfig(**config_data['mfa'])
 
-        if 'auth_storage' in config_data:
-            self.auth_storage_config = AuthStorageConfig(**config_data['auth_storage'])
+        
 
         if 'self_tests' in config_data:
             self.self_test_config = SelfTestConfig(**config_data['self_tests'])
@@ -259,7 +244,7 @@ class WebUIConfigManager:
                 'last_updated': datetime.now(datetime.timezone.utc).isoformat(),
                 'ports': asdict(self.port_config),
                 'mfa': asdict(self.mfa_config),
-                'auth_storage': asdict(self.auth_storage_config),
+                
                 'self_tests': asdict(self.self_test_config),
                 'feature_toggles': asdict(self.feature_toggle_config)
             }
@@ -272,7 +257,7 @@ class WebUIConfigManager:
             auth_data = {
                 'version': '1.0.0',
                 'last_updated': datetime.now(datetime.timezone.utc).isoformat(),
-                'storage_config': asdict(self.auth_storage_config)
+                
             }
 
             # Encrypt sensitive authentication data
@@ -389,9 +374,7 @@ class WebUIConfigManager:
         """Check if self-tests are enabled."""
         return self.self_test_config.enabled
 
-    def get_auth_storage_config(self) -> AuthStorageConfig:
-        """Get authentication storage configuration."""
-        return self.auth_storage_config
+    
 
     def validate_configuration(self) -> Dict[str, Any]:
         """Validate current configuration and return status."""
@@ -417,9 +400,7 @@ class WebUIConfigManager:
             validation_results['errors'].append("MFA enabled but no methods configured")
             validation_results['valid'] = False
 
-        # Validate authentication storage
-        if self.auth_storage_config.storage_type == "distributed" and not self.auth_storage_config.backup_storages:
-            validation_results['warnings'].append("Distributed storage configured but no backup storages specified")
+        
 
         return validation_results
 

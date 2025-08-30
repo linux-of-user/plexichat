@@ -41,7 +41,7 @@ import weakref
 
 # Security integration
 try:
-    from plexichat.src.plexichat.core.security.security_manager import get_unified_security_system
+    from plexichat.core.security.security_manager import get_unified_security_system
     from plexichat.core.security.comprehensive_security_manager import get_security_manager
     SECURITY_AVAILABLE = True
 except ImportError:
@@ -599,7 +599,7 @@ class UltraAdvancedScalabilityManager:
             # Initialize system integrations
             if SECURITY_AVAILABLE:
                 try:
-                    from plexichat.src.plexichat.core.security.security_manager import get_unified_security_system
+                    from plexichat.core.security.security_manager import get_unified_security_system
                     from plexichat.core.security.comprehensive_security_manager import get_security_manager
                     self.security_system = get_unified_security_system()
                 except ImportError:

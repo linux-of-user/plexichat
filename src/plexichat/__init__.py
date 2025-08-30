@@ -52,7 +52,7 @@ class PlexiChatManager:
             logger.info(f"Registered module: {name} (status: {status})")
 
             if self.performance_logger:
-                self.performance_logger.record_metric("modules_registered", 1, "count")
+                self.performance_logger.increment_counter("modules_registered", 1)
 
         except Exception as e:
             logger.error(f"Error registering module {name}: {e}")
@@ -79,7 +79,7 @@ class PlexiChatManager:
             logger.info("PlexiChat system initialized successfully")
 
             if self.performance_logger:
-                self.performance_logger.record_metric("system_initializations", 1, "count")
+                self.performance_logger.increment_counter("system_initializations", 1)
 
         except Exception as e:
             logger.error(f"Error initializing PlexiChat system: {e}")

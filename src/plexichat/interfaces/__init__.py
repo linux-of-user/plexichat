@@ -5,11 +5,12 @@ PlexiChat Interface Layer - Clean Recreated Version
 - Ensures webui and gui both use the CLI from interfaces/cli
 """
 
-import logging
 from typing import Dict
 import importlib
 
-logger = logging.getLogger(__name__)
+from plexichat.core.logging import get_logger
+
+logger = get_logger(__name__)
 
 class InterfaceManager:
     def __init__(self):

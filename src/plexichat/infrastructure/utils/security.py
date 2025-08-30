@@ -46,7 +46,7 @@ except ImportError:
 try:
     from plexichat.core.performance.optimization_engine import PerformanceOptimizationEngine
     from plexichat.infrastructure.utils.performance import async_track_performance
-    from plexichat.core.logging_advanced.performance_logger import get_performance_logger, timer
+    from plexichat.core.logging import get_performance_logger, timer
 except ImportError:
     PerformanceOptimizationEngine = None
     async_track_performance = None
@@ -344,8 +344,8 @@ class SecurityUtilities:
 
                 # Performance tracking
                 if self.performance_logger:
-                    self.performance_logger.record_metric("security_events_logged", 1, "count")
-                    self.performance_logger.record_metric(f"security_event_{event_type}", 1, "count")
+                    self.performance_logger.increment_counter("security_events_logged", 1)
+                    self.performance_logger.increment_counter(f"security_event_{event_type}", 1)
 
             # Also log to application logger
             logger.warning(f"Security Event: {event_type} - User: {user_id} - Details: {details}")

@@ -30,7 +30,7 @@ class FeatureManager:
             self.feature_configs[name] = config or {}
             logger.info(f"Registered feature: {name} (enabled: {enabled})")
             if self.performance_logger:
-                self.performance_logger.record_metric("features_registered", 1, "count")
+                self.performance_logger.increment_counter("features_registered", 1)
         except Exception as e:
             logger.error(f"Error registering feature {name}: {e}")
 
@@ -111,6 +111,6 @@ __all__ = [
 ]
 
 # Version info
-from plexichat.src.plexichat.core.config_manager import get_config
+from plexichat.core.config_manager import get_config
 
 __version__ = get_config("system.version", "0.0.0")

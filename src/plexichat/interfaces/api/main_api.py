@@ -56,7 +56,7 @@ from plexichat.infrastructure.analytics.engine import analytics_manager
 from plexichat.core.security.comprehensive_security_manager import security_manager
 
 try:
-    from plexichat.core.logging_advanced.performance_logger import get_performance_logger
+    from plexichat.core.logging import get_performance_logger
 except ImportError:
     get_performance_logger = None
 
@@ -175,7 +175,7 @@ async def performance_middleware(request: Request, call_next):
 
     if performance_logger:
         performance_logger.record_metric("api_request_duration", process_time, "seconds")
-        performance_logger.record_metric("api_requests", 1, "count")
+        performance_logger.increment_counter("api_requests", 1)
 
     return response
 
@@ -199,7 +199,7 @@ async def general_exception_handler(_request: Request, exc: Exception):
     logger.error(f"Unhandled exception: {exc}")
 
     if performance_logger:
-        performance_logger.record_metric("api_errors", 1, "count")
+        performance_logger.increment_counter("api_errors", 1)
 
     return JSONResponse(
         status_code=500,

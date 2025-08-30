@@ -14,7 +14,6 @@ Uses EXISTING database abstraction and optimization systems.
 import hashlib
 import hmac
 import json
-import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
@@ -34,23 +33,17 @@ except ImportError:
 try:
     from plexichat.core.performance.optimization_engine import PerformanceOptimizationEngine
     from plexichat.infrastructure.utils.performance import async_track_performance
-    from plexichat.core.logging_advanced.performance_logger import get_performance_logger, timer
 except ImportError:
     PerformanceOptimizationEngine = None
     async_track_performance = None
-    get_performance_logger = None
-    timer = None
 
-# Authentication imports
-try:
-    from plexichat.infrastructure.utils.auth import get_current_user, require_admin
-except ImportError:
-    def get_current_user():
-        return {"id": 1, "username": "admin", "is_admin": True}
-    def require_admin():
-        return {"id": 1, "username": "admin", "is_admin": True}
+# Authentication imports - unified FastAPI adapter
+from plexichat.core.auth.fastapi_adapter import get_current_user, require_admin
 
-# Security imports
+# Security decorators and permission enums from unified security system
+from plexichat.core.security.security_decorators import secure_endpoint, admin_required, RequiredPermission
+
+# Input sanitizer (best-effort import; fallback minimal implementation)
 try:
     from plexichat.infrastructure.utils.security import InputSanitizer
 except ImportError:
@@ -65,83 +58,15 @@ try:
 except ImportError:
     httpx = None
 
-logger = logging.getLogger(__name__)
+# Unified logging
+from plexichat.core.logging import get_logger
+from plexichat.core.logging_system.unified_logger import LogCategory
+
+logger = get_logger(__name__)
 router = APIRouter(prefix="/webhooks", tags=["webhooks"])
 
 # Initialize EXISTING performance systems
-performance_logger = get_performance_logger() if get_performance_logger else None
 optimization_engine = PerformanceOptimizationEngine() if PerformanceOptimizationEngine else None
-
-# Import enhanced security decorators
-try:
-    from plexichat.core.security.security_decorators import (
-        secure_endpoint, admin_endpoint, require_auth, rate_limit, audit_access,
-        SecurityLevel, RequiredPermission
-    )
-    from plexichat.core.logging_advanced.enhanced_logging_system import (
-        get_enhanced_logging_system, LogCategory, LogLevel, PerformanceTracker
-    )
-    ENHANCED_SECURITY_AVAILABLE = True
-    
-    # Get enhanced logging system
-    logging_system = get_enhanced_logging_system()
-    if logging_system:
-        enhanced_logger = logging_system.get_logger(__name__)
-        logger.info("Enhanced security and logging initialized for webhooks")
-    else:
-        enhanced_logger = None
-        
-except ImportError as e:
-    logger.warning(f"Enhanced security not available for webhooks: {e}")
-    # Fallback decorators
-    def secure_endpoint(*args, **kwargs):
-        def decorator(func): return func
-        return decorator
-    
-    def admin_endpoint(*args, **kwargs):
-        def decorator(func): return func
-        return decorator
-    
-    def require_auth(*args, **kwargs):
-        def decorator(func): return func
-        return decorator
-    
-    def rate_limit(*args, **kwargs):
-        def decorator(func): return func
-        return decorator
-    
-    def audit_access(*args, **kwargs):
-        def decorator(func): return func
-        return decorator
-    
-    class SecurityLevel:
-        AUTHENTICATED = 2
-        ADMIN = 4
-    
-    class RequiredPermission:
-        WRITE = "write"
-        DELETE = "delete"
-    
-    class LogCategory:
-        API = "api"
-        AUDIT = "audit"
-        PERFORMANCE = "performance"
-        SECURITY = "security"
-    
-    class PerformanceTracker:
-        def __init__(self, name, logger):
-            self.name = name
-            self.logger = logger
-        def __enter__(self):
-            return self
-        def __exit__(self, *args):
-            pass
-        def add_metadata(self, **kwargs):
-            pass
-    
-    ENHANCED_SECURITY_AVAILABLE = False
-    enhanced_logger = None
-    logging_system = None
 
 # Pydantic models
 class WebhookCreate(BaseModel):
@@ -187,7 +112,8 @@ class WebhookService:
     def __init__(self):
         # Use EXISTING database manager
         self.db_manager = database_manager
-        self.performance_logger = performance_logger
+        # Use unified logger for performance telemetry and logs
+        self.logger = logger
 
     @async_track_performance("webhook_creation") if async_track_performance else lambda f: f
     async def create_webhook(self, webhook_data: WebhookCreate, user_id: int) -> WebhookResponse:
@@ -210,10 +136,11 @@ class WebhookService:
                     "created_at": datetime.now()
                 }
 
-                if self.performance_logger and timer:
-                    with timer("webhook_creation_query"):
+                # Use unified logger's timer context when available for timing DB queries
+                try:
+                    with logger.timer("webhook_creation_query"):
                         result = await self.db_manager.execute_query(create_query, create_params)
-                else:
+                except Exception:
                     result = await self.db_manager.execute_query(create_query, create_params)
 
                 if result:
@@ -229,7 +156,7 @@ class WebhookService:
                     )
 
             except Exception as e:
-                logger.error(f"Error creating webhook: {e}")
+                self.logger.error(f"Error creating webhook: {e}", category=LogCategory.DATABASE, extra_data={"error": str(e)})
                 raise HTTPException(status_code=500, detail="Failed to create webhook")
 
         # Fallback mock webhook
@@ -257,10 +184,10 @@ class WebhookService:
                 """
                 params = {"user_id": user_id, "limit": limit, "offset": offset}
 
-                if self.performance_logger and timer:
-                    with timer("webhook_list_query"):
+                try:
+                    with logger.timer("webhook_list_query"):
                         result = await self.db_manager.execute_query(query, params)
-                else:
+                except Exception:
                     result = await self.db_manager.execute_query(query, params)
 
                 webhooks = []
@@ -279,7 +206,7 @@ class WebhookService:
                 return webhooks
 
             except Exception as e:
-                logger.error(f"Error listing webhooks: {e}")
+                self.logger.error(f"Error listing webhooks: {e}", category=LogCategory.DATABASE, extra_data={"error": str(e)})
                 return []
 
         return []
@@ -297,10 +224,10 @@ class WebhookService:
                 """
                 webhook_params = {"id": webhook_id}
 
-                if self.performance_logger and timer:
-                    with timer("webhook_get_query"):
+                try:
+                    with logger.timer("webhook_get_query"):
                         result = await self.db_manager.execute_query(webhook_query, webhook_params)
-                else:
+                except Exception:
                     result = await self.db_manager.execute_query(webhook_query, webhook_params)
 
                 if not result:
@@ -348,7 +275,7 @@ class WebhookService:
                             response_body = response.text[:1000]  # Limit response body
                             delivery_status = "success" if 200 <= response_code < 300 else "failed"
                     except Exception as e:
-                        logger.error(f"Webhook delivery failed: {e}")
+                        self.logger.error(f"Webhook delivery failed: {e}", category=LogCategory.API, extra_data={"webhook_id": webhook_id, "error": str(e)})
                         delivery_status = "failed"
                         response_body = str(e)[:1000]
 
@@ -366,10 +293,10 @@ class WebhookService:
                     "created_at": datetime.now()
                 }
 
-                if self.performance_logger and timer:
-                    with timer("webhook_delivery_log"):
+                try:
+                    with logger.timer("webhook_delivery_log"):
                         await self.db_manager.execute_query(delivery_query, delivery_params)
-                else:
+                except Exception:
                     await self.db_manager.execute_query(delivery_query, delivery_params)
 
                 # Update last_triggered
@@ -378,16 +305,16 @@ class WebhookService:
                 """
                 update_params = {"last_triggered": datetime.now(), "id": webhook_id}
 
-                if self.performance_logger and timer:
-                    with timer("webhook_update_triggered"):
+                try:
+                    with logger.timer("webhook_update_triggered"):
                         await self.db_manager.execute_query(update_query, update_params)
-                else:
+                except Exception:
                     await self.db_manager.execute_query(update_query, update_params)
 
                 return delivery_status == "success"
 
             except Exception as e:
-                logger.error(f"Error triggering webhook: {e}")
+                self.logger.error(f"Error triggering webhook: {e}", category=LogCategory.API, extra_data={"error": str(e)})
                 return False
 
         return False
@@ -402,11 +329,10 @@ webhook_service = WebhookService()
     summary="Create webhook"
 )
 @secure_endpoint(
-    auth_level=SecurityLevel.AUTHENTICATED,
-    permissions=[RequiredPermission.WRITE],
+    auth_required=True,
+    permission=RequiredPermission.WRITE,
     rate_limit_rpm=10,
-    audit_action="create_webhook",
-    validate_input_size=5*1024  # 5KB max
+    audit_action="create_webhook"
 )
 async def create_webhook(
     request: Request,
@@ -415,69 +341,59 @@ async def create_webhook(
 ):
     """Create a new webhook with enhanced security and performance optimization."""
     client_ip = request.client.host if request.client else "unknown"
-    
-    # Enhanced logging
-    if enhanced_logger and logging_system:
-        logging_system.set_context(
+
+    # Use unified logger with context
+    try:
+        logger.set_context(
             user_id=str(current_user.get("id", "")),
             endpoint="/webhooks/",
             method="POST",
             ip_address=client_ip
         )
-        
-        enhanced_logger.info(
-            f"Webhook creation requested by user {current_user.get('username')}",
-            extra={
-                "category": LogCategory.API,
-                "metadata": {
-                    "webhook_name": webhook_data.name,
-                    "webhook_url": webhook_data.url[:100] + "..." if len(webhook_data.url) > 100 else webhook_data.url,
-                    "event_count": len(webhook_data.events)
-                },
-                "tags": ["webhook", "create", "api"]
-            }
-        )
-    else:
-        logger.info(f"Webhook creation requested by user {current_user.get('username')} from {client_ip}")
+    except Exception:
+        # best-effort, non-fatal
+        pass
 
-    # Performance tracking with enhanced system
-    if ENHANCED_SECURITY_AVAILABLE and enhanced_logger:
-        with PerformanceTracker("create_webhook", enhanced_logger) as tracker:
-            tracker.add_metadata(
-                user_id=current_user.get("id"),
-                webhook_events=len(webhook_data.events)
-            )
-            
+    logger.info(
+        f"Webhook creation requested by user {current_user.get('username')}",
+        category=LogCategory.API,
+        extra_data={
+            "metadata": {
+                "webhook_name": webhook_data.name,
+                "webhook_url": webhook_data.url[:100] + "..." if len(webhook_data.url) > 100 else webhook_data.url,
+                "event_count": len(webhook_data.events)
+            },
+            "tags": ["webhook", "create", "api"]
+        }
+    )
+
+    # Performance tracking with unified logger timer
+    try:
+        with logger.timer("create_webhook"):
             # Sanitize inputs
             webhook_data.name = InputSanitizer.sanitize_input(webhook_data.name)
             webhook_data.url = InputSanitizer.sanitize_input(webhook_data.url)
-            
-            result = await webhook_service.create_webhook(webhook_data, current_user.get("id", 0))
-            
-            # Log successful creation
-            if enhanced_logger:
-                enhanced_logger.info(
-                    f"Webhook created successfully: {result.get('id', 'unknown')}",
-                    extra={
-                        "category": LogCategory.AUDIT,
-                        "metadata": {
-                            "webhook_id": result.get("id"),
-                            "created_by": current_user.get("username")
-                        },
-                        "tags": ["webhook", "created", "success"]
-                    }
-                )
-            
-            return result
-    else:
-        # Fallback to original performance tracking
-        if performance_logger:
-            performance_logger.record_metric("webhook_creation_requests", 1, "count")
 
-        # Sanitize inputs
+            result = await webhook_service.create_webhook(webhook_data, current_user.get("id", 0))
+
+            # Log successful creation as audit
+            logger.audit(
+                f"Webhook created successfully: {getattr(result, 'id', 'unknown')}",
+                category=LogCategory.AUDIT,
+                extra_data={
+                    "metadata": {
+                        "webhook_id": getattr(result, 'id', None),
+                        "created_by": current_user.get("username")
+                    },
+                    "tags": ["webhook", "created", "success"]
+                }
+            )
+
+            return result
+    except Exception:
+        # Fallback path without timer if timer usage fails
         webhook_data.name = InputSanitizer.sanitize_input(webhook_data.name)
         webhook_data.url = InputSanitizer.sanitize_input(webhook_data.url)
-
         return await webhook_service.create_webhook(webhook_data, current_user.get("id", 0))
 
 @router.get(
@@ -486,7 +402,7 @@ async def create_webhook(
     summary="List webhooks"
 )
 @secure_endpoint(
-    auth_level=SecurityLevel.AUTHENTICATED,
+    auth_required=True,
     rate_limit_rpm=60,
     audit_action="list_webhooks"
 )
@@ -498,63 +414,49 @@ async def list_webhooks(
 ):
     """List user's webhooks with enhanced performance monitoring."""
     client_ip = request.client.host if request.client else "unknown"
-    
-    # Enhanced logging
-    if enhanced_logger and logging_system:
-        logging_system.set_context(
+
+    try:
+        logger.set_context(
             user_id=str(current_user.get("id", "")),
             endpoint="/webhooks/",
             method="GET",
             ip_address=client_ip
         )
-        
-        enhanced_logger.info(
-            f"Webhook list requested by user {current_user.get('username')}",
-            extra={
-                "category": LogCategory.API,
-                "metadata": {
-                    "limit": limit,
-                    "offset": offset,
-                    "user_id": current_user.get("id")
-                },
-                "tags": ["webhook", "list", "api"]
-            }
-        )
-    else:
-        logger.info(f"Webhook list requested by user {current_user.get('username')} from {client_ip}")
+    except Exception:
+        pass
 
-    # Performance tracking with enhanced system
-    if ENHANCED_SECURITY_AVAILABLE and enhanced_logger:
-        with PerformanceTracker("list_webhooks", enhanced_logger) as tracker:
-            tracker.add_metadata(
-                user_id=current_user.get("id"),
-                limit=limit,
-                offset=offset
-            )
-            
+    logger.info(
+        f"Webhook list requested by user {current_user.get('username')}",
+        category=LogCategory.API,
+        extra_data={
+            "metadata": {
+                "limit": limit,
+                "offset": offset,
+                "user_id": current_user.get("id")
+            },
+            "tags": ["webhook", "list", "api"]
+        }
+    )
+
+    try:
+        with logger.timer("list_webhooks"):
             result = await webhook_service.list_webhooks(current_user.get("id", 0), limit, offset)
-            
-            # Log performance metrics
-            if enhanced_logger:
-                enhanced_logger.debug(
-                    f"Listed {len(result)} webhooks for user {current_user.get('username')}",
-                    extra={
-                        "category": LogCategory.PERFORMANCE,
-                        "metadata": {
-                            "result_count": len(result),
-                            "query_limit": limit,
-                            "query_offset": offset
-                        },
-                        "tags": ["webhook", "list", "performance"]
-                    }
-                )
-            
-            return result
-    else:
-        # Fallback to original performance tracking
-        if performance_logger:
-            performance_logger.record_metric("webhook_list_requests", 1, "count")
 
+            logger.debug(
+                f"Listed {len(result)} webhooks for user {current_user.get('username')}",
+                category=LogCategory.PERFORMANCE,
+                extra_data={
+                    "metadata": {
+                        "result_count": len(result),
+                        "query_limit": limit,
+                        "query_offset": offset
+                    },
+                    "tags": ["webhook", "list", "performance"]
+                }
+            )
+
+            return result
+    except Exception:
         return await webhook_service.list_webhooks(current_user.get("id", 0), limit, offset)
 
 @router.post(
@@ -562,11 +464,10 @@ async def list_webhooks(
     summary="Trigger webhook"
 )
 @secure_endpoint(
-    auth_level=SecurityLevel.AUTHENTICATED,
-    permissions=[RequiredPermission.WRITE],
+    auth_required=True,
+    permission=RequiredPermission.WRITE,
     rate_limit_rpm=20,
-    audit_action="trigger_webhook",
-    validate_input_size=2*1024  # 2KB max
+    audit_action="trigger_webhook"
 )
 async def trigger_webhook(
     request: Request,
@@ -577,73 +478,57 @@ async def trigger_webhook(
 ):
     """Trigger a webhook manually with enhanced security and monitoring."""
     client_ip = request.client.host if request.client else "unknown"
-    
-    # Enhanced logging
-    if enhanced_logger and logging_system:
-        logging_system.set_context(
+
+    try:
+        logger.set_context(
             user_id=str(current_user.get("id", "")),
             endpoint=f"/webhooks/{webhook_id}/trigger",
             method="POST",
             ip_address=client_ip
         )
-        
-        enhanced_logger.info(
-            f"Webhook {webhook_id} trigger requested by user {current_user.get('username')}",
-            extra={
-                "category": LogCategory.API,
-                "metadata": {
-                    "webhook_id": webhook_id,
-                    "event_type": event.event_type,
-                    "user_id": current_user.get("id")
-                },
-                "tags": ["webhook", "trigger", "api"]
-            }
-        )
-        
-        # Security audit log
-        enhanced_logger.audit(
-            f"Manual webhook trigger: webhook_id={webhook_id}",
-            extra={
-                "category": LogCategory.AUDIT,
-                "metadata": {
-                    "webhook_id": webhook_id,
-                    "event_type": event.event_type,
-                    "triggered_by": current_user.get("username"),
-                    "user_id": current_user.get("id")
-                },
-                "tags": ["webhook", "manual_trigger", "audit"]
-            }
-        )
-    else:
-        logger.info(f"Webhook {webhook_id} trigger requested by user {current_user.get('username')} from {client_ip}")
+    except Exception:
+        pass
 
-    # Performance tracking
-    if ENHANCED_SECURITY_AVAILABLE and enhanced_logger:
-        with PerformanceTracker("trigger_webhook", enhanced_logger) as tracker:
-            tracker.add_metadata(
-                webhook_id=webhook_id,
-                event_type=event.event_type,
-                user_id=current_user.get("id")
-            )
-            
+    logger.info(
+        f"Webhook {webhook_id} trigger requested by user {current_user.get('username')}",
+        category=LogCategory.API,
+        extra_data={
+            "metadata": {
+                "webhook_id": webhook_id,
+                "event_type": event.event_type,
+                "user_id": current_user.get("id")
+            },
+            "tags": ["webhook", "trigger", "api"]
+        }
+    )
+
+    # Security audit
+    logger.audit(
+        f"Manual webhook trigger: webhook_id={webhook_id}",
+        category=LogCategory.AUDIT,
+        extra_data={
+            "metadata": {
+                "webhook_id": webhook_id,
+                "event_type": event.event_type,
+                "triggered_by": current_user.get("username"),
+                "user_id": current_user.get("id")
+            },
+            "tags": ["webhook", "manual_trigger", "audit"]
+        }
+    )
+
+    try:
+        with logger.timer("trigger_webhook"):
             # Sanitize event data
             event.event_type = InputSanitizer.sanitize_input(event.event_type)
-            
+
             # Trigger webhook in background
             background_tasks.add_task(webhook_service.trigger_webhook, webhook_id, event)
-            
+
             return {"message": "Webhook triggered", "webhook_id": webhook_id}
-    else:
-        # Fallback to original performance tracking
-        if performance_logger:
-            performance_logger.record_metric("webhook_trigger_requests", 1, "count")
-
-        # Sanitize event data
+    except Exception:
         event.event_type = InputSanitizer.sanitize_input(event.event_type)
-
-        # Trigger webhook in background
         background_tasks.add_task(webhook_service.trigger_webhook, webhook_id, event)
-
         return {"message": "Webhook triggered", "webhook_id": webhook_id}
 
 @router.post(
@@ -658,13 +543,9 @@ async def broadcast_event(
 ):
     """Broadcast an event to all active webhooks (admin only)."""
     client_ip = request.client.host if request.client else "unknown"
-    logger.info(f"Webhook broadcast requested by admin {current_user.get('username')} from {client_ip}")
+    logger.info(f"Webhook broadcast requested by admin {current_user.get('username')} from {client_ip}", category=LogCategory.API)
 
-    # Performance tracking
-    if performance_logger:
-        performance_logger.record_metric("webhook_broadcast_requests", 1, "count")
-
-    # Get all active webhooks
+    # Get all active webhooks (limited)
     webhooks = await webhook_service.list_webhooks(current_user.get("id", 0), limit=1000)
 
     # Trigger all webhooks in background

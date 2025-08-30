@@ -1,4 +1,4 @@
-from plexichat.core.logging import get_logger
+from plexichat.core.logging_system.unified_logger import get_logger
 import re
 from datetime import datetime, timezone
 from pathlib import Path

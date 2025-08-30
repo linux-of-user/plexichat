@@ -31,7 +31,7 @@ track_event = None
 
 try:
     from plexichat.core.performance.optimization_engine import PerformanceOptimizationEngine  # type: ignore
-    from plexichat.core.logging_advanced.performance_logger import get_performance_logger  # type: ignore
+    from plexichat.core.logging import get_performance_logger  # type: ignore
 except ImportError:
     PerformanceOptimizationEngine = None
     get_performance_logger = None
@@ -200,7 +200,7 @@ class EventManager:
 
             if self.performance_logger:
                 self.performance_logger.record_metric("event_processing_duration", processing_time, "seconds")
-                self.performance_logger.record_metric("events_processed", 1, "count")
+                self.performance_logger.increment_counter("events_processed", 1)
                 self.performance_logger.record_metric("event_handlers_executed", len(all_handlers), "count")
 
             # Track analytics (currently not available)

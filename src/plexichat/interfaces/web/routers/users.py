@@ -13,12 +13,27 @@ Enhanced user management with comprehensive CRUD operations and performance opti
 Uses EXISTING database abstraction and optimization systems.
 """
 
-import logging
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Set
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from pydantic import BaseModel, Field
+
+# Unified logging
+from plexichat.core.logging import get_logger
+
+# Unified FastAPI auth adapter
+from plexichat.core.auth.fastapi_adapter import (
+    get_current_user,
+    require_admin,
+    get_optional_user
+)
+
+# Unified auth manager for service integration
+from plexichat.core.authentication import get_auth_manager
+
+logger = get_logger(__name__)
+router = APIRouter(prefix="/users", tags=["users"])
 
 # Use EXISTING database abstraction layer
 try:
@@ -30,35 +45,21 @@ except ImportError:
 try:
     from plexichat.core.performance.optimization_engine import PerformanceOptimizationEngine
     from plexichat.infrastructure.utils.performance import async_track_performance
-    from plexichat.core.logging_advanced.performance_logger import get_performance_logger, timer
+    from plexichat.core.logging import get_performance_logger, timer
 except ImportError:
     PerformanceOptimizationEngine = None
     async_track_performance = None
     get_performance_logger = None
     timer = None
 
-# Authentication imports
-try:
-    from plexichat.infrastructure.utils.auth import get_current_user, require_admin
-except ImportError:
-    def get_current_user():
-        return {"id": 1, "username": "admin", "is_admin": True}
-    def require_admin():
-        return {"id": 1, "username": "admin", "is_admin": True}
-
 # Security imports
 try:
-    from plexichat.infrastructure.utils.security import hash_password
+    from plexichat.infrastructure.utils.security import hash_password, verify_password
 except ImportError:
     def hash_password(password: str):
         return f"hashed_{password}"
     def verify_password(plain: str, hashed: str):
         return plain == hashed or plain == "password"
-
-# Model imports removed - not used
-
-logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/users", tags=["users"])
 
 # Initialize EXISTING performance systems
 performance_logger = get_performance_logger() if get_performance_logger else None
@@ -70,51 +71,51 @@ try:
         secure_endpoint, admin_endpoint, require_auth, rate_limit, audit_access,
         SecurityLevel, RequiredPermission
     )
-    from plexichat.core.logging_advanced.enhanced_logging_system import (
-        get_enhanced_logging_system, LogCategory, LogLevel, PerformanceTracker
+    from plexichat.core.logging import (
+        get_logging_system, LogCategory, LogLevel, PerformanceTracker
     )
     ENHANCED_SECURITY_AVAILABLE = True
-    
-    # Get enhanced logging system
-    logging_system = get_enhanced_logging_system()
+
+    # Get logging system
+    logging_system = get_logging_system()
     if logging_system:
         enhanced_logger = logging_system.get_logger(__name__)
-        logger.info("Enhanced security and logging initialized for users")
+        logger.info("Security and logging initialized for users")
     else:
         enhanced_logger = None
-        
-except ImportError as e:
+
+except Exception as e:
     logger.warning(f"Enhanced security not available for users: {e}")
     # Fallback decorators
     def secure_endpoint(*args, **kwargs):
         def decorator(func): return func
         return decorator
-    
+
     def admin_endpoint(*args, **kwargs):
         def decorator(func): return func
         return decorator
-    
+
     def require_auth(*args, **kwargs):
         def decorator(func): return func
         return decorator
-    
+
     def rate_limit(*args, **kwargs):
         def decorator(func): return func
         return decorator
-    
+
     def audit_access(*args, **kwargs):
         def decorator(func): return func
         return decorator
-    
+
     class SecurityLevel:
         AUTHENTICATED = 2
         ADMIN = 4
-    
+
     class RequiredPermission:
         READ = "read"
         WRITE = "write"
         DELETE = "delete"
-    
+
     class PerformanceTracker:
         def __init__(self, name, logger):
             self.name = name
@@ -125,7 +126,7 @@ except ImportError as e:
             pass
         def add_metadata(self, **kwargs):
             pass
-    
+
     ENHANCED_SECURITY_AVAILABLE = False
     enhanced_logger = None
     logging_system = None
@@ -394,7 +395,7 @@ async def create_user(
 ):
     """Create a new user with enhanced security and auditing (admin only)."""
     client_ip = request.client.host if request.client else "unknown"
-    
+
     # Enhanced logging
     if enhanced_logger and logging_system:
         logging_system.set_context(
@@ -403,7 +404,7 @@ async def create_user(
             method="POST",
             ip_address=client_ip
         )
-        
+
         enhanced_logger.audit(
             f"User creation requested by admin {current_user.get('username')}",
             extra={
@@ -428,9 +429,22 @@ async def create_user(
                 admin_id=current_user.get("id"),
                 new_username=user_data.username
             )
-            
+
             result = await user_service.create_user(user_data)
-            
+
+            # Register user with unified auth manager to keep systems in sync
+            try:
+                auth_manager = get_auth_manager()
+                permissions: Set[str] = set()
+                if user_data.is_admin:
+                    permissions.add("admin")
+                # register_user is synchronous in the UnifiedAuthManager
+                registered = auth_manager.register_user(user_data.username, user_data.password, permissions)
+                if not registered:
+                    logger.warning("Auth manager failed to register user", extra={"username": user_data.username})
+            except Exception as e:
+                logger.error(f"Error registering user in auth manager: {e}")
+
             # Log successful creation
             if enhanced_logger:
                 enhanced_logger.info(
@@ -445,14 +459,28 @@ async def create_user(
                         "tags": ["user_created", "success"]
                     }
                 )
-            
+
             return result
     else:
         # Fallback to original performance tracking
         if performance_logger:
-            performance_logger.record_metric("user_creation_requests", 1, "count")
+            performance_logger.increment_counter("user_creation_requests", 1)
 
-        return await user_service.create_user(user_data)
+        result = await user_service.create_user(user_data)
+
+        # Register user with unified auth manager to keep systems in sync
+        try:
+            auth_manager = get_auth_manager()
+            permissions: Set[str] = set()
+            if user_data.is_admin:
+                permissions.add("admin")
+            registered = auth_manager.register_user(user_data.username, user_data.password, permissions)
+            if not registered:
+                logger.warning("Auth manager failed to register user", extra={"username": user_data.username})
+        except Exception as e:
+            logger.error(f"Error registering user in auth manager: {e}")
+
+        return result
 
 @router.get(
     "/",
@@ -472,7 +500,7 @@ async def list_users(
 
     # Performance tracking
     if performance_logger:
-        performance_logger.record_metric("user_list_requests", 1, "count")
+        performance_logger.increment_counter("user_list_requests", 1)
 
     return await user_service.list_users(limit, offset, search)
 
@@ -500,6 +528,6 @@ async def get_user(
 
     # Performance tracking
     if performance_logger:
-        performance_logger.record_metric("user_get_requests", 1, "count")
+        performance_logger.increment_counter("user_get_requests", 1)
 
     return await user_service.get_user(user_id)

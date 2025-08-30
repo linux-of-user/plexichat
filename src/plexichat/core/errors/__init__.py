@@ -125,6 +125,15 @@ def handle_rate_limit_error(request, exc):
     """Handle rate limit errors."""
     return {"error": "Rate limit exceeded", "status_code": 429}
 
+# FastAPI-compatible error handlers
+def not_found_handler(request, exc):
+    """Handle 404 errors for FastAPI."""
+    return {"error": "Not found", "status_code": 404}
+
+def internal_error_handler(request, exc):
+    """Handle 500 errors for FastAPI."""
+    return {"error": "Internal server error", "status_code": 500}
+
 def register_error_handlers(app):
     """Register error handlers with the application."""
     # Basic fallback implementation: attempt to register common handlers if framework methods exist.
@@ -346,6 +355,8 @@ __all__ = [
     "handle_authentication_error",
     "handle_authorization_error",
     "handle_rate_limit_error",
+    "not_found_handler",
+    "internal_error_handler",
     "register_error_handlers",
 
     # Circuit breaker

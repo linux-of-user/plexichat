@@ -1,4 +1,3 @@
-
 """
 PlexiChat Database Setup Router
 
@@ -6,13 +5,15 @@ Enhanced database setup and management with performance optimization.
 Uses EXISTING database abstraction and optimization systems.
 """
 
-import logging
 from datetime import datetime
 from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel
 from colorama import Fore, Style
+
+from plexichat.core.logging import get_logger
+from plexichat.core.auth.fastapi_adapter import require_admin, get_current_user
 
 # Use EXISTING database abstraction layer
 try:
@@ -26,20 +27,13 @@ except ImportError:
 try:
     from plexichat.core.performance.optimization_engine import PerformanceOptimizationEngine
     from plexichat.infrastructure.utils.performance import async_track_performance
-    from plexichat.core.logging_advanced.performance_logger import get_performance_logger
+    from plexichat.core.logging import get_performance_logger
 except ImportError:
     PerformanceOptimizationEngine = None
     async_track_performance = None
     get_performance_logger = None
 
-# Authentication imports
-try:
-    from plexichat.infrastructure.utils.auth import require_admin
-except ImportError:
-    def require_admin():
-        return {"id": 1, "username": "admin", "is_admin": True}
-
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 router = APIRouter(prefix="/database", tags=["database"])
 
 # Initialize EXISTING performance systems
@@ -139,7 +133,7 @@ async def get_database_status(request: Request, current_user: Dict[str, Any] = D
 
     # Performance tracking
     if performance_logger:
-        performance_logger.record_metric("database_status_requests", 1, "count")
+        performance_logger.increment_counter("database_status_requests", 1)
         logger.debug(Fore.GREEN + "[DB] Status performance metric recorded" + Style.RESET_ALL)
 
     return await database_service.get_database_status()
@@ -152,7 +146,7 @@ async def initialize_database(request: Request, current_user: Dict[str, Any] = D
 
     # Performance tracking
     if performance_logger:
-        performance_logger.record_metric("database_init_requests", 1, "count")
+        performance_logger.increment_counter("database_init_requests", 1)
         logger.debug(Fore.GREEN + "[DB] Init performance metric recorded" + Style.RESET_ALL)
 
     result = await database_service.initialize_database()
@@ -173,7 +167,7 @@ async def run_migrations(request: Request, current_user: Dict[str, Any] = Depend
 
     # Performance tracking
     if performance_logger:
-        performance_logger.record_metric("database_migration_requests", 1, "count")
+        performance_logger.increment_counter("database_migration_requests", 1)
         logger.debug(Fore.GREEN + "[DB] Migration performance metric recorded" + Style.RESET_ALL)
 
     try:
@@ -204,7 +198,7 @@ async def create_backup(request: Request, current_user: Dict[str, Any] = Depends
 
     # Performance tracking
     if performance_logger:
-        performance_logger.record_metric("database_backup_requests", 1, "count")
+        performance_logger.increment_counter("database_backup_requests", 1)
         logger.debug(Fore.GREEN + "[DB] Backup performance metric recorded" + Style.RESET_ALL)
 
     try:
@@ -237,7 +231,7 @@ async def database_health_check(request: Request, current_user: Dict[str, Any] =
 
     # Performance tracking
     if performance_logger:
-        performance_logger.record_metric("database_health_checks", 1, "count")
+        performance_logger.increment_counter("database_health_checks", 1)
         logger.debug(Fore.GREEN + "[DB] Health check performance metric recorded" + Style.RESET_ALL)
 
     try:

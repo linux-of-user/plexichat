@@ -13,8 +13,12 @@ from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from enum import Enum
 
+# Unified logging imports
+from plexichat.core.logging import get_logger
+from plexichat.core.logging_system.unified_logger import LogCategory
+
 try:
-    from plexichat.src.plexichat.core.config_manager import get_config
+    from plexichat.core.config_manager import get_config
     from plexichat.core.auth.permissions import check_permission, format_permission, DBOperation, ResourceType, PermissionError
     config = get_config("database")
 except ImportError:
@@ -28,7 +32,7 @@ except ImportError:
     class PermissionError(Exception): pass
 
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class DatabaseType(Enum):
@@ -84,7 +88,7 @@ class DatabaseSession:
         try:
             return await self.connection.execute(query, params or {})
         except Exception as e:
-            logger.error(f"Query execution failed: {e}")
+            logger.error(f"Query execution failed: {e}", category=LogCategory.DATABASE)
             raise
     
     async def fetchall(self, query: str, params: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
@@ -132,7 +136,7 @@ class DatabaseSession:
                     if inspect.iscoroutine(result):
                         await result
             except Exception as e:
-                logger.error(f"Failed to commit transaction: {e}")
+                logger.error(f"Failed to commit transaction: {e}", category=LogCategory.DATABASE)
 
     async def rollback(self):
         """Rollback the current transaction."""
@@ -144,7 +148,7 @@ class DatabaseSession:
                     if inspect.iscoroutine(result):
                         await result
             except Exception as e:
-                logger.error(f"Failed to rollback transaction: {e}")
+                logger.error(f"Failed to rollback transaction: {e}", category=LogCategory.DATABASE)
 
     async def close(self):
         """Close the session."""
@@ -156,7 +160,7 @@ class DatabaseSession:
                     if inspect.iscoroutine(result):
                         await result
             except Exception as e:
-                logger.error(f"Failed to close connection: {e}")
+                logger.error(f"Failed to close connection: {e}", category=LogCategory.DATABASE)
 
 
 class DatabaseManager:
@@ -167,7 +171,7 @@ class DatabaseManager:
         self.engine = None
         self.session_factory = None
         self._initialized = False
-        self.logger = logging.getLogger(__name__)
+        self.logger = get_logger(__name__)
     
     def _get_default_config(self) -> DatabaseConfig:
         """Get default database configuration."""
@@ -193,7 +197,7 @@ class DatabaseManager:
             return True
         
         try:
-            self.logger.info(f"Initializing database manager with {self.config.db_type}")
+            self.logger.info(f"Initializing database manager with {self.config.db_type}", category=LogCategory.DATABASE)
             
             # Create database engine based on type
             if self.config.db_type == "sqlite":
@@ -215,11 +219,11 @@ class DatabaseManager:
                 },
             )
             self._initialized = True
-            self.logger.info("Database manager initialized successfully")
+            self.logger.info("Database manager initialized successfully", category=LogCategory.DATABASE)
             return True
             
         except Exception as e:
-            self.logger.error(f"Failed to initialize database manager: {e}")
+            self.logger.error(f"Failed to initialize database manager: {e}", category=LogCategory.DATABASE)
             return False
     
     async def _initialize_sqlite(self):
@@ -228,7 +232,7 @@ class DatabaseManager:
             try:
                 import aiosqlite
             except ImportError:
-                self.logger.error("aiosqlite not available. Install with: pip install aiosqlite")
+                self.logger.error("aiosqlite not available. Install with: pip install aiosqlite", category=LogCategory.DATABASE)
                 raise
 
             import os
@@ -242,10 +246,10 @@ class DatabaseManager:
             async with aiosqlite.connect(self.config.path) as conn:
                 await conn.execute("SELECT 1")
 
-            self.logger.info(f"SQLite database initialized at {self.config.path}")
+            self.logger.info(f"SQLite database initialized at {self.config.path}", category=LogCategory.DATABASE)
 
         except Exception as e:
-            self.logger.error(f"SQLite initialization failed: {e}")
+            self.logger.error(f"SQLite initialization failed: {e}", category=LogCategory.DATABASE)
             raise
     
     async def _initialize_postgresql(self):
@@ -255,7 +259,7 @@ class DatabaseManager:
                 # Import asyncpg conditionally
                 asyncpg = __import__('asyncpg')
             except ImportError:
-                self.logger.error("asyncpg not available. Install with: pip install asyncpg")
+                self.logger.error("asyncpg not available. Install with: pip install asyncpg", category=LogCategory.DATABASE)
                 raise
 
             # Test connection
@@ -268,10 +272,10 @@ class DatabaseManager:
             )
             await conn.close()
 
-            self.logger.info(f"PostgreSQL database initialized at {self.config.host}:{self.config.port}")
+            self.logger.info(f"PostgreSQL database initialized at {self.config.host}:{self.config.port}", category=LogCategory.DATABASE)
 
         except Exception as e:
-            self.logger.error(f"PostgreSQL initialization failed: {e}")
+            self.logger.error(f"PostgreSQL initialization failed: {e}", category=LogCategory.DATABASE)
             raise
     
     async def _initialize_mysql(self):
@@ -280,7 +284,7 @@ class DatabaseManager:
             try:
                 import aiomysql
             except ImportError:
-                self.logger.error("aiomysql not available. Install with: pip install aiomysql")
+                self.logger.error("aiomysql not available. Install with: pip install aiomysql", category=LogCategory.DATABASE)
                 raise
 
             # Test connection
@@ -293,10 +297,10 @@ class DatabaseManager:
             )
             conn.close()
 
-            self.logger.info(f"MySQL database initialized at {self.config.host}:{self.config.port}")
+            self.logger.info(f"MySQL database initialized at {self.config.host}:{self.config.port}", category=LogCategory.DATABASE)
 
         except Exception as e:
-            self.logger.error(f"MySQL initialization failed: {e}")
+            self.logger.error(f"MySQL initialization failed: {e}", category=LogCategory.DATABASE)
             raise
     
     @asynccontextmanager
@@ -387,12 +391,12 @@ class DatabaseManager:
                     create_query = f"CREATE TABLE {table_name} ({columns})"
                     await session.execute(create_query)
                     await session.commit()
-                    self.logger.info(f"Created table: {table_name}")
+                    self.logger.info(f"Created table: {table_name}", category=LogCategory.DATABASE)
                 
                 return True
                 
         except Exception as e:
-            self.logger.error(f"Failed to ensure table {table_name} exists: {e}")
+            self.logger.error(f"Failed to ensure table {table_name} exists: {e}", category=LogCategory.DATABASE)
             return False
     
     async def health_check(self) -> bool:
@@ -402,7 +406,7 @@ class DatabaseManager:
                 await session.execute("SELECT 1")
                 return True
         except Exception as e:
-            self.logger.error(f"Database health check failed: {e}")
+            self.logger.error(f"Database health check failed: {e}", category=LogCategory.DATABASE)
             return False
 
 
@@ -440,5 +444,5 @@ async def execute_transaction(operations: List[Dict[str, Any]], user_permissions
             await session.commit()
             return True
     except Exception as e:
-        logger.error(f"Transaction failed: {e}")
+        logger.error(f"Transaction failed: {e}", category=LogCategory.DATABASE)
         return False

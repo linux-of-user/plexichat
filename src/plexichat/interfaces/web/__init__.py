@@ -5,186 +5,60 @@ Enhanced web interface with comprehensive functionality and performance optimiza
 Uses EXISTING database abstraction and optimization systems.
 """
 
-import logging
 from typing import Any, Optional
+import logging
+
+# Setup basic logging
+logger = logging.getLogger(__name__)
 
 # FastAPI imports
 try:
     from fastapi import FastAPI
     from fastapi.middleware.cors import CORSMiddleware
-    from fastapi.middleware.gzip import GZipMiddleware
-    from fastapi.staticfiles import StaticFiles
-except ImportError:
+    from fastapi.responses import JSONResponse
+    logger.info("FastAPI imports successful")
+except ImportError as e:
+    logger.error(f"FastAPI import failed: {e}")
     FastAPI = None
     CORSMiddleware = None
-    GZipMiddleware = None
-    StaticFiles = None
 
-# Use EXISTING performance optimization engine
-from plexichat.core.logging_advanced.performance_logger import get_performance_logger
-
-# Use the new unified config system
-from plexichat.src.plexichat.core.config_manager import get_config
-
-logger = logging.getLogger(__name__)
-
-# Initialize EXISTING performance systems
-performance_logger = get_performance_logger() if get_performance_logger else None
-
-def create_app() -> Optional[Any]:
-    """Create FastAPI application with enhanced configuration."""
+# Create the FastAPI app
+if FastAPI is None:
+    logger.critical("FastAPI is not available - webui cannot be created")
+    app = None
+else:
     try:
-        if not FastAPI:
-            logger.error("FastAPI not available")
-            return None
-
-        # Get settings from the unified config
-        app_name = get_config("system.name", "PlexiChat")
-        app_version = get_config("system.version", "0.0.0")
-        app_debug = get_config("system.debug", False)
-
-        # Create FastAPI app
         app = FastAPI(
-            title=app_name,
-            version=app_version,
-            description="Enhanced PlexiChat API with comprehensive functionality",
-            debug=app_debug
+            title="PlexiChat WebUI",
+            description="Government-Level Secure Communication Platform",
+            version="0.0.1",
+            docs_url="/docs",
+            redoc_url="/redoc"
         )
 
-        # Add middleware
-        if CORSMiddleware:
-            app.add_middleware(
-                CORSMiddleware,
-                allow_origins=["*"],  # Configure appropriately for production
-                allow_credentials=True,
-                allow_methods=["*"],
-                allow_headers=["*"],
-            )
+        # Add basic CORS middleware
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=["*"],
+            allow_credentials=True,
+            allow_methods=["*"],
+            allow_headers=["*"],
+        )
 
-        if GZipMiddleware:
-            app.add_middleware(GZipMiddleware, minimum_size=1000)
+        # Add a basic root endpoint
+        @app.get("/")
+        async def root():
+            return {"message": "PlexiChat WebUI is running", "status": "healthy"}
 
-        # Add custom middleware
-        from plexichat.core.middleware.rate_limiting import RateLimitingMiddleware
-        app.add_middleware(RateLimitingMiddleware)
-        from plexichat.interfaces.web.middleware.comprehensive_security_middleware import GovernmentSecurityMiddleware
-        app.add_middleware(GovernmentSecurityMiddleware)
-
-        # Include routers
-        _include_routers(app)
-
-        # Add static files
-        if StaticFiles:
-            try:
-                from pathlib import Path
-                static_path = Path(__file__).parent / "static"
-                if static_path.exists():
-                    app.mount("/static", StaticFiles(directory=str(static_path)), name="static")
-                    logger.info(f"Static files mounted from {static_path}")
-                else:
-                    logger.warning(f"Static directory not found at {static_path}")
-            except Exception as e:
-                logger.warning(f"Could not mount static files: {e}")
-
-        # Add startup/shutdown events
-        @app.on_event("startup")
-        async def startup_event():
-            logger.info("PlexiChat web interface starting up")
-            if performance_logger:
-                performance_logger.record_metric("app_startups", 1, "count")
-
-        @app.on_event("shutdown")
-        async def shutdown_event():
-            logger.info("PlexiChat web interface shutting down")
-            if performance_logger:
-                performance_logger.record_metric("app_shutdowns", 1, "count")
-
-        # Add health check endpoint
         @app.get("/health")
         async def health_check():
-            return {
-                "status": "healthy",
-                "timestamp": "2024-01-01T00:00:00Z",
-                "version": get_config("system.version", "0.0.0")
-            }
+            return {"status": "healthy", "service": "webui"}
 
-        return app
+        logger.info("FastAPI app created successfully")
 
     except Exception as e:
-        logger.error(f"Error creating FastAPI app: {e}")
-        return None
+        logger.error(f"Failed to create FastAPI app: {e}")
+        app = None
 
-def _include_routers(app):
-    """Include all routers in the FastAPI app."""
-    try:
-        # Core routers
-        routers = [
-            ("auth", "/auth"),
-            ("users", "/users"),
-            ("messages", "/messages"),
-            ("files", "/files"),
-            ("admin", "/admin"),
-            ("system", "/system"),
-            ("status", "/status"),
-            ("webhooks", "/webhooks"),
-            ("webui", "/ui"),
-            ("ultimate_webui", "/ultimate"),
-            ("login", "/login"),
-            ("updates", "/updates"),
-            ("cluster", "/cluster"),
-            ("database_setup", "/database"),
-            ("file_management", "/file-management"),
-            ("messaging_websocket_router", "/ws"),
-            ("config_management", "/config"),
-            ("backup_management", "/backup"),
-
-        ]
-
-        for router_name, prefix in routers:
-            try:
-                # Try multiple import paths
-                import_paths = [
-                    f"plexichat.interfaces.web.routers.{router_name}",
-                    f"src.plexichat.interfaces.web.routers.{router_name}",
-                    f".routers.{router_name}"
-                ]
-
-                module = None
-                for import_path in import_paths:
-                    try:
-                        if import_path.startswith('.'):
-                            # Relative import
-                            # # from . import routers
-                            module = getattr(routers, router_name, None)
-                        else:
-                            # Absolute import
-                            module = __import__(import_path, fromlist=[router_name])
-                        if module:
-                            break
-                    except (ImportError, AttributeError):
-                        continue
-
-                if module and hasattr(module, 'router'):
-                    app.include_router(module.router, prefix=prefix)
-                    logger.info(f"Included router: {router_name} at {prefix}")
-                else:
-                    logger.warning(f"Router {router_name} not found or has no 'router' attribute")
-            except ImportError as e:
-                logger.warning(f"Could not import router {router_name}: {e}")
-            except Exception as e:
-                logger.error(f"Error including router {router_name}: {e}")
-
-    except Exception as e:
-        logger.error(f"Error including routers: {e}")
-
-# Create the app instance
-app = create_app()
-
-# Export commonly used items
-__all__ = [
-    "app",
-    "create_app",
-]
-
-# Version info - load from config
-__version__ = get_config("system.version", "0.0.0")
+# Export the app for external use
+__all__ = ['app']

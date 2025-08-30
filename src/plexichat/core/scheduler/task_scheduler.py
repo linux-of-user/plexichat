@@ -244,7 +244,7 @@ class TaskScheduler:
 
             if self.performance_logger:
                 self.performance_logger.record_metric("scheduled_task_duration", execution_time, "seconds")
-                self.performance_logger.record_metric("scheduled_tasks_completed", 1, "count")
+                self.performance_logger.increment_counter("scheduled_tasks_completed", 1)
 
             # Track analytics
             if track_event:
@@ -301,7 +301,7 @@ class TaskScheduler:
             self.tasks_failed += 1
 
             if self.performance_logger:
-                self.performance_logger.record_metric("scheduled_tasks_failed", 1, "count")
+                self.performance_logger.increment_counter("scheduled_tasks_failed", 1)
 
         except Exception as e:
             logger.error(f"Error handling task failure: {e}")

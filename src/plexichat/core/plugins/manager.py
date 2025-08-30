@@ -28,7 +28,23 @@ from typing import Any, Dict, List, Optional, Set, Callable, Union
 from enum import Enum
 from dataclasses import dataclass, field
 
-# ==============================================================================
+# ======================================================================
+# Attempt to import the SDK generator and plugin security manager to
+# allow generating a robust plugins_internal.py on startup. These are
+# optional and will fall back to lightweight generation if missing.
+# ======================================================================
+try:
+    from plexichat.core.plugins.sdk_generator import sdk_generator as core_sdk_generator, PluginSDKGenerator
+except Exception:
+    core_sdk_generator = None
+    PluginSDKGenerator = None
+
+try:
+    from plexichat.core.plugins.security_manager import plugin_security_manager as core_plugin_security_manager
+except Exception:
+    core_plugin_security_manager = None
+
+# ============================================================================== 
 # 1. SHARED AND CORE IMPORTS (WITH FALLBACKS)
 # ==============================================================================
 
@@ -59,7 +75,7 @@ except ImportError:
 
 # Core configurations
 try:
-    from plexichat.src.plexichat.core.config_manager import get_plugin_timeout, get_max_plugin_memory, get_plugin_sandbox_enabled
+    from plexichat.core.config_manager import get_plugin_timeout, get_max_plugin_memory, get_plugin_sandbox_enabled
 except ImportError:
     def get_plugin_timeout(): return 30
     def get_max_plugin_memory(): return 100 * 1024 * 1024
@@ -104,7 +120,7 @@ intelligent_assistant = None
 ai_provider_manager = None
 
 
-# ==============================================================================
+# ============================================================================== 
 # 2. DATA CLASSES, ENUMS, AND BASIC METRICS
 # ==============================================================================
 
@@ -201,7 +217,7 @@ class PluginInfo:
     metrics: Optional[ModuleMetrics] = None
 
 
-# ==============================================================================
+# ============================================================================== 
 # 3. PLUGIN AND SDK INTERFACES (ABCs)
 # ==============================================================================
 
@@ -221,7 +237,7 @@ class PluginInterface(ABC):
     def get_security_features(self) -> Dict[str, Any]: return {}
 
 
-# ==============================================================================
+# ============================================================================== 
 # 4. ENHANCED PLUGIN SDK
 # ==============================================================================
 
@@ -352,7 +368,7 @@ class EnhancedBasePlugin(PluginInterface):
     async def self_test(self) -> Dict[str, Any]: return {"status": "not_implemented"}
 
 
-# ==============================================================================
+# ============================================================================== 
 # 5. CORE PLUGIN MANAGER COMPONENTS
 # ==============================================================================
 
@@ -482,16 +498,90 @@ class UnifiedPluginManager:
         self.test_manager = PluginTestManager()
         self.stats = {"total_discovered": 0, "total_loaded": 0, "total_enabled": 0, "total_failed": 0, "last_discovery": None}
         self._lock = threading.Lock()
-        self._generate_plugin_sdk()
+
+        # Ensure the plugin SDK (plugins_internal.py) exists and is up to date.
+        # This will try to use the central SDK generator if available, otherwise
+        # fall back to a lightweight generator implemented in this module.
+        self._ensure_plugins_internal_generated()
+
+    def _ensure_plugins_internal_generated(self) -> None:
+        """
+        Ensure plugins_internal.py is generated and validated.
+        Uses the core_sdk_generator when available for robust SDK generation.
+        Will regenerate if the core plugin manager file (this file) is newer than
+        the generated SDK or if the generator reports it as outdated.
+        """
+        try:
+            # Prefer the central SDK generator if available
+            if core_sdk_generator:
+                try:
+                    # If a plugin security manager exists, provide it to the generator if it expects it
+                    try:
+                        setattr(core_sdk_generator, "plugin_security_manager", core_plugin_security_manager)
+                    except Exception:
+                        pass
+
+                    # Attempt to regenerate if needed (generator has its own checks)
+                    regenerated = core_sdk_generator.regenerate_if_needed()
+                    if not regenerated:
+                        # As a last resort, if the generator didn't run successfully, try explicit generate
+                        regenerated = core_sdk_generator.generate_plugins_internal()
+                        if not regenerated:
+                            raise RuntimeError("core_sdk_generator failed to generate plugins_internal.py")
+
+                    # Validate the generated module
+                    valid = core_sdk_generator.validate_plugins_internal()
+                    if not valid:
+                        raise RuntimeError("Generated plugins_internal.py failed validation")
+
+                    # Extra safety: if this manager file changed after generation, force regenerate
+                    try:
+                        manager_mtime = Path(__file__).stat().st_mtime
+                        gen_file = getattr(core_sdk_generator, "output_file", None)
+                        if gen_file and gen_file.exists():
+                            gen_mtime = gen_file.stat().st_mtime
+                            if manager_mtime > gen_mtime:
+                                logger.info("Manager file is newer than generated SDK; regenerating plugins_internal.py")
+                                core_sdk_generator.generate_plugins_internal()
+                                core_sdk_generator.validate_plugins_internal()
+                    except Exception:
+                        # Non-fatal; continue
+                        pass
+
+                    logger.info("plugins_internal.py successfully generated and validated via core_sdk_generator")
+                    return
+                except Exception as e:
+                    logger.error(f"core_sdk_generator failed: {e}", exc_info=True)
+
+            # Fallback lightweight generation (older behavior)
+            try:
+                self._generate_plugin_sdk()
+                # Validate by attempting to import the generated module if possible
+                gen_file = self.plugins_dir.parent / "plugins_internal.py"
+                if gen_file.exists():
+                    try:
+                        import importlib.util
+                        spec = importlib.util.spec_from_file_location("plugins_internal_fallback", str(gen_file))
+                        if spec and spec.loader:
+                            module = importlib.util.module_from_spec(spec)
+                            spec.loader.exec_module(module)
+                            logger.info("Fallback plugins_internal.py generated and import-validated")
+                    except Exception as e:
+                        logger.error(f"Fallback plugins_internal.py exists but failed to import: {e}", exc_info=True)
+            except Exception as e:
+                logger.error(f"Failed to generate fallback plugins_internal.py: {e}", exc_info=True)
+
+        except Exception as e:
+            logger.error(f"Unexpected error while ensuring plugins_internal.py: {e}", exc_info=True)
 
     def _generate_plugin_sdk(self):
         try:
             sdk_content = self._create_plugin_sdk_content()
             sdk_file = self.plugins_dir.parent / "plugins_internal.py"
             sdk_file.write_text(sdk_content)
-            self.logger.info(f"Generated plugin SDK: {sdk_file}")
+            self.logger.info(f"Generated plugin SDK (fallback): {sdk_file}")
         except Exception as e:
-            self.logger.error(f"Failed to generate plugin SDK: {e}")
+            self.logger.error(f"Failed to generate plugin SDK (fallback): {e}")
 
     def _create_plugin_sdk_content(self) -> str:
         return f'''"""
@@ -674,8 +764,24 @@ __all__ = ['EnhancedBasePlugin', 'EnhancedPluginConfig', 'EnhancedPluginAPI']
         for plugin_name in reversed(self.plugin_load_order): await self.unload_plugin(plugin_name)
         self.logger.info("Plugin manager shut down")
 
+    # Utility accessors used by external modules (added to avoid missing references)
+    def get_plugin_info(self, p_name: str) -> Optional[Dict[str, Any]]:
+        info = self.plugin_info.get(p_name)
+        if not info: return None
+        return {
+            "plugin_id": info.plugin_id,
+            "metadata": info.metadata,
+            "path": str(info.path),
+            "status": info.status,
+            "loaded_at": info.loaded_at.isoformat() if info.loaded_at else None,
+            "error_message": info.error_message
+        }
 
-# ==============================================================================
+    def get_all_plugins_info(self) -> Dict[str, Dict[str, Any]]:
+        return {name: self.get_plugin_info(name) or {} for name in self.plugin_info.keys()}
+
+
+# ============================================================================== 
 # 6. GLOBAL INSTANCE AND BACKWARD COMPATIBILITY
 # ==============================================================================
 

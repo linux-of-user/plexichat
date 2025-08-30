@@ -5,7 +5,7 @@ from typing import Dict, Any
 import logging
 import time
 import re
-from plexichat.src.plexichat.interfaces.cli.cli_manager import UnifiedCLI
+from plexichat.interfaces.cli.cli_manager import UnifiedCLI
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1/cli", tags=["cli"])

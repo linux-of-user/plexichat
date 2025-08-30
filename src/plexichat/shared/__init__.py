@@ -20,12 +20,13 @@ Components:
 - validators: Common validation functions
 """
 
-import logging
+from plexichat.core.logging import get_logger
+from plexichat.core.logging_system.unified_logger import LogCategory
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 # Version information
-from plexichat.src.plexichat.core.config_manager import get_config
+from plexichat.core.config_manager import get_config
 
 __version__ = get_config("system.version", "0.0.0")
 __author__ = "PlexiChat Team"
@@ -38,10 +39,10 @@ try:
     # # from . import exceptions
     # # from . import constants
 
-    logger.info("Shared components imported successfully")
+    logger.info("Shared components imported successfully", category=LogCategory.SYSTEM)
 
 except ImportError as e:
-    logger.warning(f"Some shared components not available: {e}")
+    logger.warning(f"Some shared components not available: {e}", category=LogCategory.SYSTEM)
 
 __all__ = [
     # No modules currently imported

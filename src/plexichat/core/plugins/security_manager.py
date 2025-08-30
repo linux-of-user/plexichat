@@ -39,7 +39,7 @@ from weakref import WeakSet
 
 # Core imports with fallbacks
 try:
-    from plexichat.src.plexichat.core.config_manager import get_plugin_timeout, get_max_plugin_memory, get_plugin_sandbox_enabled
+    from plexichat.core.config_manager import get_plugin_timeout, get_max_plugin_memory, get_plugin_sandbox_enabled
 except ImportError:
     def get_plugin_timeout(): return 30
     def get_max_plugin_memory(): return 100 * 1024 * 1024
@@ -317,35 +317,47 @@ class SecureSandbox:
         self._sandbox_active = False
 
     def _create_restricted_builtins(self) -> Dict[str, Any]:
-        """Create a restricted set of builtins for the sandbox."""
-        # Safe modules that are always allowed
+        """Create a restricted set of builtins for the sandbox based on PLUGIN_SECURITY.md whitelist."""
+        # Safe modules that are always allowed (based on PLUGIN_SECURITY.md)
         self._safe_modules = {
-            'json', 'math', 'datetime', 'time', 'random', 'uuid', 'hashlib',
-            'base64', 'urllib.parse', 'collections', 'itertools', 'functools',
-            'operator', 'copy', 'pickle', 'csv', 'xml.etree.ElementTree',
-            'html', 'html.parser', 'email', 'email.mime', 'mimetypes',
-            'calendar', 'decimal', 'fractions', 'statistics', 'string',
-            'textwrap', 'unicodedata', 'codecs', 'locale', 'gettext',
-            're', 'difflib', 'pprint', 'reprlib', 'enum', 'types',
-            'weakref', 'gc', 'inspect', 'dis', 'traceback', 'logging'
+            # Standard library (safe modules)
+            'json', 'datetime', 'typing', 'dataclasses', 'enum', 'logging', 'pathlib', 'uuid',
+            'time', 'base64', 'mimetypes', 'ast', 'secrets', 'io', 're', 'hashlib', 'copy', 
+            'functools', 'itertools', 'collections', 'math', 'random', 'decimal', 'fractions',
+            'statistics', 'heapq', 'bisect', 'array', 'weakref', 'types', 'inspect', 'traceback', 
+            'pprint', 'pickle', 'marshal', 'struct', 'csv', 'configparser', 'gettext', 'locale', 
+            'calendar', 'email', 'email.mime', 'html', 'html.parser', 'xml.etree.ElementTree',
+            'string', 'textwrap', 'unicodedata', 'codecs', 'reprlib', 'difflib', 'operator',
+            
+            # Common third-party (safe)
+            'cryptography.fernet', 'jinja2.sandbox', 'colorama', 'rich'
         }
         
-        # Dangerous modules that require admin approval
+        # Dangerous modules that require explicit admin approval (based on PLUGIN_SECURITY.md)
         self._dangerous_modules = {
-            'os', 'sys', 'subprocess', 'socket', 'socketserver', 'select',
-            'threading', 'multiprocessing', 'concurrent', 'asyncio',
-            'signal', 'atexit', 'ctypes', 'mmap', 'resource', 'shutil',
-            'tempfile', 'glob', 'fnmatch', 'linecache', 'shlex', 'platform',
-            'getpass', 'pwd', 'grp', 'termios', 'tty', 'pty', 'fcntl',
+            # System access modules
+            'os', 'sys', 'subprocess', 'socket', 'socketserver', 'select', 'signal', 'atexit',
+            'ctypes', 'mmap', 'resource', 'shutil', 'tempfile', 'glob', 'fnmatch', 'linecache',
+            'shlex', 'platform', 'getpass', 'pwd', 'grp', 'termios', 'tty', 'pty', 'fcntl',
             'pipes', 'posix', 'nt', 'winreg', 'winsound', 'msvcrt',
-            'importlib', 'pkgutil', 'modulefinder', 'runpy', 'ast',
-            'symtable', 'keyword', 'token', 'tokenize', 'tabnanny',
-            'pyclbr', 'py_compile', 'compileall', 'dis', 'pickletools',
-            'distutils', 'ensurepip', 'venv', 'zipapp', 'requests',
-            'urllib.request', 'urllib.error', 'http', 'ftplib', 'poplib',
-            'imaplib', 'nntplib', 'smtplib', 'telnetlib', 'ssl', 'hashlib',
-            'hmac', 'secrets', 'sqlite3', 'dbm', 'zlib', 'gzip', 'bz2',
-            'lzma', 'zipfile', 'tarfile'
+            
+            # Threading and multiprocessing
+            'threading', 'multiprocessing', 'concurrent', 'asyncio', 'queue',
+            
+            # Import and execution control
+            'importlib', 'pkgutil', 'modulefinder', 'runpy', 'keyword', 'token', 'tokenize',
+            'tabnanny', 'pyclbr', 'py_compile', 'compileall', 'dis', 'pickletools',
+            'distutils', 'ensurepip', 'venv', 'zipapp',
+            
+            # Network modules
+            'requests', 'urllib.request', 'urllib.error', 'http', 'ftplib', 'poplib',
+            'imaplib', 'nntplib', 'smtplib', 'telnetlib', 'ssl', 'hmac',
+            
+            # Database and compression
+            'sqlite3', 'dbm', 'zlib', 'gzip', 'bz2', 'lzma', 'zipfile', 'tarfile',
+            
+            # Third-party network/system modules
+            'aiohttp', 'fastapi', 'requests', 'psutil'
         }
         
         safe_builtins = {
@@ -396,8 +408,8 @@ class SecureSandbox:
         return restricted_builtins
 
     def _restricted_import(self, name: str, *args, **kwargs):
-        """Restricted import function that enforces module whitelisting."""
-        # Check if module is explicitly blocked
+        """Restricted import function that enforces module whitelisting based on PLUGIN_SECURITY.md."""
+        # Check if module is explicitly blocked by security policy
         if name in self.security_policy.blocked_modules:
             self._log_security_violation(
                 f"Attempted to import blocked module: {name}",
@@ -405,32 +417,44 @@ class SecureSandbox:
             )
             raise ImportError(f"Module '{name}' is blocked by security policy")
         
-        # Check if module is dangerous and requires approval
+        # Check if module is dangerous and requires explicit admin approval
         if name in self._dangerous_modules or any(name.startswith(dm + '.') for dm in self._dangerous_modules):
             if not self._check_module_permission(name):
                 self._log_security_violation(
                     f"Attempted to import dangerous module without permission: {name}",
                     SecurityThreatLevel.HIGH
                 )
-                raise ImportError(f"Module '{name}' requires admin approval. Request permission from admin.")
+                raise ImportError(f"Module '{name}' requires admin approval. Contact administrator to request permission.")
         
-        # Check if module is in safe list
+        # Check if module is in safe list (always allowed)
         if name in self._safe_modules or any(name.startswith(sm + '.') for sm in self._safe_modules):
             pass  # Always allowed
         elif name.startswith('plexichat.'):
-            # PlexiChat internal modules - check if they're plugin-safe
+            # PlexiChat internal modules - only allow plugin-safe modules
             if not self._is_plexichat_module_safe(name):
                 self._log_security_violation(
                     f"Attempted to import restricted PlexiChat module: {name}",
                     SecurityThreatLevel.MEDIUM
                 )
                 raise ImportError(f"PlexiChat module '{name}' is not available to plugins")
-        elif self.security_policy.allowed_modules and name not in self.security_policy.allowed_modules:
-            self._log_security_violation(
-                f"Attempted to import non-whitelisted module: {name}",
-                SecurityThreatLevel.MEDIUM
-            )
-            raise ImportError(f"Module '{name}' not in whitelist. Request permission from admin.")
+        elif name.startswith('plugins_internal'):
+            # Allow access to the generated plugin SDK
+            pass
+        else:
+            # For any other module, check if it's in the allowed modules list
+            if self.security_policy.allowed_modules and name not in self.security_policy.allowed_modules:
+                self._log_security_violation(
+                    f"Attempted to import non-whitelisted module: {name}",
+                    SecurityThreatLevel.MEDIUM
+                )
+                raise ImportError(f"Module '{name}' not in whitelist. Contact administrator to request permission.")
+            elif not self.security_policy.allowed_modules:
+                # If no explicit whitelist, deny unknown modules by default
+                self._log_security_violation(
+                    f"Attempted to import unknown module: {name}",
+                    SecurityThreatLevel.MEDIUM
+                )
+                raise ImportError(f"Module '{name}' not in safe module list. Contact administrator to request permission.")
         
         # Log the import for audit purposes
         self.logger.debug(f"Plugin importing module: {name}")
@@ -444,20 +468,31 @@ class SecureSandbox:
     def _check_module_permission(self, module_name: str) -> bool:
         """Check if plugin has permission to import a dangerous module."""
         if hasattr(self, '_security_manager'):
-            # Check database for approved modules
-            return self._security_manager._is_module_approved(self.plugin_name, module_name)
+            # Check database for approved modules (async call made sync for sandbox)
+            try:
+                # Use a cached version for performance in sandbox
+                if hasattr(self._security_manager, '_module_cache'):
+                    cache_key = f"{self.plugin_name}:{module_name}"
+                    return self._security_manager._module_cache.get(cache_key, False)
+                return self._security_manager._is_module_approved_sync(self.plugin_name, module_name)
+            except Exception as e:
+                self.logger.error(f"Error checking module permission: {e}")
+                return False
         return False
     
     def _is_plexichat_module_safe(self, module_name: str) -> bool:
         """Check if a PlexiChat module is safe for plugin access."""
-        # Only allow specific plugin-safe modules
+        # Only allow specific plugin-safe modules (based on PLUGIN_SECURITY.md)
         safe_plexichat_modules = {
+            'plexichat.core.plugins.sdk',
             'plexichat.core.plugins.generated_sdk',
             'plexichat.shared.exceptions',
             'plexichat.shared.models',
             'plexichat.shared.utils',
+            'plexichat.shared.types',
+            'plugins_internal'  # Auto-generated SDK
         }
-        return module_name in safe_plexichat_modules
+        return module_name in safe_plexichat_modules or module_name.startswith('plugins_internal')
 
     def _restricted_open(self, filename: str, mode: str = 'r', *args, **kwargs):
         """Restricted file open function that uses SafeFileManager."""
@@ -884,12 +919,32 @@ class PluginSecurityManager:
         self._security_policies: Dict[str, SecurityPolicy] = {}
         self._sandboxes: Dict[str, SecureSandbox] = {}
         self._quarantined_plugins: Set[str] = set()
+        self._disabled_plugins: Set[str] = set()  # Plugins disabled by default
         self._default_policy = SecurityPolicy()
         self._lock = threading.RLock()
         self._db_initialized = False
+        self._module_cache: Dict[str, bool] = {}  # Cache for module permissions
+        self._cache_expiry: Dict[str, datetime] = {}  # Cache expiry times
+        
+        # Enhanced default policy based on PLUGIN_SECURITY.md
+        self._default_policy.permission_auto_deny = {
+            PermissionType.SYSTEM_COMMANDS,
+            PermissionType.PROCESS_SPAWN,
+            PermissionType.ADMIN_FUNCTIONS,
+            PermissionType.PLUGIN_MANAGEMENT,
+            PermissionType.CONFIGURATION_WRITE
+        }
         
         # Initialize database tables if available
-        asyncio.create_task(self._init_database())
+        try:
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                asyncio.create_task(self._init_database())
+            else:
+                asyncio.run(self._init_database())
+        except RuntimeError:
+            # No event loop, will initialize later
+            pass
 
     async def _init_database(self):
         """Initialize database tables for security data."""
@@ -901,6 +956,35 @@ class PluginSecurityManager:
             # Initialize database manager
             await database_manager.initialize()
             
+            # Run the plugin permissions migration to ensure tables exist
+            try:
+                from plexichat.core.database.migrations.add_plugin_permissions import apply_migration
+                migration_success = await apply_migration(database_manager)
+                if migration_success:
+                    self.logger.info("Plugin permissions migration applied successfully")
+                else:
+                    self.logger.warning("Plugin permissions migration failed or was already applied")
+            except ImportError:
+                self.logger.warning("Plugin permissions migration not found, creating tables manually")
+                await self._create_tables_manually()
+            
+            # Load existing permissions from database
+            await self._load_permissions_from_database()
+            
+            # Load module permissions cache
+            await self._refresh_module_cache()
+            
+            self._db_initialized = True
+            self.logger.info("Plugin security database initialized successfully")
+            
+        except Exception as e:
+            self.logger.error(f"Failed to initialize security database: {e}")
+            # Continue with in-memory storage
+            self._db_initialized = False
+    
+    async def _create_tables_manually(self):
+        """Create security tables manually if migration is not available."""
+        try:
             # Create plugin_permissions table
             permissions_schema = {
                 "id": "INTEGER PRIMARY KEY AUTOINCREMENT",
@@ -945,10 +1029,89 @@ class PluginSecurityManager:
             }
             await database_manager.ensure_table_exists("plugin_approved_modules", modules_schema)
             
-            self.logger.info("Plugin security database tables initialized")
+            # Create plugin_settings table for enable/disable state
+            settings_schema = {
+                "id": "INTEGER PRIMARY KEY AUTOINCREMENT",
+                "plugin_name": "TEXT UNIQUE NOT NULL",
+                "enabled": "BOOLEAN DEFAULT 0",  # Disabled by default
+                "admin_approved": "BOOLEAN DEFAULT 0",
+                "approved_by": "TEXT",
+                "approved_at": "TIMESTAMP",
+                "disabled_reason": "TEXT",
+                "created_at": "TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
+                "updated_at": "TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
+            }
+            await database_manager.ensure_table_exists("plugin_settings", settings_schema)
+            
+            self.logger.info("Plugin security tables created manually")
             
         except Exception as e:
-            self.logger.error(f"Failed to initialize security database: {e}")
+            self.logger.error(f"Failed to create security tables manually: {e}")
+            raise
+    
+    async def _load_permissions_from_database(self):
+        """Load existing permissions from database into memory."""
+        if not database_manager or not self._db_initialized:
+            return
+        
+        try:
+            async with database_manager.get_session() as session:
+                # Load approved permissions
+                query = """
+                    SELECT plugin_name, permission_type FROM plugin_permissions 
+                    WHERE status = 'approved' 
+                    AND (expires_at IS NULL OR expires_at > :now)
+                """
+                rows = await session.fetchall(query, {"now": datetime.now(timezone.utc)})
+                
+                for row in rows:
+                    plugin_name = row["plugin_name"]
+                    permission_type = PermissionType(row["permission_type"])
+                    self._approved_permissions[plugin_name].add(permission_type)
+                
+                # Load disabled plugins
+                disabled_query = """
+                    SELECT plugin_name FROM plugin_settings 
+                    WHERE enabled = 0 OR admin_approved = 0
+                """
+                disabled_rows = await session.fetchall(disabled_query)
+                for row in disabled_rows:
+                    self._disabled_plugins.add(row["plugin_name"])
+                
+                self.logger.info(f"Loaded {len(rows)} permissions and {len(disabled_rows)} disabled plugins from database")
+                
+        except Exception as e:
+            self.logger.error(f"Failed to load permissions from database: {e}")
+    
+    async def _refresh_module_cache(self):
+        """Refresh the module permissions cache."""
+        if not database_manager or not self._db_initialized:
+            return
+        
+        try:
+            async with database_manager.get_session() as session:
+                query = """
+                    SELECT plugin_name, module_name FROM plugin_approved_modules 
+                    WHERE is_active = 1 
+                    AND (expires_at IS NULL OR expires_at > :now)
+                """
+                rows = await session.fetchall(query, {"now": datetime.now(timezone.utc)})
+                
+                # Clear old cache
+                self._module_cache.clear()
+                self._cache_expiry.clear()
+                
+                # Populate cache
+                for row in rows:
+                    cache_key = f"{row['plugin_name']}:{row['module_name']}"
+                    self._module_cache[cache_key] = True
+                    # Cache expires in 1 hour
+                    self._cache_expiry[cache_key] = datetime.now(timezone.utc) + timedelta(hours=1)
+                
+                self.logger.debug(f"Refreshed module cache with {len(rows)} entries")
+                
+        except Exception as e:
+            self.logger.error(f"Failed to refresh module cache: {e}")
 
     def get_security_policy(self, plugin_name: str) -> SecurityPolicy:
         """Get security policy for a plugin."""
@@ -1218,17 +1381,36 @@ class PluginSecurityManager:
                 self.logger.error(f"Failed to store audit event in database: {e}")
     
     def _is_module_approved(self, plugin_name: str, module_name: str) -> bool:
-        """Check if a module is approved for a plugin."""
+        """Check if a module is approved for a plugin (async version)."""
         if not database_manager or not self._db_initialized:
             return False
         
         try:
-            # This would be async in real usage, but for sandbox we need sync
-            # In practice, this would be cached or checked differently
-            return False  # Default to deny for safety
+            # Check cache first
+            cache_key = f"{plugin_name}:{module_name}"
+            if cache_key in self._module_cache:
+                # Check if cache entry is still valid
+                if cache_key in self._cache_expiry and datetime.now(timezone.utc) < self._cache_expiry[cache_key]:
+                    return self._module_cache[cache_key]
+                else:
+                    # Cache expired, remove entry
+                    self._module_cache.pop(cache_key, None)
+                    self._cache_expiry.pop(cache_key, None)
+            
+            # Default to deny for safety if not in cache
+            return False
         except Exception as e:
             self.logger.error(f"Failed to check module approval: {e}")
             return False
+    
+    def _is_module_approved_sync(self, plugin_name: str, module_name: str) -> bool:
+        """Synchronous version for use in sandbox context."""
+        cache_key = f"{plugin_name}:{module_name}"
+        if cache_key in self._module_cache:
+            # Check if cache entry is still valid
+            if cache_key in self._cache_expiry and datetime.now(timezone.utc) < self._cache_expiry[cache_key]:
+                return self._module_cache[cache_key]
+        return False
     
     async def approve_module(self, plugin_name: str, module_name: str, approved_by: str, expires_in_days: Optional[int] = None) -> bool:
         """Approve a module for a plugin."""
@@ -1303,25 +1485,38 @@ class PluginSecurityManager:
             return []
     
     def get_security_warnings(self) -> List[Dict[str, Any]]:
-        """Get security warnings for the WebUI."""
+        """Get security warnings for the admin UI."""
         warnings = []
         
-        # Warning about plugins being disabled by default
+        # Warning about plugins being disabled by default (always show)
         warnings.append({
             "type": "info",
-            "title": "Plugin Security",
-            "message": "Plugins are disabled by default and require admin approval for security reasons.",
-            "severity": "medium"
+            "title": "Plugin Security Policy",
+            "message": "All plugins are disabled by default and require explicit admin approval to enable. This is a security feature to prevent unauthorized code execution.",
+            "severity": "medium",
+            "action": "Review and approve plugins in the Plugin Management section."
         })
+        
+        # Check for disabled plugins awaiting approval
+        if self._disabled_plugins:
+            warnings.append({
+                "type": "warning",
+                "title": "Plugins Awaiting Approval",
+                "message": f"{len(self._disabled_plugins)} plugin(s) are disabled and awaiting admin approval.",
+                "severity": "medium",
+                "details": list(self._disabled_plugins),
+                "action": "Review plugins in Plugin Management to approve or deny."
+            })
         
         # Check for quarantined plugins
         if self._quarantined_plugins:
             warnings.append({
-                "type": "warning",
+                "type": "error",
                 "title": "Quarantined Plugins",
                 "message": f"{len(self._quarantined_plugins)} plugin(s) are quarantined due to security violations.",
                 "severity": "high",
-                "details": list(self._quarantined_plugins)
+                "details": list(self._quarantined_plugins),
+                "action": "Investigate security violations and decide whether to release or remove plugins."
             })
         
         # Check for pending permission requests
@@ -1334,7 +1529,8 @@ class PluginSecurityManager:
                 "type": "info",
                 "title": "Pending Permission Requests",
                 "message": f"{pending_count} permission request(s) require admin review.",
-                "severity": "medium"
+                "severity": "medium",
+                "action": "Review permission requests in the Security section."
             })
         
         # Check for recent critical security events
@@ -1348,9 +1544,26 @@ class PluginSecurityManager:
             warnings.append({
                 "type": "error",
                 "title": "Critical Security Events",
-                "message": f"{len(recent_critical)} critical security event(s) in the last 24 hours.",
+                "message": f"{len(recent_critical)} critical security event(s) in the last 24 hours require immediate attention.",
                 "severity": "critical",
-                "details": [e.description for e in recent_critical[:5]]  # Show first 5
+                "details": [e.description for e in recent_critical[:5]],  # Show first 5
+                "action": "Review security events and take appropriate action to resolve threats."
+            })
+        
+        # Check for plugins with excessive resource usage
+        resource_violations = []
+        for plugin_name, sandbox in self._sandboxes.items():
+            if hasattr(sandbox, 'resource_monitor') and sandbox.resource_monitor._violation_count > 5:
+                resource_violations.append(plugin_name)
+        
+        if resource_violations:
+            warnings.append({
+                "type": "warning",
+                "title": "Resource Usage Violations",
+                "message": f"{len(resource_violations)} plugin(s) have exceeded resource limits multiple times.",
+                "severity": "medium",
+                "details": resource_violations,
+                "action": "Review resource usage and consider adjusting limits or quarantining plugins."
             })
         
         return warnings
@@ -1424,11 +1637,104 @@ class PluginSecurityManager:
                         
                         self.logger.info(f"Permission expired: {plugin_name} -> {request.permission_type.value}")
 
+    def is_plugin_enabled(self, plugin_name: str) -> bool:
+        """Check if a plugin is enabled and approved by admin."""
+        with self._lock:
+            return plugin_name not in self._disabled_plugins and plugin_name not in self._quarantined_plugins
+    
+    async def enable_plugin(self, plugin_name: str, approved_by: str) -> bool:
+        """Enable a plugin with admin approval."""
+        with self._lock:
+            if plugin_name in self._quarantined_plugins:
+                self.logger.warning(f"Cannot enable quarantined plugin: {plugin_name}")
+                return False
+            
+            # Remove from disabled set
+            self._disabled_plugins.discard(plugin_name)
+            
+            # Update database
+            if database_manager and self._db_initialized:
+                try:
+                    async with database_manager.get_session() as session:
+                        # Insert or update plugin settings
+                        await session.execute("""
+                            INSERT OR REPLACE INTO plugin_settings 
+                            (plugin_name, enabled, admin_approved, approved_by, approved_at, updated_at)
+                            VALUES (:plugin_name, 1, 1, :approved_by, :approved_at, :updated_at)
+                        """, {
+                            "plugin_name": plugin_name,
+                            "approved_by": approved_by,
+                            "approved_at": datetime.now(timezone.utc),
+                            "updated_at": datetime.now(timezone.utc)
+                        })
+                        await session.commit()
+                except Exception as e:
+                    self.logger.error(f"Failed to update plugin settings in database: {e}")
+            
+            # Log audit event
+            await self.log_audit_event(SecurityAuditEvent(
+                event_id=hashlib.sha256(f"{plugin_name}enabled{time.time()}".encode()).hexdigest()[:16],
+                plugin_name=plugin_name,
+                event_type=AuditEventType.PERMISSION_GRANTED,
+                threat_level=SecurityThreatLevel.LOW,
+                description=f"Plugin enabled by admin",
+                timestamp=datetime.now(timezone.utc),
+                details={
+                    'approved_by': approved_by,
+                    'action': 'plugin_enabled'
+                }
+            ))
+            
+            self.logger.info(f"Plugin enabled: {plugin_name} by {approved_by}")
+            return True
+    
+    async def disable_plugin(self, plugin_name: str, disabled_by: str, reason: str = "Admin decision") -> bool:
+        """Disable a plugin."""
+        with self._lock:
+            # Add to disabled set
+            self._disabled_plugins.add(plugin_name)
+            
+            # Update database
+            if database_manager and self._db_initialized:
+                try:
+                    async with database_manager.get_session() as session:
+                        await session.execute("""
+                            INSERT OR REPLACE INTO plugin_settings 
+                            (plugin_name, enabled, admin_approved, disabled_reason, updated_at)
+                            VALUES (:plugin_name, 0, 0, :reason, :updated_at)
+                        """, {
+                            "plugin_name": plugin_name,
+                            "reason": reason,
+                            "updated_at": datetime.now(timezone.utc)
+                        })
+                        await session.commit()
+                except Exception as e:
+                    self.logger.error(f"Failed to update plugin settings in database: {e}")
+            
+            # Log audit event
+            await self.log_audit_event(SecurityAuditEvent(
+                event_id=hashlib.sha256(f"{plugin_name}disabled{time.time()}".encode()).hexdigest()[:16],
+                plugin_name=plugin_name,
+                event_type=AuditEventType.PERMISSION_REVOKED,
+                threat_level=SecurityThreatLevel.LOW,
+                description=f"Plugin disabled: {reason}",
+                timestamp=datetime.now(timezone.utc),
+                details={
+                    'disabled_by': disabled_by,
+                    'reason': reason,
+                    'action': 'plugin_disabled'
+                }
+            ))
+            
+            self.logger.info(f"Plugin disabled: {plugin_name} by {disabled_by} - {reason}")
+            return True
+    
     async def periodic_cleanup(self):
         """Periodic cleanup task."""
         while True:
             try:
                 self.cleanup_expired_permissions()
+                await self._refresh_module_cache()  # Refresh cache periodically
                 await asyncio.sleep(3600)  # Run every hour
             except Exception as e:
                 self.logger.error(f"Error in periodic cleanup: {e}")
@@ -1441,6 +1747,15 @@ class PluginSecurityManager:
 
 # Create global instance
 plugin_security_manager = PluginSecurityManager()
+
+# Start periodic cleanup task
+try:
+    loop = asyncio.get_event_loop()
+    if loop.is_running():
+        asyncio.create_task(plugin_security_manager.periodic_cleanup())
+except RuntimeError:
+    # No event loop running, will start later
+    pass
 
 # Convenience functions
 def get_security_manager() -> PluginSecurityManager:
@@ -1460,10 +1775,27 @@ def check_plugin_permission(plugin_name: str, permission_type: PermissionType) -
     """Check if a plugin has a specific permission."""
     return plugin_security_manager.has_permission(plugin_name, permission_type)
 
+def is_plugin_enabled(plugin_name: str) -> bool:
+    """Check if a plugin is enabled and approved."""
+    return plugin_security_manager.is_plugin_enabled(plugin_name)
+
+async def enable_plugin_with_approval(plugin_name: str, approved_by: str) -> bool:
+    """Enable a plugin with admin approval."""
+    return await plugin_security_manager.enable_plugin(plugin_name, approved_by)
+
+async def disable_plugin_with_reason(plugin_name: str, disabled_by: str, reason: str = "Admin decision") -> bool:
+    """Disable a plugin with reason."""
+    return await plugin_security_manager.disable_plugin(plugin_name, disabled_by, reason)
+
+def get_security_warnings_for_ui() -> List[Dict[str, Any]]:
+    """Get security warnings for the admin UI."""
+    return plugin_security_manager.get_security_warnings()
+
 __all__ = [
     'PluginSecurityManager', 'SecureSandbox', 'ResourceMonitor', 'FileAccessMonitor', 'NetworkMonitor',
     'SafeFileManager', 'NetworkBroker', 'PermissionType', 'PermissionStatus', 'SecurityThreatLevel', 'AuditEventType',
     'PermissionRequest', 'SecurityAuditEvent', 'ResourceUsage', 'SecurityPolicy',
     'plugin_security_manager', 'get_security_manager', 'create_plugin_sandbox',
-    'request_plugin_permission', 'check_plugin_permission'
+    'request_plugin_permission', 'check_plugin_permission', 'is_plugin_enabled',
+    'enable_plugin_with_approval', 'disable_plugin_with_reason', 'get_security_warnings_for_ui'
 ]

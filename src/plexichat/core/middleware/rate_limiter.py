@@ -44,7 +44,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 # PlexiChat imports
 try:
-    from plexichat.src.plexichat.core.config_manager import get_config_manager
+    from plexichat.core.config_manager import get_config_manager
     CONFIG_AVAILABLE = True
 except ImportError:
     CONFIG_AVAILABLE = False
@@ -58,7 +58,7 @@ except ImportError:
     get_ddos_protection = None
 
 try:
-    from plexichat.src.plexichat.core.security.security_manager import get_unified_security_system
+    from plexichat.core.security.security_manager import get_unified_security_system
     SECURITY_AVAILABLE = True
 except ImportError:
     SECURITY_AVAILABLE = False

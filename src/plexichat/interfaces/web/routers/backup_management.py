@@ -5,7 +5,6 @@ Backup Management WebUI Router
 Provides a web interface for managing backups through the unified backup system.
 """
 
-import logging
 import inspect
 import asyncio
 from typing import Dict, Any, List, Optional
@@ -56,17 +55,12 @@ except Exception:
     async def list_backups(*args, **kwargs):
         return []
 
-# Import authentication
-try:
-    from plexichat.interfaces.api.v1.auth import get_current_user
-    AUTH_AVAILABLE = True
-except Exception:
-    AUTH_AVAILABLE = False
+# Import authentication (use unified FastAPI adapter)
+from plexichat.core.auth.fastapi_adapter import get_current_user, require_admin
 
-    async def get_current_user():
-        return {"id": "admin", "username": "admin", "is_admin": True}
-
-logger = logging.getLogger(__name__)
+# Unified logging
+from plexichat.core.logging import get_logger
+logger = get_logger(__name__)
 
 # Create router
 router = APIRouter(prefix="/backup", tags=["Backup Management"])
@@ -152,14 +146,10 @@ def _get_manager_method(manager, candidates: List[str]):
 # Endpoints
 
 @router.get("/", response_class=HTMLResponse)
-async def backup_dashboard(request: Request, current_user: dict = Depends(get_current_user)):
+async def backup_dashboard(request: Request, current_user: dict = Depends(require_admin)):
     """Main backup management dashboard."""
     if not BACKUP_AVAILABLE:
         raise HTTPException(status_code=503, detail="Backup system not available")
-
-    # Check admin permissions
-    if not current_user.get("is_admin", False):
-        raise HTTPException(status_code=403, detail="Admin access required")
 
     try:
         backup_manager = get_backup_manager()
@@ -319,14 +309,11 @@ async def backup_dashboard(request: Request, current_user: dict = Depends(get_cu
 @router.get("/api/list")
 async def list_all_backups(
     backup_type: Optional[str] = None,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_admin)
 ):
     """List all backups."""
     if not BACKUP_AVAILABLE:
         raise HTTPException(status_code=503, detail="Backup system not available")
-
-    if not current_user.get("is_admin", False):
-        raise HTTPException(status_code=403, detail="Admin access required")
 
     try:
         backup_manager = get_backup_manager()
@@ -381,14 +368,11 @@ async def list_all_backups(
 async def create_backup_endpoint(
     backup_request: BackupCreateRequest,
     background_tasks: BackgroundTasks,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_admin)
 ):
     """Create a new backup."""
     if not BACKUP_AVAILABLE:
         raise HTTPException(status_code=503, detail="Backup system not available")
-
-    if not current_user.get("is_admin", False):
-        raise HTTPException(status_code=403, detail="Admin access required")
 
     try:
         backup_type = (backup_request.backup_type or "").lower()
@@ -423,7 +407,7 @@ async def create_backup_endpoint(
             # schedule task (task may be coroutine)
             background_tasks.add_task(_bg_schedule_coroutine, task)
 
-        logger.info(f"Backup creation started by {current_user['username']}: {backup_type}")
+        logger.info(f"Backup creation started by {current_user.get('username')}: {backup_type}")
 
         return JSONResponse(content={
             "success": True,
@@ -441,14 +425,11 @@ async def create_backup_endpoint(
 async def restore_backup_endpoint(
     restore_request: RestoreRequest,
     background_tasks: BackgroundTasks,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_admin)
 ):
     """Restore a backup."""
     if not BACKUP_AVAILABLE:
         raise HTTPException(status_code=503, detail="Backup system not available")
-
-    if not current_user.get("is_admin", False):
-        raise HTTPException(status_code=403, detail="Admin access required")
 
     try:
         backup_manager = get_backup_manager()
@@ -462,7 +443,7 @@ async def restore_backup_endpoint(
             task = restore_backup(restore_request.backup_id, restore_request.restore_path)
             background_tasks.add_task(_bg_schedule_coroutine, task)
 
-        logger.info(f"Backup restore started by {current_user['username']}: {restore_request.backup_id}")
+        logger.info(f"Backup restore started by {current_user.get('username')}: {restore_request.backup_id}")
 
         return JSONResponse(content={
             "success": True,
@@ -477,14 +458,11 @@ async def restore_backup_endpoint(
 @router.delete("/api/delete/{backup_id}")
 async def delete_backup_endpoint(
     backup_id: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_admin)
 ):
     """Delete a backup."""
     if not BACKUP_AVAILABLE:
         raise HTTPException(status_code=503, detail="Backup system not available")
-
-    if not current_user.get("is_admin", False):
-        raise HTTPException(status_code=403, detail="Admin access required")
 
     try:
         backup_manager = get_backup_manager()
@@ -496,7 +474,7 @@ async def delete_backup_endpoint(
         result = await _maybe_await(result)
 
         if result:
-            logger.info(f"Backup deleted by {current_user['username']}: {backup_id}")
+            logger.info(f"Backup deleted by {current_user.get('username')}: {backup_id}")
             return JSONResponse(content={
                 "success": True,
                 "message": "Backup deleted successfully"
@@ -512,13 +490,10 @@ async def delete_backup_endpoint(
 
 
 @router.get("/api/stats")
-async def get_backup_stats(current_user: dict = Depends(get_current_user)):
+async def get_backup_stats(current_user: dict = Depends(require_admin)):
     """Get backup statistics."""
     if not BACKUP_AVAILABLE:
         raise HTTPException(status_code=503, detail="Backup system not available")
-
-    if not current_user.get("is_admin", False):
-        raise HTTPException(status_code=403, detail="Admin access required")
 
     try:
         backup_manager = get_backup_manager()
@@ -551,13 +526,10 @@ async def get_backup_stats(current_user: dict = Depends(get_current_user)):
 
 
 @router.post("/api/cleanup")
-async def cleanup_old_backups(current_user: dict = Depends(get_current_user)):
+async def cleanup_old_backups(current_user: dict = Depends(require_admin)):
     """Clean up old backups."""
     if not BACKUP_AVAILABLE:
         raise HTTPException(status_code=503, detail="Backup system not available")
-
-    if not current_user.get("is_admin", False):
-        raise HTTPException(status_code=403, detail="Admin access required")
 
     try:
         backup_manager = get_backup_manager()
@@ -568,7 +540,7 @@ async def cleanup_old_backups(current_user: dict = Depends(get_current_user)):
         deleted_count = cleanup_method()
         deleted_count = await _maybe_await(deleted_count)
 
-        logger.info(f"Backup cleanup performed by {current_user['username']}: {deleted_count} backups deleted")
+        logger.info(f"Backup cleanup performed by {current_user.get('username')}: {deleted_count} backups deleted")
 
         return JSONResponse(content={
             "success": True,
@@ -583,12 +555,10 @@ async def cleanup_old_backups(current_user: dict = Depends(get_current_user)):
 # Additional endpoints for scheduling, verification, retention, recovery, and details
 
 @router.get("/api/schedules")
-async def list_schedules(current_user: dict = Depends(get_current_user)):
+async def list_schedules(current_user: dict = Depends(require_admin)):
     """List configured backup schedules."""
     if not BACKUP_AVAILABLE:
         raise HTTPException(status_code=503, detail="Backup system not available")
-    if not current_user.get("is_admin", False):
-        raise HTTPException(status_code=403, detail="Admin access required")
 
     try:
         backup_manager = get_backup_manager()
@@ -633,12 +603,10 @@ async def list_schedules(current_user: dict = Depends(get_current_user)):
 
 
 @router.post("/api/schedules")
-async def create_schedule_endpoint(schedule: ScheduleCreateRequest, current_user: dict = Depends(get_current_user)):
+async def create_schedule_endpoint(schedule: ScheduleCreateRequest, current_user: dict = Depends(require_admin)):
     """Create a new backup schedule."""
     if not BACKUP_AVAILABLE:
         raise HTTPException(status_code=503, detail="Backup system not available")
-    if not current_user.get("is_admin", False):
-        raise HTTPException(status_code=403, detail="Admin access required")
 
     try:
         backup_manager = get_backup_manager()
@@ -667,12 +635,10 @@ async def create_schedule_endpoint(schedule: ScheduleCreateRequest, current_user
 
 
 @router.delete("/api/schedules/{schedule_id}")
-async def delete_schedule(schedule_id: str, current_user: dict = Depends(get_current_user)):
+async def delete_schedule(schedule_id: str, current_user: dict = Depends(require_admin)):
     """Delete a backup schedule."""
     if not BACKUP_AVAILABLE:
         raise HTTPException(status_code=503, detail="Backup system not available")
-    if not current_user.get("is_admin", False):
-        raise HTTPException(status_code=403, detail="Admin access required")
     try:
         backup_manager = get_backup_manager()
         delete_method = _get_manager_method(backup_manager, ["delete_schedule", "remove_schedule", "delete_backup_schedule"])
@@ -687,12 +653,10 @@ async def delete_schedule(schedule_id: str, current_user: dict = Depends(get_cur
 
 
 @router.post("/api/schedules/run/{schedule_id}")
-async def run_schedule_now(schedule_id: str, background_tasks: BackgroundTasks, current_user: dict = Depends(get_current_user)):
+async def run_schedule_now(schedule_id: str, background_tasks: BackgroundTasks, current_user: dict = Depends(require_admin)):
     """Trigger a schedule to run immediately."""
     if not BACKUP_AVAILABLE:
         raise HTTPException(status_code=503, detail="Backup system not available")
-    if not current_user.get("is_admin", False):
-        raise HTTPException(status_code=403, detail="Admin access required")
     try:
         backup_manager = get_backup_manager()
         run_method = _get_manager_method(backup_manager, ["run_schedule", "execute_schedule", "_run_schedule_by_id"])
@@ -726,12 +690,10 @@ async def run_schedule_now(schedule_id: str, background_tasks: BackgroundTasks, 
 
 
 @router.get("/api/backup/{backup_id}")
-async def get_backup_details(backup_id: str, current_user: dict = Depends(get_current_user)):
+async def get_backup_details(backup_id: str, current_user: dict = Depends(require_admin)):
     """Get detailed backup metadata and status."""
     if not BACKUP_AVAILABLE:
         raise HTTPException(status_code=503, detail="Backup system not available")
-    if not current_user.get("is_admin", False):
-        raise HTTPException(status_code=403, detail="Admin access required")
     try:
         backup_manager = get_backup_manager()
         get_method = _get_manager_method(backup_manager, ["get_backup_details", "get_backup", "fetch_backup"])
@@ -762,12 +724,10 @@ async def get_backup_details(backup_id: str, current_user: dict = Depends(get_cu
 
 
 @router.post("/api/backup/{backup_id}/verify")
-async def verify_backup_endpoint(backup_id: str, deep: bool = False, background_tasks: BackgroundTasks = None, current_user: dict = Depends(get_current_user)):
+async def verify_backup_endpoint(backup_id: str, deep: bool = False, background_tasks: BackgroundTasks = None, current_user: dict = Depends(require_admin)):
     """Trigger verification of a backup (integrity, encryption, distribution)."""
     if not BACKUP_AVAILABLE:
         raise HTTPException(status_code=503, detail="Backup system not available")
-    if not current_user.get("is_admin", False):
-        raise HTTPException(status_code=403, detail="Admin access required")
     try:
         backup_manager = get_backup_manager()
         verify_method = _get_manager_method(backup_manager, ["verify_backup", "verify", "run_verification"])
@@ -791,12 +751,10 @@ async def verify_backup_endpoint(backup_id: str, deep: bool = False, background_
 
 
 @router.get("/api/verification/{verification_id}")
-async def get_verification_result(verification_id: str, current_user: dict = Depends(get_current_user)):
+async def get_verification_result(verification_id: str, current_user: dict = Depends(require_admin)):
     """Retrieve verification result by id."""
     if not BACKUP_AVAILABLE:
         raise HTTPException(status_code=503, detail="Backup system not available")
-    if not current_user.get("is_admin", False):
-        raise HTTPException(status_code=403, detail="Admin access required")
     try:
         backup_manager = get_backup_manager()
         # Manager may expose verification_results dict
@@ -825,12 +783,10 @@ async def get_verification_result(verification_id: str, current_user: dict = Dep
 
 
 @router.get("/api/backup/{backup_id}/download")
-async def download_backup(backup_id: str, current_user: dict = Depends(get_current_user)):
+async def download_backup(backup_id: str, current_user: dict = Depends(require_admin)):
     """Download an archived backup file if available."""
     if not BACKUP_AVAILABLE:
         raise HTTPException(status_code=503, detail="Backup system not available")
-    if not current_user.get("is_admin", False):
-        raise HTTPException(status_code=403, detail="Admin access required")
     try:
         backup_manager = get_backup_manager()
         # Managers may expose methods to export or fetch file path
@@ -861,12 +817,10 @@ async def download_backup(backup_id: str, current_user: dict = Depends(get_curre
 
 
 @router.put("/api/retention")
-async def update_retention_policy(payload: RetentionUpdateRequest, current_user: dict = Depends(get_current_user)):
+async def update_retention_policy(payload: RetentionUpdateRequest, current_user: dict = Depends(require_admin)):
     """Update retention policy for a backup or schedule."""
     if not BACKUP_AVAILABLE:
         raise HTTPException(status_code=503, detail="Backup system not available")
-    if not current_user.get("is_admin", False):
-        raise HTTPException(status_code=403, detail="Admin access required")
     try:
         backup_manager = get_backup_manager()
         update_method = _get_manager_method(backup_manager, ["update_retention_policy", "set_retention", "update_backup_retention"])
@@ -904,12 +858,10 @@ async def update_retention_policy(payload: RetentionUpdateRequest, current_user:
 
 
 @router.post("/api/recover")
-async def execute_recovery_endpoint(payload: RecoveryRequest, background_tasks: BackgroundTasks, current_user: dict = Depends(get_current_user)):
+async def execute_recovery_endpoint(payload: RecoveryRequest, background_tasks: BackgroundTasks, current_user: dict = Depends(require_admin)):
     """Execute a disaster recovery plan or restore operation."""
     if not BACKUP_AVAILABLE:
         raise HTTPException(status_code=503, detail="Backup system not available")
-    if not current_user.get("is_admin", False):
-        raise HTTPException(status_code=403, detail="Admin access required")
     try:
         backup_manager = get_backup_manager()
         exec_method = _get_manager_method(backup_manager, ["execute_recovery", "run_recovery", "execute_recovery_plan"])

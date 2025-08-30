@@ -29,8 +29,8 @@ try:
         get_quantum_manager, QuantumEncryptionManager, EncryptionAlgorithm, KeyType
     )
     from plexichat.core.middleware.dynamic_rate_limiting_middleware import DynamicRateLimitingMiddleware
-    from plexichat.src.plexichat.core.config_manager import get_config_manager
-    from plexichat.src.plexichat.core.security.security_manager import get_security_manager
+    from plexichat.core.config_manager import get_config_manager
+    from plexichat.core.security.security_manager import get_security_manager
 except ImportError as e:
     logging.warning(f"Security module imports failed: {e}")
     # Fallback for development

@@ -18,20 +18,9 @@ except ImportError:
 
 try:
     from plexichat.interfaces.web import app
-except ImportError:
-    try:
-        # Try alternative import path
-        from . import app
-    except ImportError:
-        try:
-            # Try direct import
-            import sys
-            from pathlib import Path
-            web_path = Path(__file__).parent
-            sys.path.insert(0, str(web_path))
-            from __init__ import app
-        except ImportError:
-            app = None
+except ImportError as e:
+    print(f"Failed to import app from plexichat.interfaces.web: {e}")
+    app = None
 
 # Setup logging
 logging.basicConfig(

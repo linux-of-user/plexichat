@@ -10,12 +10,15 @@ Enhanced system management with comprehensive monitoring, analytics, and perform
 Uses EXISTING database abstraction and optimization systems.
 """
 
-import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel
+
+# Unified logging system
+from plexichat.core.logging import get_logger
+logger = get_logger(__name__)
 
 # Use EXISTING database abstraction layer
 try:
@@ -27,20 +30,14 @@ except ImportError:
 try:
     from plexichat.core.performance.optimization_engine import PerformanceOptimizationEngine
     from plexichat.infrastructure.utils.performance import async_track_performance
-    from plexichat.core.logging_advanced.performance_logger import get_performance_logger
+    from plexichat.core.logging import get_performance_logger
 except ImportError:
     PerformanceOptimizationEngine = None
     async_track_performance = None
     get_performance_logger = None
 
-# Authentication imports
-try:
-    from plexichat.infrastructure.utils.auth import get_current_user, require_admin
-except ImportError:
-    def get_current_user():
-        return {"id": 1, "username": "admin", "is_admin": True}
-    def require_admin():
-        return {"id": 1, "username": "admin", "is_admin": True}
+# Authentication imports - use unified FastAPI adapter
+from plexichat.core.auth.fastapi_adapter import get_current_user, require_admin
 
 from plexichat.core.analytics import analytics_engine
 
@@ -55,55 +52,39 @@ except ImportError:
 
 from plexichat.core.testing import test_framework
 
-# Model imports removed - not used
-
-logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/system", tags=["system"])
 
 # Initialize EXISTING performance systems
 performance_logger = get_performance_logger() if get_performance_logger else None
 
-# Import enhanced security decorators
+# Import unified security decorators from core security
+from plexichat.core.security.security_decorators import (
+    secure_endpoint,
+    RequiredPermission,
+    require_auth,
+    rate_limit,
+    audit_access,
+    sanitize_input,
+    validate_csrf,
+    admin_required,
+)
+
+# Try to initialize logging system if available (optional)
 try:
-    from plexichat.core.security.security_decorators import (
-        secure_endpoint, require_auth, rate_limit, audit_access, validate_input,
-        SecurityLevel, RequiredPermission, admin_endpoint
+    from plexichat.core.logging import (
+        get_logging_system, LogCategory, LogLevel, PerformanceTracker, SecurityMetrics
     )
-    from plexichat.core.logging_advanced.advanced_logging_system import (
-        get_enhanced_logging_system, LogCategory, LogLevel, PerformanceTracker, SecurityMetrics
-    )
-    ENHANCED_SECURITY_AVAILABLE = True
-    
-    # Get enhanced logging system
-    logging_system = get_enhanced_logging_system()
+    logging_system = get_logging_system()
     if logging_system:
         enhanced_logger = logging_system.get_logger(__name__)
-        logger.info("Enhanced security and logging initialized for system")
+        logger.info("Logging system initialized for system router")
     else:
         enhanced_logger = None
-        
-except ImportError as e:
-    logger.warning(f"Enhanced security not available for system: {e}")
-    ENHANCED_SECURITY_AVAILABLE = False
+except Exception as e:
+    logger.warning(f"Advanced logging not available for system router: {e}")
     enhanced_logger = None
     logging_system = None
-    
-    # Fallback decorators
-    def secure_endpoint(*args, **kwargs):
-        def decorator(func): return func
-        return decorator
-    
-    def admin_endpoint(*args, **kwargs):
-        def decorator(func): return func
-        return decorator
-    
-    class SecurityLevel:
-        ADMIN = 4
-        SYSTEM = 5
-    
-    class RequiredPermission:
-        ADMIN = "admin"
-        SYSTEM = "system"
+
 optimization_engine = PerformanceOptimizationEngine() if PerformanceOptimizationEngine else None
 
 # Pydantic models
@@ -139,7 +120,7 @@ class SystemService:
         self.performance_logger = performance_logger
         self.optimization_engine = optimization_engine
 
-    @async_track_performance("system_status_check") if async_track_performance else lambda f: f
+    @async_track_performance("system_status_check") if async_track_performance else (lambda f: f)
     async def get_system_status(self) -> SystemStatus:
         """Get comprehensive system status using EXISTING systems."""
         try:
@@ -182,7 +163,7 @@ class SystemService:
                 performance_score=None
             )
 
-    @async_track_performance("analytics_report") if async_track_performance else lambda f: f
+    @async_track_performance("analytics_report") if async_track_performance else (lambda f: f)
     async def get_analytics_report(self) -> AnalyticsReport:
         """Get analytics report using EXISTING database abstraction layer."""
         try:
@@ -235,7 +216,7 @@ class SystemService:
                 performance_metrics={}
             )
 
-    @async_track_performance("system_tests") if async_track_performance else lambda f: f
+    @async_track_performance("system_tests") if async_track_performance else (lambda f: f)
     async def run_system_tests(self) -> TestResults:
         """Run system tests using EXISTING test framework."""
         try:
@@ -287,8 +268,8 @@ system_service = SystemService()
     summary="Get system status"
 )
 @secure_endpoint(
-    auth_level=SecurityLevel.AUTHENTICATED,
-    permissions=[RequiredPermission.READ],
+    auth_required=True,
+    permission=RequiredPermission.READ,
     rate_limit_rpm=60,
     audit_action="view_system_status"
 )
@@ -302,7 +283,11 @@ async def get_system_status(
 
     # Performance tracking
     if performance_logger:
-        performance_logger.record_metric("system_status_requests", 1, "count")
+        try:
+            performance_logger.increment_counter("system_status_requests", 1)
+        except Exception:
+            # Best-effort, don't fail endpoint
+            pass
 
     return await system_service.get_system_status()
 
@@ -311,8 +296,9 @@ async def get_system_status(
     response_model=AnalyticsReport,
     summary="Get analytics report"
 )
-@admin_endpoint(
-    permissions=[RequiredPermission.ADMIN],
+@secure_endpoint(
+    auth_required=True,
+    permission=RequiredPermission.ADMIN,
     rate_limit_rpm=30,
     audit_action="view_analytics"
 )
@@ -326,7 +312,10 @@ async def get_analytics_report(
 
     # Performance tracking
     if performance_logger:
-        performance_logger.record_metric("analytics_requests", 1, "count")
+        try:
+            performance_logger.increment_counter("analytics_requests", 1)
+        except Exception:
+            pass
 
     return await system_service.get_analytics_report()
 
@@ -334,6 +323,12 @@ async def get_analytics_report(
     "/tests/run",
     response_model=TestResults,
     summary="Run system tests"
+)
+@secure_endpoint(
+    auth_required=True,
+    permission=RequiredPermission.ADMIN,
+    rate_limit_rpm=10,
+    audit_action="run_system_tests"
 )
 async def run_system_tests(
     request: Request,
@@ -345,13 +340,22 @@ async def run_system_tests(
 
     # Performance tracking
     if performance_logger:
-        performance_logger.record_metric("system_test_runs", 1, "count")
+        try:
+            performance_logger.increment_counter("system_test_runs", 1)
+        except Exception:
+            pass
 
     return await system_service.run_system_tests()
 
 @router.get(
     "/performance",
     summary="Get performance metrics"
+)
+@secure_endpoint(
+    auth_required=True,
+    permission=RequiredPermission.ADMIN,
+    rate_limit_rpm=30,
+    audit_action="view_performance_metrics"
 )
 async def get_performance_metrics(
     request: Request,
@@ -363,7 +367,10 @@ async def get_performance_metrics(
 
     # Performance tracking
     if performance_logger:
-        performance_logger.record_metric("performance_metric_requests", 1, "count")
+        try:
+            performance_logger.increment_counter("performance_metric_requests", 1)
+        except Exception:
+            pass
 
     try:
         if optimization_engine:
@@ -385,6 +392,12 @@ async def get_performance_metrics(
     "/optimize",
     summary="Trigger system optimization"
 )
+@secure_endpoint(
+    auth_required=True,
+    permission=RequiredPermission.ADMIN,
+    rate_limit_rpm=5,
+    audit_action="trigger_optimization"
+)
 async def trigger_optimization(
     request: Request,
     current_user: Dict[str, Any] = Depends(require_admin)
@@ -395,7 +408,10 @@ async def trigger_optimization(
 
     # Performance tracking
     if performance_logger:
-        performance_logger.record_metric("optimization_triggers", 1, "count")
+        try:
+            performance_logger.increment_counter("optimization_triggers", 1)
+        except Exception:
+            pass
 
     try:
         if optimization_engine:
@@ -430,4 +446,5 @@ async def get_resilience_status():
         report = await resilience_manager.run_system_check()
         return {"success": True, "resilience": report}
     except Exception as e:
+        logger.error(f"Error getting resilience status: {e}")
         return {"success": False, "error": str(e)}

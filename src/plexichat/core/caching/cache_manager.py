@@ -23,7 +23,7 @@ except ImportError:
     async_thread_manager = None
 
 try:
-    from plexichat.core.logging_advanced.performance_logger import get_performance_logger  # type: ignore
+    from plexichat.core.logging import get_performance_logger  # type: ignore
 except ImportError:
     get_performance_logger = None
 

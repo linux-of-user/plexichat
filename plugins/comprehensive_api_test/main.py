@@ -26,23 +26,96 @@ from typing import Dict, List, Any, Optional
 from plexichat.core.logging import get_logger
 
 # Plugin SDK imports
+# Try several common import locations for the generated SDK module so plugins
+# continue to work regardless of packaging layout. If all imports fail, fall
+# back to lightweight local implementations to allow development/testing.
 try:
-    from plugins_internal import PluginBase, command, PluginManager
-except ImportError:
-    # Fallback for development
-    class PluginBase:
-        def __init__(self):
-            self.logger = get_logger(__name__)
-    
-    def command(name: str, description: str = ""):
-        def decorator(func):
-            func._command_name = name
-            func._command_description = description
-            return func
-        return decorator
-    
-    class PluginManager:
-        pass
+    # Preferred location when installed as package
+    from plexichat.plugins_internal import PluginBase, command, PluginManager  # type: ignore
+except Exception:
+    try:
+        # Fallback to top-level module if present in sys.path
+        from plugins_internal import PluginBase, command, PluginManager  # type: ignore
+    except Exception:
+        # Final fallback for development: minimal, resilient implementations.
+        _fallback_logger = get_logger("plugins_internal.fallback")
+        _fallback_logger.warning(
+            "plugins_internal SDK not found. Using fallback lightweight implementations."
+        )
+
+        class PluginBase:
+            """
+            Minimal fallback PluginBase to allow plugin development without the
+            full SDK. Accepts optional plugin_name for compatibility with both
+            SDK and lightweight implementations.
+            """
+
+            def __init__(self, plugin_name: Optional[str] = None, *args, **kwargs):
+                self.plugin_name = plugin_name or self.__class__.__name__
+                # Use plugin-scoped logger
+                self.logger = get_logger(f"plugin.{self.plugin_name}")
+                self.enabled = False
+
+            async def initialize(self) -> bool:
+                """Fallback initialize - mark as initialized and enabled."""
+                try:
+                    self.logger.info(f"Initializing (fallback) plugin: {self.plugin_name}")
+                    self.enabled = True
+                    return True
+                except Exception as e:
+                    self.logger.error(f"Fallback initialize error: {e}")
+                    return False
+
+            async def cleanup(self) -> None:
+                """Fallback cleanup - disable plugin."""
+                try:
+                    self.logger.info(f"Cleaning up (fallback) plugin: {self.plugin_name}")
+                    self.enabled = False
+                except Exception:
+                    pass
+
+            def enable(self) -> None:
+                self.enabled = True
+                self.logger.info(f"Plugin enabled: {self.plugin_name}")
+
+            def disable(self) -> None:
+                self.enabled = False
+                self.logger.info(f"Plugin disabled: {self.plugin_name}")
+
+        def command(name: str, description: str = ""):
+            """
+            Simple command decorator compatible with SDK's decorator shape.
+            Attaches metadata attributes to the wrapped function.
+            """
+
+            def decorator(func):
+                setattr(func, "_command_name", name)
+                setattr(func, "_command_description", description)
+                return func
+
+            return decorator
+
+        class PluginManager:
+            """
+            Lightweight PluginManager fallback. Provides basic registration and lookup.
+            """
+
+            def __init__(self):
+                self._registry: Dict[str, Any] = {}
+                self.logger = get_logger("PluginManager.fallback")
+
+            def register(self, name: str, plugin_instance: Any) -> None:
+                if name in self._registry:
+                    self.logger.warning(f"Overwriting plugin registration: {name}")
+                self._registry[name] = plugin_instance
+                self.logger.info(f"Registered plugin (fallback): {name}")
+
+            def get(self, name: str) -> Optional[Any]:
+                return self._registry.get(name)
+
+            def list_plugins(self) -> List[str]:
+                return list(self._registry.keys())
+
 
 logger = get_logger(__name__)
 
@@ -50,7 +123,13 @@ class ComprehensiveAPITest(PluginBase):
     """Comprehensive API testing plugin."""
     
     def __init__(self):
-        super().__init__()
+        # Support both SDK PluginBase(signature plugin_name) and fallback(no-arg)
+        try:
+            # If the SDK PluginBase expects a plugin name, pass it.
+            super().__init__("comprehensive_api_test")
+        except TypeError:
+            # Fallback base class may not accept arguments.
+            super().__init__()
         self.base_url = "http://localhost:8000"
         self.api_v1_url = f"{self.base_url}/api/v1"
         self.test_results = {}
@@ -195,7 +274,11 @@ class ComprehensiveAPITest(PluginBase):
                 data = response.json()
                 self.auth_token = data.get("access_token")
                 self.session_id = data.get("session_id")
-                print(f"✅ User Login: SUCCESS - Token: {self.auth_token[:20]}...")
+                if self.auth_token:
+                    masked = self.auth_token[:20]
+                else:
+                    masked = "<no-token>"
+                print(f"✅ User Login: SUCCESS - Token: {masked}...")
                 self.test_results["auth_login"] = {"status": "SUCCESS", "data": data}
                 return True
             else:
@@ -234,7 +317,7 @@ class ComprehensiveAPITest(PluginBase):
                 "email": f"updated_{int(time.time())}@example.com"
             }
             
-            headers = {"Authorization": f"Bearer {self.auth_token}"}
+            headers = {"Authorization": f"Bearer {self.auth_token}"} if self.auth_token else {}
             response = requests.put(
                 f"{self.api_v1_url}/users/me",
                 json=update_data,
@@ -299,7 +382,7 @@ class ComprehensiveAPITest(PluginBase):
                     "encrypted": True
                 }
                 
-                headers = {"Authorization": f"Bearer {self.auth_token}"}
+                headers = {"Authorization": f"Bearer {self.auth_token}"} if self.auth_token else {}
                 response = requests.post(
                     f"{self.api_v1_url}/messages/send",
                     json=message_data,
@@ -343,7 +426,7 @@ class ComprehensiveAPITest(PluginBase):
             # Create a test file
             test_file_content = b"This is a test file for comprehensive API testing."
             
-            headers = {"Authorization": f"Bearer {self.auth_token}"}
+            headers = {"Authorization": f"Bearer {self.auth_token}"} if self.auth_token else {}
             files = {"file": ("test.txt", test_file_content, "text/plain")}
             data = {"description": "Test file upload", "is_public": False}
             

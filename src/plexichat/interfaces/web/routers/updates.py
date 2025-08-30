@@ -32,21 +32,15 @@ except ImportError:
 try:
     from plexichat.core.performance.optimization_engine import PerformanceOptimizationEngine
     from plexichat.infrastructure.utils.performance import async_track_performance
-    from plexichat.core.logging_advanced.performance_logger import get_performance_logger, timer
+    from plexichat.core.logging import get_performance_logger, timer
 except ImportError:
     PerformanceOptimizationEngine = None
     async_track_performance = None
     get_performance_logger = None
     timer = None
 
-# Authentication imports
-try:
-    from plexichat.infrastructure.utils.auth import get_current_user, require_admin
-except ImportError:
-    def get_current_user():
-        return {"id": 1, "username": "admin", "is_admin": True}
-    def require_admin():
-        return {"id": 1, "username": "admin", "is_admin": True}
+# Authentication imports - use unified FastAPI auth adapter
+from plexichat.core.auth.fastapi_adapter import get_current_user, require_admin
 
 # Configuration imports
 try:
@@ -63,7 +57,8 @@ try:
 except ImportError:
     httpx = None
 
-logger = logging.getLogger(__name__)
+from plexichat.core.logging import get_logger
+logger = get_logger(__name__)
 router = APIRouter(prefix="/updates", tags=["updates"])
 
 # Initialize EXISTING performance systems
@@ -292,7 +287,7 @@ async def get_version_info(
 
     # Performance tracking
     if performance_logger:
-        performance_logger.record_metric("version_check_requests", 1, "count")
+        performance_logger.increment_counter("version_check_requests", 1)
 
     return await update_service.get_version_info()
 
@@ -312,7 +307,7 @@ async def get_update_history(
 
     # Performance tracking
     if performance_logger:
-        performance_logger.record_metric("update_history_requests", 1, "count")
+        performance_logger.increment_counter("update_history_requests", 1)
 
     return await update_service.get_update_history(limit)
 
@@ -331,7 +326,7 @@ async def check_for_updates(
 
     # Performance tracking
     if performance_logger:
-        performance_logger.record_metric("forced_update_checks", 1, "count")
+        performance_logger.increment_counter("forced_update_checks", 1)
 
     return await update_service.get_version_info()
 
@@ -352,7 +347,7 @@ async def install_update(
 
     # Performance tracking
     if performance_logger:
-        performance_logger.record_metric("update_installations", 1, "count")
+        performance_logger.increment_counter("update_installations", 1)
 
     # Start update in background
     background_tasks.add_task(update_service.perform_update, version)
@@ -378,7 +373,7 @@ async def get_update_status(
 
     # Performance tracking
     if performance_logger:
-        performance_logger.record_metric("update_status_requests", 1, "count")
+        performance_logger.increment_counter("update_status_requests", 1)
 
     # In a real implementation, this would check the actual update status
     # For now, return a default status
@@ -402,7 +397,7 @@ async def create_backup(
 
     # Performance tracking
     if performance_logger:
-        performance_logger.record_metric("backup_requests", 1, "count")
+        performance_logger.increment_counter("backup_requests", 1)
 
     try:
         # Placeholder backup logic

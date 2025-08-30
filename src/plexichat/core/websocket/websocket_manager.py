@@ -231,7 +231,7 @@ class WebSocketManager:
 
             # Performance tracking
             if self.performance_logger:
-                self.performance_logger.record_metric("websocket_connections", 1, "count")
+                self.performance_logger.increment_counter("websocket_connections", 1)
 
             self.total_connections += 1
 
@@ -271,7 +271,7 @@ class WebSocketManager:
 
             # Performance tracking
             if self.performance_logger:
-                self.performance_logger.record_metric("websocket_disconnections", 1, "count")
+                self.performance_logger.increment_counter("websocket_disconnections", 1)
 
             self.total_disconnections += 1
 

@@ -6,7 +6,7 @@
 from datetime import datetime, timezone
 from pathlib import Path
 
-from plexichat.core.authentication import require_auth, require_admin_auth
+from plexichat.core.auth.fastapi_adapter import get_current_user, require_admin
 from plexichat.core.logging import get_logger
 # from ...services.performance_service import get_performance_service
 
@@ -31,7 +31,7 @@ logger = get_logger(__name__)
 @router.get("/", response_class=HTMLResponse)
 async def main_dashboard(
     request: Request,
-    current_user: dict = Depends(require_auth)
+    current_user: dict = Depends(get_current_user)
 ):
     """Main system dashboard."""
     try:
@@ -63,7 +63,7 @@ async def main_dashboard(
 @router.get("/admin", response_class=HTMLResponse)
 async def admin_dashboard(
     request: Request,
-    current_user: dict = Depends(require_admin_auth)
+    current_user: dict = Depends(require_admin)
 ):
     """Administrative dashboard."""
     try:

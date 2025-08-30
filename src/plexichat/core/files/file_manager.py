@@ -51,7 +51,7 @@ except ImportError:
 
 try:
     from plexichat.core.performance.optimization_engine import PerformanceOptimizationEngine
-    from plexichat.core.logging_advanced.performance_logger import get_performance_logger
+    from plexichat.core.logging import get_performance_logger
 except ImportError:
     PerformanceOptimizationEngine = None
     get_performance_logger = None
@@ -309,7 +309,7 @@ class FileManager:
             if self.performance_logger:
                 duration = time.time() - start_time
                 self.performance_logger.record_metric("file_upload_duration", duration, "seconds")
-                self.performance_logger.record_metric("files_uploaded", 1, "count")
+                self.performance_logger.increment_counter("files_uploaded", 1)
                 self.performance_logger.record_metric("file_upload_size", file_size, "bytes")
 
             logger.info(f"File uploaded: {file_id} ({filename})")
@@ -318,7 +318,7 @@ class FileManager:
         except Exception as e:
             logger.error(f"Error uploading file: {e}")
             if self.performance_logger:
-                self.performance_logger.record_metric("file_upload_errors", 1, "count")
+                self.performance_logger.increment_counter("file_upload_errors", 1)
             raise
 
     def _save_file_sync(self, file_data: bytes, file_path: Path):
@@ -467,7 +467,7 @@ class FileManager:
 
             # Performance tracking
             if self.performance_logger:
-                self.performance_logger.record_metric("files_deleted", 1, "count")
+                self.performance_logger.increment_counter("files_deleted", 1)
 
             logger.info(f"File deleted: {file_id}")
             return True

@@ -4,6 +4,8 @@ Database migration for plugin permission management.
 This migration adds tables for:
 - Plugin permissions management
 - Plugin audit logging
+- Plugin settings and configuration
+- Plugin approved modules
 - Client settings storage
 
 Migration ID: 001_add_plugin_permissions
@@ -23,7 +25,7 @@ class PluginPermissionsMigration:
     
     MIGRATION_ID = "001_add_plugin_permissions"
     MIGRATION_NAME = "Add Plugin Permissions"
-    VERSION = "1.0.0"
+    VERSION = "1.1.0"
     
     def __init__(self, database_manager):
         self.db = database_manager
@@ -37,8 +39,14 @@ class PluginPermissionsMigration:
             # Create plugin_permissions table
             await self._create_plugin_permissions_table()
             
-            # Create plugin_audit table
-            await self._create_plugin_audit_table()
+            # Create plugin_audit_events table (renamed from plugin_audit)
+            await self._create_plugin_audit_events_table()
+            
+            # Create plugin_settings table
+            await self._create_plugin_settings_table()
+            
+            # Create plugin_approved_modules table
+            await self._create_plugin_approved_modules_table()
             
             # Create client_settings table
             await self._create_client_settings_table()
@@ -63,7 +71,9 @@ class PluginPermissionsMigration:
             self.logger.info(f"Rolling back migration: {self.MIGRATION_NAME}")
             
             # Drop tables in reverse order (due to foreign keys)
-            await self._drop_table("plugin_audit")
+            await self._drop_table("plugin_audit_events")
+            await self._drop_table("plugin_approved_modules")
+            await self._drop_table("plugin_settings")
             await self._drop_table("plugin_permissions")
             await self._drop_table("client_settings")
             
@@ -83,45 +93,54 @@ class PluginPermissionsMigration:
             query = """
             CREATE TABLE IF NOT EXISTS plugin_permissions (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                plugin_id TEXT NOT NULL,
-                permission_name TEXT NOT NULL,
-                granted_by_user_id TEXT NOT NULL,
-                granted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                expires_at TIMESTAMP NULL,
-                is_active BOOLEAN DEFAULT TRUE,
+                plugin_name TEXT NOT NULL,
+                permission_type TEXT NOT NULL,
+                status TEXT NOT NULL DEFAULT 'pending',
+                justification TEXT,
+                requested_at TIMESTAMP NOT NULL,
+                approved_by TEXT,
+                approved_at TIMESTAMP,
+                expires_at TIMESTAMP,
+                additional_data TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                UNIQUE(plugin_id, permission_name)
+                UNIQUE(plugin_name, permission_type)
             )
             """
         elif self.db.config.db_type in ["postgresql", "postgres"]:
             query = """
             CREATE TABLE IF NOT EXISTS plugin_permissions (
                 id SERIAL PRIMARY KEY,
-                plugin_id VARCHAR(255) NOT NULL,
-                permission_name VARCHAR(255) NOT NULL,
-                granted_by_user_id VARCHAR(255) NOT NULL,
-                granted_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-                expires_at TIMESTAMP WITH TIME ZONE NULL,
-                is_active BOOLEAN DEFAULT TRUE,
+                plugin_name VARCHAR(255) NOT NULL,
+                permission_type VARCHAR(255) NOT NULL,
+                status VARCHAR(50) NOT NULL DEFAULT 'pending',
+                justification TEXT,
+                requested_at TIMESTAMP WITH TIME ZONE NOT NULL,
+                approved_by VARCHAR(255),
+                approved_at TIMESTAMP WITH TIME ZONE,
+                expires_at TIMESTAMP WITH TIME ZONE,
+                additional_data JSONB,
                 created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-                UNIQUE(plugin_id, permission_name)
+                UNIQUE(plugin_name, permission_type)
             )
             """
         elif self.db.config.db_type == "mysql":
             query = """
             CREATE TABLE IF NOT EXISTS plugin_permissions (
                 id INT AUTO_INCREMENT PRIMARY KEY,
-                plugin_id VARCHAR(255) NOT NULL,
-                permission_name VARCHAR(255) NOT NULL,
-                granted_by_user_id VARCHAR(255) NOT NULL,
-                granted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                plugin_name VARCHAR(255) NOT NULL,
+                permission_type VARCHAR(255) NOT NULL,
+                status VARCHAR(50) NOT NULL DEFAULT 'pending',
+                justification TEXT,
+                requested_at TIMESTAMP NOT NULL,
+                approved_by VARCHAR(255),
+                approved_at TIMESTAMP NULL,
                 expires_at TIMESTAMP NULL,
-                is_active BOOLEAN DEFAULT TRUE,
+                additional_data JSON,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                UNIQUE KEY unique_plugin_permission (plugin_id, permission_name)
+                UNIQUE KEY unique_plugin_permission (plugin_name, permission_type)
             )
             """
         
@@ -131,51 +150,57 @@ class PluginPermissionsMigration:
         
         self.logger.info("Created plugin_permissions table")
     
-    async def _create_plugin_audit_table(self):
-        """Create the plugin_audit table."""
+    async def _create_plugin_audit_events_table(self):
+        """Create the plugin_audit_events table."""
         if self.db.config.db_type == "sqlite":
             query = """
-            CREATE TABLE IF NOT EXISTS plugin_audit (
+            CREATE TABLE IF NOT EXISTS plugin_audit_events (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                plugin_id TEXT NOT NULL,
-                action_type TEXT NOT NULL,
-                user_id TEXT NULL,
-                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                details TEXT NULL,
-                ip_address TEXT NULL,
-                user_agent TEXT NULL,
-                success BOOLEAN DEFAULT TRUE,
-                error_message TEXT NULL
+                event_id TEXT UNIQUE NOT NULL,
+                plugin_name TEXT NOT NULL,
+                event_type TEXT NOT NULL,
+                threat_level TEXT NOT NULL,
+                description TEXT NOT NULL,
+                timestamp TIMESTAMP NOT NULL,
+                details TEXT,
+                resolved BOOLEAN DEFAULT 0,
+                resolved_by TEXT,
+                resolved_at TIMESTAMP,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
             """
         elif self.db.config.db_type in ["postgresql", "postgres"]:
             query = """
-            CREATE TABLE IF NOT EXISTS plugin_audit (
+            CREATE TABLE IF NOT EXISTS plugin_audit_events (
                 id SERIAL PRIMARY KEY,
-                plugin_id VARCHAR(255) NOT NULL,
-                action_type VARCHAR(100) NOT NULL,
-                user_id VARCHAR(255) NULL,
-                timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-                details JSONB NULL,
-                ip_address INET NULL,
-                user_agent TEXT NULL,
-                success BOOLEAN DEFAULT TRUE,
-                error_message TEXT NULL
+                event_id VARCHAR(255) UNIQUE NOT NULL,
+                plugin_name VARCHAR(255) NOT NULL,
+                event_type VARCHAR(100) NOT NULL,
+                threat_level VARCHAR(50) NOT NULL,
+                description TEXT NOT NULL,
+                timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
+                details JSONB,
+                resolved BOOLEAN DEFAULT FALSE,
+                resolved_by VARCHAR(255),
+                resolved_at TIMESTAMP WITH TIME ZONE,
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
             )
             """
         elif self.db.config.db_type == "mysql":
             query = """
-            CREATE TABLE IF NOT EXISTS plugin_audit (
+            CREATE TABLE IF NOT EXISTS plugin_audit_events (
                 id INT AUTO_INCREMENT PRIMARY KEY,
-                plugin_id VARCHAR(255) NOT NULL,
-                action_type VARCHAR(100) NOT NULL,
-                user_id VARCHAR(255) NULL,
-                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                details JSON NULL,
-                ip_address VARCHAR(45) NULL,
-                user_agent TEXT NULL,
-                success BOOLEAN DEFAULT TRUE,
-                error_message TEXT NULL
+                event_id VARCHAR(255) UNIQUE NOT NULL,
+                plugin_name VARCHAR(255) NOT NULL,
+                event_type VARCHAR(100) NOT NULL,
+                threat_level VARCHAR(50) NOT NULL,
+                description TEXT NOT NULL,
+                timestamp TIMESTAMP NOT NULL,
+                details JSON,
+                resolved BOOLEAN DEFAULT FALSE,
+                resolved_by VARCHAR(255),
+                resolved_at TIMESTAMP NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
             """
         
@@ -183,7 +208,127 @@ class PluginPermissionsMigration:
             await session.execute(query)
             await session.commit()
         
-        self.logger.info("Created plugin_audit table")
+        self.logger.info("Created plugin_audit_events table")
+    
+    async def _create_plugin_settings_table(self):
+        """Create the plugin_settings table."""
+        if self.db.config.db_type == "sqlite":
+            query = """
+            CREATE TABLE IF NOT EXISTS plugin_settings (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                plugin_name TEXT UNIQUE NOT NULL,
+                is_enabled BOOLEAN DEFAULT 0,
+                is_quarantined BOOLEAN DEFAULT 0,
+                configuration TEXT,
+                security_policy TEXT,
+                last_enabled_at TIMESTAMP,
+                last_disabled_at TIMESTAMP,
+                enabled_by TEXT,
+                disabled_by TEXT,
+                quarantine_reason TEXT,
+                quarantined_by TEXT,
+                quarantined_at TIMESTAMP,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            """
+        elif self.db.config.db_type in ["postgresql", "postgres"]:
+            query = """
+            CREATE TABLE IF NOT EXISTS plugin_settings (
+                id SERIAL PRIMARY KEY,
+                plugin_name VARCHAR(255) UNIQUE NOT NULL,
+                is_enabled BOOLEAN DEFAULT FALSE,
+                is_quarantined BOOLEAN DEFAULT FALSE,
+                configuration JSONB,
+                security_policy JSONB,
+                last_enabled_at TIMESTAMP WITH TIME ZONE,
+                last_disabled_at TIMESTAMP WITH TIME ZONE,
+                enabled_by VARCHAR(255),
+                disabled_by VARCHAR(255),
+                quarantine_reason TEXT,
+                quarantined_by VARCHAR(255),
+                quarantined_at TIMESTAMP WITH TIME ZONE,
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+            )
+            """
+        elif self.db.config.db_type == "mysql":
+            query = """
+            CREATE TABLE IF NOT EXISTS plugin_settings (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                plugin_name VARCHAR(255) UNIQUE NOT NULL,
+                is_enabled BOOLEAN DEFAULT FALSE,
+                is_quarantined BOOLEAN DEFAULT FALSE,
+                configuration JSON,
+                security_policy JSON,
+                last_enabled_at TIMESTAMP NULL,
+                last_disabled_at TIMESTAMP NULL,
+                enabled_by VARCHAR(255),
+                disabled_by VARCHAR(255),
+                quarantine_reason TEXT,
+                quarantined_by VARCHAR(255),
+                quarantined_at TIMESTAMP NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+            )
+            """
+        
+        async with self.db.get_session() as session:
+            await session.execute(query)
+            await session.commit()
+        
+        self.logger.info("Created plugin_settings table")
+    
+    async def _create_plugin_approved_modules_table(self):
+        """Create the plugin_approved_modules table."""
+        if self.db.config.db_type == "sqlite":
+            query = """
+            CREATE TABLE IF NOT EXISTS plugin_approved_modules (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                plugin_name TEXT NOT NULL,
+                module_name TEXT NOT NULL,
+                approved_by TEXT NOT NULL,
+                approved_at TIMESTAMP NOT NULL,
+                expires_at TIMESTAMP,
+                is_active BOOLEAN DEFAULT 1,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(plugin_name, module_name)
+            )
+            """
+        elif self.db.config.db_type in ["postgresql", "postgres"]:
+            query = """
+            CREATE TABLE IF NOT EXISTS plugin_approved_modules (
+                id SERIAL PRIMARY KEY,
+                plugin_name VARCHAR(255) NOT NULL,
+                module_name VARCHAR(255) NOT NULL,
+                approved_by VARCHAR(255) NOT NULL,
+                approved_at TIMESTAMP WITH TIME ZONE NOT NULL,
+                expires_at TIMESTAMP WITH TIME ZONE,
+                is_active BOOLEAN DEFAULT TRUE,
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(plugin_name, module_name)
+            )
+            """
+        elif self.db.config.db_type == "mysql":
+            query = """
+            CREATE TABLE IF NOT EXISTS plugin_approved_modules (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                plugin_name VARCHAR(255) NOT NULL,
+                module_name VARCHAR(255) NOT NULL,
+                approved_by VARCHAR(255) NOT NULL,
+                approved_at TIMESTAMP NOT NULL,
+                expires_at TIMESTAMP NULL,
+                is_active BOOLEAN DEFAULT TRUE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE KEY unique_plugin_module (plugin_name, module_name)
+            )
+            """
+        
+        async with self.db.get_session() as session:
+            await session.execute(query)
+            await session.commit()
+        
+        self.logger.info("Created plugin_approved_modules table")
     
     async def _create_client_settings_table(self):
         """Create the client_settings table."""
@@ -246,16 +391,28 @@ class PluginPermissionsMigration:
         """Create indexes for performance optimization."""
         indexes = [
             # Plugin permissions indexes
-            ("idx_plugin_permissions_plugin_id", "plugin_permissions", ["plugin_id"]),
-            ("idx_plugin_permissions_granted_by", "plugin_permissions", ["granted_by_user_id"]),
-            ("idx_plugin_permissions_active", "plugin_permissions", ["is_active"]),
+            ("idx_plugin_permissions_plugin_name", "plugin_permissions", ["plugin_name"]),
+            ("idx_plugin_permissions_status", "plugin_permissions", ["status"]),
+            ("idx_plugin_permissions_approved_by", "plugin_permissions", ["approved_by"]),
             ("idx_plugin_permissions_expires", "plugin_permissions", ["expires_at"]),
+            ("idx_plugin_permissions_requested", "plugin_permissions", ["requested_at"]),
             
-            # Plugin audit indexes
-            ("idx_plugin_audit_plugin_id", "plugin_audit", ["plugin_id"]),
-            ("idx_plugin_audit_timestamp", "plugin_audit", ["timestamp"]),
-            ("idx_plugin_audit_action_type", "plugin_audit", ["action_type"]),
-            ("idx_plugin_audit_user_id", "plugin_audit", ["user_id"]),
+            # Plugin audit events indexes
+            ("idx_plugin_audit_events_plugin_name", "plugin_audit_events", ["plugin_name"]),
+            ("idx_plugin_audit_events_timestamp", "plugin_audit_events", ["timestamp"]),
+            ("idx_plugin_audit_events_event_type", "plugin_audit_events", ["event_type"]),
+            ("idx_plugin_audit_events_threat_level", "plugin_audit_events", ["threat_level"]),
+            ("idx_plugin_audit_events_resolved", "plugin_audit_events", ["resolved"]),
+            
+            # Plugin settings indexes
+            ("idx_plugin_settings_enabled", "plugin_settings", ["is_enabled"]),
+            ("idx_plugin_settings_quarantined", "plugin_settings", ["is_quarantined"]),
+            ("idx_plugin_settings_updated", "plugin_settings", ["updated_at"]),
+            
+            # Plugin approved modules indexes
+            ("idx_plugin_approved_modules_plugin", "plugin_approved_modules", ["plugin_name"]),
+            ("idx_plugin_approved_modules_active", "plugin_approved_modules", ["is_active"]),
+            ("idx_plugin_approved_modules_expires", "plugin_approved_modules", ["expires_at"]),
             
             # Client settings indexes
             ("idx_client_settings_user_id", "client_settings", ["user_id"]),

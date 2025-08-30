@@ -37,7 +37,7 @@ from plexichat.shared.exceptions import ServiceUnavailableError, ValidationError
 # Use EXISTING performance optimization engine
 try:
     from plexichat.core.performance.optimization_engine import PerformanceOptimizationEngine
-    from plexichat.core.logging_advanced.performance_logger import get_performance_logger
+    from plexichat.core.logging import get_performance_logger
 except ImportError:
     PerformanceOptimizationEngine = None
     get_performance_logger = None
@@ -62,7 +62,7 @@ class InfrastructureManager:
             logger.info(f"Registered infrastructure component: {name} (status: {status})")
 
             if self.performance_logger:
-                self.performance_logger.record_metric("infrastructure_components_registered", 1, "count")
+                self.performance_logger.increment_counter("infrastructure_components_registered", 1)
 
         except Exception as e:
             logger.error(f"Error registering component {name}: {e}")
@@ -241,6 +241,6 @@ __all__ = [
 ]
 
 # Version info
-from plexichat.src.plexichat.core.config_manager import get_config
+from plexichat.core.config_manager import get_config
 
 __version__ = get_config("system.version", "0.0.0")

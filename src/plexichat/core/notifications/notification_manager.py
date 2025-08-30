@@ -41,7 +41,7 @@ except ImportError:
 
 try:
     from plexichat.core.performance.optimization_engine import PerformanceOptimizationEngine
-    from plexichat.core.logging_advanced.performance_logger import get_performance_logger
+    from plexichat.core.logging import get_performance_logger
 except ImportError:
     PerformanceOptimizationEngine = None
     get_performance_logger = None
@@ -182,14 +182,14 @@ class NotificationManager:
             if self.performance_logger:
                 duration = time.time() - start_time
                 self.performance_logger.record_metric("notification_processing_duration", duration, "seconds")
-                self.performance_logger.record_metric("notifications_processed", 1, "count")
+                self.performance_logger.increment_counter("notifications_processed", 1)
 
             self.notifications_sent += 1
 
         except Exception as e:
             logger.error(f"Error processing notification {notification.notification_id}: {e}")
             if self.performance_logger:
-                self.performance_logger.record_metric("notification_processing_errors", 1, "count")
+                self.performance_logger.increment_counter("notification_processing_errors", 1)
 
     def _should_send_notification(self, notification: Notification, preferences: Dict[str, Any]) -> bool:
         """Check if notification should be sent based on user preferences."""
@@ -371,7 +371,7 @@ class NotificationManager:
 
             # Performance tracking
             if self.performance_logger:
-                self.performance_logger.record_metric("notifications_created", 1, "count")
+                self.performance_logger.increment_counter("notifications_created", 1)
 
             return notification_id
 
@@ -397,7 +397,7 @@ class NotificationManager:
                 if result.rowcount > 0:
                     self.notifications_read += 1
                     if self.performance_logger:
-                        self.performance_logger.record_metric("notifications_read", 1, "count")
+                        self.performance_logger.increment_counter("notifications_read", 1)
                     return True
 
             return False

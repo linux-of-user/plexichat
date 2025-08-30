@@ -210,11 +210,26 @@ def register_core_components():
         except ImportError:
             core_manager.register_component("exceptions", False)
 
-        # Authentication
+        # Authentication (use unified authentication module)
         try:
-            importlib.import_module("plexichat.core.auth.auth_core")
-            importlib.import_module("plexichat.core.auth.auth_manager")
-            core_manager.register_component("auth", True)
+            importlib.import_module("plexichat.core.authentication")
+            # Ensure the unified auth manager is initialized
+            try:
+                from plexichat.core.authentication import get_auth_manager as _get_auth_manager
+                global auth_manager
+                if auth_manager is None:
+                    try:
+                        auth_manager = _get_auth_manager()
+                        core_manager.managers['auth'] = auth_manager
+                    except Exception as e:
+                        logger.warning(f"Failed to initialize auth manager: {e}")
+                        core_manager.register_component("auth", False)
+                        raise
+                core_manager.register_component("auth", True)
+            except Exception as e:
+                # If importing get_auth_manager fails, consider auth unavailable
+                logger.warning(f"Authentication module imported but failed to initialize: {e}")
+                core_manager.register_component("auth", False)
         except ImportError:
             core_manager.register_component("auth", False)
 
@@ -243,7 +258,7 @@ def logging_available() -> bool:
     return core_manager.is_available("logging")
 
 def exceptions_available() -> bool:
-    """Check if exceptions are available."""
+    """Check if exceptions is available."""
     return core_manager.is_available("exceptions")
 
 def auth_available() -> bool:
@@ -285,7 +300,7 @@ def import_core_modules():
         # Auth
         if auth_available():
             try:
-                importlib.import_module("plexichat.core.auth")
+                importlib.import_module("plexichat.core.authentication")
                 logger.info("Auth imported successfully")
             except ImportError as e:
                 logger.warning(f"Could not import auth: {e}")

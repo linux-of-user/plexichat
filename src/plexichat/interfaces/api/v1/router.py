@@ -5,11 +5,17 @@ This is the main router that combines all v1 API endpoints.
 It provides a single entry point for all v1 functionality.
 """
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from datetime import datetime
-import logging
 
-logger = logging.getLogger(__name__)
+from plexichat.core.logging import get_logger
+from plexichat.core.auth.fastapi_adapter import (
+    get_current_user,
+    require_admin,
+    get_optional_user,
+)
+
+logger = get_logger(__name__)
 
 # Import all endpoint routers
 from plexichat.interfaces.api.v1.auth import router as auth_router
@@ -26,6 +32,7 @@ from plexichat.interfaces.api.v1.notifications import router as notifications_ro
 # Try to import user_settings router with fallback
 try:
     from plexichat.interfaces.api.v1.user_settings import router as user_settings_router
+
     user_settings_available = True
 except ImportError as e:
     logger.warning(f"User settings router not available: {e}")
@@ -35,6 +42,7 @@ except ImportError as e:
 # Try to import client_settings router with fallback
 try:
     from plexichat.interfaces.api.v1.client_settings import router as client_settings_router
+
     client_settings_available = True
 except ImportError as e:
     logger.warning(f"Client settings router not available: {e}")
@@ -44,25 +52,49 @@ except ImportError as e:
 # Create main router
 router = APIRouter(prefix="/api/v1", tags=["PlexiChat API v1"])
 
-# Include all sub-routers
+# Include all sub-routers.
+# Apply authentication dependencies at the inclusion level where appropriate so
+# the unified FastAPI auth adapter is consistently used.
+
+# Authentication endpoints must remain public
 router.include_router(auth_router)
-router.include_router(users_router)
-router.include_router(messages_router)
-router.include_router(files_router)
-router.include_router(admin_router)
+
+# User-related endpoints require an authenticated user
+router.include_router(users_router, dependencies=[Depends(get_current_user)])
+
+# Messaging requires authentication
+router.include_router(messages_router, dependencies=[Depends(get_current_user)])
+
+# Files require authentication (uploads/downloads)
+router.include_router(files_router, dependencies=[Depends(get_current_user)])
+
+# Admin routes should be restricted to admins
+router.include_router(admin_router, dependencies=[Depends(require_admin)])
+
+# System router may have public health endpoints; include without forcing auth here
+# Individual endpoints inside system_router should enforce their own auth as needed.
 router.include_router(system_router)
-router.include_router(realtime_router)
-router.include_router(groups_router)
-router.include_router(search_router)
-router.include_router(notifications_router)
 
-# Include user settings router if available
+# Realtime websocket / WS endpoints should validate users
+router.include_router(realtime_router, dependencies=[Depends(get_current_user)])
+
+# Groups and channels require authentication
+router.include_router(groups_router, dependencies=[Depends(get_current_user)])
+
+# Search endpoints generally require authentication to access user-scoped data
+router.include_router(search_router, dependencies=[Depends(get_current_user)])
+
+# Notifications require authentication
+router.include_router(notifications_router, dependencies=[Depends(get_current_user)])
+
+# Include user settings router if available (requires authentication)
 if user_settings_available and user_settings_router:
-    router.include_router(user_settings_router)
+    router.include_router(user_settings_router, dependencies=[Depends(get_current_user)])
 
-# Include client settings router if available
+# Include client settings router if available (may require admin or user depending on endpoint,
+# but most client settings are per-user)
 if client_settings_available and client_settings_router:
-    router.include_router(client_settings_router)
+    router.include_router(client_settings_router, dependencies=[Depends(get_current_user)])
 
 # Root endpoint
 @router.get("/")
@@ -247,6 +279,25 @@ async def api_info():
     }
 
 logger.info("PlexiChat API v1 main router initialized")
+
+# Additional lightweight endpoints retained for compatibility and to replace
+# a few common legacy router entries that should exist at the v1 root.
+
+@router.get("/status")
+async def status():
+    """Lightweight public status endpoint."""
+    return {"status": "ok", "service": "plexichat", "version": "v1", "timestamp": datetime.now()}
+
+@router.get("/admin/status", dependencies=[Depends(require_admin)])
+async def admin_status():
+    """Admin-only status endpoint that provides basic system health for admins."""
+    # Minimal info returned here; admin_router likely provides more detailed endpoints.
+    return {
+        "status": "ok",
+        "service": "plexichat",
+        "role": "admin",
+        "timestamp": datetime.now()
+    }
 
 # Export router as root_router for compatibility
 root_router = router

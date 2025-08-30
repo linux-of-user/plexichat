@@ -1,4 +1,3 @@
-
 """
 PlexiChat Messages Router
 
@@ -8,15 +7,18 @@ Optimized for performance using EXISTING database abstraction and optimization s
 """
 
 import asyncio
-import logging
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Callable
+from typing import Any, Dict, List, Callable, Optional, Set
 from concurrent.futures import ThreadPoolExecutor
 import importlib
 from colorama import Fore, Style
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Request, status
 from pydantic import BaseModel, Field
+
+# Unified logging
+from plexichat.core.logging import get_logger
+logger = get_logger(__name__)
 
 # Use EXISTING database abstraction layer
 try:
@@ -46,17 +48,9 @@ try:
 except Exception:
     pass
 
-# Authentication and Security imports
-try:
-    from plexichat.infrastructure.utils.auth import get_current_user_with_permissions
-    from plexichat.core.auth.permissions import PermissionError
-    from plexichat.core.security.comprehensive_security_manager import get_security_manager, ThreatLevel
-except ImportError:
-    def get_current_user_with_permissions():
-        return {"id": 1, "username": "admin", "permissions": {"table:write:messages", "table:read:users", "db:execute_raw"}}
-    class PermissionError(Exception): pass
-    def get_security_manager(): return None
-    class ThreatLevel: HIGH=3; CRITICAL=4
+# Authentication and Security imports - use unified FastAPI adapter and security manager
+from plexichat.core.auth.fastapi_adapter import get_current_user_with_permissions, get_current_user
+from plexichat.core.security.security_manager import get_security_system, ThreatLevel
 
 # Model imports - Updated for Pydantic v2 compatibility
 class Message(BaseModel):
@@ -102,81 +96,16 @@ class MessageRead(BaseModel):
     class Config:
         from_attributes = True
 
-logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/messages", tags=["messages"])
 
 performance_logger = get_performance_logger() if get_performance_logger else None
 optimization_engine = PerformanceOptimizationEngine() if PerformanceOptimizationEngine else None
 
-# Import enhanced security decorators
-try:
-    from plexichat.core.security.security_decorators import (
-        secure_endpoint, require_auth, rate_limit, audit_access, validate_input,
-        SecurityLevel, RequiredPermission
-    )
-    from plexichat.core.logging_advanced.enhanced_logging_system import (
-        get_enhanced_logging_system, LogCategory, LogLevel, PerformanceTracker, SecurityMetrics
-    )
-    ENHANCED_SECURITY_AVAILABLE = True
-    
-    # Get enhanced logging system
-    logging_system = get_enhanced_logging_system()
-    if logging_system:
-        enhanced_logger = logging_system.get_logger(__name__)
-        logger.info("Enhanced security and logging initialized for messages")
-    else:
-        enhanced_logger = None
-        
-except ImportError as e:
-    logger.warning(f"Enhanced security not available for messages: {e}")
-    # Fallback decorators
-    def secure_endpoint(*args, **kwargs):
-        def decorator(func): return func
-        return decorator
-    
-    def require_auth(*args, **kwargs):
-        def decorator(func): return func
-        return decorator
-    
-    def rate_limit(*args, **kwargs):
-        def decorator(func): return func
-        return decorator
-    
-    def audit_access(*args, **kwargs):
-        def decorator(func): return func
-        return decorator
-    
-    def validate_input(*args, **kwargs):
-        def decorator(func): return func
-        return decorator
-    
-    class SecurityLevel:
-        AUTHENTICATED = 2
-        ADMIN = 4
-    
-    class RequiredPermission:
-        READ = "read"
-        WRITE = "write"
-        DELETE = "delete"
-    
-    class PerformanceTracker:
-        def __init__(self, name, logger):
-            self.name = name
-            self.logger = logger
-        def __enter__(self):
-            return self
-        def __exit__(self, *args):
-            pass
-        def add_metadata(self, **kwargs):
-            pass
-    
-    class SecurityMetrics:
-        def __init__(self, **kwargs):
-            pass
-    
-    ENHANCED_SECURITY_AVAILABLE = False
-    enhanced_logger = None
-    logging_system = None
+# Import security decorators from unified security system
+from plexichat.core.security.security_decorators import (
+    secure_endpoint, require_auth, rate_limit, audit_access, validate_input,
+    SecurityLevel, RequiredPermission
+)
 
 executor = ThreadPoolExecutor(max_workers=8)
 
@@ -299,20 +228,33 @@ message_service = MessageService()
 async def send_message(request: Request, data: MessageCreate, background_tasks: BackgroundTasks, current_user: Dict[str, Any] = Depends(get_current_user_with_permissions)):
     user_id = current_user.get("id", 0)
     user_permissions = current_user.get("permissions")
-    security_manager = get_security_manager()
+    security_manager = get_security_system()
 
     logger.info(f"User {user_id} attempting to send message to {data.recipient_id}")
 
     try:
         # Core security scan of message content
         if security_manager:
-            threats = await security_manager.scan_message_content(data.content)
+            # Use the unified SecuritySystem API - method name may differ; keep the call defensive
+            scan_fn = getattr(security_manager, "scan_message_content", None)
+            if callable(scan_fn):
+                threats = await scan_fn(data.content)
+            else:
+                # Fallback to validate_request_security for generic checks
+                allowed, issues = await security_manager.validate_request_security(data.content)
+                threats = []
+                if not allowed and issues:
+                    # Convert issues to threat-like dicts for compatibility
+                    for idx, issue in enumerate(issues):
+                        threats.append({"threat_level": ThreatLevel.HIGH, "description": issue, "rule_name": f"policy_{idx}"})
+
             if threats:
                 # Block message if high-severity threat is found
-                highest_threat = max(threats, key=lambda t: t['threat_level'].value)
-                if highest_threat['threat_level'].value >= ThreatLevel.HIGH.value:
-                    logger.warning(f"Malicious content detected from user {user_id}: {highest_threat['description']}")
-                    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Malicious content detected: {highest_threat['rule_name']}")
+                highest_threat = max(threats, key=lambda t: getattr(t.get('threat_level'), 'value', ThreatLevel.HIGH.value))
+                threat_level = getattr(highest_threat.get('threat_level'), 'value', ThreatLevel.HIGH.value)
+                if threat_level >= ThreatLevel.HIGH.value:
+                    logger.warning(f"Malicious content detected from user {user_id}: {highest_threat.get('description')}")
+                    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Malicious content detected: {highest_threat.get('rule_name')}")
 
         if not await message_service.validate_recipient(data.recipient_id, user_permissions):
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Recipient not found")

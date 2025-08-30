@@ -17,7 +17,7 @@ from datetime import datetime
 
 # Import configuration and client settings service
 try:
-    from plexichat.src.plexichat.core.config_manager import get_config_manager, get_config
+    from plexichat.core.config_manager import get_config_manager, get_config
     from plexichat.infrastructure.services.client_settings_service import (
         client_settings_service,
         SettingType,

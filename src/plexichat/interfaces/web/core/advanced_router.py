@@ -15,17 +15,23 @@ from datetime import datetime
 from typing import Any, Dict, FastAPI, HTTPException, List, Optional, Request, status
 import time
 
-from plexichat.interfaces.web.core.auth_storage import get_auth_storage
+
 from plexichat.interfaces.web.core.config_manager import get_webui_config
-from plexichat.interfaces.web.core.mfa_manager import get_mfa_manager
 from plexichat.core.testing import get_self_test_manager
 
+# Use unified authentication system via FastAPI adapter
+from plexichat.core.auth.fastapi_adapter import (
+    get_current_user,
+    get_optional_user,
+    require_admin,
+    get_auth_adapter,
+    rate_limit
+)
 
 import uvicorn
 from fastapi import Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
@@ -34,15 +40,11 @@ from src.plexichat.interfaces.web.routers.cli import router as cli_router
 
 logger = logging.getLogger(__name__)
 
-# Security scheme
-security = HTTPBearer()
-
 class EnhancedWebUIRouter:
     """Enhanced WebUI router with advanced features."""
     def __init__(self):
         self.config = get_webui_config()
-        self.mfa_manager = get_mfa_manager()
-        self.auth_storage = get_auth_storage()
+        self.auth_adapter = get_auth_adapter()
         self.self_test_manager = get_self_test_manager()
 
         # Create FastAPI app
@@ -132,12 +134,11 @@ class EnhancedWebUIRouter:
 
         @self.app.post("/auth/login")
         async def login(request: Request):
-            """Enhanced login with MFA support."""
+            """Enhanced login using unified authentication system."""
             try:
                 data = await request.json()
                 username = data.get("username")
                 password = data.get("password")
-                # mfa_code = data.get("mfa_code")
 
                 if not username or not password:
                     raise HTTPException(
@@ -145,30 +146,35 @@ class EnhancedWebUIRouter:
                         detail="Username and password required"
                     )
 
-                # Get user from auth storage
-                # This is a simplified implementation
-                # In production, implement proper password hashing and verification
+                # Use unified authentication manager for login
+                auth_manager = self.auth_adapter.auth_manager
+                login_result = await auth_manager.authenticate_user(username, password)
 
-                # Create MFA session
-                session = self.mfa_manager.create_mfa_session(
-                    user_id=username,  # Simplified - use actual user ID
-                    username=username,
-                    ip_address=request.client.host,
-                    user_agent=request.headers.get("user-agent", ""),
-                    user_role="user"  # Determine actual role
+                if not login_result.success:
+                    raise HTTPException(
+                        status_code=status.HTTP_401_UNAUTHORIZED,
+                        detail=login_result.message or "Authentication failed"
+                    )
+
+                # Create access token using unified auth system
+                access_token = await self.auth_adapter.create_access_token(
+                    login_result.user_id,
+                    login_result.permissions
                 )
 
                 response_data = {
-                    "session_id": session.session_id,
-                    "mfa_required": session.mfa_required,
-                    "mfa_completed": session.mfa_completed
+                    "access_token": access_token,
+                    "token_type": "bearer",
+                    "user_id": login_result.user_id,
+                    "permissions": list(login_result.permissions),
+                    "mfa_required": login_result.mfa_required,
+                    "mfa_completed": login_result.mfa_completed
                 }
-
-                if session.mfa_required and not session.mfa_completed:
-                    response_data["mfa_methods"] = self.mfa_manager.get_available_mfa_methods()
 
                 return JSONResponse(content=response_data)
 
+            except HTTPException:
+                raise
             except Exception as e:
                 logger.error(f"Login error: {e}")
                 raise HTTPException(
@@ -176,82 +182,29 @@ class EnhancedWebUIRouter:
                     detail="Login failed"
                 )
 
-        @self.app.post("/auth/mfa/verify")
-        async def verify_mfa(request: Request):
-            """Verify MFA code."""
+        @self.app.post("/auth/logout")
+        async def logout(current_user: Dict[str, Any] = Depends(get_current_user)):
+            """Logout using unified authentication system."""
             try:
-                data = await request.json()
-                session_id = data.get("session_id")
-                mfa_code = data.get("mfa_code")
-                device_id = data.get("device_id")
+                # Invalidate user sessions using unified auth system
+                user_id = current_user.get("user_id")
+                if user_id:
+                    await self.auth_adapter.invalidate_user_sessions(user_id)
 
-                if not session_id or not mfa_code:
-                    raise HTTPException(
-                        status_code=status.HTTP_400_BAD_REQUEST,
-                        detail="Session ID and MFA code required"
-                    )
-
-                session = self.mfa_manager.get_session(session_id)
-                if not session:
-                    raise HTTPException(
-                        status_code=status.HTTP_401_UNAUTHORIZED,
-                        detail="Invalid session"
-                    )
-
-                # Verify MFA code
-                if device_id:
-                    verified = self.mfa_manager.verify_totp_code(session.user_id, device_id, mfa_code)
-                else:
-                    verified = self.mfa_manager.verify_backup_code(session.user_id, mfa_code)
-
-                if verified:
-                    self.mfa_manager.complete_mfa_for_session(session_id, "totp")
-                    return JSONResponse(content={"success": True, "mfa_completed": True})
-                else:
-                    raise HTTPException(
-                        status_code=status.HTTP_401_UNAUTHORIZED,
-                        detail="Invalid MFA code"
-                    )
-
-            except HTTPException:
-                raise
-            except Exception as e:
-                logger.error(f"MFA verification error: {e}")
-                raise HTTPException(
-                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    detail="MFA verification failed"
-                )
-
-        @self.app.post("/auth/mfa/setup")
-        async def setup_mfa(request: Request, credentials: HTTPAuthorizationCredentials = Depends(security)):
-            """Setup MFA for user."""
-            try:
-                # Verify session
-                session = self._verify_session(credentials.credentials)
-
-                data = await request.json()
-                device_name = data.get("device_name", "Default Device")
-
-                setup_data = self.mfa_manager.setup_totp_device(
-                    session.user_id,
-                    session.username,
-                    device_name
-                )
-
-                return JSONResponse(content=setup_data)
+                return JSONResponse(content={"success": True, "message": "Logged out successfully"})
 
             except Exception as e:
-                logger.error(f"MFA setup error: {e}")
+                logger.error(f"Logout error: {e}")
                 raise HTTPException(
                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    detail="MFA setup failed"
+                    detail="Logout failed"
                 )
 
     def _setup_dashboard_routes(self):
         """Setup dashboard routes."""
 
         @self.app.get("/", response_class=HTMLResponse)
-        async def dashboard(request: Request):
+        async def dashboard(request: Request, current_user: Optional[Dict[str, Any]] = Depends(get_optional_user)):
             """Main dashboard."""
             if not self.config.is_feature_enabled("dashboard"):
                 raise HTTPException(status_code=404, detail="Dashboard disabled")
@@ -259,16 +212,17 @@ class EnhancedWebUIRouter:
             return self.templates.TemplateResponse("dashboard.html", {
                 "request": request,
                 "features": self._get_enabled_features(),
-                "system_status": await self._get_system_status()
+                "system_status": await self._get_system_status(),
+                "user": current_user
             })
 
         @self.app.get("/api/dashboard/status")
-        async def dashboard_status(credentials: HTTPAuthorizationCredentials = Depends(security)):
+        @rate_limit("dashboard_status", 60, 60)  # 60 requests per minute
+        async def dashboard_status(current_user: Dict[str, Any] = Depends(get_current_user)):
             """Get dashboard status."""
-            session = self._verify_session(credentials.credentials)
-
             return JSONResponse(content={
-                "user": session.username,
+                "user": current_user.get("user_id"),
+                "permissions": list(current_user.get("permissions", [])),
                 "features": self._get_enabled_features(),
                 "system_status": await self._get_system_status(),
                 "timestamp": datetime.utcnow().isoformat()
@@ -278,36 +232,33 @@ class EnhancedWebUIRouter:
         """Setup admin routes."""
 
         @self.app.get("/admin", response_class=HTMLResponse)
-        async def admin_panel(request: Request, credentials: HTTPAuthorizationCredentials = Depends(security)):
+        async def admin_panel(request: Request, admin_user: Dict[str, Any] = Depends(require_admin)):
             """Admin panel."""
-            self._verify_session(credentials.credentials)
-
             if not self.config.is_feature_enabled("admin_panel", "admin"):
-                raise HTTPException(status_code=403, detail="Admin access required")
+                raise HTTPException(status_code=403, detail="Admin panel disabled")
 
             return self.templates.TemplateResponse("admin.html", {
                 "request": request,
                 "admin_features": self._get_admin_features(),
-                "system_config": self._get_system_config()
+                "system_config": self._get_system_config(),
+                "user": admin_user
             })
 
         @self.app.get("/api/admin/config")
-        async def get_admin_config(credentials: HTTPAuthorizationCredentials = Depends(security)):
+        @rate_limit("admin_config_get", 30, 60)  # 30 requests per minute
+        async def get_admin_config(admin_user: Dict[str, Any] = Depends(require_admin)):
             """Get admin configuration."""
-            self._verify_session(credentials.credentials)
-
             if not self.config.is_feature_enabled("system_configuration", "admin"):
-                raise HTTPException(status_code=403, detail="Admin access required")
+                raise HTTPException(status_code=403, detail="System configuration disabled")
 
             return JSONResponse(content=self._get_system_config())
 
         @self.app.post("/api/admin/config")
-        async def update_admin_config(request: Request, credentials: HTTPAuthorizationCredentials = Depends(security)):
+        @rate_limit("admin_config_update", 10, 60)  # 10 requests per minute
+        async def update_admin_config(request: Request, admin_user: Dict[str, Any] = Depends(require_admin)):
             """Update admin configuration."""
-            self._verify_session(credentials.credentials)
-
             if not self.config.is_feature_enabled("system_configuration", "admin"):
-                raise HTTPException(status_code=403, detail="Admin access required")
+                raise HTTPException(status_code=403, detail="System configuration disabled")
 
             try:
                 data = await request.json()
@@ -336,26 +287,24 @@ class EnhancedWebUIRouter:
         """Setup self-test routes."""
 
         @self.app.get("/admin/tests", response_class=HTMLResponse)
-        async def self_tests_page(request: Request, credentials: HTTPAuthorizationCredentials = Depends(security)):
+        async def self_tests_page(request: Request, admin_user: Dict[str, Any] = Depends(require_admin)):
             """Self-tests page."""
-            self._verify_session(credentials.credentials)
-
             if not self.config.is_feature_enabled("system_monitoring", "admin"):
-                raise HTTPException(status_code=403, detail="Admin access required")
+                raise HTTPException(status_code=403, detail="System monitoring disabled")
 
             return self.templates.TemplateResponse("self_tests.html", {
                 "request": request,
                 "test_categories": self.self_test_manager.test_registry.keys(),
-                "latest_results": self.self_test_manager.get_latest_test_results()
+                "latest_results": self.self_test_manager.get_latest_test_results(),
+                "user": admin_user
             })
 
         @self.app.post("/api/admin/tests/run")
-        async def run_self_tests(request: Request, credentials: HTTPAuthorizationCredentials = Depends(security)):
+        @rate_limit("admin_tests_run", 5, 300)  # 5 requests per 5 minutes
+        async def run_self_tests(request: Request, admin_user: Dict[str, Any] = Depends(require_admin)):
             """Run self-tests."""
-            self._verify_session(credentials.credentials)
-
             if not self.config.is_feature_enabled("system_monitoring", "admin"):
-                raise HTTPException(status_code=403, detail="Admin access required")
+                raise HTTPException(status_code=403, detail="System monitoring disabled")
 
             try:
                 data = await request.json()
@@ -385,10 +334,8 @@ class EnhancedWebUIRouter:
                 )
 
         @self.app.get("/api/admin/tests/results/{suite_id}")
-        async def get_test_results(suite_id: str, credentials: HTTPAuthorizationCredentials = Depends(security)):
+        async def get_test_results(suite_id: str, admin_user: Dict[str, Any] = Depends(require_admin)):
             """Get test results."""
-            self._verify_session(credentials.credentials)
-
             results = self.self_test_manager.get_test_results(suite_id)
             if not results:
                 raise HTTPException(status_code=404, detail="Test results not found")
@@ -399,10 +346,8 @@ class EnhancedWebUIRouter:
         """Setup feature management routes."""
 
         @self.app.get("/api/admin/features")
-        async def get_features(credentials: HTTPAuthorizationCredentials = Depends(security)):
+        async def get_features(admin_user: Dict[str, Any] = Depends(require_admin)):
             """Get feature configuration."""
-            self._verify_session(credentials.credentials)
-
             return JSONResponse(content={
                 "enabled_features": self.config.feature_toggle_config.enabled_features,
                 "disabled_features": self.config.feature_toggle_config.disabled_features,
@@ -411,12 +356,11 @@ class EnhancedWebUIRouter:
             })
 
         @self.app.post("/api/admin/features/toggle")
-        async def toggle_feature(request: Request, credentials: HTTPAuthorizationCredentials = Depends(security)):
+        @rate_limit("admin_feature_toggle", 20, 60)  # 20 requests per minute
+        async def toggle_feature(request: Request, admin_user: Dict[str, Any] = Depends(require_admin)):
             """Toggle a feature."""
-            self._verify_session(credentials.credentials)
-
             if not self.config.is_feature_enabled("system_configuration", "admin"):
-                raise HTTPException(status_code=403, detail="Admin access required")
+                raise HTTPException(status_code=403, detail="System configuration disabled")
 
             try:
                 data = await request.json()
@@ -438,23 +382,16 @@ class EnhancedWebUIRouter:
         """Setup API proxy routes."""
 
         @self.app.get("/api/proxy/{path:path}")
-        async def api_proxy(path: str, request: Request, credentials: HTTPAuthorizationCredentials = Depends(security)):
+        @rate_limit("api_proxy", 100, 60)  # 100 requests per minute
+        async def api_proxy(path: str, request: Request, current_user: Dict[str, Any] = Depends(get_current_user)):
             """Proxy API requests."""
-            session = self._verify_session(credentials.credentials)
-
             # Proxy to internal API
             # This is a simplified implementation
-            return JSONResponse(content={"message": f"API proxy for {path}", "user": session.username})
-
-    def _verify_session(self, session_id: str):
-        """Verify session and return session object."""
-        if not self.mfa_manager.is_session_valid(session_id):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid or expired session"
-            )
-
-        return self.mfa_manager.get_session(session_id)
+            return JSONResponse(content={
+                "message": f"API proxy for {path}", 
+                "user": current_user.get("user_id"),
+                "permissions": list(current_user.get("permissions", []))
+            })
 
     def _get_enabled_features(self) -> List[str]:
         """Get list of enabled features."""
@@ -466,11 +403,9 @@ class EnhancedWebUIRouter:
 
     async def _get_system_status(self) -> Dict[str, Any]:
         """Get system status."""
-        auth_health = await self.auth_storage.health_check()
-
         return {
-            "auth_storage": auth_health,
-            "mfa_enabled": self.mfa_manager.is_mfa_enabled(),
+            "auth_system": "unified",
+            "auth_manager_active": self.auth_adapter.auth_manager is not None,
             "self_tests_enabled": self.config.is_self_test_enabled(),
             "timestamp": datetime.utcnow().isoformat()
         }

@@ -19,7 +19,7 @@ from pathlib import Path
 import aiohttp
 import psutil
 
-from plexichat.src.plexichat.core.security.security_manager import (
+from plexichat.core.security.security_manager import (
     get_unified_security_system,
     SecurityContext,
     SecurityLevel,

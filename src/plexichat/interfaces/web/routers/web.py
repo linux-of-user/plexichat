@@ -10,7 +10,6 @@ Enhanced web interface with comprehensive functionality and performance optimiza
 Uses EXISTING database abstraction and optimization systems.
 """
 
-import logging
 from pathlib import Path
 from typing import Any, Dict
 
@@ -31,26 +30,21 @@ except ImportError:
 try:
     from plexichat.core.performance.optimization_engine import PerformanceOptimizationEngine
     from plexichat.infrastructure.utils.performance import async_track_performance
-    from plexichat.core.logging_advanced.performance_logger import get_performance_logger, timer
+    from plexichat.core.logging import get_performance_logger, timer
 except ImportError:
     PerformanceOptimizationEngine = None
     async_track_performance = None
     get_performance_logger = None
     timer = None
 
-# Authentication imports
-try:
-    from plexichat.infrastructure.utils.auth import get_current_user, require_admin
-except ImportError:
-    def get_current_user():
-        return {"id": 1, "username": "admin", "is_admin": True}
-    def require_admin():
-        return {"id": 1, "username": "admin", "is_admin": True}
+# Authentication imports (use unified FastAPI adapter)
+from plexichat.core.auth.fastapi_adapter import get_current_user, require_admin
 
 # Model imports
 from plexichat.core.user import User
 
-logger = logging.getLogger(__name__)
+from plexichat.core.logging import get_logger
+logger = get_logger(__name__)
 router = APIRouter(prefix="/web", tags=["web"])
 
 # Initialize EXISTING performance systems
@@ -171,7 +165,7 @@ async def main_page(request: Request):
 
     # Performance tracking
     if performance_logger:
-        performance_logger.record_metric("web_main_page_requests", 1, "count")
+        performance_logger.increment_counter("web_main_page_requests", 1)
         logger.debug(Fore.GREEN + "[WEB] Main page performance metric recorded" + Style.RESET_ALL)
 
     # Simple HTML response for now
@@ -227,7 +221,7 @@ async def dashboard(request: Request, current_user: Dict[str, Any] = Depends(get
 
     # Performance tracking
     if performance_logger:
-        performance_logger.record_metric("web_dashboard_requests", 1, "count")
+        performance_logger.increment_counter("web_dashboard_requests", 1)
         logger.debug(Fore.GREEN + "[WEB] Dashboard performance metric recorded" + Style.RESET_ALL)
 
     # Get dashboard data
@@ -296,7 +290,7 @@ async def admin_panel(request: Request, current_user: Dict[str, Any] = Depends(r
 
     # Performance tracking
     if performance_logger:
-        performance_logger.record_metric("web_admin_panel_requests", 1, "count")
+        performance_logger.increment_counter("web_admin_panel_requests", 1)
         logger.debug(Fore.GREEN + "[WEB] Admin panel performance metric recorded" + Style.RESET_ALL)
 
     # Simple admin panel HTML

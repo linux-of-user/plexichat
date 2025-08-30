@@ -27,7 +27,7 @@ except ImportError:
 
 try:
     from plexichat.core.performance.optimization_engine import PerformanceOptimizationEngine
-    from plexichat.core.logging_advanced.performance_logger import get_performance_logger
+    from plexichat.core.logging import get_performance_logger
 except ImportError:
     PerformanceOptimizationEngine = None
     get_performance_logger = None
@@ -105,13 +105,13 @@ class MessageProcessor:
             result = processor(message)
 
             if self.performance_logger:
-                self.performance_logger.record_metric("messages_processed", 1, "count")
+                self.performance_logger.increment_counter("messages_processed", 1)
 
             return result
         except Exception as e:
             logger.error(f"Error processing message {message.message_id}: {e}")
             if self.performance_logger:
-                self.performance_logger.record_metric("message_processing_errors", 1, "count")
+                self.performance_logger.increment_counter("message_processing_errors", 1)
             raise
 
     async def _process_message(self, message: MessageData):
@@ -134,14 +134,14 @@ class MessageProcessor:
             if self.performance_logger:
                 duration = time.time() - start_time
                 self.performance_logger.record_metric("message_processing_duration", duration, "seconds")
-                self.performance_logger.record_metric("messages_processed", 1, "count")
+                self.performance_logger.increment_counter("messages_processed", 1)
 
             return result
 
         except Exception as e:
             logger.error(f"Error processing message {message.message_id}: {e}")
             if self.performance_logger:
-                self.performance_logger.record_metric("message_processing_errors", 1, "count")
+                self.performance_logger.increment_counter("message_processing_errors", 1)
             raise
 
     def _process_text_message(self, message: MessageData) -> Dict[str, Any]:
@@ -292,7 +292,7 @@ class MessageProcessor:
         await self.message_queue.put(message)
 
         if self.performance_logger:
-            self.performance_logger.record_metric("messages_queued", 1, "count")
+            self.performance_logger.increment_counter("messages_queued", 1)
 
     async def process_message_immediate(self, message: MessageData) -> Dict[str, Any]:
         """Process message immediately without queuing."""

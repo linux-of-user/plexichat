@@ -20,7 +20,7 @@ except ImportError:
 
 try:
     from plexichat.core.performance.optimization_engine import PerformanceOptimizationEngine  # type: ignore
-    from plexichat.core.logging_advanced.performance_logger import get_performance_logger  # type: ignore
+    from plexichat.core.logging import get_performance_logger  # type: ignore
 except ImportError:
     PerformanceOptimizationEngine = None
     get_performance_logger = None
@@ -92,7 +92,7 @@ class ThreadManager:
             # Performance tracking
             if self.performance_logger:
                 self.performance_logger.record_metric("thread_task_duration", duration, "seconds")
-                self.performance_logger.record_metric("thread_tasks_completed", 1, "count")
+                self.performance_logger.increment_counter("thread_tasks_completed", 1)
 
             # Log to database
             if self.db_manager:
@@ -103,7 +103,7 @@ class ThreadManager:
             logger.error(f"Task {task.task_id} failed: {e}")
 
             if self.performance_logger:
-                self.performance_logger.record_metric("thread_tasks_failed", 1, "count")
+                self.performance_logger.increment_counter("thread_tasks_failed", 1)
 
     async def _log_task_completion(self, task: ThreadTask, result: Any, duration: float):
         """Log task completion to database."""
@@ -137,7 +137,7 @@ class ThreadManager:
         self.task_queue.put(task)
 
         if self.performance_logger:
-            self.performance_logger.record_metric("thread_tasks_submitted", 1, "count")
+            self.performance_logger.increment_counter("thread_tasks_submitted", 1)
 
         return task_id
 
@@ -210,12 +210,12 @@ class AsyncThreadManager:
             if self.performance_logger:
                 duration = time.time() - start_time
                 self.performance_logger.record_metric("async_thread_duration", duration, "seconds")
-                self.performance_logger.record_metric("async_thread_tasks_completed", 1, "count")
+                self.performance_logger.increment_counter("async_thread_tasks_completed", 1)
 
             return result
         except Exception as e:
             if self.performance_logger:
-                self.performance_logger.record_metric("async_thread_tasks_failed", 1, "count")
+                self.performance_logger.increment_counter("async_thread_tasks_failed", 1)
             raise
 
     async def run_batch(self, tasks: List[Dict[str, Any]]) -> List[Any]:

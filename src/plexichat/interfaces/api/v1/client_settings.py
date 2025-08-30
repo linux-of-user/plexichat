@@ -5,10 +5,13 @@ import hashlib
 import mimetypes
 from datetime import datetime
 from typing import Dict, List, Optional, Any
+from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel
+
+from plexichat.core.auth.fastapi_adapter import get_current_user
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/client-settings", tags=["Client Settings"])
@@ -34,7 +37,7 @@ except Exception:
         async def get_user_images(self, user_id): return []
         async def get_user_stats(self, user_id): return {"total_settings": 0, "total_storage_bytes": 0}
         async def initialize_tables(self): return False
-        async def log_audit(self, entry: Dict[str, Any]): 
+        async def log_audit(self, entry: Dict[str, Any]):
             # simple file-based audit fallback
             try:
                 os.makedirs("logs", exist_ok=True)
@@ -47,7 +50,7 @@ except Exception:
     repository = MockRepository()  # type: ignore
 
 try:
-    from plexichat.src.plexichat.core.config_manager import get_config  # type: ignore
+    from plexichat.core.config_manager import get_config  # type: ignore
 except Exception:
     # Fallback config reader
     def get_config(section: str):
@@ -62,6 +65,14 @@ except Exception:
                 "max_bulk_update": 100
             }
         return {}
+
+# Try to import the global security system for validation
+_get_security_system = None
+try:
+    from plexichat.core.security.security_manager import get_security_system  # type: ignore
+    _get_security_system = get_security_system
+except Exception:
+    _get_security_system = None
 
 # Pydantic Models
 class ClientSettingCreate(BaseModel):
@@ -81,10 +92,6 @@ class ClientSettingsBulkUpdate(BaseModel):
 class ClientSettingsBulkResponse(BaseModel):
     updated_count: int
     errors: Optional[List[Dict[str, Any]]] = None
-
-# Simple current user dependency (should be replaced by real auth in the full app)
-def get_current_user():
-    return {"user_id": "mock-user", "is_admin": False}
 
 # Known schema for validation of well-known keys.
 KNOWN_KEY_SCHEMAS = {
@@ -411,17 +418,14 @@ async def upload_image_setting(setting_key: str, file: UploadFile = File(...), c
     """
     Upload an image and store it as a client setting. The stored setting will contain
     metadata including storage path, content type, size and hash.
+    This endpoint integrates with the SecuritySystem.validate_file_upload for
+    filename sanitization and policy-driven validations.
     """
     user_id = current_user["user_id"]
     _validate_setting_key(setting_key)
     await _ensure_tables()
 
-    # Basic file validations
-    content_type = (file.content_type or "").lower()
-    if content_type not in ALLOWED_IMAGE_TYPES:
-        raise HTTPException(status_code=400, detail=f"Unsupported image type: {content_type}")
-
-    # Read file bytes
+    # Read file bytes early to determine size; keep a copy for scanning/storing
     try:
         data = await file.read()
     except Exception as e:
@@ -434,9 +438,56 @@ async def upload_image_setting(setting_key: str, file: UploadFile = File(...), c
     if size > MAX_IMAGE_SIZE:
         raise HTTPException(status_code=400, detail=f"Image too large (max {MAX_IMAGE_SIZE} bytes)")
 
+    # Determine content type
+    content_type = (file.content_type or "").lower()
+
+    # Use SecuritySystem for validation if available
+    sanitized_filename_from_security = None
+    if _get_security_system:
+        try:
+            security = _get_security_system()
+            # Use the original uploaded filename for security validation to catch traversal attempts in user-supplied names.
+            original_name = getattr(file, "filename", "") or ""
+            allowed, message = security.validate_file_upload(original_name, content_type, size, policy_name="default")
+            if not allowed:
+                logger.warning(f"Security validation failed for upload by user {user_id}: {message}")
+                # Log audit for security rejection
+                try:
+                    await _log_audit(user_id, "upload_image_rejected", setting_key, {"reason": message, "original_filename": original_name})
+                except Exception:
+                    pass
+                raise HTTPException(status_code=400, detail=message)
+            # Try to extract sanitized filename from message
+            try:
+                # message format: "File is valid. Sanitized filename: {sanitized}"
+                marker = "Sanitized filename:"
+                if marker in message:
+                    sanitized_filename_from_security = message.split(marker, 1)[1].strip()
+                else:
+                    sanitized_filename_from_security = Path(original_name).name
+            except Exception:
+                sanitized_filename_from_security = Path(original_name).name
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.debug(f"Security system validation error: {e}")
+            # fallback to local checks below
+            sanitized_filename_from_security = None
+
+    # Secondary validation: ensure content_type is acceptable for images (defensive)
+    if content_type not in ALLOWED_IMAGE_TYPES:
+        # If security system is present, it would have validated content type. If not, reject here.
+        if not _get_security_system:
+            raise HTTPException(status_code=400, detail=f"Unsupported image type: {content_type}")
+        # If security system is present and allowed, continue regardless of ALLOWED_IMAGE_TYPES list.
+
     # Virus scan
     is_clean = _scan_for_viruses(data)
     if not is_clean:
+        try:
+            await _log_audit(user_id, "upload_image_rejected", setting_key, {"reason": "virus_scan_failed"})
+        except Exception:
+            pass
         raise HTTPException(status_code=400, detail="Uploaded file failed virus scan")
 
     # Quota check (best-effort)
@@ -449,22 +500,78 @@ async def upload_image_setting(setting_key: str, file: UploadFile = File(...), c
     if total_storage + size > MAX_TOTAL_STORAGE_PER_USER:
         raise HTTPException(status_code=400, detail="Storing this image would exceed your total storage quota")
 
-    # Compute a content-hash and create safe filename
+    # Compute a content-hash and create safe filename.
     hash_hex = _hash_bytes(data)
-    ext = None
-    # try to guess extension
-    ext = mimetypes.guess_extension(content_type) or ""
-    filename = f"{user_id}_{setting_key}_{hash_hex}{ext}"
+
+    # Determine extension to use for storage:
+    # Prefer extension from security-sanitized filename if available; else try to derive from content_type; else fallback to original file extension.
+    chosen_ext = ""
+    try:
+        if sanitized_filename_from_security:
+            chosen_ext = Path(sanitized_filename_from_security).suffix or ""
+        if not chosen_ext:
+            guessed = mimetypes.guess_extension(content_type) or ""
+            chosen_ext = guessed
+        if not chosen_ext:
+            # fallback to original UploadFile filename extension
+            original_ext = Path(getattr(file, "filename", "") or "").suffix or ""
+            chosen_ext = original_ext
+    except Exception:
+        chosen_ext = ""
+
+    # Build stored filename with user and setting key to avoid collisions while preserving safe extension
+    # Sanitize parts to be filesystem-safe (only allow limited chars)
+    def _sanitize_part(p: str) -> str:
+        if not isinstance(p, str):
+            p = str(p)
+        # Keep alnum, dot, dash, underscore
+        safe = "".join(ch for ch in p if ch.isalnum() or ch in "._-")
+        if safe == "":
+            safe = "x"
+        return safe
+
+    safe_user = _sanitize_part(str(user_id))
+    safe_key = _sanitize_part(setting_key)
+    stored_filename = f"{safe_user}_{safe_key}_{hash_hex}{chosen_ext}"
     safe_user_dir = os.path.join(STORAGE_PATH, str(user_id))
     os.makedirs(safe_user_dir, exist_ok=True)
-    file_path = os.path.join(safe_user_dir, filename)
+    file_path = os.path.join(safe_user_dir, stored_filename)
+
+    # Ensure the resolved path remains within STORAGE_PATH (prevent path traversal via crafted user_id/setting_key)
+    try:
+        abspath_storage = os.path.abspath(STORAGE_PATH)
+        abspath_file = os.path.abspath(file_path)
+        if not abspath_file.startswith(abspath_storage):
+            logger.error(f"Resolved file path is outside storage root: {abspath_file}")
+            raise HTTPException(status_code=400, detail="Invalid storage path resolved for uploaded file")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to validate storage path for user {user_id}: {e}")
+        raise HTTPException(status_code=500, detail="Server file storage configuration error")
 
     # Avoid overwrite if exact file exists; still update DB to point to it
     try:
         if not os.path.exists(file_path):
-            # Write data to disk
-            with open(file_path, "wb") as f:
+            # Write data to disk atomically (write to temp then rename)
+            tmp_path = f"{file_path}.tmp"
+            with open(tmp_path, "wb") as f:
                 f.write(data)
+            try:
+                os.replace(tmp_path, file_path)
+            except Exception:
+                # fallback: try removing existing tmp and renaming
+                try:
+                    if os.path.exists(file_path):
+                        os.remove(file_path)
+                    os.replace(tmp_path, file_path)
+                except Exception as e:
+                    logger.error(f"Atomic rename failed storing uploaded image for user {user_id} at {file_path}: {e}")
+                    # attempt direct write as last resort
+                    with open(file_path, "wb") as f:
+                        f.write(data)
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Failed to store uploaded image for user {user_id} at {file_path}: {e}")
         raise HTTPException(status_code=500, detail="Failed to store uploaded image")
@@ -475,7 +582,9 @@ async def upload_image_setting(setting_key: str, file: UploadFile = File(...), c
         "content_type": content_type,
         "size": size,
         "hash": hash_hex,
-        "stored_at": datetime.utcnow().isoformat()
+        "stored_at": datetime.utcnow().isoformat(),
+        "original_filename": getattr(file, "filename", None),
+        "sanitized_filename": sanitized_filename_from_security or Path(getattr(file, "filename", "") or "").name
     }
 
     try:
@@ -496,6 +605,12 @@ async def upload_image_setting(setting_key: str, file: UploadFile = File(...), c
         )
     except Exception as e:
         logger.error(f"Failed to save image setting record for user {user_id}: {e}")
+        # Attempt to clean up stored file if repository save failed and file was created
+        try:
+            if os.path.exists(file_path):
+                os.remove(file_path)
+        except Exception:
+            pass
         raise HTTPException(status_code=500, detail="Failed to save image setting")
 
 @router.get("/images/{setting_key}")

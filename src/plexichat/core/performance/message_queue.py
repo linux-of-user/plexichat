@@ -9,7 +9,7 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from plexichat.core.authentication import require_auth, require_admin
+from plexichat.core.auth.fastapi_adapter import get_current_user, require_admin
 from plexichat.core.performance.message_queue_manager import MessagePriority, get_queue_manager
 """
 PlexiChat Message Queue API Endpoints
@@ -63,7 +63,7 @@ class PurgeTopicRequest(BaseModel):
 
 
 @router.get("/status", response_model=Dict[str, Any])
-async def get_queue_status(current_user: Dict = Depends(require_auth)):
+async def get_queue_status(current_user: Dict = Depends(get_current_user)):
     """
     Get comprehensive message queue system status.
 
@@ -107,7 +107,7 @@ async def get_queue_status(current_user: Dict = Depends(require_auth)):
 async def get_queue_stats(
     topic: Optional[str] = Query(None, description="Specific topic to get stats for"),
     detailed: bool = Query(False, description="Include detailed statistics"),
-    current_user: Dict = Depends(require_auth)
+    current_user: Dict = Depends(get_current_user)
 ):
     """
     Get detailed message queue statistics.
@@ -160,7 +160,7 @@ async def get_queue_stats(
 @router.post("/publish", response_model=QueueResponse)
 async def publish_message(
     request: PublishMessageRequest,
-    current_user: Dict = Depends(require_auth)
+    current_user: Dict = Depends(get_current_user)
 ):
     """
     Publish message to topic.
@@ -299,7 +299,7 @@ async def unsubscribe_from_topic(
 
 
 @router.get("/topics", response_model=Dict[str, Any])
-async def list_topics(current_user: Dict = Depends(require_auth)):
+async def list_topics(current_user: Dict = Depends(get_current_user)):
     """
     List all topics.
 
@@ -381,7 +381,7 @@ async def purge_topic(
 
 
 @router.get("/health", response_model=Dict[str, Any])
-async def get_queue_health(current_user: Dict = Depends(require_auth)):
+async def get_queue_health(current_user: Dict = Depends(get_current_user)):
     """
     Get message queue system health status.
 

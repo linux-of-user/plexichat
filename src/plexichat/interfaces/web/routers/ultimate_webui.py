@@ -15,7 +15,7 @@ from starlette.status import HTTP_200_OK, HTTP_500_INTERNAL_SERVER_ERROR
 
 from plexichat.core.config import get_settings
 from plexichat.core.security import get_current_user_optional
-from plexichat.src.plexichat.interfaces.web.middleware.security_middleware import rate_limit, audit_access
+from plexichat.interfaces.web.middleware.security_middleware import rate_limit, audit_access
 
 logger = logging.getLogger(__name__)
 

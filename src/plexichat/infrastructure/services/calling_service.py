@@ -78,6 +78,13 @@ class CallSession:
     started_at: Optional[datetime] = None
     ended_at: Optional[datetime] = None
     duration_seconds: Optional[int] = None
+    # New fields for DTLS & key rotation management
+    session_key: Optional[str] = None
+    key_rotation_interval_seconds: int = 300
+    _rotation_task: Optional[Any] = None
+    dtls_fingerprint: Optional[str] = None
+    dtls_private_key_b64: Optional[str] = None
+    dtls_public_key_b64: Optional[str] = None
 
 
 @dataclass
@@ -309,11 +316,16 @@ class WebRTCManager:
             return False
         return True
 
-    def enhance_sdp_security(self, sdp: str) -> str:
+    def enhance_sdp_security(self, sdp: str, dtls_fingerprint: Optional[str] = None) -> str:
         """Enhance SDP with security features such as DTLS fingerprint and setup lines."""
-        if "a=fingerprint:" not in sdp:
-            # In production, compute real certificate fingerprint
-            sdp += "\na=fingerprint:sha-256 AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99"
+        if dtls_fingerprint:
+            # ensure given fingerprint is present
+            if "a=fingerprint:" not in sdp:
+                sdp += f"\na=fingerprint:sha-256 {dtls_fingerprint}"
+        else:
+            if "a=fingerprint:" not in sdp:
+                # In production, compute real certificate fingerprint
+                sdp += "\na=fingerprint:sha-256 AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99"
         if "a=setup:" not in sdp:
             sdp += "\na=setup:actpass"
         # Add SRTP setup hint
@@ -531,10 +543,21 @@ class CallingService:
         Enforces simple rate limiting for call initiation and integrates security tier checks when possible.
         """
         try:
-            # Rate limiting enforcement
+            # Rate limiting enforcement & authentication check
             if not await self._allow_initiation(initiator_id, requester_token):
                 self.metrics["call_failures"] += 1
                 raise PermissionError("Rate limit exceeded for call initiation")
+
+            # Validate token for user authenticity if provided
+            if requester_token:
+                try:
+                    ok, payload = await self._verify_token_async(requester_token)
+                    if not ok or not payload or int(payload.get("user_id", -1)) != initiator_id:
+                        logger.warning("Token authentication failed or mismatch for initiator")
+                        # We don't strictly fail here to keep backwards compatibility,
+                        # but log the event for audit.
+                except Exception as e:
+                    logger.debug(f"Token verification attempt raised: {e}")
 
             # Create unique IDs
             call_uuid = f"call_{secrets.token_urlsafe(16)}"
@@ -546,6 +569,10 @@ class CallingService:
 
             # Allocate a media server
             media_server_id = await self.media_manager.allocate_server_for_call(call_uuid)
+
+            # Generate DTLS keypair and fingerprint for the call and store in session
+            dtls_priv_b64, dtls_pub_b64 = self._generate_dtls_keypair()
+            dtls_fingerprint = self._compute_fingerprint_from_public_b64(dtls_pub_b64)
 
             # Build call session object
             call_session = CallSession(
@@ -562,7 +589,11 @@ class CallingService:
                 audio_quality=audio_quality,
                 status=CallStatus.INITIATING,
                 media_server_id=media_server_id,
-                started_at=datetime.now(timezone.utc)
+                started_at=datetime.now(timezone.utc),
+                session_key=master_key,
+                dtls_fingerprint=dtls_fingerprint,
+                dtls_private_key_b64=dtls_priv_b64,
+                dtls_public_key_b64=dtls_pub_b64
             )
 
             # Persist in-memory
@@ -588,6 +619,9 @@ class CallingService:
 
             self.call_participants[call_uuid].append(initiator_participant)
 
+            # Start periodic session key rotation task for this call
+            self._start_key_rotation_for_call(call_uuid, interval_seconds=call_session.key_rotation_interval_seconds)
+
             # Send invitations to target users asynchronously
             for user_id in target_user_ids:
                 # fire-and-forget invitation send
@@ -596,7 +630,7 @@ class CallingService:
             # Update metrics
             self.metrics["calls_initiated"] += 1
 
-            logger.info(f"Initiated encrypted {call_type} call {call_uuid} with media_server={media_server_id}")
+            logger.info(f"Initiated encrypted {call_type} call {call_uuid} with media_server={media_server_id}, dtls_fp={dtls_fingerprint}")
 
             return call_session
 
@@ -608,10 +642,26 @@ class CallingService:
         self,
         call_id: str,
         user_id: int,
-        offer_sdp: Optional[str] = None
+        offer_sdp: Optional[str] = None,
+        token: Optional[str] = None
     ) -> CallOffer:
-        """Join an existing call: register participant, provide ICE and encrypted session key, generate offer SDP."""
+        """Join an existing call: register participant, provide ICE and encrypted session key, generate offer SDP.
+
+        Optional token can be provided for authentication and will be validated if present.
+        """
         try:
+            # Optional authentication verification
+            if token:
+                ok, payload = await self._verify_token_async(token)
+                if not ok or not payload:
+                    logger.warning(f"Token verification failed for join_call user {user_id}")
+                    raise PermissionError("Invalid authentication token for join_call")
+                # optionally enforce that token user matches user_id
+                t_uid = int(payload.get("user_id")) if payload.get("user_id") else None
+                if t_uid and t_uid != user_id:
+                    logger.warning("Token user mismatch for join_call")
+                    raise PermissionError("Token user mismatch")
+
             if call_id not in self.active_calls:
                 raise ValueError(f"Call {call_id} not found")
 
@@ -644,7 +694,7 @@ class CallingService:
 
             # Generate an offer SDP (mock or proxied). Enhance with security and bandwidth hints.
             sdp = offer_sdp or self._generate_default_sdp()
-            sdp = self.webrtc_manager.enhance_sdp_security(sdp)
+            sdp = self.webrtc_manager.enhance_sdp_security(sdp, dtls_fingerprint=call_session.dtls_fingerprint)
             # Provide initial bandwidth hints based on configured quality
             estimated_bandwidth = self._bandwidth_for_quality(call_session.video_quality)
             sdp = self.webrtc_manager.apply_bandwidth_constraints(sdp, estimated_bandwidth)
@@ -660,7 +710,7 @@ class CallingService:
                 public_key=public_key
             )
 
-            logger.info(f"User {user_id} joined encrypted call {call_id} and received offer")
+            logger.info(f"User {user_id} joined encrypted call {call_id} and received offer (dtls_fp={call_session.dtls_fingerprint})")
 
             return call_offer
 
@@ -672,17 +722,31 @@ class CallingService:
         self,
         call_id: str,
         user_id: int,
-        answer_sdp: str
+        answer_sdp: str,
+        token: Optional[str] = None
     ) -> CallAnswer:
         """Answer a call: validate, secure the SDP, and return encrypted key for signaling."""
         try:
+            # Optional authentication verification
+            if token:
+                ok, payload = await self._verify_token_async(token)
+                if not ok or not payload:
+                    logger.warning(f"Token verification failed for answer_call user {user_id}")
+                    raise PermissionError("Invalid authentication token for answer_call")
+                t_uid = int(payload.get("user_id")) if payload.get("user_id") else None
+                if t_uid and t_uid != user_id:
+                    logger.warning("Token user mismatch for answer_call")
+                    raise PermissionError("Token user mismatch")
+
             if call_id not in self.active_calls:
                 raise ValueError(f"Call {call_id} not found")
 
             if not self.webrtc_manager.validate_sdp(answer_sdp):
                 raise ValueError("Invalid SDP answer")
 
-            secure_sdp = self.webrtc_manager.enhance_sdp_security(answer_sdp)
+            call_session = self.active_calls[call_id]
+
+            secure_sdp = self.webrtc_manager.enhance_sdp_security(answer_sdp, dtls_fingerprint=call_session.dtls_fingerprint)
 
             # Find participant
             participant = next((p for p in self.call_participants.get(call_id, []) if p.user_id == user_id), None)
@@ -737,6 +801,14 @@ class CallingService:
                     participant.status = CallStatus.ENDED
                     participant.left_at = datetime.now(timezone.utc)
 
+            # Cancel key rotation task if running
+            try:
+                if call_session._rotation_task:
+                    call_session._rotation_task.cancel()
+                    call_session._rotation_task = None
+            except Exception:
+                pass
+
             # Release media server
             if call_session.media_server_id:
                 await self.media_manager.release_server_for_call(call_session.media_server_id)
@@ -749,8 +821,14 @@ class CallingService:
                     logger.warning(f"Failed to finalize recording for {call_id}: {e}")
 
             # Cleanup in-memory structures
-            del self.active_calls[call_id]
-            del self.call_participants[call_id]
+            try:
+                del self.active_calls[call_id]
+            except Exception:
+                pass
+            try:
+                del self.call_participants[call_id]
+            except Exception:
+                pass
 
             # Update metrics
             self.metrics["calls_ended"] += 1
@@ -881,6 +959,12 @@ class CallingService:
                 qm = get_quantum_manager()
                 # Just mark as using QM; actual streaming encryption would be done in media pipeline
                 rec_meta["encrypted_with_qm"] = True
+                # Suggest key rotation on start to provide fresh keys for recording
+                try:
+                    asyncio.get_event_loop().create_task(qm.rotate_http_keys(f"recording:{rec_meta['id']}"))
+                except Exception:
+                    # best-effort
+                    pass
             except Exception:
                 rec_meta["encrypted_with_qm"] = False
 
@@ -917,11 +1001,27 @@ class CallingService:
             if rec_meta.get("encrypted_with_qm"):
                 from plexichat.core.security.quantum_encryption import get_quantum_manager  # type: ignore
                 qm = get_quantum_manager()
-                encrypted_payload = qm.encrypt_http_traffic(encrypted_payload, endpoint=f"recording:{rec_meta['id']}")
+                # Use QM's HTTP traffic encryption as a pragmatic wrapper for recorded blobs
+                try:
+                    encrypted_payload = qm.encrypt_http_traffic(encrypted_payload, endpoint=f"recording:{rec_meta['id']}")
+                except Exception:
+                    # fallback to classical encrypt using AESGCM
+                    try:
+                        from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+                        key_b64 = self.encryption_manager.generate_session_key()
+                        key = base64.b64decode(key_b64)
+                        aesgcm = AESGCM(key)
+                        nonce = secrets.token_bytes(12)
+                        c = aesgcm.encrypt(nonce, encrypted_payload, None)
+                        encrypted_payload = nonce + c
+                        rec_meta["wrapped_key"] = base64.b64encode(key).decode('utf-8')
+                    except Exception:
+                        pass
             else:
                 # Simple RSA wrap of a symmetric key then base64 store (demo)
                 key = self.encryption_manager.generate_session_key()
-                encrypted_key = self.encryption_manager.encrypt_session_key(key, self.encryption_manager.generate_key_pair()[1])
+                _, public = self.encryption_manager.generate_key_pair()
+                encrypted_key = self.encryption_manager.encrypt_session_key(key, public)
                 # for demo we attach metadata only
                 rec_meta["wrapped_key"] = encrypted_key
 
@@ -930,8 +1030,18 @@ class CallingService:
                 from plexichat.features.backup.backup_manager import get_backup_manager  # type: ignore
                 bm = get_backup_manager()
                 # store object (best-effort)
-                bm.store_object(rec_meta["id"], encrypted_payload, metadata=rec_meta)  # type: ignore
-                rec_meta["stored_in_backup"] = True
+                try:
+                    bm.store_object(rec_meta["id"], encrypted_payload, metadata=rec_meta)  # type: ignore
+                    rec_meta["stored_in_backup"] = True
+                except Exception:
+                    # some backup backends might be async or have different names - best-effort
+                    try:
+                        res = bm.store(rec_meta["id"], encrypted_payload, metadata=rec_meta)  # type: ignore
+                        if asyncio.iscoroutine(res):
+                            await res
+                        rec_meta["stored_in_backup"] = True
+                    except Exception:
+                        rec_meta["stored_in_backup"] = False
             except Exception:
                 # fallback: write to local file
                 try:
@@ -1016,7 +1126,20 @@ a=rtpmap:96 VP8/90000"""
 
     def _generate_master_key_for_session(self) -> str:
         """Generate a new master session key. In production this would be stored in a secure key vault."""
-        return self.encryption_manager.generate_session_key()
+        # Try to register key with quantum manager for stronger handling, but fallback to local generation
+        try:
+            from plexichat.core.security.quantum_encryption import get_quantum_manager  # type: ignore
+            qm = get_quantum_manager()
+            # We create a symmetric key and let QM manage traffic encryption contexts
+            key_b64 = self.encryption_manager.generate_session_key()
+            # Optionally pre-warm HTTP traffic key for this session
+            try:
+                qm.setup_traffic_encryption(endpoint=f"session:{secrets.token_hex(6)}")
+            except Exception:
+                pass
+            return key_b64
+        except Exception:
+            return self.encryption_manager.generate_session_key()
 
     def _retrieve_master_key_for_call(self, call_id: str) -> str:
         """Placeholder for secure master key retrieval for a call."""
@@ -1169,29 +1292,45 @@ a=rtpmap:96 VP8/90000"""
 
         # Prepare SDP and apply bandwidth hints
         sdp = self._generate_default_sdp()
-        sdp = self.webrtc_manager.enhance_sdp_security(sdp)
+        sdp = self.webrtc_manager.enhance_sdp_security(sdp, dtls_fingerprint=call_session.dtls_fingerprint)
         sdp = self.webrtc_manager.apply_bandwidth_constraints(sdp, preferred_bandwidth_kbps)
 
         # Encrypt the SDP envelope itself using quantum manager if available or using AES+RSA wrap
         payload = sdp.encode("utf-8")
 
         # Try quantum manager path
+        encrypted_b64 = ""
         try:
             from plexichat.core.security.quantum_encryption import get_quantum_manager  # type: ignore
             qm = get_quantum_manager()
-            encrypted_payload = qm.encrypt_http_traffic(payload, endpoint=call_id)
-            encrypted_b64 = base64.b64encode(encrypted_payload).decode("utf-8")
+            try:
+                encrypted_payload = qm.encrypt_http_traffic(payload, endpoint=call_id)
+                encrypted_b64 = base64.b64encode(encrypted_payload).decode("utf-8")
+            except Exception:
+                # if QM fails, fallback to AESGCM based on call session key
+                raise
         except Exception:
             # Fallback: encrypt payload with session key (simulated) by wrapping AES key with participant's public RSA key
-            session_key = self._generate_master_key_for_session()
+            session_key = call_session.session_key or self._generate_master_key_for_session()
             try:
-                encrypted_session_key = self.encryption_manager.encrypt_session_key(session_key, participant.public_key or "")
+                # symmetric AES-GCM encryption using session_key
+                from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+                key = base64.b64decode(session_key)
+                aesgcm = AESGCM(key)
+                nonce = secrets.token_bytes(12)
+                ciphertext = aesgcm.encrypt(nonce, payload, None)
+                encrypted_payload = nonce + ciphertext
+                encrypted_b64 = base64.b64encode(encrypted_payload).decode("utf-8")
+                # rotate session_key to be enveloped if possible (we include current wrapped key for signaling)
+                try:
+                    wrapped = self.encryption_manager.encrypt_session_key(session_key, participant.public_key or "")
+                except Exception:
+                    wrapped = ""
             except Exception:
-                encrypted_session_key = ""
-            # AES encryption of payload (simple reuse of session key bytes via base64)
-            # For demonstration we just attach the plaintext SDP but mark that an RSA-wrapped key exists
-            encrypted_b64 = base64.b64encode(payload).decode("utf-8")
-            # In production we would symmetrically encrypt the payload using master_key and include IV/tag
+                # As ultimate fallback return plaintext base64 (logged)
+                logger.warning("Falling back to plaintext envelope for SDP (not secure) for call %s", call_id)
+                encrypted_b64 = base64.b64encode(payload).decode("utf-8")
+                wrapped = ""
 
         return CallOffer(
             call_id=call_id,
@@ -1290,8 +1429,9 @@ a=rtpmap:96 VP8/90000"""
                         if not self.webrtc_manager.validate_sdp(payload):
                             await websocket.send(json.dumps({"type": "error", "message": "invalid_sdp"}))
                             continue
-                        # Enhance for security
-                        payload = self.webrtc_manager.enhance_sdp_security(payload)
+                        # Enhance for security; include dtls fingerprint when available
+                        call_session = self.active_calls.get(call_id)
+                        payload = self.webrtc_manager.enhance_sdp_security(payload, dtls_fingerprint=(call_session.dtls_fingerprint if call_session else None))
 
                     # Forward to other participants via websockets if connected
                     recipients = [p.user_id for p in self.call_participants.get(call_id, []) if p.user_id != user_id]
@@ -1373,7 +1513,8 @@ a=rtpmap:96 VP8/90000"""
     async def _verify_token_async(self, token: str) -> Tuple[bool, Optional[Dict[str, Any]]]:
         """Verify JWT token using the SecuritySystem TokenManager if available."""
         try:
-            from plexichat.core.security.unified_security_system import get_security_system  # type: ignore
+            # Prefer the centralized security manager API if available
+            from plexichat.core.security.security_manager import get_security_system  # type: ignore
             sec = get_security_system()
             ok, payload = sec.token_manager.verify_token(token)
             return ok, payload
@@ -1424,6 +1565,105 @@ a=rtpmap:96 VP8/90000"""
             return False
         return True
 
+    # -----------------------
+    # Key rotation & DTLS helpers
+    # -----------------------
+    def _generate_dtls_keypair(self) -> Tuple[str, str]:
+        """Generate a lightweight RSA keypair for DTLS fingerprint simulation and return base64 PEMs."""
+        priv_b64, pub_b64 = EncryptionManager.generate_key_pair()
+        return priv_b64, pub_b64
+
+    def _compute_fingerprint_from_public_b64(self, public_b64: str) -> str:
+        """Compute a sha-256 fingerprint from base64-encoded public key to include in SDP."""
+        try:
+            pub_bytes = base64.b64decode(public_b64.encode('utf-8'))
+            digest = hashlib.sha256(pub_bytes).digest()
+            # format as colon separated hex pairs uppercase
+            fp = ":".join(f"{b:02X}" for b in digest)
+            return fp
+        except Exception:
+            return "AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99"
+
+    def _start_key_rotation_for_call(self, call_id: str, interval_seconds: int = 300):
+        """Start periodic rotation of session keys for a call."""
+        try:
+            if call_id not in self.active_calls:
+                return
+
+            call_session = self.active_calls[call_id]
+
+            async def rotation_loop():
+                try:
+                    while True:
+                        await asyncio.sleep(interval_seconds)
+                        try:
+                            await self._rotate_session_keys(call_id)
+                        except asyncio.CancelledError:
+                            break
+                        except Exception as e:
+                            logger.error(f"Key rotation for {call_id} failed: {e}")
+                except asyncio.CancelledError:
+                    logger.debug(f"Rotation loop cancelled for call {call_id}")
+
+            # cancel existing if present
+            try:
+                if call_session._rotation_task:
+                    call_session._rotation_task.cancel()
+            except Exception:
+                pass
+
+            task = asyncio.get_event_loop().create_task(rotation_loop())
+            call_session._rotation_task = task
+            logger.debug(f"Started key rotation task for call {call_id} interval={interval_seconds}s")
+        except Exception as e:
+            logger.error(f"Failed to start key rotation for {call_id}: {e}")
+
+    async def _rotate_session_keys(self, call_id: str):
+        """Rotate session keys for running call and update encrypted envelopes for participants."""
+        try:
+            if call_id not in self.active_calls:
+                return
+            call_session = self.active_calls[call_id]
+            # Generate new master session key
+            new_key = self.encryption_manager.generate_session_key()
+            call_session.session_key = new_key
+            # If quantum manager present, ask it to rotate keys for the call endpoint
+            try:
+                from plexichat.core.security.quantum_encryption import get_quantum_manager  # type: ignore
+                qm = get_quantum_manager()
+                try:
+                    # rotate any internal http keys used for this session
+                    qm.rotate_http_keys(endpoint=call_id)
+                except Exception:
+                    # best-effort
+                    pass
+            except Exception:
+                qm = None
+
+            # For each participant, wrap the new key and update participant record
+            for participant in list(self.call_participants.get(call_id, [])):
+                try:
+                    if participant.public_key:
+                        wrapped = self.encryption_manager.encrypt_session_key(new_key, participant.public_key)
+                        participant.session_key_encrypted = wrapped
+                        # Notify participant via websocket about key rotation (best-effort)
+                        try:
+                            await self.ws_manager.broadcast_to_user(participant.user_id, {
+                                "type": "key_rotation",
+                                "call_id": call_id,
+                                "payload": {
+                                    "rotated_at": datetime.now(timezone.utc).isoformat(),
+                                    "note": "Session key rotated for forward secrecy"
+                                }
+                            })
+                        except Exception:
+                            pass
+                except Exception as e:
+                    logger.warning(f"Failed to wrap new session key for participant {participant.user_id} in call {call_id}: {e}")
+
+            logger.info(f"Rotated session keys for call {call_id}")
+        except Exception as e:
+            logger.error(f"Error rotating session keys for {call_id}: {e}")
 
 # Global service instance
 calling_service = CallingService()
