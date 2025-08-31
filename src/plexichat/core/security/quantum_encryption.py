@@ -29,14 +29,14 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 from cryptography.hazmat.backends import default_backend
 
-# Post-quantum cryptography (fallback to classical if not available)
+# Post-quantum cryptography (required for quantum-resistant security)
 try:
     import pqcrypto.kem.kyber1024 as kyber
     import pqcrypto.sign.dilithium5 as dilithium
     PQC_AVAILABLE = True
 except ImportError:
     PQC_AVAILABLE = False
-    logging.warning("Post-quantum cryptography libraries not available. Falling back to classical algorithms.")
+    raise RuntimeError("Post-quantum cryptography libraries not available. Quantum-resistant algorithms are required for secure operation.")
 
 from .key_vault import DistributedKeyManager
 
@@ -171,13 +171,10 @@ class HybridEncryption:
             format=serialization.PublicFormat.SubjectPublicKeyInfo
         )
         
-        # Post-quantum Kyber key pair
-        if self.pqc.pqc_available:
-            kyber_public, kyber_private = self.pqc.generate_kyber_keypair()
-        else:
-            # Fallback to additional RSA keys
-            kyber_public = rsa_public_pem
-            kyber_private = rsa_private_pem
+        # Post-quantum Kyber key pair (required)
+        if not self.pqc.pqc_available:
+            raise RuntimeError("Post-quantum cryptography not available. Quantum-resistant algorithms are required.")
+        kyber_public, kyber_private = self.pqc.generate_kyber_keypair()
         
         return {
             'rsa_private': rsa_private_pem,
@@ -215,16 +212,14 @@ class HybridEncryption:
             )
         )
         
-        # Encrypt symmetric key with Kyber (if available)
-        if self.pqc.pqc_available:
-            kyber_ciphertext, kyber_shared_secret = self.pqc.kyber_encapsulate(
-                hybrid_public_key['kyber_public']
-            )
-            # XOR the symmetric key with Kyber shared secret for additional protection
-            protected_key = bytes(a ^ b for a, b in zip(symmetric_key, kyber_shared_secret[:32]))
-        else:
-            kyber_ciphertext = b''
-            protected_key = symmetric_key
+        # Encrypt symmetric key with Kyber (required)
+        if not self.pqc.pqc_available:
+            raise RuntimeError("Post-quantum cryptography not available. Quantum-resistant algorithms are required.")
+        kyber_ciphertext, kyber_shared_secret = self.pqc.kyber_encapsulate(
+            hybrid_public_key['kyber_public']
+        )
+        # XOR the symmetric key with Kyber shared secret for additional protection
+        protected_key = bytes(a ^ b for a, b in zip(symmetric_key, kyber_shared_secret[:32]))
         
         return {
             'ciphertext': ciphertext,
@@ -252,18 +247,19 @@ class HybridEncryption:
             )
         )
         
-        # Decrypt with Kyber (if available)
-        if self.pqc.pqc_available and encrypted_data['kyber_ciphertext']:
-            kyber_shared_secret = self.pqc.kyber_decapsulate(
-                hybrid_private_key['kyber_private'],
-                encrypted_data['kyber_ciphertext']
-            )
-            # Recover symmetric key
-            symmetric_key = bytes(
-                a ^ b for a, b in zip(encrypted_data['protected_key'], kyber_shared_secret[:32])
-            )
-        else:
-            symmetric_key = rsa_decrypted_key
+        # Decrypt with Kyber (required)
+        if not self.pqc.pqc_available:
+            raise RuntimeError("Post-quantum cryptography not available. Quantum-resistant algorithms are required.")
+        if not encrypted_data['kyber_ciphertext']:
+            raise RuntimeError("Kyber ciphertext not found. Quantum-resistant decryption required.")
+        kyber_shared_secret = self.pqc.kyber_decapsulate(
+            hybrid_private_key['kyber_private'],
+            encrypted_data['kyber_ciphertext']
+        )
+        # Recover symmetric key
+        symmetric_key = bytes(
+            a ^ b for a, b in zip(encrypted_data['protected_key'], kyber_shared_secret[:32])
+        )
         
         # Decrypt data with AES-256-GCM
         cipher = Cipher(
@@ -512,14 +508,16 @@ class QuantumEncryptionManager:
                 rotation_interval=timedelta(hours=self.config['key_rotation_interval'] / 3600)
             )
             
-            # Create post-quantum keys if available
-            if self.pqc.pqc_available and self.config['enable_post_quantum']:
+            # Create post-quantum keys (required if enabled)
+            if self.config['enable_post_quantum']:
+                if not self.pqc.pqc_available:
+                    raise RuntimeError("Post-quantum cryptography not available. Quantum-resistant algorithms are required.")
                 await self.create_key(
                     key_id="default_kyber",
                     algorithm=EncryptionAlgorithm.KYBER_1024,
                     rotation_interval=timedelta(hours=48)
                 )
-                
+
                 await self.create_key(
                     key_id="default_dilithium",
                     algorithm=EncryptionAlgorithm.DILITHIUM_5,
