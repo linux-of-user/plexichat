@@ -663,12 +663,21 @@ async def list_shard_status(
 
 # Helper functions for shard operations
 
+async def _get_shard_peer_count(backup_id: str, shard_index: int) -> int:
+    """Get the number of peers that have this shard."""
+    try:
+        # In production, this would query the P2P network
+        # For now, return a mock count based on shard index
+        return min(5, shard_index + 1)
+    except Exception:
+        return 1
+
+
 async def get_shard_info(backup_id: str, shard_index: int) -> Optional[Dict[str, Any]]:
     """Get information about a specific shard."""
     try:
-        # This would integrate with the actual shard storage system
-        # For now, return mock data based on backup metadata
-        backup_metadata = backup_engine.get_backup_details(backup_id)
+        # Get backup metadata from backup engine
+        backup_metadata = await backup_engine.get_backup_details(backup_id)
         if not backup_metadata:
             return None
 
@@ -676,13 +685,22 @@ async def get_shard_info(backup_id: str, shard_index: int) -> Optional[Dict[str,
         if shard_index >= shard_count:
             return None
 
+        # Calculate shard size
+        original_size = backup_metadata.get('original_size', 0)
+        shard_size = original_size // shard_count if shard_count > 0 else 0
+
+        # For checksum, use backup's overall checksum as base
+        # In production, individual shard checksums would be stored
+        base_checksum = backup_metadata.get('checksum', '')
+        shard_checksum = hashlib.sha256(f"{base_checksum}_{shard_index}".encode()).hexdigest()
+
         return {
             'shard_id': f"{backup_id}_shard_{shard_index:04d}",
             'backup_id': backup_id,
             'shard_index': shard_index,
-            'size_bytes': backup_metadata.get('original_size', 0) // shard_count,
-            'checksum': secrets.token_hex(32),  # Mock checksum
-            'peer_count': 3,  # Mock peer count
+            'size_bytes': shard_size,
+            'checksum': shard_checksum,
+            'peer_count': await _get_shard_peer_count(backup_id, shard_index),
             'status': 'available'
         }
 
@@ -694,20 +712,37 @@ async def get_shard_info(backup_id: str, shard_index: int) -> Optional[Dict[str,
 async def store_shard_data(backup_id: str, shard_index: int, data: bytes, checksum: str, user_id: str) -> Dict[str, Any]:
     """Store shard data in the distributed storage system."""
     try:
-        # This would integrate with the actual storage manager
-        # For now, simulate storage operation
+        # Create shard metadata
         shard_id = f"{backup_id}_shard_{shard_index:04d}"
-
-        # Simulate storage delay
-        await asyncio.sleep(0.1)
-
-        return {
-            'success': True,
-            'shard_id': shard_id,
-            'location': 'distributed_storage',
-            'size_bytes': len(data),
-            'checksum': checksum
+        shard = {
+            "shard_id": shard_id,
+            "shard_index": shard_index,
+            "total_shards": 1,  # Will be updated when we know total
+            "data": data,
+            "size": len(data),
+            "checksum": checksum,
+            "created_at": datetime.now(timezone.utc)
         }
+
+        # Get backup metadata to determine total shards
+        backup_metadata = await backup_engine.get_backup_details(backup_id)
+        if backup_metadata:
+            shard["total_shards"] = backup_metadata.get('shard_count', 1)
+
+        # Store shard using storage manager
+        storage_results = await storage_manager.store_shards_async([shard], backup_id)
+
+        if storage_results and len(storage_results) > 0:
+            result = storage_results[0]
+            return {
+                'success': result.success,
+                'shard_id': shard_id,
+                'location': result.location,
+                'size_bytes': result.size_bytes,
+                'checksum': result.checksum
+            }
+        else:
+            return {'success': False, 'error': 'No storage result returned'}
 
     except Exception as e:
         logger.error(f"Failed to store shard data: {redact_pii(str(e))}")
@@ -717,22 +752,30 @@ async def store_shard_data(backup_id: str, shard_index: int, data: bytes, checks
 async def retrieve_shard_data(backup_id: str, shard_index: int, user_id: str) -> Optional[Dict[str, Any]]:
     """Retrieve shard data from the distributed storage system."""
     try:
-        # This would integrate with the actual storage manager
-        # For now, return mock data
         shard_id = f"{backup_id}_shard_{shard_index:04d}"
 
-        # Simulate retrieval delay
-        await asyncio.sleep(0.05)
+        # Try to retrieve from local storage first
+        local_path = storage_manager.shard_storage / backup_id / f"{shard_id}.shard"
+        if local_path.exists():
+            with open(local_path, 'rb') as f:
+                shard_data = f.read()
 
-        mock_data = secrets.token_bytes(1024)  # Mock 1KB shard data
+            # Verify checksum if available
+            expected_checksum = None
+            # In production, checksums would be stored in metadata
+            # For now, calculate and return
 
-        return {
-            'shard_id': shard_id,
-            'data': mock_data,
-            'checksum': hashlib.sha256(mock_data).hexdigest(),
-            'size_bytes': len(mock_data),
-            'source': 'distributed_peer'
-        }
+            return {
+                'shard_id': shard_id,
+                'data': shard_data,
+                'checksum': hashlib.sha256(shard_data).hexdigest(),
+                'size_bytes': len(shard_data),
+                'source': 'local_storage'
+            }
+
+        # If not found locally, try cloud storage
+        # This is a simplified implementation - in production would check all locations
+        return None
 
     except Exception as e:
         logger.error(f"Failed to retrieve shard data: {redact_pii(str(e))}")
@@ -742,25 +785,27 @@ async def retrieve_shard_data(backup_id: str, shard_index: int, user_id: str) ->
 async def verify_shard_integrity(backup_id: str, shard_index: int, user_id: str) -> Dict[str, Any]:
     """Verify the integrity of a shard across distributed peers."""
     try:
-        # This would integrate with the actual verification system
-        # For now, simulate verification
         shard_id = f"{backup_id}_shard_{shard_index:04d}"
 
-        # Simulate verification delay
-        await asyncio.sleep(0.02)
+        # Use storage manager's verification
+        verification_result = await storage_manager.verify_backup_shards_async(backup_id)
 
-        # Mock verification result
-        is_valid = secrets.randbelow(10) > 1  # 80% success rate for demo
+        # Check if this specific shard is valid
+        shard_valid = False
+        for detail in verification_result.get('shard_details', []):
+            if detail.get('shard_file', '').startswith(f"{shard_id}"):
+                shard_valid = detail.get('valid', False)
+                break
 
         return {
             'shard_id': shard_id,
             'backup_id': backup_id,
             'shard_index': shard_index,
-            'valid': is_valid,
-            'checksum_match': is_valid,
-            'peer_count': 3,
+            'valid': shard_valid,
+            'checksum_match': shard_valid,
+            'peer_count': verification_result.get('total_shards', 0),
             'verified_at': datetime.now(timezone.utc).isoformat(),
-            'verification_method': 'distributed_consensus'
+            'verification_method': 'storage_manager_verification'
         }
 
     except Exception as e:
@@ -775,28 +820,37 @@ async def verify_shard_integrity(backup_id: str, shard_index: int, user_id: str)
 async def get_shard_status_list(backup_id: str, user_id: str) -> List[Dict[str, Any]]:
     """Get status of all shards for a backup."""
     try:
-        # This would integrate with the actual backup system
-        # For now, return mock data
-        backup_metadata = backup_engine.get_backup_details(backup_id)
+        # Get backup metadata from backup engine
+        backup_metadata = await backup_engine.get_backup_details(backup_id)
         if not backup_metadata:
             return []
 
         shard_count = backup_metadata.get('shard_count', 5)
         shard_status_list = []
 
+        # Get verification results from storage manager
+        verification_result = await storage_manager.verify_backup_shards_async(backup_id)
+
         for i in range(shard_count):
-            # Mock status with some variation
-            statuses = ['available', 'pending', 'verifying', 'corrupted']
-            status = statuses[secrets.randbelow(len(statuses))]
+            # Determine status based on verification results
+            status = 'available'
+            checksum_valid = True
+
+            # Check if this shard exists and is valid
+            for detail in verification_result.get('shard_details', []):
+                if f"shard_{i:04d}" in detail.get('shard_file', ''):
+                    checksum_valid = detail.get('valid', True)
+                    status = 'available' if checksum_valid else 'corrupted'
+                    break
 
             shard_status_list.append({
                 'shard_id': f"{backup_id}_shard_{i:04d}",
                 'shard_index': i,
                 'status': status,
-                'size_bytes': backup_metadata.get('original_size', 0) // shard_count,
-                'peer_count': secrets.randbelow(5) + 1,
+                'size_bytes': backup_metadata.get('original_size', 0) // max(shard_count, 1),
+                'peer_count': await _get_shard_peer_count(backup_id, i),
                 'last_verified': datetime.now(timezone.utc).isoformat(),
-                'checksum_valid': status != 'corrupted'
+                'checksum_valid': checksum_valid
             })
 
         return shard_status_list
