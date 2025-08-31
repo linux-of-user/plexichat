@@ -36,11 +36,11 @@ try:
     _config_manager = get_config_manager()
     config = _config_manager._config
 
-    def get_config():
+    def get_unified_config():
         """Get the unified configuration object."""
         return config
 
-    def load_config(*args, **kwargs):
+    def load_unified_config(*args, **kwargs):
         """Load configuration from file."""
         return _config_manager.load()
 
@@ -100,10 +100,10 @@ except ImportError as e:
         def set(self, key: str, value):
             self.data[key] = value
 
-    def get_config():
+    def get_fallback_config():
         return MinimalConfig()
 
-    def load_config(*args, **kwargs):
+    def load_fallback_config(*args, **kwargs):
         return MinimalConfig()
 
     def save_config(*args, **kwargs):
@@ -112,7 +112,7 @@ except ImportError as e:
     def reload_config(*args, **kwargs):
         pass
 
-    config = get_config()
+    config = get_fallback_config()
     UnifiedConfig = MinimalConfig
 
 # Create a settings object for backward compatibility
@@ -133,6 +133,20 @@ class Settings:
 settings = Settings(config)
 
 # Backward compatibility functions
+def get_config():
+    """Get the configuration object (backward compatibility)."""
+    try:
+        return get_unified_config()
+    except NameError:
+        return get_fallback_config()
+
+def load_config(*args, **kwargs):
+    """Load configuration (backward compatibility)."""
+    try:
+        return load_unified_config(*args, **kwargs)
+    except NameError:
+        return load_fallback_config(*args, **kwargs)
+
 def get_setting(key: str, default: Any = None) -> Any:
     """Get a configuration setting by key."""
     try:
@@ -154,9 +168,13 @@ __all__ = [
     "config",
     "settings",
     "get_config",
+    "get_unified_config",
+    "get_fallback_config",
     "get_setting",
     "get_settings",
     "load_config",
+    "load_unified_config",
+    "load_fallback_config",
     "save_config",
     "reload_config",
 

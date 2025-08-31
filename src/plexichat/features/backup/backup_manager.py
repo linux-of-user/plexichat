@@ -12,7 +12,7 @@ import time
 import zlib
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union, Callable
+from typing import Any, Dict, List, Optional, Tuple, Union, Callable, Set
 from dataclasses import dataclass, field, asdict
 from enum import Enum
 import uuid
@@ -73,6 +73,28 @@ class ClusterNodeType(str, Enum):
     EMERGENCY = "emergency"
 
 
+class ShardAssignmentStrategy(str, Enum):
+    """Strategies for assigning shards to peers."""
+    RANDOM = "random"
+    DETERMINISTIC = "deterministic"
+    GEOGRAPHIC_DISTRIBUTION = "geographic_distribution"
+    LOAD_BALANCED = "load_balanced"
+
+
+@dataclass
+class ShardDistributionConstraints:
+    """Constraints for shard distribution to ensure security and reliability."""
+    min_replication_factor: int = 3
+    max_replication_factor: int = 5
+    max_complementary_shards_per_peer: int = 1  # No single peer gets complementary shards
+    geographic_distribution_required: bool = True
+    min_geographic_regions: int = 2
+    assignment_strategy: ShardAssignmentStrategy = ShardAssignmentStrategy.DETERMINISTIC
+    redistribution_on_failure: bool = True
+    health_score_threshold: float = 0.8
+    max_shard_size_ratio: float = 0.1  # Max 10% of peer capacity per shard
+
+
 @dataclass
 class QuantumEncryptionConfig:
     """Configuration for quantum-ready encryption."""
@@ -98,6 +120,10 @@ class ClusterNode:
     backup_count: int = 0
     is_online: bool = True
     metadata: Dict[str, Any] = field(default_factory=dict)
+    # Enhanced fields for design constraints
+    geographic_region: Optional[str] = None
+    stored_shard_ids: Set[str] = field(default_factory=set)
+    complementary_shard_groups: Set[str] = field(default_factory=set)  # Groups this node has shards from
 
 
 @dataclass

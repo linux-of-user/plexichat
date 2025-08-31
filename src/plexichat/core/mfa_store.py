@@ -47,3 +47,15 @@ class MFAStore:
     def delete_challenge(self, challenge_id: str):
         if challenge_id in self.mfa_challenges:
             del self.mfa_challenges[challenge_id]
+
+    async def verify_totp(self, user_id: str, code: str) -> bool:
+        """Verify TOTP code for user."""
+        # In a real implementation, this would verify against stored TOTP secrets
+        # For now, just return True for any 6-digit code
+        return len(code) == 6 and code.isdigit()
+
+    async def verify_backup_code(self, user_id: str, code: str) -> bool:
+        """Verify backup code for user."""
+        # In a real implementation, this would check against stored backup codes
+        # For now, just return True for any non-empty code
+        return bool(code.strip())

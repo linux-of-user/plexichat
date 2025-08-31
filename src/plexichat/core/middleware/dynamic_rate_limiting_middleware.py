@@ -32,33 +32,35 @@ try:
     from plexichat.core.rate_limit_config import get_rate_limiting_config, DynamicRateLimitConfig
 except Exception:
     # Provide a minimal fallback config provider to allow middleware to operate in degraded mode
+    class Dyn:
+        enabled = True
+        monitoring_interval = 10
+        adjustment_interval = 5
+        cpu_threshold_low = 0.10
+        memory_threshold_low = 0.10
+        low_load_multiplier = 1.5
+        cpu_threshold_medium = 0.50
+        memory_threshold_medium = 0.50
+        medium_load_multiplier = 1.0
+        cpu_threshold_high = 0.75
+        memory_threshold_high = 0.75
+        high_load_multiplier = 0.6
+        critical_load_multiplier = 0.3
+        request_window_seconds = 60
+        ddos_detection_rps = 20  # requests per second considered suspicious per IP
+        ddos_detection_rps_burst = 50  # burst threshold
+        ddos_penalty_durations = [30, 300, 3600]  # progressive temp blocks in seconds
+        tier_limits = {
+            "basic": 60,    # requests per minute
+            "premium": 300, # requests per minute
+            "admin": 0      # 0 means unlimited
+        }
+        captcha_after_penalties = 2  # require captcha after X penalties
+
+    class Cfg:
+        dynamic_config = Dyn()
+
     def get_rate_limiting_config():
-        class Dyn:
-            enabled = True
-            monitoring_interval = 10
-            adjustment_interval = 5
-            cpu_threshold_low = 0.10
-            memory_threshold_low = 0.10
-            low_load_multiplier = 1.5
-            cpu_threshold_medium = 0.50
-            memory_threshold_medium = 0.50
-            medium_load_multiplier = 1.0
-            cpu_threshold_high = 0.75
-            memory_threshold_high = 0.75
-            high_load_multiplier = 0.6
-            critical_load_multiplier = 0.3
-            request_window_seconds = 60
-            ddos_detection_rps = 20  # requests per second considered suspicious per IP
-            ddos_detection_rps_burst = 50  # burst threshold
-            ddos_penalty_durations = [30, 300, 3600]  # progressive temp blocks in seconds
-            tier_limits = {
-                "basic": 60,    # requests per minute
-                "premium": 300, # requests per minute
-                "admin": 0      # 0 means unlimited
-            }
-            captcha_after_penalties = 2  # require captcha after X penalties
-        class Cfg:
-            dynamic_config = Dyn()
         return Cfg()
 
 logger = logging.getLogger(__name__)
@@ -148,13 +150,15 @@ try:
     from plexichat.core.security.security_manager import get_security_system
 except Exception:
     # Provide a fallback stub with minimal behavior
-    def get_security_system():
-        class Stub:
-            def __init__(self):
-                self.token_manager = None
+    class Stub:
+        def __init__(self):
+            self.token_manager = None
+            self.user_credentials = {}
 
-            def token_verify(self, token: str) -> Tuple[bool, Optional[dict]]:
-                return False, None
+        def token_verify(self, token: str) -> Tuple[bool, Optional[Dict[str, Any]]]:
+            return False, None
+
+    def get_security_system():
         return Stub()
 
 class DynamicRateLimitingMiddleware(BaseHTTPMiddleware):

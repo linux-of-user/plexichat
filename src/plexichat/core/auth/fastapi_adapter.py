@@ -9,7 +9,7 @@ import logging
 import time
 from datetime import datetime, timedelta
 from functools import wraps
-from typing import Any, Dict, Optional, Set, Union
+from typing import Any, Callable, Dict, Optional, Set, Union
 
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -154,7 +154,7 @@ class FastAPIAuthAdapter:
         
         return current_user
 
-    def require_user_or_admin(self, target_user_id: Union[str, int]) -> callable:
+    def require_user_or_admin(self, target_user_id: Union[str, int]) -> Callable[..., Any]:
         """
         Create a dependency that requires user to be the target user or an admin.
         
@@ -228,11 +228,11 @@ class FastAPIAuthAdapter:
     
 
     def rate_limit(
-        self, 
-        action: str, 
-        limit: int, 
+        self,
+        action: str,
+        limit: int,
         window_seconds: int = 60
-    ) -> callable:
+    ) -> Callable[..., Any]:
         """
         Rate limiting decorator that integrates with NetworkProtection.
         
@@ -405,7 +405,7 @@ async def require_admin(
     return await adapter.require_admin(current_user)
 
 
-def require_user_or_admin(target_user_id: Union[str, int]) -> callable:
+def require_user_or_admin(target_user_id: Union[str, int]) -> Callable[..., Any]:
     """Create FastAPI dependency that requires user to be target user or admin."""
     adapter = get_auth_adapter()
     return adapter.require_user_or_admin(target_user_id)
@@ -419,7 +419,7 @@ async def get_user_permissions(
     return await adapter.get_user_permissions(current_user)
 
 
-def rate_limit(action: str, limit: int, window_seconds: int = 60) -> callable:
+def rate_limit(action: str, limit: int, window_seconds: int = 60) -> Callable[..., Any]:
     """Rate limiting decorator for FastAPI endpoints."""
     adapter = get_auth_adapter()
     return adapter.rate_limit(action, limit, window_seconds)

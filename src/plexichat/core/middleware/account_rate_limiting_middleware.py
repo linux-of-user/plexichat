@@ -23,15 +23,18 @@ try:
 except ImportError as e:
     print(f"Import error in account rate limiting middleware: {e}")
     # Fallback
-    class AccountType:
+    from enum import Enum
+
+    class AccountType(Enum):
         GUEST = "guest"
         USER = "user"
         BOT = "bot"
         ADMIN = "admin"
-    
+        MODERATOR = "moderator"
+
     def get_rate_limiting_config():
         return None
-    
+
     def get_account_rate_limit(account_type, endpoint=None):
         return {"enabled": False}
 

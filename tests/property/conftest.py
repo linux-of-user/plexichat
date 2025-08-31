@@ -8,7 +8,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, AsyncMock
 from typing import Dict, List, Any
 
-from plexichat.tests.property.test_shard_distribution_simulation import (
+from .test_shard_distribution_simulation import (
     ShardDistributionSimulator,
     SimulatedPeer,
     SimulatedShard,

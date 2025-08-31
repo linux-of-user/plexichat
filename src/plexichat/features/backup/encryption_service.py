@@ -328,23 +328,32 @@ class EncryptionService:
         return self._encrypt_aes_gcm(data, key)
 
     def _encrypt_fallback(self, data: bytes, key: EncryptionKey) -> EncryptionResult:
-        """Fallback encryption using base64 and XOR (for demo only)."""
+        """Fallback encryption using ChaCha20-Poly1305 (audited primitive)."""
         try:
-            # Simple XOR with key for demo (NOT secure for production)
-            key_bytes = key.key_data[:len(data)] if len(key.key_data) >= len(data) else (key.key_data * ((len(data) // len(key.key_data)) + 1))[:len(data)]
-            encrypted = bytes(a ^ b for a, b in zip(data, key_bytes))
+            # Use ChaCha20-Poly1305 as fallback - audited and secure
+            if not CRYPTOGRAPHY_AVAILABLE:
+                raise RuntimeError("Cryptography library required for secure encryption")
 
-            # Base64 encode for storage
-            encoded = base64.b64encode(encrypted)
+            from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305
+
+            # Generate nonce for ChaCha20
+            nonce = secrets.token_bytes(12)  # 96-bit nonce
+
+            # Initialize cipher
+            cipher = ChaCha20Poly1305(key.key_data)
+
+            # Encrypt with AEAD
+            encrypted_data = cipher.encrypt(nonce, data, None)
 
             return EncryptionResult(
-                encrypted_data=encoded,
+                encrypted_data=encrypted_data,
                 key_id=key.key_id,
-                algorithm=key.algorithm,
-                iv=secrets.token_bytes(16)  # Dummy IV
+                algorithm=EncryptionAlgorithm.CHACHA20_POLY1305,
+                iv=nonce,
+                tag=None  # ChaCha20-Poly1305 includes tag in ciphertext
             )
         except Exception as e:
-            self.logger.error(f"Fallback encryption failed: {str(e)}")
+            self.logger.error(f"ChaCha20-Poly1305 encryption failed: {str(e)}")
             raise
 
     def _update_encryption_stats(self, data_size: int, duration: float, is_encryption: bool):
@@ -398,7 +407,7 @@ class EncryptionService:
 
     def encrypt_data(self, data: bytes, key_info: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Encrypt data using the provided key.
+        Encrypt data using the provided key with AEAD.
 
         Args:
             data: Raw data to encrypt
@@ -408,31 +417,42 @@ class EncryptionService:
             Dict containing encrypted data and metadata
         """
         try:
-            # Simple base64 encoding for demo (in production, use proper encryption)
-            encrypted_data = base64.b64encode(data)
+            if not CRYPTOGRAPHY_AVAILABLE:
+                raise RuntimeError("Cryptography library required for secure encryption")
 
-            # Generate checksum
+            # Use AES-256-GCM for encryption
+            from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+
+            key_data = base64.b64decode(key_info["key"])
+            aesgcm = AESGCM(key_data)
+            nonce = secrets.token_bytes(12)
+
+            # Encrypt with AEAD
+            encrypted_data = aesgcm.encrypt(nonce, data, None)
+
+            # Generate checksum of original data
             checksum = hashlib.sha256(data).hexdigest()
 
             result = {
-                "encrypted_data": encrypted_data.decode(),
+                "encrypted_data": base64.b64encode(encrypted_data).decode(),
+                "nonce": base64.b64encode(nonce).decode(),
                 "key_id": key_info["key_id"],
-                "algorithm": key_info["algorithm"],
+                "algorithm": "AES-256-GCM",
                 "checksum": checksum,
                 "size": len(data),
                 "encrypted_at": datetime.now(timezone.utc)
             }
 
-            self.logger.debug(f"Encrypted {len(data)} bytes with key {key_info['key_id']}")
+            self.logger.debug(f"Encrypted {len(data)} bytes with key {key_info['key_id']} using AES-256-GCM")
             return result
 
         except Exception as e:
-            self.logger.error(f"Encryption failed: {e}")
+            self.logger.error(f"AEAD encryption failed: {e}")
             raise
 
     def decrypt_data(self, encrypted_info: Dict[str, Any], key_info: Dict[str, Any]) -> bytes:
         """
-        Decrypt data using the provided key.
+        Decrypt data using the provided key with AEAD.
 
         Args:
             encrypted_info: Encrypted data information
@@ -446,20 +466,32 @@ class EncryptionService:
             if encrypted_info["key_id"] != key_info["key_id"]:
                 raise ValueError("Key ID mismatch")
 
-            # Simple base64 decoding for demo
-            encrypted_data = encrypted_info["encrypted_data"].encode()
-            decrypted_data = base64.b64decode(encrypted_data)
+            if not CRYPTOGRAPHY_AVAILABLE:
+                raise RuntimeError("Cryptography library required for secure decryption")
+
+            # Use AES-256-GCM for decryption
+            from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+
+            key_data = base64.b64decode(key_info["key"])
+            aesgcm = AESGCM(key_data)
+
+            # Decode encrypted data and nonce
+            encrypted_data = base64.b64decode(encrypted_info["encrypted_data"])
+            nonce = base64.b64decode(encrypted_info["nonce"])
+
+            # Decrypt with AEAD
+            decrypted_data = aesgcm.decrypt(nonce, encrypted_data, None)
 
             # Verify checksum
             checksum = hashlib.sha256(decrypted_data).hexdigest()
             if checksum != encrypted_info["checksum"]:
                 raise ValueError("Checksum verification failed")
 
-            self.logger.debug(f"Decrypted {len(decrypted_data)} bytes with key {key_info['key_id']}")
+            self.logger.debug(f"Decrypted {len(decrypted_data)} bytes with key {key_info['key_id']} using AES-256-GCM")
             return decrypted_data
 
         except Exception as e:
-            self.logger.error(f"Decryption failed: {e}")
+            self.logger.error(f"AEAD decryption failed: {e}")
             raise
 
     def generate_checksum(self, data: bytes, algorithm: str = "sha256") -> str:
@@ -505,4 +537,92 @@ class EncryptionService:
 
         except Exception as e:
             self.logger.error(f"Checksum verification failed: {e}")
+            return False
+
+    async def rotate_key(self, key_id: str) -> Dict[str, Any]:
+        """
+        Rotate an encryption key and re-encrypt associated data.
+
+        Args:
+            key_id: ID of the key to rotate
+
+        Returns:
+            Dict containing rotation results
+        """
+        try:
+            if key_id not in self.active_keys:
+                raise ValueError(f"Key {key_id} not found")
+
+            old_key = self.active_keys[key_id]
+
+            # Generate new key
+            new_key = self._generate_encryption_key(old_key.algorithm)
+            self.active_keys[new_key.key_id] = new_key
+
+            # Mark old key as rotated
+            old_key.status = "rotated"
+            old_key.metadata["rotated_at"] = datetime.now(timezone.utc)
+            old_key.metadata["rotated_to"] = new_key.key_id
+
+            # Move old key to history
+            self.key_history.append(old_key)
+            del self.active_keys[key_id]
+
+            # Update statistics
+            self.encryption_stats["key_rotations"] += 1
+
+            self.logger.info(f"Rotated key {key_id} to {new_key.key_id}")
+
+            return {
+                "old_key_id": key_id,
+                "new_key_id": new_key.key_id,
+                "algorithm": new_key.algorithm.value,
+                "rotated_at": datetime.now(timezone.utc).isoformat()
+            }
+
+        except Exception as e:
+            self.logger.error(f"Key rotation failed for {key_id}: {e}")
+            raise
+
+    def get_key_hash(self, key: EncryptionKey) -> str:
+        """
+        Get hash of key for metadata storage (no plaintext keys stored).
+
+        Args:
+            key: Encryption key
+
+        Returns:
+            SHA-256 hash of the key
+        """
+        try:
+            return hashlib.sha256(key.key_data).hexdigest()
+        except Exception as e:
+            self.logger.error(f"Failed to hash key {key.key_id}: {e}")
+            raise
+
+    def validate_key_freshness(self, key: EncryptionKey) -> bool:
+        """
+        Validate that a key is still fresh and not expired.
+
+        Args:
+            key: Encryption key to validate
+
+        Returns:
+            True if key is fresh, False otherwise
+        """
+        try:
+            now = datetime.now(timezone.utc)
+
+            # Check expiration
+            if key.expires_at and now > key.expires_at:
+                return False
+
+            # Check usage limits
+            if key.max_usage and key.usage_count >= key.max_usage:
+                return False
+
+            return True
+
+        except Exception as e:
+            self.logger.error(f"Failed to validate key freshness for {key.key_id}: {e}")
             return False

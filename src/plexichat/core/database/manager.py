@@ -8,7 +8,7 @@ connection pooling, transactions, and performance optimization.
 import asyncio
 import logging
 import inspect
-from typing import Any, Dict, List, Optional, Set, AsyncContextManager
+from typing import Any, Dict, List, Optional, Set, AsyncGenerator
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from enum import Enum
@@ -19,17 +19,39 @@ from plexichat.core.logging_system.unified_logger import LogCategory
 
 try:
     from plexichat.core.config_manager import get_config
-    from plexichat.core.auth.permissions import check_permission, format_permission, DBOperation, ResourceType, PermissionError
     config = get_config("database")
 except ImportError:
     # This fallback is for when the module is used in a context where the full app isn't available.
     config = None
+
+# Try to import permission classes, with fallbacks
+try:
+    from plexichat.core.auth.permissions import check_permission, format_permission, DBOperation, ResourceType, PermissionError  # type: ignore
+except ImportError:
     # Define dummy classes and functions for type hinting and to avoid runtime errors.
-    def check_permission(required, user_permissions): pass
-    def format_permission(rt, op, rn): return ""
-    class DBOperation(Enum): READ="read"; WRITE="write"; DELETE="delete"; EXECUTE_RAW="execute_raw"
-    class ResourceType(Enum): TABLE="table"; DATABASE="db"
-    class PermissionError(Exception): pass
+    from typing import Set
+
+    def check_permission(required: str, user_permissions: Set[str]) -> None:
+        """Fallback permission check - always allows."""
+        pass
+
+    def format_permission(rt, op, rn: str = "any") -> str:
+        """Fallback permission formatting."""
+        return f"{rt}:{op}:{rn}"
+
+    class DBOperation(Enum):
+        READ = "read"
+        WRITE = "write"
+        DELETE = "delete"
+        EXECUTE_RAW = "execute_raw"
+
+    class ResourceType(Enum):
+        TABLE = "table"
+        DATABASE = "db"
+
+    class PermissionError(Exception):
+        """Fallback permission error."""
+        pass
 
 
 logger = get_logger(__name__)
@@ -304,7 +326,7 @@ class DatabaseManager:
             raise
     
     @asynccontextmanager
-    async def get_session(self, user_permissions: Optional[Set[str]] = None) -> AsyncContextManager[DatabaseSession]:
+    async def get_session(self, user_permissions: Optional[Set[str]] = None) -> AsyncGenerator[DatabaseSession, None]:
         """Get a database session, optionally with user permissions for access control."""
         if not self._initialized:
             await self.initialize()

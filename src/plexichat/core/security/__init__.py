@@ -51,6 +51,15 @@ SecurityManager = SecuritySystem
 from dataclasses import dataclass, field
 import asyncio
 import time
+from enum import Enum
+
+
+class KeyDomain(Enum):
+    """Key domain for distributed key management."""
+    AUTH = "auth"
+    ENCRYPTION = "encryption"
+    SIGNING = "signing"
+    SESSION = "session"
 
 
 @dataclass
@@ -168,6 +177,40 @@ def get_network_protection() -> NetworkProtection:
     return _network_protection
 
 
+# Distributed Key Manager stub
+class DistributedKeyManager:
+    """Stub distributed key manager for testing."""
+    def __init__(self):
+        pass
+
+    def get_key(self, domain: KeyDomain, key_id: str):
+        """Get a key for the given domain and id."""
+        return f"key_{domain.value}_{key_id}"
+
+    def store_key(self, domain: KeyDomain, key_id: str, key: str):
+        """Store a key."""
+        pass
+
+    async def get_domain_key(self, domain: KeyDomain):
+        """Get domain key asynchronously."""
+        return f"domain_key_{domain.value}"
+
+
+_distributed_key_manager: Optional[DistributedKeyManager] = None
+
+
+def get_distributed_key_manager() -> DistributedKeyManager:
+    """Get the distributed key manager instance."""
+    global _distributed_key_manager
+    if _distributed_key_manager is None:
+        _distributed_key_manager = DistributedKeyManager()
+    return _distributed_key_manager
+
+
+# Alias for backward compatibility
+distributed_key_manager = get_distributed_key_manager()
+
+
 # Export all the main classes and functions
 __all__ = [
     # Security system
@@ -194,6 +237,12 @@ __all__ = [
     "get_network_protection",
     "RateLimitRequest",
     "NetworkProtection",
+
+    # Key management
+    "KeyDomain",
+    "DistributedKeyManager",
+    "get_distributed_key_manager",
+    "distributed_key_manager",
 
     # Backward compatibility aliases
     "security_manager",

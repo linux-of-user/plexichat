@@ -13,7 +13,7 @@ from typing import Dict, List, Any
 
 from plexichat.features.backup.backup_engine import BackupEngine
 from plexichat.features.backup.recovery_service import RecoveryService
-from plexichat.tests.property.test_shard_distribution_simulation import (
+from ..property.test_shard_distribution_simulation import (
     ShardDistributionSimulator,
     SimulatedPeer,
     SimulatedShard,

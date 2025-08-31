@@ -114,14 +114,20 @@ class QuantumSecureCache:
         # Performance tracking
         self.performance_metrics: List[Dict[str, Any]] = []
 
-        # Initialize cache
-        asyncio.create_task(self._initialize_cache())
+        # Initialize cache (will be done lazily on first use)
+        self._initialized = False
+
+    async def _ensure_initialized(self):
+        """Ensure the cache is initialized."""
+        if not self._initialized:
+            await self._setup_encryption_keys()
+            self._initialized = True
+            logger.info(" Quantum secure cache initialized")
 
     async def _initialize_cache(self):
         """Initialize the secure cache system."""
-        await self._setup_encryption_keys()
+        await self._ensure_initialized()
         await self._start_maintenance_tasks()
-        logger.info(" Quantum secure cache initialized")
 
     async def _setup_encryption_keys(self):
         """Setup encryption keys for different security levels."""
@@ -157,12 +163,13 @@ class QuantumSecureCache:
         asyncio.create_task(maintenance_loop())
 
     async def set(self,
-                key: str,
-                value: Any,
-                ttl: Optional[int] = None,
-                security_level: Optional[CacheLevel] = None) -> bool:
+                 key: str,
+                 value: Any,
+                 ttl: Optional[int] = None,
+                 security_level: Optional[CacheLevel] = None) -> bool:
         """Set a value in the secure cache."""
         try:
+            await self._ensure_initialized()
             security_level = security_level or self.default_security_level
             ttl = ttl or self.default_ttl
 
@@ -220,6 +227,7 @@ class QuantumSecureCache:
     async def get(self, key: str) -> Optional[Any]:
         """Get a value from the secure cache."""
         try:
+            await self._ensure_initialized()
             if key not in self.cache_entries:
                 self.stats.miss_count += 1
                 return None

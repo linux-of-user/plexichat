@@ -1082,7 +1082,7 @@ try:
 
                 # Update type-specific storage
                 if metric_type == MetricType.COUNTER:
-                    self.counters[name] += value
+                    self.counters[name] += int(value)
                 elif metric_type == MetricType.GAUGE:
                     self.gauges[name] = value
                 elif metric_type == MetricType.TIMER:
@@ -1251,14 +1251,17 @@ try:
             alert_level = None
             threshold_value = None
 
-            if value >= thresholds.get("critical", float('inf')):
-                alert_level = AlertLevel.CRITICAL
-                threshold_value = thresholds["critical"]
-            elif value >= thresholds.get("warning", float('inf')):
-                alert_level = AlertLevel.WARNING
-                threshold_value = thresholds["warning"]
+            critical_threshold = thresholds.get("critical", float('inf'))
+            warning_threshold = thresholds.get("warning", float('inf'))
 
-            if alert_level:
+            if value >= critical_threshold:
+                alert_level = AlertLevel.CRITICAL
+                threshold_value = critical_threshold
+            elif value >= warning_threshold:
+                alert_level = AlertLevel.WARNING
+                threshold_value = warning_threshold
+
+            if alert_level and threshold_value is not None:
                 alert = PerformanceAlert(
                     metric_name=metric_name,
                     alert_level=alert_level,
@@ -1391,19 +1394,19 @@ try:
     # Global performance logger instance
     _performance_logger: Optional[EnterprisePerformanceLogger] = None
 
-    def get_performance_logger() -> EnterprisePerformanceLogger:
+    def get_performance_logger() -> Optional[EnterprisePerformanceLogger]:
         """Get the global performance logger instance."""
         global _performance_logger
         if _performance_logger is None:
             _performance_logger = EnterprisePerformanceLogger()
         return _performance_logger
 
-    async def initialize_performance_logger(config: Optional[Dict[str, Any]] = None) -> EnterprisePerformanceLogger:
+    async def initialize_performance_logger(config: Optional[Dict[str, Any]] = None) -> Optional[EnterprisePerformanceLogger]:
         """Initialize and return the performance logger."""
         perf_logger = get_performance_logger()
-        if config:
+        if perf_logger and config:
             perf_logger.config.update(config)
-        await perf_logger.initialize()
+            await perf_logger.initialize()
         return perf_logger
 
     def time_operation(operation_name: str, tags: Optional[Dict[str, str]] = None) -> PerformanceTimer:

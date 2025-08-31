@@ -28,10 +28,10 @@ from uuid import uuid4
 from plexichat.core.security import security_manager
 
 # Security integration
-SECURITY_AVAILABLE = False
+security_available = False
 try:
     from plexichat.core.security import comprehensive_security_manager
-    SECURITY_AVAILABLE = True
+    security_available = True
 except ImportError:
     pass
 
@@ -143,7 +143,7 @@ class MessageValidator:
             issues.append(f"Too many attachments (max: {self.max_attachments})")
         
         # Security validation
-        if SECURITY_AVAILABLE:
+        if security_available:
             try:
                 from plexichat.core.security.security_manager import get_unified_security_system
                 security_system = get_unified_security_system()
@@ -312,7 +312,7 @@ class UnifiedMessagingSystem:
         self.subscribers: Dict[str, Set[Callable]] = {}
         
         # Security integration
-        if SECURITY_AVAILABLE:
+        if security_available:
             try:
                 from plexichat.core.security.security_manager import get_unified_security_system
                 from plexichat.core.security.comprehensive_security_manager import get_security_manager
@@ -475,7 +475,7 @@ class UnifiedMessagingSystem:
             'active_channels': len(self.channel_manager.channels),
             'total_messages': len(self.messages),
             'active_subscribers': sum(len(subs) for subs in self.subscribers.values()),
-            'security_enabled': SECURITY_AVAILABLE,
+            'security_enabled': security_available,
             'encryption_enabled': True
         }
     

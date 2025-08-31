@@ -438,12 +438,12 @@ async def lifespan(app: FastAPI):
             # Attempt to shut down global auth manager instance if present
             if app.state.auth_manager:
                 try:
-                    await shutdown_auth_manager()
+                    result = await shutdown_auth_manager()
                     logger.info("[AUTH] UnifiedAuthManager shut down successfully")
                 except TypeError:
                     # fallback if shutdown_auth_manager is synchronous
                     try:
-                        shutdown_auth_manager()
+                        result = shutdown_auth_manager()
                         logger.info("[AUTH] UnifiedAuthManager shut down (sync fallback)")
                     except Exception as sync_e:
                         logger.warning(f"[AUTH] Sync shutdown failed: {sync_e}")
@@ -451,7 +451,7 @@ async def lifespan(app: FastAPI):
                     logger.warning(f"[AUTH] Async shutdown failed: {async_e}")
                     # Try sync shutdown as fallback
                     try:
-                        shutdown_auth_manager()
+                        _ = shutdown_auth_manager()
                         logger.info("[AUTH] UnifiedAuthManager shut down (sync fallback after async failure)")
                     except Exception as sync_fallback_e:
                         logger.warning(f"[AUTH] Both async and sync shutdown failed: {sync_fallback_e}")
@@ -485,8 +485,11 @@ async def lifespan(app: FastAPI):
         if database_manager:
             logger.info("[DB] Closing database connections...")
             try:
-                await database_manager.cleanup()
-                logger.info("[DB] Database cleanup completed")
+                if hasattr(database_manager, 'cleanup'):
+                    await database_manager.cleanup()
+                    logger.info("[DB] Database cleanup completed")
+                else:
+                    logger.info("[DB] Database manager does not have cleanup method")
             except Exception as e:
                 logger.warning(f"[DB] Error during database cleanup: {e}")
 

@@ -83,6 +83,10 @@ class StartupError(BaseAPIException):  # type: ignore
     def __init__(self, message: str = "Startup error", **kwargs):
         super().__init__(message, status_code=500, **kwargs)
 
+class SecurityError(BaseAPIException):  # type: ignore
+    def __init__(self, message: str = "Security error", **kwargs):
+        super().__init__(message, status_code=403, **kwargs)
+
 # Utility functions
 def handle_exception(exc: Exception) -> Dict[str, Any]:
     """Handle exception and return error info."""
@@ -345,6 +349,7 @@ __all__ = [
     "ConfigurationError",
     "ProcessLockError",
     "StartupError",
+    "SecurityError",
     "handle_exception",
     "create_error_response",
 

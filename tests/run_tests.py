@@ -15,14 +15,23 @@ from datetime import datetime
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-def run_pytest_suite(test_pattern="test_*.py", verbose=False):
-    """Run pytest test suite."""
+def run_pytest_suite(test_pattern="test_*.py", verbose=False, coverage=True):
+    """Run pytest test suite with coverage."""
     print("\n=== Running Pytest Test Suite ===")
 
     cmd = ["python", "-m", "pytest"]
     if verbose:
         cmd.append("-v")
     cmd.extend(["--tb=short", f"tests/{test_pattern}"])
+
+    # Add coverage options if requested
+    if coverage:
+        cmd.extend([
+            "--cov=plexichat",
+            "--cov-report=html:htmlcov",
+            "--cov-report=term-missing",
+            "--cov-fail-under=80"
+        ])
 
     try:
         result = subprocess.run(cmd, cwd=project_root, capture_output=True, text=True)

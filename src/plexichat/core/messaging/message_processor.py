@@ -28,9 +28,11 @@ except ImportError:
 try:
     from plexichat.core.performance.optimization_engine import PerformanceOptimizationEngine
     from plexichat.core.logging import get_performance_logger
+    from plexichat.core.logging import MetricType  # type: ignore
 except ImportError:
     PerformanceOptimizationEngine = None
     get_performance_logger = None
+    MetricType = None
 
 logger = logging.getLogger(__name__)
 performance_logger = get_performance_logger() if get_performance_logger else None
@@ -133,7 +135,7 @@ class MessageProcessor:
             # Performance tracking
             if self.performance_logger:
                 duration = time.time() - start_time
-                self.performance_logger.record_metric("message_processing_duration", duration, "seconds")
+                self.performance_logger.record_timer("message_processing_duration", duration)
                 self.performance_logger.increment_counter("messages_processed", 1)
 
             return result

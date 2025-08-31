@@ -14,19 +14,19 @@ from enum import Enum
 from collections import defaultdict, deque
 
 # FastAPI availability check
-FASTAPI_AVAILABLE = False
+fastapi_available = False
 try:
     import fastapi
-    FASTAPI_AVAILABLE = True
+    fastapi_available = True
 except ImportError:
     pass
 
 # Import psutil safely
 try:
     import psutil
-    PSUTIL_AVAILABLE = True
+    psutil_available = True
 except ImportError:
-    PSUTIL_AVAILABLE = False
+    psutil_available = False
 
 # Import logging safely
 try:
@@ -194,7 +194,7 @@ class IntegratedProtectionSystem:
     
     async def _update_system_metrics(self) -> None:
         """Update current system metrics."""
-        if PSUTIL_AVAILABLE:
+        if psutil_available:
             try:
                 import psutil
                 self.system_metrics.cpu_usage = psutil.cpu_percent(interval=1)

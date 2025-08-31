@@ -52,9 +52,11 @@ except ImportError:
 try:
     from plexichat.core.performance.optimization_engine import PerformanceOptimizationEngine
     from plexichat.core.logging import get_performance_logger
+    from plexichat.core.logging import MetricType  # type: ignore
 except ImportError:
     PerformanceOptimizationEngine = None
     get_performance_logger = None
+    MetricType = None
 
 logger = logging.getLogger(__name__)
 performance_logger = get_performance_logger() if get_performance_logger else None
@@ -221,8 +223,8 @@ class FileManager:
             self._db_initialized = False
 
     async def upload_file(self, file_data: bytes, filename: str, uploaded_by: int,
-                        content_type: str = None, is_public: bool = False,
-                        tags: List[str] = None) -> Optional[FileMetadata]:
+                        content_type: Optional[str] = None, is_public: bool = False,
+                        tags: Optional[List[str]] = None) -> Optional[FileMetadata]:
         """Upload file with threading."""
         try:
             start_time = time.time()
@@ -308,9 +310,9 @@ class FileManager:
             # Performance tracking
             if self.performance_logger:
                 duration = time.time() - start_time
-                self.performance_logger.record_metric("file_upload_duration", duration, "seconds")
+                self.performance_logger.record_timer("file_upload_duration", duration)
                 self.performance_logger.increment_counter("files_uploaded", 1)
-                self.performance_logger.record_metric("file_upload_size", file_size, "bytes")
+                self.performance_logger.set_gauge("file_upload_size", file_size)
 
             logger.info(f"File uploaded: {file_id} ({filename})")
             return file_metadata

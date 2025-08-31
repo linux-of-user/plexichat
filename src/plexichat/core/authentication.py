@@ -38,25 +38,25 @@ from plexichat.core.security.security_manager import (
 # Try to import caching system
 try:
     from plexichat.core.performance.auth_cache import get_auth_cache
-    AUTH_CACHE_AVAILABLE = True
+    auth_cache_available = True
 except ImportError:
-    AUTH_CACHE_AVAILABLE = False
+    auth_cache_available = False
     get_auth_cache = None
 
 # Try to import performance tracking
 try:
     from plexichat.core.logging import get_performance_logger
-    PERFORMANCE_LOGGER_AVAILABLE = True
+    performance_logger_available = True
 except ImportError:
-    PERFORMANCE_LOGGER_AVAILABLE = False
+    performance_logger_available = False
     get_performance_logger = None
 
 # Try to import MFA store
 try:
     from plexichat.core.mfa_store import MFAStore
-    MFA_STORE_AVAILABLE = True
+    mfa_store_available = True
 except ImportError:
-    MFA_STORE_AVAILABLE = False
+    mfa_store_available = False
     MFAStore = None
 
 logger = get_logger(__name__)
@@ -229,13 +229,31 @@ class UnifiedAuthManager:
         self.security_system = security_system or get_security_system()
         
         # Initialize caching if available
-        self.auth_cache = get_auth_cache() if AUTH_CACHE_AVAILABLE else None
-        
+        if auth_cache_available and callable(get_auth_cache):
+            try:
+                self.auth_cache = get_auth_cache()
+            except Exception:
+                self.auth_cache = None
+        else:
+            self.auth_cache = None
+
         # Initialize performance logger if available
-        self.performance_logger = get_performance_logger() if PERFORMANCE_LOGGER_AVAILABLE else None
-        
+        if performance_logger_available and callable(get_performance_logger):
+            try:
+                self.performance_logger = get_performance_logger()
+            except Exception:
+                self.performance_logger = None
+        else:
+            self.performance_logger = None
+
         # Initialize MFA store if available
-        self.mfa_store = MFAStore() if MFA_STORE_AVAILABLE else None
+        if mfa_store_available and callable(MFAStore):
+            try:
+                self.mfa_store = MFAStore()
+            except Exception:
+                self.mfa_store = None
+        else:
+            self.mfa_store = None
         
         # Session management
         self.active_sessions: Dict[str, SessionInfo] = {}
@@ -305,11 +323,14 @@ class UnifiedAuthManager:
     def _record_metric(self, metric_name: str, value: Union[int, float] = 1, metric_type: str = "count") -> None:
         """Record performance metric with enhanced error handling."""
         try:
-            self.metrics[metric_name] = self.metrics.get(metric_name, 0) + value
-            
+            current_value = self.metrics.get(metric_name, 0)
+            # Convert to int to avoid type issues
+            self.metrics[metric_name] = int(current_value + value)
+
             if self.performance_logger:
                 try:
-                    self.performance_logger.record_metric(metric_name, value, metric_type)
+                    # Use simple fallback method to avoid MetricType issues
+                    self.performance_logger.record_metric(metric_name, int(value))
                 except Exception as e:
                     logger.debug(f"Failed to record metric {metric_name}: {e}")
         except Exception as e:
@@ -331,45 +352,55 @@ class UnifiedAuthManager:
                 device_id=secrets.token_hex(8),
                 device_type=DeviceType.UNKNOWN
             )
-        
+
         device_id = hashlib.sha256(user_agent.encode()).hexdigest()[:16]
-        
-        # Simple user agent parsing (in production, use a proper library)
+
+        # Enhanced user agent parsing
         user_agent_lower = user_agent.lower()
-        
-        if any(mobile in user_agent_lower for mobile in ['mobile', 'android', 'iphone']):
-            device_type = DeviceType.MOBILE
-        elif 'tablet' in user_agent_lower or 'ipad' in user_agent_lower:
+
+        # Check for mobile devices first (more specific)
+        if any(mobile in user_agent_lower for mobile in ['iphone', 'ipad', 'ipod', 'android', 'blackberry', 'windows phone']):
+            if 'ipad' in user_agent_lower:
+                device_type = DeviceType.TABLET
+            else:
+                device_type = DeviceType.MOBILE
+        elif any(tablet in user_agent_lower for tablet in ['tablet', 'kindle', 'playbook']):
             device_type = DeviceType.TABLET
-        elif any(browser in user_agent_lower for browser in ['chrome', 'firefox', 'safari', 'edge']):
+        elif any(desktop in user_agent_lower for desktop in ['windows', 'macintosh', 'linux', 'ubuntu', 'fedora']):
             device_type = DeviceType.DESKTOP
         else:
-            device_type = DeviceType.UNKNOWN
-        
+            # Check for browser indicators as fallback
+            if any(browser in user_agent_lower for browser in ['chrome', 'firefox', 'safari', 'edge', 'opera']):
+                device_type = DeviceType.DESKTOP
+            else:
+                device_type = DeviceType.UNKNOWN
+
         # Extract OS and browser info
         os_info = None
         browser_info = None
-        
+
+        # OS detection
         if 'windows' in user_agent_lower:
             os_info = 'Windows'
-        elif 'mac' in user_agent_lower:
+        elif 'macintosh' in user_agent_lower or 'mac os x' in user_agent_lower:
             os_info = 'macOS'
         elif 'linux' in user_agent_lower:
             os_info = 'Linux'
         elif 'android' in user_agent_lower:
             os_info = 'Android'
-        elif 'ios' in user_agent_lower:
+        elif 'iphone' in user_agent_lower or 'ipad' in user_agent_lower or 'ipod' in user_agent_lower:
             os_info = 'iOS'
-        
-        if 'chrome' in user_agent_lower:
+
+        # Browser detection
+        if 'chrome' in user_agent_lower and 'edg' not in user_agent_lower:
             browser_info = 'Chrome'
         elif 'firefox' in user_agent_lower:
             browser_info = 'Firefox'
-        elif 'safari' in user_agent_lower:
+        elif 'safari' in user_agent_lower and 'chrome' not in user_agent_lower:
             browser_info = 'Safari'
-        elif 'edge' in user_agent_lower:
+        elif 'edg' in user_agent_lower:
             browser_info = 'Edge'
-        
+
         return DeviceInfo(
             device_id=device_id,
             device_type=device_type,
@@ -853,7 +884,7 @@ class UnifiedAuthManager:
             # Create or update user
             if user_id not in self.security_system.user_credentials:
                 # Auto-register OAuth2 user
-                self.register_user(user_id, secrets.token_urlsafe(32), {Role.USER})
+                self.register_user(user_id, secrets.token_urlsafe(32), {"read", "write_own"})
             
             # Create session
             session_id = self._generate_session_id()
@@ -916,16 +947,42 @@ class UnifiedAuthManager:
         """
         start_time = time.time()
         self._record_metric('authentication_requests')
-        
+
+        # Validate input parameters
+        if not username or not username.strip():
+            logger.security("Authentication failed - empty username", ip_address=ip_address)
+            self._record_metric('failed_authentications')
+            return AuthResult(
+                success=False,
+                error_message="Username cannot be empty",
+                error_code="INVALID_USERNAME"
+            )
+
+        if not password:
+            logger.security("Authentication failed - empty password", user_id=username, ip_address=ip_address)
+            self._record_metric('failed_authentications')
+            return AuthResult(
+                success=False,
+                error_message="Password cannot be empty",
+                error_code="INVALID_PASSWORD"
+            )
+
         # Parse device information
         device_info = self._parse_user_agent(user_agent)
         if ip_address:
             device_info.device_id = self._generate_device_id(user_agent or "", ip_address)
-        
+
+        # Update device trust status from stored device information
+        if device_info.device_id in self.known_devices:
+            stored_device = self.known_devices[device_info.device_id]
+            device_info.is_trusted = stored_device.is_trusted
+            device_info.first_seen = stored_device.first_seen
+            device_info.last_seen = datetime.now(timezone.utc)
+
         # Log authentication attempt with enhanced details
-        logger.security("Authentication attempt", 
-                       user_id=username, 
-                       ip_address=ip_address, 
+        logger.security("Authentication attempt",
+                       user_id=username,
+                       ip_address=ip_address,
                        device_type=device_info.device_type.value,
                        device_id=device_info.device_id)
         
@@ -1078,7 +1135,7 @@ class UnifiedAuthManager:
             
             session = SessionInfo(
                 session_id=session_id,
-                user_id=security_context.user_id,
+                user_id=security_context.user_id or username,
                 created_at=now,
                 last_accessed=now,
                 expires_at=now + self.session_timeout,
@@ -1097,11 +1154,12 @@ class UnifiedAuthManager:
             self._record_metric('successful_authentications')
             
             # Create tokens
+            user_id = security_context.user_id or username
             access_token = self.security_system.token_manager.create_access_token(
-                security_context.user_id,
+                user_id,
                 all_permissions
             )
-            refresh_token = self.security_system.token_manager.create_refresh_token(security_context.user_id)
+            refresh_token = self.security_system.token_manager.create_refresh_token(user_id)
             
             # Cache the authentication result if caching is available
             if self.auth_cache:
@@ -1377,16 +1435,20 @@ class UnifiedAuthManager:
         Create access token using SecuritySystem's token manager.
         """
         try:
+            if not user_id:
+                logger.error("Cannot create access token: user_id is empty")
+                return ""
+
             token = self.security_system.token_manager.create_access_token(user_id, permissions)
             self._record_metric('tokens_issued')
-            
+
             logger.security("Access token created", user_id=user_id)
-            logger.audit("Access token issued", user_id=user_id, event_type="token_created", 
+            logger.audit("Access token issued", user_id=user_id, event_type="token_created",
                         token_type="access")
-            
+
             return token
         except Exception as e:
-            logger.error(f"Error creating access token: {e}", user_id=user_id)
+            logger.error(f"Error creating access token: {e}", user_id=user_id or "unknown")
             return ""
 
     def create_refresh_token(self, user_id: str) -> str:
@@ -1394,16 +1456,20 @@ class UnifiedAuthManager:
         Create refresh token using SecuritySystem's token manager.
         """
         try:
+            if not user_id:
+                logger.error("Cannot create refresh token: user_id is empty")
+                return ""
+
             token = self.security_system.token_manager.create_refresh_token(user_id)
             self._record_metric('tokens_issued')
-            
+
             logger.security("Refresh token created", user_id=user_id)
-            logger.audit("Refresh token issued", user_id=user_id, event_type="token_created", 
+            logger.audit("Refresh token issued", user_id=user_id, event_type="token_created",
                         token_type="refresh")
-            
+
             return token
         except Exception as e:
-            logger.error(f"Error creating refresh token: {e}", user_id=user_id)
+            logger.error(f"Error creating refresh token: {e}", user_id=user_id or "unknown")
             return ""
 
     async def revoke_token(self, token: str) -> bool:
@@ -1798,9 +1864,9 @@ class UnifiedAuthManager:
             'oauth2_providers': len(self.oauth2_providers),
             'brute_force_tracking': len(self.brute_force_tracking),
             'blocked_ips': len([bf for bf in self.brute_force_tracking.values() if bf.is_blocked]),
-            'auth_cache_available': AUTH_CACHE_AVAILABLE,
-            'performance_logger_available': PERFORMANCE_LOGGER_AVAILABLE,
-            'mfa_store_available': MFA_STORE_AVAILABLE,
+            'auth_cache_available': auth_cache_available,
+            'performance_logger_available': performance_logger_available,
+            'mfa_store_available': mfa_store_available,
             'password_policy': {
                 'min_length': self.password_policy.min_length,
                 'complexity_threshold': self.password_policy.complexity_score_threshold,

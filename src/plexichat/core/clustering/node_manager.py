@@ -20,7 +20,7 @@ import aiohttp
 import psutil
 
 from plexichat.core.security.security_manager import (
-    get_unified_security_system,
+    get_security_system,
     SecurityContext,
     SecurityLevel,
     AuthenticationMethod
@@ -340,7 +340,7 @@ class NodeManager:
         self.node_info = NodeInfo(config=config)
         
         # Initialize security integration
-        self.security_system = get_unified_security_system()
+        self.security_system = get_security_system()
         self.authenticator = NodeAuthenticator(self.security_system)
         
         # Initialize monitoring and communication

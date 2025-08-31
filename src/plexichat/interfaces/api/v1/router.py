@@ -28,6 +28,8 @@ from plexichat.interfaces.api.v1.realtime import router as realtime_router
 from plexichat.interfaces.api.v1.groups import router as groups_router
 from plexichat.interfaces.api.v1.search import router as search_router
 from plexichat.interfaces.api.v1.notifications import router as notifications_router
+from plexichat.interfaces.api.v1.backups import router as backups_router
+from plexichat.interfaces.api.v1.shards import router as shards_router
 
 # Try to import user_settings router with fallback
 try:
@@ -35,7 +37,7 @@ try:
 
     user_settings_available = True
 except ImportError as e:
-    logger.warning(f"User settings router not available: {e}")
+    logger.warning(f"User settings router not available: {e}"]
     user_settings_router = None
     user_settings_available = False
 
@@ -52,7 +54,8 @@ except ImportError as e:
 # Create main router
 router = APIRouter(prefix="/api/v1", tags=["PlexiChat API v1"])
 
-# Include all sub-routers.
+
+# Include all sub-routers
 # Apply authentication dependencies at the inclusion level where appropriate so
 # the unified FastAPI auth adapter is consistently used.
 
@@ -87,6 +90,12 @@ router.include_router(search_router, dependencies=[Depends(get_current_user)])
 # Notifications require authentication
 router.include_router(notifications_router, dependencies=[Depends(get_current_user)])
 
+# Backups require authentication
+router.include_router(backups_router, dependencies=[Depends(get_current_user)])
+
+# Shards require authentication (P2P distribution endpoints)
+router.include_router(shards_router, dependencies=[Depends(get_current_user)])
+
 # Include user settings router if available (requires authentication)
 if user_settings_available and user_settings_router:
     router.include_router(user_settings_router, dependencies=[Depends(get_current_user)])
@@ -115,7 +124,9 @@ async def api_root():
             "realtime": "/api/v1/realtime",
             "groups": "/api/v1/groups",
             "search": "/api/v1/search",
-            "notifications": "/api/v1/notifications"
+            "notifications": "/api/v1/notifications",
+            "backups": "/api/v1/backups",
+            "shards": "/api/v1/shards"
         },
         "documentation": "/docs",
         "status": "online"
@@ -262,6 +273,16 @@ async def api_info():
                     "GET /stats - Notification statistics",
                     "GET /unread/count - Unread count",
                     "POST /test - Send test notification"
+                ]
+            },
+            "shards": {
+                "prefix": "/api/v1/shards",
+                "endpoints": [
+                    "POST /request - Request shard for P2P distribution",
+                    "POST /upload - Upload shard for P2P distribution",
+                    "GET /download/{backup_id}/{shard_index} - Download shard",
+                    "POST /verify/{backup_id}/{shard_index} - Verify shard integrity",
+                    "GET /list/{backup_id} - List all shards for backup"
                 ]
             }
         },
