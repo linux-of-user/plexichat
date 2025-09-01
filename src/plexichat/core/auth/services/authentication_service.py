@@ -8,6 +8,7 @@ import secrets
 import time
 import hashlib
 import hmac
+import json
 from datetime import datetime, timedelta, timezone
 from typing import Dict, List, Optional, Set, Tuple, Any
 from dataclasses import dataclass
@@ -302,7 +303,7 @@ class AuthenticationService(IAuthenticationService):
                         "updated_at": current_time_str
                     }
                     if trust_device and not existing['is_trusted']:
-                        update_data["is_trusted"] = 1
+                        update_data["is_trusted"] = "1"
 
                     await session.update("devices", update_data, {"device_id": device_info.device_id})
                 else:
@@ -314,7 +315,7 @@ class AuthenticationService(IAuthenticationService):
                         "os": device_info.os,
                         "browser": device_info.browser,
                         "version": device_info.version,
-                        "is_trusted": 1 if trust_device else 0,
+                        "is_trusted": "1" if trust_device else "0",
                         "first_seen": current_time_str,
                         "last_seen": current_time_str,
                         "created_at": current_time_str,
@@ -391,7 +392,7 @@ class AuthenticationService(IAuthenticationService):
             )
 
             # Check rate limits using unified security module's validate_request method
-            is_valid, error_message, security_event = self.unified_security.validate_request(None, context)
+            is_valid, error_message, security_event = await self.unified_security.validate_request(None, context)
 
             if not is_valid and security_event and security_event.event_type.value == "rate_limit_exceeded":
                 return False, error_message or "Rate limit exceeded"
@@ -699,7 +700,8 @@ class AuthenticationService(IAuthenticationService):
             # Create or update user
             if user_id not in self.security_system.user_credentials:
                 # Auto-register OAuth2 user
-                self.security_system.user_credentials[user_id] = self.security_system.UserCredentials(
+                from plexichat.core.security.security_manager import UserCredentials
+                self.security_system.user_credentials[user_id] = UserCredentials(
                     username=user_id,
                     password_hash="",
                     salt="",
