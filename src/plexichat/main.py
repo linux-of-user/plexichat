@@ -344,6 +344,36 @@ async def lifespan(app: FastAPI):
         except Exception as e:
             logger.warning(f"[AUTH_CACHE] Authentication cache initialization failed: {e}")
             app.state.auth_cache_initialized = False
+        # Initialize email service for notifications
+        try:
+            from plexichat.core.notifications.email_service import EmailConfig, initialize_email_service
+            email_start = time.perf_counter()
+
+            # Get email configuration from unified config
+            email_config_data = getattr(getattr(config, "notifications", None), "email", None)
+            if email_config_data:
+                email_config = EmailConfig(
+                    smtp_server=getattr(email_config_data, "smtp_server", "smtp.gmail.com"),
+                    smtp_port=getattr(email_config_data, "smtp_port", 587),
+                    smtp_username=getattr(email_config_data, "smtp_username", ""),
+                    smtp_password=getattr(email_config_data, "smtp_password", ""),
+                    from_email=getattr(email_config_data, "from_email", "noreply@plexichat.com"),
+                    from_name=getattr(email_config_data, "from_name", "PlexiChat"),
+                    use_tls=getattr(email_config_data, "use_tls", True),
+                    use_ssl=getattr(email_config_data, "use_ssl", False),
+                    timeout=getattr(email_config_data, "timeout", 30)
+                )
+
+                initialize_email_service(email_config)
+                email_end = time.perf_counter()
+                email_duration = (email_end - email_start) * 1000.0
+                app.state.performance_metrics.append({"operation": "email_service_init", "duration_ms": email_duration})
+                logger.info(f"[EMAIL] Email service initialized successfully ({email_duration:.1f}ms)")
+            else:
+                logger.info("[EMAIL] Email configuration not found, email notifications disabled")
+        except Exception as e:
+            logger.warning(f"[EMAIL] Email service initialization failed: {e}")
+            logger.info("[EMAIL] Continuing without email service - notifications will work without email")
 
         # Initialize plugin manager (after SDK generation and auth manager)
         try:
