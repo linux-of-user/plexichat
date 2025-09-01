@@ -129,14 +129,33 @@ def handle_rate_limit_error(request, exc):
     """Handle rate limit errors."""
     return {"error": "Rate limit exceeded", "status_code": 429}
 
-# FastAPI-compatible error handlers
-def not_found_handler(request, exc):
-    """Handle 404 errors for FastAPI."""
-    return {"error": "Not found", "status_code": 404}
+# FastAPI-compatible error handlers - import from handlers.py
+try:
+    from .handlers import not_found_handler, internal_error_handler
+except ImportError:
+    # Fallback if handlers.py is not available
+    from fastapi.responses import JSONResponse
 
-def internal_error_handler(request, exc):
-    """Handle 500 errors for FastAPI."""
-    return {"error": "Internal server error", "status_code": 500}
+    async def not_found_handler(request, exc):
+        """Handle 404 errors for FastAPI."""
+        return JSONResponse(
+            status_code=404,
+            content={
+                "error": "Not Found",
+                "message": "The requested resource was not found",
+                "path": str(request.url.path)
+            }
+        )
+
+    async def internal_error_handler(request, exc):
+        """Handle 500 errors for FastAPI."""
+        return JSONResponse(
+            status_code=500,
+            content={
+                "error": "Internal Server Error",
+                "message": "An internal server error occurred"
+            }
+        )
 
 def register_error_handlers(app):
     """Register error handlers with the application."""

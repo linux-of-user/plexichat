@@ -683,5 +683,43 @@ __all__ = [
     "get_errors_by_category",
     "get_errors_by_severity",
     "get_critical_errors",
+def make_error_response(status_code: int, content: Dict[str, Any]):
+    """Create a simple error response for middleware use."""
+    from fastapi.responses import JSONResponse
+    return JSONResponse(
+        status_code=status_code,
+        content={
+            "success": False,
+            "error": content.get("error", "Unknown error"),
+            "message": content.get("message", ""),
+            "status_code": status_code
+        }
+    )
+
+
+# Export all public classes and functions
+__all__ = [
+    # Enums
+    "ErrorCategory",
+    "ErrorSeverity",
+    "PlexiChatErrorCode",
+
+    # Classes
+    "ErrorCodeMapping",
+    "ErrorResponse",
+    "PlexiChatException",
+
+    # Helper functions
+    "create_error_response",
+    "create_validation_error_response",
+    "create_authentication_error_response",
+    "create_authorization_error_response",
+    "create_system_error_response",
+    "get_errors_by_category",
+    "get_errors_by_severity",
+    "get_critical_errors",
+    "log_error",
+    "make_error_response"
+]
     "log_error"
 ]

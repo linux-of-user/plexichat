@@ -527,4 +527,55 @@ __all__ = [
     "get_messaging_system",
     "initialize_messaging_system",
     "shutdown_messaging_system"
+    async def handle_typing_start(self, user_id: str, channel_id: str) -> bool:
+        """Handle typing start event."""
+        try:
+            # Import WebSocket manager here to avoid circular imports
+            from plexichat.core.websocket.websocket_manager import websocket_manager
+
+            # Find connection for user
+            connection_id = None
+            for conn_id, connection in websocket_manager.connections.items():
+                if connection.user_id == int(user_id):
+                    connection_id = conn_id
+                    break
+
+            if connection_id:
+                return await websocket_manager.start_typing(connection_id, channel_id)
+            return False
+
+        except Exception as e:
+            logger.error(f"Error handling typing start: {e}")
+            return False
+
+    async def handle_typing_stop(self, user_id: str, channel_id: str) -> bool:
+        """Handle typing stop event."""
+        try:
+            # Import WebSocket manager here to avoid circular imports
+            from plexichat.core.websocket.websocket_manager import websocket_manager
+
+            # Find connection for user
+            connection_id = None
+            for conn_id, connection in websocket_manager.connections.items():
+                if connection.user_id == int(user_id):
+                    connection_id = conn_id
+                    break
+
+            if connection_id:
+                return await websocket_manager.stop_typing(connection_id, channel_id)
+            return False
+
+        except Exception as e:
+            logger.error(f"Error handling typing stop: {e}")
+            return False
+
+    def get_typing_users(self, channel_id: str) -> List[str]:
+        """Get list of users currently typing in channel."""
+        try:
+            # Import WebSocket manager here to avoid circular imports
+            from plexichat.core.websocket.websocket_manager import get_typing_users
+            return get_typing_users(channel_id)
+        except Exception as e:
+            logger.error(f"Error getting typing users: {e}")
+            return []
 ]

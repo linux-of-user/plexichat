@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Chat - {{ channel_name }}{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', path='css/chat.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="chat-container">
+    <!-- Chat Header -->
+    <div class="chat-header">
+        <div class="channel-info">
+            <h2 class="channel-name">#{{ channel_name }}</h2>
+            <span class="channel-description">{{ channel_description or 'General discussion' }}</span>
+        </div>
+        <div class="channel-actions">
+            <button class="btn btn-sm btn-outline" id="channel-settings">
+                <i class="fas fa-cog"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Messages Container -->
+    <div class="messages-container" id="messages-container">
+        <div class="messages-list" id="messages-list">
+            <!-- Messages will be loaded here -->
+        </div>
+
+        <!-- Typing Indicator -->
+        <div class="typing-indicator-container" id="typing-indicator-container">
+            <!-- Typing indicator will be inserted here -->
+        </div>
+    </div>
+
+    <!-- Message Input -->
+    <div class="message-input-container">
+        <form class="message-form" id="message-form">
+            <div class="input-group">
+                <textarea
+                    class="message-input"
+                    id="message-input"
+                    placeholder="Type a message..."
+                    rows="1"
+                    maxlength="1000"
+                ></textarea>
+                <button type="submit" class="btn btn-primary send-button" id="send-button">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Channel Members Sidebar -->
+<div class="members-sidebar" id="members-sidebar">
+    <div class="sidebar-header">
+        <h3>Members</h3>
+        <span class="member-count" id="member-count">0</span>
+    </div>
+    <div class="members-list" id="members-list">
+        <!-- Members will be loaded here -->
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', path='js/websocket-manager.js') }}"></script>
+<script src="{{ url_for('static', path='js/typing-indicator.js') }}"></script>
+<script src="{{ url_for('static', path='js/chat.js') }}"></script>
+<script>
+    // Initialize chat when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        const channelId = '{{ channel_id }}';
+        const currentUserId = '{{ current_user.id }}';
+
+        // Initialize WebSocket connection
+        if (window.WebSocketManager) {
+            window.WebSocketManager.connect();
+        }
+
+        // Initialize chat
+        window.ChatApp = new ChatApp(channelId, currentUserId);
+    });
+</script>
+{% endblock %}

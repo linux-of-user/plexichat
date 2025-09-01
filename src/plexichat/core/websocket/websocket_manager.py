@@ -100,6 +100,12 @@ class WebSocketManager:
         self.total_connections = 0
         self.total_messages = 0
         self.total_disconnections = 0
+        # Typing indicators
+        self.typing_states: Dict[str, Dict[str, datetime]] = {}  # channel_id -> {user_id: last_typing_time}
+        self.typing_timeout = 3.0  # seconds
+
+        # Start typing cleanup task
+        asyncio.create_task(self._cleanup_typing_states())
 
     async def start_broadcasting(self):
         """Start message broadcasting loop."""
@@ -406,10 +412,122 @@ class WebSocketManager:
             "active_connections": len(self.connections),
             "total_connections": self.total_connections,
             "total_messages": self.total_messages,
+    async def _cleanup_typing_states(self):
+        """Periodically clean up expired typing states."""
+        while True:
+            try:
+                await asyncio.sleep(1.0)  # Check every second
+                current_time = datetime.now()
+
+                for channel_id, users in list(self.typing_states.items()):
+                    expired_users = []
+                    for user_id, last_time in users.items():
+                        if (current_time - last_time).total_seconds() > self.typing_timeout:
+                            expired_users.append(user_id)
+
+                    # Remove expired users
+                    for user_id in expired_users:
+                        del users[user_id]
+
+                    # If no users left in channel, remove channel
+                    if not users:
+                        del self.typing_states[channel_id]
+
+            except Exception as e:
+                logger.error(f"Error in typing cleanup: {e}")
+
+    async def start_typing(self, connection_id: str, channel_id: str) -> bool:
+        """Start typing indicator for user in channel."""
+        try:
+            connection = self.connections.get(connection_id)
+            if not connection or not connection.user_id:
+                return False
+
+            user_id = str(connection.user_id)
+
+            # Initialize channel if not exists
+            if channel_id not in self.typing_states:
+                self.typing_states[channel_id] = {}
+
+            # Update typing time
+            self.typing_states[channel_id][user_id] = datetime.now()
+
+            # Broadcast typing start to channel
+            typing_message = {
+                "type": "typing_start",
+                "channel_id": channel_id,
+                "user_id": user_id,
+                "timestamp": datetime.now().isoformat()
+            }
+
+            await self.send_to_channel(channel_id, typing_message)
+            return True
+
+        except Exception as e:
+            logger.error(f"Error starting typing for {connection_id}: {e}")
+            return False
+
+    async def stop_typing(self, connection_id: str, channel_id: str) -> bool:
+        """Stop typing indicator for user in channel."""
+        try:
+            connection = self.connections.get(connection_id)
+            if not connection or not connection.user_id:
+                return False
+
+            user_id = str(connection.user_id)
+
+            # Remove from typing states
+            if channel_id in self.typing_states:
+                if user_id in self.typing_states[channel_id]:
+                    del self.typing_states[channel_id][user_id]
+
+                # Clean up empty channel
+                if not self.typing_states[channel_id]:
+                    del self.typing_states[channel_id]
+
+            # Broadcast typing stop to channel
+            typing_message = {
+                "type": "typing_stop",
+                "channel_id": channel_id,
+                "user_id": user_id,
+                "timestamp": datetime.now().isoformat()
+            }
+
+            await self.send_to_channel(channel_id, typing_message)
+            return True
+
+        except Exception as e:
+            logger.error(f"Error stopping typing for {connection_id}: {e}")
+            return False
+
+    def get_typing_users(self, channel_id: str) -> List[str]:
+        """Get list of users currently typing in channel."""
+        if channel_id not in self.typing_states:
+            return []
+
+        current_time = datetime.now()
+        typing_users = []
+
+        for user_id, last_time in self.typing_states[channel_id].items():
+            if (current_time - last_time).total_seconds() <= self.typing_timeout:
+                typing_users.append(user_id)
+
+        return typing_users
             "total_disconnections": self.total_disconnections,
             "active_users": len(self.user_connections),
             "active_channels": len(self.channel_connections),
             "queue_size": self.message_queue.qsize(),
+async def start_typing(connection_id: str, channel_id: str) -> bool:
+    """Start typing indicator via global manager."""
+    return await websocket_manager.start_typing(connection_id, channel_id)
+
+async def stop_typing(connection_id: str, channel_id: str) -> bool:
+    """Stop typing indicator via global manager."""
+    return await websocket_manager.stop_typing(connection_id, channel_id)
+
+def get_typing_users(channel_id: str) -> List[str]:
+    """Get typing users via global manager."""
+    return websocket_manager.get_typing_users(channel_id)
             "broadcasting": self.broadcasting
         }
 

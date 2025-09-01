@@ -366,6 +366,13 @@ if app:
     except ImportError:
         logger.warning("Could not import notifications system")
 
+    try:
+        from plexichat.interfaces.api.routers.status_router import router as status_router
+        if status_router:
+            app.include_router(status_router)
+    except ImportError:
+        logger.warning("Could not import status router")
+
 # WebSocket endpoint
 @app.websocket("/ws/{user_id}") if app else lambda: None
 async def websocket_endpoint(websocket, user_id: int):
