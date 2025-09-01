@@ -25,6 +25,7 @@ from plexichat.core.authentication import (
 )
 from plexichat.core.security import get_security_system
 from plexichat.core.security.unified_security_module import UnifiedSecurityModule, SecurityContext
+from plexichat.core.database.manager import database_manager
 
 from .interfaces import IAuthenticationService
 from ..config import get_auth_config
@@ -59,27 +60,22 @@ class AuthenticationService(IAuthenticationService):
         from plexichat.core.security.unified_security_module import get_security_module
         self.unified_security = get_security_module()
 
-        # Session management
-        self.active_sessions: Dict[str, SessionInfo] = {}
+        # Initialize database manager
+        self.db_manager = database_manager
+
+        # Session management - now database-backed
         self.session_cleanup_task: Optional[asyncio.Task] = None
-
-        # Device tracking
-        self.known_devices: Dict[str, DeviceInfo] = {}
-        self.trusted_devices: Set[str] = set()
-
-        # MFA challenges
-        self.active_mfa_challenges: Dict[str, MFAChallenge] = {}
 
         # OAuth2 providers
         self.oauth2_providers: Dict[AuthProvider, Any] = {}
 
-        # Brute force protection
+        # Brute force protection - keep in memory for performance
         self.brute_force_tracking: Dict[str, Any] = {}
 
         # Note: Session cleanup task should be started explicitly via start_cleanup_task()
         # to avoid issues during testing and initialization
 
-        logger.info("AuthenticationService initialized with comprehensive security features")
+        logger.info("AuthenticationService initialized with database-backed storage")
 
     def _start_session_cleanup(self):
         """Start background task for cleaning up expired sessions."""
@@ -99,39 +95,56 @@ class AuthenticationService(IAuthenticationService):
                 await asyncio.sleep(60)  # Wait before retrying
 
     async def _cleanup_expired_sessions(self):
-        """Clean up expired sessions and MFA challenges."""
+        """Clean up expired sessions and MFA challenges from database."""
         current_time = datetime.now(timezone.utc)
+        current_time_str = current_time.isoformat()
 
-        # Clean up expired sessions
-        expired_sessions = [
-            session_id for session_id, session in self.active_sessions.items()
-            if current_time > session.expires_at
-        ]
+        try:
+            async with self.db_manager.get_session() as session:
+                # Clean up expired sessions
+                expired_sessions_result = await session.fetchall(
+                    "SELECT id, user_id FROM sessions WHERE expires_at < ? AND is_active = 1",
+                    {"1": current_time_str}
+                )
 
-        for session_id in expired_sessions:
-            session = self.active_sessions[session_id]
-            del self.active_sessions[session_id]
+                if expired_sessions_result:
+                    # Mark sessions as inactive
+                    await session.execute(
+                        "UPDATE sessions SET is_active = 0, updated_at = ? WHERE expires_at < ? AND is_active = 1",
+                        {"1": current_time_str, "2": current_time_str}
+                    )
 
-            logger.security("Session expired and removed",
-                          session_id=session_id,
-                          user_id=session.user_id)
+                    for row in expired_sessions_result:
+                        logger.security("Session expired and marked inactive",
+                                       session_id=row['id'],
+                                       user_id=row['user_id'])
 
-        # Clean up expired MFA challenges
-        expired_challenges = [
-            challenge_id for challenge_id, challenge in self.active_mfa_challenges.items()
-            if current_time > challenge.expires_at
-        ]
+                # Clean up expired MFA challenges
+                expired_challenges_result = await session.fetchall(
+                    "SELECT id, challenge_id, user_id FROM mfa_challenges WHERE expires_at < ?",
+                    {"1": current_time_str}
+                )
 
-        for challenge_id in expired_challenges:
-            challenge = self.active_mfa_challenges[challenge_id]
-            del self.active_mfa_challenges[challenge_id]
+                if expired_challenges_result:
+                    # Delete expired MFA challenges
+                    await session.execute(
+                        "DELETE FROM mfa_challenges WHERE expires_at < ?",
+                        {"1": current_time_str}
+                    )
 
-            logger.security("MFA challenge expired",
-                          challenge_id=challenge_id,
-                          user_id=challenge.user_id)
+                    for row in expired_challenges_result:
+                        logger.security("MFA challenge expired and removed",
+                                       challenge_id=row['challenge_id'],
+                                       user_id=row['user_id'])
 
-        if expired_sessions or expired_challenges:
-            logger.info(f"Cleaned up {len(expired_sessions)} sessions and {len(expired_challenges)} MFA challenges")
+                await session.commit()
+
+                total_cleaned = len(expired_sessions_result) + len(expired_challenges_result)
+                if total_cleaned > 0:
+                    logger.info(f"Cleaned up {len(expired_sessions_result)} sessions and {len(expired_challenges_result)} MFA challenges")
+
+        except Exception as e:
+            logger.error(f"Error during session cleanup: {e}")
 
     def _generate_session_id(self) -> str:
         """Generate a cryptographically secure session ID."""
@@ -190,19 +203,23 @@ class AuthenticationService(IAuthenticationService):
             browser=browser_info
         )
 
-    def _calculate_risk_score(self, ip_address: str, device_info: DeviceInfo, user_id: str) -> float:
+    async def _calculate_risk_score(self, ip_address: str, device_info: DeviceInfo, user_id: str) -> float:
         """Calculate risk score for authentication attempt."""
         risk_score = 0.0
 
         try:
             # Check if IP is from known location
-            if ip_address not in self._get_user_known_ips(user_id):
+            known_ips = await self._get_user_known_ips(user_id)
+            if ip_address not in known_ips:
                 risk_score += 30.0
 
-            # Check if device is known
-            if device_info.device_id not in self.known_devices:
+            # Check if device is known and trusted
+            device_known = await self._is_device_known(device_info.device_id)
+            device_trusted = await self._is_device_trusted(device_info.device_id)
+
+            if not device_known:
                 risk_score += 25.0
-            elif not device_info.is_trusted:
+            elif not device_trusted:
                 risk_score += 15.0
 
             # Check for suspicious patterns
@@ -226,12 +243,126 @@ class AuthenticationService(IAuthenticationService):
 
         return min(risk_score, 100.0)
 
-    def _get_user_known_ips(self, user_id: str) -> Set[str]:
-        """Get known IP addresses for a user."""
-        return {
-            session.ip_address for session in self.active_sessions.values()
-            if session.user_id == user_id and session.ip_address
-        }
+    async def _get_user_known_ips(self, user_id: str) -> Set[str]:
+        """Get known IP addresses for a user from database."""
+        try:
+            async with self.db_manager.get_session() as session:
+                result = await session.fetchall(
+                    "SELECT DISTINCT ip_address FROM sessions WHERE user_id = ? AND ip_address IS NOT NULL AND is_active = 1",
+                    {"1": user_id}
+                )
+                return {row['ip_address'] for row in result}
+        except Exception as e:
+            logger.error(f"Error getting user known IPs: {e}")
+            return set()
+
+    async def _is_device_known(self, device_id: str) -> bool:
+        """Check if device is known in database."""
+        try:
+            async with self.db_manager.get_session() as session:
+                result = await session.fetchone(
+                    "SELECT id FROM devices WHERE device_id = ?",
+                    {"1": device_id}
+                )
+                return result is not None
+        except Exception as e:
+            logger.error(f"Error checking if device is known: {e}")
+            return False
+
+    async def _is_device_trusted(self, device_id: str) -> bool:
+        """Check if device is trusted in database."""
+        try:
+            async with self.db_manager.get_session() as session:
+                result = await session.fetchone(
+                    "SELECT is_trusted FROM devices WHERE device_id = ?",
+                    {"1": device_id}
+                )
+                return result is not None and result['is_trusted'] == 1
+        except Exception as e:
+            logger.error(f"Error checking if device is trusted: {e}")
+            return False
+
+    async def _update_device_tracking(self, device_info: DeviceInfo, trust_device: bool) -> None:
+        """Update device tracking in database."""
+        try:
+            current_time = datetime.now(timezone.utc)
+            current_time_str = current_time.isoformat()
+
+            async with self.db_manager.get_session() as session:
+                # Check if device exists
+                existing = await session.fetchone(
+                    "SELECT id, is_trusted FROM devices WHERE device_id = ?",
+                    {"1": device_info.device_id}
+                )
+
+                if existing:
+                    # Update existing device
+                    update_data = {
+                        "last_seen": current_time_str,
+                        "updated_at": current_time_str
+                    }
+                    if trust_device and not existing['is_trusted']:
+                        update_data["is_trusted"] = 1
+
+                    await session.update("devices", update_data, {"device_id": device_info.device_id})
+                else:
+                    # Insert new device
+                    device_data = {
+                        "device_id": device_info.device_id,
+                        "user_id": "",  # Will be updated when we have user context
+                        "device_type": device_info.device_type.value,
+                        "os": device_info.os,
+                        "browser": device_info.browser,
+                        "version": device_info.version,
+                        "is_trusted": 1 if trust_device else 0,
+                        "first_seen": current_time_str,
+                        "last_seen": current_time_str,
+                        "created_at": current_time_str,
+                        "updated_at": current_time_str
+                    }
+                    await session.insert("devices", device_data)
+
+                await session.commit()
+
+        except Exception as e:
+            logger.error(f"Error updating device tracking: {e}")
+
+    async def _store_session(self, session: SessionInfo) -> None:
+        """Store session in database."""
+        try:
+            async with self.db_manager.get_session() as session_db:
+                session_data = {
+                    "id": session.session_id,
+                    "user_id": session.user_id,
+                    "session_token": session.session_id,  # Use session_id as token for simplicity
+                    "expires_at": session.expires_at.isoformat(),
+                    "ip_address": session.ip_address,
+                    "user_agent": session.user_agent,
+                    "is_active": 1,
+                    "last_activity": session.last_accessed.isoformat(),
+                    "created_at": session.created_at.isoformat(),
+                    "updated_at": session.last_accessed.isoformat(),
+                    "permissions": json.dumps(list(session.permissions)),
+                    "roles": json.dumps([role.value for role in session.roles]),
+                    "device_info": json.dumps({
+                        "device_id": session.device_info.device_id if session.device_info else None,
+                        "device_type": session.device_info.device_type.value if session.device_info else None,
+                        "os": session.device_info.os if session.device_info else None,
+                        "browser": session.device_info.browser if session.device_info else None
+                    }) if session.device_info else "{}",
+                    "auth_provider": session.auth_provider.value,
+                    "mfa_verified": 1 if session.mfa_verified else 0,
+                    "risk_score": session.risk_score
+                }
+
+                await session_db.insert("sessions", session_data)
+                await session_db.commit()
+
+                logger.debug(f"Session stored in database: {session.session_id}")
+
+        except Exception as e:
+            logger.error(f"Error storing session in database: {e}")
+            raise
 
     def _is_suspicious_ip(self, ip_address: str) -> bool:
         """Check if IP address is suspicious."""
@@ -260,7 +391,7 @@ class AuthenticationService(IAuthenticationService):
             )
 
             # Check rate limits using unified security module's validate_request method
-            is_valid, error_message, security_event = await self.unified_security.validate_request(None, context)
+            is_valid, error_message, security_event = self.unified_security.validate_request(None, context)
 
             if not is_valid and security_event and security_event.event_type.value == "rate_limit_exceeded":
                 return False, error_message or "Rate limit exceeded"
@@ -391,7 +522,7 @@ class AuthenticationService(IAuthenticationService):
                 )
 
             # Calculate risk score
-            risk_score = self._calculate_risk_score(ip_address or "", device_info, username)
+            risk_score = await self._calculate_risk_score(ip_address or "", device_info, username)
 
             # Get user roles and permissions
             roles = self._get_user_roles(username)
@@ -438,18 +569,8 @@ class AuthenticationService(IAuthenticationService):
                         error_code="INVALID_MFA_CODE"
                     )
 
-            # Update device tracking
-            if device_info.device_id not in self.known_devices:
-                self.known_devices[device_info.device_id] = device_info
-            else:
-                existing_device = self.known_devices[device_info.device_id]
-                existing_device.last_seen = datetime.now(timezone.utc)
-
-            # Trust device if explicitly requested or if MFA was verified
-            if device_trust or mfa_code:
-                if device_info.device_id in self.known_devices:
-                    self.known_devices[device_info.device_id].is_trusted = True
-                self.trusted_devices.add(device_info.device_id)
+            # Update device tracking in database
+            await self._update_device_tracking(device_info, device_trust or mfa_code is not None)
 
             # Create session
             session_id = self._generate_session_id()
@@ -471,7 +592,8 @@ class AuthenticationService(IAuthenticationService):
                 risk_score=risk_score
             )
 
-            self.active_sessions[session_id] = session
+            # Store session in database
+            await self._store_session(session)
 
             # Create tokens
             access_token = self.security_system.token_manager.create_access_token(
@@ -583,7 +705,8 @@ class AuthenticationService(IAuthenticationService):
                 mfa_verified=True  # OAuth2 is considered MFA
             )
 
-            self.active_sessions[session_id] = session
+            # Store session in database
+            await self._store_session(session)
 
             # Create tokens
             access_token = self.security_system.token_manager.create_access_token(user_id, permissions)
@@ -659,22 +782,67 @@ class AuthenticationService(IAuthenticationService):
             return False, None
 
     async def validate_session(self, session_id: str) -> Tuple[bool, Optional[SessionInfo]]:
-        """Validate session by ID."""
+        """Validate session by ID from database."""
         try:
-            if session_id not in self.active_sessions:
-                return False, None
+            async with self.db_manager.get_session() as session_db:
+                # Get session from database
+                result = await session_db.fetchone(
+                    "SELECT * FROM sessions WHERE id = ? AND is_active = 1",
+                    {"1": session_id}
+                )
 
-            session = self.active_sessions[session_id]
+                if not result:
+                    return False, None
 
-            # Check if session is expired
-            if datetime.now(timezone.utc) > session.expires_at:
-                del self.active_sessions[session_id]
-                return False, None
+                # Check if session is expired
+                expires_at = datetime.fromisoformat(result['expires_at'])
+                current_time = datetime.now(timezone.utc)
 
-            # Update last access time
-            session.last_accessed = datetime.now(timezone.utc)
+                if current_time > expires_at:
+                    # Mark session as inactive
+                    await session_db.update("sessions", {"is_active": 0}, {"id": session_id})
+                    await session_db.commit()
+                    return False, None
 
-            return True, session
+                # Update last access time
+                current_time_str = current_time.isoformat()
+                await session_db.update("sessions",
+                                      {"last_activity": current_time_str, "updated_at": current_time_str},
+                                      {"id": session_id})
+
+                # Reconstruct SessionInfo from database data
+                permissions = set(json.loads(result['permissions'])) if result['permissions'] else set()
+                roles_data = json.loads(result['roles']) if result['roles'] else []
+                roles = {Role(role_str) for role_str in roles_data}
+
+                device_info_data = json.loads(result['device_info']) if result['device_info'] else {}
+                device_info = None
+                if device_info_data:
+                    device_info = DeviceInfo(
+                        device_id=device_info_data.get('device_id', ''),
+                        device_type=DeviceType(device_info_data.get('device_type', 'unknown')),
+                        os=device_info_data.get('os'),
+                        browser=device_info_data.get('browser')
+                    )
+
+                session = SessionInfo(
+                    session_id=result['id'],
+                    user_id=result['user_id'],
+                    created_at=datetime.fromisoformat(result['created_at']),
+                    last_accessed=current_time,
+                    expires_at=expires_at,
+                    permissions=permissions,
+                    roles=roles,
+                    ip_address=result['ip_address'],
+                    user_agent=result['user_agent'],
+                    device_info=device_info,
+                    auth_provider=AuthProvider(result['auth_provider']),
+                    mfa_verified=result['mfa_verified'] == 1,
+                    risk_score=result['risk_score']
+                )
+
+                await session_db.commit()
+                return True, session
 
         except Exception as e:
             logger.error(f"Session validation error: {e}")
@@ -699,7 +867,7 @@ class AuthenticationService(IAuthenticationService):
             return None
 
     async def _create_mfa_challenge(self, user_id: str) -> Optional[MFAChallenge]:
-        """Create MFA challenge for user."""
+        """Create MFA challenge for user in database."""
         try:
             challenge_id = secrets.token_urlsafe(16)
             challenge = MFAChallenge(
@@ -709,12 +877,29 @@ class AuthenticationService(IAuthenticationService):
                 code=secrets.token_hex(3).upper()  # 6-character code
             )
 
-            self.active_mfa_challenges[challenge_id] = challenge
+            # Store challenge in database
+            async with self.db_manager.get_session() as session:
+                challenge_data = {
+                    "id": challenge_id,
+                    "challenge_id": challenge_id,
+                    "user_id": user_id,
+                    "method": challenge.method.value,
+                    "code": challenge.code,
+                    "expires_at": challenge.expires_at.isoformat(),
+                    "attempts": challenge.attempts,
+                    "max_attempts": challenge.max_attempts,
+                    "is_verified": 0,
+                    "created_at": datetime.now(timezone.utc).isoformat(),
+                    "updated_at": datetime.now(timezone.utc).isoformat()
+                }
+
+                await session.insert("mfa_challenges", challenge_data)
+                await session.commit()
 
             logger.security("MFA challenge created",
-                          user_id=user_id,
-                          challenge_id=challenge_id,
-                          method=challenge.method.value)
+                           user_id=user_id,
+                           challenge_id=challenge_id,
+                           method=challenge.method.value)
 
             return challenge
 
@@ -723,40 +908,51 @@ class AuthenticationService(IAuthenticationService):
             return None
 
     async def _verify_mfa_challenge(self, user_id: str, code: str) -> bool:
-        """Verify MFA challenge for user."""
+        """Verify MFA challenge for user from database."""
         try:
-            # Find active challenge for user
-            user_challenges = [
-                c for c in self.active_mfa_challenges.values()
-                if c.user_id == user_id and not c.is_verified
-            ]
+            async with self.db_manager.get_session() as session:
+                # Find active challenge for user
+                result = await session.fetchone(
+                    "SELECT * FROM mfa_challenges WHERE user_id = ? AND is_verified = 0 ORDER BY created_at DESC LIMIT 1",
+                    {"1": user_id}
+                )
 
-            if not user_challenges:
-                return False
+                if not result:
+                    return False
 
-            challenge = user_challenges[0]
+                # Check if challenge expired
+                expires_at = datetime.fromisoformat(result['expires_at'])
+                current_time = datetime.now(timezone.utc)
 
-            # Check if challenge expired
-            if datetime.now(timezone.utc) > challenge.expires_at:
-                del self.active_mfa_challenges[challenge.challenge_id]
-                return False
+                if current_time > expires_at:
+                    # Delete expired challenge
+                    await session.execute("DELETE FROM mfa_challenges WHERE id = ?", {"1": result['id']})
+                    await session.commit()
+                    return False
 
-            # Verify code
-            if hmac.compare_digest(challenge.code or "", code.upper()):
-                challenge.is_verified = True
-                del self.active_mfa_challenges[challenge.challenge_id]
+                # Verify code
+                if hmac.compare_digest(result['code'] or "", code.upper()):
+                    # Mark as verified and delete
+                    await session.execute("DELETE FROM mfa_challenges WHERE id = ?", {"1": result['id']})
+                    await session.commit()
 
-                logger.security("MFA verification successful",
-                              user_id=user_id,
-                              challenge_id=challenge.challenge_id)
+                    logger.security("MFA verification successful",
+                                  user_id=user_id,
+                                  challenge_id=result['challenge_id'])
 
-                return True
-            else:
-                challenge.attempts += 1
-                if challenge.attempts >= challenge.max_attempts:
-                    del self.active_mfa_challenges[challenge.challenge_id]
+                    return True
+                else:
+                    # Increment attempts
+                    new_attempts = result['attempts'] + 1
+                    if new_attempts >= result['max_attempts']:
+                        # Delete challenge if max attempts reached
+                        await session.execute("DELETE FROM mfa_challenges WHERE id = ?", {"1": result['id']})
+                    else:
+                        # Update attempts
+                        await session.update("mfa_challenges", {"attempts": new_attempts}, {"id": result['id']})
 
-                return False
+                    await session.commit()
+                    return False
 
         except Exception as e:
             logger.error(f"Error verifying MFA challenge: {e}", user_id=user_id)
