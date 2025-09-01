@@ -43,9 +43,23 @@ class PerformanceMetrics(BaseModel):
     network_recv: int
 
 # from plexichat.core.versioning.changelog_manager import get_version, get_version_info  # Disabled due to missing functions
-# from plexichat.interfaces.api.v1.auth import users_db, sessions_db
-# from plexichat.interfaces.api.v1.messages import messages_db
-# from plexichat.interfaces.api.v1.files import files_db
+
+# Import mock databases from other modules
+try:
+    from plexichat.interfaces.api.v1.auth import users_db, sessions_db
+except ImportError:
+    users_db = {}
+    sessions_db = {}
+
+try:
+    from plexichat.interfaces.api.v1.messages import messages_db
+except ImportError:
+    messages_db = {}
+
+try:
+    from plexichat.interfaces.api.v1.files import _fallback_files_db as files_db
+except ImportError:
+    files_db = {}
 
 # System startup time
 STARTUP_TIME = datetime.now()
