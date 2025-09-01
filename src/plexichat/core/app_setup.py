@@ -14,6 +14,7 @@ def setup_routers(app: FastAPI):
     core_routers = {
         "web": ("plexichat.interfaces.web.routers.web", "/web"),
         "auth": ("plexichat.interfaces.web.routers.auth", "/auth"),
+        "help": ("plexichat.interfaces.web.routers.help", "/help"),
         "api_v1": ("plexichat.interfaces.api.v1.router", ""),
         "admin": ("plexichat.interfaces.web.routers.admin", "/admin"),
         "easter_eggs": ("plexichat.interfaces.api.routers.easter_eggs", None),

@@ -1,0 +1,748 @@
+{% extends "base.html" %}
+
+{% block title %}Help Center - {{ super() }}{% endblock %}
+
+{% block body_class %}help-page{% endblock %}
+
+{% block extra_head %}
+<style>
+.help-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.help-header {
+    text-align: center;
+    margin-bottom: 40px;
+    padding: 40px 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 15px;
+}
+
+.help-header h1 {
+    font-size: 3rem;
+    margin-bottom: 10px;
+}
+
+.help-header p {
+    font-size: 1.2rem;
+    opacity: 0.9;
+}
+
+.search-section {
+    margin-bottom: 40px;
+}
+
+.search-box {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.search-input {
+    width: 100%;
+    padding: 15px 20px;
+    font-size: 16px;
+    border: 2px solid #e1e5e9;
+    border-radius: 50px;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+.search-input:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.search-results {
+    margin-top: 20px;
+}
+
+.help-content {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 40px;
+    margin-bottom: 40px;
+}
+
+.main-content {
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar {
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    height: fit-content;
+}
+
+.help-section {
+    margin-bottom: 40px;
+}
+
+.help-section h3 {
+    color: #333;
+    border-bottom: 2px solid #667eea;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+.help-card {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-left: 4px solid #667eea;
+    transition: all 0.3s ease;
+}
+
+.help-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.help-card h4 {
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.help-card p {
+    color: #666;
+    margin-bottom: 15px;
+}
+
+.read-more-btn {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: background 0.3s ease;
+}
+
+.read-more-btn:hover {
+    background: #5a6fd8;
+    color: white;
+    text-decoration: none;
+}
+
+.keyboard-shortcuts {
+    margin-top: 20px;
+}
+
+.shortcut-group {
+    margin-bottom: 20px;
+}
+
+.shortcut-group h5 {
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.shortcut-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.shortcut-keys {
+    display: flex;
+    gap: 5px;
+}
+
+.shortcut-key {
+    background: #f1f3f4;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+    color: #333;
+}
+
+.faq-section {
+    margin-top: 20px;
+}
+
+.faq-item {
+    margin-bottom: 15px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid #28a745;
+}
+
+.faq-question {
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 8px;
+}
+
+.faq-answer {
+    color: #666;
+    margin: 0;
+}
+
+.tutorials-section {
+    margin-top: 20px;
+}
+
+.tutorial-card {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 15px;
+    border-left: 4px solid #ffc107;
+}
+
+.tutorial-card h5 {
+    color: #333;
+    margin-bottom: 8px;
+}
+
+.tutorial-card p {
+    color: #666;
+    margin-bottom: 15px;
+}
+
+.start-tutorial-btn {
+    background: #ffc107;
+    color: #333;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: background 0.3s ease;
+}
+
+.start-tutorial-btn:hover {
+    background: #e0a800;
+    color: #333;
+    text-decoration: none;
+}
+
+.quick-links {
+    list-style: none;
+    padding: 0;
+}
+
+.quick-links li {
+    margin-bottom: 10px;
+}
+
+.quick-links a {
+    color: #667eea;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border-radius: 6px;
+    transition: background 0.3s ease;
+}
+
+.quick-links a:hover {
+    background: #f8f9fa;
+    text-decoration: none;
+    color: #5a6fd8;
+}
+
+.quick-links i {
+    margin-right: 10px;
+    width: 16px;
+}
+
+.tutorial-modal .modal-content {
+    border-radius: 15px;
+    border: none;
+}
+
+.tutorial-step {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.tutorial-step h4 {
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.tutorial-step p {
+    color: #666;
+    font-size: 1.1rem;
+    margin-bottom: 30px;
+}
+
+.tutorial-progress {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.tutorial-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #e1e5e9;
+    margin: 0 5px;
+    transition: background 0.3s ease;
+}
+
+.tutorial-dot.active {
+    background: #667eea;
+}
+
+.tutorial-navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.tutorial-btn {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.tutorial-btn:hover {
+    background: #5a6fd8;
+}
+
+.tutorial-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+    .help-content {
+        grid-template-columns: 1fr;
+    }
+
+    .help-header h1 {
+        font-size: 2rem;
+    }
+
+    .main-content,
+    .sidebar {
+        padding: 20px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="help-container">
+    <!-- Header Section -->
+    <div class="help-header">
+        <h1><i class="fas fa-question-circle"></i> Help Center</h1>
+        <p>Find answers, learn features, and get the most out of PlexiChat</p>
+    </div>
+
+    <!-- Search Section -->
+    <div class="search-section">
+        <div class="search-box">
+            <input type="text" class="search-input" id="help-search" placeholder="Search help topics, FAQs, and tutorials...">
+            <div class="search-results" id="search-results" style="display: none;"></div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="help-content">
+        <!-- Main Content Area -->
+        <div class="main-content">
+            <!-- Getting Started -->
+            <div class="help-section">
+                <h3><i class="fas fa-rocket"></i> Getting Started</h3>
+                <div class="help-card" data-content="getting_started">
+                    <h4>Welcome to PlexiChat</h4>
+                    <p>Learn the basics of using PlexiChat and get started with your first steps.</p>
+                    <a href="#" class="read-more-btn" onclick="showContent('getting_started')">
+                        <i class="fas fa-book-open"></i> Read More
+                    </a>
+                </div>
+            </div>
+
+            <!-- Features -->
+            <div class="help-section">
+                <h3><i class="fas fa-star"></i> Features</h3>
+                <div class="help-card" data-content="messaging">
+                    <h4>Messaging Guide</h4>
+                    <p>Master the art of messaging with formatting, mentions, and file sharing.</p>
+                    <a href="#" class="read-more-btn" onclick="showContent('messaging')">
+                        <i class="fas fa-comments"></i> Read More
+                    </a>
+                </div>
+                <div class="help-card" data-content="files">
+                    <h4>File Management</h4>
+                    <p>Learn how to upload, share, and organize files securely.</p>
+                    <a href="#" class="read-more-btn" onclick="showContent('files')">
+                        <i class="fas fa-folder"></i> Read More
+                    </a>
+                </div>
+                <div class="help-card" data-content="servers">
+                    <h4>Server Management</h4>
+                    <p>Create and manage servers, roles, and permissions.</p>
+                    <a href="#" class="read-more-btn" onclick="showContent('servers')">
+                        <i class="fas fa-server"></i> Read More
+                    </a>
+                </div>
+                <div class="help-card" data-content="security">
+                    <h4>Security & Privacy</h4>
+                    <p>Understand PlexiChat's security features and privacy controls.</p>
+                    <a href="#" class="read-more-btn" onclick="showContent('security')">
+                        <i class="fas fa-shield-alt"></i> Read More
+                    </a>
+                </div>
+            </div>
+
+            <!-- Keyboard Shortcuts -->
+            <div class="help-section">
+                <h3><i class="fas fa-keyboard"></i> Keyboard Shortcuts</h3>
+                <div class="keyboard-shortcuts">
+                    <div class="shortcut-group">
+                        <h5>General</h5>
+                        <div class="shortcut-item">
+                            <span>Open Help</span>
+                            <div class="shortcut-keys">
+                                <span class="shortcut-key">Ctrl</span>
+                                <span class="shortcut-key">/</span>
+                            </div>
+                        </div>
+                        <div class="shortcut-item">
+                            <span>Open Command Palette</span>
+                            <div class="shortcut-keys">
+                                <span class="shortcut-key">Ctrl</span>
+                                <span class="shortcut-key">K</span>
+                            </div>
+                        </div>
+                        <div class="shortcut-item">
+                            <span>Close Modals</span>
+                            <div class="shortcut-keys">
+                                <span class="shortcut-key">Esc</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="shortcut-group">
+                        <h5>Messaging</h5>
+                        <div class="shortcut-item">
+                            <span>Send Message</span>
+                            <div class="shortcut-keys">
+                                <span class="shortcut-key">Enter</span>
+                            </div>
+                        </div>
+                        <div class="shortcut-item">
+                            <span>New Line</span>
+                            <div class="shortcut-keys">
+                                <span class="shortcut-key">Shift</span>
+                                <span class="shortcut-key">Enter</span>
+                            </div>
+                        </div>
+                        <div class="shortcut-item">
+                            <span>Edit Last Message</span>
+                            <div class="shortcut-keys">
+                                <span class="shortcut-key">↑</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FAQ Section -->
+            <div class="help-section">
+                <h3><i class="fas fa-question"></i> Frequently Asked Questions</h3>
+                <div class="faq-section">
+                    {% for faq in faq %}
+                    <div class="faq-item">
+                        <div class="faq-question">{{ faq.question }}</div>
+                        <div class="faq-answer">{{ faq.answer }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Tutorials Section -->
+            <div class="help-section">
+                <h3><i class="fas fa-graduation-cap"></i> Interactive Tutorials</h3>
+                <div class="tutorials-section">
+                    {% for tutorial in tutorials %}
+                    <div class="tutorial-card">
+                        <h5>{{ tutorial.title }}</h5>
+                        <p>{{ tutorial.description }}</p>
+                        <a href="#" class="start-tutorial-btn" onclick="startTutorial('{{ tutorial.id }}')">
+                            <i class="fas fa-play"></i> Start Tutorial
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <h4>Quick Links</h4>
+            <ul class="quick-links">
+                <li><a href="#getting-started" onclick="scrollToSection('getting-started')">
+                    <i class="fas fa-rocket"></i> Getting Started
+                </a></li>
+                <li><a href="#features" onclick="scrollToSection('features')">
+                    <i class="fas fa-star"></i> Features
+                </a></li>
+                <li><a href="#shortcuts" onclick="scrollToSection('shortcuts')">
+                    <i class="fas fa-keyboard"></i> Keyboard Shortcuts
+                </a></li>
+                <li><a href="#faq" onclick="scrollToSection('faq')">
+                    <i class="fas fa-question"></i> FAQ
+                </a></li>
+                <li><a href="#tutorials" onclick="scrollToSection('tutorials')">
+                    <i class="fas fa-graduation-cap"></i> Tutorials
+                </a></li>
+                <li><a href="/docs" target="_blank">
+                    <i class="fas fa-book"></i> API Documentation
+                </a></li>
+                <li><a href="/status" target="_blank">
+                    <i class="fas fa-chart-line"></i> System Status
+                </a></li>
+            </ul>
+
+            <div style="margin-top: 30px;">
+                <h5>Need More Help?</h5>
+                <p style="color: #666; font-size: 0.9rem; margin-bottom: 15px;">
+                    Can't find what you're looking for? Contact our support team.
+                </p>
+                <a href="/contact" class="btn btn-primary btn-sm" style="width: 100%;">
+                    <i class="fas fa-envelope"></i> Contact Support
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tutorial Modal -->
+<div class="modal fade tutorial-modal" id="tutorialModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="tutorialTitle">Tutorial</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="tutorialContent" class="tutorial-step">
+                    <!-- Tutorial content will be loaded here -->
+                </div>
+            </div>
+            <div class="modal-footer tutorial-navigation">
+                <button type="button" class="tutorial-btn" id="prevStep" disabled>
+                    <i class="fas fa-chevron-left"></i> Previous
+                </button>
+                <div class="tutorial-progress" id="tutorialProgress">
+                    <!-- Progress dots will be added here -->
+                </div>
+                <button type="button" class="tutorial-btn" id="nextStep">
+                    Next <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Content Modal -->
+<div class="modal fade" id="contentModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="contentTitle">Help Content</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="contentBody">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Help system functionality
+let currentTutorial = null;
+let currentStep = 0;
+
+// Search functionality
+document.getElementById('help-search').addEventListener('input', function(e) {
+    const query = e.target.value.trim();
+    if (query.length < 2) {
+        document.getElementById('search-results').style.display = 'none';
+        return;
+    }
+
+    // Simple client-side search (in production, this would be an API call)
+    searchHelp(query);
+});
+
+async function searchHelp(query) {
+    try {
+        const response = await fetch(`/help/api/search?q=${encodeURIComponent(query)}`);
+        const data = await response.json();
+
+        const resultsDiv = document.getElementById('search-results');
+        if (data.results && data.results.length > 0) {
+            let html = '<div class="list-group mt-3">';
+            data.results.forEach(result => {
+                html += `
+                    <a href="#" class="list-group-item list-group-item-action" onclick="showContent('${result.id}')">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">${result.title}</h6>
+                            <small>${result.category}</small>
+                        </div>
+                        <p class="mb-1">${result.snippet}</p>
+                    </a>
+                `;
+            });
+            html += '</div>';
+            resultsDiv.innerHTML = html;
+            resultsDiv.style.display = 'block';
+        } else {
+            resultsDiv.innerHTML = '<p class="text-muted mt-3">No results found.</p>';
+            resultsDiv.style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Search error:', error);
+    }
+}
+
+// Show content in modal
+async function showContent(contentId) {
+    try {
+        const response = await fetch(`/help/api/content/${contentId}`);
+        const data = await response.json();
+
+        document.getElementById('contentTitle').textContent = data.title;
+        document.getElementById('contentBody').innerHTML = data.content;
+
+        const modal = new bootstrap.Modal(document.getElementById('contentModal'));
+        modal.show();
+    } catch (error) {
+        console.error('Error loading content:', error);
+    }
+}
+
+// Start tutorial
+async function startTutorial(tutorialId) {
+    try {
+        const response = await fetch(`/help/api/tutorial/${tutorialId}`);
+        const tutorial = await response.json();
+
+        currentTutorial = tutorial;
+        currentStep = 0;
+        showTutorialStep();
+
+        const modal = new bootstrap.Modal(document.getElementById('tutorialModal'));
+        modal.show();
+    } catch (error) {
+        console.error('Error loading tutorial:', error);
+    }
+}
+
+// Show tutorial step
+function showTutorialStep() {
+    if (!currentTutorial) return;
+
+    const step = currentTutorial.steps[currentStep];
+    document.getElementById('tutorialTitle').textContent = currentTutorial.title;
+    document.getElementById('tutorialContent').innerHTML = `
+        <h4>${step.title}</h4>
+        <p>${step.content}</p>
+    `;
+
+    // Update progress dots
+    const progressDiv = document.getElementById('tutorialProgress');
+    let dotsHtml = '';
+    for (let i = 0; i < currentTutorial.steps.length; i++) {
+        dotsHtml += `<div class="tutorial-dot ${i === currentStep ? 'active' : ''}"></div>`;
+    }
+    progressDiv.innerHTML = dotsHtml;
+
+    // Update navigation buttons
+    document.getElementById('prevStep').disabled = currentStep === 0;
+    const nextBtn = document.getElementById('nextStep');
+    if (currentStep === currentTutorial.steps.length - 1) {
+        nextBtn.innerHTML = 'Finish <i class="fas fa-check"></i>';
+    } else {
+        nextBtn.innerHTML = 'Next <i class="fas fa-chevron-right"></i>';
+    }
+}
+
+// Tutorial navigation
+document.getElementById('prevStep').addEventListener('click', function() {
+    if (currentStep > 0) {
+        currentStep--;
+        showTutorialStep();
+    }
+});
+
+document.getElementById('nextStep').addEventListener('click', function() {
+    if (currentStep < currentTutorial.steps.length - 1) {
+        currentStep++;
+        showTutorialStep();
+    } else {
+        // Tutorial finished
+        const modal = bootstrap.Modal.getInstance(document.getElementById('tutorialModal'));
+        modal.hide();
+        showNotification('Tutorial completed!', 'success');
+    }
+});
+
+// Scroll to section
+function scrollToSection(sectionId) {
+    const element = document.querySelector(`[data-section="${sectionId}"]`) ||
+                   document.getElementById(sectionId) ||
+                   document.querySelector(`.${sectionId}-section`);
+    if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+    }
+}
+
+// Notification system
+function showNotification(message, type = 'info') {
+    // Simple notification - in production, use a proper notification system
+    alert(message);
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', function(e) {
+    // Ctrl+/ or Ctrl+? to open help
+    if ((e.ctrlKey || e.metaKey) && (e.key === '/' || e.key === '?')) {
+        e.preventDefault();
+        window.location.href = '/help';
+    }
+
+    // Ctrl+K for command palette (placeholder)
+    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        showNotification('Command palette would open here', 'info');
+    }
+});
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Add section data attributes for navigation
+    document.querySelectorAll('.help-section').forEach((section, index) => {
+        const id = section.querySelector('h3').textContent.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+        section.setAttribute('data-section', id);
+    });
+});
+</script>
+{% endblock %}
