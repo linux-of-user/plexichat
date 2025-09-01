@@ -397,8 +397,6 @@ class WebSocketManager:
         await self.send_to_thread(thread_id, event_message)
 
     async def send_to_user(self, user_id: int, message: Dict[str, Any]):
-
-    async def send_to_user(self, user_id: int, message: Dict[str, Any]):
         """Send message to specific user."""
         await self.message_queue.put({
             "target_type": "user",
@@ -640,41 +638,3 @@ def get_typing_users(channel_id: str) -> List[str]:
     """Get typing users via global manager."""
     return websocket_manager.get_typing_users(channel_id)
 
-# Global WebSocket manager
-websocket_manager = WebSocketManager()
-
-# Convenience functions
-async def connect_websocket(websocket: WebSocket, connection_id: str, user_id: Optional[int] = None) -> bool:
-    """Connect WebSocket to global manager."""
-    return await websocket_manager.connect(websocket, connection_id, user_id)
-async def send_to_thread(thread_id: str, message: Dict[str, Any]):
-    """Send message to thread via global manager."""
-    await websocket_manager.send_to_thread(thread_id, message)
-
-async def broadcast_thread_event(thread_id: str, event_type: str, event_data: Dict[str, Any]):
-    """Broadcast thread event via global manager."""
-    await websocket_manager.broadcast_thread_event(thread_id, event_type, event_data)
-
-async def join_thread(connection_id: str, thread_id: str) -> bool:
-    """Join thread via global manager."""
-    return await websocket_manager.join_thread(connection_id, thread_id)
-
-async def leave_thread(connection_id: str, thread_id: str) -> bool:
-    """Leave thread via global manager."""
-    return await websocket_manager.leave_thread(connection_id, thread_id)
-
-async def disconnect_websocket(connection_id: str):
-    """Disconnect WebSocket from global manager."""
-    await websocket_manager.disconnect(connection_id)
-
-async def send_to_user(user_id: int, message: Dict[str, Any]):
-    """Send message to user via global manager."""
-    await websocket_manager.send_to_user(user_id, message)
-
-async def send_to_channel(channel: str, message: Dict[str, Any]):
-    """Send message to channel via global manager."""
-    await websocket_manager.send_to_channel(channel, message)
-
-async def broadcast_message(message: Dict[str, Any]):
-    """Broadcast message via global manager."""
-    await websocket_manager.broadcast_to_all(message)
