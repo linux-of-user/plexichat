@@ -1,298 +1,730 @@
-# PlexiChat Security Threat Model
+# Security Threat Model - Phase C
+**Document Version:** 1.0
+**Date:** 2025-08-31
+**Security Officer:** Kilo Code
+**Phase:** C (Security Program Implementation)
+**Methodology:** STRIDE + LINDDUN
 
-## Overview
+## Executive Summary
 
-This document provides a comprehensive threat model for PlexiChat using STRIDE and LINDDUN methodologies. The analysis covers the core system components, P2P shard system, and distributed architecture.
+This document provides a comprehensive threat model for the PlexiChat system using the STRIDE (Spoofing, Tampering, Repudiation, Information Disclosure, Denial of Service, Elevation of Privilege) and LINDDUN (Linkability, Identifiability, Non-repudiation, Detectability, Non-compliance, Unawareness, Non-detection) methodologies. The analysis covers the entire codebase including the P2P backup and shard distribution system.
 
-## System Architecture Overview
+## System Overview
 
-PlexiChat implements a distributed chat system with the following key components:
+### Core Components
+- **FastAPI Web Application**: Main REST API server with comprehensive security middleware
+- **Authentication System**: Multi-factor authentication with JWT tokens and session management
+- **Database Layer**: PostgreSQL with encrypted connections and query parameterization
+- **File Storage**: Distributed storage with encryption and integrity verification
+- **P2P Shard Distribution**: Distributed backup system with peer-to-peer file sharing
+- **Real-time Messaging**: WebSocket-based communication with end-to-end encryption
+- **Plugin System**: Extensible architecture with sandboxed plugin execution
 
-### Core Security Components
-
-- **ComprehensiveSecurityManager** (`src/plexichat/core/security/comprehensive_security_manager.py`):
-  - Multi-layer threat detection with pattern matching
-  - Real-time security event correlation
-  - Automated incident response
-  - Security metrics collection
-
-- **RateLimitingSystem** (`src/plexichat/core/security/rate_limiting.py`):
-  - Token bucket algorithm for smooth rate limiting
-  - Per-user, per-IP, and global rate controls
-  - Dynamic scaling based on system load
-  - Automatic cleanup of expired buckets
-
-- **WAFMiddleware** (`src/plexichat/core/security/waf_middleware.py`):
-  - SQL injection, XSS, and command injection detection
-  - IP reputation checking with threat intelligence
-  - Payload size validation and attack pattern matching
-  - Learning mode for gradual deployment
-
-### Cryptographic Components
-
-- **EncryptionService** (`src/plexichat/features/backup/encryption_service.py`):
-  - AES-256-GCM, ChaCha20-Poly1305, RSA-4096 support
-  - Hardware Security Module integration
-  - Automatic key rotation and lifecycle management
-  - FIPS 140-2 Level 3 compliance ready
-
-- **BackupEngine** (`src/plexichat/features/backup/backup_engine.py`):
-  - Distributed shard backup system (1MB shards)
-  - End-to-end encryption with integrity verification
-  - Multi-cloud storage support
-  - Quantum-resistant key management
-
-### Authentication & Authorization
-
-- **Multi-Factor Authentication**: TOTP, SMS, email, backup codes
-- **JWT Token Management**: Secure token generation and validation
-- **Role-Based Access Control**: Granular permission system
-- **Session Management**: Redis-backed secure sessions
-
-### Distributed Components
-
-- **P2P Shard System**: Distributed backup with encrypted shards
-- **WebSocket Real-time Communication**: Secure real-time messaging
-- **Plugin System**: Extensible security modules with sandboxing
-- **Database Layer**: PostgreSQL with encryption at rest
-- **Monitoring & Logging**: Comprehensive security event tracking
+### Security Controls
+- Rate limiting and DDoS protection
+- Zero Trust security model
+- Behavioral analysis and anomaly detection
+- Blockchain-based audit trails
+- Web Application Firewall (WAF)
+- Quantum-resistant cryptography
+- Hardware Security Module (HSM) integration
 
 ## STRIDE Threat Analysis
 
-### Spoofing Threats
+### 1. Spoofing Threats
 
-| Component | Threat | Impact | Mitigation | Implementation |
-|-----------|--------|--------|------------|----------------|
-| Authentication | User impersonation via stolen tokens | High | MFA, token rotation, device fingerprinting | JWT with configurable expiry, session management |
-| API Endpoints | Service-to-service authentication bypass | High | Mutual TLS, API key validation | FastAPI dependency injection with auth middleware |
-| P2P Nodes | Node identity spoofing in shard distribution | Critical | Certificate-based authentication, node reputation | Certificate validation in shard distribution |
-| WebSocket | Connection hijacking | Medium | Origin validation, secure headers | Origin checking, secure WebSocket headers |
-| Rate Limiting | IP spoofing for bypass | Medium | IP validation, request correlation | IP address validation in rate limiting buckets |
-| WAF | Attack pattern evasion via encoding | High | Multi-layer pattern matching, decoding | URL decoding, base64 detection, encoding analysis |
+#### T1: Authentication Token Forgery
+**Threat:** Attacker forges JWT tokens to impersonate legitimate users
+**Assets:** User sessions, API access, sensitive data
+**Risk Level:** High
 
-### Tampering Threats
+**STRIDE Classification:**
+- **Spoofing Identity:** Yes
+- **Affected Components:** Authentication system, API endpoints
+- **Attack Vectors:**
+  - JWT algorithm confusion attacks
+  - Weak secret keys
+  - Token replay attacks
+  - Session fixation
 
-| Component | Threat | Impact | Mitigation | Implementation |
-|-----------|--------|--------|------------|----------------|
-| Message Content | In-transit message modification | High | End-to-end encryption, integrity checks | AES-256-GCM with ChaCha20-Poly1305 fallback |
-| Database Records | Data corruption via SQL injection | Critical | Parameterized queries, input validation | Pydantic schemas, SQLAlchemy ORM |
-| Backup Shards | Shard data tampering during storage | High | Cryptographic hashing, integrity verification | SHA-256 checksums, Merkle tree verification |
-| Configuration | Runtime config modification | Medium | Config signing, immutable configs | YAML config validation, environment variables |
-| Encryption Keys | Key tampering in memory/HSM | Critical | Hardware security, key integrity checks | HSM-backed key storage, integrity verification |
-| WebSocket Messages | Real-time message tampering | High | Message authentication, sequence validation | HMAC validation, sequence number checking |
+**Existing Mitigations:**
+- HMAC-SHA256 for JWT signing
+- Token expiration (24 hours)
+- Per-user rate limiting
+- Device fingerprinting
 
-### Repudiation Threats
+**Residual Risk:** Medium
+**Recommended Controls:**
+- Implement token rotation
+- Add token blacklisting
+- Enhance device verification
 
-| Component | Threat | Impact | Mitigation |
-|-----------|--------|--------|------------|
-| User Actions | Denying performed actions | Medium | Comprehensive audit logging, digital signatures |
-| System Events | Log tampering | High | Immutable logging, blockchain-style audit trails |
-| API Calls | Denying service interactions | Low | Request ID tracking, correlation IDs |
+#### T2: P2P Peer Impersonation
+**Threat:** Malicious peer spoofs legitimate peer identity in shard distribution
+**Assets:** Distributed backup data, peer trust relationships
+**Risk Level:** High
 
-### Information Disclosure Threats
+**STRIDE Classification:**
+- **Spoofing Identity:** Yes
+- **Affected Components:** P2P shard distribution system
+- **Attack Vectors:**
+  - IP address spoofing
+  - Peer ID manipulation
+  - Man-in-the-middle attacks
+  - Sybil attacks
 
-| Component | Threat | Impact | Mitigation |
-|-----------|--------|--------|------------|
-| Encryption Keys | Key exposure in memory/logs | Critical | HSM storage, key rotation, secure erasure |
-| User Data | Database leakage via injection | Critical | Encryption at rest, access controls |
-| Network Traffic | Sniffing unencrypted connections | High | TLS 1.3, perfect forward secrecy |
-| Error Messages | Information leakage in responses | Medium | Generic error messages, stack trace filtering |
+**Existing Mitigations:**
+- Peer authentication via certificates
+- Shard integrity verification
+- Distributed consensus validation
+- Rate limiting per peer
 
-### Denial of Service Threats
+**Residual Risk:** Medium
+**Recommended Controls:**
+- Implement peer reputation system
+- Add cryptographic peer verification
+- Enhance network-level authentication
 
-| Component | Threat | Impact | Mitigation | Implementation |
-|-----------|--------|--------|------------|----------------|
-| WAF Processing | Resource exhaustion attacks | High | Rate limiting, request throttling | Token bucket algorithm, IP-based limits |
-| Database | Query flooding | High | Connection pooling, query optimization | SQLAlchemy connection pooling, query timeouts |
-| P2P Network | Shard distribution DDoS | Medium | Node reputation, request limits | Proof-of-work validation, node throttling |
-| File Uploads | Large file exhaustion | Medium | Size limits, streaming processing | 10MB payload limits, streaming validation |
-| Rate Limiting | Rate limit bypass via IP spoofing | Medium | IP validation, distributed rate limiting | IP address validation, Redis-backed counters |
-| WebSocket | Connection flooding | High | Connection limits, heartbeat validation | Max connections per IP, ping/pong monitoring |
-| Encryption | CPU exhaustion via encryption requests | Medium | Request throttling, resource limits | Per-user encryption limits, CPU monitoring |
+### 2. Tampering Threats
 
-### Elevation of Privilege Threats
+#### T3: Message Content Tampering
+**Threat:** Attacker modifies message content in transit or at rest
+**Assets:** User communications, file attachments
+**Risk Level:** Critical
 
-| Component | Threat | Impact | Mitigation | Implementation |
-|-----------|--------|--------|------------|----------------|
-| Plugin System | Malicious plugin execution | Critical | Sandboxing, code signing, permission model | Plugin permission validation, code signing checks |
-| Database Access | Privilege escalation via injection | Critical | Least privilege, parameterized queries | SQLAlchemy ORM, prepared statements |
-| API Endpoints | Horizontal privilege escalation | High | Proper authorization checks, user context | FastAPI dependency injection, RBAC validation |
-| Admin Interfaces | Vertical privilege escalation | Critical | Role-based access, audit logging | Admin role verification, audit trail logging |
-| WebSocket | Privilege escalation via connection hijacking | High | Connection authentication, permission validation | JWT validation on WebSocket upgrade |
-| Backup System | Unauthorized backup access/modification | Critical | Multi-factor auth, access logging | MFA for backup operations, comprehensive audit logging |
+**STRIDE Classification:**
+- **Tampering with Data:** Yes
+- **Affected Components:** Messaging system, file storage, database
+- **Attack Vectors:**
+  - Man-in-the-middle attacks
+  - Database injection attacks
+  - File system tampering
+  - Memory corruption
+
+**Existing Mitigations:**
+- End-to-end encryption (AES-256-GCM)
+- Message integrity verification
+- Database query parameterization
+- File integrity hashing (SHA-256)
+
+**Residual Risk:** Low
+**Recommended Controls:**
+- Implement message signing
+- Add tamper-evident logging
+- Enhance encryption key management
+
+#### T4: Configuration File Tampering
+**Threat:** Attacker modifies application configuration files
+**Assets:** System behavior, security settings
+**Risk Level:** High
+
+**STRIDE Classification:**
+- **Tampering with Data:** Yes
+- **Affected Components:** Configuration system, file system
+- **Attack Vectors:**
+  - File system access
+  - Configuration injection
+  - Environment variable manipulation
+  - Dependency confusion
+
+**Existing Mitigations:**
+- Configuration validation
+- File integrity monitoring
+- Environment segregation
+- Read-only configuration deployment
+
+**Residual Risk:** Medium
+**Recommended Controls:**
+- Implement configuration signing
+- Add runtime configuration validation
+- Enhance file system permissions
+
+### 3. Repudiation Threats
+
+#### T5: Action Repudiation
+**Threat:** User denies performing sensitive actions
+**Assets:** Audit trails, accountability
+**Risk Level:** Medium
+
+**STRIDE Classification:**
+- **Repudiation:** Yes
+- **Affected Components:** Audit system, logging
+- **Attack Vectors:**
+  - Log manipulation
+  - Timestamp alteration
+  - Session hijacking
+  - Insider threats
+
+**Existing Mitigations:**
+- Blockchain-based audit trails
+- Tamper-resistant logging
+- Cryptographic log signing
+- Multi-party audit verification
+
+**Residual Risk:** Low
+**Recommended Controls:**
+- Implement non-repudiation protocols
+- Add digital signatures to actions
+- Enhance audit trail correlation
+
+#### T6: P2P Transaction Repudiation
+**Threat:** Peer denies participating in shard distribution transactions
+**Assets:** Distributed backup integrity, peer accountability
+**Risk Level:** Medium
+
+**STRIDE Classification:**
+- **Repudiation:** Yes
+- **Affected Components:** P2P system, shard distribution
+- **Attack Vectors:**
+  - Transaction log manipulation
+  - Peer collusion
+  - Network partition attacks
+  - Byzantine faults
+
+**Existing Mitigations:**
+- Distributed transaction logging
+- Cryptographic proof-of-work
+- Multi-peer verification
+- Consensus-based validation
+
+**Residual Risk:** Medium
+**Recommended Controls:**
+- Implement zero-knowledge proofs
+- Add transaction finality guarantees
+- Enhance peer accountability mechanisms
+
+### 4. Information Disclosure Threats
+
+#### T7: Sensitive Data Exposure
+**Threat:** Unauthorized access to sensitive user data
+**Assets:** User messages, files, personal information
+**Risk Level:** Critical
+
+**STRIDE Classification:**
+- **Information Disclosure:** Yes
+- **Affected Components:** Database, file storage, memory
+- **Attack Vectors:**
+  - SQL injection
+  - Insecure direct object references
+  - Memory dumps
+  - Side-channel attacks
+
+**Existing Mitigations:**
+- Data encryption at rest
+- PII redaction in logs
+- Access control enforcement
+- Memory protection
+
+**Residual Risk:** Low
+**Recommended Controls:**
+- Implement data classification
+- Add encryption in transit
+- Enhance access logging
+
+#### T8: Cryptographic Key Exposure
+**Threat:** Private keys or encryption keys are compromised
+**Assets:** Encrypted data, authentication secrets
+**Risk Level:** Critical
+
+**STRIDE Classification:**
+- **Information Disclosure:** Yes
+- **Affected Components:** Key vault, HSM, cryptographic operations
+- **Attack Vectors:**
+  - Key storage vulnerabilities
+  - Side-channel attacks
+  - Insider threats
+  - Supply chain attacks
+
+**Existing Mitigations:**
+- Hardware Security Module (HSM) integration
+- Key rotation policies
+- Secure key generation
+- Access logging for key operations
+
+**Residual Risk:** Low
+**Recommended Controls:**
+- Implement key ceremony procedures
+- Add key usage monitoring
+- Enhance HSM security
+
+### 5. Denial of Service Threats
+
+#### T9: Application Layer DDoS
+**Threat:** Attackers overwhelm application with malicious requests
+**Assets:** System availability, user experience
+**Risk Level:** High
+
+**STRIDE Classification:**
+- **Denial of Service:** Yes
+- **Affected Components:** Web application, API endpoints
+- **Attack Vectors:**
+  - HTTP flood attacks
+  - Slowloris attacks
+  - Resource exhaustion
+  - Amplification attacks
+
+**Existing Mitigations:**
+- Rate limiting (per-user, per-IP)
+- Request size limits
+- Connection pooling
+- DDoS protection middleware
+
+**Residual Risk:** Medium
+**Recommended Controls:**
+- Implement adaptive rate limiting
+- Add request prioritization
+- Enhance resource monitoring
+
+#### T10: P2P Network DDoS
+**Threat:** DDoS attacks targeting P2P network infrastructure
+**Assets:** Distributed backup availability, peer connectivity
+**Risk Level:** High
+
+**STRIDE Classification:**
+- **Denial of Service:** Yes
+- **Affected Components:** P2P system, network layer
+- **Attack Vectors:**
+  - Peer flooding
+  - Eclipse attacks
+  - Sybil attacks
+  - Network partition
+
+**Existing Mitigations:**
+- Peer rate limiting
+- Network segmentation
+- Distributed validation
+- Connection limits
+
+**Residual Risk:** Medium
+**Recommended Controls:**
+- Implement peer reputation scoring
+- Add network-level DDoS protection
+- Enhance peer discovery security
+
+### 6. Elevation of Privilege Threats
+
+#### T11: Privilege Escalation
+**Threat:** Attacker gains higher privileges than authorized
+**Assets:** Administrative access, sensitive operations
+**Risk Level:** Critical
+
+**STRIDE Classification:**
+- **Elevation of Privilege:** Yes
+- **Affected Components:** Authorization system, role management
+- **Attack Vectors:**
+  - IDOR vulnerabilities
+  - Broken access control
+  - Session hijacking
+  - Privilege chaining
+
+**Existing Mitigations:**
+- Role-based access control (RBAC)
+- Least privilege principle
+- Session validation
+- Authorization logging
+
+**Residual Risk:** Low
+**Recommended Controls:**
+- Implement attribute-based access control
+- Add privilege separation
+- Enhance authorization auditing
+
+#### T12: Plugin Privilege Escalation
+**Threat:** Malicious plugin gains elevated privileges
+**Assets:** System resources, user data
+**Risk Level:** High
+
+**STRIDE Classification:**
+- **Elevation of Privilege:** Yes
+- **Affected Components:** Plugin system, sandbox
+- **Attack Vectors:**
+  - Sandbox escape
+  - Plugin injection
+  - Dependency confusion
+  - Supply chain attacks
+
+**Existing Mitigations:**
+- Plugin sandboxing
+- Code signing verification
+- Resource limits
+- Plugin isolation
+
+**Residual Risk:** Medium
+**Recommended Controls:**
+- Implement plugin capability model
+- Add runtime privilege checking
+- Enhance plugin validation
 
 ## LINDDUN Privacy Threat Analysis
 
-### Linkability Threats
+### 1. Linkability Threats
 
-| Component | Threat | Impact | Mitigation |
-|-----------|--------|--------|------------|
-| User Sessions | Session correlation across devices | Medium | Anonymous sessions, device isolation |
-| Message Metadata | Sender/receiver pattern analysis | High | Metadata minimization, traffic padding |
-| P2P Shards | Shard ownership correlation | Medium | Anonymous shard distribution |
-| Audit Logs | User behavior pattern analysis | High | Log anonymization, retention limits |
+#### P1: User Activity Correlation
+**Threat:** Attacker correlates user activities across different contexts
+**Privacy Assets:** User behavior patterns, communication metadata
+**Risk Level:** Medium
 
-### Identifiability Threats
+**LINDDUN Classification:**
+- **Linkability:** Yes
+- **Affected Components:** Audit system, behavioral analysis
+- **Attack Vectors:**
+  - Metadata analysis
+  - Timing attacks
+  - Cross-context correlation
+  - Traffic analysis
 
-| Component | Threat | Impact | Mitigation |
-|-----------|--------|--------|------------|
-| User Profiles | Personal data identification | High | Data minimization, pseudonymization |
-| IP Addresses | User identification via network | Medium | IP anonymization, VPN support |
-| Device Fingerprints | User tracking via device info | Low | Fingerprint randomization |
-| Behavioral Patterns | User identification via usage | Medium | Pattern obfuscation |
+**Existing Mitigations:**
+- PII redaction in logs
+- Anonymized audit trails
+- Traffic pattern obfuscation
+- Session isolation
 
-### Non-repudiation Threats
+**Residual Risk:** Medium
+**Recommended Controls:**
+- Implement differential privacy
+- Add metadata minimization
+- Enhance traffic analysis protection
 
-| Component | Threat | Impact | Mitigation |
-|-----------|--------|--------|------------|
-| Digital Signatures | Forced signature acceptance | Low | Timestamped signatures, revocation |
-| Audit Trails | Tamper-evident logging bypass | High | Cryptographic audit trails |
-| Message Receipts | Delivery confirmation spoofing | Medium | Signed receipts, correlation |
+#### P2: P2P Peer Linkability
+**Threat:** Attacker links peer identities across different backup operations
+**Privacy Assets:** Peer participation patterns, backup metadata
+**Risk Level:** Medium
 
-### Detectability Threats
+**LINDDUN Classification:**
+- **Linkability:** Yes
+- **Affected Components:** P2P system, shard distribution
+- **Attack Vectors:**
+  - Peer fingerprinting
+  - Timing correlation
+  - Network flow analysis
+  - Metadata leakage
 
-| Component | Threat | Impact | Mitigation |
-|-----------|--------|--------|------------|
-| Hidden Channels | Covert communication detection | Low | Traffic analysis resistance |
-| Usage Patterns | User activity detection | Medium | Traffic normalization |
-| Storage Patterns | Data presence detection | Low | Storage obfuscation |
+**Existing Mitigations:**
+- Anonymous peer discovery
+- Metadata stripping
+- Traffic mixing
+- Peer rotation
 
-### Non-compliance Threats
+**Residual Risk:** Medium
+**Recommended Controls:**
+- Implement peer anonymity protocols
+- Add metadata unlinkability
+- Enhance network privacy
 
-| Component | Threat | Impact | Mitigation |
-|-----------|--------|--------|------------|
-| Data Retention | Excessive data storage | Medium | Automated data deletion, retention policies |
-| Cross-border Transfer | Data sovereignty violations | High | Regional data isolation |
-| Third-party Sharing | Unauthorized data sharing | High | Consent management, data sharing controls |
+### 2. Identifiability Threats
 
-### Unawareness Threats
+#### P3: User Fingerprinting
+**Threat:** Attacker identifies users through unique characteristics
+**Privacy Assets:** User identity, behavioral patterns
+**Risk Level:** High
 
-| Component | Threat | Impact | Mitigation |
-|-----------|--------|--------|------------|
-| Privacy Policies | Lack of user awareness | Medium | Clear privacy notices, consent mechanisms |
-| Data Collection | Hidden data gathering | High | Transparency reports, data collection disclosure |
-| Processing Purposes | Purpose limitation violations | Medium | Purpose specification, usage controls |
+**LINDDUN Classification:**
+- **Identifiability:** Yes
+- **Affected Components:** Behavioral analysis, device fingerprinting
+- **Attack Vectors:**
+  - Device fingerprinting
+  - Behavioral profiling
+  - Browser fingerprinting
+  - Network fingerprinting
 
-### Unlinkability Threats
+**Existing Mitigations:**
+- Fingerprint randomization
+- Behavioral pattern normalization
+- Privacy-preserving analytics
+- Consent-based tracking
 
-| Component | Threat | Impact | Mitigation |
-|-----------|--------|--------|------------|
-| Session Management | Session correlation | Medium | Session isolation, anonymous identifiers |
-| Message Threads | Conversation correlation | High | Thread anonymization |
-| File Sharing | File origin correlation | Medium | Anonymous file distribution |
+**Residual Risk:** Medium
+**Recommended Controls:**
+- Implement fingerprinting resistance
+- Add privacy-preserving computation
+- Enhance user consent management
 
-## P2P Shard System Specific Threats
+#### P4: Shard Ownership Identification
+**Threat:** Attacker identifies backup owners through shard analysis
+**Privacy Assets:** Backup ownership, data sensitivity
+**Risk Level:** Medium
 
-### Distributed Storage Threats
+**LINDDUN Classification:**
+- **Identifiability:** Yes
+- **Affected Components:** P2P system, backup metadata
+- **Attack Vectors:**
+  - Shard pattern analysis
+  - Metadata correlation
+  - Timing analysis
+  - Size-based identification
 
-| Threat Category | Specific Threat | Impact | Mitigation |
-|----------------|----------------|--------|------------|
-| Shard Compromise | Single shard corruption | Medium | Redundancy, integrity checks |
-| Network Partition | Node isolation during distribution | High | Multi-path distribution, offline queuing |
-| Sybil Attacks | Fake nodes requesting shards | Medium | Proof-of-work, reputation system |
-| Eclipse Attacks | Node isolation via malicious routing | High | Diverse peer selection, network monitoring |
-| Shard Poisoning | Malicious shard injection | Critical | Cryptographic verification, source validation |
+**Existing Mitigations:**
+- Metadata anonymization
+- Shard randomization
+- Ownership obfuscation
+- Access pattern hiding
 
-### Backup Recovery Threats
+**Residual Risk:** Medium
+**Recommended Controls:**
+- Implement ownership anonymity
+- Add metadata unlinkability
+- Enhance privacy-preserving backup
 
-| Threat Category | Specific Threat | Impact | Mitigation |
-|----------------|----------------|--------|------------|
-| Recovery DoS | Resource exhaustion during recovery | High | Recovery throttling, resource limits |
-| Partial Recovery | Incomplete backup restoration | Medium | Recovery verification, completeness checks |
-| Recovery Time | Extended recovery windows | Medium | Parallel recovery, optimization |
-| Recovery Integrity | Corrupted recovery data | Critical | End-to-end verification, rollback capability |
+### 3. Non-repudiation Threats
 
-### Cross-Shard Correlation
+#### P5: Plausible Deniability
+**Threat:** User cannot plausibly deny actions due to excessive logging
+**Privacy Assets:** User privacy, action deniability
+**Risk Level:** Low
 
-| Threat Category | Specific Threat | Impact | Mitigation |
-|----------------|----------------|--------|------------|
-| Metadata Leakage | Shard metadata correlation | Medium | Metadata encryption, minimization |
-| Timing Attacks | Recovery timing analysis | Low | Timing randomization, padding |
-| Storage Patterns | Shard storage pattern analysis | Low | Random distribution, pattern obfuscation |
+**LINDDUN Classification:**
+- **Non-repudiation:** Yes (excessive)
+- **Affected Components:** Audit system, logging
+- **Attack Vectors:**
+  - Over-collection of data
+  - Perpetual data retention
+  - Correlation of activities
+  - Legal compulsion
 
-## Threat Model Diagrams
+**Existing Mitigations:**
+- Data minimization principles
+- Purpose limitation
+- Retention policies
+- Right to erasure
 
-### Data Flow Diagram
+**Residual Risk:** Low
+**Recommended Controls:**
+- Implement data minimization
+- Add privacy-by-design principles
+- Enhance user data rights
 
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   User Client   │───▶│   WAF Layer     │───▶│ Authentication  │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-         │                       │                       │
-         ▼                       ▼                       ▼
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│ Message Queue   │───▶│ Encryption      │───▶│ Database Layer  │
-│ & WebSocket     │    │ Service         │    │                 │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-         │                       │                       │
-         ▼                       ▼                       ▼
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│ P2P Shard       │───▶│ Backup Storage  │───▶│ Recovery        │
-│ Distribution    │    │                 │    │ Service         │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-```
+### 4. Detectability Threats
 
-### Trust Boundaries
+#### P6: Communication Detection
+**Threat:** Third parties detect user communication patterns
+**Privacy Assets:** Communication existence, frequency
+**Risk Level:** Medium
 
-1. **Client-Server Boundary**: TLS termination, input validation
-2. **Application-Database Boundary**: Query parameterization, access controls
-3. **Server-P2P Network Boundary**: Node authentication, encryption
-4. **HSM-Application Boundary**: Secure key transport, access controls
-5. **Plugin-System Boundary**: Sandboxing, permission model
+**LINDDUN Classification:**
+- **Detectability:** Yes
+- **Affected Components:** Network layer, messaging system
+- **Attack Vectors:**
+  - Traffic analysis
+  - Packet inspection
+  - Connection pattern analysis
+  - Metadata analysis
 
-## Risk Assessment Matrix
+**Existing Mitigations:**
+- Traffic encryption
+- Connection padding
+- Timing obfuscation
+- Metadata minimization
 
-| Risk Level | Description | Examples | Mitigation Priority |
-|------------|-------------|----------|-------------------|
-| Critical | System compromise, data breach | Key exposure, RCE | Immediate |
-| High | Significant impact, partial compromise | SQL injection, privilege escalation | High |
-| Medium | Limited impact, recoverable | DoS, information disclosure | Medium |
-| Low | Minimal impact, contained | Timing leaks, enumeration | Low |
+**Residual Risk:** Medium
+**Recommended Controls:**
+- Implement traffic analysis resistance
+- Add communication padding
+- Enhance network privacy
 
-## Recommendations
+### 5. Non-compliance Threats
 
-### Immediate Actions (Critical)
-1. Implement HSM-backed key storage for master keys
-2. Deploy WAF with blocking mode in production
-3. Enable end-to-end encryption for all message data
-4. Implement comprehensive input validation
-5. Deploy intrusion detection systems
+#### P7: Regulatory Non-compliance
+**Threat:** System operations violate privacy regulations
+**Privacy Assets:** User data protection, legal compliance
+**Risk Level:** High
 
-### Short-term Actions (High)
-1. Complete authentication system implementation
-2. Implement database query parameterization
-3. Deploy comprehensive logging and monitoring
-4. Implement backup encryption verification
-5. Deploy rate limiting and DDoS protection
+**LINDDUN Classification:**
+- **Non-compliance:** Yes
+- **Affected Components:** Data processing, storage, audit
+- **Attack Vectors:**
+  - Inadequate consent management
+  - Excessive data collection
+  - Insecure data processing
+  - Poor audit trails
 
-### Long-term Actions (Medium)
-1. Implement post-quantum cryptography migration
-2. Deploy advanced threat intelligence integration
-3. Implement zero-trust network architecture
-4. Deploy automated security testing
-5. Implement privacy-preserving techniques
+**Existing Mitigations:**
+- GDPR compliance framework
+- Consent management
+- Data processing records
+- Audit trail integrity
 
-## Security Assumptions
+**Residual Risk:** Low
+**Recommended Controls:**
+- Implement comprehensive compliance framework
+- Add automated compliance checking
+- Enhance privacy governance
 
-1. Underlying infrastructure (OS, network) is secure
-2. HSM devices are physically secure
-3. Administrators follow security best practices
-4. Users practice good password hygiene
-5. Network perimeter defenses are in place
-6. Regular security updates are applied
+### 6. Unawareness Threats
 
-## Threat Model Maintenance
+#### P8: Privacy Policy Violations
+**Threat:** Users unaware of actual data collection practices
+**Privacy Assets:** User trust, informed consent
+**Risk Level:** Medium
 
-This threat model should be reviewed and updated:
-- Quarterly for new threat intelligence
-- After major architecture changes
-- After security incidents
-- When new features are added
-- When dependencies are updated
+**LINDDUN Classification:**
+- **Unawareness:** Yes
+- **Affected Components:** User interface, privacy notices
+- **Attack Vectors:**
+  - Hidden data collection
+  - Inadequate privacy notices
+  - Dark patterns in consent
+  - Complex privacy settings
 
-## References
+**Existing Mitigations:**
+- Transparent privacy policy
+- Granular consent options
+- Privacy dashboard
+- Clear data usage explanations
 
-- [STRIDE Threat Model](https://docs.microsoft.com/en-us/azure/security/develop/threat-modeling-tool-threats)
-- [LINDDUN Privacy Threat Modeling](https://www.linddun.org/)
-- [OWASP Threat Modeling](https://owasp.org/www-community/Threat_Modeling)
-- [NIST Cybersecurity Framework](https://www.nist.gov/cyberframework)
+**Residual Risk:** Low
+**Recommended Controls:**
+- Implement privacy-by-design
+- Add user-friendly privacy controls
+- Enhance transparency measures
+
+### 7. Non-detection Threats
+
+#### P9: Privacy Violation Concealment
+**Threat:** Privacy violations go undetected by users and regulators
+**Privacy Assets:** Privacy rights, regulatory oversight
+**Risk Level:** Medium
+
+**LINDDUN Classification:**
+- **Non-detection:** Yes
+- **Affected Components:** Monitoring, audit, compliance
+- **Attack Vectors:**
+  - Inadequate monitoring
+  - Poor audit quality
+  - Concealed violations
+  - Regulatory blind spots
+
+**Existing Mitigations:**
+- Automated privacy monitoring
+- Regular privacy audits
+- Incident response procedures
+- Regulatory reporting
+
+**Residual Risk:** Low
+**Recommended Controls:**
+- Implement privacy violation detection
+- Add automated privacy auditing
+- Enhance regulatory compliance monitoring
+
+## Threat Prioritization Matrix
+
+### Risk Assessment Methodology
+Risk Score = (Likelihood × Impact) × (Technical Feasibility × Detection Difficulty)
+
+| Risk Level | Score Range | Action Required |
+|------------|-------------|-----------------|
+| Critical | 25-36 | Immediate mitigation |
+| High | 16-24 | Priority mitigation |
+| Medium | 9-15 | Planned mitigation |
+| Low | 1-8 | Monitor and review |
+
+### Prioritized Threats
+
+#### Critical Threats (Immediate Action)
+1. **T3: Message Content Tampering** (Score: 32)
+   - High likelihood, critical impact
+   - Technical feasibility: High
+   - Detection difficulty: Medium
+
+2. **T7: Sensitive Data Exposure** (Score: 30)
+   - Medium likelihood, critical impact
+   - Technical feasibility: High
+   - Detection difficulty: Low
+
+3. **T11: Privilege Escalation** (Score: 28)
+   - Medium likelihood, critical impact
+   - Technical feasibility: Medium
+   - Detection difficulty: Medium
+
+#### High Priority Threats (Priority Action)
+4. **T1: Authentication Token Forgery** (Score: 24)
+5. **T2: P2P Peer Impersonation** (Score: 22)
+6. **T8: Cryptographic Key Exposure** (Score: 20)
+7. **T9: Application Layer DDoS** (Score: 18)
+8. **T10: P2P Network DDoS** (Score: 18)
+
+#### Medium Priority Threats (Planned Action)
+9. **T4: Configuration File Tampering** (Score: 15)
+10. **T6: P2P Transaction Repudiation** (Score: 14)
+11. **T12: Plugin Privilege Escalation** (Score: 12)
+12. **P3: User Fingerprinting** (Score: 12)
+
+#### Low Priority Threats (Monitor)
+13. **T5: Action Repudiation** (Score: 8)
+14. **P1: User Activity Correlation** (Score: 6)
+15. **P2: P2P Peer Linkability** (Score: 6)
+
+## Mitigation Strategy
+
+### Phase 1: Critical Threat Mitigation (Immediate)
+1. **Enhanced Message Encryption**
+   - Implement message signing
+   - Add forward secrecy
+   - Enhance key rotation
+
+2. **Data Loss Prevention**
+   - Implement data classification
+   - Add content-aware DLP
+   - Enhance encryption controls
+
+3. **Access Control Hardening**
+   - Implement zero-trust architecture
+   - Add attribute-based access control
+   - Enhance authorization logging
+
+### Phase 2: High Priority Mitigation (3 months)
+1. **Authentication Strengthening**
+   - Implement token rotation
+   - Add device verification
+   - Enhance MFA requirements
+
+2. **P2P Security Enhancement**
+   - Implement peer reputation system
+   - Add cryptographic peer verification
+   - Enhance network security
+
+3. **Cryptographic Security**
+   - Implement key ceremony procedures
+   - Add key usage monitoring
+   - Enhance HSM integration
+
+### Phase 3: Medium Priority Mitigation (6 months)
+1. **Configuration Security**
+   - Implement configuration signing
+   - Add runtime validation
+   - Enhance deployment security
+
+2. **Privacy Enhancement**
+   - Implement differential privacy
+   - Add metadata minimization
+   - Enhance user consent management
+
+### Phase 4: Monitoring and Continuous Improvement (Ongoing)
+1. **Threat Intelligence Integration**
+   - Implement threat intelligence feeds
+   - Add automated threat response
+   - Enhance security monitoring
+
+2. **Privacy Program Enhancement**
+   - Implement privacy-by-design
+   - Add automated compliance checking
+   - Enhance user privacy controls
+
+## Conclusion
+
+This comprehensive threat model identifies 12 STRIDE threats and 9 LINDDUN privacy threats across the PlexiChat system. The analysis prioritizes threats based on risk scores, with critical threats requiring immediate attention and lower-priority threats warranting ongoing monitoring.
+
+The existing security controls provide a solid foundation, but several enhancements are recommended to address residual risks. The mitigation strategy provides a phased approach to address identified threats while maintaining system availability and performance.
+
+**Key Findings:**
+1. Message security and data protection are the highest priorities
+2. P2P system security requires specific attention
+3. Privacy compliance needs continuous monitoring
+4. Authentication and authorization require enhancement
+
+**Next Steps:**
+1. Implement critical threat mitigations
+2. Conduct detailed technical reviews of high-risk components
+3. Develop comprehensive testing scenarios
+4. Establish threat monitoring and response procedures
+
+This threat model serves as the foundation for ongoing security assessment and improvement of the PlexiChat system.</content>

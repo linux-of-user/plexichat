@@ -94,8 +94,6 @@ class UserService(IUserService):
                 password_hash=password_hash,
                 salt=salt,
                 permissions=final_permissions,
-                created_at=datetime.now(timezone.utc),
-                is_active=True,
                 failed_attempts=0,
                 locked_until=None
             )
@@ -139,7 +137,7 @@ class UserService(IUserService):
                 return False, ["User not found"]
 
             # Verify old password
-            success, _ = await self.security_system.authenticate_user(user_id, old_password)
+            success, _ = self.security_system.authenticate_user(user_id, old_password)
             if not success:
                 logger.security("Password change failed - invalid old password", user_id=user_id)
                 return False, ["Invalid current password"]
