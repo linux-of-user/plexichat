@@ -33,6 +33,15 @@ from plexichat.interfaces.api.v1.shards import router as shards_router
 from plexichat.interfaces.api.v1.threads import router as threads_router
 from plexichat.interfaces.api.v1.export import router as export_router
 
+# Try to import enhanced file sharing router with fallback
+try:
+    from plexichat.interfaces.api.routers.file_sharing_router import router as file_sharing_router
+    file_sharing_available = True
+except ImportError as e:
+    logger.warning(f"Enhanced file sharing router not available: {e}")
+    file_sharing_router = None
+    file_sharing_available = False
+
 # Try to import user_settings router with fallback
 try:
     from plexichat.interfaces.api.v1.user_settings import router as user_settings_router
@@ -76,6 +85,11 @@ router.include_router(export_router, dependencies=[Depends(get_current_user)])
 
 # Files require authentication (uploads/downloads)
 router.include_router(files_router, dependencies=[Depends(get_current_user)])
+# Include enhanced file sharing router if available (requires authentication)
+if file_sharing_available and file_sharing_router:
+    router.include_router(file_sharing_router, dependencies=[Depends(get_current_user)])
+
+# Admin routes should be restricted to admins
 
 # Admin routes should be restricted to admins
 router.include_router(admin_router, dependencies=[Depends(require_admin)])
