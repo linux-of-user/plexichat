@@ -13,11 +13,8 @@ Enhanced PlexiChat package with comprehensive functionality and performance opti
 Uses EXISTING database abstraction and optimization systems.
 """
 
-import logging
 import sys
 from typing import Any, Dict
-import json
-from pathlib import Path
 import importlib
 
 # Version information
