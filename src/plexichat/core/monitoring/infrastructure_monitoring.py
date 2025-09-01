@@ -12,6 +12,8 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Callable
 from dataclasses import dataclass
 from enum import Enum
+from plexichat.core.monitoring.unified_monitoring_system import record_metric
+from plexichat.core.monitoring.resource_tracker import track_memory_usage, track_cpu_usage, track_disk_usage, track_network_usage
 
 logger = logging.getLogger(__name__)
 
@@ -90,6 +92,27 @@ class SystemMonitor:
                 disk_percent=disk_percent,
                 network_io=network_io,
                 process_count=process_count,
+            # Store in history
+            self.metrics_history.append(metrics)
+
+            # Record metrics in unified monitoring system
+            record_metric("cpu_usage_percent", cpu_percent, "percent", {"source": "infrastructure_monitor"})
+            record_metric("memory_percent", memory_percent, "percent", {"source": "infrastructure_monitor"})
+            record_metric("disk_percent", disk_percent, "percent", {"source": "infrastructure_monitor"})
+            record_metric("process_count", process_count, "count", {"source": "infrastructure_monitor"})
+
+            # Track resources
+            track_cpu_usage(cpu_percent)
+            track_memory_usage(memory.total / (1024 * 1024))  # Convert to MB
+            track_disk_usage(disk_percent)
+
+            # Network tracking (convert bytes to MB)
+            if network.bytes_sent > 0 or network.bytes_recv > 0:
+                network_mb = (network.bytes_sent + network.bytes_recv) / (1024 * 1024)
+                track_network_usage(network_mb)
+
+            # Check for alerts
+            self._check_alerts(metrics)
                 timestamp=datetime.now()
             )
             
@@ -189,6 +212,16 @@ class SystemMonitor:
             },
             "disk": {
                 "avg": sum(m.disk_percent for m in recent_metrics) / len(recent_metrics),
+        self.errors.append(error_info)
+        self.error_counts[error_info["type"]] += 1
+
+        # Record error metrics
+        record_metric("error_count", 1, "count", {
+            "error_type": error_info["type"],
+            "source": "infrastructure_monitor"
+        })
+
+        logger.error(f"Error recorded: {error_info['type']} - {error_info['message']}")
                 "max": max(m.disk_percent for m in recent_metrics),
                 "min": min(m.disk_percent for m in recent_metrics)
             }
@@ -264,6 +297,17 @@ class HealthChecker:
             try:
                 start_time = time.time()
                 
+        self.last_results = results
+
+        # Record health check metrics
+        record_metric("health_check_status", 1 if results["overall_status"] == "healthy" else 0, "boolean", {
+            "overall_status": results["overall_status"],
+            "total_checks": len(results["checks"]),
+            "failed_checks": failed_checks,
+            "source": "infrastructure_monitor"
+        })
+
+        return results
                 if asyncio.iscoroutinefunction(check_info["func"]):
                     status = await check_info["func"]()
                 else:
