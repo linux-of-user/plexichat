@@ -341,3 +341,19 @@ def extract_urls(text: str) -> List[str]:
 def paginate_list(items: List[Any], page: int, per_page: int) -> Dict[str, Any]:
     """Paginate a list of items."""
     return helper_utils.paginate_list(items, page, per_page)
+
+class DateTimeUtils:
+    """Optimized datetime utilities using existing helper functions."""
+
+    @staticmethod
+    def parse_datetime(dt_str: str, format_str: str = "%Y-%m-%d %H:%M:%S") -> Optional[datetime]:
+        """Parse datetime from string using optimized helper."""
+        return helper_utils.parse_datetime(dt_str, format_str)
+
+    @staticmethod
+    def parse_iso(iso_str: str) -> Optional[datetime]:
+        """Parse ISO format datetime string."""
+        try:
+            return datetime.fromisoformat(iso_str.replace('Z', '+00:00'))
+        except ValueError:
+            return None
