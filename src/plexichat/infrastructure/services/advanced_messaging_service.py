@@ -369,7 +369,46 @@ class EnhancedMessagingService:
 
 
     async def search_messages(self, query: str, **filters) -> List[Message]:
-        """Search messages with text search and emoji filtering."""
+        """Search messages using advanced search service."""
+        try:
+            # Import here to avoid circular imports
+            from plexichat.core.search_service import get_search_service, SearchFilter
+
+            search_service = await get_search_service()
+
+            # Convert filters to SearchFilter
+            search_filters = SearchFilter(
+                query=query,
+                user_id=filters.get('sender_id'),
+                channel_id=filters.get('channel_id'),
+                date_from=filters.get('date_from'),
+                date_to=filters.get('date_to'),
+                message_type=filters.get('message_type'),
+                has_attachments=filters.get('has_attachments'),
+                limit=filters.get('limit', 50),
+                offset=filters.get('offset', 0)
+            )
+
+            # Perform search
+            results, _ = await search_service.search_messages(search_filters, filters.get('user_id', 'system'))
+
+            # Convert SearchResult back to Message objects
+            messages = []
+            with Session(engine) as session:
+                for result in results:
+                    message = session.get(Message, result.message_id)
+                    if message:
+                        messages.append(message)
+
+            return messages
+
+        except Exception as e:
+            logger.error(f"Failed to search messages: {e}")
+            # Fallback to basic search if advanced search fails
+            return await self._basic_search_messages(query, **filters)
+
+    async def _basic_search_messages(self, query: str, **filters) -> List[Message]:
+        """Fallback basic search implementation."""
         try:
             with Session(engine) as session:
                 search_query = select(Message).where(
@@ -398,7 +437,7 @@ class EnhancedMessagingService:
                 return list(messages)
 
         except Exception as e:
-            logger.error(f"Failed to search messages: {e}")
+            logger.error(f"Failed to perform basic search: {e}")
             return []
 
     async def delete_message(self, message_id: int, user_id: int, force: bool = False) -> bool:

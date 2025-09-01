@@ -525,7 +525,7 @@ class UnifiedAuthManager:
             async with self.db_manager.get_session() as session:
                 result = await session.fetchall(
                     "SELECT DISTINCT ip_address FROM sessions WHERE user_id = ? AND ip_address IS NOT NULL AND is_active = 1",
-                    {"1": user_id}
+                    (user_id,)
                 )
                 return {row['ip_address'] for row in result}
         except Exception as e:
@@ -538,7 +538,7 @@ class UnifiedAuthManager:
             async with self.db_manager.get_session() as session:
                 result = await session.fetchone(
                     "SELECT id FROM devices WHERE device_id = ?",
-                    {"1": device_id}
+                    (device_id,)
                 )
                 return result is not None
         except Exception as e:
@@ -1091,7 +1091,7 @@ class UnifiedAuthManager:
             async with self.db_manager.get_session() as db_session:
                 stored_device_result = await db_session.fetchone(
                     "SELECT is_trusted, first_seen, last_seen FROM devices WHERE device_id = ?",
-                    {"1": device_info.device_id}
+                    (device_info.device_id,)
                 )
 
                 if stored_device_result:
@@ -1295,7 +1295,7 @@ class UnifiedAuthManager:
                         if attempts > challenge_result['max_attempts']:
                             await db_session.execute(
                                 "DELETE FROM mfa_challenges WHERE id = ?",
-                                {"1": challenge_result['id']}
+                                (challenge_result['id'],)
                             )
                             await db_session.commit()
 
@@ -1416,7 +1416,7 @@ class UnifiedAuthManager:
 
                         await db_session.execute(
                             f"UPDATE devices SET {', '.join(update_fields)} WHERE device_id = ?",
-                            {**params, str(len(params) + 1): device_info.device_id}
+                            tuple(params.values()) + (device_info.device_id,)
                         )
 
                         if device_trust and mfa_verified:
@@ -1899,7 +1899,7 @@ class UnifiedAuthManager:
                 # Get session info before invalidating for logging
                 session_result = await db_session.fetchone(
                     "SELECT user_id FROM sessions WHERE id = ? AND is_active = 1",
-                    {"1": session_id}
+                    (session_id,)
                 )
 
                 if not session_result:
@@ -2036,7 +2036,7 @@ class UnifiedAuthManager:
                 # Query session from database
                 session_result = await db_session.fetchone(
                     "SELECT user_id, is_active, is_elevated, elevation_expires_at FROM sessions WHERE id = ? AND is_active = 1",
-                    {"1": session_id}
+                    (session_id,)
                 )
 
                 if not session_result:
