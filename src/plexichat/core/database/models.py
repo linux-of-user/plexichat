@@ -108,6 +108,43 @@ SESSION_SCHEMA = {
     "last_activity": "TEXT NOT NULL",
     "created_at": "TEXT NOT NULL",
     "updated_at": "TEXT NOT NULL",
+    "metadata": "TEXT DEFAULT '{}'",
+    "permissions": "TEXT DEFAULT '[]'",
+    "roles": "TEXT DEFAULT '[]'",
+    "device_info": "TEXT DEFAULT '{}'",
+    "auth_provider": "TEXT DEFAULT 'local'",
+    "mfa_verified": "BOOLEAN DEFAULT FALSE",
+    "risk_score": "REAL DEFAULT 0.0"
+}
+
+DEVICE_SCHEMA = {
+    "id": "TEXT PRIMARY KEY",
+    "device_id": "TEXT UNIQUE NOT NULL",
+    "user_id": "TEXT NOT NULL",
+    "device_type": "TEXT NOT NULL",
+    "os": "TEXT",
+    "browser": "TEXT",
+    "version": "TEXT",
+    "is_trusted": "BOOLEAN DEFAULT FALSE",
+    "first_seen": "TEXT NOT NULL",
+    "last_seen": "TEXT NOT NULL",
+    "created_at": "TEXT NOT NULL",
+    "updated_at": "TEXT NOT NULL",
+    "metadata": "TEXT DEFAULT '{}'"
+}
+
+MFA_CHALLENGE_SCHEMA = {
+    "id": "TEXT PRIMARY KEY",
+    "challenge_id": "TEXT UNIQUE NOT NULL",
+    "user_id": "TEXT NOT NULL",
+    "method": "TEXT NOT NULL",
+    "code": "TEXT",
+    "expires_at": "TEXT NOT NULL",
+    "attempts": "INTEGER DEFAULT 0",
+    "max_attempts": "INTEGER DEFAULT 3",
+    "is_verified": "BOOLEAN DEFAULT FALSE",
+    "created_at": "TEXT NOT NULL",
+    "updated_at": "TEXT NOT NULL",
     "metadata": "TEXT DEFAULT '{}'"
 }
 
@@ -223,6 +260,8 @@ async def create_tables() -> bool:
         "messages": MESSAGE_SCHEMA,
         "channels": CHANNEL_SCHEMA,
         "sessions": SESSION_SCHEMA,
+        "devices": DEVICE_SCHEMA,
+        "mfa_challenges": MFA_CHALLENGE_SCHEMA,
         "plugins": PLUGIN_SCHEMA,
         "events": EVENT_SCHEMA,
         # New tables
@@ -255,6 +294,8 @@ async def drop_tables(table_names: Optional[List[str]] = None) -> bool:
             "messages",
             "channels",
             "sessions",
+            "devices",
+            "mfa_challenges",
             "plugins",
             "events",
             "client_settings",
@@ -280,9 +321,11 @@ async def drop_tables(table_names: Optional[List[str]] = None) -> bool:
 __all__ = [
     "BaseModel",
     "USER_SCHEMA",
-    "MESSAGE_SCHEMA", 
+    "MESSAGE_SCHEMA",
     "CHANNEL_SCHEMA",
     "SESSION_SCHEMA",
+    "DEVICE_SCHEMA",
+    "MFA_CHALLENGE_SCHEMA",
     "PLUGIN_SCHEMA",
     "EVENT_SCHEMA",
     "CLIENT_SETTINGS_SCHEMA",
