@@ -14,8 +14,7 @@ from dataclasses import dataclass
 from enum import Enum
 
 # Unified logging imports
-from plexichat.core.logging import get_logger
-from plexichat.core.logging_system.unified_logger import LogCategory
+from plexichat.core.logging import get_logger, LogCategory
 
 try:
     from plexichat.core.config_manager import get_config
@@ -402,7 +401,7 @@ class DatabaseManager:
                 # Check if table exists
                 if self.config.db_type == "sqlite":
                     check_query = "SELECT name FROM sqlite_master WHERE type='table' AND name=?"
-                    result = await session.fetchone(check_query, {"name": table_name})
+                    result = await session.fetchone(check_query, (table_name,))
                 else:
                     check_query = "SELECT table_name FROM information_schema.tables WHERE table_name = :name"
                     result = await session.fetchone(check_query, {"name": table_name})

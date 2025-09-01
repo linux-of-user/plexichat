@@ -119,7 +119,7 @@ class AuthenticationCache:
         self.revoked_token_jtis: Set[str] = set()
         self.invalidated_users: Set[str] = set()
         
-        logger.info("🔐 Authentication Cache System initialized")
+        logger.info("[SECURE] Authentication Cache System initialized")
 
     def _generate_cache_key(self, cache_type: AuthCacheType, identifier: str) -> str:
         """Generate a secure cache key for authentication data."""
@@ -190,7 +190,7 @@ class AuthenticationCache:
             self._update_performance_metrics("token_cache_set", operation_time)
             
             if success:
-                logger.debug(f"🔐 Cached token verification result (TTL: {ttl}s)")
+                logger.debug(f"[SECURE] Cached token verification result (TTL: {ttl}s)")
                 
                 # Track frequently accessed tokens for cache warming
                 if is_valid:
@@ -226,17 +226,17 @@ class AuthenticationCache:
                 
                 # Check if token is in revoked list
                 if cached_data.jti and cached_data.jti in self.revoked_token_jtis:
-                    logger.debug("🔐 Token found in revoked list, invalidating cache")
+                    logger.debug("[SECURE] Token found in revoked list, invalidating cache")
                     await self.invalidate_token_cache(token)
                     self.stats.token_cache_misses += 1
                     return None
                 
-                logger.debug("🔐 Token verification cache hit")
+                logger.debug("[SECURE] Token verification cache hit")
                 return cached_data
             else:
                 self.stats.token_cache_misses += 1
                 self._update_performance_metrics("token_cache_miss", operation_time)
-                logger.debug("🔐 Token verification cache miss")
+                logger.debug("[SECURE] Token verification cache miss")
                 return None
                 
         except Exception as e:
@@ -266,7 +266,7 @@ class AuthenticationCache:
             )
             
             if success:
-                logger.debug(f"🔐 Cached permissions for user: {user_id}")
+                logger.debug(f"[SECURE] Cached permissions for user: {user_id}")
                 self.frequently_accessed_users.add(user_id)
                 
                 # Limit frequently accessed users tracking
@@ -297,12 +297,12 @@ class AuthenticationCache:
                 
                 # Check if user permissions were invalidated
                 if user_id in self.invalidated_users:
-                    logger.debug(f"🔐 User {user_id} permissions invalidated, removing from cache")
+                    logger.debug(f"[SECURE] User {user_id} permissions invalidated, removing from cache")
                     await self.invalidate_user_cache(user_id)
                     self.stats.permission_cache_misses += 1
                     return None
                 
-                logger.debug(f"🔐 Permission cache hit for user: {user_id}")
+                logger.debug(f"[SECURE] Permission cache hit for user: {user_id}")
                 return cached_data
             else:
                 self.stats.permission_cache_misses += 1
@@ -343,7 +343,7 @@ class AuthenticationCache:
             )
             
             if success:
-                logger.debug("🔐 Cached API key validation result")
+                logger.debug("[SECURE] Cached API key validation result")
             
             return success
             
@@ -369,12 +369,12 @@ class AuthenticationCache:
                 
                 # Check if API key has expired
                 if cached_data.expires_at and datetime.now(timezone.utc) > cached_data.expires_at:
-                    logger.debug("🔐 Cached API key has expired, invalidating")
+                    logger.debug("[SECURE] Cached API key has expired, invalidating")
                     await self.cache.delete(cache_key)
                     self.stats.api_key_cache_misses += 1
                     return None
                 
-                logger.debug("🔐 API key validation cache hit")
+                logger.debug("[SECURE] API key validation cache hit")
                 return cached_data
             else:
                 self.stats.api_key_cache_misses += 1
@@ -396,7 +396,7 @@ class AuthenticationCache:
             
             if success:
                 self.stats.cache_invalidations += 1
-                logger.debug("🔐 Invalidated token cache")
+                logger.debug("[SECURE] Invalidated token cache")
             
             return success
             
@@ -423,7 +423,7 @@ class AuthenticationCache:
                 self.invalidated_users = set(list(self.invalidated_users)[-1000:])
             
             self.stats.cache_invalidations += 1
-            logger.debug(f"🔐 Invalidated all cache for user: {user_id}")
+            logger.debug(f"[SECURE] Invalidated all cache for user: {user_id}")
             return True
             
         except Exception as e:
@@ -439,7 +439,7 @@ class AuthenticationCache:
             if len(self.revoked_token_jtis) > 10000:
                 self.revoked_token_jtis = set(list(self.revoked_token_jtis)[-10000:])
             
-            logger.debug(f"🔐 Marked token JTI as revoked: {jti}")
+            logger.debug(f"[SECURE] Marked token JTI as revoked: {jti}")
             return True
             
         except Exception as e:
@@ -454,7 +454,7 @@ class AuthenticationCache:
         warmed_count = 0
         
         try:
-            logger.info("🔐 Starting authentication cache warming")
+            logger.info("[SECURE] Starting authentication cache warming")
             
             # Warm user permissions for frequently accessed users
             for user_id in list(self.frequently_accessed_users):
@@ -465,14 +465,14 @@ class AuthenticationCache:
                         # Fetch from security system and cache
                         # This would typically involve calling the security system
                         # For now, we'll skip actual fetching to avoid dependencies
-                        logger.debug(f"🔐 Would warm cache for user: {user_id}")
+                        logger.debug(f"[SECURE] Would warm cache for user: {user_id}")
                         warmed_count += 1
                         
                 except Exception as e:
                     logger.warning(f"Failed to warm cache for user {user_id}: {e}")
             
             self.stats.cache_warming_operations += warmed_count
-            logger.info(f"🔐 Cache warming completed: {warmed_count} entries warmed")
+            logger.info(f"[SECURE] Cache warming completed: {warmed_count} entries warmed")
             
         except Exception as e:
             logger.error(f"Cache warming failed: {e}")
@@ -509,7 +509,7 @@ class AuthenticationCache:
             self.frequently_accessed_users.clear()
             self.frequently_accessed_tokens.clear()
             
-            logger.info("🔐 Cleared all authentication cache tracking data")
+            logger.info("[SECURE] Cleared all authentication cache tracking data")
             return True
             
         except Exception as e:
@@ -612,7 +612,7 @@ async def shutdown_auth_cache() -> None:
     if _global_auth_cache:
         await _global_auth_cache.clear_all_auth_cache()
         _global_auth_cache = None
-        logger.info("🔐 Authentication Cache System shut down")
+        logger.info("[SECURE] Authentication Cache System shut down")
 
 
 __all__ = [

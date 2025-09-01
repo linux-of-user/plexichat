@@ -17,8 +17,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, validator
 import re
 
-from plexichat.core.auth.dependencies import get_current_user, require_admin
-from plexichat.core.security.rate_limiting import rate_limit
+from plexichat.core.auth.fastapi_adapter import get_current_user, require_admin, rate_limit
 from plexichat.core.logging.pii_redaction import redact_pii
 from plexichat.features.backup.backup_engine import BackupEngine, BackupType, SecurityLevel
 from plexichat.features.backup.encryption_service import EncryptionService
@@ -115,7 +114,7 @@ def sanitize_log_data(data: Dict[str, Any]) -> Dict[str, Any]:
 
 
 @router.post("/", response_model=BackupResponse)
-@rate_limit(requests_per_minute=10, key_func=lambda request: f"backup_create:{get_client_ip(request)}")
+@rate_limit(action="backup_create", limit=10, window_seconds=60)
 async def create_backup(
     request: BackupCreateRequest,
     background_tasks: BackgroundTasks,
@@ -194,7 +193,7 @@ async def create_backup(
 
 
 @router.get("/")
-@rate_limit(requests_per_minute=30, key_func=lambda request: f"backup_list:{get_client_ip(request)}")
+@rate_limit(action="backup_list", limit=30, window_seconds=60)
 async def list_backups(
     limit: int = 50,
     offset: int = 0,
@@ -243,7 +242,7 @@ async def list_backups(
 
 
 @router.get("/{backup_id}")
-@rate_limit(requests_per_minute=60, key_func=lambda request: f"backup_get:{get_client_ip(request)}")
+@rate_limit(action="backup_get", limit=60, window_seconds=60)
 async def get_backup(
     backup_id: str,
     current_user: dict = Depends(get_current_user)
@@ -290,7 +289,7 @@ async def get_backup(
 
 
 @router.delete("/{backup_id}")
-@rate_limit(requests_per_minute=5, key_func=lambda request: f"backup_delete:{get_client_ip(request)}")
+@rate_limit(action="backup_delete", limit=5, window_seconds=60)
 async def delete_backup(
     backup_id: str,
     current_user: dict = Depends(get_current_user)
@@ -336,7 +335,7 @@ async def delete_backup(
 
 
 @router.post("/{backup_id}/rotate-keys")
-@rate_limit(requests_per_minute=2, key_func=lambda request: f"backup_rotate:{get_client_ip(request)}")
+@rate_limit(action="backup_rotate", limit=2, window_seconds=60)
 async def rotate_backup_keys(
     backup_id: str,
     current_user: dict = Depends(get_current_user)

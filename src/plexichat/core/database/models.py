@@ -85,6 +85,21 @@ MESSAGE_SCHEMA = {
     "deleted_at": "TEXT",
     "metadata": "TEXT DEFAULT '{}'"
 }
+THREAD_SCHEMA = {
+    "id": "TEXT PRIMARY KEY",
+    "title": "TEXT NOT NULL",
+    "channel_id": "TEXT NOT NULL",
+    "creator_id": "TEXT NOT NULL",
+    "parent_message_id": "TEXT",
+    "is_resolved": "BOOLEAN DEFAULT FALSE",
+    "participant_count": "INTEGER DEFAULT 1",
+    "message_count": "INTEGER DEFAULT 0",
+    "last_message_at": "TEXT",
+    "created_at": "TEXT NOT NULL",
+    "updated_at": "TEXT NOT NULL",
+    "metadata": "TEXT DEFAULT '{}'"
+}
+
 
 CHANNEL_SCHEMA = {
     "id": "TEXT PRIMARY KEY",
@@ -261,6 +276,7 @@ async def create_tables() -> bool:
     tables = {
         "users": USER_SCHEMA,
         "messages": MESSAGE_SCHEMA,
+        "threads": THREAD_SCHEMA,
         "channels": CHANNEL_SCHEMA,
         "sessions": SESSION_SCHEMA,
         "devices": DEVICE_SCHEMA,
@@ -293,6 +309,7 @@ async def drop_tables(table_names: Optional[List[str]] = None) -> bool:
     """Drop specified tables or all tables."""
     if table_names is None:
         table_names = [
+            "threads",
             "users",
             "messages",
             "channels",
@@ -323,6 +340,7 @@ async def drop_tables(table_names: Optional[List[str]] = None) -> bool:
 
 __all__ = [
     "BaseModel",
+    "THREAD_SCHEMA",
     "USER_SCHEMA",
     "MESSAGE_SCHEMA",
     "CHANNEL_SCHEMA",

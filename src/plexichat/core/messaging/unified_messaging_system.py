@@ -118,6 +118,22 @@ class Channel:
     max_members: int = 1000
     encryption_level: EncryptionLevel = EncryptionLevel.ENHANCED
 
+@dataclass
+class Thread:
+    """Thread structure for organizing message conversations."""
+    thread_id: str
+    title: str
+    channel_id: str
+    creator_id: str
+    parent_message_id: Optional[str] = None
+    is_resolved: bool = False
+    participant_count: int = 1
+    message_count: int = 0
+    last_message_at: Optional[datetime] = None
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    participants: Set[str] = field(default_factory=set)
+
 
 class MessageValidator:
     """Validates messages for security and compliance."""
@@ -306,6 +322,9 @@ class UnifiedMessagingSystem:
         
         # Message storage
         self.messages: Dict[str, Message] = {}
+        # Thread storage
+        self.threads: Dict[str, Thread] = {}
+        self.thread_messages: Dict[str, List[str]] = {}
         self.message_history: Dict[str, List[str]] = {}
         
         # Real-time subscribers
@@ -333,13 +352,11 @@ class UnifiedMessagingSystem:
             'channels_created': 0,
             'users_active': 0
         }
-        
-        logger.info("Unified Messaging System initialized with watertight security")
-    
-    async def send_message(self, sender_id: str, channel_id: str, content: str, 
+    async def send_message(self, sender_id: str, channel_id: str, content: str,
                           message_type: MessageType = MessageType.TEXT,
                           attachments: Optional[List[Dict[str, Any]]] = None,
-                          reply_to: Optional[str] = None) -> Tuple[bool, str, Optional[Message]]:
+                          reply_to: Optional[str] = None,
+                          thread_id: Optional[str] = None) -> Tuple[bool, str, Optional[Message]]:
         """
         Send a message with comprehensive security validation.
         
@@ -347,6 +364,14 @@ class UnifiedMessagingSystem:
             Tuple of (success, message_id_or_error, message_object)
         """
         try:
+            metadata = MessageMetadata(
+                message_id=message_id,
+                sender_id=sender_id,
+                channel_id=channel_id,
+                message_type=message_type,
+                reply_to=reply_to,
+                thread_id=thread_id
+            )
             # Security validation
             if self.security_system:
                 valid, issues = await self.security_system.validate_request_security(content)
@@ -360,7 +385,8 @@ class UnifiedMessagingSystem:
                 sender_id=sender_id,
                 channel_id=channel_id,
                 message_type=message_type,
-                reply_to=reply_to
+                reply_to=reply_to,
+                thread_id=thread_id
             )
             
             message = Message(
@@ -387,7 +413,21 @@ class UnifiedMessagingSystem:
             if channel_id not in self.message_history:
                 self.message_history[channel_id] = []
             self.message_history[channel_id].append(message_id)
-            
+
+            # Add to thread history if thread_id is provided
+            if thread_id:
+                if thread_id not in self.thread_messages:
+                    self.thread_messages[thread_id] = []
+                self.thread_messages[thread_id].append(message_id)
+
+                # Update thread statistics
+                if thread_id in self.threads:
+                    thread = self.threads[thread_id]
+                    thread.message_count += 1
+                    thread.last_message_at = datetime.now(timezone.utc)
+                    thread.participants.add(sender_id)
+                    thread.participant_count = len(thread.participants)
+
             # Route and deliver
             destinations = self.router.route_message(message)
             await self._deliver_message(message, destinations)
@@ -478,6 +518,164 @@ class UnifiedMessagingSystem:
             'security_enabled': security_available,
             'encryption_enabled': True
         }
+    async def create_thread(self, title: str, channel_id: str, creator_id: str,
+                           parent_message_id: Optional[str] = None) -> Tuple[bool, str, Optional[Thread]]:
+        """Create a new thread."""
+        try:
+            thread_id = str(uuid4())
+            thread = Thread(
+                thread_id=thread_id,
+                title=title,
+                channel_id=channel_id,
+                creator_id=creator_id,
+                parent_message_id=parent_message_id,
+                participants={creator_id}
+            )
+
+            # Store thread
+            self.threads[thread_id] = thread
+            self.thread_messages[thread_id] = []
+
+            # Update metrics
+            self.metrics['threads_created'] = self.metrics.get('threads_created', 0) + 1
+
+            return True, thread_id, thread
+
+        except Exception as e:
+            logger.error(f"Error creating thread: {e}")
+            return False, f"Internal error: {str(e)}", None
+
+    async def send_thread_message(self, sender_id: str, thread_id: str, content: str,
+                                 message_type: MessageType = MessageType.TEXT,
+                                 attachments: Optional[List[Dict[str, Any]]] = None,
+                                 reply_to: Optional[str] = None) -> Tuple[bool, str, Optional[Message]]:
+        """Send a message in a thread."""
+        try:
+            if thread_id not in self.threads:
+                return False, "Thread not found", None
+
+            thread = self.threads[thread_id]
+
+            # Create message with thread_id
+            message_id = str(uuid4())
+            metadata = MessageMetadata(
+                message_id=message_id,
+                sender_id=sender_id,
+                channel_id=thread.channel_id,
+                message_type=message_type,
+                reply_to=reply_to,
+                thread_id=thread_id
+            )
+
+            message = Message(
+                metadata=metadata,
+                content=content,
+                attachments=attachments or []
+            )
+
+            # Validate message
+            valid, validation_issues = self.validator.validate_message(message)
+            if not valid:
+                return False, f"Validation failed: {', '.join(validation_issues)}", None
+
+            # Encrypt message
+            encrypted_content = self.encryption.encrypt_message(
+                message, metadata.encryption_level
+            )
+            message.content = encrypted_content
+
+            # Store message
+            self.messages[message_id] = message
+
+            # Add to thread message history
+            if thread_id not in self.thread_messages:
+                self.thread_messages[thread_id] = []
+            self.thread_messages[thread_id].append(message_id)
+
+            # Update thread
+            thread.message_count += 1
+            thread.last_message_at = datetime.now(timezone.utc)
+            thread.participants.add(sender_id)
+            thread.participant_count = len(thread.participants)
+
+            # Route and deliver
+            destinations = self.router.route_message(message)
+            await self._deliver_message(message, destinations)
+
+            # Update metrics
+            self.metrics['messages_sent'] += 1
+            self.metrics['messages_delivered'] += len(destinations)
+
+            # Mark as sent
+            message.status = MessageStatus.SENT
+
+            return True, message_id, message
+
+        except Exception as e:
+            logger.error(f"Error sending thread message: {e}")
+            self.metrics['messages_failed'] += 1
+            return False, f"Internal error: {str(e)}", None
+
+    async def get_thread_messages(self, thread_id: str, limit: int = 50,
+                                 before_message_id: Optional[str] = None) -> List[Message]:
+        """Get messages from a thread with pagination."""
+        if thread_id not in self.thread_messages:
+            return []
+
+        message_ids = self.thread_messages[thread_id]
+
+        # Apply pagination
+        if before_message_id:
+            try:
+                before_index = message_ids.index(before_message_id)
+                message_ids = message_ids[:before_index]
+            except ValueError:
+                pass
+
+        # Get latest messages
+        recent_ids = message_ids[-limit:] if len(message_ids) > limit else message_ids
+
+        # Decrypt and return messages
+        messages = []
+        for msg_id in recent_ids:
+            if msg_id in self.messages:
+                message = self.messages[msg_id]
+                # Decrypt content for display
+                decrypted_content = self.encryption.decrypt_message(
+                    message.content, message.metadata.encryption_level
+                )
+                # Create a copy with decrypted content
+                display_message = Message(
+                    metadata=message.metadata,
+                    content=decrypted_content,
+                    attachments=message.attachments,
+                    reactions=message.reactions,
+                    mentions=message.mentions,
+                    status=message.status
+                )
+                messages.append(display_message)
+
+        return messages
+
+    def get_channel_threads(self, channel_id: str) -> List[Thread]:
+        """Get all threads in a channel."""
+        return [thread for thread in self.threads.values()
+                if thread.channel_id == channel_id]
+
+    def get_thread(self, thread_id: str) -> Optional[Thread]:
+        """Get a thread by ID."""
+        return self.threads.get(thread_id)
+
+    async def resolve_thread(self, thread_id: str, resolver_id: str) -> bool:
+        """Mark a thread as resolved."""
+        if thread_id not in self.threads:
+            return False
+
+        thread = self.threads[thread_id]
+        thread.is_resolved = True
+        thread.updated_at = datetime.now(timezone.utc)
+
+        return True
     
     async def shutdown(self) -> None:
         """Shutdown the messaging system."""
@@ -515,6 +713,7 @@ __all__ = [
     "UnifiedMessagingSystem",
     "Message",
     "Channel",
+    "Thread",
     "MessageMetadata",
     "MessageType",
     "MessageStatus",
@@ -527,55 +726,4 @@ __all__ = [
     "get_messaging_system",
     "initialize_messaging_system",
     "shutdown_messaging_system"
-    async def handle_typing_start(self, user_id: str, channel_id: str) -> bool:
-        """Handle typing start event."""
-        try:
-            # Import WebSocket manager here to avoid circular imports
-            from plexichat.core.websocket.websocket_manager import websocket_manager
-
-            # Find connection for user
-            connection_id = None
-            for conn_id, connection in websocket_manager.connections.items():
-                if connection.user_id == int(user_id):
-                    connection_id = conn_id
-                    break
-
-            if connection_id:
-                return await websocket_manager.start_typing(connection_id, channel_id)
-            return False
-
-        except Exception as e:
-            logger.error(f"Error handling typing start: {e}")
-            return False
-
-    async def handle_typing_stop(self, user_id: str, channel_id: str) -> bool:
-        """Handle typing stop event."""
-        try:
-            # Import WebSocket manager here to avoid circular imports
-            from plexichat.core.websocket.websocket_manager import websocket_manager
-
-            # Find connection for user
-            connection_id = None
-            for conn_id, connection in websocket_manager.connections.items():
-                if connection.user_id == int(user_id):
-                    connection_id = conn_id
-                    break
-
-            if connection_id:
-                return await websocket_manager.stop_typing(connection_id, channel_id)
-            return False
-
-        except Exception as e:
-            logger.error(f"Error handling typing stop: {e}")
-            return False
-
-    def get_typing_users(self, channel_id: str) -> List[str]:
-        """Get list of users currently typing in channel."""
-        try:
-            # Import WebSocket manager here to avoid circular imports
-            from plexichat.core.websocket.websocket_manager import get_typing_users
-            return get_typing_users(channel_id)
-        except Exception as e:
-            logger.error(f"Error getting typing users: {e}")
-            return []
 ]

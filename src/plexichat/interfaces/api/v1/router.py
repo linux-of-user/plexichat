@@ -30,6 +30,7 @@ from plexichat.interfaces.api.v1.search import router as search_router
 from plexichat.interfaces.api.v1.notifications import router as notifications_router
 from plexichat.interfaces.api.v1.backups import router as backups_router
 from plexichat.interfaces.api.v1.shards import router as shards_router
+from plexichat.interfaces.api.v1.threads import router as threads_router
 
 # Try to import user_settings router with fallback
 try:
@@ -37,7 +38,7 @@ try:
 
     user_settings_available = True
 except ImportError as e:
-    logger.warning(f"User settings router not available: {e}"]
+    logger.warning(f"User settings router not available: {e}")
     user_settings_router = None
     user_settings_available = False
 
@@ -66,6 +67,8 @@ router.include_router(auth_router)
 router.include_router(users_router, dependencies=[Depends(get_current_user)])
 
 # Messaging requires authentication
+# Threads require authentication
+router.include_router(threads_router, dependencies=[Depends(get_current_user)])
 router.include_router(messages_router, dependencies=[Depends(get_current_user)])
 
 # Files require authentication (uploads/downloads)
@@ -115,6 +118,7 @@ async def api_root():
         "description": "Simple, secure messaging API",
         "timestamp": datetime.now(),
         "endpoints": {
+            "threads": "/api/v1/threads",
             "authentication": "/api/v1/auth",
             "users": "/api/v1/users",
             "messages": "/api/v1/messages",

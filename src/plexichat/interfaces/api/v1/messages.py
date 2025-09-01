@@ -21,6 +21,11 @@ messages_db: Dict[str, Dict] = {}
 class MessageCreate(BaseModel):
     recipient_id: str
     content: str = Field(..., max_length=10000)
+    thread_id: Optional[str] = None
+    reply_to: Optional[str] = None
+class MessageCreate(BaseModel):
+    recipient_id: str
+    content: str = Field(..., max_length=10000)
 
 class MessageResponse(BaseModel):
     id: str
@@ -37,6 +42,41 @@ class ReactionResponse(BaseModel):
     emoji: str
     users: List[str]
     count: int
+@router.post("/send", response_model=MessageResponse)
+async def send_message(message_data: MessageCreate, current_user: dict = Depends(get_current_user)):
+    """Send a message to another user or in a thread."""
+    messaging_system = get_messaging_system()
+
+    # Determine if this is a direct message or thread message
+    if message_data.thread_id:
+        # Send message in thread
+        success, message_id_or_error, message = await messaging_system.send_thread_message(
+            sender_id=current_user["id"],
+            thread_id=message_data.thread_id,
+            content=message_data.content,
+            reply_to=message_data.reply_to
+        )
+    else:
+        # Send direct message
+        success, message_id_or_error, message = await messaging_system.send_message(
+            sender_id=current_user["id"],
+            channel_id=message_data.recipient_id,  # Using recipient_id as channel_id for now
+            content=message_data.content,
+            reply_to=message_data.reply_to,
+            thread_id=message_data.thread_id
+        )
+
+    if not success:
+        raise HTTPException(status_code=400, detail=message_id_or_error)
+
+    return MessageResponse(
+        id=message_id_or_error,
+        sender_id=current_user["id"],
+        recipient_id=message_data.recipient_id,
+        content=message_data.content,
+        timestamp=datetime.now(),
+        reactions=None
+    )
 
 def encrypt_message(content: str) -> str:
     """Simulates message encryption."""

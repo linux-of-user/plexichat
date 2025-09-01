@@ -42,10 +42,10 @@ class PerformanceMetrics(BaseModel):
     network_sent: int
     network_recv: int
 
-from plexichat.core.versioning.changelog_manager import get_version, get_version_info
-from plexichat.interfaces.api.v1.auth import users_db, sessions_db
-from plexichat.interfaces.api.v1.messages import messages_db
-from plexichat.interfaces.api.v1.files import files_db
+# from plexichat.core.versioning.changelog_manager import get_version, get_version_info  # Disabled due to missing functions
+# from plexichat.interfaces.api.v1.auth import users_db, sessions_db
+# from plexichat.interfaces.api.v1.messages import messages_db
+# from plexichat.interfaces.api.v1.files import files_db
 
 # System startup time
 STARTUP_TIME = datetime.now()

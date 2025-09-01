@@ -7,6 +7,7 @@ Main API application with threading and performance optimization.
 import json
 import logging
 import time
+import uuid
 from contextlib import asynccontextmanager
 try:
     from fastapi import FastAPI, Request, HTTPException
@@ -59,6 +60,14 @@ try:
     from plexichat.core.logging import get_performance_logger
 except ImportError:
     get_performance_logger = None
+
+# Utility function to ensure unicode-free logging
+def sanitize_for_logging(text):
+    """Sanitize text for logging to ensure it's unicode-free and safe."""
+    if not isinstance(text, str):
+        text = str(text)
+    # Replace any problematic unicode characters with safe alternatives
+    return text.encode('ascii', 'replace').decode('ascii')
 
 logger = logging.getLogger(__name__)
 performance_logger = get_performance_logger() if get_performance_logger else None
@@ -179,24 +188,131 @@ async def performance_middleware(request: Request, call_next):
 
     return response
 
+# Comprehensive logging middleware
+async def logging_middleware(request: Request, call_next):
+    """Comprehensive request/response logging middleware with correlation ID tracking."""
+    # Generate correlation ID
+    correlation_id = str(uuid.uuid4())
+
+    # Add correlation ID to request state
+    request.state.correlation_id = correlation_id
+
+    # Extract request information
+    method = request.method
+    url = str(request.url)
+    path = request.url.path
+    query_params = str(request.url.query) if request.url.query else ""
+    user_agent = request.headers.get("user-agent", "")
+    content_type = request.headers.get("content-type", "")
+    content_length = request.headers.get("content-length", "0")
+
+    # Get client information
+    client_host = request.client.host if request.client else "unknown"
+    client_port = request.client.port if request.client else "unknown"
+
+    # Log request start (unicode-free)
+    logger.info(
+        f"REQUEST_START | correlation_id={correlation_id} | method={sanitize_for_logging(method)} | "
+        f"path={sanitize_for_logging(path)} | query={sanitize_for_logging(query_params)} | "
+        f"client={sanitize_for_logging(client_host)}:{sanitize_for_logging(str(client_port))} | "
+        f"user_agent={sanitize_for_logging(user_agent)} | content_type={sanitize_for_logging(content_type)} | "
+        f"content_length={sanitize_for_logging(content_length)}"
+    )
+
+    # Track specific endpoints
+    if path.startswith("/api/v1/threads"):
+        logger.info(f"THREADS_ENDPOINT | correlation_id={correlation_id} | path={sanitize_for_logging(path)}")
+
+    start_time = time.time()
+
+    try:
+        # Process the request
+        response = await call_next(request)
+
+        # Calculate processing time
+        process_time = time.time() - start_time
+
+        # Extract response information
+        status_code = response.status_code
+        response_content_length = getattr(response, 'content_length', 0) or response.headers.get("content-length", "0")
+        response_content_type = response.headers.get("content-type", "")
+
+        # Log response (unicode-free)
+        logger.info(
+            f"REQUEST_COMPLETE | correlation_id={correlation_id} | status={status_code} | "
+            f"duration={process_time:.4f}s | response_length={sanitize_for_logging(response_content_length)} | "
+            f"response_type={sanitize_for_logging(response_content_type)}"
+        )
+
+        # Add correlation ID to response headers
+        response.headers["X-Correlation-ID"] = correlation_id
+
+        return response
+
+    except Exception as e:
+        # Calculate processing time for errors
+        process_time = time.time() - start_time
+
+        # Log error (unicode-free)
+        logger.error(
+            f"REQUEST_ERROR | correlation_id={correlation_id} | duration={process_time:.4f}s | "
+            f"error_type={sanitize_for_logging(type(e).__name__)} | "
+            f"error_message={sanitize_for_logging(str(e))}"
+        )
+
+        # Re-raise the exception
+        raise
+
 if app:
     app.middleware("http")(performance_middleware)
+    app.middleware("http")(logging_middleware)
 
-# Exception handlers
-async def validation_exception_handler(_request: Request, exc: Exception):
-    """Handle validation exceptions."""
+# Enhanced exception handlers with full context logging
+async def validation_exception_handler(request: Request, exc: Exception):
+    """Handle validation exceptions with full context logging."""
+    correlation_id = getattr(request.state, 'correlation_id', 'unknown')
+
+    # Log validation error with full context (unicode-free)
+    logger.warning(
+        f"VALIDATION_ERROR | correlation_id={correlation_id} | path={sanitize_for_logging(request.url.path)} | "
+        f"method={sanitize_for_logging(request.method)} | "
+        f"client={sanitize_for_logging(request.client.host if request.client else 'unknown')} | "
+        f"error_type={sanitize_for_logging(type(exc).__name__)} | "
+        f"error_message={sanitize_for_logging(str(exc))}"
+    )
+
+    if performance_logger:
+        performance_logger.increment_counter("api_validation_errors", 1)
+
     return JSONResponse(
         status_code=422,
         content={
             "error": "Validation Error",
             "message": str(exc),
-            "timestamp": time.time()
+            "correlation_id": correlation_id,
+            "timestamp": time.time(),
+            "path": request.url.path
         }
     )
 
-async def general_exception_handler(_request: Request, exc: Exception):
-    """Handle general exceptions."""
-    logger.error(f"Unhandled exception: {exc}")
+async def general_exception_handler(request: Request, exc: Exception):
+    """Handle general exceptions with full context logging."""
+    correlation_id = getattr(request.state, 'correlation_id', 'unknown')
+
+    # Log general error with full context (unicode-free)
+    logger.error(
+        f"GENERAL_EXCEPTION | correlation_id={correlation_id} | path={sanitize_for_logging(request.url.path)} | "
+        f"method={sanitize_for_logging(request.method)} | "
+        f"client={sanitize_for_logging(request.client.host if request.client else 'unknown')} | "
+        f"error_type={sanitize_for_logging(type(exc).__name__)} | "
+        f"error_message={sanitize_for_logging(str(exc))} | "
+        f"user_agent={sanitize_for_logging(request.headers.get('user-agent', ''))} | "
+        f"query_params={sanitize_for_logging(str(request.url.query) if request.url.query else '')}"
+    )
+
+    # Log stack trace for debugging (unicode-free)
+    import traceback
+    logger.error(f"EXCEPTION_TRACE | correlation_id={correlation_id} | traceback={sanitize_for_logging(traceback.format_exc())}")
 
     if performance_logger:
         performance_logger.increment_counter("api_errors", 1)
@@ -206,7 +322,9 @@ async def general_exception_handler(_request: Request, exc: Exception):
         content={
             "error": "Internal Server Error",
             "message": "An unexpected error occurred",
-            "timestamp": time.time()
+            "correlation_id": correlation_id,
+            "timestamp": time.time(),
+            "path": request.url.path
         }
     )
 
@@ -336,42 +454,15 @@ async def get_current_user(request: Request):
         logger.error(f"Authentication error: {e}")
         raise HTTPException(status_code=401, detail="Authentication failed")
 
-# Include routers
+# Include v1 router
 if app:
     try:
-        from plexichat.interfaces.api.routers.messages_router import router as messages_router
-        if messages_router:
-            app.include_router(messages_router)
-    except ImportError:
-        logger.warning("Could not import messages router")
-
-    try:
-        from plexichat.interfaces.api.routers.users_router import router as users_router
-        if users_router:
-            app.include_router(users_router)
-    except ImportError:
-        logger.warning("Could not import users router")
-
-    try:
-        from plexichat.interfaces.web.routers.files import router as files_router
-        if files_router:
-            app.include_router(files_router)
-    except ImportError:
-        logger.warning("Could not import files router")
-
-    try:
-        from plexichat.core.notifications.notification_manager import notification_manager
-        # Create a simple notifications router if needed
-        logger.info("Notifications router not found, using notification manager directly")
-    except ImportError:
-        logger.warning("Could not import notifications system")
-
-    try:
-        from plexichat.interfaces.api.routers.status_router import router as status_router
-        if status_router:
-            app.include_router(status_router)
-    except ImportError:
-        logger.warning("Could not import status router")
+        from plexichat.interfaces.api.v1.router import router as v1_router
+        app.include_router(v1_router)
+        logger.info("Successfully included v1 API router")
+    except ImportError as e:
+        logger.error(f"Failed to import v1 router: {e}")
+        raise
 
 # WebSocket endpoint
 @app.websocket("/ws/{user_id}") if app else lambda: None

@@ -488,7 +488,18 @@ class UnifiedAuditSystem:
     immutable blockchain-based trails and comprehensive security monitoring.
     """
     def __init__(self, config: Optional[Dict[str, Any]] = None):
-        raw_config: Any = config if isinstance(config, dict) else get_config().get("audit", {})  # type: ignore[reportUnknownMemberType]
+        if config is not None:
+            raw_config: Any = config
+        else:
+            # Try to get audit config from unified config system
+            try:
+                unified_config = get_config()
+                # Access audit config through attribute access
+                audit_config = getattr(unified_config, 'audit', {})
+                raw_config: Any = audit_config if isinstance(audit_config, dict) else {}
+            except (AttributeError, TypeError):
+                # Fallback to empty config if unified config is not available
+                raw_config: Any = {}
         self.config: Dict[str, Any] = raw_config if isinstance(raw_config, dict) else {}
         self.initialized = False
 

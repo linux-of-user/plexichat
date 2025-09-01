@@ -100,6 +100,8 @@ class WebSocketManager:
         self.total_connections = 0
         self.total_messages = 0
         self.total_disconnections = 0
+        # Thread events
+        self.thread_subscribers: Dict[str, Set[str]] = {}  # thread_id -> set of connection_ids
         # Typing indicators
         self.typing_states: Dict[str, Dict[str, datetime]] = {}  # channel_id -> {user_id: last_typing_time}
         self.typing_timeout = 3.0  # seconds
@@ -166,6 +168,13 @@ class WebSocketManager:
                 user_connections = self.user_connections.get(target_id, set())
                 connections_to_send = [
                     self.connections[conn_id] for conn_id in user_connections
+                    if conn_id in self.connections
+                ]
+            elif target_type == "thread" and target_id:
+                # Send to thread subscribers
+                thread_connections = self.thread_subscribers.get(target_id, set())
+                connections_to_send = [
+                    self.connections[conn_id] for conn_id in thread_connections
                     if conn_id in self.connections
                 ]
             elif target_type == "channel" and target_id:
@@ -260,6 +269,12 @@ class WebSocketManager:
                 user_connections = self.user_connections.get(connection.user_id, set())
                 user_connections.discard(connection_id)
                 if not user_connections:
+            # Remove from thread subscribers
+            for thread_id in list(self.thread_subscribers.keys()):
+                thread_connections = self.thread_subscribers.get(thread_id, set())
+                thread_connections.discard(connection_id)
+                if not thread_connections:
+                    del self.thread_subscribers[thread_id]
                     del self.user_connections[connection.user_id]
 
             # Remove from channel connections
@@ -327,6 +342,58 @@ class WebSocketManager:
             logger.info(f"Connection {connection_id} left channel {channel}")
             return True
 
+    async def join_thread(self, connection_id: str, thread_id: str) -> bool:
+        """Join connection to thread for real-time updates."""
+        try:
+            connection = self.connections.get(connection_id)
+            if not connection:
+                return False
+
+            # Add to thread subscribers
+            if thread_id not in self.thread_subscribers:
+                self.thread_subscribers[thread_id] = set()
+            self.thread_subscribers[thread_id].add(connection_id)
+
+            logger.info(f"Connection {connection_id} joined thread {thread_id}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Error joining thread {thread_id}: {e}")
+            return False
+
+    async def leave_thread(self, connection_id: str, thread_id: str) -> bool:
+        """Leave connection from thread."""
+        try:
+            # Remove from thread subscribers
+            if thread_id in self.thread_subscribers:
+                self.thread_subscribers[thread_id].discard(connection_id)
+                if not self.thread_subscribers[thread_id]:
+                    del self.thread_subscribers[thread_id]
+
+            logger.info(f"Connection {connection_id} left thread {thread_id}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Error leaving thread {thread_id}: {e}")
+            return False
+
+    async def send_to_thread(self, thread_id: str, message: Dict[str, Any]):
+        """Send message to all connections subscribed to a thread."""
+        await self.message_queue.put({
+            "target_type": "thread",
+            "target_id": thread_id,
+            "content": message
+        })
+
+    async def broadcast_thread_event(self, thread_id: str, event_type: str, event_data: Dict[str, Any]):
+        """Broadcast a thread event to all subscribers."""
+        event_message = {
+            "type": f"thread_{event_type}",
+            "thread_id": thread_id,
+            "data": event_data,
+            "timestamp": datetime.now().isoformat()
+        }
+        await self.send_to_thread(thread_id, event_message)
         except Exception as e:
             logger.error(f"Error leaving channel {channel}: {e}")
             return False
@@ -538,6 +605,21 @@ websocket_manager = WebSocketManager()
 async def connect_websocket(websocket: WebSocket, connection_id: str, user_id: Optional[int] = None) -> bool:
     """Connect WebSocket to global manager."""
     return await websocket_manager.connect(websocket, connection_id, user_id)
+async def send_to_thread(thread_id: str, message: Dict[str, Any]):
+    """Send message to thread via global manager."""
+    await websocket_manager.send_to_thread(thread_id, message)
+
+async def broadcast_thread_event(thread_id: str, event_type: str, event_data: Dict[str, Any]):
+    """Broadcast thread event via global manager."""
+    await websocket_manager.broadcast_thread_event(thread_id, event_type, event_data)
+
+async def join_thread(connection_id: str, thread_id: str) -> bool:
+    """Join thread via global manager."""
+    return await websocket_manager.join_thread(connection_id, thread_id)
+
+async def leave_thread(connection_id: str, thread_id: str) -> bool:
+    """Leave thread via global manager."""
+    return await websocket_manager.leave_thread(connection_id, thread_id)
 
 async def disconnect_websocket(connection_id: str):
     """Disconnect WebSocket from global manager."""

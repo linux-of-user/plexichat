@@ -27,6 +27,7 @@ from plexichat.interfaces.api.v1 import files
 from plexichat.interfaces.api.v1 import admin
 from plexichat.interfaces.api.v1 import system
 from plexichat.interfaces.api.v1 import rate_limits
+from plexichat.interfaces.api.v1 import threads
 
 # Import Easter eggs router
 try:
@@ -47,6 +48,7 @@ v1_router.include_router(messages.router)
 v1_router.include_router(files.router)
 v1_router.include_router(admin.router)
 v1_router.include_router(system.router)
+v1_router.include_router(threads.router)
 v1_router.include_router(rate_limits.router)
 
 # Include Easter eggs router if available

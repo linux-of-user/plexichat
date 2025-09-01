@@ -16,6 +16,15 @@ security = HTTPBearer()
 
 logger = logging.getLogger(__name__)
 
+# Mock data storage (replace with database in production)
+users_db = [
+    {"id": 1, "username": "admin", "email": "admin@plexichat.com", "is_active": True},
+    {"id": 2, "username": "user1", "email": "user1@example.com", "is_active": True},
+]
+
+# Mock session storage (replace with database in production)
+sessions_db = {}
+
 
 class UserRegister(BaseModel):
     username: str = Field(..., min_length=3)

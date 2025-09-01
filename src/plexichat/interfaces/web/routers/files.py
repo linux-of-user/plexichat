@@ -66,8 +66,7 @@ from plexichat.core.security.security_decorators import (
 )
 
 # Logging - use unified logger
-from plexichat.core.logging import get_logger
-from plexichat.core.logging_system.unified_logger import LogCategory
+from plexichat.core.logging import get_logger, LogCategory
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/files", tags=["files"])
