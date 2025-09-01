@@ -26,6 +26,7 @@ from dataclasses import dataclass, field
 from uuid import uuid4
 
 from plexichat.core.security import security_manager
+from plexichat.core.messaging.message_formatter import message_formatter
 
 # Security integration
 security_available = False
@@ -492,6 +493,21 @@ class UnifiedMessagingSystem:
             if msg_id in self.messages:
                 message = self.messages[msg_id]
                 # Decrypt content for display
+                # Decrypt content for display
+                decrypted_content = self.encryption.decrypt_message(
+                    message.content, message.metadata.encryption_level
+                )
+                # Apply rich text formatting
+                formatted_content = message_formatter.format_message(decrypted_content)
+                display_message = Message(
+                    metadata=message.metadata,
+                    content=formatted_content,
+                    attachments=message.attachments,
+                    reactions=message.reactions,
+                    mentions=message.mentions,
+                    status=message.status
+                )
+                # Create a copy with formatted content
                 decrypted_content = self.encryption.decrypt_message(
                     message.content, message.metadata.encryption_level
                 )
@@ -640,6 +656,21 @@ class UnifiedMessagingSystem:
         for msg_id in recent_ids:
             if msg_id in self.messages:
                 message = self.messages[msg_id]
+                # Decrypt content for display
+                decrypted_content = self.encryption.decrypt_message(
+                    message.content, message.metadata.encryption_level
+                )
+                # Apply rich text formatting
+                formatted_content = message_formatter.format_message(decrypted_content)
+                # Create a copy with formatted content
+                display_message = Message(
+                    metadata=message.metadata,
+                    content=formatted_content,
+                    attachments=message.attachments,
+                    reactions=message.reactions,
+                    mentions=message.mentions,
+                    status=message.status
+                )
                 # Decrypt content for display
                 decrypted_content = self.encryption.decrypt_message(
                     message.content, message.metadata.encryption_level
