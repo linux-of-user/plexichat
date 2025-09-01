@@ -40,6 +40,16 @@ except ImportError:
     send_to_user = None
 
 try:
+    from plexichat.core.notifications.email_service import send_notification_email
+except ImportError:
+    send_notification_email = None
+
+try:
+    from plexichat.core.notifications.push_service import send_push_notification
+except ImportError:
+    send_push_notification = None
+
+try:
     from plexichat.core.performance.optimization_engine import PerformanceOptimizationEngine
     from plexichat.core.logging import get_performance_logger
 except ImportError:
@@ -326,21 +336,100 @@ class NotificationManager:
             logger.error(f"Error storing notification: {e}")
 
     async def _send_push_notification(self, notification: Notification):
-        """Send push notification (placeholder)."""
+        """Send push notification using push service."""
         try:
-            # This would integrate with push notification services
-            # like Firebase Cloud Messaging, Apple Push Notification Service, etc.
-            logger.info(f"Push notification sent to user {notification.user_id}: {notification.title}")
+            if not send_push_notification:
+                logger.warning("Push service not available")
+                return
+
+            # Prepare push message data
+            data = {
+                "notification_id": notification.notification_id,
+                "type": notification.notification_type.value,
+                "priority": notification.priority.value,
+                "message_id": notification.data.get("message_id"),
+                "channel_id": notification.data.get("channel_id"),
+                "thread_id": notification.data.get("thread_id"),
+                "sender_id": notification.data.get("sender_id")
+            }
+
+            # Send push notification
+            results = await send_push_notification(
+                user_id=notification.user_id,
+                title=notification.title,
+                body=notification.message,
+                data=data
+            )
+
+            successful_sends = sum(1 for success in results.values() if success)
+            if successful_sends > 0:
+                logger.info(f"Push notification sent to user {notification.user_id}: {notification.title} ({successful_sends} devices)")
+            else:
+                logger.warning(f"Failed to send push notification to user {notification.user_id}")
+
         except Exception as e:
             logger.error(f"Error sending push notification: {e}")
 
     async def _send_email_notification(self, notification: Notification):
-        """Send email notification (placeholder)."""
+        """Send email notification using email service."""
         try:
-            # This would integrate with email services
-            logger.info(f"Email notification sent to user {notification.user_id}: {notification.title}")
+            if not send_notification_email:
+                logger.warning("Email service not available")
+                return
+
+            # Get user email from database (this would need to be implemented)
+            user_email = await self._get_user_email(notification.user_id)
+            if not user_email:
+                logger.warning(f"No email found for user {notification.user_id}")
+                return
+
+            # Determine template based on notification type
+            template_id = self._get_email_template_for_notification(notification)
+
+            # Prepare template variables
+            variables = {
+                "sender_name": notification.data.get("sender_name", "System"),
+                "channel_name": notification.data.get("channel_id", "Unknown Channel"),
+                "message_content": notification.message,
+                "title": notification.title,
+                "message_url": f"https://plexichat.com/messages/{notification.data.get('message_id', '')}",
+                "unsubscribe_url": f"https://plexichat.com/settings/notifications?user={notification.user_id}",
+                "action_url": f"https://plexichat.com/messages/{notification.data.get('message_id', '')}"
+            }
+
+            # Send email
+            success = await send_notification_email(user_email, template_id, variables)
+            if success:
+                logger.info(f"Email notification sent to user {notification.user_id}: {notification.title}")
+            else:
+                logger.error(f"Failed to send email notification to user {notification.user_id}")
+
         except Exception as e:
             logger.error(f"Error sending email notification: {e}")
+
+    def _get_email_template_for_notification(self, notification: Notification) -> str:
+        """Get appropriate email template for notification type."""
+        type_mapping = {
+            NotificationType.MENTION: "mention_notification",
+            NotificationType.MESSAGE: "message_notification",
+            NotificationType.SYSTEM: "system_notification",
+            NotificationType.WARNING: "system_notification",
+            NotificationType.ERROR: "system_notification"
+        }
+        return type_mapping.get(notification.notification_type, "system_notification")
+
+    async def _get_user_email(self, user_id: int) -> Optional[str]:
+        """Get user email address from database."""
+        try:
+            if self.db_manager:
+                query = "SELECT email FROM users WHERE id = ?"
+                result = await self.db_manager.execute_query(query, (user_id,))
+                if result and result[0]:
+                    return result[0][0]
+            return None
+        except Exception as e:
+            logger.error(f"Error getting user email for {user_id}: {e}")
+            return None
 
     async def create_notification(self, user_id: int, notification_type: NotificationType,
                                 title: str, message: str, priority: NotificationPriority = NotificationPriority.NORMAL,
