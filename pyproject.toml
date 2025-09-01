@@ -49,6 +49,9 @@ dev = [
     "pytest-cov>=4.1.0",
     "pre-commit>=3.6.0",
     "mypy>=1.8.0",
+    "bandit>=1.7.0",
+    "semgrep>=1.50.0",
+    "pip-audit>=2.7.0",
 ]
 test = [
     "pytest>=7.4.0",
@@ -397,7 +400,7 @@ addopts = [
     "--cov-report=term-missing",
     "--cov-report=html",
     "--cov-report=xml",
-    "--cov-fail-under=80",
+    "--cov-fail-under=100",
 ]
 testpaths = ["tests"]
 python_files = ["test_*.py", "*_test.py"]
