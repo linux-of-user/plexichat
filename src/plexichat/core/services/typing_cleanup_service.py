@@ -15,6 +15,7 @@ from plexichat.infrastructure.services.background_tasks import (
     submit_scheduled_task,
     TaskPriority
 )
+from plexichat.core.config import get_config
 
 logger = logging.getLogger(__name__)
 
@@ -23,8 +24,8 @@ class TypingCleanupService:
     """Service for managing background cleanup of expired typing states."""
 
     def __init__(self):
-        self.cleanup_interval = 30  # seconds
-        self.max_cleanup_age = 300  # 5 minutes
+        self.cleanup_interval = get_config("typing.cleanup_interval_seconds", 30)  # seconds
+        self.max_cleanup_age = get_config("typing.max_typing_history_days", 7) * 24 * 60 * 60  # Convert days to seconds
         self.running = False
         self.cleanup_task_id: Optional[str] = None
 

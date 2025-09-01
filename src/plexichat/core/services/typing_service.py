@@ -12,10 +12,12 @@ from uuid import uuid4
 
 from plexichat.core.database.manager import database_manager
 from plexichat.core.websocket.websocket_manager import websocket_manager
+from plexichat.core.services.optimized_websocket_service import optimized_websocket_service
+from plexichat.core.services.typing_cache_service import typing_cache_service
+from plexichat.core.services.optimized_websocket_service import optimized_websocket_service
+from plexichat.core.config import get_config
 
 logger = logging.getLogger(__name__)
-
-TYPING_TIMEOUT_SECONDS = 3.0
 
 
 @dataclass
@@ -64,7 +66,10 @@ class TypingService:
     def __init__(self):
         self.db_manager = database_manager
         self.websocket_manager = websocket_manager
-        self.typing_timeout = TYPING_TIMEOUT_SECONDS
+        self.typing_timeout = get_config("typing.timeout_seconds", 3.0)
+        self.debounce_delay = get_config("typing.debounce_delay_seconds", 0.5)
+        self.max_concurrent_users = get_config("typing.max_concurrent_typing_users", 100)
+        self.enable_debug_logging = get_config("typing.enable_debug_logging", False)
 
     async def start_typing(self, user_id: str, channel_id: str) -> bool:
         """Start typing indicator for user in channel."""
@@ -329,6 +334,32 @@ class TypingService:
 
         except Exception as e:
             logger.error(f"Error broadcasting typing stop: {e}")
+        except Exception as e:
+            logger.error(f"Error broadcasting typing stop: {e}")
+
+
+# Global service instance
+typing_service = TypingService()
+
+# Initialize optimized WebSocket service for the typing service
+typing_service.optimized_websocket = optimized_websocket_service
+
+# Convenience functions
+async def start_typing(user_id: str, channel_id: str) -> bool:
+    """Start typing via global service."""
+    return await typing_service.start_typing(user_id, channel_id)
+
+async def stop_typing(user_id: str, channel_id: str) -> bool:
+    """Stop typing via global service."""
+    return await typing_service.stop_typing(user_id, channel_id)
+
+async def get_typing_users(channel_id: str) -> List[str]:
+    """Get typing users via global service."""
+    return await typing_service.get_typing_users(channel_id)
+
+async def cleanup_expired_states() -> int:
+    """Clean up expired states via global service."""
+    return await typing_service.cleanup_expired_states()
 
 
 # Global service instance

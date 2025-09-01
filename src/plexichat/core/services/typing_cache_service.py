@@ -12,6 +12,7 @@ from plexichat.core.caching.unified_cache_integration import (
     cache_get, cache_set, cache_delete, CacheKeyBuilder
 )
 from plexichat.core.services.typing_service import typing_service
+from plexichat.core.config import get_config
 
 logger = logging.getLogger(__name__)
 
@@ -20,9 +21,9 @@ class TypingCacheService:
     """Service for caching typing-related data."""
 
     def __init__(self):
-        self.cache_ttl = 30  # 30 seconds cache TTL for typing data
-        self.channel_users_cache_ttl = 10  # 10 seconds for channel users list
-        self.typing_status_cache_ttl = 5  # 5 seconds for individual typing status
+        self.cache_ttl = get_config("typing.cache_ttl_seconds", 30)  # Cache TTL for typing data
+        self.channel_users_cache_ttl = get_config("typing.cache_ttl_seconds", 10)  # For channel users list
+        self.typing_status_cache_ttl = get_config("typing.cache_ttl_seconds", 5)  # For individual typing status
 
     async def get_cached_typing_users(self, channel_id: str) -> Optional[List[str]]:
         """Get cached typing users for a channel."""

@@ -13,6 +13,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 
 from plexichat.core.websocket.websocket_manager import websocket_manager
+from plexichat.core.config import get_config
 
 
 logger = logging.getLogger(__name__)
@@ -35,9 +36,9 @@ class OptimizedWebSocketService:
         self.batch_queues: Dict[str, Deque[TypingBroadcastBatch]] = defaultdict(lambda: deque(maxlen=100))
         self.channel_subscribers: Dict[str, Set[str]] = defaultdict(set)
         self.running = False
-        self.batch_size = 10  # Max events per batch
-        self.batch_timeout = 0.1  # Max wait time for batching (100ms)
-        self.max_concurrent_broadcasts = 50  # Max concurrent broadcast tasks
+        self.batch_size = get_config("typing.broadcast_batch_size", 10)  # Max events per batch
+        self.batch_timeout = get_config("typing.broadcast_interval_seconds", 0.1)  # Max wait time for batching
+        self.max_concurrent_broadcasts = get_config("typing.max_concurrent_typing_users", 50)  # Max concurrent broadcast tasks
 
         # Performance metrics
         self.metrics = {

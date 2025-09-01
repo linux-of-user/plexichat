@@ -29,7 +29,8 @@ try:
         DDoSProtectionConfig,
         PluginSecurityConfig,
         BackupConfig,
-        CallingServiceConfig
+        CallingServiceConfig,
+        TypingConfig
     )
 
     # Get the global config manager
@@ -198,6 +199,7 @@ try:
         "PluginSecurityConfig",
         "BackupConfig",
         "CallingServiceConfig",
+        "TypingConfig",
     ])
 except NameError:
     pass

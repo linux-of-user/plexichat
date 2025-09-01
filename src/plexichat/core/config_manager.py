@@ -225,6 +225,23 @@ class CallingServiceConfig:
 
 
 @dataclass
+class TypingConfig:
+    """Typing indicators configuration section."""
+    enabled: bool = True
+    timeout_seconds: int = 3
+    cleanup_interval_seconds: int = 30
+    max_concurrent_typing_users: int = 100
+    debounce_delay_seconds: float = 0.5
+    cache_ttl_seconds: int = 60
+    broadcast_batch_size: int = 10
+    broadcast_interval_seconds: float = 0.1
+    enable_persistence: bool = True
+    max_typing_history_days: int = 7
+    enable_metrics: bool = True
+    enable_debug_logging: bool = False
+
+
+@dataclass
 class UnifiedConfig:
     """Main unified configuration container."""
     system: SystemConfig = field(default_factory=SystemConfig)
@@ -243,6 +260,7 @@ class UnifiedConfig:
     plugin_security: PluginSecurityConfig = field(default_factory=PluginSecurityConfig)
     backup: BackupConfig = field(default_factory=BackupConfig)
     calling: CallingServiceConfig = field(default_factory=CallingServiceConfig)
+    typing: TypingConfig = field(default_factory=TypingConfig)
 
 
 class UnifiedConfigManager:
