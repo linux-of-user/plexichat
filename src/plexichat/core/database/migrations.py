@@ -203,4 +203,9 @@ __all__ = [
     "migration_manager",
     "run_migrations",
     "create_migration",
+# Import additional typing optimization migrations
+try:
+    from plexichat.core.database.migrations_typing_optimization import *
+except ImportError:
+    pass  # Migrations will be loaded when the module is available
 ]
