@@ -7,6 +7,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, EmailStr, Field
 
 from plexichat.core.authentication import get_auth_manager, MFAMethod
+# from plexichat.core.authentication import get_auth_manager  # Duplicate import removed
 from plexichat.core.authentication import get_auth_manager
 from plexichat.core.auth.fastapi_adapter import rate_limit, get_current_user
 
