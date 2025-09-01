@@ -22,6 +22,7 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, Set, Callable, Union, Tuple
 from pathlib import Path
 import ipaddress
+from .security_context import SecurityContext, SecurityLevel
 
 # Core security imports
 SECURITY_MANAGER_AVAILABLE = False
@@ -35,16 +36,6 @@ except ImportError:
 from plexichat.core.logging import get_logger
 
 # Define our own security enums and classes
-class SecurityLevel(Enum):
-    """Security access levels for endpoints."""
-    PUBLIC = 0
-    BASIC = 1
-    AUTHENTICATED = 2
-    ELEVATED = 3
-    ADMIN = 4
-    SYSTEM = 5
-
-
 class ThreatLevel(Enum):
     """Threat severity levels."""
     LOW = 1
@@ -60,17 +51,6 @@ class SecurityEventType(Enum):
     LOGIN_FAILURE = "login_failure"
     ACCESS_DENIED = "access_denied"
     SUSPICIOUS_ACTIVITY = "suspicious_activity"
-
-
-@dataclass
-class SecurityContext:
-    """Security context for requests."""
-    user_id: Optional[str] = None
-    session_id: Optional[str] = None
-    ip_address: Optional[str] = None
-    authenticated: bool = False
-    permissions: Set[str] = field(default_factory=set)
-    security_level: SecurityLevel = SecurityLevel.PUBLIC
 
 # Logging setup - use unified logger
 logger = get_logger(__name__)
