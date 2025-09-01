@@ -58,6 +58,14 @@ except ImportError:
     get_performance_logger = None
     MetricType = None
 
+# Notification integration
+notification_manager = None
+try:
+    from plexichat.core.notifications import notification_manager as nm
+    notification_manager = nm
+except ImportError:
+    pass
+
 logger = logging.getLogger(__name__)
 performance_logger = get_performance_logger() if get_performance_logger else None
 
@@ -319,6 +327,9 @@ class FileManager:
             if cache_set:
                 await cache_set(f"file_{file_id}", file_metadata.__dict__, ttl=3600)
 
+            # Trigger file upload notification
+            await self._send_file_upload_notification(file_metadata)
+
             # Performance tracking
             if self.performance_logger:
                 duration = time.time() - start_time
@@ -334,6 +345,31 @@ class FileManager:
             if self.performance_logger:
                 self.performance_logger.increment_counter("file_upload_errors", 1)
             raise
+
+    async def _send_file_upload_notification(self, file_metadata: FileMetadata):
+        """Send notification when a file is uploaded."""
+        try:
+            if not notification_manager:
+                return
+
+            # Create notification for the uploader (confirmation)
+            await notification_manager.create_notification(
+                user_id=file_metadata.uploaded_by,
+                notification_type=notification_manager.NotificationType.INFO,
+                title="File uploaded successfully",
+                message=f"Your file '{file_metadata.original_filename}' has been uploaded successfully",
+                priority=notification_manager.NotificationPriority.LOW,
+                data={
+                    "file_id": file_metadata.file_id,
+                    "filename": file_metadata.original_filename,
+                    "file_size": file_metadata.file_size,
+                    "content_type": file_metadata.content_type,
+                    "uploaded_at": file_metadata.uploaded_at.isoformat()
+                }
+            )
+
+        except Exception as e:
+            logger.error(f"Error sending file upload notification: {e}")
 
     def _save_file_sync(self, file_data: bytes, file_path: Path):
         """Save file data synchronously."""

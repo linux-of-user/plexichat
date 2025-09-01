@@ -24,6 +24,14 @@ except ImportError:
 
 from plexichat.core.files.file_manager import FileManager, FileMetadata, file_manager
 
+# Notification integration
+notification_manager = None
+try:
+    from plexichat.core.notifications import notification_manager as nm
+    notification_manager = nm
+except ImportError:
+    pass
+
 logger = logging.getLogger(__name__)
 
 
@@ -77,12 +85,48 @@ class EnhancedFileSharing:
             if self.file_manager.db_manager and hasattr(self.file_manager, 'cache_delete') and self.file_manager.cache_delete:
                 await self.file_manager.cache_delete(f"file_{file_id}")
 
+            # Send notifications to shared users
+            await self._send_file_share_notifications(file_id, metadata, user_id, shared_with)
+
             logger.info(f"File {file_id} shared with users: {shared_with}")
             return True
 
         except Exception as e:
             logger.error(f"Error sharing file: {e}")
             return False
+
+    async def _send_file_share_notifications(self, file_id: str, metadata: FileMetadata,
+                                           sharer_id: int, shared_with: List[int]):
+        """Send notifications when files are shared."""
+        try:
+            if not notification_manager:
+                return
+
+            # Get sharer name (this would need to be implemented)
+            sharer_name = f"User {sharer_id}"  # Placeholder
+
+            for user_id in shared_with:
+                try:
+                    await notification_manager.create_notification(
+                        user_id=user_id,
+                        notification_type=notification_manager.NotificationType.INFO,
+                        title=f"File shared with you",
+                        message=f"{sharer_name} shared '{metadata.original_filename}' with you",
+                        priority=notification_manager.NotificationPriority.NORMAL,
+                        data={
+                            "file_id": file_id,
+                            "filename": metadata.original_filename,
+                            "file_size": metadata.file_size,
+                            "content_type": metadata.content_type,
+                            "sharer_id": sharer_id,
+                            "shared_at": datetime.now().isoformat()
+                        }
+                    )
+                except Exception as e:
+                    logger.error(f"Error creating file share notification for user {user_id}: {e}")
+
+        except Exception as e:
+            logger.error(f"Error sending file share notifications: {e}")
 
     async def create_file_version(self, file_id: str, user_id: int, new_file_data: bytes,
                                  filename: str) -> Optional[FileMetadata]:
