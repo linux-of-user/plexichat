@@ -276,7 +276,7 @@ class UnifiedSecurityModule:
             return False, "Internal security error", None
 
     async def validate_file_upload(self, filename: str, content_type: str, file_size: int,
-                                 file_content: Optional[bytes] = None, context: SecurityContext = None) -> Tuple[bool, str]:
+                                  file_content: Optional[bytes] = None, context: Optional[SecurityContext] = None) -> Tuple[bool, str]:
         """
         Validate file upload with comprehensive security checks.
 
