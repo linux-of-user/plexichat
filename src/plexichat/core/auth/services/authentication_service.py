@@ -531,15 +531,35 @@ class AuthenticationService(IAuthenticationService):
             # Combine with existing permissions
             all_permissions = security_context.permissions.union(permissions)
 
+            # Update device trust status from database
+            try:
+                async with self.db_manager.get_session() as session_db:
+                    stored_device_result = await session_db.fetchone(
+                        "SELECT is_trusted, first_seen, last_seen FROM devices WHERE device_id = ?",
+                        {"1": device_info.device_id}
+                    )
+
+                    if stored_device_result:
+                        device_info.is_trusted = bool(stored_device_result['is_trusted'])
+                        device_info.first_seen = datetime.fromisoformat(stored_device_result['first_seen'])
+                        device_info.last_seen = datetime.now(timezone.utc)
+
+                        # Update last_seen in database
+                        await session_db.execute(
+                            "UPDATE devices SET last_seen = ? WHERE device_id = ?",
+                            {"1": device_info.last_seen.isoformat(), "2": device_info.device_id}
+                        )
+                        await session_db.commit()
+            except Exception as e:
+                logger.debug(f"Error updating device info from database: {e}")
+
             # Check if MFA is required
-            # For testing and trusted devices, be more lenient
-            # Temporarily disabled MFA for testing
-            requires_mfa = False
-            # requires_mfa = (
-            #     (risk_score > 70.0 and not device_trust) or  # High risk + not explicitly trusted
-            #     (not device_info.is_trusted and not device_trust) or  # Unknown device + not trusted
-            #     ("admin" in all_permissions and risk_score > 30.0)  # Admin with some risk
-            # )
+            requires_mfa = (
+                risk_score > 50.0 or  # High risk
+                not device_info.is_trusted or  # Unknown device
+                "admin" in all_permissions or  # Admin access
+                not device_trust  # User didn't request device trust
+            )
 
             # Handle MFA
             if requires_mfa and not mfa_code:
