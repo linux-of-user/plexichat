@@ -269,13 +269,14 @@ class WebSocketManager:
                 user_connections = self.user_connections.get(connection.user_id, set())
                 user_connections.discard(connection_id)
                 if not user_connections:
+                    del self.user_connections[connection.user_id]
+
             # Remove from thread subscribers
             for thread_id in list(self.thread_subscribers.keys()):
                 thread_connections = self.thread_subscribers.get(thread_id, set())
                 thread_connections.discard(connection_id)
                 if not thread_connections:
                     del self.thread_subscribers[thread_id]
-                    del self.user_connections[connection.user_id]
 
             # Remove from channel connections
             for channel in connection.channels:
@@ -394,9 +395,8 @@ class WebSocketManager:
             "timestamp": datetime.now().isoformat()
         }
         await self.send_to_thread(thread_id, event_message)
-        except Exception as e:
-            logger.error(f"Error leaving channel {channel}: {e}")
-            return False
+
+    async def send_to_user(self, user_id: int, message: Dict[str, Any]):
 
     async def send_to_user(self, user_id: int, message: Dict[str, Any]):
         """Send message to specific user."""
@@ -479,6 +479,13 @@ class WebSocketManager:
             "active_connections": len(self.connections),
             "total_connections": self.total_connections,
             "total_messages": self.total_messages,
+            "total_disconnections": self.total_disconnections,
+            "active_users": len(self.user_connections),
+            "active_channels": len(self.channel_connections),
+            "queue_size": self.message_queue.qsize(),
+            "broadcasting": self.broadcasting
+        }
+
     async def _cleanup_typing_states(self):
         """Periodically clean up expired typing states."""
         while True:
@@ -580,10 +587,47 @@ class WebSocketManager:
                 typing_users.append(user_id)
 
         return typing_users
-            "total_disconnections": self.total_disconnections,
-            "active_users": len(self.user_connections),
-            "active_channels": len(self.channel_connections),
-            "queue_size": self.message_queue.qsize(),
+
+# Global WebSocket manager
+websocket_manager = WebSocketManager()
+
+# Convenience functions
+async def connect_websocket(websocket: WebSocket, connection_id: str, user_id: Optional[int] = None) -> bool:
+    """Connect WebSocket to global manager."""
+    return await websocket_manager.connect(websocket, connection_id, user_id)
+
+async def send_to_thread(thread_id: str, message: Dict[str, Any]):
+    """Send message to thread via global manager."""
+    await websocket_manager.send_to_thread(thread_id, message)
+
+async def broadcast_thread_event(thread_id: str, event_type: str, event_data: Dict[str, Any]):
+    """Broadcast thread event via global manager."""
+    await websocket_manager.broadcast_thread_event(thread_id, event_type, event_data)
+
+async def join_thread(connection_id: str, thread_id: str) -> bool:
+    """Join thread via global manager."""
+    return await websocket_manager.join_thread(connection_id, thread_id)
+
+async def leave_thread(connection_id: str, thread_id: str) -> bool:
+    """Leave thread via global manager."""
+    return await websocket_manager.leave_thread(connection_id, thread_id)
+
+async def disconnect_websocket(connection_id: str):
+    """Disconnect WebSocket from global manager."""
+    await websocket_manager.disconnect(connection_id)
+
+async def send_to_user(user_id: int, message: Dict[str, Any]):
+    """Send message to user via global manager."""
+    await websocket_manager.send_to_user(user_id, message)
+
+async def send_to_channel(channel: str, message: Dict[str, Any]):
+    """Send message to channel via global manager."""
+    await websocket_manager.send_to_channel(channel, message)
+
+async def broadcast_message(message: Dict[str, Any]):
+    """Broadcast message via global manager."""
+    await websocket_manager.broadcast_to_all(message)
+
 async def start_typing(connection_id: str, channel_id: str) -> bool:
     """Start typing indicator via global manager."""
     return await websocket_manager.start_typing(connection_id, channel_id)
@@ -595,8 +639,6 @@ async def stop_typing(connection_id: str, channel_id: str) -> bool:
 def get_typing_users(channel_id: str) -> List[str]:
     """Get typing users via global manager."""
     return websocket_manager.get_typing_users(channel_id)
-            "broadcasting": self.broadcasting
-        }
 
 # Global WebSocket manager
 websocket_manager = WebSocketManager()
