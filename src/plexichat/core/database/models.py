@@ -269,6 +269,86 @@ BACKUP_METADATA_SCHEMA = {
     "updated_at": "TEXT NOT NULL",
     "metadata": "TEXT DEFAULT '{}'"
 }
+# Performance Monitoring Schemas
+PERFORMANCE_METRICS_SCHEMA = {
+    "id": "TEXT PRIMARY KEY",
+    "metric_name": "TEXT NOT NULL",
+    "metric_value": "REAL NOT NULL",
+    "unit": "TEXT",
+    "timestamp": "TEXT NOT NULL",
+    "tags": "TEXT DEFAULT '{}'",
+    "source": "TEXT DEFAULT 'system'",
+    "retention_days": "INTEGER DEFAULT 30",
+    "created_at": "TEXT NOT NULL",
+    "updated_at": "TEXT NOT NULL",
+    "metadata": "TEXT DEFAULT '{}'"
+}
+
+ALERT_RULES_SCHEMA = {
+    "id": "TEXT PRIMARY KEY",
+    "rule_name": "TEXT UNIQUE NOT NULL",
+    "metric_name": "TEXT NOT NULL",
+    "threshold": "REAL NOT NULL",
+    "operator": "TEXT NOT NULL",
+    "enabled": "BOOLEAN DEFAULT TRUE",
+    "cooldown_seconds": "INTEGER DEFAULT 300",
+    "severity": "TEXT DEFAULT 'warning'",
+    "description": "TEXT",
+    "notification_channels": "TEXT DEFAULT '[]'",
+    "created_at": "TEXT NOT NULL",
+    "updated_at": "TEXT NOT NULL",
+    "metadata": "TEXT DEFAULT '{}'"
+}
+
+ALERTS_SCHEMA = {
+    "id": "TEXT PRIMARY KEY",
+    "rule_id": "TEXT NOT NULL",
+    "rule_name": "TEXT NOT NULL",
+    "metric_name": "TEXT NOT NULL",
+    "metric_value": "REAL NOT NULL",
+    "threshold": "REAL NOT NULL",
+    "operator": "TEXT NOT NULL",
+    "severity": "TEXT NOT NULL",
+    "message": "TEXT NOT NULL",
+    "status": "TEXT DEFAULT 'active'",
+    "acknowledged": "BOOLEAN DEFAULT FALSE",
+    "acknowledged_by": "TEXT",
+    "acknowledged_at": "TEXT",
+    "resolved_at": "TEXT",
+    "notification_sent": "BOOLEAN DEFAULT FALSE",
+    "created_at": "TEXT NOT NULL",
+    "updated_at": "TEXT NOT NULL",
+    "metadata": "TEXT DEFAULT '{}'"
+}
+
+PERFORMANCE_DASHBOARDS_SCHEMA = {
+    "id": "TEXT PRIMARY KEY",
+    "dashboard_name": "TEXT UNIQUE NOT NULL",
+    "description": "TEXT",
+    "config": "TEXT NOT NULL",
+    "is_public": "BOOLEAN DEFAULT FALSE",
+    "owner_id": "TEXT",
+    "tags": "TEXT DEFAULT '[]'",
+    "created_at": "TEXT NOT NULL",
+    "updated_at": "TEXT NOT NULL",
+    "metadata": "TEXT DEFAULT '{}'"
+}
+
+RESOURCE_TRACKING_SCHEMA = {
+    "id": "TEXT PRIMARY KEY",
+    "resource_type": "TEXT NOT NULL",
+    "resource_name": "TEXT NOT NULL",
+    "current_value": "REAL",
+    "max_value": "REAL",
+    "min_value": "REAL",
+    "avg_value": "REAL",
+    "unit": "TEXT",
+    "timestamp": "TEXT NOT NULL",
+    "period_seconds": "INTEGER DEFAULT 60",
+    "created_at": "TEXT NOT NULL",
+    "updated_at": "TEXT NOT NULL",
+    "metadata": "TEXT DEFAULT '{}'"
+}
 
 
 async def create_tables() -> bool:
@@ -287,6 +367,12 @@ async def create_tables() -> bool:
         "client_settings": CLIENT_SETTINGS_SCHEMA,
         "plugin_permissions": PLUGIN_PERMISSIONS_SCHEMA,
         "cluster_nodes": CLUSTER_NODES_SCHEMA,
+        # Performance monitoring tables
+        "performance_metrics": PERFORMANCE_METRICS_SCHEMA,
+        "alert_rules": ALERT_RULES_SCHEMA,
+        "alerts": ALERTS_SCHEMA,
+        "performance_dashboards": PERFORMANCE_DASHBOARDS_SCHEMA,
+        "resource_tracking": RESOURCE_TRACKING_SCHEMA,
         "backup_metadata": BACKUP_METADATA_SCHEMA,
     }
     
@@ -315,6 +401,16 @@ async def drop_tables(table_names: Optional[List[str]] = None) -> bool:
             "channels",
             "sessions",
             "devices",
+            "client_settings",
+            "plugin_permissions",
+            "cluster_nodes",
+            "backup_metadata",
+            # Performance monitoring tables
+            "performance_metrics",
+            "alert_rules",
+            "alerts",
+            "performance_dashboards",
+            "resource_tracking",
             "mfa_challenges",
             "plugins",
             "events",
@@ -336,6 +432,15 @@ async def drop_tables(table_names: Optional[List[str]] = None) -> bool:
     except Exception as e:
         logger.error(f"Failed to drop tables: {e}")
         return False
+    "CLIENT_SETTINGS_SCHEMA",
+    "PLUGIN_PERMISSIONS_SCHEMA",
+    "CLUSTER_NODES_SCHEMA",
+    "BACKUP_METADATA_SCHEMA",
+    "PERFORMANCE_METRICS_SCHEMA",
+    "ALERT_RULES_SCHEMA",
+    "ALERTS_SCHEMA",
+    "PERFORMANCE_DASHBOARDS_SCHEMA",
+    "RESOURCE_TRACKING_SCHEMA",
 
 
 __all__ = [
