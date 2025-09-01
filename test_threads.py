@@ -55,8 +55,7 @@ async def test_threads():
             sender_id="test_user",
             thread_id=thread_id_or_error,
             content="Test message in thread",
-                        message_type=MessageType.TEXT,</search>
-</search_and_replace>
+            message_type=MessageType.TEXT,
             reply_to=None
         )
 
