@@ -28,6 +28,14 @@ from uuid import uuid4
 from plexichat.core.security import security_manager
 from plexichat.core.messaging.message_formatter import message_formatter
 
+# Notification integration
+notification_manager = None
+try:
+    from plexichat.core.notifications import notification_manager as nm
+    notification_manager = nm
+except ImportError:
+    pass
+
 # Security integration
 security_available = False
 try:
@@ -432,14 +440,17 @@ class UnifiedMessagingSystem:
             # Route and deliver
             destinations = self.router.route_message(message)
             await self._deliver_message(message, destinations)
-            
+
+            # Trigger notifications for message and mentions
+            await self._trigger_message_notifications(message, destinations)
+
             # Update metrics
             self.metrics['messages_sent'] += 1
             self.metrics['messages_delivered'] += len(destinations)
-            
+
             # Mark as sent
             message.status = MessageStatus.SENT
-            
+
             return True, message_id, message
             
         except Exception as e:
@@ -456,6 +467,117 @@ class UnifiedMessagingSystem:
                         await callback(message)
                     except Exception as e:
                         logger.error(f"Error delivering message to {destination}: {e}")
+
+    async def _trigger_message_notifications(self, message: Message, destinations: List[str]):
+        """Trigger notifications for message events."""
+        try:
+            if not notification_manager:
+                return
+
+            # Get channel members for notifications (excluding sender)
+            channel_members = []
+            if hasattr(self.channel_manager, 'channels') and message.metadata.channel_id in self.channel_manager.channels:
+                channel = self.channel_manager.channels[message.metadata.channel_id]
+                channel_members = [member for member in channel.members if member != message.metadata.sender_id]
+
+            # Send message notifications to channel members
+            for member_id in channel_members:
+                try:
+                    await notification_manager.create_notification(
+                        user_id=int(member_id),
+                        notification_type=notification_manager.NotificationType.MESSAGE,
+                        title=f"New message in {message.metadata.channel_id}",
+                        message=f"{message.metadata.sender_id}: {message.content[:100]}{'...' if len(message.content) > 100 else ''}",
+                        priority=notification_manager.NotificationPriority.NORMAL,
+                        data={
+                            "message_id": message.metadata.message_id,
+                            "channel_id": message.metadata.channel_id,
+                            "sender_id": message.metadata.sender_id,
+                            "thread_id": message.metadata.thread_id
+                        }
+                    )
+                except Exception as e:
+                    logger.error(f"Error creating message notification for user {member_id}: {e}")
+
+            # Send mention notifications
+            for mention in message.mentions:
+                try:
+                    mention_user_id = int(mention) if mention.isdigit() else mention
+                    if str(mention_user_id) != str(message.metadata.sender_id):
+                        await notification_manager.create_notification(
+                            user_id=mention_user_id,
+                            notification_type=notification_manager.NotificationType.MENTION,
+                            title=f"You were mentioned in {message.metadata.channel_id}",
+                            message=f"{message.metadata.sender_id} mentioned you: {message.content[:100]}{'...' if len(message.content) > 100 else ''}",
+                            priority=notification_manager.NotificationPriority.HIGH,
+                            data={
+                                "message_id": message.metadata.message_id,
+                                "channel_id": message.metadata.channel_id,
+                                "sender_id": message.metadata.sender_id,
+                                "thread_id": message.metadata.thread_id
+                            }
+                        )
+                except Exception as e:
+                    logger.error(f"Error creating mention notification for user {mention}: {e}")
+
+        except Exception as e:
+            logger.error(f"Error triggering message notifications: {e}")
+
+    async def _trigger_thread_message_notifications(self, message: Message, destinations: List[str]):
+        """Trigger notifications for thread message events."""
+        try:
+            if not notification_manager or not message.metadata.thread_id:
+                return
+
+            thread = self.threads.get(message.metadata.thread_id)
+            if not thread:
+                return
+
+            # Get thread participants for notifications (excluding sender)
+            thread_participants = [participant for participant in thread.participants if participant != message.metadata.sender_id]
+
+            # Send thread message notifications to thread participants
+            for participant_id in thread_participants:
+                try:
+                    await notification_manager.create_notification(
+                        user_id=int(participant_id),
+                        notification_type=notification_manager.NotificationType.MESSAGE,
+                        title=f"New reply in thread: {thread.title}",
+                        message=f"{message.metadata.sender_id}: {message.content[:100]}{'...' if len(message.content) > 100 else ''}",
+                        priority=notification_manager.NotificationPriority.NORMAL,
+                        data={
+                            "message_id": message.metadata.message_id,
+                            "channel_id": message.metadata.channel_id,
+                            "thread_id": message.metadata.thread_id,
+                            "sender_id": message.metadata.sender_id
+                        }
+                    )
+                except Exception as e:
+                    logger.error(f"Error creating thread message notification for user {participant_id}: {e}")
+
+            # Send mention notifications in thread
+            for mention in message.mentions:
+                try:
+                    mention_user_id = int(mention) if mention.isdigit() else mention
+                    if str(mention_user_id) != str(message.metadata.sender_id):
+                        await notification_manager.create_notification(
+                            user_id=mention_user_id,
+                            notification_type=notification_manager.NotificationType.MENTION,
+                            title=f"You were mentioned in thread: {thread.title}",
+                            message=f"{message.metadata.sender_id} mentioned you in a thread: {message.content[:100]}{'...' if len(message.content) > 100 else ''}",
+                            priority=notification_manager.NotificationPriority.HIGH,
+                            data={
+                                "message_id": message.metadata.message_id,
+                                "channel_id": message.metadata.channel_id,
+                                "thread_id": message.metadata.thread_id,
+                                "sender_id": message.metadata.sender_id
+                            }
+                        )
+                except Exception as e:
+                    logger.error(f"Error creating thread mention notification for user {mention}: {e}")
+
+        except Exception as e:
+            logger.error(f"Error triggering thread message notifications: {e}")
     
     def subscribe_to_channel(self, channel_id: str, callback: Callable):
         """Subscribe to real-time messages in a channel."""
@@ -617,6 +739,9 @@ class UnifiedMessagingSystem:
             # Route and deliver
             destinations = self.router.route_message(message)
             await self._deliver_message(message, destinations)
+
+            # Trigger notifications for thread message and mentions
+            await self._trigger_thread_message_notifications(message, destinations)
 
             # Update metrics
             self.metrics['messages_sent'] += 1
