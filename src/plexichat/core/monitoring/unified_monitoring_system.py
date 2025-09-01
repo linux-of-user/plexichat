@@ -5,6 +5,8 @@ Provides comprehensive monitoring capabilities for the PlexiChat system.
 """
 
 import logging
+import asyncio
+from plexichat.core.database.manager import database_manager
 import time
 from typing import Dict, Any, Optional, List
 from dataclasses import dataclass, field
@@ -52,9 +54,9 @@ class UnifiedMonitoringSystem:
         self.alert_rules: Dict[str, AlertRule] = {}
         self.last_alerts: Dict[str, datetime] = {}
         self.initialized = False
-        
+
         logger.info("Unified monitoring system initialized")
-    
+
     def initialize(self) -> bool:
         """Initialize the monitoring system."""
         try:
@@ -66,7 +68,7 @@ class UnifiedMonitoringSystem:
         except Exception as e:
             logger.error(f"Failed to initialize monitoring system: {e}")
             return False
-    
+
     def _setup_default_alerts(self):
         """Set up default alert rules."""
         default_rules = [
@@ -75,10 +77,60 @@ class UnifiedMonitoringSystem:
             AlertRule("low_disk", "disk_free_percent", 10.0, "<"),
             AlertRule("high_error_rate", "error_rate", 5.0, ">"),
         ]
-        
+
         for rule in default_rules:
             self.alert_rules[rule.name] = rule
-    
+
+    async def _save_metric_to_db(self, metric: MetricData):
+        """Save a metric to the database."""
+        try:
+            data = {
+                "metric_name": metric.name,
+                "metric_value": metric.value,
+                "unit": metric.unit,
+                "timestamp": metric.timestamp.isoformat(),
+                "tags": str(metric.tags),
+                "source": "system",
+                "retention_days": 30,
+                "created_at": datetime.now().isoformat(),
+                "updated_at": datetime.now().isoformat(),
+                "metadata": "{}"
+            }
+
+            async with database_manager.get_session() as session:
+                await session.insert("performance_metrics", data)
+                await session.commit()
+
+        except Exception as e:
+            logger.error(f"Failed to save metric to database: {e}")
+
+    async def _save_alert_to_db(self, rule: AlertRule, metric: MetricData, message: str):
+        """Save an alert to the database."""
+        try:
+            data = {
+                "rule_id": rule.name,  # Using rule name as ID for simplicity
+                "rule_name": rule.name,
+                "metric_name": metric.name,
+                "metric_value": metric.value,
+                "threshold": rule.threshold,
+                "operator": rule.operator,
+                "severity": "warning",  # Default severity
+                "message": message,
+                "status": "active",
+                "acknowledged": False,
+                "notification_sent": False,
+                "created_at": datetime.now().isoformat(),
+                "updated_at": datetime.now().isoformat(),
+                "metadata": "{}"
+            }
+
+            async with database_manager.get_session() as session:
+                await session.insert("alerts", data)
+                await session.commit()
+
+        except Exception as e:
+            logger.error(f"Failed to save alert to database: {e}")
+
     def record_metric(self, name: str, value: float, unit: str = "", tags: Optional[Dict[str, str]] = None):
         """Record a metric value."""
         metric = MetricData(
@@ -87,31 +139,34 @@ class UnifiedMonitoringSystem:
             unit=unit,
             tags=tags or {}
         )
-        
+
         if name not in self.metrics:
             self.metrics[name] = []
-        
+
         self.metrics[name].append(metric)
-        
+
         # Keep only last 1000 metrics per name
         if len(self.metrics[name]) > 1000:
             self.metrics[name] = self.metrics[name][-1000:]
-        
+
+        # Save to database asynchronously
+        asyncio.create_task(self._save_metric_to_db(metric))
+
         # Check alert rules
         self._check_alerts(metric)
-    
+
     def _check_alerts(self, metric: MetricData):
         """Check if metric triggers any alerts."""
         for rule_name, rule in self.alert_rules.items():
             if not rule.enabled or rule.metric != metric.name:
                 continue
-            
+
             # Check cooldown
             if rule_name in self.last_alerts:
                 time_since_last = datetime.now() - self.last_alerts[rule_name]
                 if time_since_last.total_seconds() < rule.cooldown:
                     continue
-            
+
             # Check threshold
             triggered = False
             if rule.operator == ">":
@@ -126,45 +181,49 @@ class UnifiedMonitoringSystem:
                 triggered = metric.value == rule.threshold
             elif rule.operator == "!=":
                 triggered = metric.value != rule.threshold
-            
+
             if triggered:
                 self._trigger_alert(rule, metric)
-    
+
     def _trigger_alert(self, rule: AlertRule, metric: MetricData):
         """Trigger an alert."""
         self.last_alerts[rule.name] = datetime.now()
-        logger.warning(f"ALERT: {rule.name} - {metric.name} {rule.operator} {rule.threshold} (current: {metric.value})")
-    
+        message = f"ALERT: {rule.name} - {metric.name} {rule.operator} {rule.threshold} (current: {metric.value})"
+        logger.warning(message)
+
+        # Save alert to database asynchronously
+        asyncio.create_task(self._save_alert_to_db(rule, metric, message))
+
     def get_metrics(self, name: str, since: Optional[datetime] = None) -> List[MetricData]:
         """Get metrics by name."""
         if name not in self.metrics:
             return []
-        
+
         metrics = self.metrics[name]
-        
+
         if since:
             metrics = [m for m in metrics if m.timestamp >= since]
-        
+
         return metrics
-    
+
     def get_latest_metric(self, name: str) -> Optional[MetricData]:
         """Get the latest metric value."""
         if name not in self.metrics or not self.metrics[name]:
             return None
-        
+
         return self.metrics[name][-1]
-    
+
     def add_alert_rule(self, rule: AlertRule):
         """Add an alert rule."""
         self.alert_rules[rule.name] = rule
         logger.info(f"Added alert rule: {rule.name}")
-    
+
     def remove_alert_rule(self, name: str):
         """Remove an alert rule."""
         if name in self.alert_rules:
             del self.alert_rules[name]
             logger.info(f"Removed alert rule: {name}")
-    
+
     def get_system_status(self) -> Dict[str, Any]:
         """Get overall system status."""
         status = {
@@ -177,9 +236,9 @@ class UnifiedMonitoringSystem:
                 if datetime.now() - alert_time < timedelta(hours=1)
             ])
         }
-        
+
         return status
-    
+
     def track_event(self, event_type: str, data: Dict[str, Any], user_id: Optional[str] = None, session_id: Optional[str] = None):
         """Track an analytics event."""
         event = AnalyticsEvent(
@@ -188,14 +247,14 @@ class UnifiedMonitoringSystem:
             user_id=user_id,
             session_id=session_id
         )
-        
+
         # Store event as a metric for now
         self.record_metric(f"event_{event_type}", 1, "count", {
             "user_id": user_id or "anonymous",
             "session_id": session_id or "unknown",
             **data
         })
-        
+
         logger.info(f"Tracked event: {event_type} for user {user_id}")
 
 
