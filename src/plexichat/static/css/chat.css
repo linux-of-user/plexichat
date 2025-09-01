@@ -595,7 +595,7 @@
   color: var(--text-primary);
 }
 
-/* Typing Indicator */
+/* Typing Indicator - Enhanced */
 .typing-indicator {
   display: flex;
   align-items: center;
@@ -605,23 +605,32 @@
   font-size: var(--font-size-sm);
   font-style: italic;
   animation: fadeIn 0.3s ease-out;
+  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
+  margin: var(--spacing-sm) 0;
+  max-width: fit-content;
+  position: relative;
 }
 
-.typing-avatar {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 1px solid var(--border-color);
+.typing-indicator[aria-live] {
+  position: relative;
+}
+
+.typing-indicator[aria-live]:focus {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
 }
 
 .typing-text {
   flex: 1;
+  font-weight: 400;
+  color: var(--text-primary);
 }
 
 .typing-dots {
   display: flex;
   gap: 2px;
+  align-items: center;
 }
 
 .typing-dots span {
@@ -630,6 +639,7 @@
   border-radius: 50%;
   background: var(--text-secondary);
   animation: typingDot 1.4s infinite ease-in-out;
+  display: inline-block;
 }
 
 .typing-dots span:nth-child(1) {
@@ -638,6 +648,10 @@
 
 .typing-dots span:nth-child(2) {
   animation-delay: -0.16s;
+}
+
+.typing-dots span:nth-child(3) {
+  animation-delay: 0s;
 }
 
 @keyframes typingDot {
@@ -651,6 +665,267 @@
   }
 }
 
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Typing List */
+.typing-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm);
+  background: var(--bg-primary);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  margin: var(--spacing-sm) 0;
+  max-width: 300px;
+}
+
+.typing-list .typing-indicator {
+  margin: 0;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: transparent;
+  border: none;
+  animation: slideInFromBottom 0.3s ease-out;
+}
+
+@keyframes slideInFromBottom {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Enhanced Typing Indicator for Chat */
+.chat-messages .typing-indicator {
+  margin-left: var(--spacing-lg);
+  margin-right: var(--spacing-lg);
+  align-self: flex-start;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+}
+
+.chat-messages .typing-indicator .typing-text {
+  color: var(--text-secondary);
+}
+
+.chat-messages .typing-indicator .typing-dots span {
+  background: var(--primary-color);
+}
+
+/* Typing indicator in message input area */
+.chat-input-container .typing-indicator {
+  position: absolute;
+  bottom: 100%;
+  left: var(--spacing-lg);
+  right: var(--spacing-lg);
+  margin-bottom: var(--spacing-sm);
+  z-index: 10;
+  box-shadow: var(--shadow-md);
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+  .typing-indicator {
+    animation: none;
+  }
+
+  .typing-dots span {
+    animation: none;
+  }
+
+  .typing-list .typing-indicator {
+    animation: none;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .typing-indicator {
+    border: 2px solid var(--text-primary);
+    background: var(--bg-primary);
+  }
+
+  .typing-text {
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+
+  .typing-dots span {
+    background: var(--text-primary);
+  }
+}
+
+/* Focus management */
+.typing-indicator:focus-within {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+/* Screen reader only text */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Responsive design for typing indicators */
+@media (max-width: 768px) {
+  .typing-indicator {
+    font-size: var(--font-size-xs);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    margin: var(--spacing-xs) var(--spacing-md);
+  }
+
+  .chat-messages .typing-indicator {
+    margin-left: var(--spacing-md);
+    margin-right: var(--spacing-md);
+  }
+
+  .chat-input-container .typing-indicator {
+    left: var(--spacing-md);
+    right: var(--spacing-md);
+  }
+
+  .typing-list {
+    max-width: 250px;
+    padding: var(--spacing-xs);
+  }
+}
+
+@media (max-width: 480px) {
+  .typing-indicator {
+    font-size: 12px;
+    padding: 6px 12px;
+  }
+
+  .typing-text {
+    font-size: 12px;
+  }
+
+  .typing-dots span {
+    width: 3px;
+    height: 3px;
+  }
+
+  .chat-messages .typing-indicator {
+    margin-left: var(--spacing-sm);
+    margin-right: var(--spacing-sm);
+  }
+
+  .typing-list {
+    max-width: 200px;
+  }
+}
+
+/* Dark theme adjustments */
+[data-theme="dark"] .typing-indicator {
+  background: var(--bg-secondary);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .typing-text {
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .typing-dots span {
+  background: var(--primary-color);
+}
+
+/* Typing indicator animations */
+.typing-indicator.entering {
+  animation: slideInFromBottom 0.3s ease-out;
+}
+
+.typing-indicator.leaving {
+  animation: slideOutToBottom 0.3s ease-in;
+}
+
+@keyframes slideOutToBottom {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+}
+
+/* Multiple users typing */
+.typing-multiple {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.typing-user {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+}
+
+.typing-user-avatar {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--border-color);
+}
+
+.typing-user-name {
+  flex: 1;
+  font-weight: 500;
+}
+
+.typing-user-dots {
+  display: flex;
+  gap: 1px;
+}
+
+.typing-user-dots span {
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  animation: typingDot 1.4s infinite ease-in-out;
+}
+
+.typing-user-dots span:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.typing-user-dots span:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+.typing-user-dots span:nth-child(3) {
+  animation-delay: 0s;
+}
 /* Message Input */
 .chat-input-container {
   padding: var(--spacing-lg);
@@ -722,6 +997,7 @@
 }
 
 .chat-input-btn:hover {
+
   background: var(--border-color);
   color: var(--text-primary);
 }
@@ -751,7 +1027,6 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
-
 /* File Upload */
 .file-upload-area {
   border: 2px dashed var(--border-color);

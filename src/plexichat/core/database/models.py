@@ -350,6 +350,18 @@ RESOURCE_TRACKING_SCHEMA = {
     "metadata": "TEXT DEFAULT '{}'"
 }
 
+# Typing Status Schema
+TYPING_STATUS_SCHEMA = {
+    "id": "TEXT PRIMARY KEY",
+    "user_id": "TEXT NOT NULL",
+    "channel_id": "TEXT NOT NULL",
+    "started_at": "TEXT NOT NULL",
+    "expires_at": "TEXT NOT NULL",
+    "created_at": "TEXT NOT NULL",
+    "updated_at": "TEXT NOT NULL",
+    "metadata": "TEXT DEFAULT '{}'"
+}
+
 
 async def create_tables() -> bool:
     """Create all standard tables."""
@@ -374,6 +386,8 @@ async def create_tables() -> bool:
         "performance_dashboards": PERFORMANCE_DASHBOARDS_SCHEMA,
         "resource_tracking": RESOURCE_TRACKING_SCHEMA,
         "backup_metadata": BACKUP_METADATA_SCHEMA,
+        # Typing status table
+        "typing_status": TYPING_STATUS_SCHEMA,
     }
     
     try:
@@ -458,6 +472,7 @@ __all__ = [
     "PLUGIN_PERMISSIONS_SCHEMA",
     "CLUSTER_NODES_SCHEMA",
     "BACKUP_METADATA_SCHEMA",
+    "TYPING_STATUS_SCHEMA",
     "create_tables",
     "drop_tables",
 ]

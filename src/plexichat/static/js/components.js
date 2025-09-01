@@ -75,7 +75,14 @@ class UIComponents {
       this.handleTypingUpdate(data);
     });
 
-    Utils.events.on('websocket:notification', (data) => {
+    Utils.events.on('websocket:typing_start', (data) => {
+      this.handleTypingUpdate(data);
+    });
+
+    Utils.events.on('websocket:typing_stop', (data) => {
+      this.handleTypingUpdate(data);
+    });
+
     Utils.events.on('websocket:notification', (data) => {
       this.showNotification(data);
     });
@@ -87,13 +94,98 @@ class UIComponents {
     Utils.events.on('websocket:reaction_removed', (data) => {
       this.handleReactionRemoved(data);
     });
-      this.showNotification(data);
-    });
 
     // API events
     Utils.events.on('api:error', (error) => {
       this.showError(error);
     });
+  }
+
+  /**
+   * Handle new message
+   * @param {Object} data - Message data
+   */
+  handleNewMessage(data) {
+    const messageList = this.getComponent('MessageList');
+    if (messageList) {
+      messageList.addMessage(data);
+    }
+  }
+
+  /**
+   * Handle presence update
+   * @param {Object} data - Presence data
+   */
+  handlePresenceUpdate(data) {
+    const userList = this.getComponent('UserList');
+    if (userList) {
+      userList.updatePresence(data);
+    }
+  }
+
+  /**
+   * Handle typing update
+   * @param {Object} data - Typing data
+   */
+  handleTypingUpdate(data) {
+    const typingIndicator = this.getComponent('TypingIndicator');
+    if (typingIndicator) {
+      typingIndicator.updateTyping(data);
+    }
+  }
+
+  /**
+   * Show notification
+   * @param {Object} data - Notification data
+   */
+  showNotification(data) {
+    const notification = this.create('NotificationToast', data);
+    notification.show();
+  }
+
+  /**
+   * Show error
+   * @param {Object} error - Error data
+   */
+  showError(error) {
+    this.showNotification({
+      type: 'error',
+      title: 'Error',
+      message: error.message || 'An error occurred',
+      duration: 5000
+    });
+  }
+
+  /**
+   * Handle reaction added event
+   * @param {Object} data - Reaction data
+   */
+  handleReactionAdded(data) {
+    const messageList = this.getComponent('MessageList');
+    if (messageList) {
+      messageList.updateMessageReactions(data.message_id, data.emoji, 'add');
+    }
+  }
+
+  /**
+   * Handle reaction removed event
+   * @param {Object} data - Reaction data
+   */
+  handleReactionRemoved(data) {
+    const messageList = this.getComponent('MessageList');
+    if (messageList) {
+      messageList.updateMessageReactions(data.message_id, data.emoji, 'remove');
+    }
+  }
+
+  /**
+   * Get component instance
+   * @param {string} name - Component name
+   * @returns {Component|null}
+   */
+  getComponent(name) {
+    // This would need to be implemented to track active components
+    return null;
   }
 
   /**
@@ -193,92 +285,6 @@ class UIComponents {
    */
   createEmojiPicker(props = {}) {
     return new EmojiPickerComponent(props);
-  }
-
-  /**
-   * Handle new message
-   * @param {Object} data - Message data
-   */
-  handleNewMessage(data) {
-    const messageList = this.getComponent('MessageList');
-    if (messageList) {
-      messageList.addMessage(data);
-    }
-  }
-
-  /**
-   * Handle presence update
-   * @param {Object} data - Presence data
-   */
-  handlePresenceUpdate(data) {
-    const userList = this.getComponent('UserList');
-    if (userList) {
-      userList.updatePresence(data);
-    }
-  }
-
-  /**
-   * Handle typing update
-   * @param {Object} data - Typing data
-   */
-  handleTypingUpdate(data) {
-    const typingIndicator = this.getComponent('TypingIndicator');
-    if (typingIndicator) {
-      typingIndicator.updateTyping(data);
-    }
-  }
-
-  /**
-   * Show notification
-   * @param {Object} data - Notification data
-   */
-  showNotification(data) {
-    const notification = this.create('NotificationToast', data);
-    notification.show();
-  }
-
-  /**
-   * Show error
-   * @param {Object} error - Error data
-   */
-  showError(error) {
-    this.showNotification({
-      type: 'error',
-      title: 'Error',
-      message: error.message || 'An error occurred',
-      duration: 5000
-  /**
-   * Handle reaction added event
-   * @param {Object} data - Reaction data
-   */
-  handleReactionAdded(data) {
-    const messageList = this.getComponent('MessageList');
-    if (messageList) {
-      messageList.updateMessageReactions(data.message_id, data.emoji, 'add');
-    }
-  }
-
-  /**
-   * Handle reaction removed event
-   * @param {Object} data - Reaction data
-   */
-  handleReactionRemoved(data) {
-    const messageList = this.getComponent('MessageList');
-    if (messageList) {
-      messageList.updateMessageReactions(data.message_id, data.emoji, 'remove');
-    }
-  }
-    });
-  }
-
-  /**
-   * Get component instance
-   * @param {string} name - Component name
-   * @returns {Component|null}
-   */
-  getComponent(name) {
-    // This would need to be implemented to track active components
-    return null;
   }
 }
 
@@ -494,6 +500,35 @@ class MessageListComponent extends BaseComponent {
     // Add reaction trigger button
     const reactionTrigger = Utils.dom.createElement('button', {
       className: 'reaction-trigger',
+      'data-message-id': message.id,
+      textContent: '+'
+    });
+    content.appendChild(reactionTrigger);
+
+    if (message.own) {
+      messageDiv.appendChild(content);
+      messageDiv.appendChild(avatar);
+    } else {
+      messageDiv.appendChild(avatar);
+      messageDiv.appendChild(content);
+    }
+
+    return messageDiv;
+  }
+
+  addMessage(message) {
+    this.messages.push(message);
+
+    if (this.element) {
+      const messageElement = this.renderMessage(message);
+      this.element.appendChild(messageElement);
+
+      if (this.autoScroll) {
+        this.scrollToBottom();
+      }
+    }
+  }
+
   componentDidMount() {
     if (this.autoScroll) {
       this.scrollToBottom();
@@ -628,46 +663,10 @@ class MessageListComponent extends BaseComponent {
       }
     }
   }
-      'data-message-id': message.id,
-      textContent: '+'
-    });
-    content.appendChild(reactionTrigger);
-    content.appendChild(header);
-    content.appendChild(bubble);
-
-    if (message.own) {
-      messageDiv.appendChild(content);
-      messageDiv.appendChild(avatar);
-    } else {
-      messageDiv.appendChild(avatar);
-      messageDiv.appendChild(content);
-    }
-
-    return messageDiv;
-  }
-
-  addMessage(message) {
-    this.messages.push(message);
-
-    if (this.element) {
-      const messageElement = this.renderMessage(message);
-      this.element.appendChild(messageElement);
-
-      if (this.autoScroll) {
-        this.scrollToBottom();
-      }
-    }
-  }
 
   scrollToBottom() {
     if (this.element) {
       this.element.scrollTop = this.element.scrollHeight;
-    }
-  }
-
-  componentDidMount() {
-    if (this.autoScroll) {
-      this.scrollToBottom();
     }
   }
 }
@@ -681,6 +680,11 @@ class MessageInputComponent extends BaseComponent {
     this.channelId = props.channelId;
     this.placeholder = props.placeholder || 'Type a message...';
     this.maxLength = props.maxLength || 2000;
+    this.typingTimeout = null;
+    this.stopTypingTimeout = null;
+    this.isTyping = false;
+    this.typingDelay = 500; // ms delay before sending typing start
+    this.stopTypingDelay = 1000; // ms delay before sending typing stop
   }
 
   render() {
@@ -722,6 +726,9 @@ class MessageInputComponent extends BaseComponent {
 
     // Keyboard shortcuts
     this.addEventListener('keydown', this.handleKeydown.bind(this), textarea);
+
+    // Stop typing on blur
+    this.addEventListener('blur', this.handleBlur.bind(this), textarea);
   }
 
   handleInput(event) {
@@ -734,6 +741,36 @@ class MessageInputComponent extends BaseComponent {
 
     // Enable/disable send button
     sendButton.disabled = !textarea.value.trim();
+
+    // Handle typing indicators
+    this.handleTyping(textarea.value);
+  }
+
+  handleTyping(value) {
+    // Clear existing timeouts
+    if (this.typingTimeout) {
+      clearTimeout(this.typingTimeout);
+      this.typingTimeout = null;
+    }
+    if (this.stopTypingTimeout) {
+      clearTimeout(this.stopTypingTimeout);
+      this.stopTypingTimeout = null;
+    }
+
+    if (value.trim() && !this.isTyping) {
+      // Start typing after delay
+      this.typingTimeout = setTimeout(() => {
+        this.startTyping();
+      }, this.typingDelay);
+    } else if (!value.trim() && this.isTyping) {
+      // Stop typing immediately if input is cleared
+      this.stopTyping();
+    } else if (value.trim() && this.isTyping) {
+      // Continue typing - reset stop timeout
+      this.stopTypingTimeout = setTimeout(() => {
+        this.stopTyping();
+      }, this.stopTypingDelay);
+    }
   }
 
   handleSubmit(event) {
@@ -743,6 +780,11 @@ class MessageInputComponent extends BaseComponent {
     const content = textarea.value.trim();
 
     if (!content) return;
+
+    // Stop typing before sending message
+    if (this.isTyping) {
+      this.stopTyping();
+    }
 
     // Send message
     if (window.WebSocketManager) {
@@ -759,6 +801,50 @@ class MessageInputComponent extends BaseComponent {
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
       this.handleSubmit(event);
+    }
+  }
+
+  handleBlur(event) {
+    // Stop typing when input loses focus
+    if (this.isTyping) {
+      // Clear any pending typing start
+      if (this.typingTimeout) {
+        clearTimeout(this.typingTimeout);
+        this.typingTimeout = null;
+      }
+      // Send stop typing immediately
+      this.stopTyping();
+    }
+  }
+
+  componentWillUnmount() {
+    // Clear all timeouts
+    if (this.typingTimeout) {
+      clearTimeout(this.typingTimeout);
+      this.typingTimeout = null;
+    }
+    if (this.stopTypingTimeout) {
+      clearTimeout(this.stopTypingTimeout);
+      this.stopTypingTimeout = null;
+    }
+
+    // Stop typing if active
+    if (this.isTyping) {
+      this.stopTyping();
+    }
+  }
+
+  startTyping() {
+    if (window.WebSocketManager && this.channelId) {
+      window.WebSocketManager.sendTypingStart(this.channelId);
+      this.isTyping = true;
+    }
+  }
+
+  stopTyping() {
+    if (window.WebSocketManager && this.channelId) {
+      window.WebSocketManager.sendTypingStop(this.channelId);
+      this.isTyping = false;
     }
   }
 }
@@ -1086,7 +1172,213 @@ class EmojiPickerComponent extends BaseComponent {
   }
 }
 
+/**
+ * Typing Indicator Component
+ */
+class TypingIndicatorComponent extends BaseComponent {
+  constructor(props) {
+    super(props);
+    this.channelId = props.channelId;
+    this.typingUsers = new Set();
+    this.maxDisplayUsers = props.maxDisplayUsers || 3;
+  }
+
+  render() {
+    const container = Utils.dom.createElement('div', {
+      className: 'typing-indicator',
+      'aria-live': 'polite',
+      'aria-atomic': 'true'
+    });
+
+    if (this.typingUsers.size === 0) {
+      container.style.display = 'none';
+      return container;
+    }
+
+    const typingUsersArray = Array.from(this.typingUsers);
+    const displayUsers = typingUsersArray.slice(0, this.maxDisplayUsers);
+    const remainingCount = typingUsersArray.length - this.maxDisplayUsers;
+
+    let typingText = '';
+    if (displayUsers.length === 1) {
+      typingText = `${displayUsers[0]} is typing...`;
+    } else if (displayUsers.length === 2) {
+      typingText = `${displayUsers[0]} and ${displayUsers[1]} are typing...`;
+    } else if (displayUsers.length >= 3) {
+      if (remainingCount > 0) {
+        typingText = `${displayUsers[0]}, ${displayUsers[1]} and ${remainingCount} others are typing...`;
+      } else {
+        typingText = `${displayUsers[0]}, ${displayUsers[1]} and ${displayUsers[2]} are typing...`;
+      }
+    }
+
+    const textElement = Utils.dom.createElement('span', {
+      className: 'typing-text',
+      textContent: typingText
+    });
+
+    const dotsElement = Utils.dom.createElement('span', {
+      className: 'typing-dots',
+      'aria-hidden': 'true'
+    });
+
+    for (let i = 0; i < 3; i++) {
+      const dot = Utils.dom.createElement('span');
+      dotsElement.appendChild(dot);
+    }
+
+    container.appendChild(textElement);
+    container.appendChild(dotsElement);
+
+    return container;
+  }
+
+  updateTyping(data) {
+    if (data.type === 'typing_start') {
+      this.addTypingUser(data.user_id);
+    } else if (data.type === 'typing_stop') {
+      this.removeTypingUser(data.user_id);
+    }
+    this.forceUpdate();
+  }
+
+  addTypingUser(userId) {
+    this.typingUsers.add(userId);
+  }
+
+  removeTypingUser(userId) {
+    this.typingUsers.delete(userId);
+  }
+
+  clearTypingUsers() {
+    this.typingUsers.clear();
+    this.forceUpdate();
+  }
+
+  componentDidMount() {
+    // Update typing users from WebSocket manager
+    if (window.WebSocketManager && this.channelId) {
+      const typingUsers = window.WebSocketManager.getTypingUsers(this.channelId);
+      this.typingUsers = new Set(typingUsers);
+      this.forceUpdate();
+    }
+  }
+}
+
+/**
+ * Typing List Component
+ */
+class TypingListComponent extends BaseComponent {
+  constructor(props) {
+    super(props);
+    this.channelId = props.channelId;
+    this.typingIndicators = new Map();
+  }
+
+  render() {
+    const container = Utils.dom.createElement('div', {
+      className: 'typing-list',
+      'aria-live': 'polite',
+      'aria-atomic': 'true'
+    });
+
+    // Get typing users from WebSocket manager
+    if (window.WebSocketManager && this.channelId) {
+      const typingUsers = window.WebSocketManager.getTypingUsers(this.channelId);
+
+      typingUsers.forEach(userId => {
+        if (!this.typingIndicators.has(userId)) {
+          const indicator = new TypingIndicatorComponent({
+            channelId: this.channelId,
+            maxDisplayUsers: 1
+          });
+          indicator.addTypingUser(userId);
+          this.typingIndicators.set(userId, indicator);
+        }
+
+        const indicatorElement = this.typingIndicators.get(userId).render();
+        container.appendChild(indicatorElement);
+      });
+    }
+
+    return container;
+  }
+
+  updateTyping(data) {
+    if (data.type === 'typing_start') {
+      this.addTypingIndicator(data.user_id);
+    } else if (data.type === 'typing_stop') {
+      this.removeTypingIndicator(data.user_id);
+    }
+    this.forceUpdate();
+  }
+
+  addTypingIndicator(userId) {
+    if (!this.typingIndicators.has(userId)) {
+      const indicator = new TypingIndicatorComponent({
+        channelId: this.channelId,
+        maxDisplayUsers: 1
+      });
+      indicator.addTypingUser(userId);
+      this.typingIndicators.set(userId, indicator);
+    }
+  }
+
+  removeTypingIndicator(userId) {
+    if (this.typingIndicators.has(userId)) {
+      this.typingIndicators.delete(userId);
+    }
+  }
+
+  clearAllIndicators() {
+    this.typingIndicators.clear();
+    this.forceUpdate();
+  }
+
+  componentDidMount() {
+    // Initialize with current typing users
+    if (window.WebSocketManager && this.channelId) {
+      const typingUsers = window.WebSocketManager.getTypingUsers(this.channelId);
+      typingUsers.forEach(userId => {
+        this.addTypingIndicator(userId);
+      });
+      this.forceUpdate();
+    }
+  }
+
+  componentWillUnmount() {
+    this.clearAllIndicators();
+  }
+}
+
 // Create global UI components instance
 window.UIComponents = new UIComponents();
-// Create global UI components instance
-window.UIComponents = new UIComponents();
+
+// Register typing components
+window.UIComponents.register('TypingIndicator', (props) => new TypingIndicatorComponent(props));
+window.UIComponents.register('TypingList', (props) => new TypingListComponent(props));
+
+// Placeholder components for future implementation
+class ChannelListComponent extends BaseComponent {
+  render() {
+    return Utils.dom.createElement('div', { className: 'channel-list', textContent: 'Channels' });
+  }
+}
+
+class UserListComponent extends BaseComponent {
+  render() {
+    return Utils.dom.createElement('div', { className: 'user-list', textContent: 'Users' });
+  }
+}
+
+class PresenceIndicatorComponent extends BaseComponent {
+  render() {
+    return Utils.dom.createElement('div', { className: 'presence-indicator' });
+  }
+}
+
+class FileUploadComponent extends BaseComponent {
+  render() {
+    return Utils.dom.createElement('div', { className: 'file-upload', textContent: 'File Upload' });
+  }
+}

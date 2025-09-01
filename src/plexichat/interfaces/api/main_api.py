@@ -43,10 +43,11 @@ try:
 except ImportError:
     message_processor = None
 
-try:
-    from plexichat.core.websocket.websocket_manager import websocket_manager
-except ImportError:
-    websocket_manager = None
+# try:
+#     from plexichat.core.websocket.websocket_manager import websocket_manager
+# except ImportError:
+#     websocket_manager = None
+websocket_manager = None
 
 try:
     from plexichat.core.notifications.notification_manager import notification_manager
@@ -336,93 +337,91 @@ if app:
 if app:
     @app.get("/health")
     async def health_check():
-async def health_check():
-    """Health check endpoint."""
-    try:
-        status = {
-            "status": "healthy",
-            "timestamp": time.time(),
-            "services": {}
-        }
-
-        # Check database
-        if database_manager:
-            try:
-                await database_manager.execute_query("SELECT 1")
-                status["services"]["database"] = "healthy"
-            except Exception:
-                status["services"]["database"] = "unhealthy"
-                status["status"] = "degraded"
-
-        # Check thread manager
-        if thread_manager:
-            thread_status = thread_manager.get_status()
-            status["services"]["thread_manager"] = "healthy" if not thread_status["shutdown"] else "unhealthy"
-
-        # Check message processor
-        if message_processor:
-            processor_status = message_processor.get_status()
-            status["services"]["message_processor"] = "healthy" if processor_status["processing"] else "unhealthy"
-
-        # Check websocket manager
-        if websocket_manager:
-            ws_status = websocket_manager.get_stats()
-            status["services"]["websocket_manager"] = "healthy" if ws_status["broadcasting"] else "unhealthy"
-
-        return status
-
-    except Exception as e:
-        logger.error(f"Health check error: {e}")
-        return JSONResponse(
-            status_code=503,
-            content={
-                "status": "unhealthy",
-                "error": str(e),
-                "timestamp": time.time()
+        """Health check endpoint."""
+        try:
+            status = {
+                "status": "healthy",
+                "timestamp": time.time(),
+                "services": {}
             }
-        )
+
+            # Check database
+            if database_manager:
+                try:
+                    await database_manager.execute_query("SELECT 1")
+                    status["services"]["database"] = "healthy"
+                except Exception:
+                    status["services"]["database"] = "unhealthy"
+                    status["status"] = "degraded"
+
+            # Check thread manager
+            if thread_manager:
+                thread_status = thread_manager.get_status()
+                status["services"]["thread_manager"] = "healthy" if not thread_status["shutdown"] else "unhealthy"
+
+            # Check message processor
+            if message_processor:
+                processor_status = message_processor.get_status()
+                status["services"]["message_processor"] = "healthy" if processor_status["processing"] else "unhealthy"
+
+            # Check websocket manager
+            if websocket_manager:
+                ws_status = websocket_manager.get_stats()
+                status["services"]["websocket_manager"] = "healthy" if ws_status["broadcasting"] else "unhealthy"
+
+            return status
+
+        except Exception as e:
+            logger.error(f"Health check error: {e}")
+            return JSONResponse(
+                status_code=503,
+                content={
+                    "status": "unhealthy",
+                    "error": str(e),
+                    "timestamp": time.time()
+                }
+            )
 
 # Metrics endpoint
 if app:
     @app.get("/metrics")
     async def get_metrics():
-async def get_metrics():
-    """Get system metrics."""
-    try:
-        metrics = {
-            "timestamp": time.time(),
-            "system": {}
-        }
+        """Get system metrics."""
+        try:
+            metrics = {
+                "timestamp": time.time(),
+                "system": {}
+            }
 
-        # Database metrics
-        if database_manager:
-            metrics["system"]["database"] = database_manager.get_stats()
+            # Database metrics
+            if database_manager:
+                metrics["system"]["database"] = database_manager.get_stats()
 
-        # Thread manager metrics
-        if thread_manager:
-            metrics["system"]["thread_manager"] = thread_manager.get_status()
+            # Thread manager metrics
+            if thread_manager:
+                metrics["system"]["thread_manager"] = thread_manager.get_status()
 
-        # Message processor metrics
-        if message_processor:
-            metrics["system"]["message_processor"] = message_processor.get_status()
+            # Message processor metrics
+            if message_processor:
+                metrics["system"]["message_processor"] = message_processor.get_status()
 
-        # WebSocket metrics
-        if websocket_manager:
-            metrics["system"]["websocket_manager"] = websocket_manager.get_stats()
+            # WebSocket metrics
+            if websocket_manager:
+                metrics["system"]["websocket_manager"] = websocket_manager.get_stats()
 
-        # Notification metrics
-        if notification_manager:
-            metrics["system"]["notification_manager"] = notification_manager.get_stats()
+            # Notification metrics
+            if notification_manager:
+                metrics["system"]["notification_manager"] = notification_manager.get_stats()
 
-        # Analytics metrics
-        if analytics_manager:
-            metrics["system"]["analytics_manager"] = analytics_manager.get_stats()
+            # Analytics metrics
+            if analytics_manager:
+                metrics["system"]["analytics_manager"] = analytics_manager.get_stats()
 
-        return metrics
+            return metrics
 
-    except Exception as e:
-        logger.error(f"Metrics error: {e}")
-        raise HTTPException(status_code=500, detail="Error retrieving metrics")
+        except Exception as e:
+            logger.error(f"Metrics error: {e}")
+            raise HTTPException(status_code=500, detail="Error retrieving metrics")
 
 # Authentication dependency
 async def get_current_user(request: Request):
@@ -472,64 +471,63 @@ if app:
 if app:
     @app.websocket("/ws/{user_id}")
     async def websocket_endpoint(websocket, user_id: int):
-async def websocket_endpoint(websocket, user_id: int):
-    """WebSocket endpoint for real-time communication."""
-    try:
-        connection_id = f"ws_{user_id}_{int(time.time())}"
-
-        # Connect WebSocket
-        if websocket_manager:
-            success = await websocket_manager.connect(websocket, connection_id, user_id)
-            if not success:
-                await websocket.close(code=1000, reason="Connection failed")
-                return
-        else:
-            await websocket.accept()
-
+        """WebSocket endpoint for real-time communication."""
         try:
-            while True:
-                # Receive message
-                data = await websocket.receive_text()
-                # SECURITY: eval() removed - use safe alternatives
-                message_data = json.loads(data)  # In production, use json.loads with proper validation
+            connection_id = f"ws_{user_id}_{int(time.time())}"
 
-                # Handle different message types
-                message_type = message_data.get("type", "unknown")
+            # Connect WebSocket
+            if websocket_manager:
+                success = await websocket_manager.connect(websocket, connection_id, user_id)
+                if not success:
+                    await websocket.close(code=1000, reason="Connection failed")
+                    return
+            else:
+                await websocket.accept()
 
-                if message_type == "ping":
-                    # Respond to ping
-                    await websocket.send_text('{"type": "pong", "timestamp": "' + str(time.time()) + '"}')
+            try:
+                while True:
+                    # Receive message
+                    data = await websocket.receive_text()
+                    # SECURITY: eval() removed - use safe alternatives
+                    message_data = json.loads(data)  # In production, use json.loads with proper validation
 
-                elif message_type == "join_channel":
-                    # Join channel
-                    channel = message_data.get("channel")
-                    if channel and websocket_manager:
-                        await websocket_manager.join_channel(connection_id, channel)
+                    # Handle different message types
+                    message_type = message_data.get("type", "unknown")
 
-                elif message_type == "leave_channel":
-                    # Leave channel
-                    channel = message_data.get("channel")
-                    if channel and websocket_manager:
-                        await websocket_manager.leave_channel(connection_id, channel)
+                    if message_type == "ping":
+                        # Respond to ping
+                        await websocket.send_text('{"type": "pong", "timestamp": "' + str(time.time()) + '"}')
 
-                # Track analytics
-                if analytics_manager:
-                    await analytics_manager.track_event(
-                        "websocket_message",
-                        user_id=user_id,
-                        properties={"message_type": message_type}
-                    )
+                    elif message_type == "join_channel":
+                        # Join channel
+                        channel = message_data.get("channel")
+                        if channel and websocket_manager:
+                            await websocket_manager.join_channel(connection_id, channel)
+
+                    elif message_type == "leave_channel":
+                        # Leave channel
+                        channel = message_data.get("channel")
+                        if channel and websocket_manager:
+                            await websocket_manager.leave_channel(connection_id, channel)
+
+                    # Track analytics
+                    if analytics_manager:
+                        await analytics_manager.track_event(
+                            "websocket_message",
+                            user_id=user_id,
+                            properties={"message_type": message_type}
+                        )
+
+            except Exception as e:
+                logger.error(f"WebSocket error for user {user_id}: {e}")
+
+            finally:
+                # Disconnect
+                if websocket_manager:
+                    await websocket_manager.disconnect(connection_id)
 
         except Exception as e:
-            logger.error(f"WebSocket error for user {user_id}: {e}")
-
-        finally:
-            # Disconnect
-            if websocket_manager:
-                await websocket_manager.disconnect(connection_id)
-
-    except Exception as e:
-        logger.error(f"WebSocket connection error: {e}")
+            logger.error(f"WebSocket connection error: {e}")
 
 # Run server function
 def run_server(host: str = "0.0.0.0", port: int = 8000, reload: bool = False):

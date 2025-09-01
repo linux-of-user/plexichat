@@ -15,6 +15,7 @@ class WebSocketManager {
     this.messageQueue = [];
     this.eventListeners = new Map();
     this.typingTimeouts = new Map();
+     this.typingUsers = new Map(); // Track typing users per channel
 
     this.setupEventListeners();
   }
@@ -155,8 +156,14 @@ class WebSocketManager {
           this.handlePresenceUpdate(data);
           break;
         case 'typing':
-          this.handleTypingIndicator(data);
-          break;
+           this.handleTypingIndicator(data);
+           break;
+         case 'typing_start':
+           this.handleTypingStart(data);
+           break;
+         case 'typing_stop':
+           this.handleTypingStop(data);
+           break;
         case 'reaction':
           this.handleReaction(data);
           break;
@@ -221,28 +228,98 @@ class WebSocketManager {
   }
 
   /**
-   * Handle typing indicators
-   * @param {Object} data - Typing data
-   */
-  handleTypingIndicator(data) {
-    this.emit('typing', data);
+    * Handle typing indicators
+    * @param {Object} data - Typing data
+    */
+   handleTypingIndicator(data) {
+     this.emit('typing', data);
 
-    const key = `${data.channel_id}-${data.user_id}`;
-    const timeout = this.typingTimeouts.get(key);
+     const key = `${data.channel_id}-${data.user_id}`;
+     const timeout = this.typingTimeouts.get(key);
 
-    if (timeout) {
-      clearTimeout(timeout);
-    }
+     if (timeout) {
+       clearTimeout(timeout);
+     }
 
-    // Show typing indicator
-    this.showTypingIndicator(data);
+     // Show typing indicator
+     this.showTypingIndicator(data);
 
-    // Hide after 3 seconds
-    this.typingTimeouts.set(key, setTimeout(() => {
-      this.hideTypingIndicator(data);
-      this.typingTimeouts.delete(key);
-    }, 3000));
-  }
+     // Hide after 3 seconds
+     this.typingTimeouts.set(key, setTimeout(() => {
+       this.hideTypingIndicator(data);
+       this.typingTimeouts.delete(key);
+     }, 3000));
+   }
+
+   /**
+    * Handle typing start event
+    * @param {Object} data - Typing start data
+    */
+   handleTypingStart(data) {
+     this.emit('typing_start', data);
+
+     const channelId = data.channel_id;
+     const userId = data.user_id;
+
+     if (!this.typingUsers.has(channelId)) {
+       this.typingUsers.set(channelId, new Set());
+     }
+
+     this.typingUsers.get(channelId).add(userId);
+
+     const key = `${channelId}-${userId}`;
+     const timeout = this.typingTimeouts.get(key);
+
+     if (timeout) {
+       clearTimeout(timeout);
+     }
+
+     // Show typing indicator
+     this.showTypingIndicator(data);
+
+     // Auto-hide after 5 seconds if no stop received
+     this.typingTimeouts.set(key, setTimeout(() => {
+       this.hideTypingIndicator(data);
+       this.typingTimeouts.delete(key);
+       // Remove user from typing users
+       if (this.typingUsers.has(channelId)) {
+         this.typingUsers.get(channelId).delete(userId);
+         if (this.typingUsers.get(channelId).size === 0) {
+           this.typingUsers.delete(channelId);
+         }
+       }
+     }, 5000));
+   }
+
+   /**
+    * Handle typing stop event
+    * @param {Object} data - Typing stop data
+    */
+   handleTypingStop(data) {
+     this.emit('typing_stop', data);
+
+     const channelId = data.channel_id;
+     const userId = data.user_id;
+
+     const key = `${channelId}-${userId}`;
+     const timeout = this.typingTimeouts.get(key);
+
+     if (timeout) {
+       clearTimeout(timeout);
+       this.typingTimeouts.delete(key);
+     }
+
+     // Remove user from typing users
+     if (this.typingUsers.has(channelId)) {
+       this.typingUsers.get(channelId).delete(userId);
+       if (this.typingUsers.get(channelId).size === 0) {
+         this.typingUsers.delete(channelId);
+       }
+     }
+
+     // Hide typing indicator
+     this.hideTypingIndicator(data);
+   }
 
   /**
    * Handle reactions
@@ -349,6 +426,31 @@ class WebSocketManager {
       timestamp: new Date().toISOString()
     });
   }
+   /**
+    * Send typing start event
+    * @param {string} channelId - Channel ID
+    */
+   sendTypingStart(channelId) {
+     this.send({
+       type: 'typing_start',
+       channel_id: channelId,
+       user_id: window.ChatAPI?.currentUser?.id,
+       timestamp: new Date().toISOString()
+     });
+   }
+
+   /**
+    * Send typing stop event
+    * @param {string} channelId - Channel ID
+    */
+   sendTypingStop(channelId) {
+     this.send({
+       type: 'typing_stop',
+       channel_id: channelId,
+       user_id: window.ChatAPI?.currentUser?.id,
+       timestamp: new Date().toISOString()
+     });
+   }
 
   /**
    * Update user presence
@@ -416,6 +518,15 @@ class WebSocketManager {
       channel_id: channelId,
       timestamp: new Date().toISOString()
     });
+  }
+
+  /**
+   * Get typing users for a channel
+   * @param {string} channelId - Channel ID
+   * @returns {Set} - Set of typing user IDs
+   */
+  getTypingUsers(channelId) {
+    return this.typingUsers.get(channelId) || new Set();
   }
 
   /**

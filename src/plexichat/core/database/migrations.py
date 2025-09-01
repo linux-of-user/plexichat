@@ -174,6 +174,28 @@ create_migration(
     """
 )
 
+create_migration(
+    "002_add_typing_status_table",
+    "Add typing status table for persistent typing indicators",
+    """
+    CREATE TABLE IF NOT EXISTS typing_status (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        channel_id TEXT NOT NULL,
+        started_at TEXT NOT NULL,
+        expires_at TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        metadata TEXT DEFAULT '{}'
+    );
+    CREATE INDEX IF NOT EXISTS idx_typing_status_user_channel ON typing_status(user_id, channel_id);
+    CREATE INDEX IF NOT EXISTS idx_typing_status_expires_at ON typing_status(expires_at);
+    """,
+    """
+    DROP TABLE IF EXISTS typing_status;
+    """
+)
+
 
 __all__ = [
     "Migration",
