@@ -27,18 +27,9 @@ import ipaddress
 import re
 
 from plexichat.core.logging import get_logger
+from .security_context import SecurityContext, SecurityLevel
 
 logger = get_logger(__name__)
-
-
-class SecurityLevel(Enum):
-    """Security access levels for endpoints."""
-    PUBLIC = 0
-    BASIC = 1
-    AUTHENTICATED = 2
-    ELEVATED = 3
-    ADMIN = 4
-    SYSTEM = 5
 
 
 class ThreatLevel(Enum):
@@ -66,22 +57,6 @@ class SecurityEventType(Enum):
     DATA_BREACH_ATTEMPT = "data_breach_attempt"
     FILE_UPLOAD_BLOCKED = "file_upload_blocked"
     MESSAGE_SIZE_EXCEEDED = "message_size_exceeded"
-
-
-@dataclass
-class SecurityContext:
-    """Security context for requests."""
-    user_id: Optional[str] = None
-    session_id: Optional[str] = None
-    ip_address: Optional[str] = None
-    user_agent: Optional[str] = None
-    request_id: Optional[str] = None
-    endpoint: Optional[str] = None
-    security_level: SecurityLevel = SecurityLevel.PUBLIC
-    authenticated: bool = False
-    permissions: Set[str] = field(default_factory=set)
-    threat_score: float = 0.0
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 @dataclass
