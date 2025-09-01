@@ -397,7 +397,10 @@ class UnifiedMessagingSystem:
                 content=content,
                 attachments=attachments or []
             )
-            
+
+            # Parse mentions from content
+            message.mentions = self._parse_mentions(content)
+
             # Validate message
             valid, validation_issues = self.validator.validate_message(message)
             if not valid:
@@ -572,7 +575,30 @@ class UnifiedMessagingSystem:
 
         except Exception as e:
             logger.error(f"Error triggering thread message notifications: {e}")
-    
+
+    def _parse_mentions(self, content: str) -> List[str]:
+        """Parse @mentions from message content."""
+        try:
+            import re
+            # Find all @mentions using regex
+            # Matches @ followed by word characters, dots, or hyphens
+            mention_pattern = r'@(\w[\w.-]*)'
+            mentions = re.findall(mention_pattern, content)
+
+            # Remove duplicates while preserving order
+            seen = set()
+            unique_mentions = []
+            for mention in mentions:
+                if mention not in seen:
+                    seen.add(mention)
+                    unique_mentions.append(mention)
+
+            return unique_mentions
+
+        except Exception as e:
+            logger.error(f"Error parsing mentions: {e}")
+            return []
+
     def subscribe_to_channel(self, channel_id: str, callback: Callable):
         """Subscribe to real-time messages in a channel."""
         if channel_id not in self.subscribers:
@@ -704,6 +730,9 @@ class UnifiedMessagingSystem:
                 content=content,
                 attachments=attachments or []
             )
+
+            # Parse mentions from content
+            message.mentions = self._parse_mentions(content)
 
             # Validate message
             valid, validation_issues = self.validator.validate_message(message)
