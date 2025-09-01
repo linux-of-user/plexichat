@@ -1,10 +1,13 @@
 import hashlib
+import json
 from datetime import datetime
 from typing import Dict, List, Optional
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
+
+from plexichat.core.messaging.unified_messaging_system import get_messaging_system, MessageStatus
 
 # Mock user dependency
 def get_current_user():
@@ -25,6 +28,15 @@ class MessageResponse(BaseModel):
     recipient_id: str
     content: str
     timestamp: datetime
+    reactions: Optional[Dict[str, List[str]]] = None
+
+class ReactionCreate(BaseModel):
+    emoji: str = Field(..., max_length=10, description="Emoji to react with")
+
+class ReactionResponse(BaseModel):
+    emoji: str
+    users: List[str]
+    count: int
 
 def encrypt_message(content: str) -> str:
     """Simulates message encryption."""
@@ -47,6 +59,7 @@ async def send_message(message_data: MessageCreate, current_user: dict = Depends
         "recipient_id": message_data.recipient_id,
         "content": message_data.content,  # Storing raw content for simplicity
         "timestamp": timestamp,
+        "reactions": {},
     }
     messages_db[message_id] = message_record
 
@@ -62,11 +75,14 @@ async def get_conversation(
     """Get messages in a conversation with another user."""
     user_id = current_user["id"]
 
-    conversation = [
-        MessageResponse(**msg) for msg in messages_db.values()
+    conversation = []
+    for msg in messages_db.values():
         if (msg["sender_id"] == user_id and msg["recipient_id"] == other_user_id) or \
-           (msg["sender_id"] == other_user_id and msg["recipient_id"] == user_id)
-    ]
+           (msg["sender_id"] == other_user_id and msg["recipient_id"] == user_id):
+            # Ensure reactions field exists
+            if "reactions" not in msg:
+                msg["reactions"] = {}
+            conversation.append(MessageResponse(**msg))
 
     conversation.sort(key=lambda m: m.timestamp)
 
@@ -78,9 +94,112 @@ async def delete_message(message_id: str, current_user: dict = Depends(get_curre
     message = messages_db.get(message_id)
     if not message or message["sender_id"] != current_user["id"]:
         raise HTTPException(status_code=404, detail="Message not found or not owned by user.")
-        
+
     del messages_db[message_id]
     return {"message": "Message deleted"}
+
+@router.post("/{message_id}/reactions", response_model=ReactionResponse)
+async def add_reaction(message_id: str, reaction: ReactionCreate, current_user: dict = Depends(get_current_user)):
+    """Add a reaction to a message."""
+    messaging_system = get_messaging_system()
+
+    # Check if message exists
+    if message_id not in messaging_system.messages:
+        raise HTTPException(status_code=404, detail="Message not found")
+
+    message = messaging_system.messages[message_id]
+    user_id = current_user["id"]
+
+    # Check if user can react (basic permission - user is in the channel or is sender/recipient)
+    # For now, allow if user is not the sender (to prevent self-reactions)
+    if message.metadata.sender_id == user_id:
+        raise HTTPException(status_code=403, detail="Cannot react to your own message")
+
+    # Add reaction
+    emoji = reaction.emoji
+    if emoji not in message.reactions:
+        message.reactions[emoji] = []
+
+    if user_id not in message.reactions[emoji]:
+        message.reactions[emoji].append(user_id)
+
+    # Update message in storage
+    message.metadata.update_timestamp()
+
+    # Broadcast reaction update via WebSocket
+    from plexichat.core.websocket.websocket_manager import send_to_channel
+    reaction_update = {
+        "type": "reaction_added",
+        "message_id": message_id,
+        "emoji": emoji,
+        "user_id": user_id,
+        "timestamp": datetime.now().isoformat()
+    }
+    await send_to_channel(message.metadata.channel_id, reaction_update)
+
+    return ReactionResponse(
+        emoji=emoji,
+        users=message.reactions[emoji],
+        count=len(message.reactions[emoji])
+    )
+
+@router.delete("/{message_id}/reactions/{emoji}")
+async def remove_reaction(message_id: str, emoji: str, current_user: dict = Depends(get_current_user)):
+    """Remove a reaction from a message."""
+    messaging_system = get_messaging_system()
+
+    # Check if message exists
+    if message_id not in messaging_system.messages:
+        raise HTTPException(status_code=404, detail="Message not found")
+
+    message = messaging_system.messages[message_id]
+    user_id = current_user["id"]
+
+    # Check if reaction exists
+    if emoji not in message.reactions or user_id not in message.reactions[emoji]:
+        raise HTTPException(status_code=404, detail="Reaction not found")
+
+    # Remove reaction
+    message.reactions[emoji].remove(user_id)
+    if not message.reactions[emoji]:
+        del message.reactions[emoji]
+
+    # Update message timestamp
+    message.metadata.update_timestamp()
+
+    # Broadcast reaction update via WebSocket
+    from plexichat.core.websocket.websocket_manager import send_to_channel
+    reaction_update = {
+        "type": "reaction_removed",
+        "message_id": message_id,
+        "emoji": emoji,
+        "user_id": user_id,
+        "timestamp": datetime.now().isoformat()
+    }
+    await send_to_channel(message.metadata.channel_id, reaction_update)
+
+    return {"message": "Reaction removed"}
+
+@router.get("/{message_id}/reactions", response_model=List[ReactionResponse])
+async def get_reactions(message_id: str, current_user: dict = Depends(get_current_user)):
+    """Get all reactions for a message."""
+    messaging_system = get_messaging_system()
+
+    # Check if message exists
+    if message_id not in messaging_system.messages:
+        raise HTTPException(status_code=404, detail="Message not found")
+
+    message = messaging_system.messages[message_id]
+
+    reactions = []
+    for emoji, users in message.reactions.items():
+        reactions.append(ReactionResponse(
+            emoji=emoji,
+            users=users,
+            count=len(users)
+        ))
+
+    return reactions
 
 if __name__ == '__main__':
     # Example of how to run this API with uvicorn
