@@ -76,6 +76,17 @@ class UIComponents {
     });
 
     Utils.events.on('websocket:notification', (data) => {
+    Utils.events.on('websocket:notification', (data) => {
+      this.showNotification(data);
+    });
+
+    Utils.events.on('websocket:reaction_added', (data) => {
+      this.handleReactionAdded(data);
+    });
+
+    Utils.events.on('websocket:reaction_removed', (data) => {
+      this.handleReactionRemoved(data);
+    });
       this.showNotification(data);
     });
 
@@ -236,6 +247,27 @@ class UIComponents {
       title: 'Error',
       message: error.message || 'An error occurred',
       duration: 5000
+  /**
+   * Handle reaction added event
+   * @param {Object} data - Reaction data
+   */
+  handleReactionAdded(data) {
+    const messageList = this.getComponent('MessageList');
+    if (messageList) {
+      messageList.updateMessageReactions(data.message_id, data.emoji, 'add');
+    }
+  }
+
+  /**
+   * Handle reaction removed event
+   * @param {Object} data - Reaction data
+   */
+  handleReactionRemoved(data) {
+    const messageList = this.getComponent('MessageList');
+    if (messageList) {
+      messageList.updateMessageReactions(data.message_id, data.emoji, 'remove');
+    }
+  }
     });
   }
 
@@ -425,6 +457,181 @@ class MessageListComponent extends BaseComponent {
       textContent: message.content
     });
 
+    content.appendChild(header);
+    content.appendChild(bubble);
+
+    // Add reactions if present
+    if (message.reactions && Object.keys(message.reactions).length > 0) {
+      const reactionsDiv = Utils.dom.createElement('div', {
+        className: 'message-reactions'
+      });
+
+      Object.entries(message.reactions).forEach(([emoji, users]) => {
+        const reactionBtn = Utils.dom.createElement('button', {
+          className: 'reaction-button',
+          'data-emoji': emoji,
+          'data-message-id': message.id
+        });
+
+        const emojiSpan = Utils.dom.createElement('span', {
+          className: 'reaction-emoji',
+          textContent: emoji
+        });
+
+        const countSpan = Utils.dom.createElement('span', {
+          className: 'reaction-count',
+          textContent: users.length.toString()
+        });
+
+        reactionBtn.appendChild(emojiSpan);
+        reactionBtn.appendChild(countSpan);
+        reactionsDiv.appendChild(reactionBtn);
+      });
+
+      content.appendChild(reactionsDiv);
+    }
+
+    // Add reaction trigger button
+    const reactionTrigger = Utils.dom.createElement('button', {
+      className: 'reaction-trigger',
+  componentDidMount() {
+    if (this.autoScroll) {
+      this.scrollToBottom();
+    }
+
+    // Add reaction event handlers
+    this.addReactionEventHandlers();
+  }
+
+  addReactionEventHandlers() {
+    if (!this.element) return;
+
+    // Handle reaction trigger clicks
+    const reactionTriggers = this.element.querySelectorAll('.reaction-trigger');
+    reactionTriggers.forEach(trigger => {
+      this.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const messageId = trigger.dataset.messageId;
+        this.showReactionPicker(messageId, trigger);
+      }, trigger);
+    });
+
+    // Handle existing reaction button clicks
+    const reactionButtons = this.element.querySelectorAll('.reaction-button');
+    reactionButtons.forEach(button => {
+      this.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const messageId = button.dataset.messageId;
+        const emoji = button.dataset.emoji;
+        this.toggleReaction(messageId, emoji);
+      }, button);
+    });
+  }
+
+  showReactionPicker(messageId, trigger) {
+    const picker = window.UIComponents.create('ReactionPicker', {
+      messageId: messageId,
+      onReactionSelect: (msgId, emoji) => {
+        this.addReaction(msgId, emoji);
+      }
+    });
+
+    // Position picker near trigger
+    const rect = trigger.getBoundingClientRect();
+    picker.element.style.position = 'absolute';
+    picker.element.style.left = rect.left + 'px';
+    picker.element.style.top = (rect.top - 50) + 'px';
+    picker.element.style.zIndex = '1000';
+
+    document.body.appendChild(picker.element);
+    picker.show();
+  }
+
+  async addReaction(messageId, emoji) {
+    try {
+      const response = await fetch(`/api/v1/messages/${messageId}/reactions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ emoji })
+      });
+
+      if (response.ok) {
+        // Update local message data
+        this.updateMessageReactions(messageId, emoji, 'add');
+      } else {
+        console.error('Failed to add reaction');
+      }
+    } catch (error) {
+      console.error('Error adding reaction:', error);
+    }
+  }
+
+  async toggleReaction(messageId, emoji) {
+    try {
+      const response = await fetch(`/api/v1/messages/${messageId}/reactions/${encodeURIComponent(emoji)}`, {
+        method: 'DELETE'
+      });
+
+      if (response.ok) {
+        // Update local message data
+        this.updateMessageReactions(messageId, emoji, 'remove');
+      } else {
+        console.error('Failed to remove reaction');
+      }
+    } catch (error) {
+      console.error('Error removing reaction:', error);
+    }
+  }
+
+  updateMessageReactions(messageId, emoji, action) {
+    const message = this.messages.find(m => m.id === messageId);
+    if (!message) return;
+
+    if (!message.reactions) {
+      message.reactions = {};
+    }
+
+    if (action === 'add') {
+      if (!message.reactions[emoji]) {
+        message.reactions[emoji] = [];
+      }
+      if (!message.reactions[emoji].includes('current_user')) {
+        message.reactions[emoji].push('current_user');
+      }
+    } else if (action === 'remove') {
+      if (message.reactions[emoji]) {
+        const index = message.reactions[emoji].indexOf('current_user');
+        if (index > -1) {
+          message.reactions[emoji].splice(index, 1);
+          if (message.reactions[emoji].length === 0) {
+            delete message.reactions[emoji];
+          }
+        }
+      }
+    }
+
+    // Re-render the specific message
+    this.updateMessageElement(messageId);
+  }
+
+  updateMessageElement(messageId) {
+    const messageElement = this.element.querySelector(`[data-message-id="${messageId}"]`);
+    if (messageElement) {
+      const message = this.messages.find(m => m.id === messageId);
+      if (message) {
+        const newMessageElement = this.renderMessage(message);
+        messageElement.parentNode.replaceChild(newMessageElement, messageElement);
+        // Re-add event handlers for the new element
+        this.addReactionEventHandlers();
+      }
+    }
+  }
+      'data-message-id': message.id,
+      textContent: '+'
+    });
+    content.appendChild(reactionTrigger);
     content.appendChild(header);
     content.appendChild(bubble);
 
@@ -738,5 +945,148 @@ class ModalComponent extends BaseComponent {
   }
 }
 
+/**
+ * Reaction Picker Component
+ */
+class ReactionPickerComponent extends BaseComponent {
+  constructor(props) {
+    super(props);
+    this.messageId = props.messageId;
+    this.onReactionSelect = props.onReactionSelect;
+    this.commonEmojis = ['👍', '❤️', '😂', '😮', '😢', '😡', '🎉', '🔥', '👏', '🙏'];
+  }
+
+  render() {
+    const container = Utils.dom.createElement('div', {
+      className: 'reaction-picker'
+    });
+
+    this.commonEmojis.forEach(emoji => {
+      const button = Utils.dom.createElement('button', {
+        className: 'reaction-emoji',
+        textContent: emoji,
+        'data-emoji': emoji
+      });
+      container.appendChild(button);
+    });
+
+    return container;
+  }
+
+  componentDidMount() {
+    const buttons = this.element.querySelectorAll('.reaction-emoji');
+    buttons.forEach(button => {
+      this.addEventListener('click', (e) => {
+        const emoji = e.target.dataset.emoji;
+        if (this.onReactionSelect) {
+          this.onReactionSelect(this.messageId, emoji);
+        }
+        this.hide();
+      }, button);
+    });
+
+    // Close on outside click
+    setTimeout(() => {
+      document.addEventListener('click', (e) => {
+        if (!this.element.contains(e.target)) {
+          this.hide();
+        }
+      }, { once: true });
+    }, 0);
+  }
+
+  show() {
+    this.element.style.display = 'flex';
+  }
+
+  hide() {
+    this.element.style.display = 'none';
+  }
+}
+
+/**
+ * Emoji Picker Component
+ */
+class EmojiPickerComponent extends BaseComponent {
+  constructor(props) {
+    super(props);
+    this.onEmojiSelect = props.onEmojiSelect;
+    this.categories = {
+      'Smileys': ['😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇'],
+      'Hearts': ['❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔'],
+      'Gestures': ['👍', '👎', '👌', '✌️', '🤞', '🤘', '🤙', '👈', '👉', '👆'],
+      'Objects': ['🎉', '🔥', '💯', '⭐', '✨', '💫', '🌟', '🎊', '🎈', '🎁']
+    };
+  }
+
+  render() {
+    const container = Utils.dom.createElement('div', {
+      className: 'emoji-picker'
+    });
+
+    Object.entries(this.categories).forEach(([category, emojis]) => {
+      const categoryDiv = Utils.dom.createElement('div', {
+        className: 'emoji-category'
+      });
+
+      const title = Utils.dom.createElement('div', {
+        className: 'emoji-category-title',
+        textContent: category
+      });
+      categoryDiv.appendChild(title);
+
+      const emojiGrid = Utils.dom.createElement('div', {
+        className: 'emoji-grid'
+      });
+
+      emojis.forEach(emoji => {
+        const button = Utils.dom.createElement('button', {
+          className: 'emoji-button',
+          textContent: emoji,
+          'data-emoji': emoji
+        });
+        emojiGrid.appendChild(button);
+      });
+
+      categoryDiv.appendChild(emojiGrid);
+      container.appendChild(categoryDiv);
+    });
+
+    return container;
+  }
+
+  componentDidMount() {
+    const buttons = this.element.querySelectorAll('.emoji-button');
+    buttons.forEach(button => {
+      this.addEventListener('click', (e) => {
+        const emoji = e.target.dataset.emoji;
+        if (this.onEmojiSelect) {
+          this.onEmojiSelect(emoji);
+        }
+        this.hide();
+      }, button);
+    });
+
+    // Close on outside click
+    setTimeout(() => {
+      document.addEventListener('click', (e) => {
+        if (!this.element.contains(e.target)) {
+          this.hide();
+        }
+      }, { once: true });
+    }, 0);
+  }
+
+  show() {
+    this.element.style.display = 'block';
+  }
+
+  hide() {
+    this.element.style.display = 'none';
+  }
+}
+
+// Create global UI components instance
+window.UIComponents = new UIComponents();
 // Create global UI components instance
 window.UIComponents = new UIComponents();
