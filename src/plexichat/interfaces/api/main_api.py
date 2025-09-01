@@ -333,7 +333,9 @@ if app:
     app.add_exception_handler(500, general_exception_handler)
 
 # Health check endpoint
-@app.get("/health") if app else lambda: None
+if app:
+    @app.get("/health")
+    async def health_check():
 async def health_check():
     """Health check endpoint."""
     try:
@@ -381,7 +383,9 @@ async def health_check():
         )
 
 # Metrics endpoint
-@app.get("/metrics") if app else lambda: None
+if app:
+    @app.get("/metrics")
+    async def get_metrics():
 async def get_metrics():
     """Get system metrics."""
     try:
@@ -465,7 +469,9 @@ if app:
         raise
 
 # WebSocket endpoint
-@app.websocket("/ws/{user_id}") if app else lambda: None
+if app:
+    @app.websocket("/ws/{user_id}")
+    async def websocket_endpoint(websocket, user_id: int):
 async def websocket_endpoint(websocket, user_id: int):
     """WebSocket endpoint for real-time communication."""
     try:
