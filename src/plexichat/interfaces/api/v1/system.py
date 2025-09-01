@@ -69,9 +69,14 @@ STARTUP_TIME = datetime.now()
 async def health_check():
     """Basic health check endpoint."""
     try:
-        version = get_version()
-    except ImportError:
-        version = "b.1.1-86"
+        # Try to get version from versioning module
+        try:
+            from plexichat.core.versioning.changelog_manager import get_version
+            version = get_version()
+        except (ImportError, AttributeError):
+            version = "1.0.0"
+    except Exception:
+        version = "1.0.0"
 
     try:
         uptime = datetime.now() - STARTUP_TIME
@@ -185,7 +190,17 @@ async def detailed_status():
 async def version_info():
     """Get version information."""
     try:
-        version_data = get_version_info()
+        # Try to get version info from versioning module
+        try:
+            from plexichat.core.versioning.changelog_manager import get_version_info
+            version_data = get_version_info()
+        except (ImportError, AttributeError):
+            version_data = {
+                "version": "1.0.0",
+                "api_version": "v1",
+                "build_date": "2025-09-01"
+            }
+
         # Add additional system info
         version_data.update({
             "environment": "development",
@@ -198,11 +213,11 @@ async def version_info():
             ]
         })
         return version_data
-    except ImportError:
+    except Exception:
         return {
-            "version": "b.1.1-88",
+            "version": "1.0.0",
             "api_version": "v1",
-            "build_date": "2025-07-29",
+            "build_date": "2025-09-01",
             "environment": "development",
             "features": [
                 "authentication",
