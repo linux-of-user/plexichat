@@ -32,6 +32,7 @@ from plexichat.interfaces.api.v1.backups import router as backups_router
 from plexichat.interfaces.api.v1.shards import router as shards_router
 from plexichat.interfaces.api.v1.threads import router as threads_router
 from plexichat.interfaces.api.v1.export import router as export_router
+from plexichat.interfaces.api.routers.performance_router import router as performance_router
 
 # Try to import enhanced file sharing router with fallback
 try:
@@ -121,6 +122,8 @@ if user_settings_available and user_settings_router:
     router.include_router(user_settings_router, dependencies=[Depends(get_current_user)])
 
 # Include client settings router if available (may require admin or user depending on endpoint,
+# Performance monitoring requires authentication
+router.include_router(performance_router, dependencies=[Depends(get_current_user)])
 # but most client settings are per-user)
 if client_settings_available and client_settings_router:
     router.include_router(client_settings_router, dependencies=[Depends(get_current_user)])
@@ -147,6 +150,7 @@ async def api_root():
             "search": "/api/v1/search",
             "notifications": "/api/v1/notifications",
             "backups": "/api/v1/backups",
+            "performance": "/api/v1/performance"
             "shards": "/api/v1/shards"
         },
         "documentation": "/docs",
