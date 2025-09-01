@@ -8,16 +8,8 @@ import logging
 from typing import Dict, List, Any, Optional
 from datetime import datetime, timedelta
 
-try:
-    from fastapi import APIRouter, HTTPException, Depends, Query
-    from pydantic import BaseModel, Field
-except ImportError:
-    APIRouter = None
-    HTTPException = Exception
-    Depends = None
-    Query = None
-    BaseModel = object
-    Field = lambda **kwargs: None
+from fastapi import APIRouter, HTTPException, Depends, Query
+from pydantic import BaseModel, Field
 
 from plexichat.core.monitoring.unified_monitoring_system import (
     unified_monitoring_system,
@@ -33,10 +25,7 @@ from plexichat.interfaces.api.main_api import get_current_user
 logger = logging.getLogger(__name__)
 
 # Create router
-if APIRouter:
-    router = APIRouter(prefix="/performance", tags=["performance"])
-else:
-    router = None
+router = APIRouter(prefix="/performance", tags=["performance"])
 
 # Pydantic models for request/response
 class MetricDataResponse(BaseModel):
@@ -98,10 +87,9 @@ class MetricsSummaryResponse(BaseModel):
     latest_timestamp: str
 
 # API Endpoints
-if router:
 
     @router.get("/status", response_model=SystemStatusResponse)
-    async def get_performance_status(current_user: Dict[str, Any] = Depends(get_current_user)):
+    async def get_performance_status(user: Dict[str, Any] = Depends(get_current_user)):
         """Get overall performance monitoring system status."""
         try:
             status = get_system_status()
@@ -111,7 +99,7 @@ if router:
             raise HTTPException(status_code=500, detail="Failed to get performance status")
 
     @router.get("/collector/status")
-    async def get_collector_status(current_user: Dict[str, Any] = Depends(get_current_user)):
+    async def get_collector_status(user: Dict[str, Any] = Depends(get_current_user)):
         """Get metrics collector status."""
         try:
             return get_metrics_collector_status()
@@ -122,12 +110,12 @@ if router:
     @router.get("/metrics/{metric_name}", response_model=List[MetricDataResponse])
     async def get_metric_data(
         metric_name: str,
-        hours: int = Query(24, ge=1, le=168, description="Hours of data to retrieve"),
-        current_user: Dict[str, Any] = Depends(get_current_user)
+        hours_param: int = Query(24, ge=1, le=168, description="Hours of data to retrieve"),
+        user: Dict[str, Any] = Depends(get_current_user)
     ):
         """Get metric data for a specific metric."""
         try:
-            since = datetime.now() - timedelta(hours=hours)
+            since = datetime.now() - timedelta(hours=hours_param)
             metrics = get_metrics(metric_name, since)
 
             return [
@@ -147,7 +135,7 @@ if router:
     @router.get("/metrics/{metric_name}/latest", response_model=Optional[MetricDataResponse])
     async def get_latest_metric_data(
         metric_name: str,
-        current_user: Dict[str, Any] = Depends(get_current_user)
+        user: Dict[str, Any] = Depends(get_current_user)
     ):
         """Get the latest value for a specific metric."""
         try:
@@ -168,13 +156,13 @@ if router:
 
     @router.get("/metrics/summary")
     async def get_metrics_summary(
-        hours: int = Query(1, ge=1, le=24, description="Hours to summarize"),
-        current_user: Dict[str, Any] = Depends(get_current_user)
+        hours_param: int = Query(1, ge=1, le=24, description="Hours to summarize"),
+        user: Dict[str, Any] = Depends(get_current_user)
     ):
         """Get summary of all metrics."""
         try:
             summaries = []
-            since = datetime.now() - timedelta(hours=hours)
+            since = datetime.now() - timedelta(hours=hours_param)
 
             # Get all metric names from the system
             metric_names = list(unified_monitoring_system.metrics.keys())
@@ -197,32 +185,32 @@ if router:
                     "latest_timestamp": latest.timestamp.isoformat() if latest else None
                 })
 
-            return {"summaries": summaries, "period_hours": hours}
+            return {"summaries": summaries, "period_hours": hours_param}
         except Exception as e:
             logger.error(f"Error getting metrics summary: {e}")
             raise HTTPException(status_code=500, detail="Failed to get metrics summary")
 
     @router.post("/metrics")
     async def record_custom_metric(
-        name: str = Query(..., description="Metric name"),
+        metric_name: str = Query(..., description="Metric name"),
         value: float = Query(..., description="Metric value"),
         unit: str = Query("", description="Metric unit"),
         tags: Optional[str] = Query(None, description="JSON string of tags"),
-        current_user: Dict[str, Any] = Depends(get_current_user)
+        user: Dict[str, Any] = Depends(get_current_user)
     ):
         """Record a custom metric."""
         try:
             import json
             parsed_tags = json.loads(tags) if tags else {}
 
-            record_metric(name, value, unit, parsed_tags)
-            return {"message": f"Metric {name} recorded successfully", "value": value}
+            record_metric(metric_name, value, unit, parsed_tags)
+            return {"message": f"Metric {metric_name} recorded successfully", "value": value}
         except Exception as e:
             logger.error(f"Error recording custom metric: {e}")
             raise HTTPException(status_code=500, detail="Failed to record custom metric")
 
     @router.get("/alerts/rules", response_model=List[AlertRuleResponse])
-    async def get_alert_rules(current_user: Dict[str, Any] = Depends(get_current_user)):
+    async def get_alert_rules(user: Dict[str, Any] = Depends(get_current_user)):
         """Get all alert rules."""
         try:
             rules = []
@@ -243,7 +231,7 @@ if router:
     @router.post("/alerts/rules", response_model=AlertRuleResponse)
     async def create_alert_rule(
         rule: AlertRuleRequest,
-        current_user: Dict[str, Any] = Depends(get_current_user)
+        user: Dict[str, Any] = Depends(get_current_user)
     ):
         """Create a new alert rule."""
         try:
@@ -274,7 +262,7 @@ if router:
     @router.delete("/alerts/rules/{rule_name}")
     async def delete_alert_rule(
         rule_name: str,
-        current_user: Dict[str, Any] = Depends(get_current_user)
+        user: Dict[str, Any] = Depends(get_current_user)
     ):
         """Delete an alert rule."""
         try:
@@ -286,9 +274,9 @@ if router:
 
     @router.get("/alerts", response_model=List[AlertResponse])
     async def get_alerts(
-        hours: int = Query(24, ge=1, le=168, description="Hours of alerts to retrieve"),
-        status: Optional[str] = Query(None, description="Filter by alert status"),
-        current_user: Dict[str, Any] = Depends(get_current_user)
+        hours_param: int = Query(24, ge=1, le=168, description="Hours of alerts to retrieve"),
+        status_filter: Optional[str] = Query(None, description="Filter by alert status"),
+        user: Dict[str, Any] = Depends(get_current_user)
     ):
         """Get alerts from the database."""
         try:
@@ -300,15 +288,15 @@ if router:
                 FROM alerts
                 WHERE created_at >= ?
                 """
-                params = [(datetime.now() - timedelta(hours=hours)).isoformat()]
+                params = [(datetime.now() - timedelta(hours=hours_param)).isoformat()]
 
-                if status:
+                if status_filter:
                     query += " AND status = ?"
-                    params.append(status)
+                    params.append(status_filter)
 
                 query += " ORDER BY created_at DESC"
 
-                alerts_data = await session.fetchall(query, params)
+                alerts_data = await session.fetchall(query, {"params": params})
 
                 alerts = []
                 for alert in alerts_data:
@@ -334,7 +322,7 @@ if router:
     @router.post("/alerts/{alert_id}/acknowledge")
     async def acknowledge_alert(
         alert_id: str,
-        current_user: Dict[str, Any] = Depends(get_current_user)
+        user: Dict[str, Any] = Depends(get_current_user)
     ):
         """Acknowledge an alert."""
         try:
@@ -343,7 +331,7 @@ if router:
                     "alerts",
                     {
                         "acknowledged": True,
-                        "acknowledged_by": str(current_user["id"]),
+                        "acknowledged_by": str(user["id"]),
                         "acknowledged_at": datetime.now().isoformat(),
                         "updated_at": datetime.now().isoformat()
                     },
@@ -358,8 +346,8 @@ if router:
 
     @router.get("/dashboard")
     async def get_dashboard_data(
-        hours: int = Query(24, ge=1, le=168, description="Hours of data for dashboard"),
-        current_user: Dict[str, Any] = Depends(get_current_user)
+        hours_param: int = Query(24, ge=1, le=168, description="Hours of data for dashboard"),
+        user: Dict[str, Any] = Depends(get_current_user)
     ):
         """Get comprehensive dashboard data."""
         try:
@@ -377,7 +365,7 @@ if router:
                 "network_bytes_sent", "network_bytes_recv", "process_count"
             ]
 
-            since = datetime.now() - timedelta(hours=hours)
+            since = datetime.now() - timedelta(hours=hours_param)
             for metric_name in key_metrics:
                 metrics = get_metrics(metric_name, since)
                 if metrics:
@@ -394,7 +382,7 @@ if router:
             async with database_manager.get_session() as session:
                 alerts = await session.fetchall(
                     "SELECT * FROM alerts WHERE status = 'active' ORDER BY created_at DESC LIMIT 10",
-                    []
+                    {}
                 )
                 dashboard_data["active_alerts"] = [
                     {
