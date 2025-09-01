@@ -373,22 +373,16 @@ class UnifiedMessagingSystem:
             Tuple of (success, message_id_or_error, message_object)
         """
         try:
-            metadata = MessageMetadata(
-                message_id=message_id,
-                sender_id=sender_id,
-                channel_id=channel_id,
-                message_type=message_type,
-                reply_to=reply_to,
-                thread_id=thread_id
-            )
+            # Create message ID first
+            message_id = str(uuid4())
+
             # Security validation
             if self.security_system:
                 valid, issues = await self.security_system.validate_request_security(content)
                 if not valid:
                     return False, f"Security validation failed: {', '.join(issues)}", None
-            
-            # Create message
-            message_id = str(uuid4())
+
+            # Create message metadata
             metadata = MessageMetadata(
                 message_id=message_id,
                 sender_id=sender_id,
