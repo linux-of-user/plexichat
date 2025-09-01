@@ -18,6 +18,7 @@ from typing import Any, Dict, List, Optional, Set, Callable, Union, Tuple
 from pathlib import Path
 import ipaddress
 import re
+from .security_context import SecurityContext, SecurityLevel
 
 # FastAPI availability check
 FASTAPI_AVAILABLE = False
@@ -30,16 +31,6 @@ except ImportError:
 
 # Logging setup
 logger = logging.getLogger(__name__)
-
-
-class SecurityLevel(Enum):
-    """Security access levels for endpoints."""
-    PUBLIC = 0          # No authentication required
-    BASIC = 1           # Basic authentication required
-    AUTHENTICATED = 2   # Valid user session required
-    ELEVATED = 3        # Enhanced privileges required
-    ADMIN = 4           # Admin access required
-    SYSTEM = 5          # System-level access required
 
 
 class ThreatLevel(Enum):
@@ -65,22 +56,6 @@ class SecurityEventType(Enum):
     CSRF_ATTEMPT = "csrf_attempt"
     PRIVILEGE_ESCALATION = "privilege_escalation"
     DATA_BREACH_ATTEMPT = "data_breach_attempt"
-
-
-@dataclass
-class SecurityContext:
-    """Security context for requests."""
-    user_id: Optional[str] = None
-    session_id: Optional[str] = None
-    ip_address: Optional[str] = None
-    user_agent: Optional[str] = None
-    request_id: Optional[str] = None
-    endpoint: Optional[str] = None
-    security_level: SecurityLevel = SecurityLevel.PUBLIC
-    authenticated: bool = False
-    permissions: Set[str] = field(default_factory=set)
-    threat_score: float = 0.0
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 @dataclass
