@@ -31,6 +31,7 @@ from plexichat.interfaces.api.v1.notifications import router as notifications_ro
 from plexichat.interfaces.api.v1.backups import router as backups_router
 from plexichat.interfaces.api.v1.shards import router as shards_router
 from plexichat.interfaces.api.v1.threads import router as threads_router
+from plexichat.interfaces.api.v1.export import router as export_router
 
 # Try to import user_settings router with fallback
 try:
@@ -70,6 +71,8 @@ router.include_router(users_router, dependencies=[Depends(get_current_user)])
 # Threads require authentication
 router.include_router(threads_router, dependencies=[Depends(get_current_user)])
 router.include_router(messages_router, dependencies=[Depends(get_current_user)])
+# Export requires authentication
+router.include_router(export_router, dependencies=[Depends(get_current_user)])
 
 # Files require authentication (uploads/downloads)
 router.include_router(files_router, dependencies=[Depends(get_current_user)])
