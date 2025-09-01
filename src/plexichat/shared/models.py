@@ -77,6 +77,13 @@ class User(BaseDataModel):
     is_admin: bool = False
     last_login: Optional[datetime] = None
     preferences: Dict[str, Any] = field(default_factory=dict)
+    # Profile enhancement fields
+    bio: Optional[str] = None
+    avatar_url: Optional[str] = None
+    status: str = "online"
+    timezone: Optional[str] = None
+    language: str = "en"
+    theme: str = "dark"
 
 
 @dataclass

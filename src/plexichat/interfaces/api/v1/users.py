@@ -1,7 +1,9 @@
 from typing import Dict, List, Optional
 from datetime import datetime
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File
 from pydantic import BaseModel, EmailStr, Field
+import os
+import uuid
 
 # Mock user dependency
 def get_current_user():
@@ -16,12 +18,24 @@ class UserProfile(BaseModel):
     id: str
     username: str
     email: EmailStr
-    display_name: str
+    display_name: Optional[str] = None
+    bio: Optional[str] = None
+    avatar_url: Optional[str] = None
+    status: Optional[str] = None
+    timezone: Optional[str] = None
+    language: Optional[str] = None
+    theme: Optional[str] = None
     created_at: datetime
 
 class UserUpdate(BaseModel):
     display_name: Optional[str] = None
     email: Optional[EmailStr] = None
+    bio: Optional[str] = Field(None, max_length=500)
+    avatar_url: Optional[str] = None
+    status: Optional[str] = None
+    timezone: Optional[str] = None
+    language: Optional[str] = None
+    theme: Optional[str] = None
 
 @router.get("/me", response_model=UserProfile)
 async def get_my_profile(current_user: dict = Depends(get_current_user)):
@@ -30,7 +44,19 @@ async def get_my_profile(current_user: dict = Depends(get_current_user)):
     if user_id in users_db:
         return UserProfile(**users_db[user_id])
     # Create a mock user if not found, for demonstration
-    mock_user = {"id": user_id, "username": "mock_user", "email": "user@example.com", "display_name": "Mock User", "created_at": datetime.now()}
+    mock_user = {
+        "id": user_id,
+        "username": "mock_user",
+        "email": "user@example.com",
+        "display_name": "Mock User",
+        "bio": "Hello, I'm a mock user for demonstration purposes.",
+        "avatar_url": None,
+        "status": "online",
+        "timezone": "UTC",
+        "language": "en",
+        "theme": "dark",
+        "created_at": datetime.now()
+    }
     users_db[user_id] = mock_user
     return UserProfile(**mock_user)
 
@@ -60,6 +86,61 @@ async def list_users(limit: int = Query(20, ge=1, le=100), offset: int = Query(0
     """List all users (paginated)."""
     all_users = [UserProfile(**u) for u in users_db.values()]
     return all_users[offset : offset + limit]
+
+@router.post("/avatar")
+async def upload_avatar(
+    file: UploadFile = File(...),
+    current_user: dict = Depends(get_current_user)
+):
+    """Upload avatar for the current user."""
+    user_id = current_user["id"]
+
+    # Validate file type
+    allowed_types = ["image/jpeg", "image/png", "image/gif", "image/webp"]
+    if file.content_type not in allowed_types:
+        raise HTTPException(status_code=400, detail="Invalid file type. Only JPEG, PNG, GIF, and WebP are allowed.")
+
+    # Validate file size (max 5MB)
+    file_size = 0
+    content = await file.read()
+    file_size = len(content)
+    if file_size > 5 * 1024 * 1024:  # 5MB
+        raise HTTPException(status_code=400, detail="File too large. Maximum size is 5MB.")
+
+    # Generate unique filename
+    file_extension = os.path.splitext(file.filename)[1]
+    unique_filename = f"{user_id}_{uuid.uuid4()}{file_extension}"
+
+    # Ensure uploads directory exists
+    upload_dir = "plexichat/data/uploads/avatars"
+    os.makedirs(upload_dir, exist_ok=True)
+
+    # Save file
+    file_path = os.path.join(upload_dir, unique_filename)
+    with open(file_path, "wb") as f:
+        f.write(content)
+
+    # Update user's avatar_url
+    if user_id in users_db:
+        users_db[user_id]["avatar_url"] = f"/uploads/avatars/{unique_filename}"
+    else:
+        # Create user if not exists
+        mock_user = {
+            "id": user_id,
+            "username": "mock_user",
+            "email": "user@example.com",
+            "display_name": "Mock User",
+            "bio": "Hello, I'm a mock user for demonstration purposes.",
+            "avatar_url": f"/uploads/avatars/{unique_filename}",
+            "status": "online",
+            "timezone": "UTC",
+            "language": "en",
+            "theme": "dark",
+            "created_at": datetime.now()
+        }
+        users_db[user_id] = mock_user
+
+    return {"avatar_url": f"/uploads/avatars/{unique_filename}", "message": "Avatar uploaded successfully"}
 
 if __name__ == '__main__':
     # Example of how to run this API with uvicorn

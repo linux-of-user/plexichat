@@ -46,6 +46,13 @@ class UserUpdate(BaseModel):
     email: Optional[EmailStr] = Field(None, description="Email address")
     is_active: Optional[bool] = Field(None, description="Active status")
     is_admin: Optional[bool] = Field(None, description="Admin status")
+    display_name: Optional[str] = Field(None, description="Display name")
+    bio: Optional[str] = Field(None, max_length=500, description="User biography")
+    avatar_url: Optional[str] = Field(None, description="Avatar image URL")
+    user_status: Optional[str] = Field(None, description="User status")
+    timezone: Optional[str] = Field(None, description="User timezone")
+    language: Optional[str] = Field(None, description="Preferred language")
+    theme: Optional[str] = Field(None, description="UI theme preference")
 
     @field_validator('username')
     @classmethod
@@ -67,6 +74,13 @@ class UserResponse(UserBase):
     is_admin: bool = Field(..., description="Admin status")
     created_at: datetime = Field(..., description="Creation timestamp")
     last_login: Optional[datetime] = Field(None, description="Last login timestamp")
+    display_name: Optional[str] = Field(None, description="Display name")
+    bio: Optional[str] = Field(None, max_length=500, description="User biography")
+    avatar_url: Optional[str] = Field(None, description="Avatar image URL")
+    user_status: Optional[str] = Field(None, description="User status")
+    timezone: Optional[str] = Field(None, description="User timezone")
+    language: Optional[str] = Field(None, description="Preferred language")
+    theme: Optional[str] = Field(None, description="UI theme preference")
 
     class Config:
         from_attributes = True
@@ -86,8 +100,10 @@ class UserProfile(UserResponse):
     """Extended user profile schema."""
     bio: Optional[str] = Field(None, max_length=500, description="User biography")
     avatar_url: Optional[str] = Field(None, description="Avatar image URL")
+    user_status: Optional[str] = Field(None, description="User status (online, away, busy, offline)")
     timezone: Optional[str] = Field(None, description="User timezone")
     language: Optional[str] = Field(None, description="Preferred language")
+    theme: Optional[str] = Field(None, description="UI theme preference")
 
 
 class UserStats(BaseModel):

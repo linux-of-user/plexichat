@@ -35,15 +35,23 @@ class UserResponse(BaseModel):
     status: UserStatus
     created_at: str
     last_login: Optional[str] = None
+    display_name: Optional[str] = None
+    bio: Optional[str] = None
+    avatar_url: Optional[str] = None
+    user_status: Optional[str] = None
+    timezone: Optional[str] = None
+    language: Optional[str] = None
+    theme: Optional[str] = None
 
 class UserProfileUpdate(BaseModel):
     """Schema for updating user profile."""
     display_name: Optional[str] = None
-    bio: Optional[str] = None
-    avatar_url: Optional[str] = None
-    timezone: Optional[str] = None
-    language: Optional[str] = None
-    theme: Optional[str] = None
+    bio: Optional[str] = Field(None, max_length=500, description="User biography")
+    avatar_url: Optional[str] = Field(None, description="Avatar image URL")
+    status: Optional[str] = Field(None, description="User status (online, away, busy, offline)")
+    timezone: Optional[str] = Field(None, description="User timezone")
+    language: Optional[str] = Field(None, description="Preferred language")
+    theme: Optional[str] = Field(None, description="UI theme preference")
 
 class Config:
     orm_mode = True
