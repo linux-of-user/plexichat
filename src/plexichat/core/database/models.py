@@ -102,7 +102,7 @@ THREAD_SCHEMA = {
 
 MESSAGE_THREADS_SCHEMA = {
     "id": "TEXT PRIMARY KEY",
-    "parent_message_id": "TEXT NOT NULL",
+    "parent_message_id": "TEXT",
     "title": "TEXT NOT NULL",
     "creator_id": "TEXT NOT NULL",
     "created_at": "TEXT NOT NULL",

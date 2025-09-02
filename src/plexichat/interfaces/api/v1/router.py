@@ -7,17 +7,50 @@ It provides a single entry point for all v1 functionality.
 
 from fastapi import APIRouter, Depends
 from datetime import datetime
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from plexichat.core.logging import get_logger
-# Temporarily use mock authentication for testing
-def get_current_user():
-    return {"id": "mock_user_id", "username": "mock_user"}
+from plexichat.core.authentication import get_auth_manager
+from fastapi import HTTPException, status
 
-def require_admin():
-    return {"id": "mock_admin_id", "username": "mock_admin", "is_admin": True}
+security = HTTPBearer()
 
-def get_optional_user():
-    return {"id": "mock_user_id", "username": "mock_user"}
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    """Get current authenticated user from token."""
+    token = credentials.credentials
+
+    auth_manager = get_auth_manager()
+    valid, payload = await auth_manager.validate_token(token)
+
+    if not valid or not payload:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    return {
+        "id": payload.get("user_id"),
+        "username": payload.get("username", ""),
+        "permissions": payload.get("permissions", []),
+        "roles": payload.get("roles", [])
+    }
+
+async def require_admin(current_user: dict = Depends(get_current_user)):
+    """Require admin privileges."""
+    if "admin" not in current_user.get("permissions", []) and "super_admin" not in current_user.get("roles", []):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin privileges required"
+        )
+    return current_user
+
+async def get_optional_user(token: str = None):
+    """Get user if authenticated, None otherwise."""
+    try:
+        return await get_current_user(token)
+    except HTTPException:
+        return None
 
 logger = get_logger(__name__)
 

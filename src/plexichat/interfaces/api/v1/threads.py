@@ -8,7 +8,32 @@ from pydantic import BaseModel, Field
 
 from plexichat.core.messaging.unified_messaging_system import get_messaging_system, MessageType
 from plexichat.core.services.message_threads_service import get_message_threads_service
-from plexichat.core.auth.fastapi_adapter import get_current_user
+from plexichat.core.authentication import get_auth_manager
+from fastapi import HTTPException, status
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+
+security = HTTPBearer()
+
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    """Get current authenticated user from token."""
+    token = credentials.credentials
+
+    auth_manager = get_auth_manager()
+    valid, payload = await auth_manager.validate_token(token)
+
+    if not valid or not payload:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    return {
+        "id": payload.get("user_id"),
+        "username": payload.get("username", ""),
+        "permissions": payload.get("permissions", []),
+        "roles": payload.get("roles", [])
+    }
 
 router = APIRouter(prefix="/threads", tags=["Threads"])
 

@@ -1166,7 +1166,7 @@ class UnifiedAuthManager:
                 )
             
             # Calculate risk score
-            risk_score = self._calculate_risk_score(ip_address or "", device_info, username)
+            risk_score = await self._calculate_risk_score(ip_address or "", device_info, username)
             
             # Get user roles and expanded permissions
             roles = self._get_user_roles(username)

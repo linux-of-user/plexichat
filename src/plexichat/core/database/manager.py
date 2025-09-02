@@ -216,10 +216,10 @@ class DatabaseManager:
         """Initialize the database manager."""
         if self._initialized:
             return True
-        
+
         try:
             self.logger.info(f"Initializing database manager with {self.config.db_type}", category=LogCategory.DATABASE)
-            
+
             # Create database engine based on type
             if self.config.db_type == "sqlite":
                 await self._initialize_sqlite()
@@ -229,22 +229,28 @@ class DatabaseManager:
                 await self._initialize_mysql()
             else:
                 raise ValueError(f"Unsupported database type: {self.config.db_type}")
-            
-            await self.ensure_table_exists(
-                "plugin_data",
-                {
-                    "plugin_name": "TEXT",
-                    "key": "TEXT",
-                    "value": "TEXT",
-                    "PRIMARY KEY": "(plugin_name, key)",
-                },
-            )
+
+            # Mark as initialized before creating tables to avoid circular dependency
             self._initialized = True
+
+            # Create essential tables after initialization
+            await self._create_essential_tables()
+
+            # Create all standard tables from models
+            try:
+                from plexichat.core.database.models import create_tables
+                await create_tables()
+                self.logger.info("All standard tables created successfully", category=LogCategory.DATABASE)
+            except Exception as e:
+                self.logger.error(f"Failed to create standard tables: {e}", category=LogCategory.DATABASE)
+                raise
+
             self.logger.info("Database manager initialized successfully", category=LogCategory.DATABASE)
             return True
-            
+
         except Exception as e:
             self.logger.error(f"Failed to initialize database manager: {e}", category=LogCategory.DATABASE)
+            self._initialized = False  # Reset on failure
             return False
     
     async def _initialize_sqlite(self):
@@ -322,6 +328,51 @@ class DatabaseManager:
 
         except Exception as e:
             self.logger.error(f"MySQL initialization failed: {e}", category=LogCategory.DATABASE)
+            raise
+
+    async def _create_essential_tables(self):
+        """Create essential tables after database initialization."""
+        try:
+            # Create plugin_data table
+            await self.ensure_table_exists(
+                "plugin_data",
+                {
+                    "plugin_name": "TEXT",
+                    "key": "TEXT",
+                    "value": "TEXT",
+                    "PRIMARY KEY": "(plugin_name, key)",
+                },
+            )
+
+            # Create message_threads table
+            await self.ensure_table_exists(
+                "message_threads",
+                {
+                    "id": "TEXT PRIMARY KEY",
+                    "parent_message_id": "TEXT",
+                    "title": "TEXT NOT NULL",
+                    "creator_id": "TEXT NOT NULL",
+                    "created_at": "TEXT NOT NULL",
+                    "updated_at": "TEXT NOT NULL",
+                    "reply_count": "INTEGER DEFAULT 0",
+                    "is_archived": "BOOLEAN DEFAULT FALSE"
+                },
+            )
+
+            # Create thread_replies table
+            await self.ensure_table_exists(
+                "thread_replies",
+                {
+                    "id": "TEXT PRIMARY KEY",
+                    "thread_id": "TEXT NOT NULL",
+                    "message_content": "TEXT NOT NULL",
+                    "user_id": "TEXT NOT NULL",
+                    "created_at": "TEXT NOT NULL",
+                    "is_edited": "BOOLEAN DEFAULT FALSE"
+                },
+            )
+        except Exception as e:
+            self.logger.error(f"Failed to create essential tables: {e}", category=LogCategory.DATABASE)
             raise
     
     @asynccontextmanager
