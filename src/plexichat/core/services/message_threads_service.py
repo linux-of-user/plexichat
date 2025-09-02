@@ -8,12 +8,29 @@ import logging
 from typing import Dict, List, Optional, Set, Tuple
 from datetime import datetime, timezone
 from uuid import uuid4
+from dataclasses import dataclass, field
 
 from plexichat.core.database.manager import database_manager
 from plexichat.core.services.core_services import BaseService, ServiceStatus
-from plexichat.core.messaging.unified_messaging_system import Thread
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class Thread:
+    """Thread structure for organizing message conversations."""
+    thread_id: str
+    title: str
+    channel_id: str
+    creator_id: str
+    parent_message_id: Optional[str] = None
+    is_resolved: bool = False
+    participant_count: int = 1
+    message_count: int = 0
+    last_message_at: Optional[datetime] = None
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    participants: Set[str] = field(default_factory=set)
 
 
 class MessageThreadsService(BaseService):
@@ -362,4 +379,4 @@ def get_message_threads_service() -> MessageThreadsService:
     return _message_threads_service
 
 
-__all__ = ["MessageThreadsService", "get_message_threads_service"]
+__all__ = ["MessageThreadsService", "get_message_threads_service", "Thread"]
