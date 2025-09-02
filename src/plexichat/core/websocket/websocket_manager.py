@@ -106,8 +106,24 @@ class WebSocketManager:
         self.typing_states: Dict[str, Dict[str, datetime]] = {}  # channel_id -> {user_id: last_typing_time}
         self.typing_timeout = 3.0  # seconds
 
-        # Start typing cleanup task
-        asyncio.create_task(self._cleanup_typing_states())
+        # Start typing cleanup task (will be started during app startup)
+        self._cleanup_task = None
+
+    async def start_cleanup_task(self):
+        """Start the typing cleanup task."""
+        if self._cleanup_task is None or self._cleanup_task.done():
+            self._cleanup_task = asyncio.create_task(self._cleanup_typing_states())
+            logger.info("WebSocket typing cleanup task started")
+
+    async def stop_cleanup_task(self):
+        """Stop the typing cleanup task."""
+        if self._cleanup_task and not self._cleanup_task.done():
+            self._cleanup_task.cancel()
+            try:
+                await self._cleanup_task
+            except asyncio.CancelledError:
+                pass
+            logger.info("WebSocket typing cleanup task stopped")
 
     async def start_broadcasting(self):
         """Start message broadcasting loop."""
@@ -343,6 +359,10 @@ class WebSocketManager:
             logger.info(f"Connection {connection_id} left channel {channel}")
             return True
 
+        except Exception as e:
+            logger.error(f"Error leaving channel {channel}: {e}")
+            return False
+
     async def join_thread(self, connection_id: str, thread_id: str) -> bool:
         """Join connection to thread for real-time updates."""
         try:
@@ -486,8 +506,8 @@ class WebSocketManager:
 
     async def _cleanup_typing_states(self):
         """Periodically clean up expired typing states."""
-        while True:
-            try:
+        try:
+            while True:
                 await asyncio.sleep(1.0)  # Check every second
                 current_time = datetime.now()
 
@@ -505,8 +525,11 @@ class WebSocketManager:
                     if not users:
                         del self.typing_states[channel_id]
 
-            except Exception as e:
-                logger.error(f"Error in typing cleanup: {e}")
+        except asyncio.CancelledError:
+            logger.info("Typing cleanup task cancelled")
+            raise
+        except Exception as e:
+            logger.error(f"Error in typing cleanup: {e}")
 
     async def start_typing(self, connection_id: str, channel_id: str) -> bool:
         """Start typing indicator for user in channel."""

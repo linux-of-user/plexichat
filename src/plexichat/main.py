@@ -422,19 +422,7 @@ async def lifespan(app: FastAPI):
             logger.warning(f"Microsecond optimizer not available: {e}")
         except Exception as e:
             logger.warning(f"Microsecond optimizer failed to start: {e}")
-        # Initialize typing cleanup service
-        try:
-            from plexichat.core.services.typing_cleanup_service import start_typing_cleanup
-            cleanup_start = time.perf_counter()
-            await start_typing_cleanup()
-            cleanup_end = time.perf_counter()
-            cleanup_duration = (cleanup_end - cleanup_start) * 1000.0
-            app.state.performance_metrics.append({"operation": "typing_cleanup_init", "duration_ms": cleanup_duration})
-            logger.info(f"[TYPING] Typing cleanup service started ({cleanup_duration:.1f}ms)")
-        except ImportError as e:
-            logger.warning(f"[TYPING] Typing cleanup service not available: {e}")
-        except Exception as e:
-            logger.warning(f"[TYPING] Typing cleanup service failed to start: {e}")
+        
 
         # Initialize optimized WebSocket service
         try:
@@ -449,19 +437,15 @@ async def lifespan(app: FastAPI):
             logger.warning(f"[WEBSOCKET] Optimized WebSocket service not available: {e}")
         except Exception as e:
             logger.warning(f"[WEBSOCKET] Optimized WebSocket service failed to start: {e}")
-        # Initialize typing cleanup service
+
+        # Start WebSocket cleanup task
         try:
-            from plexichat.core.services.typing_cleanup_service import start_typing_cleanup
-            cleanup_start = time.perf_counter()
-            await start_typing_cleanup()
-            cleanup_end = time.perf_counter()
-            cleanup_duration = (cleanup_end - cleanup_start) * 1000.0
-            app.state.performance_metrics.append({"operation": "typing_cleanup_init", "duration_ms": cleanup_duration})
-            logger.info(f"[TYPING] Typing cleanup service started ({cleanup_duration:.1f}ms)")
-        except ImportError as e:
-            logger.warning(f"[TYPING] Typing cleanup service not available: {e}")
+            from plexichat.core.websocket.websocket_manager import websocket_manager
+            await websocket_manager.start_cleanup_task()
+            logger.info("[WEBSOCKET] WebSocket cleanup task started")
         except Exception as e:
-            logger.warning(f"[TYPING] Typing cleanup service failed to start: {e}")
+            logger.warning(f"[WEBSOCKET] Failed to start WebSocket cleanup task: {e}")
+        
 
         overall_end = time.perf_counter()
         overall_duration = (overall_end - overall_start) * 1000.0
@@ -497,15 +481,10 @@ async def lifespan(app: FastAPI):
         try:
             from plexichat.core.performance.auth_cache import shutdown_auth_cache
             if app.state.auth_cache_initialized:
-        # Stop typing cleanup service
-        try:
-            from plexichat.core.services.typing_cleanup_service import stop_typing_cleanup
-            await stop_typing_cleanup()
-            logger.info("[TYPING] Typing cleanup service stopped")
-        except ImportError:
-            pass
+                await shutdown_auth_cache()
+                logger.info("[AUTH_CACHE] Authentication cache shut down")
         except Exception as e:
-            logger.warning(f"[TYPING] Error stopping typing cleanup service: {e}")
+            logger.warning(f"[AUTH_CACHE] Shutdown error: {e}")
 
         # Stop optimized WebSocket service
         try:
@@ -516,10 +495,14 @@ async def lifespan(app: FastAPI):
             pass
         except Exception as e:
             logger.warning(f"[WEBSOCKET] Error stopping optimized WebSocket service: {e}")
-                await shutdown_auth_cache()
-                logger.info("[AUTH_CACHE] Authentication cache shut down")
+
+        # Stop WebSocket cleanup task
+        try:
+            from plexichat.core.websocket.websocket_manager import websocket_manager
+            await websocket_manager.stop_cleanup_task()
+            logger.info("[WEBSOCKET] WebSocket cleanup task stopped")
         except Exception as e:
-            logger.warning(f"[AUTH_CACHE] Shutdown error: {e}")
+            logger.warning(f"[WEBSOCKET] Error stopping WebSocket cleanup task: {e}")
 
         # Shutdown UnifiedAuthManager properly
         try:
@@ -543,15 +526,7 @@ async def lifespan(app: FastAPI):
                         _ = shutdown_auth_manager()
                         logger.info("[AUTH] UnifiedAuthManager shut down (sync fallback after async failure)")
                     except Exception as sync_fallback_e:
-        # Stop typing cleanup service
-        try:
-            from plexichat.core.services.typing_cleanup_service import stop_typing_cleanup
-            await stop_typing_cleanup()
-            logger.info("[TYPING] Typing cleanup service stopped")
-        except ImportError:
-            pass
-        except Exception as e:
-            logger.warning(f"[TYPING] Error stopping typing cleanup service: {e}")
+        
                         logger.warning(f"[AUTH] Both async and sync shutdown failed: {sync_fallback_e}")
             else:
                 logger.debug("[AUTH] No auth manager to shut down")

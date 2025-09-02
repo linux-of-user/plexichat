@@ -30,7 +30,8 @@ try:
         PluginSecurityConfig,
         BackupConfig,
         CallingServiceConfig,
-        TypingConfig
+        TypingConfig,
+        KeyboardShortcutsConfig
     )
 
     # Get the global config manager
@@ -200,6 +201,7 @@ try:
         "BackupConfig",
         "CallingServiceConfig",
         "TypingConfig",
+        "KeyboardShortcutsConfig",
     ])
 except NameError:
     pass

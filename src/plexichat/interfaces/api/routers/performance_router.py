@@ -20,7 +20,7 @@ from plexichat.core.monitoring.unified_monitoring_system import (
 )
 from plexichat.core.monitoring.metrics_collector import get_metrics_collector_status
 from plexichat.core.database.manager import database_manager
-from plexichat.interfaces.api.main_api import get_current_user
+from plexichat.interfaces.api.auth_utils import get_current_user
 
 logger = logging.getLogger(__name__)
 

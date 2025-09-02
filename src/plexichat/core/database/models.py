@@ -361,6 +361,18 @@ TYPING_STATUS_SCHEMA = {
     "updated_at": "TEXT NOT NULL",
     "metadata": "TEXT DEFAULT '{}'"
 }
+# Keyboard Shortcuts Schema
+KEYBOARD_SHORTCUTS_SCHEMA = {
+    "id": "TEXT PRIMARY KEY",
+    "user_id": "TEXT NOT NULL",
+    "shortcut_key": "TEXT NOT NULL",
+    "action": "TEXT NOT NULL",
+    "description": "TEXT",
+    "is_custom": "BOOLEAN DEFAULT TRUE",
+    "created_at": "TEXT NOT NULL",
+    "updated_at": "TEXT NOT NULL",
+    "metadata": "TEXT DEFAULT '{}'"
+}
 
 
 async def create_tables() -> bool:
@@ -387,6 +399,8 @@ async def create_tables() -> bool:
         "resource_tracking": RESOURCE_TRACKING_SCHEMA,
         "backup_metadata": BACKUP_METADATA_SCHEMA,
         # Typing status table
+        # Keyboard shortcuts table
+        "keyboard_shortcuts": KEYBOARD_SHORTCUTS_SCHEMA,
         "typing_status": TYPING_STATUS_SCHEMA,
     }
     
@@ -470,6 +484,8 @@ __all__ = [
     "EVENT_SCHEMA",
     "CLIENT_SETTINGS_SCHEMA",
     "PLUGIN_PERMISSIONS_SCHEMA",
+    "TYPING_STATUS_SCHEMA",
+    "KEYBOARD_SHORTCUTS_SCHEMA",
     "CLUSTER_NODES_SCHEMA",
     "BACKUP_METADATA_SCHEMA",
     "TYPING_STATUS_SCHEMA",

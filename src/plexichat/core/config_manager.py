@@ -242,6 +242,45 @@ class TypingConfig:
 
 
 @dataclass
+class KeyboardShortcutsConfig:
+    """Keyboard shortcuts configuration section."""
+    enabled: bool = True
+    allow_custom_shortcuts: bool = True
+    max_custom_shortcuts_per_user: int = 50
+    conflict_detection_enabled: bool = True
+    platform_mappings: Dict[str, Dict[str, str]] = field(default_factory=lambda: {
+        "windows": {
+            "ctrl": "Control",
+            "alt": "Alt",
+            "shift": "Shift",
+            "meta": "Windows"
+        },
+        "mac": {
+            "ctrl": "Control",
+            "alt": "Option",
+            "shift": "Shift",
+            "meta": "Command"
+        },
+        "linux": {
+            "ctrl": "Control",
+            "alt": "Alt",
+            "shift": "Shift",
+            "meta": "Super"
+        }
+    })
+    accessibility_enabled: bool = True
+    accessibility_modifiers: List[str] = field(default_factory=lambda: ["alt", "shift"])
+    default_shortcuts_enabled: bool = True
+    shortcut_validation_enabled: bool = True
+    max_shortcut_length: int = 3
+    reserved_shortcuts: List[str] = field(default_factory=lambda: [
+        "Ctrl+C", "Ctrl+V", "Ctrl+X", "Ctrl+A", "Ctrl+Z", "Ctrl+Y",
+        "Ctrl+S", "Ctrl+O", "Ctrl+N", "Ctrl+W", "Ctrl+Q", "Ctrl+R",
+        "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12"
+    ])
+
+
+@dataclass
 class UnifiedConfig:
     """Main unified configuration container."""
     system: SystemConfig = field(default_factory=SystemConfig)
@@ -261,6 +300,7 @@ class UnifiedConfig:
     backup: BackupConfig = field(default_factory=BackupConfig)
     calling: CallingServiceConfig = field(default_factory=CallingServiceConfig)
     typing: TypingConfig = field(default_factory=TypingConfig)
+    keyboard: KeyboardShortcutsConfig = field(default_factory=KeyboardShortcutsConfig)
 
 
 class UnifiedConfigManager:

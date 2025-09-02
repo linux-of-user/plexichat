@@ -54,8 +54,14 @@ try:
 except ImportError:
     notification_manager = None
 
-from plexichat.infrastructure.analytics.engine import analytics_manager
-from plexichat.core.security.comprehensive_security_manager import security_manager
+from plexichat.core.monitoring.unified_monitoring_system import get_analytics_manager
+from plexichat.core.security.comprehensive_security_manager import get_security_manager
+
+# Get security manager instance
+security_manager = get_security_manager()
+
+# Get analytics manager instance
+analytics_manager = get_analytics_manager()
 
 try:
     from plexichat.core.logging import get_performance_logger
@@ -424,38 +430,7 @@ if app:
             raise HTTPException(status_code=500, detail="Error retrieving metrics")
 
 # Authentication dependency
-async def get_current_user(request: Request):
-    """Get current authenticated user."""
-    try:
-        # Get token from header
-        authorization = request.headers.get("Authorization")
-        if not authorization or not authorization.startswith("Bearer "):
-            raise HTTPException(status_code=401, detail="Missing or invalid authorization header")
-
-        token = authorization.split(" ")[1]
-
-        # Verify token
-        if security_manager:
-            payload = security_manager.verify_token(token)
-            if not payload:
-                raise HTTPException(status_code=401, detail="Invalid or expired token")
-
-            # Get user data
-            if database_manager:
-                user = await database_manager.get_user_by_id(payload["user_id"])
-                if not user or not user.get("is_active"):
-                    raise HTTPException(status_code=401, detail="User not found or inactive")
-
-                return user
-
-        # Fallback for testing
-        return {"id": 1, "username": "test_user", "email": "test@example.com"}
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Authentication error: {e}")
-        raise HTTPException(status_code=401, detail="Authentication failed")
+from plexichat.interfaces.api.auth_utils import get_current_user
 
 # Include v1 router
 if app:

@@ -26,7 +26,7 @@ except ImportError:
     Field = lambda **kwargs: None
 
 from plexichat.core.notifications import notification_manager
-from plexichat.interfaces.api.main_api import get_current_user
+from plexichat.interfaces.api.auth_utils import get_current_user
 
 logger = logging.getLogger(__name__)
 

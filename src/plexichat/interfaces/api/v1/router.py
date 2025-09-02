@@ -32,6 +32,7 @@ from plexichat.interfaces.api.v1.backups import router as backups_router
 from plexichat.interfaces.api.v1.shards import router as shards_router
 from plexichat.interfaces.api.v1.threads import router as threads_router
 from plexichat.interfaces.api.v1.export import router as export_router
+from plexichat.interfaces.api.v1.keyboard import router as keyboard_router
 from plexichat.interfaces.api.routers.performance_router import router as performance_router
 
 # Try to import enhanced file sharing router with fallback
@@ -82,6 +83,8 @@ router.include_router(users_router, dependencies=[Depends(get_current_user)])
 router.include_router(threads_router, dependencies=[Depends(get_current_user)])
 router.include_router(messages_router, dependencies=[Depends(get_current_user)])
 # Export requires authentication
+# Keyboard shortcuts require authentication
+router.include_router(keyboard_router, dependencies=[Depends(get_current_user)])
 router.include_router(export_router, dependencies=[Depends(get_current_user)])
 
 # Files require authentication (uploads/downloads)
@@ -151,6 +154,7 @@ async def api_root():
             "notifications": "/api/v1/notifications",
             "backups": "/api/v1/backups",
             "performance": "/api/v1/performance",
+            "keyboard": "/api/v1/keyboard",
             "shards": "/api/v1/shards"
         },
         "documentation": "/docs",
