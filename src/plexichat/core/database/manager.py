@@ -8,7 +8,7 @@ connection pooling, transactions, and performance optimization.
 import asyncio
 import logging
 import inspect
-from typing import Any, Dict, List, Optional, Set, AsyncGenerator
+from typing import Any, Dict, List, Optional, Set, AsyncGenerator, Union
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from enum import Enum
@@ -127,9 +127,9 @@ class DatabaseSession:
         """Insert data into a table after a permission check."""
         self._check_permission(DBOperation.WRITE, table)
         columns = ", ".join(data.keys())
-        placeholders = ", ".join([f":{key}" for key in data.keys()])
+        placeholders = ", ".join(["?" for _ in data.keys()])
         query = f"INSERT INTO {table} ({columns}) VALUES ({placeholders})"
-        return await self.connection.execute(query, data)
+        return await self.connection.execute(query, tuple(data.values()))
     
     async def update(self, table: str, data: Dict[str, Any], where: Dict[str, Any]) -> Any:
         """Update data in a table after a permission check."""

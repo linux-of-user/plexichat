@@ -8,10 +8,7 @@ from pydantic import BaseModel, Field
 
 from plexichat.core.messaging.unified_messaging_system import get_messaging_system, MessageType
 from plexichat.core.services.message_threads_service import get_message_threads_service
-
-# Mock user dependency
-def get_current_user():
-    return {"id": "mock_user_id", "username": "mock_user"}
+from plexichat.core.auth.fastapi_adapter import get_current_user
 
 router = APIRouter(prefix="/threads", tags=["Threads"])
 

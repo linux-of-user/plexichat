@@ -5,7 +5,7 @@ Handles database operations and business logic for message threads.
 
 import asyncio
 import logging
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple
 from datetime import datetime, timezone
 from uuid import uuid4
 from dataclasses import dataclass, field
@@ -100,7 +100,7 @@ class MessageThreadsService(BaseService):
         try:
             async with database_manager.get_session() as session:
                 result = await session.execute("SELECT * FROM message_threads")
-                rows = result.fetchall()
+                rows = await result.fetchall()
 
                 for row in rows:
                     thread = self._row_to_thread(row)
@@ -153,15 +153,17 @@ class MessageThreadsService(BaseService):
 
             # Insert into database
             async with database_manager.get_session() as session:
-                await session.execute("""
-                    INSERT INTO message_threads (
-                        id, parent_message_id, title, creator_id,
-                        created_at, updated_at, reply_count, is_archived
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                """, (
-                    thread_id, parent_message_id, title, creator_id,
-                    now, now, 0, False
-                ))
+                data = {
+                    "id": thread_id,
+                    "parent_message_id": parent_message_id,
+                    "title": title,
+                    "creator_id": creator_id,
+                    "created_at": now.isoformat(),
+                    "updated_at": now.isoformat(),
+                    "reply_count": 0,
+                    "is_archived": False
+                }
+                await session.insert("message_threads", data)
                 await session.commit()
 
             # Update caches
@@ -183,11 +185,10 @@ class MessageThreadsService(BaseService):
         # Load from database
         try:
             async with database_manager.get_session() as session:
-                result = await session.execute("SELECT * FROM message_threads WHERE id = ?", (thread_id,))
-                row = result.fetchone()
+                result = await session.fetchone("SELECT * FROM message_threads WHERE id = ?", (thread_id,))
 
-                if row:
-                    thread = self._row_to_thread(row)
+                if result:
+                    thread = self._row_to_thread(result)
                     self._cache[thread_id] = thread
                     return thread
 
@@ -213,9 +214,7 @@ class MessageThreadsService(BaseService):
                     INSERT INTO thread_replies (
                         id, thread_id, message_content, user_id, created_at, is_edited
                     ) VALUES (?, ?, ?, ?, ?, ?)
-                """, (
-                    reply_id, thread_id, message_content, user_id, now, False
-                ))
+                """, (reply_id, thread_id, message_content, user_id, now, False))
 
                 # Update reply_count in message_threads
                 await session.execute("""
@@ -253,7 +252,7 @@ class MessageThreadsService(BaseService):
                     ORDER BY created_at ASC
                     LIMIT ? OFFSET ?
                 """, (thread_id, limit, offset))
-                rows = result.fetchall()
+                rows = await result.fetchall()
 
                 replies = []
                 for row in rows:
@@ -313,12 +312,11 @@ class MessageThreadsService(BaseService):
         try:
             async with database_manager.get_session() as session:
                 # Check if user is creator
-                result = await session.execute("""
+                row = await session.fetchone("""
                     SELECT creator_id FROM message_threads WHERE id = ?
                 """, (thread_id,))
-                row = result.fetchone()
 
-                if not row or row.creator_id != user_id:
+                if not row or row['creator_id'] != user_id:
                     return False
 
                 # Delete replies first
@@ -345,12 +343,11 @@ class MessageThreadsService(BaseService):
         try:
             # Load from database by joining with messages to get channel_id
             async with database_manager.get_session() as session:
-                result = await session.execute("""
+                rows = await session.fetchall("""
                     SELECT mt.* FROM message_threads mt
                     JOIN messages m ON mt.parent_message_id = m.id
                     WHERE m.channel_id = ?
                 """, (channel_id,))
-                rows = result.fetchall()
 
                 threads = []
                 for row in rows:
@@ -371,18 +368,19 @@ class MessageThreadsService(BaseService):
     async def resolve_thread(self, thread_id: str) -> bool:
         """Mark a thread as resolved (archived)."""
         try:
+            now = datetime.now(timezone.utc)
             async with database_manager.get_session() as session:
                 await session.execute("""
                     UPDATE message_threads
                     SET is_archived = ?, updated_at = ?
                     WHERE id = ?
-                """, (True, datetime.now(timezone.utc), thread_id))
+                """, (True, now, thread_id))
                 await session.commit()
 
             # Update cache
             if thread_id in self._cache:
                 self._cache[thread_id].is_resolved = True
-                self._cache[thread_id].updated_at = datetime.now(timezone.utc)
+                self._cache[thread_id].updated_at = now
 
             return True
 
@@ -398,11 +396,12 @@ class MessageThreadsService(BaseService):
 
             async with database_manager.get_session() as session:
                 # Mark old archived threads
+                now = datetime.now(timezone.utc)
                 result = await session.execute("""
                     UPDATE message_threads
                     SET is_archived = ?, updated_at = ?
                     WHERE is_archived = ? AND updated_at < ?
-                """, (True, datetime.now(timezone.utc), True, cutoff_date))
+                """, (True, now, False, cutoff_date))  # Note: is_archived = False to find non-archived threads
                 await session.commit()
 
                 archived_count = result.rowcount
@@ -423,10 +422,9 @@ class MessageThreadsService(BaseService):
         """Get thread participants from replies."""
         try:
             async with database_manager.get_session() as session:
-                result = await session.execute("""
+                rows = await session.fetchall("""
                     SELECT DISTINCT user_id FROM thread_replies WHERE thread_id = ?
                 """, (thread_id,))
-                rows = result.fetchall()
 
                 participants = {row.user_id for row in rows}
 
@@ -434,7 +432,9 @@ class MessageThreadsService(BaseService):
                 creator_result = await session.execute("""
                     SELECT creator_id FROM message_threads WHERE id = ?
                 """, (thread_id,))
-                creator_row = creator_result.fetchone()
+                creator_row = await session.fetchone("""
+                    SELECT creator_id FROM message_threads WHERE id = ?
+                """, (thread_id,))
                 if creator_row:
                     participants.add(creator_row.creator_id)
 
@@ -455,7 +455,7 @@ class MessageThreadsService(BaseService):
                     ORDER BY mt.updated_at DESC
                     LIMIT ?
                 """, (channel_id, f"%{query}%", limit))
-                rows = result.fetchall()
+                rows = await result.fetchall()
 
                 threads = []
                 for row in rows:
