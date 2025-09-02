@@ -83,7 +83,7 @@ class MessageThreadsService(BaseService):
         try:
             # Check database connectivity
             async with database_manager.get_session() as session:
-                result = await session.execute("SELECT COUNT(*) FROM threads")
+                result = await session.execute("SELECT COUNT(*) FROM message_threads")
                 count = result.scalar()
                 return True
         except Exception as e:
@@ -92,14 +92,14 @@ class MessageThreadsService(BaseService):
 
     async def _ensure_threads_table(self):
         """Ensure the threads table exists."""
-        from plexichat.core.database.models import THREAD_SCHEMA
-        await database_manager.ensure_table_exists("threads", THREAD_SCHEMA)
+        from plexichat.core.database.models import MESSAGE_THREADS_SCHEMA
+        await database_manager.ensure_table_exists("message_threads", MESSAGE_THREADS_SCHEMA)
 
     async def _load_threads_cache(self):
         """Load existing threads into memory cache."""
         try:
             async with database_manager.get_session() as session:
-                result = await session.execute("SELECT * FROM threads")
+                result = await session.execute("SELECT * FROM message_threads")
                 rows = result.fetchall()
 
                 for row in rows:
@@ -119,20 +119,19 @@ class MessageThreadsService(BaseService):
         return Thread(
             thread_id=row.id,
             title=row.title,
-            channel_id=row.channel_id,
+            channel_id="",  # Will be derived from parent_message_id if needed
             creator_id=row.creator_id,
             parent_message_id=row.parent_message_id,
-            is_resolved=row.is_resolved,
-            participant_count=row.participant_count,
-            message_count=row.message_count,
-            last_message_at=row.last_message_at,
+            is_resolved=row.is_archived,
+            participant_count=1,  # Default
+            message_count=row.reply_count,
+            last_message_at=None,  # Not in schema
             created_at=row.created_at,
             updated_at=row.updated_at,
-            participants=set(row.participants.split(',')) if row.participants else set()
+            participants={row.creator_id}  # Default to creator
         )
 
-    async def create_thread(self, title: str, channel_id: str, creator_id: str,
-                           parent_message_id: Optional[str] = None) -> Tuple[bool, str, Optional[Thread]]:
+    async def create_thread(self, parent_message_id: str, title: str, creator_id: str) -> Tuple[bool, str, Optional[Thread]]:
         """
         Create a new thread.
 
@@ -146,7 +145,7 @@ class MessageThreadsService(BaseService):
             thread = Thread(
                 thread_id=thread_id,
                 title=title,
-                channel_id=channel_id,
+                channel_id="",  # Will be derived from parent_message_id
                 creator_id=creator_id,
                 parent_message_id=parent_message_id,
                 participants={creator_id}
@@ -155,24 +154,20 @@ class MessageThreadsService(BaseService):
             # Insert into database
             async with database_manager.get_session() as session:
                 await session.execute("""
-                    INSERT INTO threads (
-                        id, title, channel_id, creator_id, parent_message_id,
-                        is_resolved, participant_count, message_count,
-                        last_message_at, created_at, updated_at, participants
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    INSERT INTO message_threads (
+                        id, parent_message_id, title, creator_id,
+                        created_at, updated_at, reply_count, is_archived
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """, (
-                    thread_id, title, channel_id, creator_id, parent_message_id,
-                    False, 1, 0, None, now, now, creator_id
+                    thread_id, parent_message_id, title, creator_id,
+                    now, now, 0, False
                 ))
                 await session.commit()
 
             # Update caches
             self._cache[thread_id] = thread
-            if channel_id not in self._channel_threads_cache:
-                self._channel_threads_cache[channel_id] = []
-            self._channel_threads_cache[channel_id].append(thread_id)
 
-            logger.info(f"Created thread {thread_id} in channel {channel_id}")
+            logger.info(f"Created thread {thread_id} for message {parent_message_id}")
             return True, thread_id, thread
 
         except Exception as e:
@@ -188,7 +183,7 @@ class MessageThreadsService(BaseService):
         # Load from database
         try:
             async with database_manager.get_session() as session:
-                result = await session.execute("SELECT * FROM threads WHERE id = ?", (thread_id,))
+                result = await session.execute("SELECT * FROM message_threads WHERE id = ?", (thread_id,))
                 row = result.fetchone()
 
                 if row:
@@ -201,34 +196,169 @@ class MessageThreadsService(BaseService):
 
         return None
 
+    async def add_reply(self, thread_id: str, message_content: str, user_id: str) -> Tuple[bool, str]:
+        """
+        Add a reply to a thread.
+
+        Returns:
+            Tuple of (success, reply_id_or_error)
+        """
+        try:
+            reply_id = str(uuid4())
+            now = datetime.now(timezone.utc)
+
+            # Insert into thread_replies table
+            async with database_manager.get_session() as session:
+                await session.execute("""
+                    INSERT INTO thread_replies (
+                        id, thread_id, message_content, user_id, created_at, is_edited
+                    ) VALUES (?, ?, ?, ?, ?, ?)
+                """, (
+                    reply_id, thread_id, message_content, user_id, now, False
+                ))
+
+                # Update reply_count in message_threads
+                await session.execute("""
+                    UPDATE message_threads
+                    SET reply_count = reply_count + 1, updated_at = ?
+                    WHERE id = ?
+                """, (now, thread_id))
+
+                await session.commit()
+
+            # Update cache
+            if thread_id in self._cache:
+                self._cache[thread_id].message_count += 1
+                self._cache[thread_id].updated_at = now
+
+            logger.info(f"Added reply {reply_id} to thread {thread_id}")
+            return True, reply_id
+
+        except Exception as e:
+            logger.error(f"Failed to add reply to thread {thread_id}: {e}")
+            return False, f"Database error: {str(e)}"
+
+    async def get_thread_replies(self, thread_id: str, limit: int = 50, offset: int = 0) -> List[Dict[str, Any]]:
+        """
+        Get replies for a thread.
+
+        Returns:
+            List of reply dictionaries
+        """
+        try:
+            async with database_manager.get_session() as session:
+                result = await session.execute("""
+                    SELECT * FROM thread_replies
+                    WHERE thread_id = ?
+                    ORDER BY created_at ASC
+                    LIMIT ? OFFSET ?
+                """, (thread_id, limit, offset))
+                rows = result.fetchall()
+
+                replies = []
+                for row in rows:
+                    reply = {
+                        "id": row.id,
+                        "thread_id": row.thread_id,
+                        "message_content": row.message_content,
+                        "user_id": row.user_id,
+                        "created_at": row.created_at,
+                        "is_edited": row.is_edited
+                    }
+                    replies.append(reply)
+
+                return replies
+
+        except Exception as e:
+            logger.error(f"Failed to get replies for thread {thread_id}: {e}")
+            return []
+
+    async def update_thread_title(self, thread_id: str, new_title: str, user_id: str) -> bool:
+        """
+        Update thread title.
+
+        Returns:
+            Success boolean
+        """
+        try:
+            now = datetime.now(timezone.utc)
+
+            async with database_manager.get_session() as session:
+                await session.execute("""
+                    UPDATE message_threads
+                    SET title = ?, updated_at = ?
+                    WHERE id = ? AND creator_id = ?
+                """, (new_title, now, thread_id, user_id))
+                await session.commit()
+
+            # Update cache
+            if thread_id in self._cache:
+                self._cache[thread_id].title = new_title
+                self._cache[thread_id].updated_at = now
+
+            logger.info(f"Updated title for thread {thread_id}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to update thread title {thread_id}: {e}")
+            return False
+
+    async def delete_thread(self, thread_id: str, user_id: str) -> bool:
+        """
+        Delete a thread.
+
+        Returns:
+            Success boolean
+        """
+        try:
+            async with database_manager.get_session() as session:
+                # Check if user is creator
+                result = await session.execute("""
+                    SELECT creator_id FROM message_threads WHERE id = ?
+                """, (thread_id,))
+                row = result.fetchone()
+
+                if not row or row.creator_id != user_id:
+                    return False
+
+                # Delete replies first
+                await session.execute("DELETE FROM thread_replies WHERE thread_id = ?", (thread_id,))
+
+                # Delete thread
+                await session.execute("DELETE FROM message_threads WHERE id = ?", (thread_id,))
+
+                await session.commit()
+
+            # Update cache
+            if thread_id in self._cache:
+                del self._cache[thread_id]
+
+            logger.info(f"Deleted thread {thread_id}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to delete thread {thread_id}: {e}")
+            return False
+
     async def get_channel_threads(self, channel_id: str) -> List[Thread]:
         """Get all threads in a channel."""
         try:
-            # Check cache first
-            if channel_id in self._channel_threads_cache:
-                thread_ids = self._channel_threads_cache[channel_id]
-                threads = []
-                for thread_id in thread_ids:
-                    thread = await self.get_thread(thread_id)
-                    if thread:
-                        threads.append(thread)
-                return threads
-
-            # Load from database
+            # Load from database by joining with messages to get channel_id
             async with database_manager.get_session() as session:
-                result = await session.execute("SELECT * FROM threads WHERE channel_id = ?", (channel_id,))
+                result = await session.execute("""
+                    SELECT mt.* FROM message_threads mt
+                    JOIN messages m ON mt.parent_message_id = m.id
+                    WHERE m.channel_id = ?
+                """, (channel_id,))
                 rows = result.fetchall()
 
                 threads = []
-                thread_ids = []
                 for row in rows:
                     thread = self._row_to_thread(row)
+                    # Set channel_id from the message
+                    thread.channel_id = channel_id
                     threads.append(thread)
-                    thread_ids.append(thread.thread_id)
                     self._cache[thread.thread_id] = thread
-
-                # Update cache
-                self._channel_threads_cache[channel_id] = thread_ids
 
                 return threads
 
@@ -236,61 +366,15 @@ class MessageThreadsService(BaseService):
             logger.error(f"Failed to get threads for channel {channel_id}: {e}")
             return []
 
-    async def update_thread_participants(self, thread_id: str, participants: Set[str]) -> bool:
-        """Update thread participants."""
-        try:
-            async with database_manager.get_session() as session:
-                participants_str = ','.join(participants)
-                await session.execute("""
-                    UPDATE threads
-                    SET participants = ?, participant_count = ?, updated_at = ?
-                    WHERE id = ?
-                """, (participants_str, len(participants), datetime.now(timezone.utc), thread_id))
-                await session.commit()
-
-            # Update cache
-            if thread_id in self._cache:
-                self._cache[thread_id].participants = participants
-                self._cache[thread_id].participant_count = len(participants)
-                self._cache[thread_id].updated_at = datetime.now(timezone.utc)
-
-            return True
-
-        except Exception as e:
-            logger.error(f"Failed to update thread participants: {e}")
-            return False
-
-    async def update_thread_stats(self, thread_id: str, message_count: int,
-                                 last_message_at: Optional[datetime]) -> bool:
-        """Update thread statistics."""
-        try:
-            async with database_manager.get_session() as session:
-                await session.execute("""
-                    UPDATE threads
-                    SET message_count = ?, last_message_at = ?, updated_at = ?
-                    WHERE id = ?
-                """, (message_count, last_message_at, datetime.now(timezone.utc), thread_id))
-                await session.commit()
-
-            # Update cache
-            if thread_id in self._cache:
-                self._cache[thread_id].message_count = message_count
-                self._cache[thread_id].last_message_at = last_message_at
-                self._cache[thread_id].updated_at = datetime.now(timezone.utc)
-
-            return True
-
-        except Exception as e:
-            logger.error(f"Failed to update thread stats: {e}")
-            return False
+    # Note: update_thread_participants and update_thread_stats removed as new schema doesn't support these fields
 
     async def resolve_thread(self, thread_id: str) -> bool:
-        """Mark a thread as resolved."""
+        """Mark a thread as resolved (archived)."""
         try:
             async with database_manager.get_session() as session:
                 await session.execute("""
-                    UPDATE threads
-                    SET is_resolved = ?, updated_at = ?
+                    UPDATE message_threads
+                    SET is_archived = ?, updated_at = ?
                     WHERE id = ?
                 """, (True, datetime.now(timezone.utc), thread_id))
                 await session.commit()
@@ -313,12 +397,12 @@ class MessageThreadsService(BaseService):
             cutoff_date = cutoff_date.replace(day=cutoff_date.day - days_old)
 
             async with database_manager.get_session() as session:
-                # Mark old resolved threads as archived (you might want to add an archived column)
+                # Mark old archived threads
                 result = await session.execute("""
-                    UPDATE threads
-                    SET updated_at = ?
-                    WHERE is_resolved = ? AND updated_at < ?
-                """, (datetime.now(timezone.utc), True, cutoff_date))
+                    UPDATE message_threads
+                    SET is_archived = ?, updated_at = ?
+                    WHERE is_archived = ? AND updated_at < ?
+                """, (True, datetime.now(timezone.utc), True, cutoff_date))
                 await session.commit()
 
                 archived_count = result.rowcount
@@ -327,12 +411,6 @@ class MessageThreadsService(BaseService):
                 for thread_id, thread in list(self._cache.items()):
                     if thread.is_resolved and thread.updated_at < cutoff_date:
                         del self._cache[thread_id]
-                        # Also remove from channel cache
-                        if thread.channel_id in self._channel_threads_cache:
-                            self._channel_threads_cache[thread.channel_id] = [
-                                tid for tid in self._channel_threads_cache[thread.channel_id]
-                                if tid != thread_id
-                            ]
 
                 logger.info(f"Archived {archived_count} old threads")
                 return archived_count
@@ -342,18 +420,39 @@ class MessageThreadsService(BaseService):
             return 0
 
     async def get_thread_participants(self, thread_id: str) -> Set[str]:
-        """Get thread participants."""
-        thread = await self.get_thread(thread_id)
-        return thread.participants if thread else set()
+        """Get thread participants from replies."""
+        try:
+            async with database_manager.get_session() as session:
+                result = await session.execute("""
+                    SELECT DISTINCT user_id FROM thread_replies WHERE thread_id = ?
+                """, (thread_id,))
+                rows = result.fetchall()
+
+                participants = {row.user_id for row in rows}
+
+                # Add creator
+                creator_result = await session.execute("""
+                    SELECT creator_id FROM message_threads WHERE id = ?
+                """, (thread_id,))
+                creator_row = creator_result.fetchone()
+                if creator_row:
+                    participants.add(creator_row.creator_id)
+
+                return participants
+
+        except Exception as e:
+            logger.error(f"Failed to get thread participants: {e}")
+            return set()
 
     async def search_threads(self, channel_id: str, query: str, limit: int = 20) -> List[Thread]:
         """Search threads by title in a channel."""
         try:
             async with database_manager.get_session() as session:
                 result = await session.execute("""
-                    SELECT * FROM threads
-                    WHERE channel_id = ? AND title LIKE ?
-                    ORDER BY updated_at DESC
+                    SELECT mt.* FROM message_threads mt
+                    JOIN messages m ON mt.parent_message_id = m.id
+                    WHERE m.channel_id = ? AND mt.title LIKE ?
+                    ORDER BY mt.updated_at DESC
                     LIMIT ?
                 """, (channel_id, f"%{query}%", limit))
                 rows = result.fetchall()
@@ -361,6 +460,7 @@ class MessageThreadsService(BaseService):
                 threads = []
                 for row in rows:
                     thread = self._row_to_thread(row)
+                    thread.channel_id = channel_id
                     threads.append(thread)
 
                 return threads

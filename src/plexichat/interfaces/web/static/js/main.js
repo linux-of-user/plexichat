@@ -3,6 +3,25 @@
  * Core functionality for the web interface
  */
 
+// Ensure shortcuts.js is loaded
+(function() {
+    if (!window.shortcutsManager) {
+        const script = document.createElement('script');
+        script.src = '/static/js/shortcuts.js';
+        script.onload = function() {
+            console.log('shortcuts.js loaded dynamically');
+        };
+        script.onerror = function() {
+            console.warn('Failed to load shortcuts.js');
+        };
+        document.head.appendChild(script);
+    }
+})();
+/**
+ * PlexiChat Main JavaScript
+ * Core functionality for the web interface
+ */
+
 class PlexiChatApp {
     constructor() {
         this.apiBase = '/api/v1';
@@ -69,6 +88,115 @@ class PlexiChatApp {
         window.addEventListener('beforeunload', () => {
             this.cleanup();
         });
+    setupKeyboardShortcuts() {
+        // Initialize keyboard shortcuts manager integration
+        if (window.shortcutsManager) {
+            // Register shortcut actions
+            this.registerShortcutActions();
+
+            // Listen for shortcut events
+            this.setupShortcutEventListeners();
+
+            console.log('Keyboard shortcuts integration initialized');
+        } else {
+            // Fallback to basic shortcuts
+            this.setupFallbackShortcuts();
+        }
+    }
+
+    registerShortcutActions() {
+        // Register actions for shortcuts
+        window.shortcutsManager.registerShortcut('focus_message_input', {
+            ...window.shortcutsManager.shortcuts.get('focus_message_input'),
+            action: () => this.focusMessageInput()
+        });
+
+        window.shortcutsManager.registerShortcut('open_search', {
+            ...window.shortcutsManager.shortcuts.get('open_search'),
+            action: () => this.openQuickSearch()
+        });
+
+        window.shortcutsManager.registerShortcut('show_shortcuts', {
+            ...window.shortcutsManager.shortcuts.get('show_shortcuts'),
+            action: () => this.showShortcutsHelp()
+        });
+
+        window.shortcutsManager.registerShortcut('toggle_sidebar', {
+            ...window.shortcutsManager.shortcuts.get('toggle_sidebar'),
+            action: () => this.toggleSidebar()
+        });
+
+        window.shortcutsManager.registerShortcut('upload_file', {
+            ...window.shortcutsManager.shortcuts.get('upload_file'),
+            action: () => this.triggerFileUpload()
+        });
+    }
+
+    setupShortcutEventListeners() {
+        // Listen for shortcut execution events
+        window.shortcutsManager.on('shortcutExecuted', (data) => {
+            console.log('Shortcut executed:', data.shortcutId);
+        });
+
+        // Listen for shortcut conflicts
+        window.shortcutsManager.on('shortcutConflict', (data) => {
+            this.handleShortcutConflict(data);
+        });
+    }
+
+    setupFallbackShortcuts() {
+        // Basic fallback shortcuts if manager is not available
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                switch (e.key) {
+                    case 'k':
+                        e.preventDefault();
+                        this.openQuickSearch();
+                        break;
+                    case '/':
+                        e.preventDefault();
+                        this.focusMessageInput();
+                        break;
+                    case 'b':
+                        e.preventDefault();
+                        this.toggleSidebar();
+                        break;
+                }
+            }
+        });
+        console.log('Fallback keyboard shortcuts initialized');
+    }
+
+    showShortcutsHelp() {
+        // Show keyboard shortcuts help modal
+        if (window.shortcutsHelpModal) {
+            window.shortcutsHelpModal.show();
+        } else {
+            this.showNotification('Keyboard shortcuts help not available', 'info');
+        }
+    }
+
+    toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar) {
+            sidebar.classList.toggle('collapsed');
+        }
+    }
+
+    triggerFileUpload() {
+        const fileInput = document.getElementById('file-input');
+        if (fileInput) {
+            fileInput.click();
+        }
+    }
+
+    handleShortcutConflict(data) {
+        this.showNotification(
+            `Shortcut conflict: ${data.message}`,
+            'warning',
+            5000
+        );
+    }
     }
     
     initializeComponents() {

@@ -260,6 +260,47 @@ class PlexiChatApp {
    * Setup keyboard shortcuts
    */
   setupKeyboardShortcuts() {
+    // Initialize Keyboard Shortcuts Manager if available
+    if (window.KeyboardShortcutsManager) {
+      this.shortcutsManager = window.KeyboardShortcutsManager;
+
+      // Listen for shortcut events
+      this.shortcutsManager.on('shortcut_executed', (data) => {
+        console.log('Shortcut executed:', data.action);
+      });
+
+      this.shortcutsManager.on('shortcut_conflict', (data) => {
+        this.showShortcutConflict(data);
+      });
+
+      this.shortcutsManager.on('recording_started', () => {
+        this.showRecordingIndicator();
+      });
+
+      this.shortcutsManager.on('recording_stopped', () => {
+        this.hideRecordingIndicator();
+      });
+
+      // Setup additional global shortcuts not handled by manager
+      document.addEventListener('keydown', (e) => {
+        // Escape: Close modals/dropdowns (handled by manager but also here for compatibility)
+        if (e.key === 'Escape' && !this.shortcutsManager.isRecordingActive()) {
+          this.closeAllOverlays();
+        }
+      });
+
+      console.log('Keyboard shortcuts manager initialized');
+    } else {
+      // Fallback to basic shortcuts if manager not available
+      console.warn('KeyboardShortcutsManager not available, using fallback');
+      this.setupFallbackShortcuts();
+    }
+  }
+
+  /**
+   * Setup fallback keyboard shortcuts
+   */
+  setupFallbackShortcuts() {
     document.addEventListener('keydown', (e) => {
       // Ignore if typing in input
       if (e.target.matches('input, textarea')) return;
@@ -287,6 +328,53 @@ class PlexiChatApp {
         this.closeAllOverlays();
       }
     });
+  }
+
+  /**
+   * Show shortcut conflict notification
+   * @param {Object} data - Conflict data
+   */
+  showShortcutConflict(data) {
+    const message = `Shortcut "${this.formatShortcutForDisplay(data.shortcut)}" conflicts with existing shortcut for "${data.conflict}". Please choose a different shortcut.`;
+    this.showError(message);
+  }
+
+  /**
+   * Format shortcut for display
+   * @param {Object} shortcut - Shortcut object
+   * @returns {string}
+   */
+  formatShortcutForDisplay(shortcut) {
+    if (window.KeyboardShortcutsManager) {
+      return window.KeyboardShortcutsManager.formatShortcut(shortcut);
+    }
+    return shortcut.key;
+  }
+
+  /**
+   * Show recording indicator
+   */
+  showRecordingIndicator() {
+    let indicator = Utils.dom.$('#shortcut-recording-indicator');
+    if (!indicator) {
+      indicator = Utils.dom.createElement('div', {
+        id: 'shortcut-recording-indicator',
+        className: 'shortcut-recording-indicator',
+        textContent: 'Recording shortcut... Press any key combination'
+      });
+      document.body.appendChild(indicator);
+    }
+    indicator.style.display = 'block';
+  }
+
+  /**
+   * Hide recording indicator
+   */
+  hideRecordingIndicator() {
+    const indicator = Utils.dom.$('#shortcut-recording-indicator');
+    if (indicator) {
+      indicator.style.display = 'none';
+    }
   }
 
   /**

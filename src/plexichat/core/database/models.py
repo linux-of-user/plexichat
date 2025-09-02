@@ -100,6 +100,26 @@ THREAD_SCHEMA = {
     "metadata": "TEXT DEFAULT '{}'"
 }
 
+MESSAGE_THREADS_SCHEMA = {
+    "id": "TEXT PRIMARY KEY",
+    "parent_message_id": "TEXT NOT NULL",
+    "title": "TEXT NOT NULL",
+    "creator_id": "TEXT NOT NULL",
+    "created_at": "TEXT NOT NULL",
+    "updated_at": "TEXT NOT NULL",
+    "reply_count": "INTEGER DEFAULT 0",
+    "is_archived": "BOOLEAN DEFAULT FALSE"
+}
+
+THREAD_REPLIES_SCHEMA = {
+    "id": "TEXT PRIMARY KEY",
+    "thread_id": "TEXT NOT NULL",
+    "message_content": "TEXT NOT NULL",
+    "user_id": "TEXT NOT NULL",
+    "created_at": "TEXT NOT NULL",
+    "is_edited": "BOOLEAN DEFAULT FALSE"
+}
+
 
 CHANNEL_SCHEMA = {
     "id": "TEXT PRIMARY KEY",
@@ -381,6 +401,8 @@ async def create_tables() -> bool:
         "users": USER_SCHEMA,
         "messages": MESSAGE_SCHEMA,
         "threads": THREAD_SCHEMA,
+        "message_threads": MESSAGE_THREADS_SCHEMA,
+        "thread_replies": THREAD_REPLIES_SCHEMA,
         "channels": CHANNEL_SCHEMA,
         "sessions": SESSION_SCHEMA,
         "devices": DEVICE_SCHEMA,
@@ -474,6 +496,8 @@ async def drop_tables(table_names: Optional[List[str]] = None) -> bool:
 __all__ = [
     "BaseModel",
     "THREAD_SCHEMA",
+    "MESSAGE_THREADS_SCHEMA",
+    "THREAD_REPLIES_SCHEMA",
     "USER_SCHEMA",
     "MESSAGE_SCHEMA",
     "CHANNEL_SCHEMA",

@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from plexichat.core.messaging.unified_messaging_system import get_messaging_system, MessageType
+from plexichat.core.services.message_threads_service import get_message_threads_service
 
 # Mock user dependency
 def get_current_user():
@@ -16,13 +17,12 @@ router = APIRouter(prefix="/threads", tags=["Threads"])
 
 class ThreadCreate(BaseModel):
     title: str = Field(..., max_length=200, description="Thread title")
-    channel_id: str = Field(..., description="Channel ID where thread belongs")
     parent_message_id: Optional[str] = Field(None, description="Parent message ID if replying to a message")
 
 class ThreadResponse(BaseModel):
     thread_id: str
     title: str
-    channel_id: str
+    channel_id: Optional[str]
     creator_id: str
     parent_message_id: Optional[str]
     is_resolved: bool
@@ -38,16 +38,18 @@ class ThreadMessageCreate(BaseModel):
     message_type: str = Field("text", description="Message type")
     reply_to: Optional[str] = Field(None, description="Reply to message ID")
 
+class ThreadUpdate(BaseModel):
+    title: str = Field(..., max_length=200, description="New thread title")
+
 @router.post("/", response_model=ThreadResponse)
 async def create_thread(thread_data: ThreadCreate, current_user: dict = Depends(get_current_user)):
     """Create a new thread."""
-    messaging_system = get_messaging_system()
+    threads_service = get_message_threads_service()
 
-    success, thread_id_or_error, thread = await messaging_system.create_thread(
+    success, thread_id_or_error, thread = await threads_service.create_thread(
+        parent_message_id=thread_data.parent_message_id,
         title=thread_data.title,
-        channel_id=thread_data.channel_id,
-        creator_id=current_user["id"],
-        parent_message_id=thread_data.parent_message_id
+        creator_id=current_user["id"]
     )
 
     if not success:
@@ -68,40 +70,46 @@ async def create_thread(thread_data: ThreadCreate, current_user: dict = Depends(
         participants=list(thread.participants)
     )
 
-@router.get("/{thread_id}", response_model=ThreadResponse)
+@router.get("/{thread_id}")
 async def get_thread(thread_id: str, current_user: dict = Depends(get_current_user)):
-    """Get a thread by ID."""
-    messaging_system = get_messaging_system()
-    thread = messaging_system.get_thread(thread_id)
+    """Get a thread by ID with replies."""
+    threads_service = get_message_threads_service()
+    thread = await threads_service.get_thread(thread_id)
 
     if not thread:
         raise HTTPException(status_code=404, detail="Thread not found")
 
-    return ThreadResponse(
-        thread_id=thread.thread_id,
-        title=thread.title,
-        channel_id=thread.channel_id,
-        creator_id=thread.creator_id,
-        parent_message_id=thread.parent_message_id,
-        is_resolved=thread.is_resolved,
-        participant_count=thread.participant_count,
-        message_count=thread.message_count,
-        last_message_at=thread.last_message_at,
-        created_at=thread.created_at,
-        updated_at=thread.updated_at,
-        participants=list(thread.participants)
-    )
+    # Get replies
+    replies = await threads_service.get_thread_replies(thread_id, limit=50, offset=0)
 
-@router.get("/channel/{channel_id}", response_model=List[ThreadResponse])
-async def get_channel_threads(
-    channel_id: str,
+    return {
+        "thread": ThreadResponse(
+            thread_id=thread.thread_id,
+            title=thread.title,
+            channel_id=thread.channel_id,
+            creator_id=thread.creator_id,
+            parent_message_id=thread.parent_message_id,
+            is_resolved=thread.is_resolved,
+            participant_count=thread.participant_count,
+            message_count=thread.message_count,
+            last_message_at=thread.last_message_at,
+            created_at=thread.created_at,
+            updated_at=thread.updated_at,
+            participants=list(thread.participants)
+        ),
+        "replies": replies
+    }
+
+@router.get("/", response_model=List[ThreadResponse])
+async def get_threads(
+    channel_id: str = Query(..., description="Channel ID to filter threads"),
     limit: int = Query(50, ge=1, le=100),
     offset: int = Query(0, ge=0),
     current_user: dict = Depends(get_current_user)
 ):
     """Get all threads in a channel."""
-    messaging_system = get_messaging_system()
-    threads = messaging_system.get_channel_threads(channel_id)
+    threads_service = get_message_threads_service()
+    threads = await threads_service.get_channel_threads(channel_id)
 
     # Apply pagination
     paginated_threads = threads[offset:offset + limit]
@@ -124,63 +132,67 @@ async def get_channel_threads(
         for thread in paginated_threads
     ]
 
-@router.post("/{thread_id}/messages")
-async def send_thread_message(
+@router.post("/{thread_id}/replies")
+async def add_reply(
     thread_id: str,
     message_data: ThreadMessageCreate,
     current_user: dict = Depends(get_current_user)
 ):
-    """Send a message in a thread."""
-    messaging_system = get_messaging_system()
+    """Add a reply to a thread."""
+    threads_service = get_message_threads_service()
 
-    success, message_id_or_error, message = await messaging_system.send_thread_message(
-        sender_id=current_user["id"],
+    success, reply_id_or_error = await threads_service.add_reply(
         thread_id=thread_id,
-        content=message_data.content,
-        message_type=MessageType(message_data.message_type),
-        reply_to=message_data.reply_to
+        message_content=message_data.content,
+        user_id=current_user["id"]
     )
 
     if not success:
-        raise HTTPException(status_code=400, detail=message_id_or_error)
+        raise HTTPException(status_code=400, detail=reply_id_or_error)
 
     return {
-        "message_id": message_id_or_error,
+        "reply_id": reply_id_or_error,
         "thread_id": thread_id,
-        "sender_id": current_user["id"],
+        "user_id": current_user["id"],
         "content": message_data.content,
-        "timestamp": message.metadata.timestamp.isoformat() if message else datetime.now().isoformat()
+        "timestamp": datetime.now().isoformat()
     }
 
-@router.get("/{thread_id}/messages")
-async def get_thread_messages(
+@router.put("/{thread_id}")
+async def update_thread_title(
     thread_id: str,
-    limit: int = Query(50, ge=1, le=100),
-    before_message_id: Optional[str] = Query(None),
+    thread_data: ThreadUpdate,
     current_user: dict = Depends(get_current_user)
 ):
-    """Get messages in a thread."""
-    messaging_system = get_messaging_system()
-    messages = await messaging_system.get_thread_messages(
+    """Update thread title."""
+    threads_service = get_message_threads_service()
+
+    success = await threads_service.update_thread_title(
         thread_id=thread_id,
-        limit=limit,
-        before_message_id=before_message_id
+        new_title=thread_data.title,
+        user_id=current_user["id"]
     )
 
-    return [
-        {
-            "message_id": msg.metadata.message_id,
-            "sender_id": msg.metadata.sender_id,
-            "content": msg.content,
-            "timestamp": msg.metadata.timestamp.isoformat(),
-            "message_type": msg.metadata.message_type.value,
-            "thread_id": msg.metadata.thread_id,
-            "reply_to": msg.metadata.reply_to,
-            "reactions": msg.reactions,
-            "attachments": msg.attachments
-        }
-        for msg in messages
-    ]
+    if not success:
+        raise HTTPException(status_code=403, detail="Permission denied or thread not found")
+
+    return {"message": "Thread title updated successfully"}
+
+@router.delete("/{thread_id}")
+async def delete_thread(thread_id: str, current_user: dict = Depends(get_current_user)):
+    """Delete a thread."""
+    threads_service = get_message_threads_service()
+
+    success = await threads_service.delete_thread(
+        thread_id=thread_id,
+        user_id=current_user["id"]
+    )
+
+    if not success:
+        raise HTTPException(status_code=403, detail="Permission denied or thread not found")
+
+    return {"message": "Thread deleted successfully"}
+
 
 @router.post("/{thread_id}/resolve")
 async def resolve_thread(thread_id: str, current_user: dict = Depends(get_current_user)):

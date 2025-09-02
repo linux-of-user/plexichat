@@ -680,36 +680,34 @@ class UnifiedMessagingSystem:
             'encryption_enabled': True
         }
     async def create_thread(self, title: str, channel_id: str, creator_id: str,
-                           parent_message_id: Optional[str] = None) -> Tuple[bool, str, Optional[Thread]]:
-        """Create a new thread."""
+                            parent_message_id: Optional[str] = None) -> Tuple[bool, str, Optional[Thread]]:
+        """Create a new thread using the threads service."""
         try:
-            thread_id = str(uuid4())
-            thread = Thread(
-                thread_id=thread_id,
-                title=title,
-                channel_id=channel_id,
-                creator_id=creator_id,
+            # Use the threads service for database operations
+            success, thread_id_or_error, thread = await self.threads_service.create_thread(
                 parent_message_id=parent_message_id,
-                participants={creator_id}
+                title=title,
+                creator_id=creator_id
             )
 
-            # Store thread
-            self.threads[thread_id] = thread
-            self.thread_messages[thread_id] = []
+            if success and thread:
+                # Also store in memory for quick access
+                self.threads[thread.thread_id] = thread
+                self.thread_messages[thread.thread_id] = []
 
-            # Update metrics
-            self.metrics['threads_created'] = self.metrics.get('threads_created', 0) + 1
+                # Update metrics
+                self.metrics['threads_created'] = self.metrics.get('threads_created', 0) + 1
 
-            return True, thread_id, thread
+            return success, thread_id_or_error, thread
 
         except Exception as e:
             logger.error(f"Error creating thread: {e}")
             return False, f"Internal error: {str(e)}", None
 
     async def send_thread_message(self, sender_id: str, thread_id: str, content: str,
-                                 message_type: MessageType = MessageType.TEXT,
-                                 attachments: Optional[List[Dict[str, Any]]] = None,
-                                 reply_to: Optional[str] = None) -> Tuple[bool, str, Optional[Message]]:
+                                  message_type: MessageType = MessageType.TEXT,
+                                  attachments: Optional[List[Dict[str, Any]]] = None,
+                                  reply_to: Optional[str] = None) -> Tuple[bool, str, Optional[Message]]:
         """Send a message in a thread."""
         try:
             if thread_id not in self.threads:
@@ -762,6 +760,9 @@ class UnifiedMessagingSystem:
             thread.participants.add(sender_id)
             thread.participant_count = len(thread.participants)
 
+            # Also update threads service
+            await self.threads_service.add_reply(thread_id, content, sender_id)
+
             # Route and deliver
             destinations = self.router.route_message(message)
             await self._deliver_message(message, destinations)
@@ -784,80 +785,102 @@ class UnifiedMessagingSystem:
             return False, f"Internal error: {str(e)}", None
 
     async def get_thread_messages(self, thread_id: str, limit: int = 50,
-                                 before_message_id: Optional[str] = None) -> List[Message]:
+                                  before_message_id: Optional[str] = None) -> List[Message]:
         """Get messages from a thread with pagination."""
-        if thread_id not in self.thread_messages:
-            return []
+        # Try memory first
+        if thread_id in self.thread_messages:
+            message_ids = self.thread_messages[thread_id]
 
-        message_ids = self.thread_messages[thread_id]
+            # Apply pagination
+            if before_message_id:
+                try:
+                    before_index = message_ids.index(before_message_id)
+                    message_ids = message_ids[:before_index]
+                except ValueError:
+                    pass
 
-        # Apply pagination
-        if before_message_id:
-            try:
-                before_index = message_ids.index(before_message_id)
-                message_ids = message_ids[:before_index]
-            except ValueError:
-                pass
+            # Get latest messages
+            recent_ids = message_ids[-limit:] if len(message_ids) > limit else message_ids
 
-        # Get latest messages
-        recent_ids = message_ids[-limit:] if len(message_ids) > limit else message_ids
+            # Decrypt and return messages
+            messages = []
+            for msg_id in recent_ids:
+                if msg_id in self.messages:
+                    message = self.messages[msg_id]
+                    # Decrypt content for display
+                    decrypted_content = self.encryption.decrypt_message(
+                        message.content, message.metadata.encryption_level
+                    )
+                    # Create a copy with decrypted content
+                    display_message = Message(
+                        metadata=message.metadata,
+                        content=decrypted_content,
+                        attachments=message.attachments,
+                        reactions=message.reactions,
+                        mentions=message.mentions,
+                        status=message.status
+                    )
+                    messages.append(display_message)
 
-        # Decrypt and return messages
+            return messages
+
+        # Fallback to service replies
+        replies = await self.threads_service.get_thread_replies(thread_id, limit, 0)
         messages = []
-        for msg_id in recent_ids:
-            if msg_id in self.messages:
-                message = self.messages[msg_id]
-                # Decrypt content for display
-                decrypted_content = self.encryption.decrypt_message(
-                    message.content, message.metadata.encryption_level
-                )
-                # Apply rich text formatting
-                formatted_content = message_formatter.format_message(decrypted_content)
-                # Create a copy with formatted content
-                display_message = Message(
-                    metadata=message.metadata,
-                    content=formatted_content,
-                    attachments=message.attachments,
-                    reactions=message.reactions,
-                    mentions=message.mentions,
-                    status=message.status
-                )
-                # Decrypt content for display
-                decrypted_content = self.encryption.decrypt_message(
-                    message.content, message.metadata.encryption_level
-                )
-                # Create a copy with decrypted content
-                display_message = Message(
-                    metadata=message.metadata,
-                    content=decrypted_content,
-                    attachments=message.attachments,
-                    reactions=message.reactions,
-                    mentions=message.mentions,
-                    status=message.status
-                )
-                messages.append(display_message)
+        for reply in replies:
+            # Convert reply dict to Message object
+            metadata = MessageMetadata(
+                message_id=reply["id"],
+                sender_id=reply["user_id"],
+                channel_id="",  # Would need to derive from thread
+                message_type=MessageType.TEXT,
+                thread_id=thread_id
+            )
+            message = Message(
+                metadata=metadata,
+                content=reply["message_content"],
+                status=MessageStatus.SENT
+            )
+            messages.append(message)
 
         return messages
 
     def get_channel_threads(self, channel_id: str) -> List[Thread]:
         """Get all threads in a channel."""
-        return [thread for thread in self.threads.values()
-                if thread.channel_id == channel_id]
+        # Get from memory
+        memory_threads = [thread for thread in self.threads.values()
+                         if thread.channel_id == channel_id]
+        # Also get from service cache
+        service_threads = [thread for thread in self.threads_service._cache.values()
+                          if thread.channel_id == channel_id]
+        # Combine and deduplicate
+        all_threads = memory_threads + service_threads
+        seen_ids = set()
+        unique_threads = []
+        for thread in all_threads:
+            if thread.thread_id not in seen_ids:
+                seen_ids.add(thread.thread_id)
+                unique_threads.append(thread)
+        return unique_threads
 
     def get_thread(self, thread_id: str) -> Optional[Thread]:
         """Get a thread by ID."""
-        return self.threads.get(thread_id)
+        # Check memory cache first
+        if thread_id in self.threads:
+            return self.threads[thread_id]
+        # Fallback to service
+        return self.threads_service._cache.get(thread_id)
 
     async def resolve_thread(self, thread_id: str, resolver_id: str) -> bool:
         """Mark a thread as resolved."""
-        if thread_id not in self.threads:
-            return False
-
-        thread = self.threads[thread_id]
-        thread.is_resolved = True
-        thread.updated_at = datetime.now(timezone.utc)
-
-        return True
+        # Update service
+        success = await self.threads_service.resolve_thread(thread_id)
+        if success:
+            # Also update memory
+            if thread_id in self.threads:
+                self.threads[thread_id].is_resolved = True
+                self.threads[thread_id].updated_at = datetime.now(timezone.utc)
+        return success
     
     async def shutdown(self) -> None:
         """Shutdown the messaging system."""

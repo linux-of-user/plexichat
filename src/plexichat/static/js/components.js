@@ -33,6 +33,7 @@ class UIComponents {
     this.register('ReactionPicker', this.createReactionPicker.bind(this));
     this.register('FileUpload', this.createFileUpload.bind(this));
     this.register('EmojiPicker', this.createEmojiPicker.bind(this));
+    this.register('ShortcutsHelpModal', this.createShortcutsHelpModal.bind(this));
   }
 
   /**
@@ -285,6 +286,15 @@ class UIComponents {
    */
   createEmojiPicker(props = {}) {
     return new EmojiPickerComponent(props);
+  }
+
+  /**
+   * Create Shortcuts Help Modal Component
+   * @param {Object} props - Component props
+   * @returns {ShortcutsHelpModalComponent}
+   */
+  createShortcutsHelpModal(props = {}) {
+    return new ShortcutsHelpModalComponent(props);
   }
 }
 
@@ -1357,6 +1367,226 @@ window.UIComponents = new UIComponents();
 // Register typing components
 window.UIComponents.register('TypingIndicator', (props) => new TypingIndicatorComponent(props));
 window.UIComponents.register('TypingList', (props) => new TypingListComponent(props));
+
+/**
+ * Shortcuts Help Modal Component
+ */
+class ShortcutsHelpModalComponent extends BaseComponent {
+  constructor(props) {
+    super(props);
+    this.searchQuery = '';
+    this.filteredShortcuts = [];
+    this.categories = {
+      'Navigation': ['focus_search', 'focus_input', 'channel_1', 'channel_2', 'channel_3', 'channel_4', 'channel_5', 'channel_6', 'channel_7', 'channel_8', 'channel_9', 'next_channel', 'prev_channel'],
+      'Messaging': ['send_message', 'new_line'],
+      'Interface': ['toggle_theme', 'show_help'],
+      'Scrolling': ['scroll_up', 'scroll_down', 'page_up', 'page_down']
+    };
+    this.categoryLabels = {
+      'Navigation': 'Navigation & Channels',
+      'Messaging': 'Messaging',
+      'Interface': 'Interface',
+      'Scrolling': 'Scrolling'
+    };
+    this.actionLabels = {
+      'send_message': 'Send Message',
+      'new_line': 'New Line',
+      'focus_search': 'Focus Search',
+      'focus_input': 'Focus Message Input',
+      'toggle_theme': 'Toggle Theme',
+      'show_help': 'Show Shortcuts Help',
+      'channel_1': 'Switch to Channel 1',
+      'channel_2': 'Switch to Channel 2',
+      'channel_3': 'Switch to Channel 3',
+      'channel_4': 'Switch to Channel 4',
+      'channel_5': 'Switch to Channel 5',
+      'channel_6': 'Switch to Channel 6',
+      'channel_7': 'Switch to Channel 7',
+      'channel_8': 'Switch to Channel 8',
+      'channel_9': 'Switch to Channel 9',
+      'next_channel': 'Next Channel',
+      'prev_channel': 'Previous Channel',
+      'scroll_up': 'Scroll Up',
+      'scroll_down': 'Scroll Down',
+      'page_up': 'Page Up',
+      'page_down': 'Page Down'
+    };
+  }
+
+  render() {
+    const overlay = Utils.dom.createElement('div', {
+      className: 'shortcuts-modal-overlay',
+      role: 'dialog',
+      'aria-modal': 'true',
+      'aria-labelledby': 'shortcuts-modal-title'
+    });
+
+    const modal = Utils.dom.createElement('div', {
+      className: 'shortcuts-modal-content'
+    });
+
+    const header = Utils.dom.createElement('div', { className: 'shortcuts-modal-header' });
+
+    const title = Utils.dom.createElement('h2', {
+      id: 'shortcuts-modal-title',
+      className: 'shortcuts-modal-title',
+      textContent: 'Keyboard Shortcuts'
+    });
+
+    const searchContainer = Utils.dom.createElement('div', { className: 'shortcuts-search-container' });
+
+    const searchInput = Utils.dom.createElement('input', {
+      type: 'text',
+      className: 'shortcuts-search-input',
+      placeholder: 'Search shortcuts...',
+      'aria-label': 'Search keyboard shortcuts'
+    });
+
+    const closeBtn = Utils.dom.createElement('button', {
+      className: 'shortcuts-modal-close',
+      'aria-label': 'Close shortcuts help',
+      textContent: '×'
+    });
+
+    searchContainer.appendChild(searchInput);
+    header.appendChild(title);
+    header.appendChild(searchContainer);
+    header.appendChild(closeBtn);
+
+    const body = Utils.dom.createElement('div', { className: 'shortcuts-modal-body' });
+
+    // Render categories
+    Object.entries(this.categories).forEach(([category, actions]) => {
+      const categorySection = this.renderCategory(category, actions);
+      if (categorySection) {
+        body.appendChild(categorySection);
+      }
+    });
+
+    modal.appendChild(header);
+    modal.appendChild(body);
+    overlay.appendChild(modal);
+
+    return overlay;
+  }
+
+  renderCategory(category, actions) {
+    const shortcuts = this.getShortcutsForActions(actions);
+    if (shortcuts.length === 0) return null;
+
+    const section = Utils.dom.createElement('div', { className: 'shortcuts-category' });
+
+    const title = Utils.dom.createElement('h3', {
+      className: 'shortcuts-category-title',
+      textContent: this.categoryLabels[category] || category
+    });
+
+    const list = Utils.dom.createElement('div', { className: 'shortcuts-list' });
+
+    shortcuts.forEach(shortcut => {
+      const item = this.renderShortcutItem(shortcut);
+      list.appendChild(item);
+    });
+
+    section.appendChild(title);
+    section.appendChild(list);
+
+    return section;
+  }
+
+  renderShortcutItem(shortcut) {
+    const item = Utils.dom.createElement('div', { className: 'shortcuts-item' });
+
+    const keys = Utils.dom.createElement('div', { className: 'shortcuts-keys' });
+    const formattedShortcut = this.formatShortcut(shortcut.shortcut);
+    keys.innerHTML = formattedShortcut;
+
+    const description = Utils.dom.createElement('div', {
+      className: 'shortcuts-description',
+      textContent: this.actionLabels[shortcut.action] || shortcut.action
+    });
+
+    item.appendChild(keys);
+    item.appendChild(description);
+
+    return item;
+  }
+
+  getShortcutsForActions(actions) {
+    if (!window.KeyboardShortcutsManager) return [];
+
+    const allShortcuts = window.KeyboardShortcutsManager.getAllShortcuts();
+    return actions
+      .map(action => ({
+        action,
+        shortcut: allShortcuts.get(action)
+      }))
+      .filter(item => item.shortcut);
+  }
+
+  formatShortcut(shortcut) {
+    if (!window.KeyboardShortcutsManager) return '';
+
+    return window.KeyboardShortcutsManager.formatShortcut(shortcut)
+      .split('+')
+      .map(key => `<kbd>${key.trim()}</kbd>`)
+      .join(' + ');
+  }
+
+  componentDidMount() {
+    const searchInput = this.element.querySelector('.shortcuts-search-input');
+    const closeBtn = this.element.querySelector('.shortcuts-modal-close');
+    const overlay = this.element;
+
+    // Search functionality
+    this.addEventListener('input', this.handleSearch.bind(this), searchInput);
+
+    // Close button
+    this.addEventListener('click', () => this.hide(), closeBtn);
+
+    // Close on overlay click
+    this.addEventListener('click', (e) => {
+      if (e.target === overlay) this.hide();
+    });
+
+    // Keyboard navigation
+    this.addEventListener('keydown', this.handleKeydown.bind(this));
+
+    // Focus management
+    setTimeout(() => {
+      searchInput.focus();
+    }, 100);
+  }
+
+  handleSearch(event) {
+    this.searchQuery = event.target.value.toLowerCase();
+    this.filterShortcuts();
+    this.forceUpdate();
+  }
+
+  filterShortcuts() {
+    // This would filter the displayed shortcuts based on search query
+    // For now, we'll implement a simple client-side filter
+  }
+
+  handleKeydown(event) {
+    if (event.key === 'Escape') {
+      this.hide();
+    }
+  }
+
+  show() {
+    document.body.appendChild(this.element);
+    document.body.style.overflow = 'hidden';
+  }
+
+  hide() {
+    if (this.element.parentNode) {
+      this.element.parentNode.removeChild(this.element);
+    }
+    document.body.style.overflow = '';
+  }
+}
 
 // Placeholder components for future implementation
 class ChannelListComponent extends BaseComponent {

@@ -411,4 +411,268 @@ window.ModalComponent = ModalComponent;
 window.NotificationComponent = NotificationComponent;
 window.DropdownComponent = DropdownComponent;
 window.TooltipComponent = TooltipComponent;
+// Shortcuts Help Modal Component
+class ShortcutsHelpModalComponent extends ModalComponent {
+    constructor(options = {}) {
+        super(null, null, {
+            title: 'Keyboard Shortcuts',
+            content: '',
+            footer: '',
+            ...options
+        });
+
+        this.searchTerm = '';
+        this.selectedCategory = 'all';
+        this.shortcutsData = {};
+
+        this.init();
+    }
+
+    init() {
+        super.init();
+        this.createModal();
+        this.loadShortcutsData();
+        this.renderContent();
+        this.bindEvents();
+    }
+
+    createModal() {
+        if (!this.element) {
+            this.element = document.createElement('div');
+            this.element.className = 'modal-enhanced shortcuts-help-modal';
+            this.element.innerHTML = `
+                <div class="modal-content-enhanced shortcuts-modal-content">
+                    <div class="modal-header-enhanced">
+                        <h3 class="modal-title-enhanced">
+                            <i class="fas fa-keyboard"></i>
+                            Keyboard Shortcuts
+                        </h3>
+                        <button class="modal-close-enhanced" data-dismiss="modal">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body-enhanced">
+                        <div class="shortcuts-controls">
+                            <div class="shortcuts-search">
+                                <input type="text" placeholder="Search shortcuts..." class="shortcuts-search-input">
+                                <i class="fas fa-search search-icon"></i>
+                            </div>
+                            <div class="shortcuts-categories">
+                                <button class="category-btn active" data-category="all">All</button>
+                                <button class="category-btn" data-category="messaging">Messaging</button>
+                                <button class="category-btn" data-category="navigation">Navigation</button>
+                                <button class="category-btn" data-category="interface">Interface</button>
+                                <button class="category-btn" data-category="files">Files</button>
+                                <button class="category-btn" data-category="user">User</button>
+                            </div>
+                        </div>
+                        <div class="shortcuts-list">
+                            <!-- Shortcuts will be rendered here -->
+                        </div>
+                    </div>
+                    <div class="modal-footer-enhanced">
+                        <div class="shortcuts-footer-info">
+                            <span class="platform-info">
+                                <i class="fas fa-info-circle"></i>
+                                Shortcuts are platform-aware and may differ on Mac/Windows/Linux
+                            </span>
+                        </div>
+                        <div class="shortcuts-actions">
+                            <button class="btn btn-secondary" onclick="shortcutsHelpModal.hide()">Close</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(this.element);
+        }
+    }
+
+    loadShortcutsData() {
+        if (window.shortcutsManager) {
+            this.shortcutsData = window.shortcutsManager.getShortcutsByCategory();
+        } else {
+            // Fallback data
+            this.shortcutsData = {
+                messaging: [
+                    { keys: ['Enter'], description: 'Send message' },
+                    { keys: ['Shift', 'Enter'], description: 'New line' }
+                ],
+                navigation: [
+                    { keys: ['Ctrl', '/'], description: 'Focus message input' },
+                    { keys: ['Ctrl', 'k'], description: 'Open search' }
+                ]
+            };
+        }
+    }
+
+    renderContent() {
+        const listContainer = this.element.querySelector('.shortcuts-list');
+        if (!listContainer) return;
+
+        const shortcuts = this.getFilteredShortcuts();
+
+        if (shortcuts.length === 0) {
+            listContainer.innerHTML = `
+                <div class="no-shortcuts">
+                    <i class="fas fa-search"></i>
+                    <p>No shortcuts found matching "${this.searchTerm}"</p>
+                </div>
+            `;
+            return;
+        }
+
+        const groupedShortcuts = this.groupShortcutsByCategory(shortcuts);
+
+        listContainer.innerHTML = Object.entries(groupedShortcuts)
+            .map(([category, categoryShortcuts]) => `
+                <div class="shortcuts-category">
+                    <h4 class="category-title">
+                        <i class="fas fa-${this.getCategoryIcon(category)}"></i>
+                        ${this.capitalizeFirst(category)}
+                    </h4>
+                    <div class="category-shortcuts">
+                        ${categoryShortcuts.map(shortcut => `
+                            <div class="shortcut-item">
+                                <div class="shortcut-keys">
+                                    ${this.formatShortcutKeys(shortcut.keys)}
+                                </div>
+                                <div class="shortcut-description">
+                                    ${shortcut.description}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+    }
+
+    getFilteredShortcuts() {
+        let shortcuts = [];
+
+        if (this.selectedCategory === 'all') {
+            Object.values(this.shortcutsData).forEach(categoryShortcuts => {
+                shortcuts.push(...categoryShortcuts);
+            });
+        } else {
+            shortcuts = this.shortcutsData[this.selectedCategory] || [];
+        }
+
+        if (this.searchTerm) {
+            const term = this.searchTerm.toLowerCase();
+            shortcuts = shortcuts.filter(shortcut =>
+                shortcut.description.toLowerCase().includes(term) ||
+                shortcut.keys.some(key => key.toLowerCase().includes(term))
+            );
+        }
+
+        return shortcuts;
+    }
+
+    groupShortcutsByCategory(shortcuts) {
+        const grouped = {};
+
+        shortcuts.forEach(shortcut => {
+            const category = shortcut.category || 'general';
+            if (!grouped[category]) {
+                grouped[category] = [];
+            }
+            grouped[category].push(shortcut);
+        });
+
+        return grouped;
+    }
+
+    formatShortcutKeys(keys) {
+        if (!keys || !Array.isArray(keys)) return '';
+
+        return keys.map(key => {
+            const formattedKey = this.formatKey(key);
+            return `<kbd class="shortcut-key">${formattedKey}</kbd>`;
+        }).join(' + ');
+    }
+
+    formatKey(key) {
+        if (window.shortcutsManager) {
+            // Use the manager's formatting
+            return window.shortcutsManager.formatKeys([key]).replace(' + ', '');
+        }
+
+        // Fallback formatting
+        switch (key) {
+            case 'Control':
+                return navigator.platform.includes('Mac') ? '⌘' : 'Ctrl';
+            case 'Alt':
+                return navigator.platform.includes('Mac') ? '⌥' : 'Alt';
+            case 'Shift':
+                return '⇧';
+            case 'ArrowUp':
+                return '↑';
+            case 'ArrowDown':
+                return '↓';
+            default:
+                return key;
+        }
+    }
+
+    getCategoryIcon(category) {
+        const icons = {
+            messaging: 'comment',
+            navigation: 'arrows-alt',
+            interface: 'desktop',
+            files: 'file',
+            user: 'user',
+            general: 'keyboard'
+        };
+        return icons[category] || 'keyboard';
+    }
+
+    capitalizeFirst(str) {
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    bindEvents() {
+        super.bindEvents();
+
+        // Search functionality
+        const searchInput = this.element.querySelector('.shortcuts-search-input');
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => {
+                this.searchTerm = e.target.value;
+                this.renderContent();
+            });
+        }
+
+        // Category filtering
+        const categoryBtns = this.element.querySelectorAll('.category-btn');
+        categoryBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                // Update active state
+                categoryBtns.forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+
+                // Update selected category
+                this.selectedCategory = e.target.dataset.category;
+                this.renderContent();
+            });
+        });
+    }
+
+    show() {
+        super.show();
+        // Focus search input when modal opens
+        setTimeout(() => {
+            const searchInput = this.element.querySelector('.shortcuts-search-input');
+            if (searchInput) {
+                searchInput.focus();
+            }
+        }, 100);
+    }
+}
+
+// Create global shortcuts help modal instance
+const shortcutsHelpModal = new ShortcutsHelpModalComponent();
+
+// Export for global access
+window.ShortcutsHelpModalComponent = ShortcutsHelpModalComponent;
+window.shortcutsHelpModal = shortcutsHelpModal;
 window.TabsComponent = TabsComponent;

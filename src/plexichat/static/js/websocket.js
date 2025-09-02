@@ -180,10 +180,19 @@ class WebSocketManager {
           this.handleUserUpdate(data);
           break;
         case 'error':
-          this.handleError(data);
-          break;
+           this.handleError(data);
+           break;
+        case 'keyboard_shortcut_update':
+           this.handleKeyboardShortcutUpdate(data);
+           break;
+        case 'keyboard_shortcut_conflict':
+           this.handleKeyboardShortcutConflict(data);
+           break;
+        case 'keyboard_shortcut_registered':
+           this.handleKeyboardShortcutRegistered(data);
+           break;
         default:
-          console.warn('Unknown message type:', data.type);
+           console.warn('Unknown message type:', data.type);
       }
     } catch (error) {
       console.error('WebSocket message parse error:', error);
@@ -373,6 +382,41 @@ class WebSocketManager {
   handleError(data) {
     console.error('WebSocket error:', data);
     this.emit('ws_error', data);
+  }
+
+  /**
+   * Handle keyboard shortcut updates
+   * @param {Object} data - Shortcut update data
+   */
+  handleKeyboardShortcutUpdate(data) {
+    this.emit('keyboard_shortcut_update', data);
+    console.log('Keyboard shortcut updated:', data);
+  }
+
+  /**
+   * Handle keyboard shortcut conflicts
+   * @param {Object} data - Shortcut conflict data
+   */
+  handleKeyboardShortcutConflict(data) {
+    this.emit('keyboard_shortcut_conflict', data);
+    console.warn('Keyboard shortcut conflict:', data);
+
+    // Show notification to user
+    this.showNotification({
+      type: 'warning',
+      title: 'Shortcut Conflict',
+      message: `Shortcut "${data.shortcut}" conflicts with existing shortcut for "${data.existing_action}". Please choose a different shortcut.`,
+      duration: 5000
+    });
+  }
+
+  /**
+   * Handle keyboard shortcut registration
+   * @param {Object} data - Shortcut registration data
+   */
+  handleKeyboardShortcutRegistered(data) {
+    this.emit('keyboard_shortcut_registered', data);
+    console.log('Keyboard shortcut registered:', data);
   }
 
   /**
