@@ -27,6 +27,7 @@ from uuid import uuid4
 
 from plexichat.core.security import security_manager
 from plexichat.core.messaging.message_formatter import message_formatter
+from plexichat.core.services.message_threads_service import get_message_threads_service
 
 # Notification integration
 notification_manager = None
@@ -328,6 +329,8 @@ class UnifiedMessagingSystem:
         self.encryption = MessageEncryption()
         self.router = MessageRouter()
         self.channel_manager = ChannelManager()
+        # Initialize message threads service
+        self.threads_service = get_message_threads_service()
         
         # Message storage
         self.messages: Dict[str, Message] = {}
