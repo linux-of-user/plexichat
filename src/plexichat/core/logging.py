@@ -5,7 +5,7 @@ This module re-exports logging functions from the unified logger to maintain
 backward compatibility and fix import path issues throughout the codebase.
 """
 
-from plexichat.core.logging import (
+from plexichat.core.logging.unified_logger import (
     get_logger,
     get_logging_manager,
     get_directory_manager,
