@@ -443,7 +443,7 @@ class TestRedistributionProcedures:
 
     @given(
         initial_peers=st.integers(min_value=8, max_value=20),
-        departure_count=st.integers(min_value=1, max_size=5)
+        departure_count=st.integers(min_value=1, max_value=5)
     )
     def test_graceful_redistribution(self, initial_peers, departure_count):
         """Test graceful redistribution when peers depart."""
