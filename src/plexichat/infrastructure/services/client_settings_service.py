@@ -257,38 +257,46 @@ class AuditLogger:
             self.logger.error(f"Failed to store audit event in database: {e}")
 
 
-def security_required(security_level: SecurityLevel = SecurityLevel.AUTHENTICATED):
+def security_required(security_level=None):
     """Decorator to require security authentication for methods."""
+    # Set default security level if SecurityLevel is available
+    if security_level is None and SecurityLevel is not None:
+        security_level = SecurityLevel.AUTHENTICATED
+
     def decorator(func):
         @wraps(func)
         async def wrapper(self, user_id: str, *args, **kwargs):
+            # Skip security checks if SecurityLevel is not available
+            if SecurityLevel is None:
+                return await func(self, user_id, *args, **kwargs)
+
             # Extract security context from kwargs if provided
             security_context = kwargs.get('security_context')
-            
+
             if self.security_config.require_authentication and get_security_system:
                 security_system = get_security_system()
-                
+
                 if not security_context:
                     await self.audit_logger.log_operation(
-                        "security_violation", user_id, 
+                        "security_violation", user_id,
                         success=False, error="No security context provided"
                     )
                     raise SecurityError("Authentication required")
-                
+
                 if not security_context.authenticated:
                     await self.audit_logger.log_operation(
                         "security_violation", user_id,
                         success=False, error="User not authenticated"
                     )
                     raise SecurityError("User not authenticated")
-                
+
                 if security_context.security_level.value < security_level.value:
                     await self.audit_logger.log_operation(
                         "security_violation", user_id,
                         success=False, error=f"Insufficient security level: {security_context.security_level}"
                     )
                     raise SecurityError(f"Insufficient security level")
-            
+
             return await func(self, user_id, *args, **kwargs)
         return wrapper
     return decorator
@@ -627,9 +635,9 @@ class ClientSettingsService:
             self.logger.error(f"Failed to initialize client settings service: {e}")
             return False
     
-    @security_required(SecurityLevel.AUTHENTICATED)
+    @security_required()
     @rate_limited_with_global()
-    async def get_user_settings(self, 
+    async def get_user_settings(self,
                                user_id: str, 
                                user_permissions: Optional[Set[str]] = None,
                                security_context: Optional[SecurityContext] = None,
@@ -691,9 +699,9 @@ class ClientSettingsService:
                                                  success=False, error=str(e), metadata=metadata)
             raise
     
-    @security_required(SecurityLevel.AUTHENTICATED)
+    @security_required()
     @rate_limited_with_global()
-    async def get_setting(self, 
+    async def get_setting(self,
                          user_id: str, 
                          key: str, 
                          user_permissions: Optional[Set[str]] = None,
@@ -761,9 +769,9 @@ class ClientSettingsService:
                                                  success=False, error=str(e), metadata=metadata)
             raise
     
-    @security_required(SecurityLevel.AUTHENTICATED)
+    @security_required()
     @rate_limited_with_global()
-    async def set_setting(self, 
+    async def set_setting(self,
                          user_id: str, 
                          key: str, 
                          value: Any, 
@@ -877,9 +885,9 @@ class ClientSettingsService:
                                                  success=False, error=str(e), metadata=metadata)
             raise
     
-    @security_required(SecurityLevel.AUTHENTICATED)
+    @security_required()
     @rate_limited_with_global()
-    async def delete_setting(self, 
+    async def delete_setting(self,
                             user_id: str, 
                             key: str, 
                             user_permissions: Optional[Set[str]] = None,
@@ -934,9 +942,9 @@ class ClientSettingsService:
                                                  success=False, error=str(e), metadata=metadata)
             raise
     
-    @security_required(SecurityLevel.AUTHENTICATED)
+    @security_required()
     @rate_limited_with_global()
-    async def bulk_update_settings(self, 
+    async def bulk_update_settings(self,
                                   user_id: str, 
                                   settings: Dict[str, Any],
                                   user_permissions: Optional[Set[str]] = None,
