@@ -23,7 +23,7 @@ from typing import Any, Dict, List, Optional
 import aiofiles
 import aiohttp
 
-from ..core.logging import get_logger
+from plexichat.core.logging import get_logger
 
 """
 import http.client
