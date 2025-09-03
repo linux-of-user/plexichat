@@ -37,7 +37,8 @@ class CacheEntry:
     value: Any
     created_at: float
     expires_at: Optional[float]
-    
+    access_count: int = 0
+
     def is_expired(self) -> bool:
         """Check if entry has expired."""
         if self.expires_at is None:
@@ -46,17 +47,19 @@ class CacheEntry:
 
 class CacheManager:
     """Cache manager with threading support."""
-    
+
     def __init__(self, max_size: int = 10000, default_ttl: int = 3600):
         self.cache: Dict[str, CacheEntry] = {}
         self.max_size = max_size
         self.default_ttl = default_ttl
         self.lock = threading.RLock()
+        self.active_connections = 0
         self.stats = {
             "hits": 0,
             "misses": 0,
             "sets": 0,
-            "deletes": 0
+            "deletes": 0,
+            "evictions": 0
         }
     
     def _cleanup_expired(self):
@@ -113,6 +116,7 @@ class CacheManager:
             if len(self.cache) > self.max_size:
                 oldest_key = min(self.cache.keys(), key=lambda k: self.cache[k].created_at)
                 del self.cache[oldest_key]
+                self.stats["evictions"] += 1
     
     def delete(self, key: str) -> bool:
         """Delete key from cache."""
@@ -138,6 +142,22 @@ class CacheManager:
                 "max_size": self.max_size
             }
 
+    def cached(self, ttl: Optional[int] = None):
+        """Decorator for caching function results."""
+        def decorator(func):
+            def wrapper(*args, **kwargs):
+                cache_key = f"{func.__name__}:{hash(str(args) + str(sorted(kwargs.items())))}"
+
+                result = self.get(cache_key)
+                if result is not None:
+                    return result
+
+                result = func(*args, **kwargs)
+                self.set(cache_key, result, ttl)
+                return result
+            return wrapper
+        return decorator
+
 class AsyncCacheManager:
     """Async wrapper for cache manager."""
     
@@ -155,6 +175,22 @@ class AsyncCacheManager:
     async def delete(self, key: str) -> bool:
         """Async delete from cache."""
         return self.cache_manager.delete(key)
+
+    def async_cached_decorator(self, ttl: Optional[int] = None):
+        """Async decorator for caching function results."""
+        def decorator(func):
+            async def wrapper(*args, **kwargs):
+                cache_key = f"{func.__name__}:{hash(str(args) + str(sorted(kwargs.items())))}"
+
+                result = await self.get(cache_key)
+                if result is not None:
+                    return result
+
+                result = await func(*args, **kwargs)
+                await self.set(cache_key, result, ttl)
+                return result
+            return wrapper
+        return decorator
 
 class DistributedCacheManager:
     """Distributed cache manager."""
