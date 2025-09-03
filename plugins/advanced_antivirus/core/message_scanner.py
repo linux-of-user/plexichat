@@ -35,28 +35,28 @@ class MessageAntivirusScanner:
                 "name": "SQL Injection Pattern",
                 "pattern": r"(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|UNION)\b)",
                 "threat_type": ThreatType.MALWARE,
-                "threat_level": ThreatLevel.HIGH,
+                "threat_level": ThreatLevel.HIGH_RISK,
                 "description": "Potential SQL injection attempt"
             },
             {
                 "name": "XSS Pattern",
                 "pattern": r"<script[^>]*>.*?</script>",
                 "threat_type": ThreatType.MALWARE,
-                "threat_level": ThreatLevel.HIGH,
+                "threat_level": ThreatLevel.HIGH_RISK,
                 "description": "Potential XSS script injection"
             },
             {
                 "name": "Suspicious URL",
                 "pattern": r"(bit\.ly|tinyurl\.com|goo\.gl)/[a-zA-Z0-9]+",
                 "threat_type": ThreatType.PHISHING,
-                "threat_level": ThreatLevel.MEDIUM,
+                "threat_level": ThreatLevel.MEDIUM_RISK,
                 "description": "Shortened URL that may hide malicious content"
             },
             {
                 "name": "Malicious Filename",
                 "pattern": r".*\.(exe|bat|cmd|com|pif|scr|vbs|js|jar)$",
                 "threat_type": ThreatType.MALWARE,
-                "threat_level": ThreatLevel.MEDIUM,
+                "threat_level": ThreatLevel.MEDIUM_RISK,
                 "description": "Executable file attachment"
             }
         ]
