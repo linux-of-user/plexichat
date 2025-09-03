@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from plexichat.infrastructure.services.advanced_ddos_service import enhanced_ddos_service
-from plexichat.core.security.comprehensive_security_manager import SecurityService
+from plexichat.core.security.comprehensive_security_manager import ComprehensiveSecurityManager
 from plexichat.infrastructure.utils.rate_limiting import rate_limiter
 from plugins.advanced_antivirus.core.message_scanner import MessageAntivirusScanner
 
@@ -189,7 +189,7 @@ class UnifiedSecurityService:
         """Initialize all security service components."""
         # Import and initialize security services
         try:
-            self.security_service = SecurityService()
+            self.security_service = ComprehensiveSecurityManager()
         except ImportError:
             logger.warning("Security service not available")
             self.security_service = None
@@ -351,21 +351,23 @@ class UnifiedSecurityService:
         assessment.systems_checked.append("sql_injection")
 
         try:
-            is_detected, threat = self.security_service.detect_sql_injection(content, client_ip)
+            threats = await self.security_service.scan_message_content(content)
+
+            # Check for SQL injection threats
+            sql_threats = [t for t in threats if 'SQL' in t.get('rule_name', '')]
 
             assessment.sql_injection_result = {
-                "detected": is_detected,
-                "threat": threat.to_dict() if threat else None
+                "detected": len(sql_threats) > 0,
+                "threats": sql_threats
             }
 
-            if is_detected and threat:
+            if sql_threats:
                 assessment.threat_detected = True
                 assessment.threat_type = SecurityThreatType.SQL_INJECTION
                 assessment.threat_level = max(assessment.threat_level, 9)
                 assessment.confidence_score = max(assessment.confidence_score, 0.95)
                 assessment.recommended_action = SecurityAction.BLOCK
-                assessment.witty_response = threat.witty_response
-                assessment.block_duration = threat.metadata.get('block_duration')
+                assessment.witty_response = self._get_witty_response(SecurityThreatType.SQL_INJECTION)
 
         except Exception as e:
             logger.error(f"SQL injection check failed: {e}")
