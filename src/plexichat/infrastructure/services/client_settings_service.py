@@ -25,7 +25,8 @@ from functools import wraps
 try:
     from plexichat.core.database.manager import database_manager, get_session
     from plexichat.core.config_manager import get_config_manager, get_config
-    from plexichat.core.security.security_manager import get_security_system, SecurityContext, SecurityLevel
+    from plexichat.core.security.security_manager import get_security_system
+    from plexichat.core.security.security_context import SecurityContext, SecurityLevel
     from plexichat.core.middleware.dynamic_rate_limiting_middleware import get_rate_limiter
 except ImportError:
     # Fallback for standalone execution
