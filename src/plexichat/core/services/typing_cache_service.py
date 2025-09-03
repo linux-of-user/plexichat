@@ -11,8 +11,7 @@ from datetime import datetime, timezone, timedelta
 from plexichat.core.caching.unified_cache_integration import (
     cache_get, cache_set, cache_delete, CacheKeyBuilder
 )
-from plexichat.core.services.typing_service import typing_service
-from plexichat.core.config import get_config
+from plexichat.core.config import get_setting
 
 logger = logging.getLogger(__name__)
 
@@ -21,9 +20,9 @@ class TypingCacheService:
     """Service for caching typing-related data."""
 
     def __init__(self):
-        self.cache_ttl = get_config("typing.cache_ttl_seconds", 30)  # Cache TTL for typing data
-        self.channel_users_cache_ttl = get_config("typing.cache_ttl_seconds", 10)  # For channel users list
-        self.typing_status_cache_ttl = get_config("typing.cache_ttl_seconds", 5)  # For individual typing status
+        self.cache_ttl = get_setting("typing.cache_ttl_seconds", 30)  # Cache TTL for typing data
+        self.channel_users_cache_ttl = get_setting("typing.cache_ttl_seconds", 10)  # For channel users list
+        self.typing_status_cache_ttl = get_setting("typing.cache_ttl_seconds", 5)  # For individual typing status
 
     async def get_cached_typing_users(self, channel_id: str) -> Optional[List[str]]:
         """Get cached typing users for a channel."""
@@ -136,6 +135,7 @@ class TypingCacheService:
             return cached_users
 
         # Cache miss - get from database
+        from plexichat.core.services.typing_service import typing_service
         users = await typing_service.get_typing_users(channel_id)
 
         # Cache the result
@@ -160,6 +160,7 @@ class TypingCacheService:
     async def preload_channel_cache(self, channel_id: str) -> bool:
         """Preload cache for a channel (useful for frequently accessed channels)."""
         try:
+            from plexichat.core.services.typing_service import typing_service
             users = await typing_service.get_typing_users(channel_id)
             await self.set_cached_typing_users(channel_id, users)
             logger.debug(f"Preloaded cache for channel {channel_id}")

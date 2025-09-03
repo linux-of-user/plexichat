@@ -13,9 +13,7 @@ from uuid import uuid4
 from plexichat.core.database.manager import database_manager
 from plexichat.core.websocket.websocket_manager import websocket_manager
 from plexichat.core.services.optimized_websocket_service import optimized_websocket_service
-from plexichat.core.services.typing_cache_service import typing_cache_service
-from plexichat.core.services.optimized_websocket_service import optimized_websocket_service
-from plexichat.core.config import get_config
+from plexichat.core.config import get_setting
 
 logger = logging.getLogger(__name__)
 
@@ -66,10 +64,10 @@ class TypingService:
     def __init__(self):
         self.db_manager = database_manager
         self.websocket_manager = websocket_manager
-        self.typing_timeout = get_config("typing.timeout_seconds", 3.0)
-        self.debounce_delay = get_config("typing.debounce_delay_seconds", 0.5)
-        self.max_concurrent_users = get_config("typing.max_concurrent_typing_users", 100)
-        self.enable_debug_logging = get_config("typing.enable_debug_logging", False)
+        self.typing_timeout = get_setting("typing.timeout_seconds", 3.0)
+        self.debounce_delay = get_setting("typing.debounce_delay_seconds", 0.5)
+        self.max_concurrent_users = get_setting("typing.max_concurrent_typing_users", 100)
+        self.enable_debug_logging = get_setting("typing.enable_debug_logging", False)
 
     async def start_typing(self, user_id: str, channel_id: str) -> bool:
         """Start typing indicator for user in channel."""
