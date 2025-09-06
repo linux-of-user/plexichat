@@ -24,10 +24,9 @@ Defines strict interfaces and contracts for all modules/plugins to ensure:
 - Consistent lifecycle management
 - Security and permission boundaries
 - Performance monitoring and resource management
-
+"""
 
 logger = get_logger(__name__)
-
 
 class ModuleCapability(Enum):
     """Module capability types."""
@@ -115,7 +114,7 @@ class ModulePermissions:
         return capability in self.capabilities
 
     def is_privileged(self) -> bool:
-        Check if module requires privileged access."""
+        """Check if module requires privileged access."""
         return self.admin_access or self.system_config_access or self.database_access
 
 
@@ -137,7 +136,7 @@ class ModuleMetrics:
         self.api_calls_count += 1
 
     def record_error(self):
-        Record module error."""
+        """Record module error."""
         self.error_count += 1
 
 
@@ -172,16 +171,22 @@ class IModuleLifecycle(Protocol):
         ...
 
     async def pause(self) -> bool:
-        """Pause the module. Return True if successful."""
-        ...
+        """Pause the module."""
+        if self.state == ModuleState.ACTIVE:
+            self.state = ModuleState.PAUSED
+            await self._on_pause()
+            return True
+        return False
 
     async def resume(self) -> bool:
         """Resume the module. Return True if successful."""
         ...
 
     async def shutdown(self) -> bool:
-        """Shutdown the module. Return True if successful."""
-        ...
+        """Shutdown the module."""
+        if self and hasattr(self, "stop"):
+            return await self.stop()
+        return False
 
     async def health_check(self) -> Dict[str, Any]:
         """Perform health check. Return status information."""
@@ -216,8 +221,17 @@ class IModuleAPI(Protocol):
         ...
 
     def get_available_methods(self) -> List[str]:
-        """Get list of available API methods."""
-        ...
+        """Get available API methods."""
+        return [
+            "initialize",
+            "start",
+            "stop",
+            "pause",
+            "resume",
+            "shutdown",
+            "health_check",
+            "get_metadata",
+        ]
 
     async def call_method(self, method: str, **kwargs) -> Any:
         """Call module method."""
@@ -225,7 +239,13 @@ class IModuleAPI(Protocol):
 
     def register_event_handler(self, event: str, handler: Callable) -> bool:
         """Register event handler."""
-        ...
+        try:
+            if event not in self.event_handlers:
+                self.event_handlers[event] = []
+            self.event_handlers[event].append(handler)
+            return True
+        except Exception:
+            return False
 
     def emit_event(self, event: str, data: Any) -> bool:
         """Emit event to other modules."""
@@ -248,7 +268,7 @@ class IModuleSecurity(Protocol):
         ...
 
     async def security_scan(self) -> Dict[str, Any]:
-        """Perform security self-scan.
+        """Perform security self-scan."""
         ...
 
 
@@ -259,7 +279,7 @@ class BaseModule(ABC):
     All modules must inherit from this class to ensure
     consistent behavior and interface compliance.
     """
-        def __init__(self, name: str, version: str = "1.0.0"):
+    def __init__(self, name: str, version: str = "1.0.0"):
         self.name = name
         self.version = version
         self.state = ModuleState.UNLOADED
@@ -285,7 +305,7 @@ class BaseModule(ABC):
     # Abstract methods that must be implemented
     @abstractmethod
     async def initialize(self) -> bool:
-        """Initialize the module.
+        """Initialize the module."""
 
     @abstractmethod
     def get_metadata(self) -> Dict[str, Any]:
@@ -293,7 +313,7 @@ class BaseModule(ABC):
 
     @abstractmethod
     def get_required_permissions(self) -> ModulePermissions:
-        Get required permissions."""
+        """Get required permissions."""
 
     # Default implementations
     async def start(self) -> bool:
@@ -346,7 +366,7 @@ class BaseModule(ABC):
             return False
 
     async def pause(self) -> bool:
-        """Pause the module.
+        """Pause the module."""
         if self.state == ModuleState.ACTIVE:
             self.state = ModuleState.PAUSED
             await self._on_pause()
@@ -362,7 +382,7 @@ class BaseModule(ABC):
         return False
 
     async def shutdown(self) -> bool:
-        Shutdown the module."""
+        """Shutdown the module."""
         if self and hasattr(self, "stop"):
             return await self.stop()
         return False
@@ -449,7 +469,7 @@ class BaseModule(ABC):
 
     # Event system
     def register_event_handler(self, event: str, handler: Callable) -> bool:
-        """Register event handler.
+        """Register event handler."""
         try:
             if event not in self.event_handlers:
                 self.event_handlers[event] = []
@@ -469,7 +489,7 @@ class BaseModule(ABC):
 
     # Lifecycle hooks (can be overridden by subclasses)
     async def _on_start(self) -> bool:
-        """Override for custom start logic.
+        """Override for custom start logic."""
         return True
 
     async def _on_stop(self) -> bool:
@@ -477,11 +497,11 @@ class BaseModule(ABC):
         return True
 
     async def _on_pause(self) -> bool:
-        Override for custom pause logic."""
+        """Override for custom pause logic."""
         return True
 
     async def _on_resume(self) -> bool:
-        """Override for custom resume logic.
+        """Override for custom resume logic."""
         return True
 
     # Utility methods
@@ -490,7 +510,7 @@ class BaseModule(ABC):
         return self.state == ModuleState.ACTIVE and self.metrics.error_count < 10
 
     def get_api_version(self) -> str:
-        Get API version."""
+        """Get API version."""
         return "1.0"
 
     def get_available_methods(self) -> List[str]:
