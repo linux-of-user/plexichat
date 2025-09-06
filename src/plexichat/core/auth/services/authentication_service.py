@@ -105,14 +105,14 @@ class AuthenticationService(IAuthenticationService):
                 # Clean up expired sessions
                 expired_sessions_result = await session.fetchall(
                     "SELECT id, user_id FROM sessions WHERE expires_at < ? AND is_active = 1",
-                    {"1": current_time_str}
+                    (current_time_str,)
                 )
 
                 if expired_sessions_result:
                     # Mark sessions as inactive
                     await session.execute(
                         "UPDATE sessions SET is_active = 0, updated_at = ? WHERE expires_at < ? AND is_active = 1",
-                        {"1": current_time_str, "2": current_time_str}
+                        (current_time_str, current_time_str)
                     )
 
                     for row in expired_sessions_result:
@@ -123,14 +123,14 @@ class AuthenticationService(IAuthenticationService):
                 # Clean up expired MFA challenges
                 expired_challenges_result = await session.fetchall(
                     "SELECT id, challenge_id, user_id FROM mfa_challenges WHERE expires_at < ?",
-                    {"1": current_time_str}
+                    (current_time_str,)
                 )
 
                 if expired_challenges_result:
                     # Delete expired MFA challenges
                     await session.execute(
                         "DELETE FROM mfa_challenges WHERE expires_at < ?",
-                        {"1": current_time_str}
+                        (current_time_str,)
                     )
 
                     for row in expired_challenges_result:
@@ -250,7 +250,7 @@ class AuthenticationService(IAuthenticationService):
             async with self.db_manager.get_session() as session:
                 result = await session.fetchall(
                     "SELECT DISTINCT ip_address FROM sessions WHERE user_id = ? AND ip_address IS NOT NULL AND is_active = 1",
-                    {"1": user_id}
+                    (user_id,)
                 )
                 return {row['ip_address'] for row in result}
         except Exception as e:
@@ -263,7 +263,7 @@ class AuthenticationService(IAuthenticationService):
             async with self.db_manager.get_session() as session:
                 result = await session.fetchone(
                     "SELECT id FROM devices WHERE device_id = ?",
-                    {"1": device_id}
+                    (device_id,)
                 )
                 return result is not None
         except Exception as e:
@@ -276,7 +276,7 @@ class AuthenticationService(IAuthenticationService):
             async with self.db_manager.get_session() as session:
                 result = await session.fetchone(
                     "SELECT is_trusted FROM devices WHERE device_id = ?",
-                    {"1": device_id}
+                    (device_id,)
                 )
                 return result is not None and result['is_trusted'] == 1
         except Exception as e:
@@ -293,7 +293,7 @@ class AuthenticationService(IAuthenticationService):
                 # Check if device exists
                 existing = await session.fetchone(
                     "SELECT id, is_trusted FROM devices WHERE device_id = ?",
-                    {"1": device_info.device_id}
+                    (device_info.device_id,)
                 )
 
                 if existing:
@@ -392,7 +392,7 @@ class AuthenticationService(IAuthenticationService):
             )
 
             # Check rate limits using unified security module's validate_request method
-            is_valid, error_message, security_event = await self.unified_security.validate_request(None, context)
+            is_valid, error_message, security_event = self.unified_security.validate_request(None, context)
 
             if not is_valid and security_event and security_event.event_type.value == "rate_limit_exceeded":
                 return False, error_message or "Rate limit exceeded"
@@ -537,7 +537,7 @@ class AuthenticationService(IAuthenticationService):
                 async with self.db_manager.get_session() as session_db:
                     stored_device_result = await session_db.fetchone(
                         "SELECT is_trusted, first_seen, last_seen FROM devices WHERE device_id = ?",
-                        {"1": device_info.device_id}
+                        (device_info.device_id,)
                     )
 
                     if stored_device_result:
@@ -548,7 +548,7 @@ class AuthenticationService(IAuthenticationService):
                         # Update last_seen in database
                         await session_db.execute(
                             "UPDATE devices SET last_seen = ? WHERE device_id = ?",
-                            {"1": device_info.last_seen.isoformat(), "2": device_info.device_id}
+                            (device_info.last_seen.isoformat(), device_info.device_id)
                         )
                         await session_db.commit()
             except Exception as e:
@@ -810,7 +810,7 @@ class AuthenticationService(IAuthenticationService):
                 # Get session from database
                 result = await session_db.fetchone(
                     "SELECT * FROM sessions WHERE id = ? AND is_active = 1",
-                    {"1": session_id}
+                    (session_id,)
                 )
 
                 if not result:
@@ -936,7 +936,7 @@ class AuthenticationService(IAuthenticationService):
                 # Find active challenge for user
                 result = await session.fetchone(
                     "SELECT * FROM mfa_challenges WHERE user_id = ? AND is_verified = 0 ORDER BY created_at DESC LIMIT 1",
-                    {"1": user_id}
+                    (user_id,)
                 )
 
                 if not result:
@@ -948,14 +948,14 @@ class AuthenticationService(IAuthenticationService):
 
                 if current_time > expires_at:
                     # Delete expired challenge
-                    await session.execute("DELETE FROM mfa_challenges WHERE id = ?", {"1": result['id']})
+                    await session.execute("DELETE FROM mfa_challenges WHERE id = ?", (result['id'],))
                     await session.commit()
                     return False
 
                 # Verify code
                 if hmac.compare_digest(result['code'] or "", code.upper()):
                     # Mark as verified and delete
-                    await session.execute("DELETE FROM mfa_challenges WHERE id = ?", {"1": result['id']})
+                    await session.execute("DELETE FROM mfa_challenges WHERE id = ?", (result['id'],))
                     await session.commit()
 
                     logger.security("MFA verification successful",
@@ -968,7 +968,7 @@ class AuthenticationService(IAuthenticationService):
                     new_attempts = result['attempts'] + 1
                     if new_attempts >= result['max_attempts']:
                         # Delete challenge if max attempts reached
-                        await session.execute("DELETE FROM mfa_challenges WHERE id = ?", {"1": result['id']})
+                        await session.execute("DELETE FROM mfa_challenges WHERE id = ?", (result['id'],))
                     else:
                         # Update attempts
                         await session.update("mfa_challenges", {"attempts": new_attempts}, {"id": result['id']})

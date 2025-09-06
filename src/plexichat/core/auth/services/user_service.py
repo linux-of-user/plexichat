@@ -137,7 +137,7 @@ class UserService(IUserService):
                 return False, ["User not found"]
 
             # Verify old password
-            success, _ = self.security_system.authenticate_user(user_id, old_password)
+            success, _ = await self.security_system.authenticate_user(user_id, old_password)
             if not success:
                 logger.security("Password change failed - invalid old password", user_id=user_id)
                 return False, ["Invalid current password"]

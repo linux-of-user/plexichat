@@ -31,7 +31,8 @@ logger = get_logger(__name__)
 
 class ModuleCapability(Enum):
     """Module capability types."""
-        # Core capabilities
+
+    # Core capabilities
     MESSAGING = "messaging"
     USER_MANAGEMENT = "user_management"
     FILE_HANDLING = "file_handling"

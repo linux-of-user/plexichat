@@ -599,7 +599,7 @@ async def handle_plugin_command(args: List[str]):
 
 
 if __name__ == '__main__':
-    # Example usage: python -m src.plexichat.interfaces.cli.commands.plugins list
+    # Example usage: python -m plexichat.interfaces.cli.commands.plugins list
     import sys
     if len(sys.argv) > 1:
         asyncio.run(handle_plugin_command(sys.argv[1:]))

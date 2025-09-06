@@ -633,6 +633,13 @@ __all__ = ['EnhancedBasePlugin', 'EnhancedPluginConfig', 'EnhancedPluginAPI']
 
             if info.metadata.security_level == SecurityLevel.SANDBOXED:
                 success = await self.isolation_manager.load_module_isolated(plugin_name, info.path)
+                if success:
+                    # For sandboxed plugins, we need to instantiate the plugin instance
+                    module = self.isolation_manager.isolated_modules.get(plugin_name)
+                    if module:
+                        success = await self._instantiate_plugin(plugin_name, module, info)
+                    else:
+                        success = False
             else:
                 success = await self._load_plugin_direct(plugin_name, info)
 
@@ -675,7 +682,13 @@ __all__ = ['EnhancedBasePlugin', 'EnhancedPluginConfig', 'EnhancedPluginAPI']
     async def _instantiate_plugin(self, plugin_name: str, module: Any, plugin_info: PluginInfo) -> bool:
         if not hasattr(module, 'plugin'): raise PluginError(f"No 'plugin' instance in {plugin_name}")
         instance = getattr(module, 'plugin')
-        if not isinstance(instance, EnhancedBasePlugin): raise PluginError(f"'plugin' is not EnhancedBasePlugin")
+        # For sandboxed plugins, check against the SDK's EnhancedBasePlugin class
+        # since sandboxed plugins inherit from plexichat.core.plugins.sdk.EnhancedBasePlugin
+        from .sdk import EnhancedBasePlugin as SDK_EnhancedBasePlugin
+        if not isinstance(instance, (EnhancedBasePlugin, SDK_EnhancedBasePlugin)):
+            logger.error(f"Plugin {plugin_name} instance type: {type(instance)}")
+            logger.error(f"Plugin {plugin_name} instance MRO: {type(instance).__mro__}")
+            raise PluginError(f"'plugin' is not EnhancedBasePlugin")
         if await instance.initialize():
             with self._lock:
                 self.loaded_plugins[plugin_name] = instance; plugin_info.instance = instance

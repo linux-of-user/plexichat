@@ -16,7 +16,7 @@ except ImportError:
     print("Error: Typer and Rich libraries are required. Please run 'pip install typer rich'.")
     sys.exit(1)
 
-from src.plexichat.interfaces.cli.ultimate.cli_coordinator import CommandCategory, ultimate_cli
+from plexichat.interfaces.cli.ultimate.cli_coordinator import CommandCategory, ultimate_cli
 
 # --- Basic Setup ---
 logger = logging.getLogger(__name__)

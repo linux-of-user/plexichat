@@ -45,7 +45,7 @@ Features:
 @dataclass
 class SystemMetrics:
     """System-level performance metrics."""
-        timestamp: datetime
+    timestamp: datetime
     cpu_usage: float
     memory_usage: float
     disk_usage: float
@@ -57,8 +57,8 @@ class SystemMetrics:
 
 @dataclass
 class ApplicationMetrics:
-    Application-level performance metrics."""
-        timestamp: datetime
+    """Application-level performance metrics."""
+    timestamp: datetime
     active_connections: int
     request_rate: float
     response_time_avg: float
@@ -71,8 +71,8 @@ class ApplicationMetrics:
 
 @dataclass
 class DatabaseMetrics:
-    """Database performance metrics.
-        timestamp: datetime
+    """Database performance metrics."""
+    timestamp: datetime
     connection_pool_size: int
     active_connections: int
     query_rate: float
@@ -85,7 +85,7 @@ class DatabaseMetrics:
 @dataclass
 class ClusterMetrics:
     """Cluster performance metrics."""
-        timestamp: datetime
+    timestamp: datetime
     total_nodes: int
     active_nodes: int
     cluster_cpu_avg: float
@@ -97,8 +97,8 @@ class ClusterMetrics:
 
 @dataclass
 class AIMetrics:
-    AI service performance metrics."""
-        timestamp: datetime
+    """AI service performance metrics."""
+    timestamp: datetime
     requests_per_minute: float
     avg_response_time: float
     model_accuracy: float
@@ -109,13 +109,13 @@ class AIMetrics:
 
 
 class PerformanceAggregator:
-    """Aggregates performance data from multiple sources.
-        def __init__(self):
+    """Aggregates performance data from multiple sources."""
+    def __init__(self):
         self.system_metrics: deque = deque(maxlen=1000)
         self.app_metrics: deque = deque(maxlen=1000)
         self.db_metrics: deque = deque(maxlen=1000)
         self.cluster_metrics: deque = deque(maxlen=1000)
-        self.ai_metrics: deque = deque(1000)
+        self.ai_metrics: deque = deque(maxlen=1000)
         self.custom_metrics: Dict[str, deque] = defaultdict(lambda: deque(maxlen=1000))
         self.lock = threading.RLock()
 
@@ -158,21 +158,15 @@ class PerformanceAggregator:
         """Get latest metrics from all sources."""
         with self.lock:
             return {
-                "system": ()
-                    self.system_metrics[-1].__dict__ if self.system_metrics else None
-                ),
-                "application": ()
-                    self.app_metrics[-1].__dict__ if self.app_metrics else None
-                ),
+                "system": self.system_metrics[-1].__dict__ if self.system_metrics else None,
+                "application": self.app_metrics[-1].__dict__ if self.app_metrics else None,
                 "database": self.db_metrics[-1].__dict__ if self.db_metrics else None,
-                "cluster": ()
-                    self.cluster_metrics[-1].__dict__ if self.cluster_metrics else None
-                ),
+                "cluster": self.cluster_metrics[-1].__dict__ if self.cluster_metrics else None,
                 "ai": self.ai_metrics[-1].__dict__ if self.ai_metrics else None,
                 "custom": {
                     name: list(metrics)[-1] if metrics else None
                     for name, metrics in self.custom_metrics.items()
-                }},
+                }
             }
 
     def get_historical_data(self, hours: int = 1) -> Dict[str, List[Dict[str, Any]]]:
@@ -209,16 +203,14 @@ class PerformanceAggregator:
 
 class PerformanceService(BaseService):
     """Unified performance monitoring service."""
-        def __init__(self):
+    def __init__(self):
         super().__init__("performance")
         self.config = get_config()
         self.performance_logger = get_performance_logger()
         self.aggregator = PerformanceAggregator()
 
         # Monitoring configuration
-        self.monitoring_interval = self.config.get()
-            "performance.monitoring_interval", 30
-        )
+        self.monitoring_interval = self.config.get("performance.monitoring_interval", 30)
         self.alert_thresholds = self.config.get("performance.alert_thresholds", {})
         self.dashboard_enabled = self.config.get("performance.dashboard_enabled", True)
 

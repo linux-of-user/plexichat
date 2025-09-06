@@ -81,7 +81,7 @@ except ImportError:
 try:
     # Try multiple import paths
     try:
-        from src.plexichat.core.plugins.manager import PluginInterface
+        from plexichat.core.plugins.manager import PluginInterface
     except ImportError:
         from plexichat.core.plugins.manager import PluginInterface
 except ImportError:

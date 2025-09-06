@@ -434,14 +434,14 @@ class UnifiedAuthManager:
                 # Clean up expired sessions
                 expired_sessions_result = await session.fetchall(
                     "SELECT id, user_id FROM sessions WHERE expires_at < ? AND is_active = 1",
-                    {"1": current_time_str}
+                    (current_time_str,)
                 )
 
                 if expired_sessions_result:
                     # Mark sessions as inactive
                     await session.execute(
                         "UPDATE sessions SET is_active = 0, updated_at = ? WHERE expires_at < ? AND is_active = 1",
-                        {"1": current_time_str, "2": current_time_str}
+                        (current_time_str, current_time_str)
                     )
 
                     for row in expired_sessions_result:
@@ -457,14 +457,14 @@ class UnifiedAuthManager:
                 # Clean up expired MFA challenges
                 expired_challenges_result = await session.fetchall(
                     "SELECT id, challenge_id, user_id FROM mfa_challenges WHERE expires_at < ?",
-                    {"1": current_time_str}
+                    (current_time_str,)
                 )
 
                 if expired_challenges_result:
                     # Delete expired MFA challenges
                     await session.execute(
                         "DELETE FROM mfa_challenges WHERE expires_at < ?",
-                        {"1": current_time_str}
+                        (current_time_str,)
                     )
 
                     for row in expired_challenges_result:
@@ -551,7 +551,7 @@ class UnifiedAuthManager:
             async with self.db_manager.get_session() as session:
                 result = await session.fetchone(
                     "SELECT is_trusted FROM devices WHERE device_id = ?",
-                    {"1": device_id}
+                    (device_id,)
                 )
                 return result is not None and result['is_trusted'] == 1
         except Exception as e:
@@ -820,7 +820,7 @@ class UnifiedAuthManager:
                 # Get challenge from database
                 challenge_result = await db_session.fetchone(
                     "SELECT id, user_id, method, code, expires_at, attempts, max_attempts FROM mfa_challenges WHERE challenge_id = ? AND is_verified = 0",
-                    {"1": challenge_id}
+                    (challenge_id,)
                 )
 
                 if not challenge_result:
@@ -832,7 +832,7 @@ class UnifiedAuthManager:
                 if datetime.now(timezone.utc) > datetime.fromisoformat(challenge_result['expires_at']):
                     await db_session.execute(
                         "DELETE FROM mfa_challenges WHERE id = ?",
-                        {"1": challenge_result['id']}
+                        (challenge_result['id'],)
                     )
                     await db_session.commit()
 
@@ -846,7 +846,7 @@ class UnifiedAuthManager:
                 if attempts > challenge_result['max_attempts']:
                     await db_session.execute(
                         "DELETE FROM mfa_challenges WHERE id = ?",
-                        {"1": challenge_result['id']}
+                        (challenge_result['id'],)
                     )
                     await db_session.commit()
 
@@ -877,7 +877,7 @@ class UnifiedAuthManager:
                     # Mark challenge as verified
                     await db_session.execute(
                         "UPDATE mfa_challenges SET is_verified = 1 WHERE id = ?",
-                        {"1": challenge_result['id']}
+                        (challenge_result['id'],)
                     )
                     await db_session.commit()
 
@@ -898,7 +898,7 @@ class UnifiedAuthManager:
                     # Update attempts
                     await db_session.execute(
                         "UPDATE mfa_challenges SET attempts = ? WHERE id = ?",
-                        {"1": attempts, "2": challenge_result['id']}
+                        (attempts, challenge_result['id'])
                     )
                     await db_session.commit()
 
@@ -1260,7 +1260,7 @@ class UnifiedAuthManager:
                         # Get active challenge for user
                         challenge_result = await db_session.fetchone(
                             "SELECT id, challenge_id, user_id, method, code, expires_at, attempts, max_attempts FROM mfa_challenges WHERE user_id = ? AND is_verified = 0 AND expires_at > ? ORDER BY expires_at DESC LIMIT 1",
-                            {"1": username, "2": current_time_str}
+                            (username, current_time_str)
                         )
 
                         if not challenge_result:
@@ -1278,7 +1278,7 @@ class UnifiedAuthManager:
                         if datetime.now(timezone.utc) > datetime.fromisoformat(challenge_result['expires_at']):
                             await db_session.execute(
                                 "DELETE FROM mfa_challenges WHERE id = ?",
-                                {"1": challenge_result['id']}
+                                (challenge_result['id'],)
                             )
                             await db_session.commit()
 
@@ -1329,7 +1329,7 @@ class UnifiedAuthManager:
                             # Mark challenge as verified and clean up
                             await db_session.execute(
                                 "UPDATE mfa_challenges SET is_verified = 1 WHERE id = ?",
-                                {"1": challenge_result['id']}
+                                (challenge_result['id'],)
                             )
                             await db_session.commit()
 
@@ -1348,7 +1348,7 @@ class UnifiedAuthManager:
                             # Update attempts
                             await db_session.execute(
                                 "UPDATE mfa_challenges SET attempts = ? WHERE id = ?",
-                                {"1": attempts, "2": challenge_result['id']}
+                                (attempts, challenge_result['id'])
                             )
                             await db_session.commit()
 
@@ -1379,7 +1379,7 @@ class UnifiedAuthManager:
                     # Check if device exists
                     existing_device_result = await db_session.fetchone(
                         "SELECT id FROM devices WHERE device_id = ?",
-                        {"1": device_info.device_id}
+                        (device_info.device_id,)
                     )
 
                     if not existing_device_result:
@@ -1652,7 +1652,7 @@ class UnifiedAuthManager:
                 # Query session from database
                 session_result = await db_session.fetchone(
                     "SELECT id, user_id, created_at, last_accessed, expires_at, permissions, roles, ip_address, user_agent, device_info, auth_provider, mfa_verified, is_active, is_elevated, elevation_expires_at, location, risk_score FROM sessions WHERE id = ? AND is_active = 1",
-                    {"1": session_id}
+                    (session_id,)
                 )
 
                 if not session_result:
@@ -1701,7 +1701,7 @@ class UnifiedAuthManager:
                     # Mark session as inactive in database
                     await db_session.execute(
                         "UPDATE sessions SET is_active = 0, updated_at = ? WHERE id = ?",
-                        {"1": datetime.now(timezone.utc).isoformat(), "2": session_id}
+                        (datetime.now(timezone.utc).isoformat(), session_id)
                     )
                     await db_session.commit()
 
@@ -1719,7 +1719,7 @@ class UnifiedAuthManager:
 
                 await db_session.execute(
                     "UPDATE sessions SET last_accessed = ?, updated_at = ? WHERE id = ?",
-                    {"1": current_time_str, "2": current_time_str, "3": session_id}
+                    (current_time_str, current_time_str, session_id)
                 )
                 await db_session.commit()
 
@@ -1911,7 +1911,7 @@ class UnifiedAuthManager:
                 # Mark session as inactive in database
                 await db_session.execute(
                     "UPDATE sessions SET is_active = 0, updated_at = ? WHERE id = ?",
-                    {"1": datetime.now(timezone.utc).isoformat(), "2": session_id}
+                    (datetime.now(timezone.utc).isoformat(), session_id)
                 )
                 await db_session.commit()
 
@@ -1936,7 +1936,7 @@ class UnifiedAuthManager:
                 # Get count of sessions to be invalidated for logging
                 count_result = await db_session.fetchone(
                     "SELECT COUNT(*) as session_count FROM sessions WHERE user_id = ? AND is_active = 1",
-                    {"1": user_id}
+                    (user_id,)
                 )
 
                 session_count = count_result['session_count'] if count_result else 0
@@ -1947,7 +1947,7 @@ class UnifiedAuthManager:
                 # Mark all user sessions as inactive
                 await db_session.execute(
                     "UPDATE sessions SET is_active = 0, updated_at = ? WHERE user_id = ? AND is_active = 1",
-                    {"1": datetime.now(timezone.utc).isoformat(), "2": user_id}
+                    (datetime.now(timezone.utc).isoformat(), user_id)
                 )
                 await db_session.commit()
 
@@ -2069,7 +2069,7 @@ class UnifiedAuthManager:
 
                 await db_session.execute(
                     "UPDATE sessions SET is_elevated = 1, elevation_expires_at = ?, updated_at = ? WHERE id = ?",
-                    {"1": elevation_expires_str, "2": updated_at_str, "3": session_id}
+                    (elevation_expires_str, updated_at_str, session_id)
                 )
                 await db_session.commit()
 
@@ -2113,7 +2113,7 @@ class UnifiedAuthManager:
 
                     elevated_session_result = await db_session.fetchone(
                         "SELECT id FROM sessions WHERE user_id = ? AND is_active = 1 AND is_elevated = 1 AND elevation_expires_at > ?",
-                        {"1": user_id, "2": current_time_str}
+                        (user_id, current_time_str)
                     )
 
                     if not elevated_session_result:
@@ -2285,49 +2285,43 @@ class UnifiedAuthManager:
             async with self.db_manager.get_session() as db_session:
                 # Get active session counts
                 active_sessions_result = await db_session.fetchone(
-                    "SELECT COUNT(*) as count FROM sessions WHERE is_active = 1",
-                    {}
+                    "SELECT COUNT(*) as count FROM sessions WHERE is_active = 1"
                 )
                 active_sessions = active_sessions_result['count'] if active_sessions_result else 0
 
                 # Get elevated session counts
                 elevated_sessions_result = await db_session.fetchone(
-                    "SELECT COUNT(*) as count FROM sessions WHERE is_active = 1 AND is_elevated = 1",
-                    {}
+                    "SELECT COUNT(*) as count FROM sessions WHERE is_active = 1 AND is_elevated = 1"
                 )
                 elevated_sessions = elevated_sessions_result['count'] if elevated_sessions_result else 0
 
                 # Get MFA verified session counts
                 mfa_verified_sessions_result = await db_session.fetchone(
-                    "SELECT COUNT(*) as count FROM sessions WHERE is_active = 1 AND mfa_verified = 1",
-                    {}
+                    "SELECT COUNT(*) as count FROM sessions WHERE is_active = 1 AND mfa_verified = 1"
                 )
                 mfa_verified_sessions = mfa_verified_sessions_result['count'] if mfa_verified_sessions_result else 0
 
                 # Get high risk session counts
                 high_risk_sessions_result = await db_session.fetchone(
-                    "SELECT COUNT(*) as count FROM sessions WHERE is_active = 1 AND risk_score > 70",
-                    {}
+                    "SELECT COUNT(*) as count FROM sessions WHERE is_active = 1 AND risk_score > 70"
                 )
                 high_risk_sessions = high_risk_sessions_result['count'] if high_risk_sessions_result else 0
 
                 # Get device counts
                 known_devices_result = await db_session.fetchone(
-                    "SELECT COUNT(*) as count FROM devices",
-                    {}
+                    "SELECT COUNT(*) as count FROM devices"
                 )
                 known_devices = known_devices_result['count'] if known_devices_result else 0
 
                 trusted_devices_result = await db_session.fetchone(
-                    "SELECT COUNT(*) as count FROM devices WHERE is_trusted = 1",
-                    {}
+                    "SELECT COUNT(*) as count FROM devices WHERE is_trusted = 1"
                 )
                 trusted_devices = trusted_devices_result['count'] if trusted_devices_result else 0
 
                 # Get MFA challenge counts
                 active_mfa_challenges_result = await db_session.fetchone(
                     "SELECT COUNT(*) as count FROM mfa_challenges WHERE expires_at > ?",
-                    {"1": datetime.now(timezone.utc).isoformat()}
+                    (datetime.now(timezone.utc).isoformat(),)
                 )
                 active_mfa_challenges = active_mfa_challenges_result['count'] if active_mfa_challenges_result else 0
 
@@ -2393,14 +2387,12 @@ class UnifiedAuthManager:
             async with self.db_manager.get_session() as db_session:
                 # Get initial counts for logging
                 initial_sessions_result = await db_session.fetchone(
-                    "SELECT COUNT(*) as count FROM sessions WHERE is_active = 1",
-                    {}
+                    "SELECT COUNT(*) as count FROM sessions WHERE is_active = 1"
                 )
                 initial_sessions = initial_sessions_result['count'] if initial_sessions_result else 0
 
                 initial_challenges_result = await db_session.fetchone(
-                    "SELECT COUNT(*) as count FROM mfa_challenges",
-                    {}
+                    "SELECT COUNT(*) as count FROM mfa_challenges"
                 )
                 initial_challenges = initial_challenges_result['count'] if initial_challenges_result else 0
 
@@ -2411,7 +2403,7 @@ class UnifiedAuthManager:
                 old_devices_cutoff = (current_time - timedelta(days=90)).isoformat()
                 old_devices_result = await db_session.fetchall(
                     "SELECT device_id FROM devices WHERE last_seen < ?",
-                    {"1": old_devices_cutoff}
+                    (old_devices_cutoff,)
                 )
 
                 if old_devices_result:
@@ -2420,7 +2412,7 @@ class UnifiedAuthManager:
                     # Delete old devices
                     await db_session.execute(
                         "DELETE FROM devices WHERE last_seen < ?",
-                        {"1": old_devices_cutoff}
+                        (old_devices_cutoff,)
                     )
 
                     cleaned_devices = len(old_device_ids)
@@ -2441,14 +2433,12 @@ class UnifiedAuthManager:
             # Get final counts for logging
             async with self.db_manager.get_session() as db_session:
                 final_sessions_result = await db_session.fetchone(
-                    "SELECT COUNT(*) as count FROM sessions WHERE is_active = 1",
-                    {}
+                    "SELECT COUNT(*) as count FROM sessions WHERE is_active = 1"
                 )
                 final_sessions = final_sessions_result['count'] if final_sessions_result else 0
 
                 final_challenges_result = await db_session.fetchone(
-                    "SELECT COUNT(*) as count FROM mfa_challenges",
-                    {}
+                    "SELECT COUNT(*) as count FROM mfa_challenges"
                 )
                 final_challenges = final_challenges_result['count'] if final_challenges_result else 0
 

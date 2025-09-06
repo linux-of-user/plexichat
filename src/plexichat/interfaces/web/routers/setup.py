@@ -97,7 +97,7 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/setup", tags=["setup"])
 
-templates = Jinja2Templates(directory="src/plexichat/interfaces/web/templates")
+templates = Jinja2Templates(directory="plexichat/interfaces/web/templates")
 
 security = HTTPBearer()
 
@@ -205,7 +205,7 @@ async def secure_admin_endpoint(
 
 # --- Global adaptive rate limiting dependency ---
 async def enforce_global_rate_limit(request: Request):
-    from src.plexichat.infrastructure.utils.rate_limiting import rate_limiter
+    from plexichat.infrastructure.utils.rate_limiting import rate_limiter
     stats = rate_limiter.get_stats()
     total_attempts = stats.get('total_attempts', 0)
     global_limit = 100

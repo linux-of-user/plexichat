@@ -2,6 +2,8 @@
 Shared pytest fixtures and configuration for PlexiChat tests.
 """
 
+print("DEBUG: Starting conftest.py imports")
+
 import asyncio
 import pytest
 import tempfile
@@ -10,16 +12,42 @@ from unittest.mock import MagicMock, AsyncMock
 from typing import Dict, Any, List, Optional
 import json
 
-from plexichat.core.database.manager import DatabaseManager, DatabaseConfig, DatabaseSession
-from plexichat.core.caching.unified_cache_integration import UnifiedCacheManager
-from plexichat.core.orchestrator import SystemOrchestrator, ModuleManager, ComponentRegistry
-from plexichat.core.authentication import UnifiedAuthManager, SessionInfo, AuthResult
+print("DEBUG: Basic imports completed")
+
+try:
+    from plexichat.core.database.manager import DatabaseManager, DatabaseConfig, DatabaseSession
+    print("DEBUG: Database imports successful")
+except Exception as e:
+    print(f"DEBUG: Database import failed: {e}")
+
+try:
+    from plexichat.core.caching.unified_cache_integration import UnifiedCacheManager
+    print("DEBUG: Cache imports successful")
+except Exception as e:
+    print(f"DEBUG: Cache import failed: {e}")
+
+try:
+    from plexichat.core.orchestrator import SystemOrchestrator, ModuleManager, ComponentRegistry
+    print("DEBUG: Orchestrator imports successful")
+except Exception as e:
+    print(f"DEBUG: Orchestrator import failed: {e}")
+
+try:
+    from plexichat.core.authentication import UnifiedAuthManager, SessionInfo, AuthResult
+    print("DEBUG: Authentication imports successful")
+except Exception as e:
+    print(f"DEBUG: Authentication import failed: {e}")
+
+print("DEBUG: All imports completed")
 
 
 # Database Fixtures
+print("DEBUG: Defining database fixtures")
+
 @pytest.fixture
 def sqlite_config():
     """SQLite database configuration for testing."""
+    print("DEBUG: Creating sqlite_config fixture")
     return DatabaseConfig(
         db_type="sqlite",
         path=":memory:",
@@ -402,7 +430,7 @@ def authentication_error():
 
 # Cleanup Fixtures
 @pytest.fixture(autouse=True)
-async def cleanup_after_test():
+def cleanup_after_test():
     """Cleanup after each test."""
     yield
     # Add any cleanup logic here
@@ -589,3 +617,5 @@ async def assert_async_response_time(coro, max_time_ms):
 
     assert duration_ms <= max_time_ms, f"Async function took {duration_ms}ms, expected <= {max_time_ms}ms"
     return result
+
+print("DEBUG: conftest.py loaded successfully")

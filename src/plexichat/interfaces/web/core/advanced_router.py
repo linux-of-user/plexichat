@@ -36,7 +36,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 # Import the new CLI router
-from src.plexichat.interfaces.web.routers.cli import router as cli_router
+from plexichat.interfaces.web.routers.cli import router as cli_router
 
 logger = logging.getLogger(__name__)
 

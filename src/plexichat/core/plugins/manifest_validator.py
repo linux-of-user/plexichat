@@ -20,8 +20,8 @@ def validate_manifest(manifest: Dict[str, Any]) -> None:
     # Validate security_level
     if 'security_level' not in manifest:
         raise ManifestValidationError("Missing required field: 'security_level'")
-    if manifest['security_level'] not in ['low', 'medium', 'high']:
-        raise ManifestValidationError(f"Invalid security_level: '{manifest['security_level']}'. Must be 'low', 'medium', or 'high'")
+    if manifest['security_level'] not in ['trusted', 'sandboxed', 'restricted', 'untrusted']:
+        raise ManifestValidationError(f"Invalid security_level: '{manifest['security_level']}'. Must be 'trusted', 'sandboxed', 'restricted', or 'untrusted'")
 
     # Validate dependencies
     if 'dependencies' not in manifest:

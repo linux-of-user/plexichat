@@ -85,11 +85,12 @@ class DatabaseSession:
     """
     Database session wrapper with fine-grained access control.
     """
-    
+
     def __init__(self, connection, user_permissions: Optional[Set[str]] = None):
         self.connection = connection
         self._transaction = None
         self.user_permissions = user_permissions
+        self._in_transaction = False
 
     def _check_permission(self, operation: DBOperation, resource_name: str):
         """Checks if the user has permission to perform the operation on the resource."""
@@ -149,27 +150,38 @@ class DatabaseSession:
     
     async def commit(self):
         """Commit the current transaction."""
-        if self._transaction:
+        if self.connection:
             try:
-                commit_method = getattr(self._transaction, 'commit', None)
+                # For aiosqlite, commit the connection
+                commit_method = getattr(self.connection, 'commit', None)
                 if commit_method and callable(commit_method):
                     result = commit_method()
                     if inspect.iscoroutine(result):
                         await result
+                    logger.debug("Transaction committed successfully", category=LogCategory.DATABASE)
+                else:
+                    logger.warning("Connection does not have commit method", category=LogCategory.DATABASE)
             except Exception as e:
                 logger.error(f"Failed to commit transaction: {e}", category=LogCategory.DATABASE)
+                raise
 
     async def rollback(self):
         """Rollback the current transaction."""
-        if self._transaction:
+        if self.connection:
             try:
-                rollback_method = getattr(self._transaction, 'rollback', None)
+                # For aiosqlite, rollback the connection
+                rollback_method = getattr(self.connection, 'rollback', None)
                 if rollback_method and callable(rollback_method):
                     result = rollback_method()
                     if inspect.iscoroutine(result):
                         await result
+                    logger.debug("Transaction rolled back successfully", category=LogCategory.DATABASE)
+                else:
+                    logger.warning("Connection does not have rollback method", category=LogCategory.DATABASE)
             except Exception as e:
                 logger.error(f"Failed to rollback transaction: {e}", category=LogCategory.DATABASE)
+                raise
+
 
     async def close(self):
         """Close the session."""
@@ -393,8 +405,15 @@ class DatabaseManager:
                 raise ValueError(f"Unsupported database type: {self.config.db_type}")
 
             yield session
+
+            # If we get here, no exception was raised - commit the transaction
+            logger.debug("Committing transaction on successful exit", category=LogCategory.DATABASE)
+            await session.commit()
+
         except Exception as e:
+            # Exception occurred - rollback the transaction
             if session is not None:
+                logger.debug(f"Rolling back transaction due to exception: {type(e).__name__}: {e}", category=LogCategory.DATABASE)
                 await session.rollback()
             raise
         finally:

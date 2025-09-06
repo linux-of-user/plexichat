@@ -49,14 +49,14 @@ except ImportError:
     logger.warning("Database system not available")
 
 try:
-    from src.plexichat.core.errors import get_error_manager
+    from plexichat.core.errors import get_error_manager
     error_manager = get_error_manager()
 except ImportError:
     error_manager = None
     logger.warning("Error handling system not available")
 
 try:
-    from src.plexichat.core.services import get_service_manager
+    from plexichat.core.services import get_service_manager
     service_manager = get_service_manager()
 except ImportError:
     service_manager = None

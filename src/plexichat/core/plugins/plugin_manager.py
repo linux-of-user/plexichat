@@ -409,7 +409,7 @@ class PluginIsolationManager:
 
             # Log successful sandboxed loading
             try:
-                from src.plexichat.core.logging import get_logger
+                from plexichat.core.logging import get_logger
                 sandbox_logger = get_logger(f"plugin.{plugin_name}.sandbox")
                 sandbox_logger.info(f"Plugin '{plugin_name}' loaded in sandboxed environment")
             except ImportError:
@@ -492,7 +492,7 @@ class PluginIsolationManager:
 
         # Use existing logging system for plugin file operations
         try:
-            from src.plexichat.core.logging import get_logger
+            from plexichat.core.logging import get_logger
             logger = get_logger(f"plugin.{plugin_name}.filesystem")
             logger.info(f"Plugin file access: {filename} (mode: {mode})")
         except ImportError:
