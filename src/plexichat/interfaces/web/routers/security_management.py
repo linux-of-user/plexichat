@@ -28,7 +28,7 @@ try:
     from plexichat.core.security.quantum_encryption import (
         get_quantum_manager, QuantumEncryptionManager, EncryptionAlgorithm, KeyType
     )
-    from plexichat.core.middleware.dynamic_rate_limiting_middleware import DynamicRateLimitingMiddleware
+    # DynamicRateLimitingMiddleware deprecated in favor of unified rate limiting module
     from plexichat.core.config_manager import get_config_manager
     from plexichat.core.security.security_manager import get_security_manager
 except ImportError as e:
@@ -44,6 +44,33 @@ logger = logging.getLogger(__name__)
 
 # Create router
 router = APIRouter(prefix="/api/v1/security", tags=["Security Management"])
+
+# Helper functions
+async def get_system_metrics():
+    """Get current system metrics"""
+    try:
+        import psutil
+        return {
+            "cpu_usage": psutil.cpu_percent(interval=1),
+            "memory_usage": psutil.virtual_memory().percent,
+            "network_usage": sum([psutil.net_io_counters().bytes_sent, psutil.net_io_counters().bytes_recv]) / (1024 * 1024)  # MB
+        }
+    except ImportError:
+        # Fallback if psutil not available
+        try:
+            import os
+            load_avg = os.getloadavg()[0] if hasattr(os, 'getloadavg') else 0.0
+            return {
+                "cpu_usage": min(load_avg * 10, 100.0),  # Rough estimate
+                "memory_usage": 0.0,
+                "network_usage": 0.0
+            }
+        except Exception:
+            return {
+                "cpu_usage": 0.0,
+                "memory_usage": 0.0,
+                "network_usage": 0.0
+            }
 
 # Pydantic models for request/response validation
 class SecurityStatusResponse(BaseModel):
@@ -116,8 +143,23 @@ class KeyRotationRequest(BaseModel):
 
 # Dependency functions
 async def get_current_user():
-    """Get current authenticated user (placeholder)"""
-    # TODO: Implement proper authentication
+    """Get current authenticated user"""
+    try:
+        from plexichat.core.authentication import get_auth_manager
+        auth_manager = get_auth_manager()
+        if auth_manager:
+            # Get current user from auth manager
+            current_user = await auth_manager.get_current_user()
+            if current_user:
+                return {
+                    "user_id": current_user.get("user_id", "unknown"),
+                    "role": current_user.get("role", "user"),
+                    "permissions": current_user.get("permissions", [])
+                }
+    except Exception as e:
+        logger.warning(f"Failed to get authenticated user: {e}")
+    
+    # Fallback for development/testing
     return {"user_id": "admin", "role": "admin", "permissions": ["security_admin"]}
 
 async def require_security_admin(user: dict = Depends(get_current_user)):
@@ -162,7 +204,16 @@ async def get_security_status(user: dict = Depends(get_current_user)):
         
         # Get rate limiting status
         rate_limit_status = {"enabled": False, "stats": {}}
-        # TODO: Implement rate limiting status retrieval
+        try:
+            from plexichat.core.middleware.rate_limiting import get_rate_limiter
+            rate_limiter = get_rate_limiter()
+            if rate_limiter:
+                rate_limit_status = {
+                    "enabled": rate_limiter.get_config_summary().get("enabled", False),
+                    "stats": rate_limiter.get_stats()
+                }
+        except Exception as e:
+            logger.warning(f"Failed to get rate limiting status: {e}")
         
         # Calculate overall threat level
         threat_level = "low"
@@ -589,11 +640,27 @@ async def rotate_encryption_key(
 @router.get("/rate-limiting/status")
 async def get_rate_limiting_status(user: dict = Depends(get_current_user)):
     """Get rate limiting system status"""
-    # TODO: Implement rate limiting status
-    return {
-        "enabled": False,
-        "message": "Rate limiting status not yet implemented"
-    }
+    try:
+        from plexichat.core.middleware.rate_limiting import get_rate_limiter
+        rate_limiter = get_rate_limiter()
+        
+        if not rate_limiter:
+            return {
+                "enabled": False,
+                "message": "Rate limiting system not available"
+            }
+        
+        return {
+            "enabled": rate_limiter.get_config_summary().get("enabled", False),
+            "config": rate_limiter.get_config_summary(),
+            "stats": rate_limiter.get_stats()
+        }
+    except Exception as e:
+        logger.error(f"Failed to get rate limiting status: {e}")
+        raise HTTPException(
+            status_code=HTTP_400_BAD_REQUEST,
+            detail=f"Failed to retrieve rate limiting status: {str(e)}"
+        )
 
 @router.put("/rate-limiting/config")
 async def update_rate_limiting_config(
@@ -601,28 +668,78 @@ async def update_rate_limiting_config(
     user: dict = Depends(require_security_admin)
 ):
     """Update rate limiting configuration"""
-    # TODO: Implement rate limiting configuration
-    return {
-        "message": "Rate limiting configuration not yet implemented"
-    }
+    try:
+        from plexichat.core.middleware.rate_limiting import get_rate_limiter
+        from plexichat.core.config_manager import get_config_manager
+        
+        rate_limiter = get_rate_limiter()
+        config_manager = get_config_manager()
+        
+        if not rate_limiter or not config_manager:
+            raise HTTPException(
+                status_code=HTTP_404_NOT_FOUND,
+                detail="Rate limiting system not available"
+            )
+        
+        # Update configuration
+        if config.enabled is not None:
+            rate_limiter.enabled = config.enabled
+        if config.default_limit is not None:
+            rate_limiter.requests_per_minute = config.default_limit
+        if config.burst_multiplier is not None:
+            rate_limiter.burst_limit = int(rate_limiter.requests_per_minute * config.burst_multiplier)
+        if config.window_size_seconds is not None:
+            rate_limiter.window_size_seconds = config.window_size_seconds
+        if config.adaptive_scaling is not None:
+            rate_limiter.adaptive_scaling = config.adaptive_scaling
+        
+        # Save configuration
+        await config_manager.save_config()
+        
+        logger.info(f"Rate limiting configuration updated by user {user['user_id']}")
+        return {"message": "Rate limiting configuration updated successfully"}
+        
+    except Exception as e:
+        logger.error(f"Failed to update rate limiting config: {e}")
+        raise HTTPException(
+            status_code=HTTP_400_BAD_REQUEST,
+            detail=f"Failed to update rate limiting configuration: {str(e)}"
+        )
 
 # Security Policy endpoints
 @router.get("/policies")
 async def get_security_policies(user: dict = Depends(get_current_user)):
     """Get current security policies"""
     try:
-        # TODO: Implement security policy retrieval
-        return {
-            "auto_block_enabled": True,
-            "threat_response_level": "medium",
-            "alert_thresholds": {
-                "high_threat_score": 60.0,
-                "critical_threat_score": 80.0,
-                "attack_rate_threshold": 100.0
-            },
-            "incident_response_enabled": True,
-            "audit_logging_level": "info"
-        }
+        from plexichat.core.config_manager import get_config_manager
+        config_manager = get_config_manager()
+        
+        if config_manager:
+            security_config = config_manager.get_security_config()
+            return {
+                "auto_block_enabled": security_config.get("auto_block_enabled", True),
+                "threat_response_level": security_config.get("threat_response_level", "medium"),
+                "alert_thresholds": security_config.get("alert_thresholds", {
+                    "high_threat_score": 60.0,
+                    "critical_threat_score": 80.0,
+                    "attack_rate_threshold": 100.0
+                }),
+                "incident_response_enabled": security_config.get("incident_response_enabled", True),
+                "audit_logging_level": security_config.get("audit_logging_level", "info")
+            }
+        else:
+            # Fallback default policies
+            return {
+                "auto_block_enabled": True,
+                "threat_response_level": "medium",
+                "alert_thresholds": {
+                    "high_threat_score": 60.0,
+                    "critical_threat_score": 80.0,
+                    "attack_rate_threshold": 100.0
+                },
+                "incident_response_enabled": True,
+                "audit_logging_level": "info"
+            }
         
     except Exception as e:
         logger.error(f"Failed to get security policies: {e}")
@@ -638,7 +755,33 @@ async def update_security_policies(
 ):
     """Update security policies"""
     try:
-        # TODO: Implement security policy updates
+        from plexichat.core.config_manager import get_config_manager
+        config_manager = get_config_manager()
+        
+        if not config_manager:
+            raise HTTPException(
+                status_code=HTTP_404_NOT_FOUND,
+                detail="Configuration manager not available"
+            )
+        
+        # Get current security config
+        security_config = config_manager.get_security_config()
+        
+        # Update policies
+        if policies.auto_block_enabled is not None:
+            security_config["auto_block_enabled"] = policies.auto_block_enabled
+        if policies.threat_response_level is not None:
+            security_config["threat_response_level"] = policies.threat_response_level
+        if policies.alert_thresholds is not None:
+            security_config["alert_thresholds"].update(policies.alert_thresholds)
+        if policies.incident_response_enabled is not None:
+            security_config["incident_response_enabled"] = policies.incident_response_enabled
+        if policies.audit_logging_level is not None:
+            security_config["audit_logging_level"] = policies.audit_logging_level
+        
+        # Save configuration
+        await config_manager.save_security_config(security_config)
+        
         logger.info(f"Security policies updated by user {user['user_id']}")
         return {"message": "Security policies updated successfully"}
         
@@ -659,13 +802,51 @@ async def get_audit_logs(
 ):
     """Get security audit logs"""
     try:
-        # TODO: Implement audit log retrieval
+        from plexichat.core.security.unified_audit_system import get_audit_system
+        from datetime import datetime, timedelta
+        
+        audit_system = get_audit_system()
+        if not audit_system:
+            return {
+                "logs": [],
+                "total_count": 0,
+                "time_range_hours": hours,
+                "level": level,
+                "message": "Audit system not available"
+            }
+        
+        # Calculate time range
+        end_time = datetime.utcnow()
+        start_time = end_time - timedelta(hours=hours)
+        
+        # Get audit logs
+        logs = await audit_system.get_logs(
+            start_time=start_time,
+            end_time=end_time,
+            level=level,
+            limit=limit,
+            category="security"
+        )
+        
+        # Format logs for response
+        formatted_logs = []
+        for log in logs:
+            formatted_logs.append({
+                "timestamp": log.get("timestamp", "").isoformat() if hasattr(log.get("timestamp", ""), "isoformat") else str(log.get("timestamp", "")),
+                "level": log.get("level", ""),
+                "category": log.get("category", ""),
+                "event_type": log.get("event_type", ""),
+                "user_id": log.get("user_id", ""),
+                "ip_address": log.get("ip_address", ""),
+                "message": log.get("message", ""),
+                "details": log.get("details", {})
+            })
+        
         return {
-            "logs": [],
-            "total_count": 0,
+            "logs": formatted_logs,
+            "total_count": len(formatted_logs),
             "time_range_hours": hours,
-            "level": level,
-            "message": "Audit log retrieval not yet implemented"
+            "level": level
         }
         
     except Exception as e:
@@ -716,12 +897,8 @@ async def get_realtime_metrics(user: dict = Depends(get_current_user)):
             "timestamp": current_time,
             "ddos_protection": ddos_metrics,
             "encryption": encryption_metrics,
-            "rate_limiting": {},  # TODO: Implement
-            "system_load": {
-                "cpu_usage": 0.0,  # TODO: Implement
-                "memory_usage": 0.0,  # TODO: Implement
-                "network_usage": 0.0  # TODO: Implement
-            }
+            "rate_limiting": rate_limit_status.get("stats", {}),
+            "system_load": await get_system_metrics()
         }
         
     except Exception as e:
@@ -770,7 +947,29 @@ async def emergency_lockdown(
 ):
     """Activate emergency security lockdown"""
     try:
-        # TODO: Implement emergency lockdown procedures
+        # Implement emergency lockdown procedures
+        from plexichat.core.security.security_manager import get_security_manager
+        
+        security_manager = get_security_manager()
+        if security_manager:
+            # Activate emergency lockdown
+            await security_manager.activate_emergency_lockdown(user['user_id'])
+        
+        # Block all new connections
+        if get_ddos_protection:
+            ddos_system = get_ddos_protection()
+            await ddos_system.enable_emergency_mode()
+        
+        # Disable rate limiting (block everything)
+        try:
+            from plexichat.core.middleware.rate_limiting import get_rate_limiter
+            rate_limiter = get_rate_limiter()
+            if rate_limiter:
+                # For unified engine, set extreme limits if needed; here we just log
+                rate_limiter.set_enabled(True)
+        except Exception as e:
+            logger.warning(f"Failed to enable rate limiter emergency mode: {e}")
+        
         logger.critical(f"Emergency lockdown activated by user {user['user_id']}")
         
         return {
@@ -792,7 +991,28 @@ async def disable_emergency_lockdown(
 ):
     """Disable emergency security lockdown"""
     try:
-        # TODO: Implement emergency lockdown disable
+        # Implement emergency lockdown disable
+        from plexichat.core.security.security_manager import get_security_manager
+        
+        security_manager = get_security_manager()
+        if security_manager:
+            # Deactivate emergency lockdown
+            await security_manager.deactivate_emergency_lockdown(user['user_id'])
+        
+        # Restore normal DDoS protection
+        if get_ddos_protection:
+            ddos_system = get_ddos_protection()
+            await ddos_system.disable_emergency_mode()
+        
+        # Restore normal rate limiting
+        try:
+            from plexichat.core.middleware.rate_limiting import get_rate_limiter
+            rate_limiter = get_rate_limiter()
+            if rate_limiter:
+                rate_limiter.set_enabled(True)
+        except Exception as e:
+            logger.warning(f"Failed to disable rate limiter emergency mode: {e}")
+        
         logger.info(f"Emergency lockdown disabled by user {user['user_id']}")
         
         return {

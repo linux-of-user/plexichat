@@ -9,9 +9,6 @@ def require_admin():
         return {"username": "mock_admin"}
     return admin_dependency
 
-class MockRateLimiter:
-    def get_stats(self): return {"total_requests": 0, "blocked_requests": 0}
-
 class MockConfigManager:
     def get_config(self): return {}
     def update_config(self, **kwargs): pass
@@ -20,8 +17,27 @@ class MockConfigManager:
     def update_user_tier_multiplier(self, tier, multiplier): pass
     def get_effective_limits_for_user(self, tier): return {}
 
-def get_rate_limiter(): return MockRateLimiter()
-def get_rate_limit_config_manager(): return MockConfigManager()
+from plexichat.core.middleware.rate_limiting import get_rate_limiter
+from plexichat.core.middleware.rate_limiting import get_rate_limiter as get_rl
+class RealRateLimitConfigManager:
+    def __init__(self):
+        self.limiter = get_rl()
+    def get_config(self):
+        return self.limiter.get_config_summary()
+    def update_config(self, **kwargs):
+        if 'enabled' in kwargs:
+            self.limiter.set_enabled(kwargs['enabled'])
+    def add_endpoint_override(self, path, limits):
+        self.limiter.add_endpoint_override(path, limits)
+    def remove_endpoint_override(self, path):
+        self.limiter.remove_endpoint_override(path)
+    def update_user_tier_multiplier(self, tier, multiplier):
+        self.limiter.update_user_tier_multiplier(tier, multiplier)
+    def get_effective_limits_for_user(self, tier):
+        return {}
+
+def get_rate_limit_config_manager():
+    return RealRateLimitConfigManager()
 
 router = APIRouter(prefix="/rate-limits", tags=["Rate Limiting"])
 

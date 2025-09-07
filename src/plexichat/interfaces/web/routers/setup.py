@@ -6,7 +6,7 @@ Provides a complete setup wizard accessible via web browser.
 """
 
 import sys, os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../..')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../.')))
 
 import json
 import logging
@@ -21,14 +21,14 @@ from plexichat.features.users.models import User, UserRole, UserStatus
 from plexichat.features.users.user import UserService, UserCreate
 from plexichat.features.users.models import UserModelService
 from plexichat.features.users.message import MessageUpdate
-    database_manager = None
-    User = None
-    UserRole = None
-    UserStatus = None
-    UserService = None
-    UserCreate = None
-    UserModelService = None
-    MessageUpdate = None
+database_manager = None
+User = None
+UserRole = None
+UserStatus = None
+UserService = None
+UserCreate = None
+UserModelService = None
+MessageUpdate = None
 
 from fastapi import APIRouter, Request, Form, HTTPException, Depends, Body, Query
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse

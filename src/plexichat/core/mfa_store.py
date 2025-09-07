@@ -1,21 +1,42 @@
-import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Set
+import hashlib
 
-logger = logging.getLogger(__name__)
+# Use unified logging system
+try:
+    from plexichat.core.logging import get_logger
+    logger = get_logger(__name__)
+except Exception:  # Fallback to std logging if unified logging not available
+    import logging
+    logger = logging.getLogger(__name__)
+
+# TOTP verification
+try:
+    import pyotp  # type: ignore
+except Exception:
+    pyotp = None  # Will degrade gracefully
 
 class MFAStore:
     """
     Dedicated store for Multi-Factor Authentication (MFA) related data.
     This centralizes MFA data storage, preventing dynamic attribute mutation
     on other core objects like UnifiedAuthManager.
+    Security improvements:
+    - Real TOTP secret storage and verification (if pyotp available)
+    - One-time backup codes stored hashed and consumed on use
     """
     def __init__(self):
         self.mfa_devices: Dict[str, List[str]] = {}  # user_id -> List[str] (encrypted device JSON)
         self.mfa_sessions: Dict[str, Any] = {}  # session_id -> MFASession (or dict representation)
-        self.mfa_backup_codes: Dict[str, List[str]] = {}  # user_id -> List[str] (encrypted)
+        # Store backup codes list (legacy support for WebUI encrypted codes)
+        self.mfa_backup_codes: Dict[str, List[str]] = {}  # user_id -> List[str]
+        # Additionally, maintain hashed codes for backend verification
+        self.mfa_backup_codes_hashed: Dict[str, Set[str]] = {}  # user_id -> Set[str]
         self.mfa_challenges: Dict[str, Any] = {}  # challenge_id -> dict(meta)
+        # Store TOTP secrets per user (consider encrypting at rest via config/key vault)
+        self.mfa_totp_secrets: Dict[str, str] = {}
         logger.info("MFAStore initialized")
 
+    # Device/session management
     def get_devices(self, user_id: str) -> List[str]:
         return self.mfa_devices.get(user_id, [])
 
@@ -32,11 +53,33 @@ class MFAStore:
         if session_id in self.mfa_sessions:
             del self.mfa_sessions[session_id]
 
+    # TOTP secret management
+    def set_totp_secret(self, user_id: str, secret: str) -> None:
+        self.mfa_totp_secrets[user_id] = secret
+        logger.info(f"Set TOTP secret for user {user_id}")
+
+    def get_totp_secret(self, user_id: str) -> Optional[str]:
+        return self.mfa_totp_secrets.get(user_id)
+
+    # Backup codes management
     def get_backup_codes(self, user_id: str) -> List[str]:
+        # Return legacy list for WebUI (encrypted strings)
         return self.mfa_backup_codes.get(user_id, [])
 
     def set_backup_codes(self, user_id: str, codes: List[str]):
+        # Store legacy encrypted list (for WebUI)
         self.mfa_backup_codes[user_id] = codes
+        logger.info(f"Stored {len(codes)} backup codes (encrypted list) for user {user_id}")
+
+    # Additional secure hashed backup codes for backend verification
+    def set_backup_codes_hashed(self, user_id: str, codes: List[str]):
+        # Store SHA256 hashes of normalized codes
+        hashed = {self._hash_code(c) for c in codes if c and isinstance(c, str)}
+        self.mfa_backup_codes_hashed[user_id] = hashed
+        logger.info(f"Configured {len(hashed)} backup codes (hashed) for user {user_id}")
+
+    def _hash_code(self, code: str) -> str:
+        return hashlib.sha256(code.strip().upper().encode('utf-8')).hexdigest()
 
     def get_challenge(self, challenge_id: str) -> Optional[Any]:
         return self.mfa_challenges.get(challenge_id)
@@ -49,13 +92,39 @@ class MFAStore:
             del self.mfa_challenges[challenge_id]
 
     async def verify_totp(self, user_id: str, code: str) -> bool:
-        """Verify TOTP code for user."""
-        # In a real implementation, this would verify against stored TOTP secrets
-        # For now, just return True for any 6-digit code
-        return len(code) == 6 and code.isdigit()
+        """Verify TOTP code for user using stored TOTP secret.
+        Falls back to rejecting if no secret or pyotp unavailable.
+        """
+        try:
+            if not code or not code.isdigit() or len(code) not in (6, 8):
+                return False
+            secret = self.get_totp_secret(user_id)
+            if not secret or not pyotp:
+                logger.warning(f"TOTP verification unavailable for user {user_id}")
+                return False
+            totp = pyotp.TOTP(secret)
+            ok = bool(totp.verify(code, valid_window=1))
+            if not ok:
+                logger.warning(f"Invalid TOTP for user {user_id}")
+            return ok
+        except Exception as e:
+            logger.error(f"Error verifying TOTP for user {user_id}: {e}")
+            return False
 
     async def verify_backup_code(self, user_id: str, code: str) -> bool:
-        """Verify backup code for user."""
-        # In a real implementation, this would check against stored backup codes
-        # For now, just return True for any non-empty code
-        return bool(code.strip())
+        """Verify backup code for user and consume it on success."""
+        try:
+            if not code:
+                return False
+            hashed = self._hash_code(code)
+            bucket = self.mfa_backup_codes_hashed.get(user_id)
+            if not bucket or hashed not in bucket:
+                logger.warning(f"Invalid backup code for user {user_id}")
+                return False
+            # Consume used code
+            bucket.remove(hashed)
+            logger.info(f"Backup code used for user {user_id}; {len(bucket)} remaining")
+            return True
+        except Exception as e:
+            logger.error(f"Error verifying backup code for user {user_id}: {e}")
+            return False

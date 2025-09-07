@@ -39,7 +39,7 @@ Features:
 - Performance alerting
 - Dashboard data aggregation
 - Historical trend analysis
-
+"""
 
 
 @dataclass
@@ -125,24 +125,24 @@ class PerformanceAggregator:
             self.system_metrics.append(metrics)
 
     def add_application_metrics(self, metrics: ApplicationMetrics):
-        Add application metrics."""
+        """Add application metrics."""
         with self.lock:
             self.app_metrics.append(metrics)
 
     def add_database_metrics(self, metrics: DatabaseMetrics):
-        """Add database metrics.
+        """Add database metrics."""
         with self.lock:
             self.db_metrics.append(metrics)
+
+    def add_ai_metrics(self, metrics: AIMetrics):
+        """Add AI metrics."""
+        with self.lock:
+            self.ai_metrics.append(metrics)
 
     def add_cluster_metrics(self, metrics: ClusterMetrics):
         """Add cluster metrics."""
         with self.lock:
             self.cluster_metrics.append(metrics)
-
-    def add_ai_metrics(self, metrics: AIMetrics):
-        Add AI metrics."""
-        with self.lock:
-            self.ai_metrics.append(metrics)
 
     def add_custom_metric(
         self, name: str, value: Any, timestamp: Optional[datetime] = None
@@ -197,7 +197,7 @@ class PerformanceAggregator:
                 "custom": {
                     name: [m for m in metrics if m["timestamp"] >= cutoff_time]
                     for name, metrics in self.custom_metrics.items()
-                }},
+                }
             }
 
 
@@ -262,7 +262,7 @@ class PerformanceService(BaseService):
         self.logger.info("Performance monitoring service stopped")
 
     def _initialize_collectors(self):
-        """Initialize performance data collectors.
+        """Initialize performance data collectors."""
         # Import collectors based on availability
         try:
             self.perf_optimizer = PerformanceOptimizer()
@@ -281,12 +281,10 @@ class PerformanceService(BaseService):
         while self.monitoring_active:
             try:
                 # Collect system metrics using the performance logger
-                system_metrics = SystemMetrics()
+                system_metrics = SystemMetrics(
                     timestamp=datetime.now(timezone.utc),
                     cpu_usage=self.performance_logger.system_monitor.get_cpu_usage(),
-                    memory_usage=self.performance_logger.system_monitor.get_memory_usage()[
-                        "percent"
-                    ],
+                    memory_usage=self.performance_logger.system_monitor.get_memory_usage()["percent"],
                     disk_usage=0.0,  # Will be calculated from disk I/O
                     network_io=self.performance_logger.system_monitor.get_network_usage(),
                     thread_count=self.performance_logger.system_monitor.get_thread_count(),
@@ -296,13 +294,13 @@ class PerformanceService(BaseService):
                 self.aggregator.add_system_metrics(system_metrics)
 
                 # Record individual metrics
-                self.performance_logger.record_metric()
+                self.performance_logger.record_metric(
                     "system_cpu_usage", system_metrics.cpu_usage, "%"
                 )
-                self.performance_logger.record_metric()
+                self.performance_logger.record_metric(
                     "system_memory_usage", system_metrics.memory_usage, "%"
                 )
-                self.performance_logger.record_metric()
+                self.performance_logger.record_metric(
                     "system_thread_count", system_metrics.thread_count, "count"
                 )
 
@@ -317,7 +315,7 @@ class PerformanceService(BaseService):
         while self.monitoring_active:
             try:
                 # Collect application metrics from various sources
-                app_metrics = ApplicationMetrics()
+                app_metrics = ApplicationMetrics(
                     timestamp=datetime.now(timezone.utc),
                     active_connections=self._get_active_connections(),
                     request_rate=self._get_request_rate(),
@@ -332,16 +330,16 @@ class PerformanceService(BaseService):
                 self.aggregator.add_application_metrics(app_metrics)
 
                 # Record individual metrics
-                self.performance_logger.record_metric()
+                self.performance_logger.record_metric(
                     "app_active_connections", app_metrics.active_connections, "count"
                 )
-                self.performance_logger.record_metric()
+                self.performance_logger.record_metric(
                     "app_request_rate", app_metrics.request_rate, "req/s"
                 )
-                self.performance_logger.record_metric()
+                self.performance_logger.record_metric(
                     "app_response_time_avg", app_metrics.response_time_avg, "ms"
                 )
-                self.performance_logger.record_metric()
+                self.performance_logger.record_metric(
                     "app_error_rate", app_metrics.error_rate, "%"
                 )
 
@@ -356,7 +354,7 @@ class PerformanceService(BaseService):
         while self.monitoring_active:
             try:
                 # Collect database metrics
-                db_metrics = DatabaseMetrics()
+                db_metrics = DatabaseMetrics(
                     timestamp=datetime.now(timezone.utc),
                     connection_pool_size=self._get_db_pool_size(),
                     active_connections=self._get_db_active_connections(),
@@ -370,22 +368,20 @@ class PerformanceService(BaseService):
                 self.aggregator.add_database_metrics(db_metrics)
 
                 # Record individual metrics
-                self.performance_logger.record_metric()
+                self.performance_logger.record_metric(
                     "db_connection_pool_size", db_metrics.connection_pool_size, "count"
                 )
-                self.performance_logger.record_metric()
+                self.performance_logger.record_metric(
                     "db_query_rate", db_metrics.query_rate, "queries/s"
                 )
-                self.performance_logger.record_metric()
+                self.performance_logger.record_metric(
                     "db_avg_query_time", db_metrics.avg_query_time, "ms"
                 )
-                self.performance_logger.record_metric()
+                self.performance_logger.record_metric(
                     "db_cache_hit_rate", db_metrics.cache_hit_rate, "%"
                 )
 
-                await asyncio.sleep()
-                    self.monitoring_interval * 2
-                )  # Less frequent DB monitoring
+                await asyncio.sleep(self.monitoring_interval * 2)  # Less frequent DB monitoring
 
             except Exception as e:
                 self.logger.error(f"Database monitoring error: {e}")
@@ -419,22 +415,20 @@ class PerformanceService(BaseService):
                 self.aggregator.add_cluster_metrics(cluster_metrics)
 
                 # Record individual metrics
-                self.performance_logger.record_metric()
+                self.performance_logger.record_metric(
                     "cluster_total_nodes", cluster_metrics.total_nodes, "count"
                 )
-                self.performance_logger.record_metric()
+                self.performance_logger.record_metric(
                     "cluster_active_nodes", cluster_metrics.active_nodes, "count"
                 )
-                self.performance_logger.record_metric()
+                self.performance_logger.record_metric(
                     "cluster_cpu_avg", cluster_metrics.cluster_cpu_avg, "%"
                 )
-                self.performance_logger.record_metric()
+                self.performance_logger.record_metric(
                     "cluster_memory_avg", cluster_metrics.cluster_memory_avg, "%"
                 )
 
-                await asyncio.sleep()
-                    self.monitoring_interval * 3
-                )  # Less frequent cluster monitoring
+                await asyncio.sleep(self.monitoring_interval * 3)  # Less frequent cluster monitoring
 
             except Exception as e:
                 self.logger.error(f"Cluster monitoring error: {e}")
@@ -453,9 +447,9 @@ class PerformanceService(BaseService):
                 ]  # Last 100 requests
 
                 if recent_metrics:
-                    ai_metrics = AIMetrics()
+                    ai_metrics = AIMetrics(
                         timestamp=datetime.now(timezone.utc),
-                        requests_per_minute=len()
+                        requests_per_minute=len(
                             [
                                 m
                                 for m in recent_metrics
@@ -463,14 +457,14 @@ class PerformanceService(BaseService):
                                 >= datetime.now(timezone.utc) - timedelta(minutes=1)
                             ]
                         ),
-                        avg_response_time=statistics.mean()
+                        avg_response_time=statistics.mean(
                             [m.latency_ms for m in recent_metrics]
                         ),
                         model_accuracy=95.0,  # Would be calculated from actual model performance
-                        token_usage=sum()
+                        token_usage=sum(
                             [getattr(m, "tokens_used", 0) for m in recent_metrics]
                         ),
-                        cost_per_request=statistics.mean()
+                        cost_per_request=statistics.mean(
                             [getattr(m, "cost", 0.0) for m in recent_metrics]
                         ),
                         error_rate=len([m for m in recent_metrics if not m.success])
@@ -482,24 +476,22 @@ class PerformanceService(BaseService):
                     self.aggregator.add_ai_metrics(ai_metrics)
 
                     # Record individual metrics
-                    self.performance_logger.record_metric()
+                    self.performance_logger.record_metric(
                         "ai_requests_per_minute",
                         ai_metrics.requests_per_minute,
                         "req/min",
                     )
-                    self.performance_logger.record_metric()
+                    self.performance_logger.record_metric(
                         "ai_avg_response_time", ai_metrics.avg_response_time, "ms"
                     )
-                    self.performance_logger.record_metric()
+                    self.performance_logger.record_metric(
                         "ai_error_rate", ai_metrics.error_rate, "%"
                     )
-                    self.performance_logger.record_metric()
+                    self.performance_logger.record_metric(
                         "ai_token_usage", ai_metrics.token_usage, "tokens"
                     )
 
-                await asyncio.sleep()
-                    self.monitoring_interval * 2
-                )  # Less frequent AI monitoring
+                await asyncio.sleep(self.monitoring_interval * 2)  # Less frequent AI monitoring
 
             except Exception as e:
                 self.logger.error(f"AI monitoring error: {e}")
@@ -517,24 +509,16 @@ class PerformanceService(BaseService):
                     system = latest_metrics["system"]
                     if system["cpu_usage"] > self.alert_thresholds.get("cpu_usage", 90):
                         await self._trigger_alert("high_cpu_usage", system["cpu_usage"])
-                    if system["memory_usage"] > self.alert_thresholds.get()
-                        "memory_usage", 85
-                    ):
-                        await self._trigger_alert()
-                            "high_memory_usage", system["memory_usage"]
-                        )
+                    if system["memory_usage"] > self.alert_thresholds.get("memory_usage", 85):
+                        await self._trigger_alert("high_memory_usage", system["memory_usage"])
 
                 # Check application alerts
                 if latest_metrics["application"]:
                     app = latest_metrics["application"]
                     if app["error_rate"] > self.alert_thresholds.get("error_rate", 5):
                         await self._trigger_alert("high_error_rate", app["error_rate"])
-                    if app["response_time_avg"] > self.alert_thresholds.get()
-                        "response_time", 1000
-                    ):
-                        await self._trigger_alert()
-                            "slow_response_time", app["response_time_avg"]
-                        )
+                    if app["response_time_avg"] > self.alert_thresholds.get("response_time", 1000):
+                        await self._trigger_alert("slow_response_time", app["response_time_avg"])
 
                 await asyncio.sleep(60)  # Check alerts every minute
 
@@ -548,13 +532,12 @@ class PerformanceService(BaseService):
             "type": alert_type,
             "value": value,
             "timestamp": datetime.now(timezone.utc).isoformat(),
-            "severity": ()
+            "severity": (
                 "high"
                 if value
-                > self.baselines.get()
+                > self.baselines.get(
                     alert_type.replace("high_", "").replace("slow_", ""), 0
                 )
-                * 1.5
                 else "medium"
             ),
         }
@@ -570,7 +553,7 @@ class PerformanceService(BaseService):
 
     # Helper methods for collecting metrics
     def _get_active_connections(self) -> int:
-        """Get active connection count.
+        """Get active connection count."""
         # This would integrate with actual connection tracking
         return 50  # Placeholder
 
@@ -580,24 +563,24 @@ class PerformanceService(BaseService):
         return 10.5  # Placeholder
 
     def _get_avg_response_time(self) -> float:
-        Get average response time."""
+        """Get average response time."""
         # This would integrate with actual response time tracking
         return 150.0  # Placeholder
 
     def _get_p95_response_time(self) -> float:
-        """Get 95th percentile response time.
+        """Get response time at 95th percentile."""
         return 300.0  # Placeholder
 
     def _get_p99_response_time(self) -> float:
-        """Get 99th percentile response time."""
+        """Get response time at 99th percentile."""
         return 500.0  # Placeholder
 
     def _get_error_rate(self) -> float:
-        Get current error rate."""
+        """Get current error rate."""
         return 2.5  # Placeholder
 
     def _get_success_rate(self) -> float:
-        """Get current success rate.
+        """Get current success rate."""
         return 97.5  # Placeholder
 
     def _get_throughput(self) -> float:
@@ -605,11 +588,11 @@ class PerformanceService(BaseService):
         return 1000.0  # Placeholder
 
     def _get_db_pool_size(self) -> int:
-        Get database connection pool size."""
+        """Get database connection pool size."""
         return 20  # Placeholder
 
     def _get_db_active_connections(self) -> int:
-        """Get active database connections.
+        """Get active database connections."""
         return 5  # Placeholder
 
     def _get_db_query_rate(self) -> float:
@@ -617,11 +600,11 @@ class PerformanceService(BaseService):
         return 25.0  # Placeholder
 
     def _get_db_avg_query_time(self) -> float:
-        Get average database query time."""
+        """Get average database query time."""
         return 50.0  # Placeholder
 
     def _get_db_slow_queries(self) -> int:
-        """Get slow query count.
+        """Get slow query count."""
         return 2  # Placeholder
 
     def _get_db_cache_hit_rate(self) -> float:
@@ -629,12 +612,12 @@ class PerformanceService(BaseService):
         return 85.0  # Placeholder
 
     def _get_db_deadlocks(self) -> int:
-        Get database deadlock count."""
+        """Get database deadlock count."""
         return 0  # Placeholder
 
     # Public API methods
     def get_current_metrics(self) -> Dict[str, Any]:
-        """Get current performance metrics.
+        """Get current performance metrics."""
         return self.aggregator.get_latest_metrics()
 
     def get_historical_metrics(self, hours: int = 1) -> Dict[str, Any]:
@@ -642,16 +625,16 @@ class PerformanceService(BaseService):
         return self.aggregator.get_historical_data(hours)
 
     def add_custom_metric(self, name: str, value: Any):
-        Add custom performance metric."""
+        """Add custom performance metric."""
         self.aggregator.add_custom_metric(name, value)
-        self.performance_logger.record_metric()
+        self.performance_logger.record_metric(
             f"custom_{name}",
             float(value) if isinstance(value, (int, float)) else 0.0,
             "custom",
         )
 
     def add_alert_callback(self, callback: Callable):
-        """Add alert callback function.
+        """Add alert callback function."""
         self.alert_callbacks.append(callback)
 
     def get_performance_summary(self) -> Dict[str, Any]:
@@ -665,7 +648,7 @@ class PerformanceService(BaseService):
             "trends": self._calculate_trends(historical),
             "alerts": self._get_active_alerts(),
             "health_score": self._calculate_health_score(latest),
-        }}
+        }
 
     def _calculate_trends(self, historical_data: Dict[str, Any]) -> Dict[str, str]:
         """Calculate performance trends."""
@@ -675,10 +658,10 @@ class PerformanceService(BaseService):
             "memory_usage": "increasing",
             "response_time": "improving",
             "error_rate": "stable",
-        }}
+        }
 
     def _get_active_alerts(self) -> List[Dict[str, Any]]:
-        """Get currently active alerts.
+        """Get currently active alerts."""
         # This would return actual active alerts
         return []
 
@@ -693,7 +676,7 @@ _performance_service = None
 
 
 async def get_performance_service() -> PerformanceService:
-    Get the global performance service instance."""
+    """Get the global performance service instance."""
     global _performance_service
     if _performance_service is None:
         _performance_service = PerformanceService()

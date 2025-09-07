@@ -9,11 +9,11 @@ import re
 import uuid
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Callable
+from typing import Any, Dict, List, Optional, Callable, cast
 from urllib.parse import urlparse
 
 from plexichat.shared.exceptions import SecurityError, ValidationError
-from plexichat.shared.models import Priority, Status
+# from plexichat.shared.models import Priority, Status  # Removed unused imports
 
 
 # Validation constants
@@ -163,7 +163,7 @@ def validate_list(value: Any, field_name: str, min_length: int = 0, max_length: 
     """Validate list value."""
     if not isinstance(value, list):
         raise ValidationError(f"{field_name} must be a list", details={"value": value})
-
+    value = cast(List[Any], value)
     length = len(value)
 
     if length < min_length:
@@ -184,6 +184,7 @@ def validate_dict(value: Any, field_name: str, required_keys: Optional[List[str]
     """Validate dictionary value."""
     if not isinstance(value, dict):
         raise ValidationError(f"{field_name} must be a dictionary", details={"value": value})
+    value = cast(Dict[str, Any], value)
 
     if required_keys:
         missing_keys = set(required_keys) - set(value.keys())

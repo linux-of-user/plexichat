@@ -13,7 +13,7 @@ import os
 # Use the unified authentication manager and Role enum
 from plexichat.core.authentication import get_auth_manager, Role
 
-from plexichat.core.middleware.unified_rate_limiter import (
+from plexichat.core.middleware.rate_limiting import (
     ComprehensiveRateLimiter,
     RateLimitAction,
     RateLimitRule,

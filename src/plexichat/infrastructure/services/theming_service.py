@@ -17,16 +17,19 @@ from pathlib import Path
 
 from plexichat.app.logger_config import logger
 
-"""
+
 import time
+
+"""
 Advanced theming service for PlexiChat.
 Provides comprehensive theming capabilities across all interfaces.
+"""
 
 
 @dataclass
 class ThemeColors:
     """Theme color configuration."""
-        primary: str = "#2c3e50"
+    primary: str = "#2c3e50"
     secondary: str = "#3498db"
     success: str = "#27ae60"
     warning: str = "#f39c12"
@@ -45,7 +48,7 @@ class ThemeColors:
 @dataclass
 class ThemeLayout:
     """Theme layout configuration."""
-        sidebar_width: str = "280px"
+    sidebar_width: str = "280px"
     header_height: str = "60px"
     border_radius: str = "8px"
     spacing_unit: str = "16px"
@@ -58,7 +61,7 @@ class ThemeLayout:
 @dataclass
 class ThemeEffects:
     """Theme visual effects configuration."""
-        animations_enabled: bool = True
+    animations_enabled: bool = True
     transitions_duration: str = "0.3s"
     box_shadow_enabled: bool = True
     gradient_enabled: bool = True
@@ -69,8 +72,8 @@ class ThemeEffects:
 
 @dataclass
 class Theme:
-    """Complete theme configuration.
-        id: str
+    """Complete theme configuration."""
+    id: str
     name: str
     description: str
     colors: ThemeColors
@@ -82,8 +85,8 @@ class Theme:
 
     def __post_init__(self):
         if not self.created_at:
-created_at = datetime().now().isoformat()
-updated_at = datetime().now().isoformat()
+            self.created_at = datetime.now().isoformat()
+        self.updated_at = datetime.now().isoformat()
 
 
 from plexichat.core.database.manager import database_manager
@@ -102,7 +105,7 @@ class ThemingService:
         themes = {}
 
         # Default Light Theme
-        themes["default_light"] = Theme()
+        themes["default_light"] = Theme(
             id="default_light",
             name="Default Light",
             description="Clean and modern light theme",
@@ -113,11 +116,11 @@ class ThemingService:
         )
 
         # Dark Theme
-        themes["dark"] = Theme()
+        themes["dark"] = Theme(
             id="dark",
             name="Dark Professional",
             description="Professional dark theme for extended use",
-            colors=ThemeColors()
+            colors=ThemeColors(
                 primary="#2c3e50",
                 secondary="#3498db",
                 success="#27ae60",
@@ -139,11 +142,11 @@ class ThemingService:
         )
 
         # Blue Theme
-        themes["blue"] = Theme()
+        themes["blue"] = Theme(
             id="blue",
             name="Ocean Blue",
             description="Calming blue-themed interface",
-            colors=ThemeColors()
+            colors=ThemeColors(
                 primary="#1e3a8a",
                 secondary="#3b82f6",
                 success="#10b981",
@@ -161,11 +164,11 @@ class ThemingService:
         )
 
         # Purple Theme
-        themes["purple"] = Theme()
+        themes["purple"] = Theme(
             id="purple",
             name="Royal Purple",
             description="Elegant purple theme with modern aesthetics",
-            colors=ThemeColors()
+            colors=ThemeColors(
                 primary="#7c3aed",
                 secondary="#a855f7",
                 success="#10b981",
@@ -183,11 +186,11 @@ class ThemingService:
         )
 
         # Green Theme
-        themes["green"] = Theme()
+        themes["green"] = Theme(
             id="green",
             name="Nature Green",
             description="Fresh green theme inspired by nature",
-            colors=ThemeColors()
+            colors=ThemeColors(
                 primary="#166534",
                 secondary="#22c55e",
                 success="#10b981",
@@ -205,11 +208,11 @@ class ThemingService:
         )
 
         # High Contrast Theme
-        themes["high_contrast"] = Theme()
+        themes["high_contrast"] = Theme(
             id="high_contrast",
             name="High Contrast",
             description="High contrast theme for accessibility",
-            colors=ThemeColors()
+            colors=ThemeColors(
                 primary="#000000",
                 secondary="#0066cc",
                 success="#008000",
@@ -222,11 +225,11 @@ class ThemingService:
                 text_secondary="#333333",
                 border="#000000"
             ),
-            layout=ThemeLayout()
+            layout=ThemeLayout(
                 border_radius="4px",
                 font_size_base="16px"
             ),
-            effects=ThemeEffects()
+            effects=ThemeEffects(
                 animations_enabled=False,
                 box_shadow_enabled=False,
                 gradient_enabled=False,
@@ -236,11 +239,11 @@ class ThemingService:
         )
 
         # Cyberpunk Theme
-        themes["cyberpunk"] = Theme()
+        themes["cyberpunk"] = Theme(
             id="cyberpunk",
             name="Cyberpunk",
             description="Futuristic cyberpunk-inspired theme",
-            colors=ThemeColors()
+            colors=ThemeColors(
                 primary="#ff00ff",
                 secondary="#00ffff",
                 success="#00ff00",
@@ -255,11 +258,11 @@ class ThemingService:
                 border="#30363d",
                 shadow="rgba(255,0,255,0.3)"
             ),
-            layout=ThemeLayout()
+            layout=ThemeLayout(
                 font_family="'Courier New', monospace",
                 border_radius="2px"
             ),
-            effects=ThemeEffects()
+            effects=ThemeEffects(
                 gradient_enabled=True,
                 blur_enabled=True
             ),

@@ -12,13 +12,12 @@ Comprehensive type definitions with advanced features:
 """
 
 from typing import (
-    Any, Dict, List, Optional, Union, Callable, TypeVar, Generic,
+    Any, Dict, List, Optional, Union, TypeVar,
     Protocol, runtime_checkable, TypedDict, Awaitable
 )
 from enum import Enum, IntEnum, IntFlag
-from dataclasses import dataclass, field
 from datetime import datetime
-from pathlib import Path
+# Removed unused imports: dataclass, field, Path
 
 # Basic type aliases
 JSON = Union[Dict[str, Any], List[Any], str, int, float, bool, None]

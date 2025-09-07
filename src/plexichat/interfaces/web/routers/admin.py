@@ -1192,8 +1192,57 @@ async def https_setup(req: HttpsWizardRequest = Body(...), admin: dict = Depends
             # Create placeholder files; real implementation should generate an actual certificate
             crt_file = ssl_dir / f"{domain}.crt"
             key_file = ssl_dir / f"{domain}.key"
-            crt_file.write_text(f"---BEGIN CERTIFICATE---\nSELF-SIGNED PLACEHOLDER FOR {domain}\n---END CERTIFICATE---\n")
-            key_file.write_text(f"---BEGIN PRIVATE KEY---\nSELF-SIGNED-KEY-PLACEHOLDER FOR {domain}\n---END PRIVATE KEY---\n")
+            # Generate actual self-signed certificate
+            from cryptography import x509
+            from cryptography.x509.oid import NameOID
+            from cryptography.hazmat.primitives import hashes, serialization
+            from cryptography.hazmat.primitives.asymmetric import rsa
+            import datetime
+            
+            # Generate private key
+            private_key = rsa.generate_private_key(
+                public_exponent=65537,
+                key_size=2048,
+            )
+            
+            # Create certificate
+            subject = issuer = x509.Name([
+                x509.NameAttribute(NameOID.COUNTRY_NAME, "US"),
+                x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, "CA"),
+                x509.NameAttribute(NameOID.LOCALITY_NAME, "San Francisco"),
+                x509.NameAttribute(NameOID.ORGANIZATION_NAME, "PlexiChat"),
+                x509.NameAttribute(NameOID.COMMON_NAME, domain),
+            ])
+            
+            cert = x509.CertificateBuilder().subject_name(
+                subject
+            ).issuer_name(
+                issuer
+            ).public_key(
+                private_key.public_key()
+            ).serial_number(
+                x509.random_serial_number()
+            ).not_valid_before(
+                datetime.datetime.utcnow()
+            ).not_valid_after(
+                datetime.datetime.utcnow() + datetime.timedelta(days=365)
+            ).add_extension(
+                x509.SubjectAlternativeName([
+                    x509.DNSName(domain),
+                ]),
+                critical=False,
+            ).sign(private_key, hashes.SHA256())
+            
+            # Write certificate and key
+            cert_pem = cert.public_bytes(serialization.Encoding.PEM).decode('utf-8')
+            key_pem = private_key.private_bytes(
+                encoding=serialization.Encoding.PEM,
+                format=serialization.PrivateFormat.PKCS8,
+                encryption_algorithm=serialization.NoEncryption()
+            ).decode('utf-8')
+            
+            crt_file.write_text(cert_pem)
+            key_file.write_text(key_pem)
             _append_audit_log("https_selfsigned", admin, {"domain": domain, "crt": str(crt_file), "key": str(key_file)})
             result["crt"] = str(crt_file)
             result["key"] = str(key_file)

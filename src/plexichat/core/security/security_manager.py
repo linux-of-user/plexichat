@@ -615,7 +615,7 @@ class SecuritySystem:
     def _detect_path_traversal(self, filename: str) -> bool:
         """
         Detect path traversal attempts in a filename by checking:
-        - Presence of ../ or ..\ or absolute path indicators
+        - Presence of ../ or ..\\ or absolute path indicators
         - Percent-encoded traversal sequences
         """
         if not filename:

@@ -424,6 +424,130 @@ async def lifespan(app: FastAPI):
             logger.warning(f"Microsecond optimizer failed to start: {e}")
         
 
+        # Supervisor task for auto-restarting modules on failure
+        try:
+            async def module_supervisor():
+                state = {
+                    'rate_limiter': {'failures': 0, 'last_fail': 0.0, 'backoff': 5.0},
+                    'websocket': {'failures': 0, 'last_fail': 0.0, 'backoff': 5.0},
+                    'plugins': {'failures': 0, 'last_fail': 0.0, 'backoff': 5.0},
+                }
+                import time
+
+                async def _should_retry(mod: str) -> bool:
+                    now = time.time()
+                    s = state[mod]
+                    return now - s['last_fail'] >= s['backoff']
+
+                def _register_failure(mod: str):
+                    s = state[mod]
+                    s['failures'] += 1
+                    s['last_fail'] = time.time()
+                    # Exponential backoff capped at 5 minutes
+                    s['backoff'] = min(s['backoff'] * 2.0, 300.0)
+
+                def _register_success(mod: str):
+                    s = state[mod]
+                    s['failures'] = 0
+                    s['backoff'] = 5.0
+
+                while True:
+                    try:
+                        metrics = {"modules": {}}
+                        # Rate limiter health
+                        try:
+                            from plexichat.core.middleware.rate_limiting import get_rate_limiter
+                            rl = get_rate_limiter()
+                            stats = rl.get_stats()
+                            # Basic sanity: keys exist
+                            if not isinstance(stats, dict):
+                                raise RuntimeError("invalid stats")
+                            _register_success('rate_limiter')
+                            metrics["modules"]["rate_limiter"] = {"status": "ok", **stats}
+                        except Exception as e:
+                            logger.warning(f"[SUPERVISOR] Rate limiter unhealthy: {e}")
+                            metrics["modules"]["rate_limiter"] = {"status": "error", "error": str(e)}
+                            if _should_retry('rate_limiter'):
+                                _register_failure('rate_limiter')
+                                try:
+                                    # Reconfigure with current config summary
+                                    cfg = rl.get_config_summary() if 'rl' in locals() else {}
+                                    from plexichat.core.middleware.rate_limiting import configure_rate_limiter, RateLimitConfig, RateLimitAlgorithm
+                                    rlc = RateLimitConfig()
+                                    # Map known fields
+                                    if 'enabled' in cfg: rlc.enabled = bool(cfg['enabled'])
+                                    if 'global_requests_per_minute' in cfg: rlc.global_requests_per_minute = int(cfg['global_requests_per_minute'])
+                                    if 'per_ip_requests_per_minute' in cfg: rlc.per_ip_requests_per_minute = int(cfg['per_ip_requests_per_minute'])
+                                    if 'per_user_requests_per_minute' in cfg: rlc.per_user_requests_per_minute = int(cfg['per_user_requests_per_minute'])
+                                    configure_rate_limiter(rlc)
+                                    logger.info("[SUPERVISOR] Rate limiter reconfigured")
+                                except Exception as re:
+                                    logger.warning(f"[SUPERVISOR] Rate limiter reconfigure failed: {re}")
+
+                        # WebSocket manager health
+                        try:
+                            from plexichat.core.websocket.websocket_manager import websocket_manager as ws_mgr
+                            hc_ok = True
+                            conn_count = None
+                            if hasattr(ws_mgr, 'get_connection_count'):
+                                conn_count = ws_mgr.get_connection_count()
+                            if not hc_ok:
+                                raise RuntimeError("websocket manager failed health check")
+                            _register_success('websocket')
+                            metrics["modules"]["websocket"] = {"status": "ok", "connections": conn_count}
+                        except Exception as e:
+                            logger.warning(f"[SUPERVISOR] WebSocket manager check failed: {e}")
+                            metrics["modules"]["websocket"] = {"status": "error", "error": str(e)}
+                            if _should_retry('websocket'):
+                                _register_failure('websocket')
+                                try:
+                                    # Attempt restart of optimized websocket service
+                                    from plexichat.core.services.optimized_websocket_service import stop_optimized_websocket_service, start_optimized_websocket_service
+                                    try:
+                                        await stop_optimized_websocket_service()
+                                    except Exception:
+                                        pass
+                                    await start_optimized_websocket_service()
+                                    logger.info("[SUPERVISOR] WebSocket service restarted")
+                                except Exception as re:
+                                    logger.warning(f"[SUPERVISOR] WebSocket restart failed: {re}")
+
+                        # Plugin manager health
+                        try:
+                            from plexichat.core.plugins.manager import unified_plugin_manager as pm
+                            loaded_count = None
+                            if hasattr(pm, 'get_loaded_plugins'):
+                                loaded = await pm.get_loaded_plugins()
+                                loaded_count = len(loaded) if hasattr(loaded, '__len__') else None
+                            _register_success('plugins')
+                            metrics["modules"]["plugins"] = {"status": "ok", "loaded_plugins": loaded_count}
+                        except Exception as e:
+                            logger.warning(f"[SUPERVISOR] Plugin manager check failed: {e}")
+                            metrics["modules"]["plugins"] = {"status": "error", "error": str(e)}
+                            if _should_retry('plugins'):
+                                _register_failure('plugins')
+                                try:
+                                    if hasattr(pm, 'shutdown'):
+                                        await pm.shutdown()
+                                    await pm.initialize()
+                                    logger.info("[SUPERVISOR] Plugin manager restarted")
+                                except Exception as re:
+                                    logger.warning(f"[SUPERVISOR] Plugin manager restart failed: {re}")
+
+                        # Log structured health metrics
+                        try:
+                            logger.info(f"[SUPERVISOR_METRICS] {metrics}")
+                        except Exception:
+                            pass
+
+                    except Exception as e:
+                        logger.warning(f"[SUPERVISOR] Supervisor loop error: {e}")
+                    await asyncio.sleep(30)
+            app.state.module_supervisor_task = asyncio.create_task(module_supervisor())
+            logger.info("[SUPERVISOR] Module supervisor started")
+        except Exception as e:
+            logger.warning(f"[SUPERVISOR] Could not start supervisor: {e}")
+
         # Initialize optimized WebSocket service
         try:
             from plexichat.core.services.optimized_websocket_service import start_optimized_websocket_service
@@ -720,7 +844,7 @@ except Exception as e:
 
     # Fallback to basic rate limiting using unified config
     try:
-        from plexichat.core.middleware.unified_rate_limiter import RateLimitMiddleware
+        from plexichat.core.middleware.rate_limiting import RateLimitMiddleware
 
         # Use unified config for rate limiting
         fallback_rate_config = {

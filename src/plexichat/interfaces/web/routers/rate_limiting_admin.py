@@ -9,15 +9,17 @@ from fastapi.templating import Jinja2Templates
 from typing import Dict, Any, Optional
 import logging
 
-# Import security decorators
-from plexichat.core.security.security_decorators import (
-    require_admin, rate_limit, audit_access
-)
-from plexichat.core.security import SecurityLevel
-from plexichat.core.config.rate_limiting_config import (
-    get_rate_limiting_config, AccountType, update_rate_limit_config,
-    DynamicRateLimitConfig, IPBlacklistConfig
-)
+try:
+    # Import security decorators
+    from plexichat.core.security.security_decorators import (
+        require_admin, rate_limit, audit_access
+    )
+    from plexichat.core.security import SecurityLevel
+    from plexichat.core.config.rate_limiting_config import (
+        get_rate_limiting_config, AccountType, update_rate_limit_config,
+        DynamicRateLimitConfig, IPBlacklistConfig
+    )
+except Exception as e:
     print(f"Import error in rate limiting admin: {e}")
     # Fallback decorators
     def require_admin(*args, **kwargs):

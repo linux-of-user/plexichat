@@ -565,8 +565,14 @@ class WAFMiddleware:
             "request_id": self._generate_request_id(request)
         }
         
-        # TODO: Integrate with unified logging system
-        print(f"WAF THREAT DETECTED: {json.dumps(log_data, indent=2)}")
+        # Integrate with unified logging system
+        try:
+            from plexichat.core.logging import get_logger
+            logger = get_logger('plexichat.security.waf')
+            logger.critical(f"WAF THREAT DETECTED: {json.dumps(log_data, indent=2)}")
+        except Exception:
+            # Fallback to print if logging system unavailable
+            print(f"WAF THREAT DETECTED: {json.dumps(log_data, indent=2)}")
     
     async def _log_request(self, request: Request, client_ip: str, status: str):
         """Log request (for audit purposes)"""
@@ -580,9 +586,16 @@ class WAFMiddleware:
             "request_id": self._generate_request_id(request)
         }
         
-        # TODO: Integrate with unified logging system
-        if self.config.log_all_requests:
-            print(f"WAF REQUEST: {json.dumps(log_data)}")
+        # Integrate with unified logging system
+        try:
+            from plexichat.core.logging import get_logger
+            logger = get_logger('plexichat.security.waf')
+            if self.config.log_all_requests:
+                logger.info(f"WAF REQUEST: {json.dumps(log_data)}")
+        except Exception:
+            # Fallback to print if logging system unavailable
+            if self.config.log_all_requests:
+                print(f"WAF REQUEST: {json.dumps(log_data)}")
     
     async def _log_error(self, message: str):
         """Log WAF errors"""
@@ -593,8 +606,14 @@ class WAFMiddleware:
             "message": message
         }
         
-        # TODO: Integrate with unified logging system
-        print(f"WAF ERROR: {json.dumps(error_data)}")
+        # Integrate with unified logging system
+        try:
+            from plexichat.core.logging import get_logger
+            logger = get_logger('plexichat.security.waf')
+            logger.error(f"WAF ERROR: {json.dumps(error_data)}")
+        except Exception:
+            # Fallback to print if logging system unavailable
+            print(f"WAF ERROR: {json.dumps(error_data)}")
 
 
 # Factory function for easy integration

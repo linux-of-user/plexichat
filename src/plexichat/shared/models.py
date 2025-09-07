@@ -234,18 +234,18 @@ class ApiResponse:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
-        result = {
+        result: Dict[str, Any] = {
             "success": self.success,
             "message": self.message,
             "timestamp": self.timestamp.isoformat()
         }
-
+    
         if self.data is not None:
             result["data"] = self.data
-
+    
         if self.error_code:
             result["error_code"] = self.error_code
-
+    
         return result
 
 

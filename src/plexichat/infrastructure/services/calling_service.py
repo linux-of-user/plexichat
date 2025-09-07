@@ -331,7 +331,10 @@ class WebRTCManager:
         # Add SRTP setup hint
         if "a=crypto:" not in sdp and "a=rtcp-mux" in sdp:
             # Modern browsers use DTLS-SRTP, but keep an informational crypto line
-            sdp += "\na=crypto:1 AES_CM_128_HMAC_SHA1_80 inline:KMPLACEHOLDER"
+            # Generate a proper SRTP crypto key for the SDP
+            import secrets
+            crypto_key = base64.b64encode(secrets.token_bytes(30)).decode('utf-8')
+            sdp += f"\na=crypto:1 AES_CM_128_HMAC_SHA1_80 inline:{crypto_key}"
         return sdp
 
     def create_simulated_ice_candidates(self, count: int = 2) -> List[Dict[str, Any]]:

@@ -38,6 +38,7 @@ from typing import Any, Dict, List, Optional, Set, Callable, Union, Tuple
 from weakref import WeakSet
 
 # Core imports with fallbacks
+from plexichat.core.security.security_manager import get_security_system
 try:
     from plexichat.core.config_manager import get_plugin_timeout, get_max_plugin_memory, get_plugin_sandbox_enabled
 except ImportError:
@@ -79,6 +80,13 @@ class SafeFileManager:
         
     def open(self, filename: str, mode: str = 'r', **kwargs):
         """Safe file open that checks permissions."""
+        # Optional shared sanitization using core security system
+        try:
+            if hasattr(self.security_manager, '_core_security') and self.security_manager._core_security:
+                sanitizer = self.security_manager._core_security.input_sanitizer
+                filename = sanitizer.sanitize_input(filename)
+        except Exception:
+            pass
         # Check if plugin has file access permission
         if 'w' in mode or 'a' in mode or '+' in mode:
             if not self.security_manager.has_permission(self.plugin_name, PermissionType.FILE_WRITE):
@@ -155,6 +163,18 @@ class NetworkBroker:
             timeout = aiohttp.ClientTimeout(total=30)  # 30 second timeout
             self._session = aiohttp.ClientSession(timeout=timeout)
         
+        # Optional shared sanitization using core security system
+        try:
+            if hasattr(self.security_manager, '_core_security') and self.security_manager._core_security:
+                sanitizer = self.security_manager._core_security.input_sanitizer
+                url = sanitizer.sanitize_input(url)
+                threats = self.security_manager._core_security.input_sanitizer.detect_threats(url)
+                if threats:
+                    self.logger.warning(f"Blocked suspicious URL by sanitizer", url=url, threats=threats)
+                    raise RuntimeError("Suspicious URL blocked")
+        except Exception:
+            pass
+
         self.logger.debug(f"Network GET request: {url}")
         
         # Log the network access
@@ -181,6 +201,18 @@ class NetworkBroker:
             timeout = aiohttp.ClientTimeout(total=30)
             self._session = aiohttp.ClientSession(timeout=timeout)
         
+        # Optional shared sanitization using core security system
+        try:
+            if hasattr(self.security_manager, '_core_security') and self.security_manager._core_security:
+                sanitizer = self.security_manager._core_security.input_sanitizer
+                url = sanitizer.sanitize_input(url)
+                threats = self.security_manager._core_security.input_sanitizer.detect_threats(url)
+                if threats:
+                    self.logger.warning(f"Blocked suspicious URL by sanitizer", url=url, threats=threats)
+                    raise RuntimeError("Suspicious URL blocked")
+        except Exception:
+            pass
+
         self.logger.debug(f"Network POST request: {url}")
         
         async with self._session.post(url, **kwargs) as response:
@@ -913,6 +945,11 @@ class PluginSecurityManager:
     
     def __init__(self):
         self.logger = get_logger("plugin.security")
+        # Reference the core security system for shared sanitization/policies
+        try:
+            self._core_security = get_security_system()
+        except Exception:
+            self._core_security = None
         self._permission_requests: Dict[str, List[PermissionRequest]] = defaultdict(list)
         self._approved_permissions: Dict[str, Set[PermissionType]] = defaultdict(set)
         self._audit_events: List[SecurityAuditEvent] = []

@@ -27,7 +27,7 @@ try:
     from plexichat.core.config_manager import get_config_manager, get_config
     from plexichat.core.security.security_manager import get_security_system
     from plexichat.core.security.security_context import SecurityContext, SecurityLevel
-    from plexichat.core.middleware.dynamic_rate_limiting_middleware import get_rate_limiter
+    from plexichat.core.middleware.rate_limiting import get_rate_limiter
 except ImportError:
     # Fallback for standalone execution
     database_manager = None
@@ -310,7 +310,8 @@ def rate_limited_with_global():
             # Use global rate limiter if available
             if get_rate_limiter:
                 rate_limiter = get_rate_limiter()
-                if not await rate_limiter.check_rate_limit(user_id, "client_settings"):
+                allowed, _info = await rate_limiter.check_user_action(user_id, "client_settings")
+                if not allowed:
                     self.metrics.rate_limited_requests += 1
                     await self.audit_logger.log_operation(
                         "rate_limit_exceeded", user_id,

@@ -149,6 +149,28 @@ class PluginIsolatedRotatingFileHandler(logging.handlers.RotatingFileHandler):
         ))
 
 
+class SanitizationFilter(logging.Filter):
+    """Sanitize log records: redact secrets/tokens and force ASCII-only output."""
+    def filter(self, record: logging.LogRecord) -> bool:
+        try:
+            msg = record.getMessage()
+            # Redact common sensitive patterns
+            import re
+            patterns = [
+                (r"(?i)(password\s*[:=]\s*)([^\s,}]+)", r"\1***"),
+                (r"(?i)(token\s*[:=]\s*)([^\s,}]+)", r"\1***"),
+                (r"(?i)(api[_-]?key\s*[:=]\s*)([^\s,}]+)", r"\1***"),
+                (r"(?i)(secret\s*[:=]\s*)([^\s,}]+)", r"\1***"),
+            ]
+            for pat, repl in patterns:
+                msg = re.sub(pat, repl, msg)
+            # Force ASCII-safe output
+            msg_ascii = msg.encode('ascii', errors='replace').decode('ascii')
+            record.msg = msg_ascii
+        except Exception:
+            pass
+        return True
+
 class UnifiedLogger:
     """Unified logger with all required features."""
 
@@ -182,6 +204,10 @@ class UnifiedLogger:
             '[%(asctime)s] [%(levelname)-8s] [%(name)s:%(lineno)d] %(funcName)s() - %(message)s'
         ))
         self.root_logger.addHandler(self.main_file_handler)
+
+        # Add sanitization filter (redaction + ASCII)
+        self.sanitize_filter = SanitizationFilter()
+        self.root_logger.addFilter(self.sanitize_filter)
 
         # Deduplication filter
         self.dedup_filter = DeduplicationFilter()

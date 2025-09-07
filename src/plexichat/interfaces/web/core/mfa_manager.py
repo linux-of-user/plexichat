@@ -125,6 +125,13 @@ class MFAManager:
                 is_active=False  # Will be activated after verification
             )
 
+            # Persist TOTP secret in MFA store for backend verification
+            try:
+                if hasattr(self.auth_manager, 'mfa_store') and hasattr(self.auth_manager.mfa_store, 'set_totp_secret'):
+                    self.auth_manager.mfa_store.set_totp_secret(user_id, secret_key)
+            except Exception:
+                logger.debug("Failed to persist TOTP secret in MFA store")
+
             # Store encrypted device in unified storage
             encrypted_device = self._encrypt_device_data(device)
             devices = self.auth_manager.mfa_store.get_devices(user_id)
@@ -251,6 +258,13 @@ class MFAManager:
         # Store encrypted backup codes in unified storage
         encrypted_codes = [self.cipher.encrypt(code.encode()).decode() for code in backup_codes]
         self.auth_manager.mfa_store.set_backup_codes(user_id, encrypted_codes)
+
+        # Also store hashed backup codes for backend verification/consumption
+        try:
+            if hasattr(self.auth_manager.mfa_store, 'set_backup_codes_hashed'):
+                self.auth_manager.mfa_store.set_backup_codes_hashed(user_id, backup_codes)
+        except Exception:
+            logger.debug("Failed to persist hashed backup codes")
 
         return backup_codes
 

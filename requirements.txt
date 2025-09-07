@@ -136,7 +136,7 @@ pyotp>=2.9.0
 qrcode[pil]>=7.4.2
 
 # Optional web view support
-webview>=4.4.1; platform_system != "Linux"
+pywebview>=4.4.1; platform_system != "Linux"
 
 # Windows-specific optional dependencies
 pywin32>=306; platform_system == "Windows"
@@ -206,7 +206,7 @@ jupyter>=1.0.0
 ipykernel>=6.27.1
 
 # Security auditing & scanning (development)
-talisman>=0.2.1           # security headers for local testing
+# talisman>=0.2.1           # security headers for local testing
 trivy>=0.16.0             # optional vulnerability scanner wrapper (for CI)
 
 # === OS-SPECIFIC FALLBACKS ===

@@ -39,25 +39,25 @@ from plexichat.core.security.security_manager import (
 # Try to import caching system
 try:
     from plexichat.core.performance.auth_cache import get_auth_cache
-    auth_cache_available = True
+    AUTH_CACHE_AVAILABLE = True
 except ImportError:
-    auth_cache_available = False
+    AUTH_CACHE_AVAILABLE = False
     get_auth_cache = None
 
 # Try to import performance tracking
 try:
     from plexichat.core.logging import get_performance_logger
-    performance_logger_available = True
+    PERFORMANCE_LOGGER_AVAILABLE = True
 except ImportError:
-    performance_logger_available = False
+    PERFORMANCE_LOGGER_AVAILABLE = False
     get_performance_logger = None
 
 # Try to import MFA store
 try:
     from plexichat.core.mfa_store import MFAStore
-    mfa_store_available = True
+    MFA_STORE_AVAILABLE = True
 except ImportError:
-    mfa_store_available = False
+    MFA_STORE_AVAILABLE = False
     MFAStore = None
 
 logger = get_logger(__name__)
@@ -233,7 +233,7 @@ class UnifiedAuthManager:
         self.db_manager = database_manager
 
         # Initialize caching if available
-        if auth_cache_available and callable(get_auth_cache):
+        if AUTH_CACHE_AVAILABLE and callable(get_auth_cache):
             try:
                 self.auth_cache = get_auth_cache()
             except Exception:
@@ -242,7 +242,7 @@ class UnifiedAuthManager:
             self.auth_cache = None
 
         # Initialize performance logger if available
-        if performance_logger_available and callable(get_performance_logger):
+        if PERFORMANCE_LOGGER_AVAILABLE and callable(get_performance_logger):
             try:
                 self.performance_logger = get_performance_logger()
             except Exception:
@@ -251,7 +251,7 @@ class UnifiedAuthManager:
             self.performance_logger = None
 
         # Initialize MFA store if available
-        if mfa_store_available and callable(MFAStore):
+        if MFA_STORE_AVAILABLE and callable(MFAStore):
             try:
                 self.mfa_store = MFAStore()
             except Exception:
@@ -730,12 +730,22 @@ class UnifiedAuthManager:
             logger.error(f"Error getting user roles: {e}", user_id=user_id)
             return {Role.GUEST}
 
-    def _expand_role_permissions(self, roles: Set[Role]) -> Set[str]:
+    def _expand_role_permissions(self, roles: Set[Union[Role, str]]) -> Set[str]:
         """Expand roles to their permissions."""
         permissions = set()
         
         for role in roles:
-            role_perms = self.role_permissions.get(role, set())
+            # Convert string to Role if needed
+            if isinstance(role, str):
+                try:
+                    role_obj = Role(role)
+                except (ValueError, AttributeError):
+                    # If Role enum doesn't exist or value is invalid, skip
+                    continue
+            else:
+                role_obj = role
+                
+            role_perms = self.role_permissions.get(role_obj, set())
             if "*" in role_perms:
                 # Super admin or system role - all permissions
                 return {"*"}
@@ -863,14 +873,14 @@ class UnifiedAuthManager:
 
                 if method == MFAMethod.TOTP:
                     # Verify TOTP code
-                    if self.mfa_store:
+                    if self.mfa_store and hasattr(self.mfa_store, 'verify_totp'):
                         verified = await self.mfa_store.verify_totp(challenge_result['user_id'], user_code)
                 elif method in [MFAMethod.EMAIL, MFAMethod.SMS]:
                     # Verify generated code
                     verified = hmac.compare_digest(stored_code or "", user_code)
                 elif method == MFAMethod.BACKUP_CODES:
                     # Verify backup code
-                    if self.mfa_store:
+                    if self.mfa_store and hasattr(self.mfa_store, 'verify_backup_code'):
                         verified = await self.mfa_store.verify_backup_code(challenge_result['user_id'], user_code)
 
                 if verified:
@@ -1315,14 +1325,14 @@ class UnifiedAuthManager:
 
                         if method == MFAMethod.TOTP:
                             # Verify TOTP code
-                            if self.mfa_store:
+                            if self.mfa_store and hasattr(self.mfa_store, 'verify_totp'):
                                 mfa_verified = await self.mfa_store.verify_totp(username, mfa_code)
                         elif method in [MFAMethod.EMAIL, MFAMethod.SMS]:
                             # Verify generated code
                             mfa_verified = hmac.compare_digest(stored_code or "", mfa_code)
                         elif method == MFAMethod.BACKUP_CODES:
                             # Verify backup code
-                            if self.mfa_store:
+                            if self.mfa_store and hasattr(self.mfa_store, 'verify_backup_code'):
                                 mfa_verified = await self.mfa_store.verify_backup_code(username, mfa_code)
 
                         if mfa_verified:
@@ -1996,7 +2006,9 @@ class UnifiedAuthManager:
             # Expand role permissions
             final_permissions = permissions or set()
             if roles:
-                role_permissions = self._expand_role_permissions(roles)
+                # Convert Role objects to strings for permissions
+                role_strings = {role.value if hasattr(role, 'value') else str(role) for role in roles}
+                role_permissions = self._expand_role_permissions(role_strings)
                 final_permissions.update(role_permissions)
             
             # Create user credentials
