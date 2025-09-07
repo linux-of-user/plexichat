@@ -273,7 +273,8 @@ class WAFMiddleware:
     def __init__(self, config: WAFConfig = None):
         self.config = config or WAFConfig()
         self.ip_checker = IPReputationChecker(self.config)
-        self.rate_limiter = RateLimiter(self.config)
+        from plexichat.core.middleware.rate_limiting import get_rate_limiter
+        self.rate_limiter_engine = get_rate_limiter()
         self.attack_patterns = AttackPatterns()
         
     async def __call__(self, request: Request, call_next):
@@ -285,8 +286,9 @@ class WAFMiddleware:
             # Extract client IP
             client_ip = self._get_client_ip(request)
             
-            # Check rate limiting
-            if self.rate_limiter.is_rate_limited(client_ip):
+            # Check rate limiting via unified engine
+            allowed, _info = await self.rate_limiter_engine.check_ip_action(client_ip, "/waf")
+            if not allowed:
                 return await self._handle_threat(
                     request,
                     ThreatDetection(

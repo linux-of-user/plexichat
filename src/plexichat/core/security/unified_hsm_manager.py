@@ -240,16 +240,7 @@ class UnifiedHSMInterface:
                     return False
             except Exception:
                 pass
-                self.audit_system.log_security_event(
-                    SecurityEventType.SECURITY_ALERT,
-                    f"Rate limit exceeded for HSM authentication by user {user_id}",
-                    SecuritySeverity.WARNING,
-                    ThreatLevel.LOW,
-                    user_id=user_id,
-                    resource=f"hsm://{self.device.device_id}",
-                    details={"security_action": "blocked"},
-                )
-                return False
+    
 
             # Enhanced authentication logic with multiple factors
             auth_success = await self._perform_enhanced_authentication(pin, admin_pin, user_id)
