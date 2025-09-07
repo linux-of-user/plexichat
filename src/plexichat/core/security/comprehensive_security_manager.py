@@ -296,25 +296,15 @@ class ComprehensiveSecurityManager:
             return False, {}
     
     async def _check_rate_limit(self, ip_address: str) -> bool:
-        """Check if IP address is within rate limits."""
+        """Check if IP address is within rate limits using unified engine."""
         try:
-            current_time = datetime.now(timezone.utc)
-            window_start = current_time - timedelta(minutes=1)
-            
-            # Clean old entries
-            if ip_address in self.failed_login_attempts:
-                self.failed_login_attempts[ip_address] = [
-                    attempt for attempt in self.failed_login_attempts[ip_address]
-                    if attempt > window_start
-                ]
-            
-            # Check current rate
-            recent_attempts = len(self.failed_login_attempts.get(ip_address, []))
-            return recent_attempts < self.config.rate_limit_requests_per_minute
-            
+            from plexichat.core.middleware.rate_limiting import get_rate_limiter
+            rl = get_rate_limiter()
+            allowed, _info = await rl.check_ip_action(ip_address, "/security/request")
+            return bool(allowed)
         except Exception as e:
             logger.error(f"Error checking rate limit: {e}")
-            return True  # Allow on error to avoid blocking legitimate users
+            return True  # fail open to avoid blocking legitimate users
     
     async def _handle_security_event(self, event: SecurityEvent) -> None:
         """Handle a security event."""

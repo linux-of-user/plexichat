@@ -15,7 +15,7 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, Set, Tuple, Union
 import jwt
 
-from plexichat.core.performance.cache_manager import QuantumSecureCache, CacheLevel, secure_cache
+from plexichat.core.cache import QuantumSecureCache, CacheLevel, secure_cache
 from plexichat.core.security.security_manager import get_security_system, SecurityContext, SecurityToken
 
 logger = logging.getLogger(__name__)

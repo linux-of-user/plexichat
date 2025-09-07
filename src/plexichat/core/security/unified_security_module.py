@@ -171,14 +171,14 @@ class UnifiedSecurityModule:
         """Initialize all security subsystems."""
         try:
             # Import and initialize subsystems
-            from .rate_limiting import RateLimitingSystem
+            # Unified rate limiting engine is used across the system now
             from .content_validation import ContentValidationSystem
             from .auth_integration import AuthSecurityIntegration
             from .plugin_hooks import SecurityPluginManager
             from .db_security import DatabaseSecurityLayer
             from .monitoring import SecurityMonitoringSystem
 
-            self.rate_limiter = RateLimitingSystem(self.config['rate_limiting'])
+            self.rate_limiter = None  # unified engine used via get_rate_limiter()
             self.content_validator = ContentValidationSystem(self.config['content_validation'])
             self.auth_integrator = AuthSecurityIntegration(self.config['auth_security'])
             self.plugin_manager = SecurityPluginManager(self.config['plugins'])
@@ -218,18 +218,28 @@ class UnifiedSecurityModule:
         try:
             self.metrics['total_requests'] += 1
 
-            # Rate limiting check
-            if self.rate_limiter:
-                rate_limit_result = await self.rate_limiter.check_rate_limits(context)
-                if not rate_limit_result['allowed']:
+            # Rate limiting check via unified engine
+            try:
+                from plexichat.core.middleware.rate_limiting import get_rate_limiter
+                rl = get_rate_limiter()
+                endpoint = getattr(context, 'route', '/') or '/'
+                user_id = getattr(context, 'user_id', None)
+                if user_id:
+                    allowed, _info = await rl.check_user_action(str(user_id), endpoint)
+                else:
+                    ip_addr = getattr(context, 'client_ip', None) or getattr(context, 'ip_address', None) or 'unknown'
+                    allowed, _info = await rl.check_ip_action(str(ip_addr), endpoint)
+                if not allowed:
                     self.metrics['rate_limit_hits'] += 1
                     event = SecurityEvent(
                         event_type=SecurityEventType.RATE_LIMIT_EXCEEDED,
                         threat_level=ThreatLevel.MEDIUM,
                         context=context,
-                        details={'limit_type': rate_limit_result['limit_type']}
+                        details={'limit_type': 'unified'}
                     )
-                    return False, rate_limit_result['message'], event
+                    return False, "Rate limit exceeded", event
+            except Exception:
+                pass
 
             # Content validation
             if self.content_validator and hasattr(request_data, '__dict__'):

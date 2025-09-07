@@ -95,7 +95,7 @@ try:
 except ImportError:
     performance_monitor = None
 try:
-    from plexichat.core.performance.cache_manager import cache_manager
+    from plexichat.core.cache import secure_cache as cache_manager
 except ImportError:
     cache_manager = None
 try:

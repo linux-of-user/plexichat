@@ -223,7 +223,23 @@ class UnifiedHSMInterface:
                 return False
 
             # Rate limiting check
-            if not await self._check_rate_limit(user_id):
+            try:
+                from plexichat.core.middleware.rate_limiting import get_rate_limiter
+                rl = get_rate_limiter()
+                allowed, _info = await rl.check_user_action(str(user_id), "/security/hsm/authenticate")
+                if not allowed:
+                    self.audit_system.log_security_event(
+                        SecurityEventType.SECURITY_ALERT,
+                        f"Rate limit exceeded for HSM authentication by user {user_id}",
+                        SecuritySeverity.WARNING,
+                        ThreatLevel.LOW,
+                        user_id=user_id,
+                        resource=f"hsm://{self.device.device_id}",
+                        details={"security_action": "blocked"},
+                    )
+                    return False
+            except Exception:
+                pass
                 self.audit_system.log_security_event(
                     SecurityEventType.SECURITY_ALERT,
                     f"Rate limit exceeded for HSM authentication by user {user_id}",
