@@ -21,6 +21,9 @@ class Settings:
 
 settings = Settings()
 
+from plexichat.core.middleware.rate_limiting import get_rate_limiter
+from plexichat.core.middleware.rate_limiting.engine import RateLimitAlgorithm  # type: ignore
+
 class RateLimiter:
     """
     Advanced rate limiting with multiple algorithms and persistence.
