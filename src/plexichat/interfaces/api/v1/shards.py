@@ -23,7 +23,7 @@ import hashlib
 import secrets
 
 from plexichat.core.auth.fastapi_adapter import get_current_user, require_admin
-from plexichat.core.security.rate_limiting import RateLimitingSystem
+from plexichat.core.middleware.rate_limiting import get_rate_limiter
 from plexichat.core.logging.pii_redaction import redact_pii
 from plexichat.core.security.unified_audit_system import (
     get_unified_audit_system,
