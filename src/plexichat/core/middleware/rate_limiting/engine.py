@@ -399,6 +399,35 @@ class UnifiedRateLimiter:
             info['retry_after'] = 60
         return allowed, info
 
+    async def check_ip_action(self, ip_address: str, endpoint: str = "/") -> Tuple[bool, Dict[str, Any]]:
+        """Check rate limiting for a given IP and endpoint without a Request object."""
+        # Keys consistent with internal strategies
+        ip_key = f"ip:{ip_address}"
+        route_key = f"route:{endpoint}"
+        # Mock request-like for limits resolution
+        req_mock = type('R', (), {
+            'url': type('U', (), {'path': endpoint})(),
+            'headers': {},
+            'method': 'GET',
+            'client': type('C', (), {'host': ip_address})(),
+            'state': type('S', (), {'user_id': None, 'user_tier': 'guest'})()
+        })
+        ip_limit, window = self._limits(RateLimitStrategy.PER_IP, req_mock)
+        route_limit, _ = self._limits(RateLimitStrategy.PER_ROUTE, req_mock)
+        ok_ip = await self._apply(ip_key, self.config.default_algorithm, ip_limit, window)
+        ok_route = await self._apply(route_key, self.config.default_algorithm, route_limit, window)
+        allowed = ok_ip and ok_route
+        info = {
+            'limit_ip': ip_limit,
+            'limit_route': route_limit,
+            'window_seconds': window,
+            'remaining_ip': max(0, ip_limit - self._current_count(ip_key, self.config.default_algorithm)),
+            'remaining_route': max(0, route_limit - self._current_count(route_key, self.config.default_algorithm)),
+        }
+        if not allowed:
+            info['retry_after'] = 60
+        return allowed, info
+
 class RateLimitMiddleware(BaseHTTPMiddleware):
     def __init__(self, app, config: Optional[RateLimitConfig] = None):
         super().__init__(app)
