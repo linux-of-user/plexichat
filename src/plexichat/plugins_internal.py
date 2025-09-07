@@ -5,7 +5,7 @@ PlexiChat Plugin Internal API - Auto-Generated
 This module provides the secure interface between plugins and PlexiChat core services.
 It acts as a sandboxed bridge that exposes only safe, whitelisted functionality.
 
-Generated on: 2025-09-03T12:43:19.821014
+Generated on: 2025-09-07T16:16:13.521633
 SDK Version: 1.0.0
 PlexiChat Version: 1.0.0
 
@@ -407,7 +407,7 @@ def get_sdk_info() -> Dict[str, str]:
     return {
         "sdk_version": SDK_VERSION,
         "plexichat_version": PLEXICHAT_VERSION,
-        "generation_time": "2025-09-03T12:43:19.821014",
+        "generation_time": "2025-09-07T16:16:13.521633",
         "module_path": __file__
     }
 
@@ -443,4 +443,4 @@ __all__ = [
     "PLEXICHAT_VERSION",
 ]
 
-# Auto-generated on: 2025-09-03T12:43:19.821014
+# Auto-generated on: 2025-09-07T16:16:13.521633
