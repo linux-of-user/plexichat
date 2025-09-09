@@ -1,19 +1,14 @@
 """Core files module with fallback implementations."""
-__version__ = "0.0.0"
+try:
+    from plexichat.core.utils.fallbacks import (
+        FileManager, FileMetadata, upload_file, get_file_metadata,
+        get_fallback_instance, get_module_version
+    )
+except ImportError:
+    # Retain old fallbacks
+    pass
+
+__version__ = get_module_version()
 __all__ = ["FileManager", "FileMetadata", "file_manager", "upload_file", "get_file_metadata"]
 
-class FileManager:
-    def __init__(self):
-        pass
-
-class FileMetadata:
-    def __init__(self, **kwargs):
-        self.__dict__.update(kwargs)
-
-file_manager = None
-
-def upload_file(*args, **kwargs):
-    pass
-
-def get_file_metadata(*args, **kwargs):
-    pass
+file_manager = get_fallback_instance('FileManager')

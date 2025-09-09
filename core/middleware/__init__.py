@@ -1,8 +1,9 @@
 """Core middleware module with fallback implementations."""
-__version__ = "0.0.0"
-__all__ = []
+try:
+    from plexichat.core.utils.fallbacks import MiddlewareBase, get_module_version
+except ImportError:
+    # Retain old fallbacks
+    pass
 
-# Fallback for middleware components
-class MiddlewareBase:
-    def __init__(self):
-        pass
+__version__ = get_module_version()
+__all__ = []
