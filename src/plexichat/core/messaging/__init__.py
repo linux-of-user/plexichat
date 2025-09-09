@@ -7,83 +7,99 @@ Consolidated messaging functionality with fallback implementations.
 import warnings
 import logging
 from typing import Any, Dict, List, Optional
+import asyncio
 
-# Use fallback implementations to avoid import issues
+# Use shared fallback implementations
 logger = logging.getLogger(__name__)
-logger.warning("Using fallback messaging implementations")
 
-# Fallback implementations
-class UnifiedMessagingManager:  # type: ignore
-    def __init__(self):
-        pass
+try:
+    from plexichat.core.utils.fallbacks import (
+        UnifiedMessagingManager, MessageEncryption, MessageValidator,
+        MessageRouter, ChannelManager, MessageMetadata, MessageDelivery,
+        ChannelSettings, MessageType, ChannelType, MessageStatus, EncryptionLevel,
+        send_message, get_message, get_channel_messages, create_channel,
+        get_messaging_manager, get_fallback_instance
+    )
+    USE_SHARED_FALLBACKS = True
+    logger.info("Using shared fallback implementations for messaging")
+except ImportError:
+    # Fallback to local definitions if shared fallbacks unavailable
+    USE_SHARED_FALLBACKS = False
+    logger.warning("Shared fallbacks unavailable, using local implementations")
 
-class MessageEncryption:  # type: ignore
-    def __init__(self):
-        pass
+if USE_SHARED_FALLBACKS:
+    unified_messaging_manager = get_fallback_instance('UnifiedMessagingManager')
+else:
+    # Local fallbacks (preserved for compatibility)
+    class UnifiedMessagingManager:  # type: ignore
+        def __init__(self):
+            pass
 
-class MessageValidator:  # type: ignore
-    def __init__(self):
-        pass
+    class MessageEncryption:  # type: ignore
+        def __init__(self):
+            pass
 
-class MessageRouter:  # type: ignore
-    def __init__(self):
-        pass
+    class MessageValidator:  # type: ignore
+        def __init__(self):
+            pass
 
-class ChannelManager:  # type: ignore
-    def __init__(self):
-        pass
+    class MessageRouter:  # type: ignore
+        def __init__(self):
+            pass
 
-class MessageMetadata:  # type: ignore
-    def __init__(self, **kwargs):
-        self.__dict__.update(kwargs)
+    class ChannelManager:  # type: ignore
+        def __init__(self):
+            pass
 
-class MessageDelivery:  # type: ignore
-    def __init__(self, **kwargs):
-        self.__dict__.update(kwargs)
+    class MessageMetadata:  # type: ignore
+        def __init__(self, **kwargs):
+            self.__dict__.update(kwargs)
 
-class ChannelSettings:  # type: ignore
-    def __init__(self, **kwargs):
-        self.__dict__.update(kwargs)
+    class MessageDelivery:  # type: ignore
+        def __init__(self, **kwargs):
+            self.__dict__.update(kwargs)
 
-class MessageType:  # type: ignore
-    TEXT = "text"
-    IMAGE = "image"
-    FILE = "file"
+    class ChannelSettings:  # type: ignore
+        def __init__(self, **kwargs):
+            self.__dict__.update(kwargs)
 
-class ChannelType:  # type: ignore
-    PUBLIC = "public"
-    PRIVATE = "private"
-    GROUP = "group"
+    class MessageType:  # type: ignore
+        TEXT = "text"
+        IMAGE = "image"
+        FILE = "file"
 
-class MessageStatus:  # type: ignore
-    PENDING = "pending"
-    SENT = "sent"
-    DELIVERED = "delivered"
-    READ = "read"
+    class ChannelType:  # type: ignore
+        PUBLIC = "public"
+        PRIVATE = "private"
+        GROUP = "group"
 
-class EncryptionLevel:  # type: ignore
-    NONE = "none"
-    BASIC = "basic"
-    ADVANCED = "advanced"
+    class MessageStatus:  # type: ignore
+        PENDING = "pending"
+        SENT = "sent"
+        DELIVERED = "delivered"
+        READ = "read"
 
-unified_messaging_manager = UnifiedMessagingManager()
+    class EncryptionLevel:  # type: ignore
+        NONE = "none"
+        BASIC = "basic"
+        ADVANCED = "advanced"
 
-# Main functions
-async def send_message(*args, **kwargs):  # type: ignore
-    return None
+    unified_messaging_manager = UnifiedMessagingManager()
 
-async def get_message(*args, **kwargs):  # type: ignore
-    return None
+    async def send_message(*args, **kwargs):  # type: ignore
+        return None
 
-async def get_channel_messages(*args, **kwargs):  # type: ignore
-    return []
+    async def get_message(*args, **kwargs):  # type: ignore
+        return None
 
-async def create_channel(*args, **kwargs):  # type: ignore
-    return None
+    async def get_channel_messages(*args, **kwargs):  # type: ignore
+        return []
 
-def get_messaging_manager():  # type: ignore
-    return unified_messaging_manager
+    async def create_channel(*args, **kwargs):  # type: ignore
+        return None
 
+    def get_messaging_manager():  # type: ignore
+        return unified_messaging_manager
 # Backward compatibility aliases
 messaging_manager = unified_messaging_manager
 MessagingManager = UnifiedMessagingManager
@@ -140,6 +156,6 @@ __all__ = [
     "process_message_now",
 ]
 
-from plexichat.core.config_manager import get_config
+from plexichat.core.utils.fallbacks import get_module_version
 
-__version__ = get_config("system.version", "0.0.0")
+__version__ = get_module_version()
