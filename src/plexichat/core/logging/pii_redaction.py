@@ -1,7 +1,5 @@
-"""
-Thin wrapper for PII redaction - all functionality now in unified_logger.py
-"""
+"""PII Redaction utilities - re-export from unified_logger."""
 
-from .unified_logger import is_sensitive_field, redact_pii, sanitize_log_message
+from .unified_logger import redact_pii, DEFAULT_PII_PATTERNS
 
-__all__ = ["redact_pii", "sanitize_log_message", "is_sensitive_field"]
+__all__ = ['redact_pii', 'DEFAULT_PII_PATTERNS']
