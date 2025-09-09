@@ -6,28 +6,38 @@ Service layer providing clean interfaces between API endpoints and core systems.
 
 from plexichat.core.services.core_services import DatabaseService, get_database_service
 
-# Use fallback implementations to avoid import issues
 from typing import Dict, Any, Optional
 import logging
 
 logger = logging.getLogger(__name__)
-logger.warning("Using fallback service implementations")
 
-# Fallback service management
-class ServiceManager:  # type: ignore
-    def __init__(self):
-        self._services = {}
+try:
+    from plexichat.core.utils.fallbacks import ServiceManager, get_fallback_instance
+    USE_SHARED_FALLBACKS = True
+    logger.info("Using shared fallback implementations for services")
+except ImportError:
+    # Fallback to local definitions if shared fallbacks unavailable
+    USE_SHARED_FALLBACKS = False
+    logger.warning("Shared fallbacks unavailable, using local implementations")
 
-    def register(self, name: str, service: Any):
-        self._services[name] = service
+if USE_SHARED_FALLBACKS:
+    _service_manager = get_fallback_instance('ServiceManager')
+else:
+    # Local fallbacks (preserved for compatibility)
+    class ServiceManager:  # type: ignore
+        def __init__(self):
+            self._services = {}
 
-    def get(self, name: str):
-        return self._services.get(name)
+        def register(self, name: str, service: Any):
+            self._services[name] = service
 
-    def list(self):
-        return list(self._services.keys())
+        def get(self, name: str):
+            return self._services.get(name)
 
-_service_manager = ServiceManager()
+        def list(self):
+            return list(self._services.keys())
+
+    _service_manager = ServiceManager()
 
 def get_service_manager():  # type: ignore
     return _service_manager
@@ -55,3 +65,6 @@ __all__ = [
     "ServiceLoader",
     "load_services",
 ]
+
+from plexichat.core.utils.fallbacks import get_module_version
+__version__ = get_module_version()
