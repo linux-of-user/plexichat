@@ -10,6 +10,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Callable, Dict, List, Optional, Type
 
 from plexichat.core.errors.circuit_breaker import CircuitBreaker
+from .base import ErrorCategory, ErrorSeverity, PlexiChatException, handle_exception, create_error_response, log_error
 
 logger = logging.getLogger(__name__)
 
@@ -50,8 +51,8 @@ class ErrorContext:
     error_id: str = ""
     timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     exception: Optional[Exception] = None
-    severity: str = "MEDIUM"
-    category: str = "UNKNOWN"
+    severity: ErrorSeverity = ErrorSeverity.MEDIUM
+    category: ErrorCategory = ErrorCategory.SYSTEM
     component: str = "unknown"
     user_id: str = "anonymous"
     request_id: str = "no-request"
@@ -113,13 +114,13 @@ class ErrorManager:
         self,
         exception: Exception,
         context: Optional[Dict[str, Any]] = None,
-        severity: str = "MEDIUM",
-        category: str = "UNKNOWN",
+        severity: ErrorSeverity = ErrorSeverity.MEDIUM,
+        category: ErrorCategory = ErrorCategory.SYSTEM,
         component: Optional[str] = None,
         user_id: Optional[str] = None,
         request_id: Optional[str] = None,
         attempt_recovery: bool = True,
-    ) -> "ErrorContext":
+    ) -> ErrorContext:
         """Handle an error with comprehensive processing."""
 
         error_id = str(uuid.uuid4())
@@ -153,7 +154,14 @@ class ErrorManager:
             self._check_alert_thresholds(error_context)
             self._detect_patterns(error_context)
 
-            logger.error(f"Error handled: {error_id} - {exception}")
+            # Log using base log_error
+            log_error(
+                PlexiChatErrorCode.SYSTEM_INTERNAL_ERROR,
+                details={"error_id": error_id, "exception": str(exception)},
+                context=context or {},
+                correlation_id=request_id,
+                exception=exception,
+            )
 
         except Exception as e:
             logger.error(f"Failed to handle error: {e}")
@@ -204,18 +212,18 @@ class ErrorManager:
             except Exception as e:
                 logger.error(f"Error in cleanup: {e}")
 
-    def _update_metrics(self, error_context: "ErrorContext"):
+    def _update_metrics(self, error_context: ErrorContext):
         """Update error metrics."""
         self.error_metrics.total_errors += 1
-        self.error_metrics.errors_by_severity[error_context.severity] += 1
-        self.error_metrics.errors_by_category[error_context.category] += 1
+        self.error_metrics.errors_by_severity[error_context.severity.value] += 1
+        self.error_metrics.errors_by_category[error_context.category.value] += 1
         if error_context.exception:
             self.error_metrics.errors_by_type[
                 type(error_context.exception).__name__
             ] += 1
         self.error_metrics.last_updated = datetime.now(timezone.utc)
 
-    def _execute_error_callbacks(self, error_context: "ErrorContext"):
+    def _execute_error_callbacks(self, error_context: ErrorContext):
         """Execute registered error callbacks."""
         for callback in self.error_callbacks:
             try:
@@ -223,7 +231,7 @@ class ErrorManager:
             except Exception as e:
                 logger.error(f"Error in callback execution: {e}")
 
-    def _attempt_recovery(self, error_context: "ErrorContext") -> bool:
+    def _attempt_recovery(self, error_context: ErrorContext) -> bool:
         """Attempt error recovery."""
         if not error_context.exception:
             return False
@@ -237,11 +245,11 @@ class ErrorManager:
                 logger.error(f"Recovery strategy failed: {e}")
         return False
 
-    def _check_alert_thresholds(self, error_context: "ErrorContext"):
+    def _check_alert_thresholds(self, error_context: ErrorContext):
         """Check if alert thresholds are exceeded."""
         pass
 
-    def _detect_patterns(self, error_context: "ErrorContext"):
+    def _detect_patterns(self, error_context: ErrorContext):
         """Detect error patterns."""
         pass
 
@@ -265,7 +273,7 @@ class ErrorManager:
         """Get current error metrics."""
         return self.error_metrics
 
-    def get_error_history(self, limit: int = 100) -> List["ErrorContext"]:
+    def get_error_history(self, limit: int = 100) -> List[ErrorContext]:
         """Get recent error history."""
         with self.lock:
             return list(self.error_history)[-limit:]
@@ -291,20 +299,32 @@ def get_error_manager() -> ErrorManager:
     return _error_manager
 
 
-def handle_exception(exception: Exception, **kwargs) -> "ErrorContext":
+def handle_exception(exception: Exception, **kwargs) -> Dict[str, Any]:
     """Handle an exception using the global error manager."""
-    return get_error_manager().handle_error(exception, **kwargs)
-
-
-def create_error_response(error_context: "ErrorContext") -> Dict[str, Any]:
-    """Create a standardized error response."""
+    error_context = get_error_manager().handle_error(exception, **kwargs)
+    # Convert ErrorContext to dict for compatibility with base handle_exception return type
     return {
         "error_id": error_context.error_id,
-        "message": (
-            str(error_context.exception) if error_context.exception else "Unknown error"
-        ),
-        "severity": error_context.severity,
-        "category": error_context.category,
-        "component": error_context.component,
         "timestamp": error_context.timestamp.isoformat(),
+        "severity": error_context.severity.value,
+        "category": error_context.category.value,
+        "component": error_context.component,
+        "user_id": error_context.user_id,
+        "request_id": error_context.request_id,
+        "context": error_context.context,
+        "stack_trace": error_context.stack_trace,
     }
+
+
+def create_error_response(error_context: ErrorContext) -> Dict[str, Any]:
+    """Create a standardized error response using base function."""
+    # Use base create_error_response with appropriate error code
+    error_code = PlexiChatErrorCode.SYSTEM_INTERNAL_ERROR
+    if isinstance(error_context.exception, PlexiChatException):
+        error_code = error_context.exception.error_code
+    return create_error_response(
+        error_code=error_code,
+        details={"error_id": error_context.error_id},
+        context=error_context.context,
+        correlation_id=error_context.request_id,
+    )
