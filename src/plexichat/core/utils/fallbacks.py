@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """Shared fallback implementations for PlexiChat core modules."""
 __all__ = [
     # Managers

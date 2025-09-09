@@ -1,16 +1,31 @@
 """Core events module with fallback implementations."""
+
 try:
     from plexichat.core.utils.fallbacks import (
-        EventManager, Event, EventHandler, EventPriority,
-        emit_event, register_event_handler, get_fallback_instance,
-        get_module_version
+        Event,
+        EventHandler,
+        EventManager,
+        EventPriority,
+        emit_event,
+        get_fallback_instance,
+        get_module_version,
+        register_event_handler,
     )
 except ImportError:
     # Retain old fallbacks
     pass
 
 __version__ = get_module_version()
-__all__ = ["EventManager", "Event", "EventHandler", "EventPriority", "event_manager", "emit_event", "register_event_handler", "global_event_handler"]
+__all__ = [
+    "EventManager",
+    "Event",
+    "EventHandler",
+    "EventPriority",
+    "event_manager",
+    "emit_event",
+    "register_event_handler",
+    "global_event_handler",
+]
 
-event_manager = get_fallback_instance('EventManager')
-global_event_handler = get_fallback_instance('EventHandler')
+event_manager = get_fallback_instance("EventManager")
+global_event_handler = get_fallback_instance("EventHandler")

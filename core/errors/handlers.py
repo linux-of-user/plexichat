@@ -7,7 +7,9 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from .base import PlexiChatErrorCode, create_error_response
 
 
-async def not_found_handler(request: Request, exc: FastAPIHTTPException) -> JSONResponse | HTMLResponse:
+async def not_found_handler(
+    request: Request, exc: FastAPIHTTPException
+) -> JSONResponse | HTMLResponse:
     """404 handler: use base for JSON, preserve HTML for user-friendliness."""
     if request.headers.get("accept") == "application/json":
         details = {"path": str(request.url.path)}
@@ -23,7 +25,9 @@ async def not_found_handler(request: Request, exc: FastAPIHTTPException) -> JSON
         )
 
 
-async def internal_error_handler(request: Request, exc: Exception) -> JSONResponse | HTMLResponse:
+async def internal_error_handler(
+    request: Request, exc: Exception
+) -> JSONResponse | HTMLResponse:
     """500 handler: use base for JSON, preserve simple HTML."""
     if request.headers.get("accept") == "application/json":
         error_response = create_error_response(

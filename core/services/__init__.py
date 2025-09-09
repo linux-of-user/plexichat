@@ -1,6 +1,11 @@
 """Core services module with fallback implementations."""
+
 try:
-    from plexichat.core.utils.fallbacks import ServiceManager, get_service_manager, get_module_version
+    from plexichat.core.utils.fallbacks import (
+        ServiceManager,
+        get_module_version,
+        get_service_manager,
+    )
 except ImportError:
     # Retain old fallbacks
     pass

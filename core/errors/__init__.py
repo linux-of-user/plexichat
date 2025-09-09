@@ -1,10 +1,19 @@
 """Core errors module with shared base functionality."""
+
 try:
     from plexichat.core.utils.fallbacks import (
-        ErrorManager, ErrorSeverity, ErrorCategory, BaseAPIException,
-        AuthenticationError, ValidationError, DatabaseError,
-        get_error_manager, create_error_response, handle_exception, log_error,
-        get_module_version
+        AuthenticationError,
+        BaseAPIException,
+        DatabaseError,
+        ErrorCategory,
+        ErrorManager,
+        ErrorSeverity,
+        ValidationError,
+        create_error_response,
+        get_error_manager,
+        get_module_version,
+        handle_exception,
+        log_error,
     )
 except ImportError:
     # Fallback definitions if utils not available

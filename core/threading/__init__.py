@@ -1,4 +1,5 @@
 """Core threading module with fallback implementations."""
+
 try:
     from plexichat.core.utils.fallbacks import ThreadingManager, get_module_version
 except ImportError:

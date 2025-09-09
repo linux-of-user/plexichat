@@ -5,8 +5,10 @@ from typing import Any, Callable
 # from plexichat.core.database.storage import update_message_storage  # TODO: implement storage
 # from plexichat.core.errors.base import PlexiError  # TODO: Import PlexiError when available
 
+
 class PlexiError(Exception):
     pass  # Temporary definition for mypy
+
 
 # from plexichat.core.security.encryption import decrypt_message  # TODO: implement decryption
 from .base import MessageBaseProcessor
@@ -51,13 +53,14 @@ class UnifiedMessagingProcessor(MessageBaseProcessor):
         # Additional decryption for unified messages if encrypted
         if "encrypted" in message.get("flags", []):
             if "content" in processed:
-                # processed["content"] = decrypt_message(processed["content"])  # TODO: decrypt
+                pass  # TODO: processed["content"] = decrypt_message(processed["content"])
 
         # Unified storage pattern
         # TODO: Implement unified storage call
 
         logger.info(
-            f"Unified processing complete for message {processed.get('unified_id', 'unknown')}"
+            "Unified processing complete for message %s",
+            processed.get("unified_id", "unknown"),
         )
         return processed
 

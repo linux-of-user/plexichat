@@ -7,8 +7,10 @@ from typing import Any, Callable, Optional
 # from plexichat.core.database.storage import store_message  # TODO: implement storage
 # from plexichat.core.errors.base import PlexiError  # TODO: Import PlexiError when available
 
+
 class PlexiError(Exception):
     pass  # Temporary definition for mypy
+
 
 # from plexichat.core.security.encryption import encrypt_message  # TODO: implement encryption
 
@@ -40,7 +42,7 @@ class MessageBaseProcessor(ABC):
 
             # Encryption (assuming outbound; decrypt for inbound if needed)
             if "content" in processed:
-                # processed["content"] = encrypt_message(processed["content"])  # TODO: encrypt
+                pass  # TODO: processed["content"] = encrypt_message(processed["content"])
 
             # Storage
             # TODO: Implement storage call

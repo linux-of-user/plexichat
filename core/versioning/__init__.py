@@ -1,4 +1,5 @@
 """Core versioning module with fallback implementations."""
+
 try:
     from plexichat.core.utils.fallbacks import VersionManager, get_module_version
 except ImportError:
