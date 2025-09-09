@@ -284,6 +284,45 @@ class UnifiedLogger:
         # Plugin loggers cache
         self.plugin_loggers: Dict[str, logging.LoggerAdapter] = {}
 
+    def get_plugin_logger(self, plugin_name: str) -> logging.LoggerAdapter:
+        """Get a logger adapter for a specific plugin."""
+        if plugin_name not in self.plugin_loggers:
+            # Create plugin-specific logger
+            plugin_logger = self.root_logger.getChild(f"plugins.{plugin_name}")
+
+            # Create adapter
+            adapter = PluginContextAdapter(plugin_logger, plugin_name)
+
+            # Add plugin-specific file handler
+            plugin_file_handler = PluginIsolatedRotatingFileHandler(plugin_name)
+            plugin_logger.addHandler(plugin_file_handler)
+            plugin_logger.setLevel(logging.DEBUG)
+
+            self.plugin_loggers[plugin_name] = adapter
+
+        return self.plugin_loggers[plugin_name]
+
+    def get_logger(self, name: str) -> logging.Logger:
+        """Get a logger under the plexichat namespace."""
+        return self.root_logger.getChild(name)
+
+    def set_console_level(self, level: str):
+        """Set console logging level."""
+        self.console_handler.setLevel(getattr(logging, level.upper(), logging.INFO))
+
+    def set_file_level(self, level: str):
+        """Set file logging level."""
+        self.main_file_handler.setLevel(getattr(logging, level.upper(), logging.DEBUG))
+
+    def enable_deduplication(self, enabled: bool = True):
+        """Enable or disable message deduplication."""
+        if enabled:
+            if self.dedup_filter not in self.root_logger.filters:
+                self.root_logger.addFilter(self.dedup_filter)
+        else:
+            if self.dedup_filter in self.root_logger.filters:
+                self.root_logger.removeFilter(self.dedup_filter)
+
     @classmethod
     def get_instance(cls) -> "UnifiedLogger":
         """Get singleton instance."""
@@ -455,45 +494,6 @@ class StructuredFormatter(logging.Formatter):
         if hasattr(record, "extra_data"):
             log_entry["extra"] = getattr(record, "extra_data", None)
         return self.json.dumps(log_entry)
-
-    def get_plugin_logger(self, plugin_name: str) -> logging.LoggerAdapter:
-        """Get a logger adapter for a specific plugin."""
-        if plugin_name not in self.plugin_loggers:
-            # Create plugin-specific logger
-            plugin_logger = self.root_logger.getChild(f"plugins.{plugin_name}")
-
-            # Create adapter
-            adapter = PluginContextAdapter(plugin_logger, plugin_name)
-
-            # Add plugin-specific file handler
-            plugin_file_handler = PluginIsolatedRotatingFileHandler(plugin_name)
-            plugin_logger.addHandler(plugin_file_handler)
-            plugin_logger.setLevel(logging.DEBUG)
-
-            self.plugin_loggers[plugin_name] = adapter
-
-        return self.plugin_loggers[plugin_name]
-
-    def get_logger(self, name: str) -> logging.Logger:
-        """Get a logger under the plexichat namespace."""
-        return self.root_logger.getChild(name)
-
-    def set_console_level(self, level: str):
-        """Set console logging level."""
-        self.console_handler.setLevel(getattr(logging, level.upper(), logging.INFO))
-
-    def set_file_level(self, level: str):
-        """Set file logging level."""
-        self.main_file_handler.setLevel(getattr(logging, level.upper(), logging.DEBUG))
-
-    def enable_deduplication(self, enabled: bool = True):
-        """Enable or disable message deduplication."""
-        if enabled:
-            if self.dedup_filter not in self.root_logger.filters:
-                self.root_logger.addFilter(self.dedup_filter)
-        else:
-            if self.dedup_filter in self.root_logger.filters:
-                self.root_logger.removeFilter(self.dedup_filter)
 
 
 # Global instance
