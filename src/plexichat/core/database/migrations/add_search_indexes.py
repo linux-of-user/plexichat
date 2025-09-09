@@ -5,136 +5,93 @@ Adds database indexes to improve search performance for messages, users, and cha
 """
 
 import logging
+from typing import Dict, List, Tuple
 
 from plexichat.core.database.manager import database_manager
+from .base import Migration
 
 logger = logging.getLogger(__name__)
 
 
-async def up() -> bool:
-    """Apply migration: Add search indexes."""
-    try:
-        logger.info("Adding search indexes...")
+class AddSearchIndexesMigration(Migration):
+    MIGRATION_VERSION = "add_search_indexes"
+    MIGRATION_DESCRIPTION = "Add database indexes for improved search performance"
 
-        # Add indexes for messages table
-        message_indexes = [
-            "CREATE INDEX IF NOT EXISTS idx_messages_user_id ON messages(user_id)",
-            "CREATE INDEX IF NOT EXISTS idx_messages_channel_id ON messages(channel_id)",
-            "CREATE INDEX IF NOT EXISTS idx_messages_created_at ON messages(created_at)",
-            "CREATE INDEX IF NOT EXISTS idx_messages_message_type ON messages(message_type)",
-            "CREATE INDEX IF NOT EXISTS idx_messages_thread_id ON messages(thread_id)",
-            "CREATE INDEX IF NOT EXISTS idx_messages_is_deleted ON messages(is_deleted)",
-            # Composite indexes for common search patterns
-            "CREATE INDEX IF NOT EXISTS idx_messages_channel_created ON messages(channel_id, created_at)",
-            "CREATE INDEX IF NOT EXISTS idx_messages_user_created ON messages(user_id, created_at)",
-            "CREATE INDEX IF NOT EXISTS idx_messages_type_created ON messages(message_type, created_at)",
-        ]
+    def _get_tables(self) -> Dict[str, Dict[str, Any]]:
+        return {}
 
-        # Add indexes for users table
-        user_indexes = [
-            "CREATE INDEX IF NOT EXISTS idx_users_username ON users(username)",
-            "CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)",
-            "CREATE INDEX IF NOT EXISTS idx_users_display_name ON users(display_name)",
-            "CREATE INDEX IF NOT EXISTS idx_users_is_active ON users(is_active)",
-            "CREATE INDEX IF NOT EXISTS idx_users_created_at ON users(created_at)",
-        ]
+    def _get_indexes(self) -> Dict[str, List[Tuple[str, List[str], bool]]]:
+        return {
+            "messages": [
+                ("idx_messages_user_id", ["user_id"], False),
+                ("idx_messages_channel_id", ["channel_id"], False),
+                ("idx_messages_created_at", ["created_at"], False),
+                ("idx_messages_message_type", ["message_type"], False),
+                ("idx_messages_thread_id", ["thread_id"], False),
+                ("idx_messages_is_deleted", ["is_deleted"], False),
+                ("idx_messages_channel_created", ["channel_id", "created_at"], False),
+                ("idx_messages_user_created", ["user_id", "created_at"], False),
+                ("idx_messages_type_created", ["message_type", "created_at"], False),
+            ],
+            "users": [
+                ("idx_users_username", ["username"], False),
+                ("idx_users_email", ["email"], False),
+                ("idx_users_display_name", ["display_name"], False),
+                ("idx_users_is_active", ["is_active"], False),
+                ("idx_users_created_at", ["created_at"], False),
+            ],
+            "channels": [
+                ("idx_channels_name", ["name"], False),
+                ("idx_channels_channel_type", ["channel_type"], False),
+                ("idx_channels_owner_id", ["owner_id"], False),
+                ("idx_channels_is_archived", ["is_archived"], False),
+                ("idx_channels_created_at", ["created_at"], False),
+            ],
+            "threads": [
+                ("idx_threads_channel_id", ["channel_id"], False),
+                ("idx_threads_creator_id", ["creator_id"], False),
+                ("idx_threads_is_resolved", ["is_resolved"], False),
+                ("idx_threads_created_at", ["created_at"], False),
+                ("idx_threads_last_message_at", ["last_message_at"], False),
+            ],
+        }
 
-        # Add indexes for channels table
-        channel_indexes = [
-            "CREATE INDEX IF NOT EXISTS idx_channels_name ON channels(name)",
-            "CREATE INDEX IF NOT EXISTS idx_channels_channel_type ON channels(channel_type)",
-            "CREATE INDEX IF NOT EXISTS idx_channels_owner_id ON channels(owner_id)",
-            "CREATE INDEX IF NOT EXISTS idx_channels_is_archived ON channels(is_archived)",
-            "CREATE INDEX IF NOT EXISTS idx_channels_created_at ON channels(created_at)",
-        ]
+    def _get_foreign_keys(self) -> Dict[str, List[Tuple[str, str, str, str, str, str]]]:
+        return {}
 
-        # Add indexes for threads table
-        thread_indexes = [
-            "CREATE INDEX IF NOT EXISTS idx_threads_channel_id ON threads(channel_id)",
-            "CREATE INDEX IF NOT EXISTS idx_threads_creator_id ON threads(creator_id)",
-            "CREATE INDEX IF NOT EXISTS idx_threads_is_resolved ON threads(is_resolved)",
-            "CREATE INDEX IF NOT EXISTS idx_threads_created_at ON threads(created_at)",
-            "CREATE INDEX IF NOT EXISTS idx_threads_last_message_at ON threads(last_message_at)",
-        ]
+    def _get_check_constraints(self) -> Dict[str, List[Tuple[str, str]]]:
+        return {}
 
-        # Execute all index creation statements
-        async with database_manager.get_session() as session:
-            all_indexes = (
-                message_indexes + user_indexes + channel_indexes + thread_indexes
-            )
+    async def up(self):
+        await super().up()
 
-            for index_sql in all_indexes:
-                try:
-                    await session.execute(index_sql)
-                    logger.debug(
-                        f"Created index: {index_sql.split(' ON ')[1].split('(')[0]}"
-                    )
-                except Exception as e:
-                    logger.warning(f"Failed to create index {index_sql}: {e}")
-                    # Continue with other indexes
+    async def down(self):
+        await super().down()
 
-            await session.commit()
-
-        logger.info("Search indexes added successfully")
-        return True
-
-    except Exception as e:
-        logger.error(f"Failed to add search indexes: {e}")
-        return False
+    async def verify(self):
+        await super().verify()
 
 
-async def down() -> bool:
-    """Rollback migration: Remove search indexes."""
-    try:
-        logger.info("Removing search indexes...")
-
-        # List of indexes to drop
-        indexes_to_drop = [
-            "idx_messages_user_id",
-            "idx_messages_channel_id",
-            "idx_messages_created_at",
-            "idx_messages_message_type",
-            "idx_messages_thread_id",
-            "idx_messages_is_deleted",
-            "idx_messages_channel_created",
-            "idx_messages_user_created",
-            "idx_messages_type_created",
-            "idx_users_username",
-            "idx_users_email",
-            "idx_users_display_name",
-            "idx_users_is_active",
-            "idx_users_created_at",
-            "idx_channels_name",
-            "idx_channels_channel_type",
-            "idx_channels_owner_id",
-            "idx_channels_is_archived",
-            "idx_channels_created_at",
-            "idx_threads_channel_id",
-            "idx_threads_creator_id",
-            "idx_threads_is_resolved",
-            "idx_threads_created_at",
-            "idx_threads_last_message_at",
-        ]
-
-        async with database_manager.get_session() as session:
-            for index_name in indexes_to_drop:
-                try:
-                    await session.execute(f"DROP INDEX IF EXISTS {index_name}")
-                    logger.debug(f"Dropped index: {index_name}")
-                except Exception as e:
-                    logger.warning(f"Failed to drop index {index_name}: {e}")
-
-            await session.commit()
-
-        logger.info("Search indexes removed successfully")
-        return True
-
-    except Exception as e:
-        logger.error(f"Failed to remove search indexes: {e}")
-        return False
+async def main():
+    """CLI entry point for the migration."""
+    import sys
+    if len(sys.argv) < 2:
+        print("Usage: python add_search_indexes.py [up|down|verify]")
+        sys.exit(1)
+    
+    action = sys.argv[1]
+    migration = AddSearchIndexesMigration()
+    
+    if action == "up":
+        await migration.up()
+    elif action == "down":
+        await migration.down()
+    elif action == "verify":
+        await migration.verify()
+    else:
+        print("Invalid action. Use up, down, or verify")
+        sys.exit(1)
 
 
-# Migration metadata
-migration_version = "add_search_indexes"
-migration_description = "Add database indexes for improved search performance"
-requires_downtime = False  # Adding indexes doesn't require downtime
+if __name__ == "__main__":
+    asyncio.run(main())
