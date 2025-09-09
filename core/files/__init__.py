@@ -1,17 +1,13 @@
 """Core files module with fallback implementations."""
 
-try:
-    from plexichat.core.utils.fallbacks import (
-        FileManager,
-        FileMetadata,
-        get_fallback_instance,
-        get_file_metadata,
-        get_module_version,
-        upload_file,
-    )
-except ImportError:
-    # Retain old fallbacks
-    pass
+from plexichat.core.utils.fallbacks import (
+    FileManager,
+    FileMetadata,
+    get_fallback_instance,
+    get_file_metadata,
+    get_module_version,
+    upload_file,
+)
 
 __version__ = get_module_version()
 __all__ = [
