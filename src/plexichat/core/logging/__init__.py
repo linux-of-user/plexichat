@@ -24,6 +24,23 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Union
 
+from .unified_logger import (
+    get_logger,
+    ColoredFormatter,
+    StructuredFormatter,
+    get_handler_factory,
+    redact_pii,
+    sanitize_for_logging
+)
+
+# Re-export for backward compatibility
+get_logger = unified_logger.get_logger
+ColoredFormatter = unified_logger.ColoredFormatter
+StructuredFormatter = unified_logger.StructuredFormatter
+get_handler_factory = unified_logger.get_handler_factory
+redact_pii = unified_logger.redact_pii
+sanitize_for_logging = unified_logger.sanitize_for_logging
+
 # Core imports
 try:
     from plexichat.core.config import get_config as _get_unified_config  # type: ignore
@@ -295,56 +312,8 @@ class LogEntry:
         }
 
 
-class ColoredFormatter(logging.Formatter):
-    """Colored log formatter for console output."""
-
-    COLORS = {
-        "TRACE": "\033[90m",  # Dark gray
-        "DEBUG": "\033[36m",  # Cyan
-        "INFO": "\033[32m",  # Green
-        "WARNING": "\033[33m",  # Yellow
-        "ERROR": "\033[31m",  # Red
-        "CRITICAL": "\033[35m",  # Magenta
-        "SECURITY": "\033[91m",  # Bright red
-        "AUDIT": "\033[94m",  # Bright blue
-    }
-    RESET = "\033[0m"
-
-    def format(self, record):
-        if hasattr(record, "levelname") and record.levelname in self.COLORS:
-            record.levelname = (
-                f"{self.COLORS[record.levelname]}{record.levelname}{self.RESET}"
-            )
-        return super().format(record)
 
 
-class StructuredFormatter(logging.Formatter):
-    """JSON structured log formatter."""
-
-    def format(self, record):
-        log_entry = {
-            "timestamp": datetime.fromtimestamp(record.created).isoformat(),
-            "level": record.levelname,
-            "logger": record.name,
-            "message": record.getMessage(),
-            "module": record.module,
-            "function": record.funcName,
-            "line": record.lineno,
-        }
-
-        # Add extra fields
-        if hasattr(record, "context"):
-            context = getattr(record, "context", None)
-            if context and hasattr(context, "__dataclass_fields__"):
-                log_entry["context"] = asdict(context)  # type: ignore
-            else:
-                log_entry["context"] = context
-        if hasattr(record, "category"):
-            log_entry["category"] = getattr(record, "category", None)
-        if hasattr(record, "extra_data"):
-            log_entry["extra"] = getattr(record, "extra_data", None)
-
-        return json.dumps(log_entry)
 
 
 class PerformanceTracker:
@@ -667,25 +636,10 @@ class UnifiedLoggingManager:
     def _setup_console_handler(self):
         """Setup console logging handler."""
         try:
-            console_handler = logging.StreamHandler(sys.stdout)
-
-            # Set level
-            level_name = getattr(self.config.logging, "console_level", "INFO")
-            level = getattr(logging, level_name.upper(), logging.INFO)
-            console_handler.setLevel(level)
-
-            # Set formatter
-            if getattr(self.config.logging, "console_colors", True):
-                formatter = ColoredFormatter()
-                formatter = logging.Formatter(
-                    "[%(asctime)s] [%(levelname)-8s] %(name)s: %(message)s"
-                )
-            else:
-                formatter = logging.Formatter(
-                    "[%(asctime)s] [%(levelname)-8s] %(name)s: %(message)s"
-                )
-
-            console_handler.setFormatter(formatter)
+            console_handler = get_handler_factory(
+                level=getattr(self.config.logging, "console_level", "INFO"),
+                format_type="colored"
+            )
 
             # Add to root logger
             logging.getLogger().addHandler(console_handler)
