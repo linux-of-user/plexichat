@@ -3,47 +3,62 @@
 import logging
 # Typing and datetime imports not used
 
-# Use fallback implementations to avoid import issues
+# Use shared fallback implementations
 logger = logging.getLogger(__name__)
-logger.warning("Using fallback scheduler implementations")
 
-# Fallback implementations
-class TaskScheduler:  # type: ignore
-    def __init__(self):
-        pass
+try:
+    from plexichat.core.utils.fallbacks import (
+        TaskScheduler, ScheduledTask, TaskStatus, TaskType,
+        schedule_once, schedule_recurring, schedule_cron, cancel_task, get_scheduled_tasks,
+        get_fallback_instance
+    )
+    USE_SHARED_FALLBACKS = True
+    logger.info("Using shared fallback implementations for scheduler")
+except ImportError:
+    # Fallback to local definitions if shared fallbacks unavailable
+    USE_SHARED_FALLBACKS = False
+    logger.warning("Shared fallbacks unavailable, using local implementations")
 
-class ScheduledTask:  # type: ignore
-    def __init__(self, **kwargs):
-        self.__dict__.update(kwargs)
+if USE_SHARED_FALLBACKS:
+    task_scheduler = get_fallback_instance('TaskScheduler')
+else:
+    # Local fallbacks (preserved for compatibility)
+    class TaskScheduler:  # type: ignore
+        def __init__(self):
+            pass
 
-class TaskStatus:  # type: ignore
-    PENDING = "pending"
-    RUNNING = "running"
-    COMPLETED = "completed"
-    FAILED = "failed"
-    CANCELLED = "cancelled"
+    class ScheduledTask:  # type: ignore
+        def __init__(self, **kwargs):
+            self.__dict__.update(kwargs)
 
-class TaskType:  # type: ignore
-    ONCE = "once"
-    RECURRING = "recurring"
-    CRON = "cron"
+    class TaskStatus:  # type: ignore
+        PENDING = "pending"
+        RUNNING = "running"
+        COMPLETED = "completed"
+        FAILED = "failed"
+        CANCELLED = "cancelled"
 
-task_scheduler = None
+    class TaskType:  # type: ignore
+        ONCE = "once"
+        RECURRING = "recurring"
+        CRON = "cron"
 
-def schedule_once(*args, **kwargs):  # type: ignore
-    return None
+    task_scheduler = None
 
-def schedule_recurring(*args, **kwargs):  # type: ignore
-    return None
+    def schedule_once(*args, **kwargs):  # type: ignore
+        return None
 
-def schedule_cron(*args, **kwargs):  # type: ignore
-    return None
+    def schedule_recurring(*args, **kwargs):  # type: ignore
+        return None
 
-def cancel_task(*args, **kwargs):  # type: ignore
-    return False
+    def schedule_cron(*args, **kwargs):  # type: ignore
+        return None
 
-def get_scheduled_tasks(*args, **kwargs):  # type: ignore
-    return []
+    def cancel_task(*args, **kwargs):  # type: ignore
+        return False
+
+    def get_scheduled_tasks(*args, **kwargs):  # type: ignore
+        return []
 
 __all__ = [
     "TaskScheduler",
@@ -58,6 +73,6 @@ __all__ = [
     "get_scheduled_tasks",
 ]
 
-from plexichat.core.config_manager import get_config
+from plexichat.core.utils.fallbacks import get_module_version
 
-__version__ = get_config("system.version", "0.0.0")
+__version__ = get_module_version()
