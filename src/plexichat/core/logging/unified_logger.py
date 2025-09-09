@@ -284,6 +284,15 @@ class UnifiedLogger:
         # Plugin loggers cache
         self.plugin_loggers: Dict[str, logging.LoggerAdapter] = {}
 
+    @classmethod
+    def get_instance(cls) -> "UnifiedLogger":
+        """Get singleton instance."""
+        if cls._instance is None:
+            with cls._lock:
+                if cls._instance is None:
+                    cls._instance = cls()
+        return cls._instance
+
 
 def redact_pii(
     data: Union[str, Dict, List, Any], max_length: int = 1000
@@ -446,15 +455,6 @@ class StructuredFormatter(logging.Formatter):
         if hasattr(record, "extra_data"):
             log_entry["extra"] = getattr(record, "extra_data", None)
         return self.json.dumps(log_entry)
-
-    @classmethod
-    def get_instance(cls) -> "UnifiedLogger":
-        """Get singleton instance."""
-        if cls._instance is None:
-            with cls._lock:
-                if cls._instance is None:
-                    cls._instance = cls()
-        return cls._instance
 
     def get_plugin_logger(self, plugin_name: str) -> logging.LoggerAdapter:
         """Get a logger adapter for a specific plugin."""
