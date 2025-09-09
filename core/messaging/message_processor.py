@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from typing import Any, Callable
+from typing import Any, Callable, List
 
 # from plexichat.core.errors.base import PlexiError  # TODO: Import PlexiError when available
 
@@ -33,8 +33,8 @@ class MessageProcessor(MessageBaseProcessor):
             raise PlexiError("Text content required")
 
         # Extract mentions and hashtags
-        mentions = []  # TODO: extract_mentions(content)
-        hashtags = []  # TODO: extract_hashtags(content)
+        mentions: List[str] = []  # TODO: extract_mentions(content)
+        hashtags: List[str] = []  # TODO: extract_hashtags(content)
 
         processed = {
             "type": "text",

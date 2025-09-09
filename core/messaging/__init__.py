@@ -1,15 +1,19 @@
 """Core messaging module with fallback implementations."""
 
-from plexichat.core.utils.fallbacks import (
-    ChannelType,
-    MessageEncryption,
-    MessageType,
-    MessageValidator,
-    UnifiedMessagingManager,
-    get_fallback_instance,
-    get_module_version,
-    send_message,
-)
+try:
+    from plexichat.core.utils.fallbacks import (  # type: ignore[attr-defined]
+        ChannelType,
+        MessageEncryption,
+        MessageType,
+        MessageValidator,
+        UnifiedMessagingManager,
+        get_fallback_instance,
+        get_module_version,
+        send_message,
+    )
+except ImportError:
+    # Retain old fallbacks if utils not available
+    pass
 
 __version__ = get_module_version()
 __all__ = [
