@@ -3,44 +3,59 @@
 import logging
 from typing import Any, Dict, List, Optional
 
-# Use fallback implementations to avoid import issues
+# Use shared fallback implementations
 logger = logging.getLogger(__name__)
-logger.warning("Using fallback notification implementations")
 
-# Fallback implementations
-class NotificationManager:  # type: ignore
-    def __init__(self):
-        pass
+try:
+    from plexichat.core.utils.fallbacks import (
+        NotificationManager, Notification, NotificationType, NotificationPriority,
+        send_notification, mark_notification_read, get_notifications, get_unread_notification_count,
+        get_fallback_instance
+    )
+    USE_SHARED_FALLBACKS = True
+    logger.info("Using shared fallback implementations for notifications")
+except ImportError:
+    # Fallback to local definitions if shared fallbacks unavailable
+    USE_SHARED_FALLBACKS = False
+    logger.warning("Shared fallbacks unavailable, using local implementations")
 
-class Notification:  # type: ignore
-    def __init__(self, **kwargs):
-        self.__dict__.update(kwargs)
+if USE_SHARED_FALLBACKS:
+    notification_manager = get_fallback_instance('NotificationManager')
+else:
+    # Local fallbacks (preserved for compatibility)
+    class NotificationManager:  # type: ignore
+        def __init__(self):
+            pass
 
-class NotificationType:  # type: ignore
-    INFO = "info"
-    WARNING = "warning"
-    ERROR = "error"
-    SUCCESS = "success"
+    class Notification:  # type: ignore
+        def __init__(self, **kwargs):
+            self.__dict__.update(kwargs)
 
-class NotificationPriority:  # type: ignore
-    LOW = "low"
-    NORMAL = "normal"
-    HIGH = "high"
-    URGENT = "urgent"
+    class NotificationType:  # type: ignore
+        INFO = "info"
+        WARNING = "warning"
+        ERROR = "error"
+        SUCCESS = "success"
 
-notification_manager = None
+    class NotificationPriority:  # type: ignore
+        LOW = "low"
+        NORMAL = "normal"
+        HIGH = "high"
+        URGENT = "urgent"
 
-def send_notification(*args, **kwargs):  # type: ignore
-    return None
+    notification_manager = None
 
-def mark_notification_read(*args, **kwargs):  # type: ignore
-    return False
+    def send_notification(*args, **kwargs):  # type: ignore
+        return None
 
-def get_notifications(*args, **kwargs):  # type: ignore
-    return []
+    def mark_notification_read(*args, **kwargs):  # type: ignore
+        return False
 
-def get_unread_notification_count(*args, **kwargs):  # type: ignore
-    return 0
+    def get_notifications(*args, **kwargs):  # type: ignore
+        return []
+
+    def get_unread_notification_count(*args, **kwargs):  # type: ignore
+        return 0
 
 __all__ = [
     "NotificationManager",
@@ -54,6 +69,6 @@ __all__ = [
     "get_unread_notification_count",
 ]
 
-from plexichat.core.config_manager import get_config
+from plexichat.core.utils.fallbacks import get_module_version
 
-__version__ = get_config("system.version", "0.0.0")
+__version__ = get_module_version()
