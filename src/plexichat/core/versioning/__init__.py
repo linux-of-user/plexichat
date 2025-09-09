@@ -1,3 +1,3 @@
-from plexichat.core.config import settings
+from plexichat.core.utils.fallbacks import get_module_version
 
-__version__ = settings.version
+__version__ = get_module_version()
