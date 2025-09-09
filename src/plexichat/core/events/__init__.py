@@ -3,48 +3,63 @@
 import logging
 # Typing imports not used
 
-# Use fallback implementations to avoid import issues
+# Use shared fallback implementations
 logger = logging.getLogger(__name__)
-logger.warning("Using fallback event implementations")
 
-# Fallback implementations
-class EventManager:  # type: ignore
-    def __init__(self):
+try:
+    from plexichat.core.utils.fallbacks import (
+        EventManager, Event, EventHandler, EventPriority,
+        emit_event, register_event_handler, unregister_event_handler,
+        get_events, event_handler, get_fallback_instance
+    )
+    USE_SHARED_FALLBACKS = True
+    logger.info("Using shared fallback implementations for events")
+except ImportError:
+    # Fallback to local definitions if shared fallbacks unavailable
+    USE_SHARED_FALLBACKS = False
+    logger.warning("Shared fallbacks unavailable, using local implementations")
+
+if USE_SHARED_FALLBACKS:
+    event_manager = get_fallback_instance('EventManager')
+    global_event_handler = None
+else:
+    # Local fallbacks (preserved for compatibility)
+    class EventManager:  # type: ignore
+        def __init__(self):
+            pass
+
+    class Event:  # type: ignore
+        def __init__(self, **kwargs):
+            self.__dict__.update(kwargs)
+
+    class EventHandler:  # type: ignore
+        def __init__(self):
+            pass
+
+    class EventPriority:  # type: ignore
+        HIGH = "high"
+        NORMAL = "normal"
+        LOW = "low"
+
+    event_manager = None
+    global_event_handler = None
+
+    def emit_event(*args, **kwargs):  # type: ignore
         pass
 
-class Event:  # type: ignore
-    def __init__(self, **kwargs):
-        self.__dict__.update(kwargs)
-
-class EventHandler:  # type: ignore
-    def __init__(self):
+    def register_event_handler(*args, **kwargs):  # type: ignore
         pass
 
-class EventPriority:  # type: ignore
-    HIGH = "high"
-    NORMAL = "normal"
-    LOW = "low"
+    def unregister_event_handler(*args, **kwargs):  # type: ignore
+        pass
 
-event_manager = None
+    def get_events(*args, **kwargs):  # type: ignore
+        return []
 
-def emit_event(*args, **kwargs):  # type: ignore
-    pass
-
-def register_event_handler(*args, **kwargs):  # type: ignore
-    pass
-
-def unregister_event_handler(*args, **kwargs):  # type: ignore
-    pass
-
-def get_events(*args, **kwargs):  # type: ignore
-    return []
-
-def event_handler(*args, **kwargs):  # type: ignore
-    def decorator(func):
-        return func
-    return decorator
-
-global_event_handler = None
+    def event_handler(*args, **kwargs):  # type: ignore
+        def decorator(func):
+            return func
+        return decorator
 
 __all__ = [
     "EventManager",
@@ -60,6 +75,6 @@ __all__ = [
     "global_event_handler",
 ]
 
-from plexichat.core.config_manager import get_config
+from plexichat.core.utils.fallbacks import get_module_version
 
-__version__ = get_config("system.version", "0.0.0")
+__version__ = get_module_version()
