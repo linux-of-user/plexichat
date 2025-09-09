@@ -8,7 +8,7 @@ cluster nodes, and backup metadata with proper indexing and constraints.
 import asyncio
 import logging
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from plexichat.core.database.manager import database_manager
 from plexichat.core.database.models import (
@@ -17,6 +17,7 @@ from plexichat.core.database.models import (
     CLUSTER_NODES_SCHEMA,
     PLUGIN_PERMISSIONS_SCHEMA,
 )
+from .base import Migration
 
 logger = logging.getLogger(__name__)
 
@@ -156,10 +157,6 @@ CHECK_CONSTRAINTS = {
 }
 
 
-class MigrationError(Exception):
-    """Custom exception for migration errors."""
-
-    pass
 
 
 async def create_migration_tracking_table():
@@ -191,292 +188,55 @@ async def create_migration_tracking_table():
             logger.warning(f"Could not create migration index: {e}")
 
 
-async def is_migration_applied(version: str) -> bool:
-    """Check if a migration has already been applied."""
-    try:
-        async with database_manager.get_session() as session:
-            result = await session.fetchone(
-                "SELECT version FROM schema_migrations WHERE version = :version",
-                {"version": version},
-            )
-            return result is not None
-    except Exception:
-        # If table doesn't exist or query fails, assume migration not applied
-        return False
 
 
-async def record_migration(version: str, description: str, rollback_sql: str):
-    """Record that a migration has been applied."""
-    async with database_manager.get_session() as session:
-        await session.insert(
-            "schema_migrations",
-            {
-                "id": f"migration_{version}_{int(datetime.now(timezone.utc).timestamp())}",
-                "version": version,
-                "description": description,
-                "applied_at": datetime.now(timezone.utc).isoformat(),
-                "rollback_sql": rollback_sql,
-                "metadata": "{}",
-            },
-        )
-        await session.commit()
 
 
-async def create_table_with_constraints(
-    table_name: str, schema: Dict[str, str]
-) -> List[str]:
-    """Create table with all constraints and return rollback SQL."""
-    rollback_statements = []
+class AddNewSchemasMigration(Migration):
+    MIGRATION_VERSION = "001_add_new_schemas"
+    MIGRATION_DESCRIPTION = "Add client settings, plugin permissions, cluster nodes, and backup metadata schemas"
 
-    async with database_manager.get_session() as session:
-        try:
-            # Create the base table
-            columns = ", ".join([f"{col} {dtype}" for col, dtype in schema.items()])
-            create_query = f"CREATE TABLE {table_name} ({columns})"
-            await session.execute(create_query)
-            rollback_statements.append(f"DROP TABLE IF EXISTS {table_name}")
+    def _get_tables(self) -> Dict[str, Dict[str, Any]]:
+        def convert_schema(schema_dict: Dict[str, str]) -> Dict[str, Any]:
+            columns = []
+            unique_constraints = []
+            for col, dtype_str in schema_dict.items():
+                parts = dtype_str.split()
+                col_type = parts[0]
+                nullable = "NOT NULL" not in parts
+                pk = "PRIMARY KEY" in parts
+                default = None
+                if "DEFAULT" in parts:
+                    default_idx = parts.index("DEFAULT")
+                    if default_idx + 1 < len(parts):
+                        default = parts[default_idx + 1].strip("'\"")
+                columns.append((col, col_type, nullable, default, pk))
+            # Add unique constraints from INDEXES where unique=True
+            table_name = list(NEW_TABLES.keys())[list(NEW_TABLES.values()).index(schema_dict)]
+            for idx_name, cols, is_unique in INDEXES.get(table_name, []):
+                if is_unique:
+                    unique_constraints.append(cols)
+            return {"columns": columns, "unique_constraints": unique_constraints}
 
-            logger.info(f"Created table: {table_name}")
+        tables = {}
+        for table, schema in NEW_TABLES.items():
+            tables[table] = convert_schema(schema)
+        return tables
 
-            # Add indexes
-            if table_name in INDEXES:
-                for index_name, columns, *unique in INDEXES[table_name]:
-                    is_unique = unique[0] if unique else False
-                    unique_clause = "UNIQUE " if is_unique else ""
-                    columns_str = ", ".join(columns)
+    def _get_indexes(self) -> Dict[str, List[Tuple[str, List[str], bool]]]:
+        return INDEXES
 
-                    index_query = f"CREATE {unique_clause}INDEX {index_name} ON {table_name}({columns_str})"
-                    await session.execute(index_query)
-                    rollback_statements.append(f"DROP INDEX IF EXISTS {index_name}")
+    def _get_foreign_keys(self) -> Dict[str, List[Tuple[str, str, str, str, str, str]]]:
+        return FOREIGN_KEYS
 
-                    logger.info(f"Created index: {index_name}")
+    def _get_check_constraints(self) -> Dict[str, List[Tuple[str, str]]]:
+        return CHECK_CONSTRAINTS
 
-            # Add foreign key constraints (if supported by database)
-            if table_name in FOREIGN_KEYS:
-                for (
-                    fk_name,
-                    local_col,
-                    ref_table,
-                    ref_col,
-                    on_delete,
-                    on_update,
-                ) in FOREIGN_KEYS[table_name]:
-                    try:
-                        # Note: SQLite has limited FK support, PostgreSQL/MySQL have full support
-                        if database_manager.config.db_type != "sqlite":
-                            fk_query = (
-                                f"ALTER TABLE {table_name} ADD CONSTRAINT {fk_name} "
-                                f"FOREIGN KEY ({local_col}) REFERENCES {ref_table}({ref_col}) "
-                                f"ON DELETE {on_delete} ON UPDATE {on_update}"
-                            )
-                            await session.execute(fk_query)
-                            rollback_statements.append(
-                                f"ALTER TABLE {table_name} DROP CONSTRAINT {fk_name}"
-                            )
-                            logger.info(f"Added foreign key: {fk_name}")
-                    except Exception as e:
-                        logger.warning(f"Could not add foreign key {fk_name}: {e}")
+    async def up(self):
+        await super().up()
 
-            # Add check constraints (if supported)
-            if table_name in CHECK_CONSTRAINTS:
-                for check_name, check_condition in CHECK_CONSTRAINTS[table_name]:
-                    try:
-                        if database_manager.config.db_type != "sqlite":
-                            check_query = f"ALTER TABLE {table_name} ADD CONSTRAINT {check_name} CHECK ({check_condition})"
-                            await session.execute(check_query)
-                            rollback_statements.append(
-                                f"ALTER TABLE {table_name} DROP CONSTRAINT {check_name}"
-                            )
-                            logger.info(f"Added check constraint: {check_name}")
-                    except Exception as e:
-                        logger.warning(
-                            f"Could not add check constraint {check_name}: {e}"
-                        )
-
-            await session.commit()
-            return rollback_statements
-
-        except Exception as e:
-            await session.rollback()
-            logger.error(f"Failed to create table {table_name}: {e}")
-            raise MigrationError(f"Failed to create table {table_name}: {e}")
-
-
-async def validate_table_data(table_name: str) -> bool:
-    """Validate data in newly created table."""
-    try:
-        async with database_manager.get_session() as session:
-            # Check table exists and is accessible
-            count_result = await session.fetchone(
-                f"SELECT COUNT(*) as count FROM {table_name}"
-            )
-            count = count_result["count"] if count_result else 0
-
-            logger.info(f"Table {table_name} validated successfully with {count} rows")
-            return True
-
-    except Exception as e:
-        logger.error(f"Table validation failed for {table_name}: {e}")
-        return False
-
-
-async def run_migration() -> bool:
-    """Run the migration to add new schemas."""
-    try:
-        # Initialize database manager
-        if not await database_manager.initialize():
-            raise MigrationError("Failed to initialize database manager")
-
-        # Create migration tracking table
-        await create_migration_tracking_table()
-
-        # Check if migration already applied
-        if await is_migration_applied(MIGRATION_VERSION):
-            logger.info(f"Migration {MIGRATION_VERSION} already applied, skipping")
-            return True
-
-        logger.info(f"Starting migration: {MIGRATION_VERSION}")
-
-        all_rollback_statements = []
-
-        # Create each new table with constraints
-        for table_name, schema in NEW_TABLES.items():
-            logger.info(f"Creating table: {table_name}")
-
-            # Check if table already exists
-            async with database_manager.get_session() as session:
-                if database_manager.config.db_type == "sqlite":
-                    check_query = "SELECT name FROM sqlite_master WHERE type='table' AND name=:name"
-                else:
-                    check_query = "SELECT table_name FROM information_schema.tables WHERE table_name = :name"
-
-                existing = await session.fetchone(check_query, {"name": table_name})
-
-                if existing:
-                    logger.warning(
-                        f"Table {table_name} already exists, skipping creation"
-                    )
-                    continue
-
-            rollback_statements = await create_table_with_constraints(
-                table_name, schema
-            )
-            all_rollback_statements.extend(rollback_statements)
-
-            # Validate the created table
-            if not await validate_table_data(table_name):
-                raise MigrationError(f"Table validation failed for {table_name}")
-
-        # Record successful migration
-        rollback_sql = "; ".join(reversed(all_rollback_statements))
-        await record_migration(MIGRATION_VERSION, MIGRATION_DESCRIPTION, rollback_sql)
-
-        logger.info(f"Migration {MIGRATION_VERSION} completed successfully")
-        return True
-
-    except Exception as e:
-        logger.error(f"Migration failed: {e}")
-        return False
-
-
-async def rollback_migration() -> bool:
-    """Rollback the migration."""
-    try:
-        # Check if migration was applied
-        if not await is_migration_applied(MIGRATION_VERSION):
-            logger.info(
-                f"Migration {MIGRATION_VERSION} not applied, nothing to rollback"
-            )
-            return True
-
-        logger.info(f"Rolling back migration: {MIGRATION_VERSION}")
-
-        async with database_manager.get_session() as session:
-            # Get rollback SQL
-            result = await session.fetchone(
-                "SELECT rollback_sql FROM schema_migrations WHERE version = :version",
-                {"version": MIGRATION_VERSION},
-            )
-
-            if not result or not result["rollback_sql"]:
-                logger.error("No rollback SQL found for migration")
-                return False
-
-            rollback_sql = result["rollback_sql"]
-
-            # Execute rollback statements
-            for statement in rollback_sql.split(";"):
-                statement = statement.strip()
-                if statement:
-                    try:
-                        await session.execute(statement)
-                        logger.info(f"Executed rollback: {statement}")
-                    except Exception as e:
-                        logger.warning(
-                            f"Rollback statement failed (may be expected): {statement} - {e}"
-                        )
-
-            # Remove migration record
-            await session.delete("schema_migrations", {"version": MIGRATION_VERSION})
-            await session.commit()
-
-        logger.info(f"Migration {MIGRATION_VERSION} rolled back successfully")
-        return True
-
-    except Exception as e:
-        logger.error(f"Rollback failed: {e}")
-        return False
-
-
-async def verify_migration() -> bool:
-    """Verify that the migration was applied correctly."""
-    try:
-        logger.info("Verifying migration...")
-
-        # Check that all tables exist
-        for table_name in NEW_TABLES.keys():
-            async with database_manager.get_session() as session:
-                if database_manager.config.db_type == "sqlite":
-                    check_query = "SELECT name FROM sqlite_master WHERE type='table' AND name=:name"
-                else:
-                    check_query = "SELECT table_name FROM information_schema.tables WHERE table_name = :name"
-
-                result = await session.fetchone(check_query, {"name": table_name})
-                if not result:
-                    logger.error(f"Table {table_name} not found after migration")
-                    return False
-
-        # Check that indexes exist
-        for table_name, indexes in INDEXES.items():
-            for index_name, _, *_ in indexes:
-                async with database_manager.get_session() as session:
-                    try:
-                        if database_manager.config.db_type == "sqlite":
-                            check_query = "SELECT name FROM sqlite_master WHERE type='index' AND name=:name"
-                        else:
-                            check_query = "SELECT indexname FROM pg_indexes WHERE indexname = :name"
-
-                        result = await session.fetchone(
-                            check_query, {"name": index_name}
-                        )
-                        if not result:
-                            logger.warning(
-                                f"Index {index_name} not found (may not be supported)"
-                            )
-                    except Exception as e:
-                        logger.warning(f"Could not verify index {index_name}: {e}")
-
-        # Verify migration is recorded
-        if not await is_migration_applied(MIGRATION_VERSION):
-            logger.error("Migration not recorded in schema_migrations table")
-            return False
-
-        logger.info("Migration verification completed successfully")
-        return True
-
-    except Exception as e:
-        logger.error(f"Migration verification failed: {e}")
-        return False
+    async def down(self):
+        await super().down()
 
 
 # CLI interface functions
@@ -489,15 +249,16 @@ async def main():
         sys.exit(1)
 
     command = sys.argv[1].lower()
+    migration = AddNewSchemasMigration()
 
     if command == "up":
-        success = await run_migration()
+        success = await migration.up()
         sys.exit(0 if success else 1)
     elif command == "down":
-        success = await rollback_migration()
+        success = await migration.down()
         sys.exit(0 if success else 1)
     elif command == "verify":
-        success = await verify_migration()
+        success = await migration.verify()
         sys.exit(0 if success else 1)
     else:
         print("Invalid command. Use: up, down, or verify")
