@@ -1,6 +1,8 @@
 from fastapi import HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 
+from .base import PlexiChatErrorCode, create_error_response
+
 # Try to import settings with fallback
 try:
     from .config import settings  # type: ignore
@@ -49,22 +51,20 @@ async def not_found_handler(request: Request, exc: HTTPException):
         """
         return HTMLResponse(content=html_content, status_code=404)
 
+    # Use base create_error_response for JSON
     return JSONResponse(
         status_code=404,
-        content={
-            "error": "Not Found",
-            "message": "The requested resource was not found",
-            "path": str(request.url.path),
-        },
+        content=create_error_response(
+            PlexiChatErrorCode.FILE_NOT_FOUND,
+            details={"path": str(request.url.path)}
+        ),
     )
 
 
 async def internal_error_handler(request: Request, exc: Exception):
     """Handle 500 errors."""
+    # Use base create_error_response for consistent error handling
     return JSONResponse(
         status_code=500,
-        content={
-            "error": "Internal Server Error",
-            "message": "An internal server error occurred",
-        },
+        content=create_error_response(PlexiChatErrorCode.SYSTEM_INTERNAL_ERROR),
     )
