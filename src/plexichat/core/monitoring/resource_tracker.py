@@ -14,6 +14,7 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Tuple
 
 from plexichat.core.database.manager import database_manager
+
 from .base_monitor import MonitorBase
 
 logger = logging.getLogger(__name__)

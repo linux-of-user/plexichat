@@ -14,7 +14,8 @@ from typing import Any, Dict, List, Optional
 import psutil
 
 from plexichat.core.database.manager import database_manager
-from .base_monitor import MonitorBase, MetricData
+
+from .base_monitor import MetricData, MonitorBase
 
 logger = logging.getLogger(__name__)
 
@@ -89,35 +90,12 @@ class MetricsCollector(MonitorBase):
 
     # _collect_metrics overridden above
 
-        # Memory metrics
-        if self.config.memory_enabled:
-            await self._collect_memory_metrics(timestamp)
-
-        # Disk metrics
-        if self.config.disk_enabled:
-            await self._collect_disk_metrics(timestamp)
-
-        # Network metrics
-        if self.config.network_enabled:
-            await self._collect_network_metrics(timestamp)
-
-        # Process metrics
-        if self.config.process_enabled:
-            await self._collect_process_metrics(timestamp)
-
     async def _collect_cpu_metrics(self, timestamp: datetime):
         """Collect CPU usage metrics."""
         try:
             # Overall CPU usage
             cpu_percent = psutil.cpu_percent(interval=1)
             self.record_metric(
-                "cpu_usage_percent", cpu_percent, "percent", {"type": "overall"}
-            )
-        """Collect CPU usage metrics."""
-        try:
-            # Overall CPU usage
-            cpu_percent = psutil.cpu_percent(interval=1)
-            record_metric(
                 "cpu_usage_percent", cpu_percent, "percent", {"type": "overall"}
             )
 
@@ -146,11 +124,15 @@ class MetricsCollector(MonitorBase):
 
             # CPU times
             cpu_times = psutil.cpu_times()
-            self.record_metric("cpu_time_user", cpu_times.user, "seconds", {"type": "user"})
+            self.record_metric(
+                "cpu_time_user", cpu_times.user, "seconds", {"type": "user"}
+            )
             self.record_metric(
                 "cpu_time_system", cpu_times.system, "seconds", {"type": "system"}
             )
-            self.record_metric("cpu_time_idle", cpu_times.idle, "seconds", {"type": "idle"})
+            self.record_metric(
+                "cpu_time_idle", cpu_times.idle, "seconds", {"type": "idle"}
+            )
 
         except Exception as e:
             logger.error(f"Failed to collect CPU metrics: {e}")
@@ -169,18 +151,26 @@ class MetricsCollector(MonitorBase):
                 "bytes",
                 {"type": "available"},
             )
-            self.record_metric("memory_used_bytes", memory.used, "bytes", {"type": "used"})
+            self.record_metric(
+                "memory_used_bytes", memory.used, "bytes", {"type": "used"}
+            )
             self.record_metric(
                 "memory_percent", memory.percent, "percent", {"type": "usage"}
             )
-            self.record_metric("memory_free_bytes", memory.free, "bytes", {"type": "free"})
+            self.record_metric(
+                "memory_free_bytes", memory.free, "bytes", {"type": "free"}
+            )
 
             # Swap memory
             swap = psutil.swap_memory()
-            self.record_metric("swap_total_bytes", swap.total, "bytes", {"type": "total"})
+            self.record_metric(
+                "swap_total_bytes", swap.total, "bytes", {"type": "total"}
+            )
             self.record_metric("swap_used_bytes", swap.used, "bytes", {"type": "used"})
             self.record_metric("swap_free_bytes", swap.free, "bytes", {"type": "free"})
-            self.record_metric("swap_percent", swap.percent, "percent", {"type": "usage"})
+            self.record_metric(
+                "swap_percent", swap.percent, "percent", {"type": "usage"}
+            )
 
         except Exception as e:
             logger.error(f"Failed to collect memory metrics: {e}")
@@ -264,14 +254,22 @@ class MetricsCollector(MonitorBase):
         try:
             # Process count
             process_count = len(psutil.pids())
-            self.record_metric("process_count", process_count, "count", {"type": "total"})
+            self.record_metric(
+                "process_count", process_count, "count", {"type": "total"}
+            )
 
             # System load (if available)
             try:
                 load_avg = psutil.getloadavg()
-                self.record_metric("system_load_1m", load_avg[0], "load", {"period": "1m"})
-                self.record_metric("system_load_5m", load_avg[1], "load", {"period": "5m"})
-                self.record_metric("system_load_15m", load_avg[2], "load", {"period": "15m"})
+                self.record_metric(
+                    "system_load_1m", load_avg[0], "load", {"period": "1m"}
+                )
+                self.record_metric(
+                    "system_load_5m", load_avg[1], "load", {"period": "5m"}
+                )
+                self.record_metric(
+                    "system_load_15m", load_avg[2], "load", {"period": "15m"}
+                )
             except AttributeError:
                 # getloadavg not available on Windows
                 pass

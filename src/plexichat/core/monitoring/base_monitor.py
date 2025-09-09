@@ -4,6 +4,7 @@ Base Monitor Class for Shared Monitoring Logic
 Provides common functionality for monitoring components including
 collection loops, alert checking, and database persistence.
 """
+
 import asyncio
 import logging
 from abc import ABC, abstractmethod
@@ -18,6 +19,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class AlertRule:
     """Alert rule configuration."""
+
     name: str
     metric: str
     threshold: float
@@ -45,6 +47,7 @@ class AlertRule:
 @dataclass
 class MetricData:
     """Metric data structure."""
+
     name: str
     value: float
     unit: str
@@ -55,7 +58,9 @@ class MetricData:
 class MonitorBase(ABC):
     """Base class for all monitoring components with shared functionality."""
 
-    def __init__(self, interval_seconds: int = 60, config: Optional[Dict[str, Any]] = None):
+    def __init__(
+        self, interval_seconds: int = 60, config: Optional[Dict[str, Any]] = None
+    ):
         self.interval_seconds = interval_seconds
         self.config = config or {}
         self.running = False
@@ -193,7 +198,9 @@ class MonitorBase(ABC):
         # Save alert to database asynchronously
         asyncio.create_task(self._save_alert_to_db(rule, metric, message))
 
-    async def _save_alert_to_db(self, rule: AlertRule, metric: MetricData, message: str):
+    async def _save_alert_to_db(
+        self, rule: AlertRule, metric: MetricData, message: str
+    ):
         """Save an alert to the database."""
         try:
             data = {
@@ -220,7 +227,13 @@ class MonitorBase(ABC):
         except Exception as e:
             logger.error(f"Failed to save alert to database: {e}")
 
-    def record_metric(self, name: str, value: float, unit: str = "", tags: Optional[Dict[str, str]] = None):
+    def record_metric(
+        self,
+        name: str,
+        value: float,
+        unit: str = "",
+        tags: Optional[Dict[str, str]] = None,
+    ):
         """Record a metric value."""
         metric = MetricData(name=name, value=value, unit=unit, tags=tags or {})
 
@@ -239,7 +252,9 @@ class MonitorBase(ABC):
         # Check alert rules
         self._check_alerts(metric)
 
-    def get_metrics(self, name: str, since: Optional[datetime] = None) -> List[MetricData]:
+    def get_metrics(
+        self, name: str, since: Optional[datetime] = None
+    ) -> List[MetricData]:
         """Get metrics by name."""
         if name not in self.metrics:
             return []
@@ -276,10 +291,13 @@ class MonitorBase(ABC):
             "total_metrics": sum(len(metrics) for metrics in self.metrics.values()),
             "metric_types": len(self.metrics),
             "alert_rules": len(self.alert_rules),
-            "recent_alerts": len([
-                alert_time for alert_time in self.last_alerts.values()
-                if datetime.now() - alert_time < timedelta(hours=1)
-            ]),
+            "recent_alerts": len(
+                [
+                    alert_time
+                    for alert_time in self.last_alerts.values()
+                    if datetime.now() - alert_time < timedelta(hours=1)
+                ]
+            ),
         }
 
         return status
