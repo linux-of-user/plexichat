@@ -1,12 +1,14 @@
 """Core performance module with fallback implementations."""
-__version__ = "0.0.0"
+try:
+    from plexichat.core.utils.fallbacks import (
+        PerformanceMonitor, measure_performance, get_fallback_instance,
+        get_module_version
+    )
+except ImportError:
+    # Retain old fallbacks
+    pass
+
+__version__ = get_module_version()
 __all__ = ["PerformanceMonitor", "performance_monitor", "measure_performance"]
 
-class PerformanceMonitor:
-    def __init__(self):
-        pass
-
-performance_monitor = None
-
-def measure_performance(*args, **kwargs):
-    pass
+performance_monitor = get_fallback_instance('PerformanceMonitor')

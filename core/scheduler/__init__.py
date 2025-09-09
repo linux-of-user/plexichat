@@ -1,28 +1,14 @@
 """Core scheduler module with fallback implementations."""
-__version__ = "0.0.0"
+try:
+    from plexichat.core.utils.fallbacks import (
+        TaskScheduler, ScheduledTask, TaskStatus, TaskType,
+        schedule_once, schedule_recurring, get_fallback_instance, get_module_version
+    )
+except ImportError:
+    # Retain old fallbacks
+    pass
+
+__version__ = get_module_version()
 __all__ = ["TaskScheduler", "ScheduledTask", "TaskStatus", "TaskType", "task_scheduler", "schedule_once"]
 
-class TaskScheduler:
-    def __init__(self):
-        pass
-
-class ScheduledTask:
-    def __init__(self, **kwargs):
-        self.__dict__.update(kwargs)
-
-class TaskStatus:
-    PENDING = 1
-    RUNNING = 2
-    COMPLETED = 3
-
-class TaskType:
-    ONE_TIME = 1
-    RECURRING = 2
-
-task_scheduler = None
-
-def schedule_once(*args, **kwargs):
-    pass
-
-def schedule_recurring(*args, **kwargs):
-    pass
+task_scheduler = get_fallback_instance('TaskScheduler')

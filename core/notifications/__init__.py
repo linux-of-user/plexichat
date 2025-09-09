@@ -1,29 +1,14 @@
 """Core notifications module with fallback implementations."""
-__version__ = "0.0.0"
+try:
+    from plexichat.core.utils.fallbacks import (
+        NotificationManager, Notification, NotificationType, NotificationPriority,
+        send_notification, get_notifications, get_fallback_instance, get_module_version
+    )
+except ImportError:
+    # Retain old fallbacks
+    pass
+
+__version__ = get_module_version()
 __all__ = ["NotificationManager", "Notification", "NotificationType", "NotificationPriority", "notification_manager", "send_notification"]
 
-class NotificationManager:
-    def __init__(self):
-        pass
-
-class Notification:
-    def __init__(self, **kwargs):
-        self.__dict__.update(kwargs)
-
-class NotificationType:
-    EMAIL = 1
-    SMS = 2
-    PUSH = 3
-
-class NotificationPriority:
-    LOW = 1
-    MEDIUM = 2
-    HIGH = 3
-
-notification_manager = None
-
-def send_notification(*args, **kwargs):
-    pass
-
-def get_notifications(*args, **kwargs):
-    pass
+notification_manager = get_fallback_instance('NotificationManager')

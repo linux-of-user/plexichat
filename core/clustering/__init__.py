@@ -1,7 +1,9 @@
 """Core clustering module with fallback implementations."""
-__version__ = "0.0.0"
-__all__ = ["ClusterManager"]
+try:
+    from plexichat.core.utils.fallbacks import ClusterManager, get_module_version
+except ImportError:
+    # Retain old fallbacks
+    pass
 
-class ClusterManager:
-    def __init__(self):
-        pass
+__version__ = get_module_version()
+__all__ = ["ClusterManager"]

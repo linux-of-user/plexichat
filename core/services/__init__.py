@@ -1,10 +1,9 @@
 """Core services module with fallback implementations."""
-__version__ = "0.0.0"
-__all__ = ["ServiceManager", "get_service_manager"]
-
-class ServiceManager:
-    def __init__(self):
-        pass
-
-def get_service_manager(*args, **kwargs):
+try:
+    from plexichat.core.utils.fallbacks import ServiceManager, get_service_manager, get_module_version
+except ImportError:
+    # Retain old fallbacks
     pass
+
+__version__ = get_module_version()
+__all__ = ["ServiceManager", "get_service_manager"]

@@ -1,15 +1,14 @@
 """Core security module with fallback implementations."""
-__version__ = "0.0.0"
+try:
+    from plexichat.core.utils.fallbacks import (
+        SecurityManager, authenticate_user, validate_token, get_fallback_instance,
+        get_module_version
+    )
+except ImportError:
+    # Retain old fallbacks
+    pass
+
+__version__ = get_module_version()
 __all__ = ["SecurityManager", "security_manager", "authenticate_user", "validate_token"]
 
-class SecurityManager:
-    def __init__(self):
-        pass
-
-security_manager = None
-
-def authenticate_user(*args, **kwargs):
-    pass
-
-def validate_token(*args, **kwargs):
-    pass
+security_manager = get_fallback_instance('SecurityManager')

@@ -1,7 +1,9 @@
 """Core versioning module with fallback implementations."""
-__version__ = "0.0.0"
-__all__ = ["VersionManager"]
+try:
+    from plexichat.core.utils.fallbacks import VersionManager, get_module_version
+except ImportError:
+    # Retain old fallbacks
+    pass
 
-class VersionManager:
-    def __init__(self):
-        pass
+__version__ = get_module_version()
+__all__ = ["VersionManager"]
