@@ -17,7 +17,47 @@ import threading
 from collections import defaultdict, deque
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional, Union
+
+# PII Redaction patterns and fields from pii_redaction.py
+PII_PATTERNS = {
+    "email": re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"),
+    "phone": re.compile(r"\b\d{3}[-.]?\d{3}[-.]?\d{4}\b"),
+    "ssn": re.compile(r"\b\d{3}[-]?\d{2}[-]?\d{4}\b"),
+    "credit_card": re.compile(r"\b\d{4}[- ]?\d{4}[- ]?\d{4}[- ]?\d{4}\b"),
+    "ip_address": re.compile(r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b"),
+    "api_key": re.compile(r"\b[A-Za-z0-9]{32,}\b"),
+    "password": re.compile(
+        r'(?i)(password|passwd|pwd)[\'"]?\s*[:=]\s*[\'"]([^\'"]+)[\'"]'
+    ),
+    "token": re.compile(r"\b[A-Za-z0-9+/=]{20,}\b"),
+}
+
+SENSITIVE_FIELDS = {
+    "password",
+    "passwd",
+    "pwd",
+    "token",
+    "key",
+    "secret",
+    "private_key",
+    "access_token",
+    "refresh_token",
+    "auth_token",
+    "api_key",
+    "api_secret",
+    "database_url",
+    "db_url",
+    "connection_string",
+    "credit_card",
+    "cc_number",
+    "ssn",
+    "social_security",
+    "phone",
+    "email",
+    "ip_address",
+    "user_agent",
+}
 
 
 class DeduplicationFilter(logging.Filter):
@@ -242,6 +282,155 @@ class UnifiedLogger:
 
         # Plugin loggers cache
         self.plugin_loggers: Dict[str, logging.LoggerAdapter] = {}
+
+def redact_pii(
+    data: Union[str, Dict, List, Any], max_length: int = 1000
+) -> Union[str, Dict, List, Any]:
+    """
+    Redact personally identifiable information from data.
+    """
+    if isinstance(data, str):
+        return _redact_string(data, max_length)
+    elif isinstance(data, dict):
+        return _redact_dict(data)
+    elif isinstance(data, list):
+        return _redact_list(data)
+    else:
+        str_data = str(data)
+        if len(str_data) > max_length:
+            return f"[DATA_REDACTED_{len(str_data)}chars]"
+        return _redact_string(str_data, max_length)
+
+def _redact_string(text: str, max_length: int = 1000) -> str:
+    if not text:
+        return text
+    if len(text) > max_length:
+        return f"[DATA_REDACTED_{len(text)}chars]"
+    redacted = text
+    for pattern_name, pattern in PII_PATTERNS.items():
+        redacted = pattern.sub("[REDACTED]", redacted)
+    for field in SENSITIVE_FIELDS:
+        field_pattern = re.compile(rf"(?i){re.escape(field)}\s*[:=]\s*([^\s,;\n]+)")
+        redacted = field_pattern.sub(f"{field}: [REDACTED]", redacted)
+    return redacted
+
+def _redact_dict(data: Dict[str, Any]) -> Dict[str, Any]:
+    redacted = {}
+    for key, value in data.items():
+        key_lower = str(key).lower()
+        if any(sensitive in key_lower for sensitive in SENSITIVE_FIELDS):
+            redacted[key] = "[REDACTED]"
+        else:
+            redacted[key] = redact_pii(value)
+    return redacted
+
+def _redact_list(data: List[Any]) -> List[Any]:
+    return [redact_pii(item) for item in data]
+
+def sanitize_for_logging(text: Union[str, Any]) -> str:
+    """
+    Sanitize text for logging to ensure it's unicode-free and safe for Windows console output.
+    """
+    if not isinstance(text, str):
+        text = str(text)
+    replacements = {
+        "\U0001f510": "[LOCK]",
+        "\U0001f512": "[LOCK]",
+        "\U0001f513": "[UNLOCK]",
+        "\U0001f4a5": "[BOOM]",
+        "\U0001f525": "[FIRE]",
+        "\U0001f680": "[ROCKET]",
+        "\U0001f44d": "[THUMBSUP]",
+        "\U0001f44e": "[THUMBSDOWN]",
+        "\U00002705": "[CHECK]",
+        "\U0000274c": "[CROSS]",
+        "\U000026a0": "[WARNING]",
+        "\U0001f6a8": "[ALERT]",
+        "\u2713": "[OK]",
+        "\u2717": "[X]",
+        "\u2192": "->",
+        "\u2190": "<-",
+        "\u25b6": "[PLAY]",
+        "\u25b7": "[PAUSE]",
+        "\u23f8": "[STOP]",
+        "\u2026": "...",
+        "\u2013": "-",
+        "\u2014": "--",
+        "\u2018": "'",
+        "\u2019": "'",
+        "\u201c": '"',
+        "\u201d": '"',
+    }
+    for unicode_char, replacement in replacements.items():
+        text = text.replace(unicode_char, replacement)
+    try:
+        encoded = text.encode("latin-1", errors="ignore")
+        text = encoded.decode("latin-1")
+    except (UnicodeEncodeError, UnicodeDecodeError):
+        text = re.sub(r"[^\x00-\x7F]+", "[UNICODE]", text)
+    return text
+
+def sanitize_log_message(message: str, *args, **kwargs) -> tuple:
+    """
+    Sanitize a log message and its arguments for safe output.
+    """
+    sanitized_message = sanitize_for_logging(message)
+    sanitized_args = tuple(sanitize_for_logging(arg) for arg in args)
+    sanitized_kwargs = {}
+    for key, value in kwargs.items():
+        if isinstance(value, str):
+            sanitized_kwargs[key] = sanitize_for_logging(value)
+        else:
+            sanitized_kwargs[key] = value
+    return sanitized_message, sanitized_args, sanitized_kwargs
+
+class ColoredFormatter(logging.Formatter):
+    """Colored log formatter for console output."""
+    COLORS = {
+        logging.DEBUG: "\033[36m",  # Cyan
+        logging.INFO: "\033[32m",  # Green
+        logging.WARNING: "\033[33m",  # Yellow
+        logging.ERROR: "\033[31m",  # Red
+        logging.CRITICAL: "\033[35m",  # Magenta
+    }
+    RESET = "\033[0m"
+
+    def format(self, record):
+        message = super().format(record)
+        if hasattr(record, "levelno") and record.levelno in self.COLORS:
+            color = self.COLORS[record.levelno]
+            level_start = message.find(f"[{record.levelname}")
+            if level_start != -1:
+                level_end = message.find("]", level_start) + 1
+                if level_end > level_start:
+                    colored_level = f"{color}{message[level_start:level_end]}{self.RESET}"
+                    message = message[:level_start] + colored_level + message[level_end:]
+        return message
+
+class StructuredFormatter(logging.Formatter):
+    """JSON structured log formatter."""
+    import json
+    from datetime import datetime
+
+    def format(self, record):
+        log_entry = {
+            "timestamp": datetime.fromtimestamp(record.created).isoformat(),
+            "level": record.levelname,
+            "logger": record.name,
+            "message": record.getMessage(),
+            "module": record.module,
+            "function": record.funcName,
+            "line": record.lineno,
+        }
+        if hasattr(record, "context"):
+            context = getattr(record, "context", None)
+            if context:
+                log_entry["context"] = context
+        if hasattr(record, "category"):
+            log_entry["category"] = getattr(record, "category", None)
+        if hasattr(record, "extra_data"):
+            log_entry["extra"] = getattr(record, "extra_data", None)
+        return self.json.dumps(log_entry)
 
     @classmethod
     def get_instance(cls) -> "UnifiedLogger":
