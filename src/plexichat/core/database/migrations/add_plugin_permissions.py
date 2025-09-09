@@ -15,7 +15,7 @@ Created: 2024-01-01
 import asyncio
 import logging
 from datetime import datetime
-from typing import Dict, List, Optional, Any, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 from .base import Migration
@@ -30,6 +30,7 @@ class AddPluginPermissionsMigration(Migration):
         tables = {}
         # plugin_permissions from model
         plugin_permissions_schema = PLUGIN_PERMISSIONS_SCHEMA
+
         def convert_schema(schema_dict: Dict[str, str]) -> Dict[str, Any]:
             columns = []
             unique_constraints = []
@@ -45,6 +46,7 @@ class AddPluginPermissionsMigration(Migration):
                         default = parts[default_idx + 1].strip("'\"")
                 columns.append((col, col_type, nullable, default, pk))
             return {"columns": columns, "unique_constraints": unique_constraints}
+
         tables["plugin_permissions"] = convert_schema(plugin_permissions_schema)
         # client_settings from model
         tables["client_settings"] = convert_schema(CLIENT_SETTINGS_SCHEMA)
@@ -64,7 +66,7 @@ class AddPluginPermissionsMigration(Migration):
                 ("resolved_at", "TIMESTAMP", True, None, False),
                 ("created_at", "TIMESTAMP", False, "CURRENT_TIMESTAMP", False),
             ],
-            "unique_constraints": [["event_id"]]
+            "unique_constraints": [["event_id"]],
         }
         # plugin_settings
         tables["plugin_settings"] = {
@@ -85,7 +87,7 @@ class AddPluginPermissionsMigration(Migration):
                 ("created_at", "TIMESTAMP", False, "CURRENT_TIMESTAMP", False),
                 ("updated_at", "TIMESTAMP", False, "CURRENT_TIMESTAMP", False),
             ],
-            "unique_constraints": [["plugin_name"]]
+            "unique_constraints": [["plugin_name"]],
         }
         # plugin_approved_modules
         tables["plugin_approved_modules"] = {
@@ -99,7 +101,7 @@ class AddPluginPermissionsMigration(Migration):
                 ("is_active", "BOOLEAN", True, "TRUE", False),
                 ("created_at", "TIMESTAMP", False, "CURRENT_TIMESTAMP", False),
             ],
-            "unique_constraints": [["plugin_name", "module_name"]]
+            "unique_constraints": [["plugin_name", "module_name"]],
         }
         return tables
 

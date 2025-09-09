@@ -17,6 +17,7 @@ from plexichat.core.database.models import (
     CLUSTER_NODES_SCHEMA,
     PLUGIN_PERMISSIONS_SCHEMA,
 )
+
 from .base import Migration
 
 logger = logging.getLogger(__name__)
@@ -157,8 +158,6 @@ CHECK_CONSTRAINTS = {
 }
 
 
-
-
 async def create_migration_tracking_table():
     """Create table to track applied migrations."""
     migration_schema = {
@@ -188,10 +187,6 @@ async def create_migration_tracking_table():
             logger.warning(f"Could not create migration index: {e}")
 
 
-
-
-
-
 class AddNewSchemasMigration(Migration):
     MIGRATION_VERSION = "001_add_new_schemas"
     MIGRATION_DESCRIPTION = "Add client settings, plugin permissions, cluster nodes, and backup metadata schemas"
@@ -212,7 +207,9 @@ class AddNewSchemasMigration(Migration):
                         default = parts[default_idx + 1].strip("'\"")
                 columns.append((col, col_type, nullable, default, pk))
             # Add unique constraints from INDEXES where unique=True
-            table_name = list(NEW_TABLES.keys())[list(NEW_TABLES.values()).index(schema_dict)]
+            table_name = list(NEW_TABLES.keys())[
+                list(NEW_TABLES.values()).index(schema_dict)
+            ]
             for idx_name, cols, is_unique in INDEXES.get(table_name, []):
                 if is_unique:
                     unique_constraints.append(cols)

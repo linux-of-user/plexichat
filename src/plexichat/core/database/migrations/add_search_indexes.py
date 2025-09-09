@@ -8,6 +8,7 @@ import logging
 from typing import Dict, List, Tuple
 
 from plexichat.core.database.manager import database_manager
+
 from .base import Migration
 
 logger = logging.getLogger(__name__)
@@ -75,13 +76,14 @@ class AddSearchIndexesMigration(Migration):
 async def main():
     """CLI entry point for the migration."""
     import sys
+
     if len(sys.argv) < 2:
         print("Usage: python add_search_indexes.py [up|down|verify]")
         sys.exit(1)
-    
+
     action = sys.argv[1]
     migration = AddSearchIndexesMigration()
-    
+
     if action == "up":
         await migration.up()
     elif action == "down":
