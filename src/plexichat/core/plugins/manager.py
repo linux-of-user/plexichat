@@ -258,7 +258,12 @@ class EnhancedPluginConfig:
 class EnhancedPluginLogger:
     def __init__(self, plugin_name: str):
         self.plugin_name = plugin_name
-        self.logger = get_logger(f"plugin.{plugin_name}")
+        try:
+            from plexichat.core.logging.unified_logger import get_plugin_logger as _gpl
+            self.logger = _gpl(plugin_name)
+        except Exception:
+            from plexichat.core.logging import get_logger as _gl
+            self.logger = _gl(f"plugin.{plugin_name}")
         self._performance_metrics = {}
     def info(self, message: str, **kwargs):
         self.logger.info(f"[{self.plugin_name}] {message}", **kwargs)

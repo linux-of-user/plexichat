@@ -189,16 +189,12 @@ class UnifiedLogger:
         self.console_handler.setLevel(logging.INFO)
         self.root_logger.addHandler(self.console_handler)
 
-        # Setup main rotating file handler
+        # Setup main file handler (latest.txt). Rotation handled by run.py on startup.
         log_dir = Path("logs")
         log_dir.mkdir(exist_ok=True)
-        main_log_file = log_dir / "plexichat.log"
+        main_log_file = log_dir / "latest.txt"
 
-        self.main_file_handler = logging.handlers.RotatingFileHandler(
-            str(main_log_file),
-            maxBytes=10*1024*1024,  # 10MB
-            backupCount=5
-        )
+        self.main_file_handler = logging.FileHandler(str(main_log_file), encoding='utf-8')
         self.main_file_handler.setLevel(logging.DEBUG)
         self.main_file_handler.setFormatter(logging.Formatter(
             '[%(asctime)s] [%(levelname)-8s] [%(name)s:%(lineno)d] %(funcName)s() - %(message)s'
@@ -212,6 +208,18 @@ class UnifiedLogger:
         # Deduplication filter
         self.dedup_filter = DeduplicationFilter()
         self.root_logger.addFilter(self.dedup_filter)
+
+        # Filter to suppress stack traces unless DEBUG level
+        class StackTraceFilter(logging.Filter):
+            def filter(self, record: logging.LogRecord) -> bool:
+                try:
+                    if hasattr(record, 'exc_info') and record.exc_info and record.levelno > logging.DEBUG:
+                        record.exc_info = None
+                except Exception:
+                    pass
+                return True
+        self.stacktrace_filter = StackTraceFilter()
+        self.root_logger.addFilter(self.stacktrace_filter)
 
         # Plugin loggers cache
         self.plugin_loggers: Dict[str, logging.LoggerAdapter] = {}

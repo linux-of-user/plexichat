@@ -67,6 +67,19 @@ class QuantumSecureCache:
                  max_size: int = 1024 * 1024 * 100,
                  default_ttl: int = 3600,
                  security_level: CacheLevel = CacheLevel.RESTRICTED):
+        # Read from config if available
+        try:
+            from plexichat.core.config_manager import get_config
+            cc = get_config("caching", None)
+            if cc is not None:
+                max_size = int(getattr(cc, "l1_max_size_mb", 100)) * 1024 * 1024
+                default_ttl = int(getattr(cc, "l1_default_ttl_seconds", 3600))
+                sl = str(getattr(cc, "l1_default_security_level", "RESTRICTED")).upper()
+                if sl in CacheLevel.__members__:
+                    security_level = CacheLevel[sl]
+                self.compression_enabled = bool(getattr(cc, "l1_compression_enabled", True))
+        except Exception:
+            pass
         self.max_size = max_size
         self.default_ttl = default_ttl
         self.default_security_level = security_level
@@ -75,7 +88,9 @@ class QuantumSecureCache:
         self.access_frequency: Dict[str, int] = {}
         self.stats = CacheStats()
         self.eviction_strategy = CacheStrategy.ADAPTIVE
-        self.compression_enabled = True
+        # compression_enabled may be set above; default True if not set
+        if not hasattr(self, 'compression_enabled'):
+            self.compression_enabled = True
         self.encryption_cache_keys: Dict[str, bytes] = {}
         self.performance_metrics: List[Dict[str, Any]] = []
         self._initialized = False

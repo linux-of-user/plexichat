@@ -35,13 +35,11 @@ from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.responses import Response
+from plexichat.core.security.security_manager import get_security_system, SecurityPolicy, AuthenticationMethod
+from plexichat.core.security.security_context import security_context
+
 import re
 
-try:
-    from plexichat.infrastructure.utils.rate_limiting import rate_limiter
-except ImportError:
-    rate_limiter = None
 import base64
 import time
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
@@ -58,6 +56,27 @@ SECURITY_HEADERS = {
     "Cache-Control": "no-store, no-cache, must-revalidate, private",
     "Pragma": "no-cache"
 }
+
+# Define the security policy for the setup process
+setup_policy = SecurityPolicy(
+    name="setup-policy",
+    description="Security policy for the initial setup process.",
+    min_security_level="PUBLIC",
+    required_auth_methods=[],
+    rate_limit_requests_per_minute=30  # Allow a reasonable rate for setup
+)
+
+# Get the security system and register the policy
+security_system = get_security_system()
+security_system.register_policy(setup_policy)
+
+# Middleware to apply security context
+@router.middleware("http")
+async def apply_setup_security_context(request: Request, call_next):
+    with security_context(policy_name="setup-policy"):
+        response = await call_next(request)
+        return response
+
 
 # Middleware to add security headers to all responses
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
@@ -101,57 +120,9 @@ templates = Jinja2Templates(directory="plexichat/interfaces/web/templates")
 
 security = HTTPBearer()
 
-def verify_admin_session(token: str) -> bool:
-    try:
-        return True
-    except Exception:
-        return False
 
-async def verify_admin_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
-    try:
-        token = credentials.credentials
-        if not token or not verify_admin_session(token):
-            raise HTTPException(status_code=401, detail="Admin authentication required")
-        return token
-    except Exception as e:
-        logger.error(f"Token verification failed: {e}")
-        raise HTTPException(status_code=401, detail="Invalid authentication")
 
-# User rank-based rate limits (example values)
-USER_RANK_LIMITS = {
-    'admin': {'max_attempts': 500, 'window': 1},
-    'moderator': {'max_attempts': 200, 'window': 1},
-    'user': {'max_attempts': 100, 'window': 1},
-    'guest': {'max_attempts': 20, 'window': 1},
-}
 
-def get_user_rank(user: Optional[dict[str, Any]]) -> str:
-    # Example: extract rank from user dict, default to 'user'
-    if not user:
-        return 'guest'
-    return user.get('role', 'user')
-
-async def enforce_rate_limits(request: Request, user: Optional[dict[str, Any]] = None):
-    # --- Global adaptive rate limiting ---
-    stats = rate_limiter.get_stats()
-    total_attempts = stats.get('total_attempts', 0)
-    global_limit = 100
-    if total_attempts > 10000:
-        global_limit = 50
-    elif total_attempts > 5000:
-        global_limit = 75
-    if not rate_limiter.check_rate_limit("global", global_limit, 1, "sliding_window"):
-        raise HTTPException(status_code=429, detail="Global rate limit exceeded. Please try again later.")
-    rate_limiter.record_attempt("global")
-
-    # --- Per-user rate limiting based on rank ---
-    user_rank = get_user_rank(user)
-    limits = USER_RANK_LIMITS.get(user_rank, USER_RANK_LIMITS['user'])
-    user_id = user.get('username', 'guest') if user else getattr(request.client, 'host', 'unknown')
-    key = f"user:{user_id}"
-    if not rate_limiter.check_rate_limit(key, limits['max_attempts'], limits['window'], "sliding_window"):
-        raise HTTPException(status_code=429, detail=f"Rate limit exceeded for your account ({user_rank}). Please try again later.")
-    rate_limiter.record_attempt(key)
 
 # --- MITM-resistant time-based encryption utilities ---
 # Reference: security.txt - Perfect Forward Secrecy, Key Rotation
@@ -203,25 +174,10 @@ async def secure_admin_endpoint(
     # Process decrypted_body as needed
     return encrypt_payload(b"Operation successful.")
 
-# --- Global adaptive rate limiting dependency ---
-async def enforce_global_rate_limit(request: Request):
-    from plexichat.infrastructure.utils.rate_limiting import rate_limiter
-    stats = rate_limiter.get_stats()
-    total_attempts = stats.get('total_attempts', 0)
-    global_limit = 100
-    if total_attempts > 10000:
-        global_limit = 50
-    elif total_attempts > 5000:
-        global_limit = 75
-    if not rate_limiter.check_rate_limit("global", global_limit, 1, "sliding_window"):
-        raise HTTPException(status_code=429, detail="Global rate limit exceeded. Please try again later.")
-    rate_limiter.record_attempt("global")
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3MiOiJtIn0.OWhyYWZCEpSQIwBJcJdIGkQP954WzuQcSlLLCabhYKU
 
-# Reference: security.txt - Threat Detection & Response
-
-# Apply to all endpoints
-@router.get("/", response_class=HTMLResponse)
-async def setup_home(request: Request, token: str = Depends(verify_admin_token), _: None = Depends(enforce_global_rate_limit)):
+# Apply to all endpoints@router.get("/", response_class=HTMLResponse)
+async def setup_home(request: Request):
     try:
         if is_setup_completed():
             return RedirectResponse(url="/", status_code=302)
@@ -236,7 +192,7 @@ async def setup_home(request: Request, token: str = Depends(verify_admin_token),
         raise HTTPException(status_code=500, detail="Setup page error")
 
 @router.get("/database", response_class=HTMLResponse)
-async def setup_database_page(request: Request, token: str = Depends(verify_admin_token), _: None = Depends(enforce_global_rate_limit)):
+async def setup_database_page(request: Request):
     try:
         return templates.TemplateResponse("setup/database.html", {
             "request": request,
@@ -256,8 +212,7 @@ async def setup_database(
     db_port: Optional[int] = Form(None),
     db_name: Optional[str] = Form(None),
     db_username: Optional[str] = Form(None),
-    db_password: Optional[str] = Form(None),
-    _: None = Depends(enforce_global_rate_limit)
+    db_password: Optional[str] = Form(None)
 ):
     try:
         config_path = get_config_path()
@@ -292,7 +247,7 @@ async def setup_database(
         })
 
 @router.get("/admin", response_class=HTMLResponse)
-async def setup_admin_page(request: Request, _: None = Depends(enforce_global_rate_limit)):
+async def setup_admin_page(request: Request):
     try:
         return templates.TemplateResponse("setup/admin.html", {
             "request": request,
@@ -309,11 +264,8 @@ async def setup_admin(
     username: str = Form(...),
     password: str = Form(...),
     confirm_password: str = Form(...),
-    email: str = Form(...),
-    _: None = Depends(enforce_global_rate_limit)
+    email: str = Form(...)
 ):
-    # Enforce global and per-user rate limits (security.txt: Threat Detection & Response)
-    # await enforce_rate_limits(request, {'username': username, 'role': 'admin'}) # This line is now redundant as enforce_global_rate_limit handles global limits
     try:
         username = sanitize_input(username)
         email = sanitize_input(email)
@@ -363,7 +315,7 @@ async def setup_admin(
         })
 
 @router.get("/complete", response_class=HTMLResponse)
-async def setup_complete(request: Request, _: None = Depends(enforce_global_rate_limit)):
+async def setup_complete(request: Request):
     try:
         mark_setup_completed()
         return templates.TemplateResponse("setup/complete.html", {
@@ -379,7 +331,7 @@ async def setup_complete(request: Request, _: None = Depends(enforce_global_rate
 # Reference: security.txt - SSL/TLS Automation, Certificate Management
 
 @router.get("/ssl/check_software", response_class=JSONResponse)
-async def ssl_check_software(_: None = Depends(enforce_global_rate_limit)):
+async def ssl_check_software():
     # Check if certbot or other required software is installed
     try:
         result = subprocess.run(["certbot", "--version"], capture_output=True, text=True)
@@ -389,7 +341,7 @@ async def ssl_check_software(_: None = Depends(enforce_global_rate_limit)):
         return {"certbot_installed": False, "error": str(e)}
 
 @router.post("/ssl/generate_self_signed", response_class=JSONResponse)
-async def ssl_generate_self_signed(domain: str = Form(...), _: None = Depends(enforce_global_rate_limit)):
+async def ssl_generate_self_signed(domain: str = Form(...)):
     # Generate a self-signed certificate for the given domain
     try:
         cert_path = f"certs/{domain}.crt"
@@ -404,7 +356,7 @@ async def ssl_generate_self_signed(domain: str = Form(...), _: None = Depends(en
         return {"success": False, "error": str(e)}
 
 @router.post("/ssl/lets_encrypt", response_class=JSONResponse)
-async def ssl_lets_encrypt(domain: str = Form(...), email: str = Form(...), _: None = Depends(enforce_global_rate_limit)):
+async def ssl_lets_encrypt(domain: str = Form(...), email: str = Form(...)):
     # Request a Let's Encrypt certificate for the given domain
     try:
         result = subprocess.run([
@@ -416,7 +368,7 @@ async def ssl_lets_encrypt(domain: str = Form(...), email: str = Form(...), _: N
         return {"success": False, "error": str(e)}
 
 @router.post("/ssl/upload", response_class=JSONResponse)
-async def ssl_upload_cert(cert_file: bytes = Form(...), key_file: bytes = Form(...), domain: str = Form(...), _: None = Depends(enforce_global_rate_limit)):
+async def ssl_upload_cert(cert_file: bytes = Form(...), key_file: bytes = Form(...), domain: str = Form(...)):
     # Upload custom certificate and key
     try:
         cert_path = f"certs/{domain}.crt"
@@ -430,7 +382,7 @@ async def ssl_upload_cert(cert_file: bytes = Form(...), key_file: bytes = Form(.
         return {"success": False, "error": str(e)}
 
 @router.get("/ssl/list", response_class=JSONResponse)
-async def ssl_list_certs(_: None = Depends(enforce_global_rate_limit)):
+async def ssl_list_certs():
     # List all managed certificates
     try:
         from pathlib import Path
@@ -443,7 +395,7 @@ async def ssl_list_certs(_: None = Depends(enforce_global_rate_limit)):
         return {"certificates": [], "error": str(e)}
 
 @router.post("/ssl/renew", response_class=JSONResponse)
-async def ssl_renew_cert(domain: str = Form(...), _: None = Depends(enforce_global_rate_limit)):
+async def ssl_renew_cert(domain: str = Form(...)):
     # Renew a Let's Encrypt certificate for the given domain
     try:
         result = subprocess.run([

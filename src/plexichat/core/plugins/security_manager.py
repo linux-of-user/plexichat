@@ -80,11 +80,23 @@ class SafeFileManager:
         
     def open(self, filename: str, mode: str = 'r', **kwargs):
         """Safe file open that checks permissions."""
-        # Optional shared sanitization using core security system
+        # Optional shared sanitization using core security system controlled by config
         try:
-            if hasattr(self.security_manager, '_core_security') and self.security_manager._core_security:
+            from plexichat.core.config_manager import get_config
+            sec_cfg = get_config("security", None)
+            sanitation_enabled = True if sec_cfg is None else bool(getattr(sec_cfg, "sanitation_enabled", True))
+            if sanitation_enabled and hasattr(self.security_manager, '_core_security') and self.security_manager._core_security:
                 sanitizer = self.security_manager._core_security.input_sanitizer
                 filename = sanitizer.sanitize_input(filename)
+        except Exception:
+            pass
+        # Enforce strict sandbox if configured
+        try:
+            from plexichat.core.config_manager import get_config
+            sec_cfg = get_config("security", None)
+            strict = False if sec_cfg is None else bool(getattr(sec_cfg, "plugin_sandbox_strict", True))
+            if strict and not self._has_permission("file_read"):
+                raise PermissionError("File read not permitted by sandbox policy")
         except Exception:
             pass
         # Check if plugin has file access permission

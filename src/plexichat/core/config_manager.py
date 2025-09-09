@@ -78,6 +78,14 @@ class SecurityConfig:
     jwt_secret: str = "change-me-too"
     session_timeout_seconds: int = 3600
     password_hash_algorithm: str = "bcrypt"
+    # Expanded security policy
+    mfa_enabled: bool = True
+    mfa_required_for_admin: bool = True
+    totp_issuer: str = "PlexiChat"
+    backup_codes_count: int = 10
+    sanitation_enabled: bool = True
+    sanitizer_strict: bool = True
+    plugin_sandbox_strict: bool = True
 
 
 @dataclass
@@ -126,9 +134,15 @@ class AIConfig:
 class LoggingConfig:
     """Logging configuration section."""
     level: str = "INFO"
+    format: str = "text"  # text|json
     log_to_file: bool = True
-    log_file_path: str = "logs/plexichat.log"
-    retention_days: int = 30
+    file_main: str = "logs/latest.txt"
+    retention_days: int = 14
+    rotation_on_startup: bool = True
+    rotation_compress: bool = True
+    plugins_enabled: bool = True
+    plugins_level: str = "INFO"
+    debug_stacktraces: bool = False
 
 
 @dataclass
@@ -281,6 +295,31 @@ class KeyboardShortcutsConfig:
 
 
 @dataclass
+class SupervisorConfig:
+    """Supervisor configuration."""
+    enabled: bool = True
+    interval_seconds: int = 30
+    backoff_initial_seconds: float = 5.0
+    backoff_max_seconds: float = 300.0
+
+
+@dataclass
+class RateLimitEngineConfig:
+    """Unified rate limit engine configuration."""
+    enabled: bool = True
+    per_ip_requests_per_minute: int = 60
+    per_user_requests_per_minute: int = 120
+    per_route_requests_per_minute: int = 100
+    global_requests_per_minute: int = 10000
+    per_ip_block_duration: int = 300
+    per_user_block_duration: int = 180
+    endpoint_overrides: Dict[str, Dict[str, int]] = field(default_factory=dict)
+    user_tier_multipliers: Dict[str, float] = field(default_factory=lambda: {
+        "guest": 0.5, "user": 1.0, "premium": 2.0, "admin": 10.0, "system": 100.0
+    })
+
+
+@dataclass
 class UnifiedConfig:
     """Main unified configuration container."""
     system: SystemConfig = field(default_factory=SystemConfig)
@@ -290,6 +329,8 @@ class UnifiedConfig:
     caching: CachingConfig = field(default_factory=CachingConfig)
     ai: AIConfig = field(default_factory=AIConfig)
     logging: LoggingConfig = field(default_factory=LoggingConfig)
+    supervisor: SupervisorConfig = field(default_factory=SupervisorConfig)
+    rate_limit: RateLimitEngineConfig = field(default_factory=RateLimitEngineConfig)
     plugins: PluginSettings = field(default_factory=PluginSettings)
 
     # New sections

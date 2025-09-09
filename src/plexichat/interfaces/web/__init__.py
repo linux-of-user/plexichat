@@ -45,7 +45,14 @@ else:
             allow_headers=["*"],
         )
 
-        # Add a basic root endpoint
+        # Routers
+        try:
+            from plexichat.interfaces.web.routers.logs import router as logs_router
+            app.include_router(logs_router)
+        except Exception as e:
+            logger.warning(f"Failed to include logs router: {e}")
+
+        # Basic endpoints
         @app.get("/")
         async def root():
             return {"message": "PlexiChat WebUI is running", "status": "healthy"}

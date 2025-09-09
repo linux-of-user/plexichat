@@ -10,6 +10,7 @@ import time
 from datetime import datetime, timedelta
 from functools import wraps
 from typing import Any, Callable, Dict, Optional, Set, Union
+import inspect
 
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -288,7 +289,7 @@ class FastAPIAuthAdapter:
                     )
                 
                 # Call the original function
-                if asyncio.iscoroutinefunction(func):
+                if inspect.iscoroutinefunction(func):
                     return await func(*args, **kwargs)
                 else:
                     return func(*args, **kwargs)

@@ -263,6 +263,145 @@ import logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 logger = logging.getLogger("plexichat")
 
+# Logging helpers: rotation, retention, crash logs
+from datetime import timedelta
+
+_LOG_DIR = Path("logs")
+_CRASH_DIR = _LOG_DIR / "crash"
+_LATEST_FILE = _LOG_DIR / "latest.txt"
+
+def _rotate_latest_log() -> None:
+    try:
+        _LOG_DIR.mkdir(parents=True, exist_ok=True)
+        _CRASH_DIR.mkdir(parents=True, exist_ok=True)
+        if _LATEST_FILE.exists():
+            ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+            archived = _LOG_DIR / f"{ts}.log"
+            _LATEST_FILE.replace(archived)
+            # Compress archived file
+            try:
+                import zipfile
+                zip_path = _LOG_DIR / f"{ts}.zip"
+                with zipfile.ZipFile(zip_path, 'w', compression=zipfile.ZIP_DEFLATED) as zf:
+                    zf.write(archived, arcname=archived.name)
+                archived.unlink(missing_ok=True)
+            except Exception as e:
+                logger.warning(f"Could not compress archived log: {e}")
+    except Exception as e:
+        logger.warning(f"Log rotation encountered an issue: {e}")
+
+_retention_thread = None
+_retention_stop = None
+
+def _start_log_retention(retention_days: int = 14) -> None:
+    """Start a background thread to delete old logs (excluding crash and plugin logs)."""
+    import threading
+    global _retention_thread, _retention_stop
+    if _retention_thread and _retention_thread.is_alive():
+        return
+    _retention_stop = threading.Event()
+
+    def _retention_loop():
+        try:
+            while not _retention_stop.is_set():
+                cutoff = datetime.now(timezone.utc) - timedelta(days=retention_days)
+                try:
+                    for p in _LOG_DIR.iterdir():
+                        try:
+                            if p.is_dir():
+                                # Skip plugin and crash directories
+                                if p.name in ("plugins", "crash"):
+                                    continue
+                                # Optionally remove empty dirs
+                                continue
+                            # Only consider .log or .zip
+                            if not (p.suffix.lower() in (".log", ".zip")):
+                                continue
+                            # Parse timestamp from filename like 20240101_120000.log
+                            try:
+                                ts_str = p.stem  # e.g., 20240101_120000
+                                dt = datetime.strptime(ts_str, "%Y%m%d_%H%M%S").replace(tzinfo=timezone.utc)
+                                if dt < cutoff:
+                                    p.unlink(missing_ok=True)
+                            except Exception:
+                                # Non-archived files skipped
+                                pass
+                        except Exception:
+                            continue
+                except Exception:
+                    pass
+                # Sleep for a day
+                _retention_stop.wait(86400)
+        finally:
+            pass
+
+    _retention_thread = threading.Thread(target=_retention_loop, daemon=True)
+    _retention_thread.start()
+
+def _stop_log_retention(timeout: float = 5.0) -> None:
+    global _retention_thread, _retention_stop
+    try:
+        if _retention_stop:
+            _retention_stop.set()
+        if _retention_thread:
+            _retention_thread.join(timeout=timeout)
+    except Exception:
+        pass
+    _retention_thread = None
+    _retention_stop = None
+
+def _write_crash_log(exc_type, exc_value, exc_tb) -> None:
+    try:
+        _CRASH_DIR.mkdir(parents=True, exist_ok=True)
+        ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        crash_path = _CRASH_DIR / f"{ts}.crash.log"
+        tail_kb = 256
+        try:
+            # If config is available, try to read crash.tail_kb
+            if 'get_config' in globals() and callable(get_config):
+                cfg = get_config("logging", {}) if 'get_config' in globals() else {}
+                if isinstance(cfg, dict):
+                    tail_kb = int(cfg.get("crash.tail_kb", 256))
+        except Exception:
+            tail_kb = 256
+        # Tail last N KB of latest.txt
+        tail_bytes = tail_kb * 1024
+        tail = b""
+        try:
+            if _LATEST_FILE.exists():
+                with open(_LATEST_FILE, 'rb') as f:
+                    f.seek(0, os.SEEK_END)
+                    size = f.tell()
+                    f.seek(max(0, size - tail_bytes), os.SEEK_SET)
+                    tail = f.read()
+        except Exception:
+            tail = b""
+        # Compose crash log
+        with open(crash_path, 'wb') as out:
+            out.write(tail)
+            out.write(b"\n\n--- CRASH REPORT ---\n")
+            line = f"Time: {datetime.now(timezone.utc).isoformat()}\n"
+            out.write(line.encode('ascii', errors='replace'))
+            out.write(f"Type: {getattr(exc_type, '__name__', str(exc_type))}\n".encode('ascii', errors='replace'))
+            out.write(f"Message: {str(exc_value)}\n".encode('ascii', errors='replace'))
+            # Only include stack trace if configured for debug
+            try:
+                debug_traces = False
+                if 'get_config' in globals() and callable(get_config):
+                    cfg = get_config("logging", {}) if 'get_config' in globals() else {}
+                    if isinstance(cfg, dict):
+                        debug_traces = bool(cfg.get("debug_stacktraces", False))
+                if debug_traces:
+                    import traceback
+                    out.write(b"Stack Trace:\n")
+                    tb_str = ''.join(traceback.format_exception(exc_type, exc_value, exc_tb))
+                    out.write(tb_str.encode('ascii', errors='replace'))
+            except Exception:
+                pass
+    except Exception:
+        pass
+
+
 # Add src to python path to allow imports when necessary (deferred imports will use this)
 sys.path.insert(0, str(Path("src").resolve()))
 
@@ -987,13 +1126,24 @@ def main():
     if hasattr(args, "func"):
         try:
             args.func(args)
-        except Exception as e:
-            logger.error(f"Command '{getattr(args, 'command', 'unknown')}' failed: {e}", exc_info=True)
+        except Exception:
+            # Write crash log for subcommand failures as well
+            exc_type, exc_value, exc_tb = sys.exc_info()
+            _write_crash_log(exc_type, exc_value, exc_tb)
+            logger.error(f"Command '{getattr(args, 'command', 'unknown')}' failed", exc_info=True)
             sys.exit(1)
         return
 
     # Default action: run the application (API server, WebUI, CLI)
     # Validate project setup early
+
+    # Rotate logs at startup and start retention job
+    try:
+        _rotate_latest_log()
+        # Start retention with default 14 days; will be overridden when config loads
+        _start_log_retention(14)
+    except Exception as e:
+        logger.warning(f"Log rotation/retention initialization error: {e}")
     if not (VENV_DIR.exists() and Path("src").exists()):
         import logging
         logging.getLogger("plexichat").error("Project not set up. Please run 'install' and 'setup'.")
@@ -1046,6 +1196,15 @@ def main():
     except Exception:
         api_config = {}
         logger.warning("Failed to load 'api' configuration; using defaults.")
+
+    # Update retention days from config if available
+    try:
+        logging_cfg = get_config("logging", None)
+        rd = int(getattr(logging_cfg, "retention_days", 14))
+        _stop_log_retention()
+        _start_log_retention(rd)
+    except Exception as e:
+        logger.debug(f"Retention config error: {e}")
     try:
         webui_config = get_config("webui", {})
     except Exception:
@@ -1277,8 +1436,10 @@ def main():
     # When main execution path completes (CLI exit or servers stopped), ensure graceful shutdown of systems.
     try:
         asyncio.run(shutdown_all_systems())
-    except Exception as e:
-        logger.error(f"Error during final shutdown: {e}", exc_info=True)
+    except Exception:
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        _write_crash_log(exc_type, exc_value, exc_tb)
+        logger.error("Error during final shutdown", exc_info=True)
 
 if __name__ == "__main__":
     main()

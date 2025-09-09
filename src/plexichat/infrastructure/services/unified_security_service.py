@@ -13,7 +13,7 @@ from typing import Any, Dict, List, Optional
 
 from plexichat.infrastructure.services.advanced_ddos_service import enhanced_ddos_service
 from plexichat.core.security.comprehensive_security_manager import ComprehensiveSecurityManager
-from plexichat.infrastructure.utils.rate_limiting import rate_limiter
+from plexichat.core.middleware.rate_limiting import get_rate_limiter
 from plugins.advanced_antivirus.core.message_scanner import MessageAntivirusScanner
 
 """
@@ -317,27 +317,23 @@ class UnifiedSecurityService:
 
         try:
             # Check rate limit
-            rate_limit_key = f"ip:{assessment.client_ip}"
-            allowed = self.rate_limiter.check_rate_limit(
-                key=rate_limit_key,
-                max_attempts=100,  # Default limit
-                window_minutes=1,
-                algorithm="sliding_window"
-            )
-
-            assessment.rate_limit_result = {
-                "allowed": allowed,
-                "key": rate_limit_key
-            }
-
-            if not allowed:
-                assessment.threat_detected = True
-                assessment.threat_type = SecurityThreatType.RATE_LIMIT_VIOLATION
-                assessment.threat_level = max(assessment.threat_level, 5)
-                assessment.confidence_score = max(assessment.confidence_score, 0.8)
-                assessment.recommended_action = SecurityAction.BLOCK
-                assessment.witty_response = self._get_witty_response(SecurityThreatType.RATE_LIMIT_VIOLATION)
-                assessment.retry_after = 60
+            try:
+                from plexichat.core.middleware.rate_limiting import get_rate_limiter
+                rl = get_rate_limiter()
+                endpoint = "/security/assessment"
+                allowed, info = await rl.check_ip_action(str(assessment.client_ip), endpoint)
+                assessment.rate_limit_result = {"allowed": allowed, **info}
+                if not allowed:
+                    assessment.threat_detected = True
+                    assessment.threat_type = SecurityThreatType.RATE_LIMIT_VIOLATION
+                    assessment.threat_level = max(assessment.threat_level, 5)
+                    assessment.confidence_score = max(assessment.confidence_score, 0.8)
+                    assessment.recommended_action = SecurityAction.BLOCK
+                    assessment.witty_response = self._get_witty_response(SecurityThreatType.RATE_LIMIT_VIOLATION)
+                    assessment.retry_after = info.get("retry_after", 60)
+            except Exception as e:
+                logger.warning(f"Unified rate limiter unavailable: {e}")
+                return
 
         except Exception as e:
             logger.error(f"Rate limiting check failed: {e}")

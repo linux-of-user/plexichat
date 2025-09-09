@@ -187,9 +187,10 @@ class UnifiedRateLimiter:
             self.config = cfg
         else:
             self.config = config or RateLimitConfig()
-        # Load multipliers from config manager if available
+        # Load overrides from config manager if available
         try:
             if CONFIG:
+                # ddos user tiers (legacy support)
                 tiers = CONFIG.get("ddos.user_tiers", None)
                 if isinstance(tiers, dict) and tiers:
                     base = float(tiers.get("user", 60) or 60)
@@ -197,6 +198,26 @@ class UnifiedRateLimiter:
                     for k in ("guest","user","premium","admin","system"):
                         multipliers.setdefault(k, 1.0)
                     self.config.user_tier_multipliers = multipliers
+                # Unified rate limit config
+                rl_cfg = CONFIG.get("rate_limit", None)
+                if rl_cfg is not None:
+                    # endpoint_overrides
+                    ep = getattr(rl_cfg, "endpoint_overrides", None) if not isinstance(rl_cfg, dict) else rl_cfg.get("endpoint_overrides")
+                    if isinstance(ep, dict):
+                        self.config.endpoint_overrides = dict(ep)
+                    # user tier multipliers override
+                    ut = getattr(rl_cfg, "user_tier_multipliers", None) if not isinstance(rl_cfg, dict) else rl_cfg.get("user_tier_multipliers")
+                    if isinstance(ut, dict) and ut:
+                        self.config.user_tier_multipliers.update({str(k): float(v) for k, v in ut.items()})
+                    # basic per-ip/per-user/rate values if present
+                    for attr in (
+                        "enabled", "per_ip_requests_per_minute", "per_user_requests_per_minute",
+                        "per_route_requests_per_minute", "global_requests_per_minute", "per_ip_block_duration",
+                        "per_user_block_duration",
+                    ):
+                        val = getattr(rl_cfg, attr, None) if not isinstance(rl_cfg, dict) else rl_cfg.get(attr)
+                        if val is not None and hasattr(self.config, attr):
+                            setattr(self.config, attr, type(getattr(self.config, attr))(val))
         except Exception:
             pass
         # State

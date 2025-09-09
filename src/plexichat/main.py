@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 PlexiChat Main Application Module
 =================================
@@ -427,10 +426,26 @@ async def lifespan(app: FastAPI):
         # Supervisor task for auto-restarting modules on failure
         try:
             async def module_supervisor():
+                try:
+                    from plexichat.core.config_manager import get_config
+                    sup_cfg = get_config("supervisor", None)
+                    if sup_cfg is not None and not bool(getattr(sup_cfg, "enabled", True)):
+                        logger.info("[SUPERVISOR] Disabled by configuration")
+                        return
+                except Exception:
+                    pass
+                try:
+                    from plexichat.core.config_manager import get_config
+                    sup_cfg = get_config("supervisor", None)
+                    initial_backoff = float(getattr(sup_cfg, "backoff_initial_seconds", 5.0))
+                    max_backoff = float(getattr(sup_cfg, "backoff_max_seconds", 300.0))
+                except Exception:
+                    initial_backoff = 5.0
+                    max_backoff = 300.0
                 state = {
-                    'rate_limiter': {'failures': 0, 'last_fail': 0.0, 'backoff': 5.0},
-                    'websocket': {'failures': 0, 'last_fail': 0.0, 'backoff': 5.0},
-                    'plugins': {'failures': 0, 'last_fail': 0.0, 'backoff': 5.0},
+                    'rate_limiter': {'failures': 0, 'last_fail': 0.0, 'backoff': initial_backoff},
+                    'websocket': {'failures': 0, 'last_fail': 0.0, 'backoff': initial_backoff},
+                    'plugins': {'failures': 0, 'last_fail': 0.0, 'backoff': initial_backoff},
                 }
                 import time
 
@@ -444,7 +459,7 @@ async def lifespan(app: FastAPI):
                     s['failures'] += 1
                     s['last_fail'] = time.time()
                     # Exponential backoff capped at 5 minutes
-                    s['backoff'] = min(s['backoff'] * 2.0, 300.0)
+                    s['backoff'] = min(s['backoff'] * 2.0, max_backoff)
 
                 def _register_success(mod: str):
                     s = state[mod]
@@ -487,10 +502,23 @@ async def lifespan(app: FastAPI):
                         # WebSocket manager health
                         try:
                             from plexichat.core.websocket.websocket_manager import websocket_manager as ws_mgr
-                            hc_ok = True
+                            hc_ok = False
                             conn_count = None
-                            if hasattr(ws_mgr, 'get_connection_count'):
-                                conn_count = ws_mgr.get_connection_count()
+                            try:
+                                if hasattr(ws_mgr, 'get_connection_count'):
+                                    conn_count = ws_mgr.get_connection_count()
+                                    if isinstance(conn_count, int) and conn_count >= 0:
+                                        hc_ok = True
+                                # Additional check: try to get stats if available
+                                if hasattr(ws_mgr, 'get_stats'):
+                                    stats = ws_mgr.get_stats()
+                                    if isinstance(stats, dict):
+                                        hc_ok = hc_ok and True
+                                    else:
+                                        hc_ok = False
+                            except Exception as check_e:
+                                logger.warning(f"[SUPERVISOR] WebSocket health check failed: {check_e}")
+                                hc_ok = False
                             if not hc_ok:
                                 raise RuntimeError("websocket manager failed health check")
                             _register_success('websocket')
@@ -515,10 +543,16 @@ async def lifespan(app: FastAPI):
                         # Plugin manager health
                         try:
                             from plexichat.core.plugins.manager import unified_plugin_manager as pm
-                            loaded_count = None
-                            if hasattr(pm, 'get_loaded_plugins'):
-                                loaded = await pm.get_loaded_plugins()
-                                loaded_count = len(loaded) if hasattr(loaded, '__len__') else None
+                            
+                            # More robust health check from the now-deleted check_plugin_health function
+                            if not hasattr(pm, 'loaded_plugins') or len(pm.loaded_plugins) == 0:
+                                raise ValueError("No loaded plugins found")
+                            
+                            info = pm.get_all_plugins_info()
+                            if not info:
+                                raise ValueError("Plugin info is empty")
+
+                            loaded_count = len(pm.loaded_plugins)
                             _register_success('plugins')
                             metrics["modules"]["plugins"] = {"status": "ok", "loaded_plugins": loaded_count}
                         except Exception as e:
@@ -527,6 +561,7 @@ async def lifespan(app: FastAPI):
                             if _should_retry('plugins'):
                                 _register_failure('plugins')
                                 try:
+                                    # Attempt to restart the plugin manager
                                     if hasattr(pm, 'shutdown'):
                                         await pm.shutdown()
                                     await pm.initialize()
@@ -542,7 +577,12 @@ async def lifespan(app: FastAPI):
 
                     except Exception as e:
                         logger.warning(f"[SUPERVISOR] Supervisor loop error: {e}")
-                    await asyncio.sleep(30)
+                    try:
+                        from plexichat.core.config_manager import get_config
+                        interval = int(get_config("supervisor.interval_seconds", 30))
+                    except Exception:
+                        interval = 30
+                    await asyncio.sleep(interval)
             app.state.module_supervisor_task = asyncio.create_task(module_supervisor())
             logger.info("[SUPERVISOR] Module supervisor started")
         except Exception as e:
