@@ -1,5 +1,12 @@
 """Comprehensive error codes system."""
-from .base import ErrorCategory, ErrorSeverity, ErrorCodeMapping, PlexiChatErrorCode, ERROR_MAPPINGS
+
+from .base import (
+    ERROR_MAPPINGS,
+    ErrorCategory,
+    ErrorCodeMapping,
+    ErrorSeverity,
+    PlexiChatErrorCode,
+)
 
 # Minimal changes: retain all 100+ error codes and mappings as primary source
 # No duplicated enums or functions; import from base
