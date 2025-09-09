@@ -32,17 +32,20 @@ import os
 import statistics
 import threading
 import time
+import weakref
 from collections import defaultdict, deque
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple, Set, Callable, Union
-import weakref
+from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Union
 
 # Security integration
 try:
+    from plexichat.core.security.comprehensive_security_manager import (
+        get_security_manager,
+    )
     from plexichat.core.security.security_manager import get_unified_security_system
-    from plexichat.core.security.comprehensive_security_manager import get_security_manager
+
     SECURITY_AVAILABLE = True
 except ImportError:
     SECURITY_AVAILABLE = False
@@ -50,13 +53,17 @@ except ImportError:
 # Cache integration
 try:
     from plexichat.core.performance.multi_tier_cache_manager import get_cache_manager
+
     CACHE_AVAILABLE = True
 except ImportError:
     CACHE_AVAILABLE = False
 
 # Edge computing integration
 try:
-    from plexichat.core.performance.edge_computing_manager import get_edge_computing_manager
+    from plexichat.core.performance.edge_computing_manager import (
+        get_edge_computing_manager,
+    )
+
     EDGE_AVAILABLE = True
 except ImportError:
     EDGE_AVAILABLE = False
@@ -64,13 +71,17 @@ except ImportError:
 # Messaging integration
 try:
     from plexichat.core.messaging.unified_messaging_system import get_messaging_system
+
     MESSAGING_AVAILABLE = True
 except ImportError:
     MESSAGING_AVAILABLE = False
 
 # Microsecond optimizer integration
 try:
-    from plexichat.core.performance.microsecond_optimizer import get_microsecond_optimizer
+    from plexichat.core.performance.microsecond_optimizer import (
+        get_microsecond_optimizer,
+    )
+
     OPTIMIZER_AVAILABLE = True
 except ImportError:
     OPTIMIZER_AVAILABLE = False
@@ -78,6 +89,7 @@ except ImportError:
 # System monitoring
 try:
     import psutil
+
     PSUTIL_AVAILABLE = True
 except ImportError:
     PSUTIL_AVAILABLE = False
@@ -87,6 +99,7 @@ try:
     import numpy as np
     from sklearn.linear_model import LinearRegression
     from sklearn.preprocessing import StandardScaler
+
     ML_AVAILABLE = True
 except ImportError:
     np = None
@@ -100,6 +113,7 @@ logger = logging.getLogger(__name__)
 
 class ScalingStrategy(Enum):
     """Scaling strategies."""
+
     REACTIVE = "reactive"
     PREDICTIVE = "predictive"
     PROACTIVE = "proactive"
@@ -109,6 +123,7 @@ class ScalingStrategy(Enum):
 
 class LoadBalancingAlgorithm(Enum):
     """Load balancing algorithms."""
+
     ROUND_ROBIN = "round_robin"
     LEAST_CONNECTIONS = "least_connections"
     WEIGHTED_ROUND_ROBIN = "weighted_round_robin"
@@ -121,6 +136,7 @@ class LoadBalancingAlgorithm(Enum):
 
 class NodeStatus(Enum):
     """Node status."""
+
     HEALTHY = "healthy"
     DEGRADED = "degraded"
     UNHEALTHY = "unhealthy"
@@ -131,6 +147,7 @@ class NodeStatus(Enum):
 
 class ScalingAction(Enum):
     """Scaling actions."""
+
     SCALE_UP = "scale_up"
     SCALE_DOWN = "scale_down"
     SCALE_OUT = "scale_out"
@@ -142,6 +159,7 @@ class ScalingAction(Enum):
 @dataclass
 class NodeMetrics:
     """Comprehensive metrics for a single node."""
+
     node_id: str
     cpu_usage: float = 0.0
     memory_usage: float = 0.0
@@ -169,6 +187,7 @@ class NodeMetrics:
 @dataclass
 class LoadBalancerConfig:
     """Advanced load balancer configuration."""
+
     algorithm: LoadBalancingAlgorithm = LoadBalancingAlgorithm.AI_OPTIMIZED
     health_check_interval_seconds: int = 10
     health_check_timeout_seconds: int = 5
@@ -187,6 +206,7 @@ class LoadBalancerConfig:
 @dataclass
 class AutoScalingConfig:
     """Ultra-advanced auto-scaling configuration."""
+
     strategy: ScalingStrategy = ScalingStrategy.ML_OPTIMIZED
     min_nodes: int = 2
     max_nodes: int = 100
@@ -209,6 +229,7 @@ class AutoScalingConfig:
 @dataclass
 class ScalingEvent:
     """Scaling event record."""
+
     timestamp: datetime
     action: ScalingAction
     reason: str
@@ -223,36 +244,42 @@ class ScalingEvent:
 
 class PredictiveScaler:
     """ML-based predictive scaling engine."""
-    
+
     def __init__(self):
         self.model = None
         self.scaler = None
         self.training_data: deque = deque(maxlen=10000)
         self.prediction_accuracy = 0.0
-        
+
         if ML_AVAILABLE and LinearRegression and StandardScaler:
             self.model = LinearRegression()
             self.scaler = StandardScaler()
-    
+
     def add_training_data(self, metrics: NodeMetrics, future_load: float):
         """Add training data for the ML model."""
         if not ML_AVAILABLE:
             return
-        
+
         features = [
             metrics.cpu_usage,
             metrics.memory_usage,
             metrics.request_rate_per_sec,
             metrics.response_time_ms,
             metrics.active_connections,
-            metrics.throughput_ops_per_sec
+            metrics.throughput_ops_per_sec,
         ]
-        
+
         self.training_data.append((features, future_load))
-    
+
     def train_model(self):
         """Train the predictive model."""
-        if not ML_AVAILABLE or not np or not self.model or not self.scaler or len(self.training_data) < 100:
+        if (
+            not ML_AVAILABLE
+            or not np
+            or not self.model
+            or not self.scaler
+            or len(self.training_data) < 100
+        ):
             return False
 
         try:
@@ -267,27 +294,33 @@ class PredictiveScaler:
             accuracy = 1.0 - np.mean(np.abs(predictions - y) / np.maximum(y, 1.0))
             self.prediction_accuracy = max(0.0, accuracy)
 
-            logger.info(f"Predictive model trained with accuracy: {self.prediction_accuracy:.2%}")
+            logger.info(
+                f"Predictive model trained with accuracy: {self.prediction_accuracy:.2%}"
+            )
             return True
 
         except Exception as e:
             logger.error(f"Model training error: {e}")
             return False
-    
+
     def predict_load(self, current_metrics: NodeMetrics) -> Optional[float]:
         """Predict future load based on current metrics."""
         if not ML_AVAILABLE or not np or not self.model or not self.scaler:
             return None
 
         try:
-            features = np.array([[
-                current_metrics.cpu_usage,
-                current_metrics.memory_usage,
-                current_metrics.request_rate_per_sec,
-                current_metrics.response_time_ms,
-                current_metrics.active_connections,
-                current_metrics.throughput_ops_per_sec
-            ]])
+            features = np.array(
+                [
+                    [
+                        current_metrics.cpu_usage,
+                        current_metrics.memory_usage,
+                        current_metrics.request_rate_per_sec,
+                        current_metrics.response_time_ms,
+                        current_metrics.active_connections,
+                        current_metrics.throughput_ops_per_sec,
+                    ]
+                ]
+            )
 
             features_scaled = self.scaler.transform(features)
             prediction = self.model.predict(features_scaled)[0]
@@ -301,52 +334,56 @@ class PredictiveScaler:
 
 class CircuitBreaker:
     """Circuit breaker for fault tolerance."""
-    
+
     def __init__(self, failure_threshold: int = 5, timeout_seconds: int = 60):
         self.failure_threshold = failure_threshold
         self.timeout_seconds = timeout_seconds
         self.failure_count = 0
         self.last_failure_time: Optional[datetime] = None
         self.state = "closed"  # closed, open, half_open
-    
+
     def call(self, func: Callable, *args, **kwargs) -> Tuple[Any, bool]:
         """Execute function with circuit breaker protection."""
         current_time = datetime.now(timezone.utc)
-        
+
         # Check if circuit should be half-open
-        if (self.state == "open" and self.last_failure_time and 
-            (current_time - self.last_failure_time).total_seconds() > self.timeout_seconds):
+        if (
+            self.state == "open"
+            and self.last_failure_time
+            and (current_time - self.last_failure_time).total_seconds()
+            > self.timeout_seconds
+        ):
             self.state = "half_open"
-        
+
         # Reject if circuit is open
         if self.state == "open":
             return None, False
-        
+
         try:
             result = func(*args, **kwargs)
-            
+
             # Success - reset failure count
             if self.state == "half_open":
                 self.state = "closed"
             self.failure_count = 0
-            
+
             return result, True
-            
+
         except Exception as e:
             self.failure_count += 1
             self.last_failure_time = current_time
-            
+
             # Open circuit if threshold exceeded
             if self.failure_count >= self.failure_threshold:
                 self.state = "open"
-            
+
             logger.error(f"Circuit breaker failure: {e}")
             return None, False
 
 
 class LoadBalancer:
     """Ultra-advanced load balancer with AI optimization."""
-    
+
     def __init__(self, config: LoadBalancerConfig):
         self.config = config
         self.nodes: Dict[str, NodeMetrics] = {}
@@ -355,22 +392,22 @@ class LoadBalancer:
         self.circuit_breakers: Dict[str, CircuitBreaker] = {}
         self.round_robin_index = 0
         self.session_affinity: Dict[str, str] = {}
-        
+
         # Rate limiting
         self.rate_limiter: Dict[str, deque] = defaultdict(lambda: deque(maxlen=1000))
-        
+
     def add_node(self, node_metrics: NodeMetrics):
         """Add a node to the load balancer."""
         self.nodes[node_metrics.node_id] = node_metrics
-        
+
         if self.config.enable_circuit_breaker:
             self.circuit_breakers[node_metrics.node_id] = CircuitBreaker(
                 failure_threshold=self.config.circuit_breaker_threshold,
-                timeout_seconds=self.config.circuit_breaker_timeout_seconds
+                timeout_seconds=self.config.circuit_breaker_timeout_seconds,
             )
-        
+
         logger.info(f"Added node {node_metrics.node_id} to load balancer")
-    
+
     def remove_node(self, node_id: str):
         """Remove a node from the load balancer."""
         if node_id in self.nodes:
@@ -378,37 +415,41 @@ class LoadBalancer:
             self.request_counts.pop(node_id, None)
             self.response_times.pop(node_id, None)
             self.circuit_breakers.pop(node_id, None)
-            
+
             # Remove session affinity
-            sessions_to_remove = [k for k, v in self.session_affinity.items() if v == node_id]
+            sessions_to_remove = [
+                k for k, v in self.session_affinity.items() if v == node_id
+            ]
             for session in sessions_to_remove:
                 del self.session_affinity[session]
-            
+
             logger.info(f"Removed node {node_id} from load balancer")
-    
-    def select_node(self, client_ip: Optional[str] = None, 
-                   session_id: Optional[str] = None) -> Optional[str]:
+
+    def select_node(
+        self, client_ip: Optional[str] = None, session_id: Optional[str] = None
+    ) -> Optional[str]:
         """Select the best node using the configured algorithm."""
         healthy_nodes = [
-            node_id for node_id, metrics in self.nodes.items()
+            node_id
+            for node_id, metrics in self.nodes.items()
             if metrics.status == NodeStatus.HEALTHY
         ]
-        
+
         if not healthy_nodes:
             return None
-        
+
         # Check session affinity
         if self.config.sticky_sessions and session_id:
             if session_id in self.session_affinity:
                 node_id = self.session_affinity[session_id]
                 if node_id in healthy_nodes:
                     return node_id
-        
+
         # Rate limiting check
         if self.config.enable_rate_limiting and client_ip:
             if not self._check_rate_limit(client_ip):
                 return None
-        
+
         # Select node based on algorithm
         if self.config.algorithm == LoadBalancingAlgorithm.ROUND_ROBIN:
             return self._round_robin_select(healthy_nodes)
@@ -426,118 +467,127 @@ class LoadBalancer:
             return self._ai_optimized_select(healthy_nodes)
         else:
             return healthy_nodes[0] if healthy_nodes else None
-    
+
     def _check_rate_limit(self, client_ip: str) -> bool:
         """Check if client is within rate limits."""
         current_time = time.time()
         client_requests = self.rate_limiter[client_ip]
-        
+
         # Remove old requests (older than 1 second)
         while client_requests and current_time - client_requests[0] > 1.0:
             client_requests.popleft()
-        
+
         # Check if under limit
         if len(client_requests) < self.config.rate_limit_requests_per_second:
             client_requests.append(current_time)
             return True
-        
+
         return False
-    
+
     def _round_robin_select(self, nodes: List[str]) -> str:
         """Round-robin selection."""
         node = nodes[self.round_robin_index % len(nodes)]
         self.round_robin_index += 1
         return node
-    
+
     def _least_connections_select(self, nodes: List[str]) -> str:
         """Select node with least connections."""
         return min(nodes, key=lambda n: self.nodes[n].active_connections)
-    
+
     def _weighted_round_robin_select(self, nodes: List[str]) -> str:
         """Weighted round-robin based on node health scores."""
         weights = [self.nodes[node].health_score for node in nodes]
         total_weight = sum(weights)
-        
+
         if total_weight == 0:
             return nodes[0]
-        
+
         # Weighted selection
         target = (self.round_robin_index % int(total_weight * 100)) / 100.0
         current_weight = 0.0
-        
+
         for i, weight in enumerate(weights):
             current_weight += weight
             if current_weight >= target:
                 self.round_robin_index += 1
                 return nodes[i]
-        
+
         return nodes[0]
-    
+
     def _ip_hash_select(self, nodes: List[str], client_ip: Optional[str]) -> str:
         """IP hash-based selection for session affinity."""
         if not client_ip:
             return nodes[0]
-        
+
         hash_value = hash(client_ip) % len(nodes)
         return nodes[hash_value]
-    
+
     def _least_response_time_select(self, nodes: List[str]) -> str:
         """Select node with lowest average response time."""
+
         def avg_response_time(node_id: str) -> float:
             times = self.response_times[node_id]
-            return statistics.mean(times) if times else float('inf')
-        
+            return statistics.mean(times) if times else float("inf")
+
         return min(nodes, key=avg_response_time)
-    
+
     def _resource_based_select(self, nodes: List[str]) -> str:
         """Select node based on resource utilization."""
+
         def resource_score(node_id: str) -> float:
             metrics = self.nodes[node_id]
             # Lower score is better
             return (metrics.cpu_usage + metrics.memory_usage) / 2.0
-        
+
         return min(nodes, key=resource_score)
-    
+
     def _ai_optimized_select(self, nodes: List[str]) -> str:
         """AI-optimized node selection."""
+
         # Comprehensive scoring algorithm
         def ai_score(node_id: str) -> float:
             metrics = self.nodes[node_id]
-            
+
             # Base performance score
             perf_score = (
-                (100 - metrics.cpu_usage) * 0.3 +
-                (100 - metrics.memory_usage) * 0.3 +
-                (1000 - metrics.response_time_ms) * 0.2 +
-                metrics.health_score * 100 * 0.2
+                (100 - metrics.cpu_usage) * 0.3
+                + (100 - metrics.memory_usage) * 0.3
+                + (1000 - metrics.response_time_ms) * 0.2
+                + metrics.health_score * 100 * 0.2
             )
-            
+
             # Adjust for current load
-            load_factor = 1.0 - (metrics.active_connections / max(1, metrics.active_connections + 100))
-            
+            load_factor = 1.0 - (
+                metrics.active_connections / max(1, metrics.active_connections + 100)
+            )
+
             # Adjust for error rate
             error_factor = 1.0 - metrics.error_rate
-            
+
             return perf_score * load_factor * error_factor
-        
+
         return max(nodes, key=ai_score)
-    
+
     def record_request(self, node_id: str, response_time_ms: float, success: bool):
         """Record request metrics for optimization."""
         if node_id in self.nodes:
             self.request_counts[node_id] += 1
             self.response_times[node_id].append(response_time_ms)
-            
+
             if not success:
-                self.nodes[node_id].error_rate = min(1.0, self.nodes[node_id].error_rate + 0.01)
+                self.nodes[node_id].error_rate = min(
+                    1.0, self.nodes[node_id].error_rate + 0.01
+                )
             else:
-                self.nodes[node_id].error_rate = max(0.0, self.nodes[node_id].error_rate - 0.001)
+                self.nodes[node_id].error_rate = max(
+                    0.0, self.nodes[node_id].error_rate - 0.001
+                )
 
 
 class UltraAdvancedScalabilityManager:
     """
     Ultra-Advanced Scalability Manager with watertight security like a deep-sea submarine.
-    
+
     Features:
     - ML-based predictive scaling
     - Multi-region deployment management
@@ -548,102 +598,123 @@ class UltraAdvancedScalabilityManager:
     - Security integration with zero performance overhead
     - Chaos engineering and resilience testing
     """
-    
-    def __init__(self, 
-                 load_balancer_config: Optional[LoadBalancerConfig] = None,
-                 auto_scaling_config: Optional[AutoScalingConfig] = None):
-        
+
+    def __init__(
+        self,
+        load_balancer_config: Optional[LoadBalancerConfig] = None,
+        auto_scaling_config: Optional[AutoScalingConfig] = None,
+    ):
+
         # Configuration
         self.load_balancer_config = load_balancer_config or LoadBalancerConfig()
         self.auto_scaling_config = auto_scaling_config or AutoScalingConfig()
-        
+
         # Core components
         self.load_balancer = LoadBalancer(self.load_balancer_config)
         self.predictive_scaler = PredictiveScaler()
-        
+
         # Node management
         self.nodes: Dict[str, NodeMetrics] = {}
         self.scaling_events: deque = deque(maxlen=1000)
         self.last_scale_action: Optional[datetime] = None
-        
+
         # System integrations
         self.security_system = None
         self.cache_manager = None
         self.edge_manager = None
         self.messaging_system = None
         self.optimizer = None
-        
+
         # Performance tracking
         self.metrics_history: deque = deque(maxlen=10000)
         self.performance_stats = {
-            'total_requests': 0,
-            'successful_requests': 0,
-            'failed_requests': 0,
-            'average_response_time_ms': 0.0,
-            'scaling_actions': 0,
-            'cost_savings': 0.0,
-            'uptime_percentage': 100.0
+            "total_requests": 0,
+            "successful_requests": 0,
+            "failed_requests": 0,
+            "average_response_time_ms": 0.0,
+            "scaling_actions": 0,
+            "cost_savings": 0.0,
+            "uptime_percentage": 100.0,
         }
-        
+
         # Background tasks
         self.monitoring_task: Optional[asyncio.Task] = None
         self.scaling_task: Optional[asyncio.Task] = None
         self.training_task: Optional[asyncio.Task] = None
         self.is_running = False
-        
-        logger.info("Ultra-Advanced Scalability Manager initialized with watertight security")
-    
+
+        logger.info(
+            "Ultra-Advanced Scalability Manager initialized with watertight security"
+        )
+
     async def initialize(self):
         """Initialize all scalability systems and integrations."""
         try:
             # Initialize system integrations
             if SECURITY_AVAILABLE:
                 try:
-                    from plexichat.core.security.security_manager import get_unified_security_system
-                    from plexichat.core.security.comprehensive_security_manager import get_security_manager
+                    from plexichat.core.security.comprehensive_security_manager import (
+                        get_security_manager,
+                    )
+                    from plexichat.core.security.security_manager import (
+                        get_unified_security_system,
+                    )
+
                     self.security_system = get_unified_security_system()
                 except ImportError:
                     pass
-            
+
             if CACHE_AVAILABLE:
                 try:
-                    from plexichat.core.performance.multi_tier_cache_manager import get_cache_manager
+                    from plexichat.core.performance.multi_tier_cache_manager import (
+                        get_cache_manager,
+                    )
+
                     self.cache_manager = get_cache_manager()
                 except ImportError:
                     pass
-            
+
             if EDGE_AVAILABLE:
                 try:
-                    from plexichat.core.performance.edge_computing_manager import get_edge_computing_manager
+                    from plexichat.core.performance.edge_computing_manager import (
+                        get_edge_computing_manager,
+                    )
+
                     self.edge_manager = get_edge_computing_manager()
                 except ImportError:
                     pass
-            
+
             if MESSAGING_AVAILABLE:
                 try:
-                    from plexichat.core.messaging.unified_messaging_system import get_messaging_system
+                    from plexichat.core.messaging.unified_messaging_system import (
+                        get_messaging_system,
+                    )
+
                     self.messaging_system = get_messaging_system()
                 except ImportError:
                     pass
-            
+
             if OPTIMIZER_AVAILABLE:
                 try:
-                    from plexichat.core.performance.microsecond_optimizer import get_microsecond_optimizer
+                    from plexichat.core.performance.microsecond_optimizer import (
+                        get_microsecond_optimizer,
+                    )
+
                     self.optimizer = get_microsecond_optimizer()
                 except ImportError:
                     pass
-            
+
             # Start background tasks
             self.is_running = True
             self.monitoring_task = asyncio.create_task(self._monitoring_loop())
             self.scaling_task = asyncio.create_task(self._scaling_loop())
             self.training_task = asyncio.create_task(self._training_loop())
-            
+
             logger.info("Ultra-Advanced Scalability Manager fully initialized")
-            
+
         except Exception as e:
             logger.error(f"Scalability manager initialization error: {e}")
-    
+
     async def _monitoring_loop(self):
         """Background monitoring loop."""
         while self.is_running:
@@ -657,7 +728,7 @@ class UltraAdvancedScalabilityManager:
             except Exception as e:
                 logger.error(f"Monitoring loop error: {e}")
                 await asyncio.sleep(30)
-    
+
     async def _scaling_loop(self):
         """Background scaling decision loop."""
         while self.is_running:
@@ -670,7 +741,7 @@ class UltraAdvancedScalabilityManager:
             except Exception as e:
                 logger.error(f"Scaling loop error: {e}")
                 await asyncio.sleep(60)
-    
+
     async def _training_loop(self):
         """Background ML model training loop."""
         while self.is_running:
@@ -692,9 +763,10 @@ class UltraAdvancedScalabilityManager:
                 if PSUTIL_AVAILABLE:
                     try:
                         import psutil
+
                         node.cpu_usage = psutil.cpu_percent(interval=None)
                         node.memory_usage = psutil.virtual_memory().percent
-                        node.disk_usage = psutil.disk_usage('/').percent
+                        node.disk_usage = psutil.disk_usage("/").percent
                     except Exception:
                         pass
 
@@ -713,7 +785,9 @@ class UltraAdvancedScalabilityManager:
                 error_score = max(0, 1.0 - node.error_rate)
                 response_score = max(0, 1.0 - min(1.0, node.response_time_ms / 1000.0))
 
-                node.health_score = (cpu_score + memory_score + error_score + response_score) / 4.0
+                node.health_score = (
+                    cpu_score + memory_score + error_score + response_score
+                ) / 4.0
 
                 # Update status based on health score
                 if node.health_score > 0.8:
@@ -735,11 +809,15 @@ class UltraAdvancedScalabilityManager:
             recent_metrics = list(self.metrics_history)[-10:]
             avg_cpu = statistics.mean(m.cpu_usage for m in recent_metrics)
             avg_memory = statistics.mean(m.memory_usage for m in recent_metrics)
-            avg_response_time = statistics.mean(m.response_time_ms for m in recent_metrics)
+            avg_response_time = statistics.mean(
+                m.response_time_ms for m in recent_metrics
+            )
 
             # Alert on high resource usage
             if avg_cpu > 90 or avg_memory > 95 or avg_response_time > 5000:
-                logger.warning(f"Performance anomaly detected: CPU={avg_cpu:.1f}%, Memory={avg_memory:.1f}%, ResponseTime={avg_response_time:.1f}ms")
+                logger.warning(
+                    f"Performance anomaly detected: CPU={avg_cpu:.1f}%, Memory={avg_memory:.1f}%, ResponseTime={avg_response_time:.1f}ms"
+                )
         except Exception as e:
             logger.error(f"Anomaly detection error: {e}")
 
@@ -749,30 +827,39 @@ class UltraAdvancedScalabilityManager:
             if not self.nodes:
                 return
 
-            healthy_nodes = [n for n in self.nodes.values() if n.status == NodeStatus.HEALTHY]
+            healthy_nodes = [
+                n for n in self.nodes.values() if n.status == NodeStatus.HEALTHY
+            ]
             if not healthy_nodes:
                 return
 
             # Calculate average metrics
             avg_cpu = statistics.mean(n.cpu_usage for n in healthy_nodes)
             avg_memory = statistics.mean(n.memory_usage for n in healthy_nodes)
-            avg_response_time = statistics.mean(n.response_time_ms for n in healthy_nodes)
+            avg_response_time = statistics.mean(
+                n.response_time_ms for n in healthy_nodes
+            )
 
             # Check scaling conditions
             current_time = datetime.now(timezone.utc)
 
             # Scale up conditions
-            if (avg_cpu > self.auto_scaling_config.scale_up_threshold or
-                avg_memory > self.auto_scaling_config.target_memory_utilization or
-                avg_response_time > self.auto_scaling_config.target_response_time_ms):
+            if (
+                avg_cpu > self.auto_scaling_config.scale_up_threshold
+                or avg_memory > self.auto_scaling_config.target_memory_utilization
+                or avg_response_time > self.auto_scaling_config.target_response_time_ms
+            ):
 
                 if self._can_scale_up(current_time):
                     await self._scale_up("High resource utilization detected")
 
             # Scale down conditions
-            elif (avg_cpu < self.auto_scaling_config.scale_down_threshold and
-                  avg_memory < 50.0 and
-                  avg_response_time < self.auto_scaling_config.target_response_time_ms / 2):
+            elif (
+                avg_cpu < self.auto_scaling_config.scale_down_threshold
+                and avg_memory < 50.0
+                and avg_response_time
+                < self.auto_scaling_config.target_response_time_ms / 2
+            ):
 
                 if self._can_scale_down(current_time):
                     await self._scale_down("Low resource utilization detected")
@@ -832,7 +919,7 @@ class UltraAdvancedScalabilityManager:
                 node_id=new_node_id,
                 status=NodeStatus.HEALTHY,
                 region="default",
-                availability_zone="default"
+                availability_zone="default",
             )
 
             self.nodes[new_node_id] = new_node
@@ -849,11 +936,11 @@ class UltraAdvancedScalabilityManager:
                 trigger_value=0.0,
                 success=True,
                 duration_seconds=1.0,
-                cost_impact=0.0
+                cost_impact=0.0,
             )
             self.scaling_events.append(event)
             self.last_scale_action = datetime.now(timezone.utc)
-            self.performance_stats['scaling_actions'] += 1
+            self.performance_stats["scaling_actions"] += 1
 
             logger.info(f"Scaled up: Added node {new_node_id}. Reason: {reason}")
         except Exception as e:
@@ -866,11 +953,15 @@ class UltraAdvancedScalabilityManager:
                 return
 
             # Find least utilized node
-            healthy_nodes = [n for n in self.nodes.values() if n.status == NodeStatus.HEALTHY]
+            healthy_nodes = [
+                n for n in self.nodes.values() if n.status == NodeStatus.HEALTHY
+            ]
             if len(healthy_nodes) <= self.auto_scaling_config.min_nodes:
                 return
 
-            least_utilized = min(healthy_nodes, key=lambda n: n.cpu_usage + n.memory_usage)
+            least_utilized = min(
+                healthy_nodes, key=lambda n: n.cpu_usage + n.memory_usage
+            )
 
             # Remove node
             self.load_balancer.remove_node(least_utilized.node_id)
@@ -887,41 +978,45 @@ class UltraAdvancedScalabilityManager:
                 trigger_value=0.0,
                 success=True,
                 duration_seconds=1.0,
-                cost_impact=0.0
+                cost_impact=0.0,
             )
             self.scaling_events.append(event)
             self.last_scale_action = datetime.now(timezone.utc)
-            self.performance_stats['scaling_actions'] += 1
+            self.performance_stats["scaling_actions"] += 1
 
-            logger.info(f"Scaled down: Removed node {least_utilized.node_id}. Reason: {reason}")
+            logger.info(
+                f"Scaled down: Removed node {least_utilized.node_id}. Reason: {reason}"
+            )
         except Exception as e:
             logger.error(f"Scale down error: {e}")
 
     def get_scalability_stats(self) -> Dict[str, Any]:
         """Get comprehensive scalability statistics."""
         return {
-            'performance_stats': self.performance_stats.copy(),
-            'node_count': len(self.nodes),
-            'healthy_nodes': len([n for n in self.nodes.values() if n.status == NodeStatus.HEALTHY]),
-            'scaling_events_count': len(self.scaling_events),
-            'predictive_accuracy': self.predictive_scaler.prediction_accuracy,
-            'load_balancer_algorithm': self.load_balancer_config.algorithm.value,
-            'scaling_strategy': self.auto_scaling_config.strategy.value,
-            'integrations': {
-                'security_enabled': SECURITY_AVAILABLE,
-                'cache_enabled': CACHE_AVAILABLE,
-                'edge_enabled': EDGE_AVAILABLE,
-                'messaging_enabled': MESSAGING_AVAILABLE,
-                'optimizer_enabled': OPTIMIZER_AVAILABLE,
-                'ml_enabled': ML_AVAILABLE,
-                'psutil_enabled': PSUTIL_AVAILABLE
-            }
+            "performance_stats": self.performance_stats.copy(),
+            "node_count": len(self.nodes),
+            "healthy_nodes": len(
+                [n for n in self.nodes.values() if n.status == NodeStatus.HEALTHY]
+            ),
+            "scaling_events_count": len(self.scaling_events),
+            "predictive_accuracy": self.predictive_scaler.prediction_accuracy,
+            "load_balancer_algorithm": self.load_balancer_config.algorithm.value,
+            "scaling_strategy": self.auto_scaling_config.strategy.value,
+            "integrations": {
+                "security_enabled": SECURITY_AVAILABLE,
+                "cache_enabled": CACHE_AVAILABLE,
+                "edge_enabled": EDGE_AVAILABLE,
+                "messaging_enabled": MESSAGING_AVAILABLE,
+                "optimizer_enabled": OPTIMIZER_AVAILABLE,
+                "ml_enabled": ML_AVAILABLE,
+                "psutil_enabled": PSUTIL_AVAILABLE,
+            },
         }
-    
+
     async def shutdown(self):
         """Shutdown the scalability manager."""
         self.is_running = False
-        
+
         # Cancel background tasks
         for task in [self.monitoring_task, self.scaling_task, self.training_task]:
             if task:
@@ -930,7 +1025,7 @@ class UltraAdvancedScalabilityManager:
                     await task
                 except asyncio.CancelledError:
                     pass
-        
+
         logger.info("Ultra-Advanced Scalability Manager shut down")
 
 
@@ -948,7 +1043,7 @@ def get_scalability_manager() -> UltraAdvancedScalabilityManager:
 
 async def initialize_scalability_manager(
     load_balancer_config: Optional[LoadBalancerConfig] = None,
-    auto_scaling_config: Optional[AutoScalingConfig] = None
+    auto_scaling_config: Optional[AutoScalingConfig] = None,
 ) -> UltraAdvancedScalabilityManager:
     """Initialize the global scalability manager."""
     global _global_scalability_manager
@@ -982,5 +1077,5 @@ __all__ = [
     "ScalingAction",
     "get_scalability_manager",
     "initialize_scalability_manager",
-    "shutdown_scalability_manager"
+    "shutdown_scalability_manager",
 ]

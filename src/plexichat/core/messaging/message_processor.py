@@ -1,4 +1,5 @@
 import threading
+
 """
 PlexiChat Message Processor
 
@@ -10,25 +11,31 @@ import asyncio
 import json
 import logging
 import time
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, List, Optional
-from dataclasses import dataclass
 
 try:
-    from plexichat.core.database.manager import database_manager
+    from plexichat.core.database.manager import database_manager, execute_query
 except ImportError:
     database_manager = None
+    execute_query = None
 
 try:
-    from plexichat.core.threading.thread_manager import async_thread_manager, submit_task
+    from plexichat.core.threading.thread_manager import (
+        async_thread_manager,
+        submit_task,
+    )
 except ImportError:
     async_thread_manager = None
     submit_task = None
 
 try:
-    from plexichat.core.performance.optimization_engine import PerformanceOptimizationEngine
-    from plexichat.core.logging import get_performance_logger
     from plexichat.core.logging import MetricType  # type: ignore
+    from plexichat.core.logging import get_performance_logger
+    from plexichat.core.performance.optimization_engine import (
+        PerformanceOptimizationEngine,
+    )
 except ImportError:
     PerformanceOptimizationEngine = None
     get_performance_logger = None
@@ -37,9 +44,11 @@ except ImportError:
 logger = logging.getLogger(__name__)
 performance_logger = get_performance_logger() if get_performance_logger else None
 
+
 @dataclass
 class MessageData:
     """Message data structure."""
+
     message_id: str
     sender_id: int
     recipient_id: Optional[int]
@@ -49,8 +58,10 @@ class MessageData:
     timestamp: datetime
     metadata: Dict[str, Any]
 
+
 class MessageProcessor:
     """Message processor with threading support."""
+
     def __init__(self):
         self.db_manager = database_manager
         self.performance_logger = performance_logger
@@ -103,7 +114,9 @@ class MessageProcessor:
     def _process_message_sync(self, message: MessageData):
         """Synchronous message processing for threading."""
         try:
-            processor = self.processors.get(message.message_type, self._process_default_message)
+            processor = self.processors.get(
+                message.message_type, self._process_default_message
+            )
             result = processor(message)
 
             if self.performance_logger:
@@ -113,7 +126,9 @@ class MessageProcessor:
         except Exception as e:
             logger.error(f"Error processing message {message.message_id}: {e}")
             if self.performance_logger:
-                self.performance_logger.increment_counter("message_processing_errors", 1)
+                self.performance_logger.increment_counter(
+                    "message_processing_errors", 1
+                )
             raise
 
     async def _process_message(self, message: MessageData):
@@ -122,7 +137,9 @@ class MessageProcessor:
             start_time = time.time()
 
             # Process based on message type
-            processor = self.processors.get(message.message_type, self._process_default_message)
+            processor = self.processors.get(
+                message.message_type, self._process_default_message
+            )
 
             if asyncio.iscoroutinefunction(processor):
                 result = await processor(message)
@@ -135,7 +152,9 @@ class MessageProcessor:
             # Performance tracking
             if self.performance_logger:
                 duration = time.time() - start_time
-                self.performance_logger.record_timer("message_processing_duration", duration)
+                self.performance_logger.record_timer(
+                    "message_processing_duration", duration
+                )
                 self.performance_logger.increment_counter("messages_processed", 1)
 
             return result
@@ -143,7 +162,9 @@ class MessageProcessor:
         except Exception as e:
             logger.error(f"Error processing message {message.message_id}: {e}")
             if self.performance_logger:
-                self.performance_logger.increment_counter("message_processing_errors", 1)
+                self.performance_logger.increment_counter(
+                    "message_processing_errors", 1
+                )
             raise
 
     def _process_text_message(self, message: MessageData) -> Dict[str, Any]:
@@ -169,7 +190,7 @@ class MessageProcessor:
                 "urls": urls,
                 "word_count": word_count,
                 "char_count": char_count,
-                "sentiment": self._analyze_sentiment(message.content)
+                "sentiment": self._analyze_sentiment(message.content),
             }
         except Exception as e:
             logger.error(f"Error processing text message: {e}")
@@ -186,7 +207,7 @@ class MessageProcessor:
                 "image_size": image_data.get("size"),
                 "image_type": image_data.get("type"),
                 "alt_text": image_data.get("alt_text", ""),
-                "processed": True
+                "processed": True,
             }
         except Exception as e:
             logger.error(f"Error processing image message: {e}")
@@ -204,7 +225,7 @@ class MessageProcessor:
                 "file_type": file_data.get("type"),
                 "file_url": file_data.get("url"),
                 "virus_scan_status": "pending",
-                "processed": True
+                "processed": True,
             }
         except Exception as e:
             logger.error(f"Error processing file message: {e}")
@@ -216,7 +237,7 @@ class MessageProcessor:
             return {
                 "system_type": message.metadata.get("system_type", "unknown"),
                 "processed": True,
-                "timestamp": message.timestamp.isoformat()
+                "timestamp": message.timestamp.isoformat(),
             }
         except Exception as e:
             logger.error(f"Error processing system message: {e}")
@@ -227,119 +248,25 @@ class MessageProcessor:
         return {
             "message_type": message.message_type,
             "processed": True,
-            "content_length": len(message.content)
+            "content_length": len(message.content),
         }
 
     def _extract_mentions(self, content: str) -> List[str]:
         """Extract @mentions from content."""
         import re
-        mentions = re.findall(r'@(\w+)', content)
+
+        mentions = re.findall(r"@(\w+)", content)
         return list(set(mentions))
 
     def _extract_hashtags(self, content: str) -> List[str]:
         """Extract #hashtags from content."""
         import re
-        hashtags = re.findall(r'#(\w+)', content)
+
+        hashtags = re.findall(r"#(\w+)", content)
         return list(set(hashtags))
 
     def _extract_urls(self, content: str) -> List[str]:
         """Extract URLs from content."""
         import re
-        url_pattern = r'https?://[^\s<>"{}|\\^`\[\]]+'
-        urls = re.findall(url_pattern, content)
-        return list(set(urls))
 
-    def _analyze_sentiment(self, content: str) -> str:
-        """Basic sentiment analysis."""
-        positive_words = ["good", "great", "awesome", "excellent", "love", "like", "happy"]
-        negative_words = ["bad", "terrible", "awful", "hate", "dislike", "sad", "angry"]
-
-        content_lower = content.lower()
-        positive_count = sum(1 for word in positive_words if word in content_lower)
-        negative_count = sum(1 for word in negative_words if word in content_lower)
-
-        if positive_count > negative_count:
-            return "positive"
-        elif negative_count > positive_count:
-            return "negative"
-        else:
-            return "neutral"
-
-    async def _store_processed_message(self, message: MessageData, result: Dict[str, Any]):
-        """Store processed message to database."""
-        try:
-            if self.db_manager:
-                query = """
-                    INSERT INTO processed_messages (
-                        message_id, sender_id, recipient_id, channel_id,
-                        content, message_type, processed_data, timestamp
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                """
-                params = {
-                    "message_id": message.message_id,
-                    "sender_id": message.sender_id,
-                    "recipient_id": message.recipient_id,
-                    "channel_id": message.channel_id,
-                    "content": message.content,
-                    "message_type": message.message_type,
-                    "processed_data": json.dumps(result),
-                    "timestamp": message.timestamp
-                }
-                await self.db_manager.execute_query(query, params)
-        except Exception as e:
-            logger.error(f"Error storing processed message: {e}")
-
-    async def queue_message(self, message: MessageData):
-        """Queue message for processing."""
-        await self.message_queue.put(message)
-
-        if self.performance_logger:
-            self.performance_logger.increment_counter("messages_queued", 1)
-
-    async def process_message_immediate(self, message: MessageData) -> Dict[str, Any]:
-        """Process message immediately without queuing."""
-        return await self._process_message(message)
-
-    def get_queue_size(self) -> int:
-        """Get current queue size."""
-        return self.message_queue.qsize()
-
-    def get_status(self) -> Dict[str, Any]:
-        """Get processor status."""
-        return {
-            "processing": self.processing,
-            "queue_size": self.get_queue_size(),
-            "supported_types": list(self.processors.keys())
-        }
-
-# Global message processor
-message_processor = MessageProcessor()
-
-# Convenience functions
-async def queue_message(message_id: str, sender_id: int, content: str, message_type: str = "text", **kwargs):
-    """Queue message for processing."""
-    message = MessageData(
-        message_id=message_id,
-        sender_id=sender_id,
-        recipient_id=kwargs.get("recipient_id"),
-        channel_id=kwargs.get("channel_id"),
-        content=content,
-        message_type=message_type,
-        timestamp=datetime.now(),
-        metadata=kwargs.get("metadata", {})
-    )
-    await message_processor.queue_message(message)
-
-async def process_message_now(message_id: str, sender_id: int, content: str, message_type: str = "text", **kwargs):
-    """Process message immediately."""
-    message = MessageData(
-        message_id=message_id,
-        sender_id=sender_id,
-        recipient_id=kwargs.get("recipient_id"),
-        channel_id=kwargs.get("channel_id"),
-        content=content,
-        message_type=message_type,
-        timestamp=datetime.now(),
-        metadata=kwargs.get("metadata", {})
-    )
-    return await message_processor.process_message_immediate(message)
+        url_pattern = r"https?://[^\s<>]+"

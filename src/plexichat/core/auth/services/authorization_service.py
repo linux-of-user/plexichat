@@ -2,7 +2,8 @@
 Authorization service for PlexiChat.
 """
 
-from typing import Set, Dict, Any, List
+from typing import Any, Dict, List, Set
+
 from plexichat.core.auth.models.permission import Permission
 from plexichat.core.auth.models.role import Role
 
@@ -26,7 +27,9 @@ class AuthorizationService:
         """Check if role has permission."""
         return True
 
-    def get_effective_permissions(self, user_id: str, roles: Set[Role]) -> Set[Permission]:
+    def get_effective_permissions(
+        self, user_id: str, roles: Set[Role]
+    ) -> Set[Permission]:
         """Get effective permissions for user."""
         return {Permission.READ, Permission.WRITE}
 
@@ -54,7 +57,9 @@ class AuthorizationService:
         """Remove role from user."""
         return True
 
-    def check_context_permission(self, user_id: str, permission: Permission, context: Dict[str, Any]) -> bool:
+    def check_context_permission(
+        self, user_id: str, permission: Permission, context: Dict[str, Any]
+    ) -> bool:
         """Check permission with context."""
         return True
 
@@ -78,11 +83,15 @@ class AuthorizationService:
         """Validate role."""
         return True
 
-    def resolve_permission_conflicts(self, permissions: Set[Permission]) -> Set[Permission]:
+    def resolve_permission_conflicts(
+        self, permissions: Set[Permission]
+    ) -> Set[Permission]:
         """Resolve permission conflicts."""
         return permissions
 
-    def grant_temporary_permission(self, user_id: str, permission: Permission, expires_at) -> bool:
+    def grant_temporary_permission(
+        self, user_id: str, permission: Permission, expires_at
+    ) -> bool:
         """Grant temporary permission."""
         return True
 
@@ -90,10 +99,14 @@ class AuthorizationService:
         """Cleanup expired permissions."""
         return 5
 
-    def check_cross_resource_permission(self, user_id: str, permission: Permission, resources: List[str]) -> bool:
+    def check_cross_resource_permission(
+        self, user_id: str, permission: Permission, resources: List[str]
+    ) -> bool:
         """Check cross-resource permission."""
         return True
 
-    def expand_wildcard_permissions(self, user_id: str, wildcard: str) -> Set[Permission]:
+    def expand_wildcard_permissions(
+        self, user_id: str, wildcard: str
+    ) -> Set[Permission]:
         """Expand wildcard permissions."""
         return {Permission.READ, Permission.WRITE, Permission.DELETE}

@@ -9,18 +9,20 @@ Provides comprehensive keyboard shortcuts management including:
 """
 
 import asyncio
-from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional, Tuple
 
 from plexichat.core.database import execute_query, execute_transaction
 from plexichat.core.logging import get_logger
 
 logger = get_logger(__name__)
 
+
 @dataclass
 class KeyboardShortcut:
     """Represents a keyboard shortcut configuration."""
+
     id: Optional[int] = None
     user_id: str = ""
     shortcut_key: str = ""
@@ -43,6 +45,7 @@ class KeyboardShortcut:
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }
 
+
 class KeyboardShortcutsService:
     """Service for managing keyboard shortcuts."""
 
@@ -58,8 +61,8 @@ class KeyboardShortcutsService:
                 "platform_variants": {
                     "mac": "Return",
                     "windows": "Enter",
-                    "linux": "Enter"
-                }
+                    "linux": "Enter",
+                },
             },
             "new_line": {
                 "key": "Shift+Enter",
@@ -67,8 +70,8 @@ class KeyboardShortcutsService:
                 "platform_variants": {
                     "mac": "Shift+Return",
                     "windows": "Shift+Enter",
-                    "linux": "Shift+Enter"
-                }
+                    "linux": "Shift+Enter",
+                },
             },
             "channel_search": {
                 "key": "Ctrl+K",
@@ -76,8 +79,8 @@ class KeyboardShortcutsService:
                 "platform_variants": {
                     "mac": "Cmd+K",
                     "windows": "Ctrl+K",
-                    "linux": "Ctrl+K"
-                }
+                    "linux": "Ctrl+K",
+                },
             },
             "user_search": {
                 "key": "Ctrl+U",
@@ -85,8 +88,8 @@ class KeyboardShortcutsService:
                 "platform_variants": {
                     "mac": "Cmd+U",
                     "windows": "Ctrl+U",
-                    "linux": "Ctrl+U"
-                }
+                    "linux": "Ctrl+U",
+                },
             },
             "toggle_theme": {
                 "key": "Ctrl+T",
@@ -94,8 +97,8 @@ class KeyboardShortcutsService:
                 "platform_variants": {
                     "mac": "Cmd+T",
                     "windows": "Ctrl+T",
-                    "linux": "Ctrl+T"
-                }
+                    "linux": "Ctrl+T",
+                },
             },
             "show_shortcuts": {
                 "key": "Ctrl+/",
@@ -103,8 +106,8 @@ class KeyboardShortcutsService:
                 "platform_variants": {
                     "mac": "Cmd+/",
                     "windows": "Ctrl+/",
-                    "linux": "Ctrl+/"
-                }
+                    "linux": "Ctrl+/",
+                },
             },
             "focus_message_input": {
                 "key": "Ctrl+L",
@@ -112,8 +115,8 @@ class KeyboardShortcutsService:
                 "platform_variants": {
                     "mac": "Cmd+L",
                     "windows": "Ctrl+L",
-                    "linux": "Ctrl+L"
-                }
+                    "linux": "Ctrl+L",
+                },
             },
             "previous_channel": {
                 "key": "Alt+Left",
@@ -121,8 +124,8 @@ class KeyboardShortcutsService:
                 "platform_variants": {
                     "mac": "Option+Left",
                     "windows": "Alt+Left",
-                    "linux": "Alt+Left"
-                }
+                    "linux": "Alt+Left",
+                },
             },
             "next_channel": {
                 "key": "Alt+Right",
@@ -130,8 +133,8 @@ class KeyboardShortcutsService:
                 "platform_variants": {
                     "mac": "Option+Right",
                     "windows": "Alt+Right",
-                    "linux": "Alt+Right"
-                }
+                    "linux": "Alt+Right",
+                },
             },
             "channel_1": {
                 "key": "Alt+1",
@@ -139,8 +142,8 @@ class KeyboardShortcutsService:
                 "platform_variants": {
                     "mac": "Option+1",
                     "windows": "Alt+1",
-                    "linux": "Alt+1"
-                }
+                    "linux": "Alt+1",
+                },
             },
             "channel_2": {
                 "key": "Alt+2",
@@ -148,8 +151,8 @@ class KeyboardShortcutsService:
                 "platform_variants": {
                     "mac": "Option+2",
                     "windows": "Alt+2",
-                    "linux": "Alt+2"
-                }
+                    "linux": "Alt+2",
+                },
             },
             "channel_3": {
                 "key": "Alt+3",
@@ -157,9 +160,9 @@ class KeyboardShortcutsService:
                 "platform_variants": {
                     "mac": "Option+3",
                     "windows": "Alt+3",
-                    "linux": "Alt+3"
-                }
-            }
+                    "linux": "Alt+3",
+                },
+            },
         }
 
     async def get_shortcuts(self, user_id: str) -> List[KeyboardShortcut]:
@@ -178,7 +181,7 @@ class KeyboardShortcutsService:
                     WHERE user_id = :user_id
                     ORDER BY action
                     """,
-                    {"user_id": user_id}
+                    {"user_id": user_id},
                 )
 
                 shortcuts = []
@@ -194,7 +197,7 @@ class KeyboardShortcutsService:
                         description=row[4],
                         is_custom=row[5],
                         created_at=row[6],
-                        updated_at=row[7]
+                        updated_at=row[7],
                     )
                     shortcuts.append(shortcut)
                     user_shortcut_actions.add(row[3])
@@ -207,7 +210,7 @@ class KeyboardShortcutsService:
                             shortcut_key=default_config["key"],
                             action=action,
                             description=default_config["description"],
-                            is_custom=False
+                            is_custom=False,
                         )
                         shortcuts.append(shortcut)
 
@@ -217,7 +220,9 @@ class KeyboardShortcutsService:
                 logger.error(f"Failed to get shortcuts for user {user_id}: {e}")
                 return []
 
-    async def add_shortcut(self, user_id: str, shortcut_data: Dict[str, Any]) -> Optional[KeyboardShortcut]:
+    async def add_shortcut(
+        self, user_id: str, shortcut_data: Dict[str, Any]
+    ) -> Optional[KeyboardShortcut]:
         """Add a new shortcut for a user."""
         # Use a single database session for both INSERT and SELECT operations
         from plexichat.core.database.manager import database_manager
@@ -229,7 +234,9 @@ class KeyboardShortcutsService:
                     shortcut_data["shortcut_key"], user_id, shortcut_data.get("action")
                 )
                 if conflict:
-                    logger.warning(f"Shortcut conflict detected for user {user_id}: {conflict}")
+                    logger.warning(
+                        f"Shortcut conflict detected for user {user_id}: {conflict}"
+                    )
                     return None
 
                 # Insert new shortcut
@@ -247,12 +254,14 @@ class KeyboardShortcutsService:
                         "description": shortcut_data["description"],
                         "is_custom": True,  # is_custom
                         "created_at": now,
-                        "updated_at": now
-                    }
+                        "updated_at": now,
+                    },
                 )
 
                 # Get the last inserted row ID for SQLite
-                last_id_result = await session.fetchall("SELECT last_insert_rowid() as id", {})
+                last_id_result = await session.fetchall(
+                    "SELECT last_insert_rowid() as id", {}
+                )
                 if last_id_result and last_id_result[0]:
                     shortcut_id = last_id_result[0]["id"]
                     return KeyboardShortcut(
@@ -263,7 +272,7 @@ class KeyboardShortcutsService:
                         description=shortcut_data["description"],
                         is_custom=True,
                         created_at=now,
-                        updated_at=now
+                        updated_at=now,
                     )
 
                 return None
@@ -272,15 +281,22 @@ class KeyboardShortcutsService:
                 logger.error(f"Failed to add shortcut for user {user_id}: {e}")
                 return None
 
-    async def update_shortcut(self, user_id: str, shortcut_id: int, shortcut_data: Dict[str, Any]) -> bool:
+    async def update_shortcut(
+        self, user_id: str, shortcut_id: int, shortcut_data: Dict[str, Any]
+    ) -> bool:
         """Update an existing shortcut."""
         try:
             # Validate shortcut doesn't conflict
             conflict = await self.validate_shortcut_conflicts(
-                shortcut_data["shortcut_key"], user_id, shortcut_data.get("action"), shortcut_id
+                shortcut_data["shortcut_key"],
+                user_id,
+                shortcut_data.get("action"),
+                shortcut_id,
             )
             if conflict:
-                logger.warning(f"Shortcut conflict detected for user {user_id}: {conflict}")
+                logger.warning(
+                    f"Shortcut conflict detected for user {user_id}: {conflict}"
+                )
                 return False
 
             # Update shortcut
@@ -297,14 +313,16 @@ class KeyboardShortcutsService:
                     "description": shortcut_data["description"],
                     "updated_at": now,
                     "id": shortcut_id,
-                    "user_id": user_id
-                }
+                    "user_id": user_id,
+                },
             )
 
             return True
 
         except Exception as e:
-            logger.error(f"Failed to update shortcut {shortcut_id} for user {user_id}: {e}")
+            logger.error(
+                f"Failed to update shortcut {shortcut_id} for user {user_id}: {e}"
+            )
             return False
 
     async def remove_shortcut(self, user_id: str, shortcut_id: int) -> bool:
@@ -315,12 +333,14 @@ class KeyboardShortcutsService:
                 DELETE FROM keyboard_shortcuts
                 WHERE id = :id AND user_id = :user_id AND is_custom = 1
                 """,
-                {"id": shortcut_id, "user_id": user_id}
+                {"id": shortcut_id, "user_id": user_id},
             )
             return True
 
         except Exception as e:
-            logger.error(f"Failed to remove shortcut {shortcut_id} for user {user_id}: {e}")
+            logger.error(
+                f"Failed to remove shortcut {shortcut_id} for user {user_id}: {e}"
+            )
             return False
 
     async def get_default_shortcuts(self) -> Dict[str, Dict[str, str]]:
@@ -332,7 +352,7 @@ class KeyboardShortcutsService:
         shortcut_key: str,
         user_id: str,
         exclude_action: Optional[str] = None,
-        exclude_id: Optional[int] = None
+        exclude_id: Optional[int] = None,
     ) -> Optional[str]:
         """Validate if a shortcut key conflicts with existing shortcuts."""
         # Use a single database session for all operations to ensure visibility
@@ -371,7 +391,9 @@ class KeyboardShortcutsService:
                 logger.error(f"Failed to validate shortcut conflicts: {e}")
                 return f"Validation error: {str(e)}"
 
-    async def get_shortcut_by_action(self, user_id: str, action: str) -> Optional[KeyboardShortcut]:
+    async def get_shortcut_by_action(
+        self, user_id: str, action: str
+    ) -> Optional[KeyboardShortcut]:
         """Get a specific shortcut by action."""
         # Use a single database session for all operations to ensure visibility
         from plexichat.core.database.manager import database_manager
@@ -386,7 +408,7 @@ class KeyboardShortcutsService:
                     FROM keyboard_shortcuts
                     WHERE user_id = :user_id AND action = :action
                     """,
-                    {"user_id": user_id, "action": action}
+                    {"user_id": user_id, "action": action},
                 )
 
                 if user_shortcut_result:
@@ -399,7 +421,7 @@ class KeyboardShortcutsService:
                         description=row[4],
                         is_custom=row[5],
                         created_at=row[6],
-                        updated_at=row[7]
+                        updated_at=row[7],
                     )
 
                 # Return default shortcut
@@ -410,7 +432,7 @@ class KeyboardShortcutsService:
                         shortcut_key=config["key"],
                         action=action,
                         description=config["description"],
-                        is_custom=False
+                        is_custom=False,
                     )
 
                 return None
@@ -419,8 +441,10 @@ class KeyboardShortcutsService:
                 logger.error(f"Failed to get shortcut for action {action}: {e}")
                 return None
 
+
 # Global service instance
 _keyboard_shortcuts_service = None
+
 
 def get_keyboard_shortcuts_service() -> KeyboardShortcutsService:
     """Get the global keyboard shortcuts service instance."""
@@ -428,6 +452,7 @@ def get_keyboard_shortcuts_service() -> KeyboardShortcutsService:
     if _keyboard_shortcuts_service is None:
         _keyboard_shortcuts_service = KeyboardShortcutsService()
     return _keyboard_shortcuts_service
+
 
 # Global service instance for direct import
 keyboard_shortcuts_service = get_keyboard_shortcuts_service()

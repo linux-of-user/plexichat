@@ -9,9 +9,9 @@ import logging
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import Any, Callable, Dict, List, Optional, Union
-from queue import Queue, Empty
 from dataclasses import dataclass
+from queue import Empty, Queue
+from typing import Any, Callable, Dict, List, Optional, Union
 
 try:
     from plexichat.core.database.manager import database_manager  # type: ignore
@@ -19,8 +19,10 @@ except ImportError:
     database_manager = None
 
 try:
-    from plexichat.core.performance.optimization_engine import PerformanceOptimizationEngine  # type: ignore
     from plexichat.core.logging import get_performance_logger  # type: ignore
+    from plexichat.core.performance.optimization_engine import (
+        PerformanceOptimizationEngine,  # type: ignore
+    )
 except ImportError:
     PerformanceOptimizationEngine = None
     get_performance_logger = None
@@ -28,9 +30,11 @@ except ImportError:
 logger = logging.getLogger(__name__)
 performance_logger = get_performance_logger() if get_performance_logger else None
 
+
 @dataclass
 class ThreadTask:
     """Thread task definition."""
+
     task_id: str
     function: Callable
     args: tuple
@@ -42,8 +46,10 @@ class ThreadTask:
         if self.created_at is None:
             self.created_at = time.time()
 
+
 class ThreadManager:
     """Thread manager with performance optimization."""
+
     def __init__(self, max_workers: int = 10):
         self.max_workers = max_workers
         self.executor = ThreadPoolExecutor(max_workers=max_workers)
@@ -91,7 +97,9 @@ class ThreadManager:
 
             # Performance tracking
             if self.performance_logger:
-                self.performance_logger.record_metric("thread_task_duration", duration, "seconds")
+                self.performance_logger.record_metric(
+                    "thread_task_duration", duration, "seconds"
+                )
                 self.performance_logger.increment_counter("thread_tasks_completed", 1)
 
             # Log to database
@@ -105,7 +113,9 @@ class ThreadManager:
             if self.performance_logger:
                 self.performance_logger.increment_counter("thread_tasks_failed", 1)
 
-    async def _log_task_completion(self, task: ThreadTask, result: Any, duration: float):
+    async def _log_task_completion(
+        self, task: ThreadTask, result: Any, duration: float
+    ):
         """Log task completion to database."""
         try:
             if self.db_manager:
@@ -119,21 +129,16 @@ class ThreadManager:
                     "duration": duration,
                     "status": "completed",
                     "created_at": task.created_at,
-                    "completed_at": time.time()
+                    "completed_at": time.time(),
                 }
-                if hasattr(self.db_manager, 'execute_query'):
+                if hasattr(self.db_manager, "execute_query"):
                     await self.db_manager.execute_query(query, params)  # type: ignore
         except Exception as e:
             logger.error(f"Error logging task completion: {e}")
 
     def submit_task(self, task_id: str, function: Callable, *args, **kwargs) -> str:
         """Submit task for execution."""
-        task = ThreadTask(
-            task_id=task_id,
-            function=function,
-            args=args,
-            kwargs=kwargs
-        )
+        task = ThreadTask(task_id=task_id, function=function, args=args, kwargs=kwargs)
         self.task_queue.put(task)
 
         if self.performance_logger:
@@ -149,7 +154,7 @@ class ThreadManager:
                 task_data["task_id"],
                 task_data["function"],
                 *task_data.get("args", ()),
-                **task_data.get("kwargs", {})
+                **task_data.get("kwargs", {}),
             )
             task_ids.append(task_id)
         return task_ids
@@ -183,7 +188,7 @@ class ThreadManager:
             "completed_tasks": len(self.completed_tasks),
             "failed_tasks": len(self.failed_tasks),
             "queue_size": self.task_queue.qsize(),
-            "shutdown": self._shutdown
+            "shutdown": self._shutdown,
         }
 
     def shutdown(self, wait: bool = True):
@@ -193,8 +198,10 @@ class ThreadManager:
             self.task_queue.join()
         self.executor.shutdown(wait=wait)
 
+
 class AsyncThreadManager:
     """Async thread manager for async/await integration."""
+
     def __init__(self, max_workers: int = 10):
         self.executor = ThreadPoolExecutor(max_workers=max_workers)
         self.performance_logger = performance_logger
@@ -205,17 +212,25 @@ class AsyncThreadManager:
 
         start_time = time.time()
         try:
-            result = await loop.run_in_executor(self.executor, function, *args, **kwargs)
+            result = await loop.run_in_executor(
+                self.executor, function, *args, **kwargs
+            )
 
             if self.performance_logger:
                 duration = time.time() - start_time
-                self.performance_logger.record_metric("async_thread_duration", duration, "seconds")
-                self.performance_logger.increment_counter("async_thread_tasks_completed", 1)
+                self.performance_logger.record_metric(
+                    "async_thread_duration", duration, "seconds"
+                )
+                self.performance_logger.increment_counter(
+                    "async_thread_tasks_completed", 1
+                )
 
             return result
         except Exception as e:
             if self.performance_logger:
-                self.performance_logger.increment_counter("async_thread_tasks_failed", 1)
+                self.performance_logger.increment_counter(
+                    "async_thread_tasks_failed", 1
+                )
             raise
 
     async def run_batch(self, tasks: List[Dict[str, Any]]) -> List[Any]:
@@ -223,9 +238,7 @@ class AsyncThreadManager:
         futures = []
         for task in tasks:
             future = self.run_in_thread(
-                task["function"],
-                *task.get("args", ()),
-                **task.get("kwargs", {})
+                task["function"], *task.get("args", ()), **task.get("kwargs", {})
             )
             futures.append(future)
 
@@ -235,35 +248,46 @@ class AsyncThreadManager:
         """Shutdown async thread manager."""
         self.executor.shutdown(wait=True)
 
+
 # Global instances
 thread_manager = ThreadManager()
 async_thread_manager = AsyncThreadManager()
+
 
 # Convenience functions
 def submit_task(task_id: str, function: Callable, *args, **kwargs) -> str:
     """Submit task to global thread manager."""
     return thread_manager.submit_task(task_id, function, *args, **kwargs)
 
+
 async def run_in_thread(function: Callable, *args, **kwargs) -> Any:
     """Run function in thread using global async manager."""
     return await async_thread_manager.run_in_thread(function, *args, **kwargs)
+
 
 def get_task_result(task_id: str, timeout: Optional[float] = None) -> Any:
     """Get task result from global thread manager."""
     return thread_manager.get_result(task_id, timeout)
 
+
 # Decorators
 def threaded(task_id: Optional[str] = None):
     """Decorator to run function in thread."""
+
     def decorator(func):
         def wrapper(*args, **kwargs):
             tid = task_id or f"{func.__name__}_{int(time.time())}"
             return submit_task(tid, func, *args, **kwargs)
+
         return wrapper
+
     return decorator
+
 
 def async_threaded(func):
     """Decorator to run async function in thread."""
+
     async def wrapper(*args, **kwargs):
         return await run_in_thread(func, *args, **kwargs)
+
     return wrapper

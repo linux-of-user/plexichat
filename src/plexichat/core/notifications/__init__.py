@@ -8,10 +8,17 @@ logger = logging.getLogger(__name__)
 
 try:
     from plexichat.core.utils.fallbacks import (
-        NotificationManager, Notification, NotificationType, NotificationPriority,
-        send_notification, mark_notification_read, get_notifications, get_unread_notification_count,
-        get_fallback_instance
+        Notification,
+        NotificationManager,
+        NotificationPriority,
+        NotificationType,
+        get_fallback_instance,
+        get_notifications,
+        get_unread_notification_count,
+        mark_notification_read,
+        send_notification,
     )
+
     USE_SHARED_FALLBACKS = True
     logger.info("Using shared fallback implementations for notifications")
 except ImportError:
@@ -20,7 +27,7 @@ except ImportError:
     logger.warning("Shared fallbacks unavailable, using local implementations")
 
 if USE_SHARED_FALLBACKS:
-    notification_manager = get_fallback_instance('NotificationManager')
+    notification_manager = get_fallback_instance("NotificationManager")
 else:
     # Local fallbacks (preserved for compatibility)
     class NotificationManager:  # type: ignore
@@ -56,6 +63,7 @@ else:
 
     def get_unread_notification_count(*args, **kwargs):  # type: ignore
         return 0
+
 
 __all__ = [
     "NotificationManager",

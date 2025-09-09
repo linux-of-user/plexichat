@@ -6,18 +6,19 @@ Simplified system orchestration and module management.
 import asyncio
 import importlib
 import logging
-from typing import Any, Dict, List, Optional, Set, Callable
+from typing import Any, Callable, Dict, List, Optional, Set
 
 logger = logging.getLogger(__name__)
 
 
 class ModuleManager:
     """Manages module loading and initialization."""
+
     def __init__(self):
         self.loaded_modules: Set[str] = set()
         self.failed_modules: Set[str] = set()
         self.module_registry: Dict[str, Any] = {}
-    
+
     def load_module(self, module_name: str) -> bool:
         """Load a single module."""
         try:
@@ -34,22 +35,19 @@ class ModuleManager:
             self.failed_modules.add(module_name)
             logger.error(f"Error loading module {module_name}: {e}")
             return False
-    
+
     def load_modules(self, module_names: List[str]) -> Dict[str, Any]:
         """Load multiple modules and return results."""
-        results = {
-            "successful": [],
-            "failed": []
-        }
-        
+        results = {"successful": [], "failed": []}
+
         for module_name in module_names:
             if self.load_module(module_name):
                 results["successful"].append(module_name)
             else:
                 results["failed"].append(module_name)
-        
+
         return results
-    
+
     def get_module(self, module_name: str) -> Optional[Any]:
         """Get a loaded module."""
         return self.module_registry.get(module_name)
@@ -64,12 +62,13 @@ class ModuleManager:
             "loaded_count": len(self.loaded_modules),
             "failed_count": len(self.failed_modules),
             "loaded_modules": list(self.loaded_modules),
-            "failed_modules": list(self.failed_modules)
+            "failed_modules": list(self.failed_modules),
         }
 
 
 class SystemOrchestrator:
     """Orchestrates system startup and shutdown."""
+
     def __init__(self):
         self.module_manager = ModuleManager()
         self.startup_hooks: List[Callable] = []
@@ -83,30 +82,30 @@ class SystemOrchestrator:
     def add_shutdown_hook(self, hook: Callable):
         """Add a shutdown hook."""
         self.shutdown_hooks.append(hook)
-    
+
     async def startup(self) -> bool:
         """Start the system."""
         if self.is_running:
             logger.warning("System is already running")
             return True
-        
+
         logger.info("Starting system orchestrator...")
-        
+
         try:
             # Load core modules
             core_modules = [
                 "plexichat.core.config",
                 "plexichat.core.database.manager",
                 "plexichat.core.auth.auth_manager",
-                "plexichat.core.services"
+                "plexichat.core.services",
             ]
-            
+
             logger.info("Loading core modules...")
             results = self.module_manager.load_modules(core_modules)
-            
+
             if results["failed"]:
                 logger.warning(f"Some core modules failed to load: {results['failed']}")
-            
+
             # Run startup hooks
             logger.info("Running startup hooks...")
             for hook in self.startup_hooks:
@@ -117,23 +116,23 @@ class SystemOrchestrator:
                         hook()
                 except Exception as e:
                     logger.error(f"Startup hook failed: {e}")
-            
+
             self.is_running = True
             logger.info("System orchestrator started successfully")
             return True
-            
+
         except Exception as e:
             logger.error(f"System startup failed: {e}")
             return False
-    
+
     async def shutdown(self) -> bool:
         """Shutdown the system."""
         if not self.is_running:
             logger.warning("System is not running")
             return True
-        
+
         logger.info("Shutting down system orchestrator...")
-        
+
         try:
             # Run shutdown hooks in reverse order
             logger.info("Running shutdown hooks...")
@@ -145,27 +144,28 @@ class SystemOrchestrator:
                         hook()
                 except Exception as e:
                     logger.error(f"Shutdown hook failed: {e}")
-            
+
             self.is_running = False
             logger.info("System orchestrator shut down successfully")
             return True
-            
+
         except Exception as e:
             logger.error(f"System shutdown failed: {e}")
             return False
-    
+
     def get_system_status(self) -> Dict[str, Any]:
         """Get overall system status."""
         return {
             "is_running": self.is_running,
             "startup_hooks_count": len(self.startup_hooks),
             "shutdown_hooks_count": len(self.shutdown_hooks),
-            "module_status": self.module_manager.get_status()
+            "module_status": self.module_manager.get_status(),
         }
 
 
 class ComponentRegistry:
     """Registry for system components."""
+
     def __init__(self):
         self.components: Dict[str, Any] = {}
         self.component_types: Dict[str, str] = {}
@@ -196,7 +196,7 @@ class ComponentRegistry:
             logger.debug(f"Unregistered component: {name}")
             return True
         return False
-    
+
     def list_components(self) -> Dict[str, str]:
         """List all registered components with their types."""
         return self.component_types.copy()
@@ -235,8 +235,15 @@ async def shutdown_system() -> bool:
 
 
 __all__ = [
-    "ModuleManager", "SystemOrchestrator", "ComponentRegistry",
-    "module_manager", "system_orchestrator", "component_registry",
-    "register_component", "get_component", "load_module",
-    "startup_system", "shutdown_system"
+    "ModuleManager",
+    "SystemOrchestrator",
+    "ComponentRegistry",
+    "module_manager",
+    "system_orchestrator",
+    "component_registry",
+    "register_component",
+    "get_component",
+    "load_module",
+    "startup_system",
+    "shutdown_system",
 ]

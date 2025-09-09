@@ -6,7 +6,7 @@ for improved performance and scalability.
 """
 
 import logging
-from typing import Dict, List, Any
+from typing import Any, Dict, List
 
 from plexichat.core.logging import get_logger
 
@@ -23,7 +23,7 @@ OPTIMIZED_KEYBOARD_SHORTCUTS_SCHEMA = {
     "is_custom": "BOOLEAN DEFAULT TRUE",
     "created_at": "TEXT NOT NULL",
     "updated_at": "TEXT NOT NULL",
-    "metadata": "TEXT DEFAULT '{}'"
+    "metadata": "TEXT DEFAULT '{}'",
 }
 
 # Keyboard Shortcuts Indexes for performance optimization
@@ -34,7 +34,7 @@ KEYBOARD_SHORTCUTS_INDEXES = [
     "CREATE INDEX IF NOT EXISTS idx_keyboard_shortcuts_key_only ON keyboard_shortcuts(shortcut_key)",
     "CREATE INDEX IF NOT EXISTS idx_keyboard_shortcuts_action_only ON keyboard_shortcuts(action)",
     "CREATE INDEX IF NOT EXISTS idx_keyboard_shortcuts_custom ON keyboard_shortcuts(is_custom)",
-    "CREATE INDEX IF NOT EXISTS idx_keyboard_shortcuts_user_custom ON keyboard_shortcuts(user_id, is_custom)"
+    "CREATE INDEX IF NOT EXISTS idx_keyboard_shortcuts_user_custom ON keyboard_shortcuts(user_id, is_custom)",
 ]
 
 # Optimized query templates for better performance
@@ -46,7 +46,6 @@ OPTIMIZED_KEYBOARD_SHORTCUTS_QUERIES = {
         WHERE user_id = ?
         ORDER BY action
     """,
-
     "get_user_shortcut_by_action": """
         SELECT id, user_id, shortcut_key, action, description, is_custom,
                created_at, updated_at
@@ -54,14 +53,12 @@ OPTIMIZED_KEYBOARD_SHORTCUTS_QUERIES = {
         WHERE user_id = ? AND action = ?
         LIMIT 1
     """,
-
     "get_user_shortcuts_by_key": """
         SELECT id, user_id, shortcut_key, action, description, is_custom,
                created_at, updated_at
         FROM keyboard_shortcuts
         WHERE user_id = ? AND shortcut_key = ?
     """,
-
     "get_all_user_custom_shortcuts": """
         SELECT id, user_id, shortcut_key, action, description, is_custom,
                created_at, updated_at
@@ -69,18 +66,16 @@ OPTIMIZED_KEYBOARD_SHORTCUTS_QUERIES = {
         WHERE user_id = ? AND is_custom = 1
         ORDER BY action
     """,
-
     "count_user_shortcuts": """
         SELECT COUNT(*) as count
         FROM keyboard_shortcuts
         WHERE user_id = ?
     """,
-
     "count_user_custom_shortcuts": """
         SELECT COUNT(*) as count
         FROM keyboard_shortcuts
         WHERE user_id = ? AND is_custom = 1
-    """
+    """,
 }
 
 
@@ -90,7 +85,9 @@ class DatabaseOptimizer:
     def __init__(self):
         self.logger = get_logger(__name__)
 
-    async def create_optimized_indexes(self, table_name: str, indexes: List[str]) -> bool:
+    async def create_optimized_indexes(
+        self, table_name: str, indexes: List[str]
+    ) -> bool:
         """Create optimized indexes for a table."""
         try:
             from plexichat.core.database import execute_query
@@ -98,7 +95,9 @@ class DatabaseOptimizer:
             for index_sql in indexes:
                 try:
                     await execute_query(index_sql)
-                    self.logger.info(f"Created index: {index_sql.split(' ON ')[1].split('(')[0]}")
+                    self.logger.info(
+                        f"Created index: {index_sql.split(' ON ')[1].split('(')[0]}"
+                    )
                 except Exception as e:
                     self.logger.warning(f"Failed to create index {index_sql}: {e}")
                     # Continue with other indexes
@@ -106,7 +105,9 @@ class DatabaseOptimizer:
             return True
 
         except Exception as e:
-            self.logger.error(f"Failed to create optimized indexes for {table_name}: {e}")
+            self.logger.error(
+                f"Failed to create optimized indexes for {table_name}: {e}"
+            )
             return False
 
     async def analyze_table_performance(self, table_name: str) -> Dict[str, Any]:
@@ -123,7 +124,9 @@ class DatabaseOptimizer:
 
             # Get index information (SQLite specific)
             try:
-                indexes = await execute_query(f"SELECT name FROM sqlite_master WHERE type='index' AND tbl_name='{table_name}'")
+                indexes = await execute_query(
+                    f"SELECT name FROM sqlite_master WHERE type='index' AND tbl_name='{table_name}'"
+                )
                 stats["indexes"] = [idx["name"] for idx in indexes] if indexes else []
             except Exception:
                 stats["indexes"] = []
@@ -132,10 +135,14 @@ class DatabaseOptimizer:
             recommendations = []
 
             if stats["total_rows"] > 1000 and len(stats["indexes"]) == 0:
-                recommendations.append("Consider adding indexes for frequently queried columns")
+                recommendations.append(
+                    "Consider adding indexes for frequently queried columns"
+                )
 
             if stats["total_rows"] > 10000:
-                recommendations.append("Table has grown large, consider partitioning or archiving old data")
+                recommendations.append(
+                    "Table has grown large, consider partitioning or archiving old data"
+                )
 
             stats["recommendations"] = recommendations
 
@@ -149,7 +156,9 @@ class DatabaseOptimizer:
         """Optimize the keyboard shortcuts table with indexes and performance improvements."""
         try:
             # Create indexes
-            success = await self.create_optimized_indexes("keyboard_shortcuts", KEYBOARD_SHORTCUTS_INDEXES)
+            success = await self.create_optimized_indexes(
+                "keyboard_shortcuts", KEYBOARD_SHORTCUTS_INDEXES
+            )
 
             if success:
                 self.logger.info("Successfully optimized keyboard_shortcuts table")
@@ -195,5 +204,5 @@ __all__ = [
     "OPTIMIZED_KEYBOARD_SHORTCUTS_QUERIES",
     "DatabaseOptimizer",
     "database_optimizer",
-    "optimize_database"
+    "optimize_database",
 ]

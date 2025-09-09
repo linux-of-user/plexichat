@@ -1,6 +1,7 @@
 """PlexiChat Scheduler"""
 
 import logging
+
 # Typing and datetime imports not used
 
 # Use shared fallback implementations
@@ -8,10 +9,18 @@ logger = logging.getLogger(__name__)
 
 try:
     from plexichat.core.utils.fallbacks import (
-        TaskScheduler, ScheduledTask, TaskStatus, TaskType,
-        schedule_once, schedule_recurring, schedule_cron, cancel_task, get_scheduled_tasks,
-        get_fallback_instance
+        ScheduledTask,
+        TaskScheduler,
+        TaskStatus,
+        TaskType,
+        cancel_task,
+        get_fallback_instance,
+        get_scheduled_tasks,
+        schedule_cron,
+        schedule_once,
+        schedule_recurring,
     )
+
     USE_SHARED_FALLBACKS = True
     logger.info("Using shared fallback implementations for scheduler")
 except ImportError:
@@ -20,7 +29,7 @@ except ImportError:
     logger.warning("Shared fallbacks unavailable, using local implementations")
 
 if USE_SHARED_FALLBACKS:
-    task_scheduler = get_fallback_instance('TaskScheduler')
+    task_scheduler = get_fallback_instance("TaskScheduler")
 else:
     # Local fallbacks (preserved for compatibility)
     class TaskScheduler:  # type: ignore
@@ -59,6 +68,7 @@ else:
 
     def get_scheduled_tasks(*args, **kwargs):  # type: ignore
         return []
+
 
 __all__ = [
     "TaskScheduler",

@@ -1,10 +1,11 @@
-import random
 import math
-from typing import List, Optional, Dict, Any
+import random
+from typing import Any, Dict, List, Optional
 
 
 class Block:
     """Represents a data block in ORAM."""
+
     def __init__(self, block_id: int, data: Any, is_dummy: bool = False):
         self.id = block_id
         self.data = data
@@ -13,6 +14,7 @@ class Block:
 
 class Bucket:
     """A bucket containing up to Z blocks."""
+
     def __init__(self, capacity: int):
         self.capacity = capacity
         self.blocks: List[Block] = []
@@ -35,7 +37,7 @@ class PathORAM:
         self.num_blocks = num_blocks
         self.bucket_size = bucket_size
         self.height = math.ceil(math.log2(num_blocks)) if num_blocks > 1 else 1
-        self.num_leaves = 2 ** self.height
+        self.num_leaves = 2**self.height
         self.num_nodes = 2 ** (self.height + 1) - 1
 
         # Tree: list of buckets, indexed by node id (0 = root)
@@ -115,12 +117,12 @@ class PathORAM:
                 target_block = block
                 break
 
-        if op == 'read':
+        if op == "read":
             if target_block:
                 return target_block.data
             else:
                 raise ValueError(f"Block {block_id} not found")
-        elif op == 'write':
+        elif op == "write":
             if target_block:
                 target_block.data = data
             else:
@@ -131,7 +133,7 @@ class PathORAM:
             raise ValueError("Operation must be 'read' or 'write'")
 
         # Evict: select up to bucket_size blocks from stash + target
-        evict_blocks = [b for b in all_blocks if not b.is_dummy][:self.bucket_size]
+        evict_blocks = [b for b in all_blocks if not b.is_dummy][: self.bucket_size]
         if target_block not in evict_blocks:
             evict_blocks.append(target_block)
 
@@ -145,4 +147,4 @@ class PathORAM:
         # Write back
         self._write_path(leaf, evict_blocks)
 
-        return None if op == 'write' else target_block.data
+        return None if op == "write" else target_block.data

@@ -13,8 +13,8 @@ Features:
 import asyncio
 import time
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Any, Set
 from datetime import datetime, timedelta, timezone
+from typing import Any, Dict, List, Optional, Set
 
 from plexichat.core.logging import get_logger
 
@@ -24,6 +24,7 @@ logger = get_logger(__name__)
 @dataclass
 class AuthSecurityMetrics:
     """Authentication security metrics."""
+
     total_auth_attempts: int = 0
     successful_auths: int = 0
     failed_auths: int = 0
@@ -47,7 +48,7 @@ class AuthSecurityIntegration:
 
     def __init__(self, config: Dict[str, Any]):
         self.config = config
-        self.enabled = config.get('brute_force_protection', True)
+        self.enabled = config.get("brute_force_protection", True)
 
         if not self.enabled:
             logger.info("Authentication security integration is disabled")
@@ -59,21 +60,16 @@ class AuthSecurityIntegration:
         self.progressive_delays = [0, 1, 5, 15, 60]  # seconds
 
         # Device tracking
-        self.device_tracking_enabled = config.get('device_tracking', True)
+        self.device_tracking_enabled = config.get("device_tracking", True)
         self.known_devices: Dict[str, Dict[str, Any]] = {}
         self.trusted_devices: Set[str] = set()
 
         # Risk assessment
-        self.risk_assessment_enabled = config.get('risk_assessment', True)
-        self.risk_thresholds = {
-            'low': 30,
-            'medium': 50,
-            'high': 70,
-            'critical': 90
-        }
+        self.risk_assessment_enabled = config.get("risk_assessment", True)
+        self.risk_thresholds = {"low": 30, "medium": 50, "high": 70, "critical": 90}
 
         # Session security
-        self.session_timeout_seconds = config.get('session_timeout', 3600)
+        self.session_timeout_seconds = config.get("session_timeout", 3600)
 
         # Metrics
         self.metrics = AuthSecurityMetrics()
@@ -94,32 +90,34 @@ class AuthSecurityIntegration:
             Dict with validation results
         """
         if not self.enabled:
-            return {'valid': True, 'message': 'Auth security disabled'}
+            return {"valid": True, "message": "Auth security disabled"}
 
         try:
-            user_id = getattr(context, 'user_id', None)
-            ip_address = getattr(context, 'ip_address', None)
-            device_id = getattr(context, 'device_id', None)
+            user_id = getattr(context, "user_id", None)
+            ip_address = getattr(context, "ip_address", None)
+            device_id = getattr(context, "device_id", None)
 
             # Check brute force protection
             if ip_address:
                 bf_check = self._check_brute_force_protection(ip_address)
-                if not bf_check['allowed']:
+                if not bf_check["allowed"]:
                     self.metrics.brute_force_blocks += 1
                     return {
-                        'valid': False,
-                        'message': bf_check['message'],
-                        'block_type': 'brute_force'
+                        "valid": False,
+                        "message": bf_check["message"],
+                        "block_type": "brute_force",
                     }
 
             # Validate device trust
             if self.device_tracking_enabled and device_id:
-                device_check = self._validate_device_trust(device_id, ip_address, user_id)
-                if not device_check['trusted']:
+                device_check = self._validate_device_trust(
+                    device_id, ip_address, user_id
+                )
+                if not device_check["trusted"]:
                     return {
-                        'valid': False,
-                        'message': device_check['message'],
-                        'requires_mfa': True
+                        "valid": False,
+                        "message": device_check["message"],
+                        "requires_mfa": True,
                     }
 
             # Perform risk assessment
@@ -127,107 +125,111 @@ class AuthSecurityIntegration:
                 risk_score = self._calculate_risk_score(context)
                 self.metrics.risk_assessments += 1
 
-                if risk_score >= self.risk_thresholds['high']:
+                if risk_score >= self.risk_thresholds["high"]:
                     self.metrics.high_risk_auths += 1
                     return {
-                        'valid': False,
-                        'message': f'High risk authentication attempt (score: {risk_score})',
-                        'risk_score': risk_score,
-                        'requires_additional_verification': True
+                        "valid": False,
+                        "message": f"High risk authentication attempt (score: {risk_score})",
+                        "risk_score": risk_score,
+                        "requires_additional_verification": True,
                     }
 
-            return {'valid': True, 'message': 'Authentication security validated'}
+            return {"valid": True, "message": "Authentication security validated"}
 
         except Exception as e:
             logger.error(f"Error in auth security validation: {e}")
-            return {'valid': False, 'message': f'Auth security error: {str(e)}'}
+            return {"valid": False, "message": f"Auth security error: {str(e)}"}
 
     def _check_brute_force_protection(self, ip_address: str) -> Dict[str, Any]:
         """Check if IP is blocked due to brute force attempts."""
         if ip_address not in self.brute_force_tracking:
-            return {'allowed': True}
+            return {"allowed": True}
 
         tracking = self.brute_force_tracking[ip_address]
         current_time = datetime.now(timezone.utc)
 
         # Check if still blocked
-        if tracking.get('is_blocked', False):
-            block_until = tracking.get('block_until')
+        if tracking.get("is_blocked", False):
+            block_until = tracking.get("block_until")
             if block_until and current_time < block_until:
                 remaining = block_until - current_time
                 return {
-                    'allowed': False,
-                    'message': f'IP blocked due to brute force attempts. '
-                             f'Remaining: {remaining.total_seconds():.0f} seconds'
+                    "allowed": False,
+                    "message": f"IP blocked due to brute force attempts. "
+                    f"Remaining: {remaining.total_seconds():.0f} seconds",
                 }
             else:
                 # Block expired, reset tracking
-                tracking['is_blocked'] = False
-                tracking['block_until'] = None
+                tracking["is_blocked"] = False
+                tracking["block_until"] = None
 
-        return {'allowed': True}
+        return {"allowed": True}
 
-    def _validate_device_trust(self, device_id: str, ip_address: str, user_id: str) -> Dict[str, Any]:
+    def _validate_device_trust(
+        self, device_id: str, ip_address: str, user_id: str
+    ) -> Dict[str, Any]:
         """Validate device trust status."""
         if device_id in self.trusted_devices:
-            return {'trusted': True, 'message': 'Device is trusted'}
+            return {"trusted": True, "message": "Device is trusted"}
 
         if device_id not in self.known_devices:
             # New device
             self.known_devices[device_id] = {
-                'device_id': device_id,
-                'first_seen': datetime.now(timezone.utc),
-                'last_seen': datetime.now(timezone.utc),
-                'ip_addresses': {ip_address} if ip_address else set(),
-                'user_id': user_id,
-                'trust_score': 0,
-                'is_trusted': False
+                "device_id": device_id,
+                "first_seen": datetime.now(timezone.utc),
+                "last_seen": datetime.now(timezone.utc),
+                "ip_addresses": {ip_address} if ip_address else set(),
+                "user_id": user_id,
+                "trust_score": 0,
+                "is_trusted": False,
             }
 
             return {
-                'trusted': False,
-                'message': 'Unknown device - additional verification required',
-                'device_status': 'unknown'
+                "trusted": False,
+                "message": "Unknown device - additional verification required",
+                "device_status": "unknown",
             }
 
         # Known but untrusted device
         device_info = self.known_devices[device_id]
-        device_info['last_seen'] = datetime.now(timezone.utc)
+        device_info["last_seen"] = datetime.now(timezone.utc)
 
         if ip_address:
-            device_info['ip_addresses'].add(ip_address)
+            device_info["ip_addresses"].add(ip_address)
 
         # Check if device should be auto-trusted
         trust_score = self._calculate_device_trust_score(device_info, ip_address)
 
         if trust_score >= 80:  # High trust score
-            device_info['is_trusted'] = True
-            device_info['trust_score'] = trust_score
+            device_info["is_trusted"] = True
+            device_info["trust_score"] = trust_score
             self.trusted_devices.add(device_id)
             self.metrics.device_trust_grants += 1
 
-            return {'trusted': True, 'message': 'Device auto-trusted based on behavior'}
+            return {"trusted": True, "message": "Device auto-trusted based on behavior"}
 
         return {
-            'trusted': False,
-            'message': f'Device trust score: {trust_score} - verification required',
-            'trust_score': trust_score
+            "trusted": False,
+            "message": f"Device trust score: {trust_score} - verification required",
+            "trust_score": trust_score,
         }
 
-    def _calculate_device_trust_score(self, device_info: Dict[str, Any], current_ip: str) -> int:
+    def _calculate_device_trust_score(
+        self, device_info: Dict[str, Any], current_ip: str
+    ) -> int:
         """Calculate trust score for a device."""
         score = 0
 
         # Age-based trust (older devices are more trusted)
-        age_days = (datetime.now(timezone.utc) - device_info['first_seen']).days
+        age_days = (datetime.now(timezone.utc) - device_info["first_seen"]).days
         score += min(age_days * 2, 40)  # Max 40 points for age
 
         # IP consistency (devices using same IPs are more trusted)
-        if current_ip and current_ip in device_info['ip_addresses']:
+        if current_ip and current_ip in device_info["ip_addresses"]:
             score += 30
 
         # Usage frequency (more frequent use increases trust)
-        last_seen = device_info['last_seen']
+        last_seen = device_info["last_seen"]
         days_since_last_seen = (datetime.now(timezone.utc) - last_seen).days
         if days_since_last_seen <= 1:
             score += 20
@@ -241,9 +243,9 @@ class AuthSecurityIntegration:
         score = 0
 
         try:
-            ip_address = getattr(context, 'ip_address', None)
-            user_agent = getattr(context, 'user_agent', None)
-            device_id = getattr(context, 'device_id', None)
+            ip_address = getattr(context, "ip_address", None)
+            user_agent = getattr(context, "user_agent", None)
+            device_id = getattr(context, "device_id", None)
 
             # Unknown IP risk
             if ip_address and not self._is_known_ip(ip_address):
@@ -264,7 +266,9 @@ class AuthSecurityIntegration:
 
             # Brute force history
             if ip_address and ip_address in self.brute_force_tracking:
-                failed_attempts = self.brute_force_tracking[ip_address].get('failed_attempts', 0)
+                failed_attempts = self.brute_force_tracking[ip_address].get(
+                    "failed_attempts", 0
+                )
                 score += min(failed_attempts * 5, 20)
 
         except Exception as e:
@@ -276,21 +280,29 @@ class AuthSecurityIntegration:
     def _is_known_ip(self, ip_address: str) -> bool:
         """Check if IP address is known for any user."""
         for device_info in self.known_devices.values():
-            if ip_address in device_info.get('ip_addresses', set()):
+            if ip_address in device_info.get("ip_addresses", set()):
                 return True
         return False
 
     def _is_suspicious_user_agent(self, user_agent: str) -> bool:
         """Check if user agent is suspicious."""
         suspicious_patterns = [
-            'bot', 'crawler', 'spider', 'scraper',
-            'python', 'curl', 'wget', 'java'
+            "bot",
+            "crawler",
+            "spider",
+            "scraper",
+            "python",
+            "curl",
+            "wget",
+            "java",
         ]
 
         user_agent_lower = user_agent.lower()
         return any(pattern in user_agent_lower for pattern in suspicious_patterns)
 
-    def record_auth_attempt(self, ip_address: str, success: bool, user_id: Optional[str] = None):
+    def record_auth_attempt(
+        self, ip_address: str, success: bool, user_id: Optional[str] = None
+    ):
         """Record an authentication attempt for brute force protection."""
         if not self.enabled:
             return
@@ -311,41 +323,45 @@ class AuthSecurityIntegration:
 
         if ip_address not in self.brute_force_tracking:
             self.brute_force_tracking[ip_address] = {
-                'ip_address': ip_address,
-                'failed_attempts': 0,
-                'first_attempt': current_time,
-                'last_attempt': current_time,
-                'is_blocked': False,
-                'block_until': None,
-                'user_id': user_id
+                "ip_address": ip_address,
+                "failed_attempts": 0,
+                "first_attempt": current_time,
+                "last_attempt": current_time,
+                "is_blocked": False,
+                "block_until": None,
+                "user_id": user_id,
             }
 
         tracking = self.brute_force_tracking[ip_address]
-        tracking['failed_attempts'] += 1
-        tracking['last_attempt'] = current_time
+        tracking["failed_attempts"] += 1
+        tracking["last_attempt"] = current_time
 
         # Check if should block
-        if tracking['failed_attempts'] >= self.max_attempts:
-            tracking['is_blocked'] = True
-            tracking['block_until'] = current_time + timedelta(minutes=self.lockout_duration_minutes)
+        if tracking["failed_attempts"] >= self.max_attempts:
+            tracking["is_blocked"] = True
+            tracking["block_until"] = current_time + timedelta(
+                minutes=self.lockout_duration_minutes
+            )
 
-            logger.warning(f"IP {ip_address} blocked due to {tracking['failed_attempts']} failed attempts")
+            logger.warning(
+                f"IP {ip_address} blocked due to {tracking['failed_attempts']} failed attempts"
+            )
 
     def grant_device_trust(self, device_id: str, user_id: str):
         """Manually grant trust to a device."""
         if device_id not in self.known_devices:
             self.known_devices[device_id] = {
-                'device_id': device_id,
-                'first_seen': datetime.now(timezone.utc),
-                'last_seen': datetime.now(timezone.utc),
-                'ip_addresses': set(),
-                'user_id': user_id,
-                'trust_score': 100,
-                'is_trusted': True
+                "device_id": device_id,
+                "first_seen": datetime.now(timezone.utc),
+                "last_seen": datetime.now(timezone.utc),
+                "ip_addresses": set(),
+                "user_id": user_id,
+                "trust_score": 100,
+                "is_trusted": True,
             }
         else:
-            self.known_devices[device_id]['is_trusted'] = True
-            self.known_devices[device_id]['trust_score'] = 100
+            self.known_devices[device_id]["is_trusted"] = True
+            self.known_devices[device_id]["trust_score"] = 100
 
         self.trusted_devices.add(device_id)
         self.metrics.device_trust_grants += 1
@@ -358,41 +374,43 @@ class AuthSecurityIntegration:
             self.trusted_devices.remove(device_id)
 
         if device_id in self.known_devices:
-            self.known_devices[device_id]['is_trusted'] = False
-            self.known_devices[device_id]['trust_score'] = 0
+            self.known_devices[device_id]["is_trusted"] = False
+            self.known_devices[device_id]["trust_score"] = 0
 
         logger.info(f"Device trust revoked for device {device_id}")
 
     def get_auth_security_status(self) -> Dict[str, Any]:
         """Get authentication security status."""
         if not self.enabled:
-            return {'enabled': False}
+            return {"enabled": False}
 
         return {
-            'enabled': True,
-            'metrics': {
-                'total_auth_attempts': self.metrics.total_auth_attempts,
-                'successful_auths': self.metrics.successful_auths,
-                'failed_auths': self.metrics.failed_auths,
-                'brute_force_blocks': self.metrics.brute_force_blocks,
-                'device_trust_grants': self.metrics.device_trust_grants,
-                'risk_assessments': self.metrics.risk_assessments,
-                'high_risk_auths': self.metrics.high_risk_auths
+            "enabled": True,
+            "metrics": {
+                "total_auth_attempts": self.metrics.total_auth_attempts,
+                "successful_auths": self.metrics.successful_auths,
+                "failed_auths": self.metrics.failed_auths,
+                "brute_force_blocks": self.metrics.brute_force_blocks,
+                "device_trust_grants": self.metrics.device_trust_grants,
+                "risk_assessments": self.metrics.risk_assessments,
+                "high_risk_auths": self.metrics.high_risk_auths,
             },
-            'brute_force_tracking': {
-                'active_blocks': len([t for t in self.brute_force_tracking.values() if t['is_blocked']]),
-                'total_tracked_ips': len(self.brute_force_tracking)
+            "brute_force_tracking": {
+                "active_blocks": len(
+                    [t for t in self.brute_force_tracking.values() if t["is_blocked"]]
+                ),
+                "total_tracked_ips": len(self.brute_force_tracking),
             },
-            'device_tracking': {
-                'known_devices': len(self.known_devices),
-                'trusted_devices': len(self.trusted_devices)
+            "device_tracking": {
+                "known_devices": len(self.known_devices),
+                "trusted_devices": len(self.trusted_devices),
             },
-            'config': {
-                'max_attempts': self.max_attempts,
-                'lockout_duration_minutes': self.lockout_duration_minutes,
-                'device_tracking_enabled': self.device_tracking_enabled,
-                'risk_assessment_enabled': self.risk_assessment_enabled
-            }
+            "config": {
+                "max_attempts": self.max_attempts,
+                "lockout_duration_minutes": self.lockout_duration_minutes,
+                "device_tracking_enabled": self.device_tracking_enabled,
+                "risk_assessment_enabled": self.risk_assessment_enabled,
+            },
         }
 
     def reset_brute_force_tracking(self, ip_address: str):
@@ -407,11 +425,13 @@ class AuthSecurityIntegration:
         expired_ips = []
 
         for ip, tracking in self.brute_force_tracking.items():
-            if (tracking.get('is_blocked') and
-                tracking.get('block_until') and
-                current_time > tracking['block_until']):
-                tracking['is_blocked'] = False
-                tracking['block_until'] = None
+            if (
+                tracking.get("is_blocked")
+                and tracking.get("block_until")
+                and current_time > tracking["block_until"]
+            ):
+                tracking["is_blocked"] = False
+                tracking["block_until"] = None
                 logger.info(f"Brute force block expired for IP {ip}")
 
     def update_config(self, new_config: Dict[str, Any]):
@@ -420,10 +440,16 @@ class AuthSecurityIntegration:
             return
 
         self.config.update(new_config)
-        self.max_attempts = new_config.get('max_attempts', self.max_attempts)
-        self.lockout_duration_minutes = new_config.get('lockout_duration_minutes', self.lockout_duration_minutes)
-        self.device_tracking_enabled = new_config.get('device_tracking', self.device_tracking_enabled)
-        self.risk_assessment_enabled = new_config.get('risk_assessment', self.risk_assessment_enabled)
+        self.max_attempts = new_config.get("max_attempts", self.max_attempts)
+        self.lockout_duration_minutes = new_config.get(
+            "lockout_duration_minutes", self.lockout_duration_minutes
+        )
+        self.device_tracking_enabled = new_config.get(
+            "device_tracking", self.device_tracking_enabled
+        )
+        self.risk_assessment_enabled = new_config.get(
+            "risk_assessment", self.risk_assessment_enabled
+        )
 
         logger.info("Authentication security configuration updated")
 

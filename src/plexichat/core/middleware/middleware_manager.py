@@ -4,37 +4,43 @@ PlexiChat Middleware Manager
 Middleware management with threading and performance optimization.
 """
 
-import threading
 import asyncio
 import logging
+import threading
 import time
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Dict, List, Optional, Union
 from dataclasses import dataclass
+from typing import Any, Callable, Dict, List, Optional, Union
 
 try:
     from plexichat.core.threading.thread_manager import async_thread_manager
 except ImportError:
     async_thread_manager = None
 
+
 # Analytics tracking fallback
 async def track_event(*args, **kwargs):
     """Fallback analytics tracking function."""
     pass
 
+
 # Performance optimization fallback
 PerformanceOptimizationEngine = None
+
 
 def get_performance_logger():
     """Fallback performance logger function."""
     return logging.getLogger("performance")
 
+
 logger = logging.getLogger(__name__)
 performance_logger = get_performance_logger()
+
 
 @dataclass
 class MiddlewareContext:
     """Middleware execution context."""
+
     request_id: str
     middleware_type: str
     data: Dict[str, Any]
@@ -43,15 +49,19 @@ class MiddlewareContext:
     user_id: Optional[int] = None
     session_id: Optional[str] = None
 
+
 class BaseMiddleware(ABC):
     """Base middleware class."""
+
     def __init__(self, name: str, priority: int = 100):
         self.name = name
         self.priority = priority
         self.enabled = True
 
     @abstractmethod
-    async def process(self, context: MiddlewareContext, next_middleware: Callable) -> Any:
+    async def process(
+        self, context: MiddlewareContext, next_middleware: Callable
+    ) -> Any:
         """Process middleware."""
         pass
 
@@ -67,12 +77,16 @@ class BaseMiddleware(ABC):
         """Called when an error occurs."""
         pass
 
+
 class AuthenticationMiddleware(BaseMiddleware):
     """Authentication middleware."""
+
     def __init__(self, priority: int = 10):
         super().__init__("authentication", priority)
 
-    async def process(self, context: MiddlewareContext, next_middleware: Callable) -> Any:
+    async def process(
+        self, context: MiddlewareContext, next_middleware: Callable
+    ) -> Any:
         """Process authentication."""
         try:
             # Extract authentication token
@@ -106,14 +120,18 @@ class AuthenticationMiddleware(BaseMiddleware):
         except Exception:
             return None
 
+
 class RateLimitMiddleware(BaseMiddleware):
     """Rate limiting middleware."""
+
     def __init__(self, requests_per_minute: int = 60, priority: int = 20):
         super().__init__("rate_limit", priority)
         self.requests_per_minute = requests_per_minute
         self.request_counts = {}
 
-    async def process(self, context: MiddlewareContext, next_middleware: Callable) -> Any:
+    async def process(
+        self, context: MiddlewareContext, next_middleware: Callable
+    ) -> Any:
         """Process rate limiting."""
         try:
             # Get client identifier
@@ -144,8 +162,11 @@ class RateLimitMiddleware(BaseMiddleware):
             self.request_counts[key] += 1
 
             # Clean old entries
-            old_keys = [k for k in self.request_counts.keys()
-                    if int(k.split("_")[-1]) < minute_window - 1]
+            old_keys = [
+                k
+                for k in self.request_counts.keys()
+                if int(k.split("_")[-1]) < minute_window - 1
+            ]
             for old_key in old_keys:
                 del self.request_counts[old_key]
 
@@ -155,13 +176,17 @@ class RateLimitMiddleware(BaseMiddleware):
             logger.error(f"Rate limit check error: {e}")
             return True  # Allow on error
 
+
 class ValidationMiddleware(BaseMiddleware):
     """Data validation middleware."""
+
     def __init__(self, schema: Optional[Dict[str, Any]] = None, priority: int = 30):
         super().__init__("validation", priority)
         self.schema = schema or {}
 
-    async def process(self, context: MiddlewareContext, next_middleware: Callable) -> Any:
+    async def process(
+        self, context: MiddlewareContext, next_middleware: Callable
+    ) -> Any:
         """Process validation."""
         try:
             # Validate data against schema
@@ -194,41 +219,54 @@ class ValidationMiddleware(BaseMiddleware):
             logger.error(f"Data validation error: {e}")
             return False
 
+
 class LoggingMiddleware(BaseMiddleware):
     """Logging middleware."""
 
     def __init__(self, priority: int = 1000):
         super().__init__("logging", priority)
 
-    async def process(self, context: MiddlewareContext, next_middleware: Callable) -> Any:
+    async def process(
+        self, context: MiddlewareContext, next_middleware: Callable
+    ) -> Any:
         """Process logging."""
         start_time = time.time()
 
         try:
-            logger.info(f"Processing {context.middleware_type} request {context.request_id}")
+            logger.info(
+                f"Processing {context.middleware_type} request {context.request_id}"
+            )
 
             # Continue to next middleware
             result = await next_middleware(context)
 
             # Log success
             duration = time.time() - start_time
-            logger.info(f"Completed {context.middleware_type} request {context.request_id} in {duration:.3f}s")
+            logger.info(
+                f"Completed {context.middleware_type} request {context.request_id} in {duration:.3f}s"
+            )
 
             return result
 
         except Exception as e:
             # Log error
             duration = time.time() - start_time
-            logger.error(f"Failed {context.middleware_type} request {context.request_id} in {duration:.3f}s: {e}")
+            logger.error(
+                f"Failed {context.middleware_type} request {context.request_id} in {duration:.3f}s: {e}"
+            )
             raise
+
 
 class PerformanceMiddleware(BaseMiddleware):
     """Performance tracking middleware."""
+
     def __init__(self, performance_logger=None, priority: int = 1001):
         super().__init__("performance", priority)
         self.performance_logger = performance_logger
 
-    async def process(self, context: MiddlewareContext, next_middleware: Callable) -> Any:
+    async def process(
+        self, context: MiddlewareContext, next_middleware: Callable
+    ) -> Any:
         """Process performance tracking."""
         start_time = time.time()
 
@@ -256,8 +294,8 @@ class PerformanceMiddleware(BaseMiddleware):
                         "middleware_type": context.middleware_type,
                         "request_id": context.request_id,
                         "duration": duration,
-                        "success": True
-                    }
+                        "success": True,
+                    },
                 )
 
             return result
@@ -279,14 +317,16 @@ class PerformanceMiddleware(BaseMiddleware):
                         "middleware_type": context.middleware_type,
                         "request_id": context.request_id,
                         "duration": duration,
-                        "error": str(e)
-                    }
+                        "error": str(e),
+                    },
                 )
 
             raise
 
+
 class MiddlewareManager:
     """Middleware manager with threading support."""
+
     def __init__(self):
         self.performance_logger = performance_logger
         self.async_thread_manager = async_thread_manager
@@ -310,7 +350,9 @@ class MiddlewareManager:
             # Sort by priority (lower priority = earlier execution)
             self.middleware_stacks[middleware_type].sort(key=lambda m: m.priority)
 
-            logger.info(f"Middleware registered: {middleware.name} for {middleware_type}")
+            logger.info(
+                f"Middleware registered: {middleware.name} for {middleware_type}"
+            )
 
         except Exception as e:
             logger.error(f"Error registering middleware: {e}")
@@ -325,7 +367,9 @@ class MiddlewareManager:
             for i, middleware in enumerate(stack):
                 if middleware.name == middleware_name:
                     del stack[i]
-                    logger.info(f"Middleware unregistered: {middleware_name} from {middleware_type}")
+                    logger.info(
+                        f"Middleware unregistered: {middleware_name} from {middleware_type}"
+                    )
                     return True
 
             return False
@@ -334,7 +378,13 @@ class MiddlewareManager:
             logger.error(f"Error unregistering middleware: {e}")
             return False
 
-    async def process(self, middleware_type: str, request_id: str, data: Dict[str, Any], metadata: Optional[Dict[str, Any]] = None) -> Any:
+    async def process(
+        self,
+        middleware_type: str,
+        request_id: str,
+        data: Dict[str, Any],
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> Any:
         """Process request through middleware stack."""
         try:
             start_time = time.time()
@@ -345,7 +395,7 @@ class MiddlewareManager:
                 middleware_type=middleware_type,
                 data=data,
                 metadata=metadata or {},
-                start_time=start_time
+                start_time=start_time,
             )
 
             # Get middleware stack
@@ -357,7 +407,9 @@ class MiddlewareManager:
                 return data
 
             # Process through middleware stack
-            result = await self._execute_middleware_stack(context, enabled_middleware, 0)
+            result = await self._execute_middleware_stack(
+                context, enabled_middleware, 0
+            )
 
             # Update statistics
             processing_time = time.time() - start_time
@@ -371,7 +423,12 @@ class MiddlewareManager:
             self.requests_failed += 1
             raise
 
-    async def _execute_middleware_stack(self, context: MiddlewareContext, middleware_stack: List[BaseMiddleware], index: int) -> Any:
+    async def _execute_middleware_stack(
+        self,
+        context: MiddlewareContext,
+        middleware_stack: List[BaseMiddleware],
+        index: int,
+    ) -> Any:
         """Execute middleware stack recursively."""
         try:
             if index >= len(middleware_stack):
@@ -382,7 +439,9 @@ class MiddlewareManager:
 
             # Create next function
             async def next_middleware(ctx: MiddlewareContext) -> Any:
-                return await self._execute_middleware_stack(ctx, middleware_stack, index + 1)
+                return await self._execute_middleware_stack(
+                    ctx, middleware_stack, index + 1
+                )
 
             # Execute current middleware
             await current_middleware.before_process(context)
@@ -409,7 +468,7 @@ class MiddlewareManager:
                     "name": middleware.name,
                     "priority": middleware.priority,
                     "enabled": middleware.enabled,
-                    "type": type(middleware).__name__
+                    "type": type(middleware).__name__,
                 }
                 for middleware in stack
             ]
@@ -447,7 +506,11 @@ class MiddlewareManager:
 
     def get_stats(self) -> Dict[str, Any]:
         """Get middleware manager statistics."""
-        avg_processing_time = self.total_processing_time / self.requests_processed if self.requests_processed > 0 else 0
+        avg_processing_time = (
+            self.total_processing_time / self.requests_processed
+            if self.requests_processed > 0
+            else 0
+        )
 
         middleware_counts = {
             mtype: len(stack) for mtype, stack in self.middleware_stacks.items()
@@ -459,8 +522,9 @@ class MiddlewareManager:
             "requests_processed": self.requests_processed,
             "requests_failed": self.requests_failed,
             "total_processing_time": self.total_processing_time,
-            "average_processing_time": avg_processing_time
+            "average_processing_time": avg_processing_time,
         }
+
 
 # Global middleware manager
 middleware_manager = MiddlewareManager()
@@ -472,18 +536,24 @@ middleware_manager.register_middleware("api", ValidationMiddleware())
 middleware_manager.register_middleware("api", LoggingMiddleware())
 middleware_manager.register_middleware("api", PerformanceMiddleware(performance_logger))
 
+
 # Convenience functions
 def register_middleware(middleware_type: str, middleware: BaseMiddleware):
     """Register middleware using global manager."""
     middleware_manager.register_middleware(middleware_type, middleware)
 
+
 def unregister_middleware(middleware_type: str, middleware_name: str) -> bool:
     """Unregister middleware using global manager."""
     return middleware_manager.unregister_middleware(middleware_type, middleware_name)
 
-async def process_with_middleware(middleware_type: str, request_id: str, data: Dict[str, Any], **kwargs) -> Any:
+
+async def process_with_middleware(
+    middleware_type: str, request_id: str, data: Dict[str, Any], **kwargs
+) -> Any:
     """Process request with middleware using global manager."""
     return await middleware_manager.process(middleware_type, request_id, data, **kwargs)
+
 
 def get_middleware_stack(middleware_type: str) -> List[Dict[str, Any]]:
     """Get middleware stack using global manager."""

@@ -14,9 +14,11 @@
 # pyright: reportReturnType=false
 import logging
 import random
-from plexichat.core.plugins.sdk import PluginInterface
-from fastapi import APIRouter
 from typing import Optional
+
+from fastapi import APIRouter
+
+from plexichat.core.plugins.sdk import PluginInterface
 
 logger = logging.getLogger(__name__)
 
@@ -27,12 +29,14 @@ QUOTES = [
     "Success is not the key to happiness. Happiness is the key to success.",
     "The best time to plant a tree was 20 years ago. The second best time is now.",
     "Your time is limited, don't waste it living someone else's life. - Steve Jobs",
-    "The journey of a thousand miles begins with one step. - Lao Tzu"
+    "The journey of a thousand miles begins with one step. - Lao Tzu",
 ]
+
 
 @router.get("/")
 async def random_quote():
     return {"quote": random.choice(QUOTES)}
+
 
 class RandomQuotePlugin(PluginInterface):
     """
@@ -52,5 +56,5 @@ class RandomQuotePlugin(PluginInterface):
             "name": "Random Quote Plugin",
             "version": "1.0.0",
             "description": "A plugin that returns a random inspirational quote.",
-            "plugin_type": "utility"
+            "plugin_type": "utility",
         }

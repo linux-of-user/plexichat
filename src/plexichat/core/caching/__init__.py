@@ -1,6 +1,7 @@
 """PlexiChat Caching"""
 
 import logging
+
 # Typing imports not used
 
 # Use shared fallback implementations
@@ -8,10 +9,19 @@ logger = logging.getLogger(__name__)
 
 try:
     from plexichat.core.utils.fallbacks import (
-        CacheManager, DistributedCacheManager, CacheEntry,
-        cache_get, cache_set, cache_delete, cache_get_async, cache_set_async,
-        cached, async_cached_decorator, get_fallback_instance
+        CacheEntry,
+        CacheManager,
+        DistributedCacheManager,
+        async_cached_decorator,
+        cache_delete,
+        cache_get,
+        cache_get_async,
+        cache_set,
+        cache_set_async,
+        cached,
+        get_fallback_instance,
     )
+
     USE_SHARED_FALLBACKS = True
     logger.info("Using shared fallback implementations for caching")
 except ImportError:
@@ -20,8 +30,8 @@ except ImportError:
     logger.warning("Shared fallbacks unavailable, using local implementations")
 
 if USE_SHARED_FALLBACKS:
-    cache_manager = get_fallback_instance('CacheManager')
-    distributed_cache_manager = get_fallback_instance('DistributedCacheManager')
+    cache_manager = get_fallback_instance("CacheManager")
+    distributed_cache_manager = get_fallback_instance("DistributedCacheManager")
 else:
     # Local fallbacks (preserved for compatibility)
     class CacheManager:  # type: ignore
@@ -72,12 +82,15 @@ else:
     def cached(*args, **kwargs):  # type: ignore
         def decorator(func):
             return func
+
         return decorator
 
     def async_cached_decorator(*args, **kwargs):  # type: ignore
         def decorator(func):
             return func
+
         return decorator
+
 
 __all__ = [
     "CacheManager",

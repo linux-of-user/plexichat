@@ -14,12 +14,12 @@ from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
 
 import aio_pika
+
 try:
     import redis.asyncio as redis
 except ImportError:
     redis = None
 from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
-
 
 """
 PlexiChat Message Queue System
@@ -67,6 +67,7 @@ logger = logging.getLogger(__name__)
 
 class MessageBroker(Enum):
     """Supported message brokers."""
+
     RABBITMQ = "rabbitmq"
     KAFKA = "kafka"
     REDIS_STREAMS = "redis_streams"
@@ -74,6 +75,7 @@ class MessageBroker(Enum):
 
 class MessagePriority(Enum):
     """Message priority levels."""
+
     LOW = 1
     NORMAL = 2
     HIGH = 3
@@ -83,6 +85,7 @@ class MessagePriority(Enum):
 @dataclass
 class Message:
     """Message structure."""
+
     id: str
     topic: str
     payload: Any
@@ -120,11 +123,11 @@ class Message:
             "created_at": self.created_at.isoformat(),
             "expires_at": self.expires_at.isoformat() if self.expires_at else None,
             "retry_count": self.retry_count,
-            "max_retries": self.max_retries
+            "max_retries": self.max_retries,
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'Message':
+    def from_dict(cls, data: Dict[str, Any]) -> "Message":
         """Create message from dictionary."""
         return cls(
             id=data["id"],
@@ -133,15 +136,20 @@ class Message:
             headers=data["headers"],
             priority=MessagePriority(data["priority"]),
             created_at=datetime.fromisoformat(data["created_at"]),
-            expires_at=datetime.fromisoformat(data["expires_at"]) if data["expires_at"] else None,
+            expires_at=(
+                datetime.fromisoformat(data["expires_at"])
+                if data["expires_at"]
+                else None
+            ),
             retry_count=data["retry_count"],
-            max_retries=data["max_retries"]
+            max_retries=data["max_retries"],
         )
 
 
 @dataclass
 class QueueStats:
     """Queue statistics."""
+
     messages_sent: int = 0
     messages_received: int = 0
     messages_processed: int = 0
@@ -166,6 +174,7 @@ class MessageQueueManager:
     Supports multiple message brokers with automatic failover,
     message routing, consumer groups, and performance monitoring.
     """
+
     def __init__(self, config: Dict[str, Any]):
         """Initialize message queue manager."""
         self.config = config
@@ -179,8 +188,12 @@ class MessageQueueManager:
         self.redis_client: Optional[redis.Redis] = None
 
         # Configuration
-        self.primary_broker = MessageBroker(config.get("primary_broker", "redis_streams"))
-        self.fallback_brokers = [MessageBroker(b) for b in config.get("fallback_brokers", [])]
+        self.primary_broker = MessageBroker(
+            config.get("primary_broker", "redis_streams")
+        )
+        self.fallback_brokers = [
+            MessageBroker(b) for b in config.get("fallback_brokers", [])
+        ]
         self.default_ttl_seconds = config.get("default_ttl_seconds", 3600)
         self.max_retries = config.get("max_retries", 3)
         self.retry_delay_seconds = config.get("retry_delay_seconds", 5)
@@ -205,7 +218,7 @@ class MessageQueueManager:
                 "rabbitmq": await self._initialize_rabbitmq(),
                 "kafka": await self._initialize_kafka(),
                 "redis_streams": await self._initialize_redis(),
-                "primary_broker": self.primary_broker.value
+                "primary_broker": self.primary_broker.value,
             }
 
             # Start background tasks
@@ -242,11 +255,13 @@ class MessageQueueManager:
             self.rabbitmq_connection = await aio_pika.connect_robust(
                 connection_url,
                 heartbeat=rabbitmq_config.get("heartbeat", 600),
-                blocked_connection_timeout=rabbitmq_config.get("blocked_timeout", 300)
+                blocked_connection_timeout=rabbitmq_config.get("blocked_timeout", 300),
             )
 
             self.rabbitmq_channel = await self.rabbitmq_connection.channel()
-            await self.rabbitmq_channel.set_qos(prefetch_count=rabbitmq_config.get("prefetch", 10))
+            await self.rabbitmq_channel.set_qos(
+                prefetch_count=rabbitmq_config.get("prefetch", 10)
+            )
 
             logger.info(" RabbitMQ initialized")
             return True
@@ -263,7 +278,9 @@ class MessageQueueManager:
 
         try:
             kafka_config = self.config.get("kafka", {})
-            bootstrap_servers = kafka_config.get("bootstrap_servers", ["localhost:9092"])
+            bootstrap_servers = kafka_config.get(
+                "bootstrap_servers", ["localhost:9092"]
+            )
 
             self.kafka_producer = AIOKafkaProducer(
                 bootstrap_servers=bootstrap_servers,
@@ -271,7 +288,7 @@ class MessageQueueManager:
                 compression_type=kafka_config.get("compression", "gzip"),
                 batch_size=kafka_config.get("batch_size", 16384),
                 linger_ms=kafka_config.get("linger_ms", 10),
-                max_request_size=kafka_config.get("max_request_size", 1048576)
+                max_request_size=kafka_config.get("max_request_size", 1048576),
             )
 
             if self.kafka_producer:
@@ -301,7 +318,7 @@ class MessageQueueManager:
                 decode_responses=False,
                 socket_connect_timeout=redis_config.get("connect_timeout", 5),
                 socket_timeout=redis_config.get("timeout", 5),
-                max_connections=redis_config.get("max_connections", 20)
+                max_connections=redis_config.get("max_connections", 20),
             )
 
             # Test connection
@@ -314,9 +331,14 @@ class MessageQueueManager:
             logger.warning(f" Redis Streams initialization failed: {e}")
             return False
 
-    async def publish(self, topic: str, payload: Any, headers: Optional[Dict[str, Any]] = None,
-                    priority: MessagePriority = MessagePriority.NORMAL,
-                    ttl_seconds: Optional[int] = None) -> bool:
+    async def publish(
+        self,
+        topic: str,
+        payload: Any,
+        headers: Optional[Dict[str, Any]] = None,
+        priority: MessagePriority = MessagePriority.NORMAL,
+        ttl_seconds: Optional[int] = None,
+    ) -> bool:
         """Publish message to topic."""
         try:
             if headers is None:
@@ -332,8 +354,12 @@ class MessageQueueManager:
                 payload=payload,
                 headers=headers,
                 priority=priority,
-                expires_at=datetime.now(timezone.utc) + timedelta(seconds=ttl_seconds) if ttl_seconds > 0 else None,
-                max_retries=self.max_retries
+                expires_at=(
+                    datetime.now(timezone.utc) + timedelta(seconds=ttl_seconds)
+                    if ttl_seconds > 0
+                    else None
+                ),
+                max_retries=self.max_retries,
             )
 
             # Try primary broker first
@@ -344,7 +370,9 @@ class MessageQueueManager:
                 for broker in self.fallback_brokers:
                     success = await self._publish_to_broker(broker, message)
                     if success:
-                        logger.warning(f" Used fallback broker {broker.value} for topic {topic}")
+                        logger.warning(
+                            f" Used fallback broker {broker.value} for topic {topic}"
+                        )
                         break
 
             if success:
@@ -386,14 +414,11 @@ class MessageQueueManager:
         try:
             # Declare exchange and queue
             exchange = await self.rabbitmq_channel.declare_exchange(
-                f"plexichat.{message.topic}",
-                aio_pika.ExchangeType.TOPIC,
-                durable=True
+                f"plexichat.{message.topic}", aio_pika.ExchangeType.TOPIC, durable=True
             )
 
             queue = await self.rabbitmq_channel.declare_queue(
-                f"plexichat.{message.topic}.queue",
-                durable=True
+                f"plexichat.{message.topic}.queue", durable=True
             )
 
             await queue.bind(exchange, routing_key=message.topic)
@@ -402,9 +427,18 @@ class MessageQueueManager:
             rabbitmq_message = aio_pika.Message(
                 json.dumps(message.to_dict()).encode(),
                 priority=message.priority.value,
-                expiration=int((message.expires_at - datetime.now(timezone.utc)).total_seconds() * 1000) if message.expires_at else None,
+                expiration=(
+                    int(
+                        (
+                            message.expires_at - datetime.now(timezone.utc)
+                        ).total_seconds()
+                        * 1000
+                    )
+                    if message.expires_at
+                    else None
+                ),
                 headers=message.headers,
-                message_id=message.id
+                message_id=message.id,
             )
 
             # Publish message
@@ -422,8 +456,10 @@ class MessageQueueManager:
             message_data = message.to_dict()
 
             # Add headers
-            headers = [(k, v.encode() if isinstance(v, str) else str(v).encode())
-                    for k, v in message.headers.items()]
+            headers = [
+                (k, v.encode() if isinstance(v, str) else str(v).encode())
+                for k, v in message.headers.items()
+            ]
             headers.append(("message_id", message.id.encode()))
             headers.append(("priority", str(message.priority.value).encode()))
 
@@ -432,7 +468,7 @@ class MessageQueueManager:
                 message.topic,
                 value=message_data,
                 headers=headers,
-                key=message.id.encode()
+                key=message.id.encode(),
             )
 
             return True
@@ -453,9 +489,11 @@ class MessageQueueManager:
                 "headers": json.dumps(message.headers),
                 "priority": message.priority.value,
                 "created_at": message.created_at.isoformat(),
-                "expires_at": message.expires_at.isoformat() if message.expires_at else "",
+                "expires_at": (
+                    message.expires_at.isoformat() if message.expires_at else ""
+                ),
                 "retry_count": message.retry_count,
-                "max_retries": message.max_retries
+                "max_retries": message.max_retries,
             }
 
             # Add to stream
@@ -463,7 +501,9 @@ class MessageQueueManager:
 
             # Set TTL on stream if configured
             if message.expires_at:
-                ttl_seconds = int((message.expires_at - datetime.now(timezone.utc)).total_seconds())
+                ttl_seconds = int(
+                    (message.expires_at - datetime.now(timezone.utc)).total_seconds()
+                )
                 if ttl_seconds > 0:
                     await self.redis_client.expire(stream_key, ttl_seconds)
 
@@ -473,8 +513,12 @@ class MessageQueueManager:
             logger.error(f" Redis Streams publish error: {e}")
             return False
 
-    async def subscribe(self, topic: str, handler: Callable[[Message], Any],
-                    consumer_group: Optional[str] = None) -> bool:
+    async def subscribe(
+        self,
+        topic: str,
+        handler: Callable[[Message], Any],
+        consumer_group: Optional[str] = None,
+    ) -> bool:
         """Subscribe to topic with message handler."""
         try:
             if topic in self.message_handlers:
@@ -496,12 +540,16 @@ class MessageQueueManager:
             logger.error(f" Subscribe error for topic {topic}: {e}")
             return False
 
-    async def _start_consumer(self, broker: MessageBroker, topic: str, consumer_group: Optional[str]):
+    async def _start_consumer(
+        self, broker: MessageBroker, topic: str, consumer_group: Optional[str]
+    ):
         """Start consumer for specific broker and topic."""
         try:
             if broker == MessageBroker.RABBITMQ and self.rabbitmq_channel:
                 await self._consume_rabbitmq(topic)
-            elif broker == MessageBroker.KAFKA and self.kafka_producer:  # Producer initialized means Kafka available
+            elif (
+                broker == MessageBroker.KAFKA and self.kafka_producer
+            ):  # Producer initialized means Kafka available
                 await self._consume_kafka(topic, consumer_group)
             elif broker == MessageBroker.REDIS_STREAMS and self.redis_client:
                 await self._consume_redis(topic, consumer_group)
@@ -515,8 +563,7 @@ class MessageQueueManager:
         """Consume messages from RabbitMQ."""
         try:
             queue = await self.rabbitmq_channel.declare_queue(
-                f"plexichat.{topic}.queue",
-                durable=True
+                f"plexichat.{topic}.queue", durable=True
             )
 
             async with queue.iterator() as queue_iter:
@@ -549,12 +596,14 @@ class MessageQueueManager:
 
             consumer = AIOKafkaConsumer(
                 topic,
-                bootstrap_servers=kafka_config.get("bootstrap_servers", ["localhost:9092"]),
+                bootstrap_servers=kafka_config.get(
+                    "bootstrap_servers", ["localhost:9092"]
+                ),
                 group_id=consumer_group or f"plexichat-{topic}",
                 value_deserializer=lambda m: json.loads(m.decode()),
                 auto_offset_reset=kafka_config.get("auto_offset_reset", "latest"),
                 enable_auto_commit=False,
-                max_poll_records=kafka_config.get("max_poll_records", 500)
+                max_poll_records=kafka_config.get("max_poll_records", 500),
             )
 
             await consumer.start()
@@ -575,7 +624,9 @@ class MessageQueueManager:
                             # Handle retry logic for Kafka
                             if message.can_retry():
                                 message.retry_count += 1
-                                await self._publish_to_broker(MessageBroker.KAFKA, message)
+                                await self._publish_to_broker(
+                                    MessageBroker.KAFKA, message
+                                )
                             else:
                                 self.dead_letter_queue.append(message)
 
@@ -601,9 +652,11 @@ class MessageQueueManager:
 
             # Create consumer group if it doesn't exist
             try:
-                await self.redis_client.xgroup_create(stream_key, group_name, id="0", mkstream=True)
+                await self.redis_client.xgroup_create(
+                    stream_key, group_name, id="0", mkstream=True
+                )
             except redis.exceptions.ResponseError as e:
-                if "BUSYGROUP" not in str(e): # Group might already exist
+                if "BUSYGROUP" not in str(e):  # Group might already exist
                     raise
 
             while True:
@@ -614,7 +667,7 @@ class MessageQueueManager:
                         consumer_name,
                         {stream_key: ">"},
                         count=10,
-                        block=1000  # Block for 1 second
+                        block=1000,  # Block for 1 second
                     )
 
                     for stream, stream_messages in messages:
@@ -628,16 +681,22 @@ class MessageQueueManager:
                                     "headers": json.loads(fields[b"headers"].decode()),
                                     "priority": int(fields[b"priority"]),
                                     "created_at": fields[b"created_at"].decode(),
-                                    "expires_at": fields[b"expires_at"].decode() if fields[b"expires_at"] else None,
+                                    "expires_at": (
+                                        fields[b"expires_at"].decode()
+                                        if fields[b"expires_at"]
+                                        else None
+                                    ),
                                     "retry_count": int(fields[b"retry_count"]),
-                                    "max_retries": int(fields[b"max_retries"])
+                                    "max_retries": int(fields[b"max_retries"]),
                                 }
 
                                 message = Message.from_dict(message_data)
 
                                 # Check if message is expired
                                 if message.is_expired():
-                                    await self.redis_client.xack(stream_key, group_name, message_id)
+                                    await self.redis_client.xack(
+                                        stream_key, group_name, message_id
+                                    )
                                     continue
 
                                 # Process message
@@ -645,27 +704,37 @@ class MessageQueueManager:
 
                                 if success:
                                     # Acknowledge message
-                                    await self.redis_client.xack(stream_key, group_name, message_id)
+                                    await self.redis_client.xack(
+                                        stream_key, group_name, message_id
+                                    )
                                 else:
                                     # Handle retry
                                     if message.can_retry():
                                         message.retry_count += 1
                                         await self._publish_redis(message)
-                                        await self.redis_client.xack(stream_key, group_name, message_id)
+                                        await self.redis_client.xack(
+                                            stream_key, group_name, message_id
+                                        )
                                     else:
                                         # Move to dead letter queue
                                         self.dead_letter_queue.append(message)
-                                        await self.redis_client.xack(stream_key, group_name, message_id)
+                                        await self.redis_client.xack(
+                                            stream_key, group_name, message_id
+                                        )
 
                             except Exception as e:
                                 logger.error(f" Redis message processing error: {e}")
-                                await self.redis_client.xack(stream_key, group_name, message_id)
+                                await self.redis_client.xack(
+                                    stream_key, group_name, message_id
+                                )
 
                 except Exception as e:
                     if "NOGROUP" in str(e):
                         # Recreate consumer group
                         try:
-                            await self.redis_client.xgroup_create(stream_key, group_name, id="0", mkstream=True)
+                            await self.redis_client.xgroup_create(
+                                stream_key, group_name, id="0", mkstream=True
+                            )
                         except redis.exceptions.ResponseError as e:
                             if "BUSYGROUP" not in str(e):
                                 raise
@@ -710,13 +779,16 @@ class MessageQueueManager:
             # Update average processing time
             if topic_stats.messages_processed > 1:
                 topic_stats.average_processing_time_ms = (
-                    (topic_stats.average_processing_time_ms * (topic_stats.messages_processed - 1) + processing_time) /
-                    topic_stats.messages_processed
-                )
+                    topic_stats.average_processing_time_ms
+                    * (topic_stats.messages_processed - 1)
+                    + processing_time
+                ) / topic_stats.messages_processed
             else:
                 topic_stats.average_processing_time_ms = processing_time
 
-            logger.debug(f" Message processed for topic {message.topic} in {processing_time:.2f}ms")
+            logger.debug(
+                f" Message processed for topic {message.topic} in {processing_time:.2f}ms"
+            )
             return True
 
         except Exception as e:
@@ -744,7 +816,7 @@ class MessageQueueManager:
                     "success_rate": stats.success_rate,
                     "average_processing_time_ms": stats.average_processing_time_ms,
                     "queue_depth": stats.queue_depth,
-                    "consumer_count": stats.consumer_count
+                    "consumer_count": stats.consumer_count,
                 }
 
             return {
@@ -756,7 +828,7 @@ class MessageQueueManager:
                     "messages_retried": self.global_stats.messages_retried,
                     "messages_dead_lettered": self.global_stats.messages_dead_lettered,
                     "success_rate": self.global_stats.success_rate,
-                    "average_processing_time_ms": self.global_stats.average_processing_time_ms
+                    "average_processing_time_ms": self.global_stats.average_processing_time_ms,
                 },
                 "topics": topic_stats,
                 "configuration": {
@@ -764,19 +836,21 @@ class MessageQueueManager:
                     "fallback_brokers": [b.value for b in self.fallback_brokers],
                     "default_ttl_seconds": self.default_ttl_seconds,
                     "max_retries": self.max_retries,
-                    "retry_delay_seconds": self.retry_delay_seconds
+                    "retry_delay_seconds": self.retry_delay_seconds,
                 },
                 "availability": {
                     "rabbitmq": self.rabbitmq_connection is not None,
                     "kafka": self.kafka_producer is not None,
-                    "redis_streams": self.redis_client is not None
+                    "redis_streams": self.redis_client is not None,
                 },
                 "dead_letter_queue": {
                     "count": len(self.dead_letter_queue),
-                    "messages": [msg.to_dict() for msg in self.dead_letter_queue[-10:]]  # Last 10 messages
+                    "messages": [
+                        msg.to_dict() for msg in self.dead_letter_queue[-10:]
+                    ],  # Last 10 messages
                 },
                 "active_consumers": len(self.consumer_tasks),
-                "registered_handlers": list(self.message_handlers.keys())
+                "registered_handlers": list(self.message_handlers.keys()),
             }
 
         except Exception as e:
@@ -792,15 +866,25 @@ class MessageQueueManager:
                 await asyncio.sleep(60)  # Run every minute
 
                 # Update global statistics
-                self.global_stats.messages_sent = sum(stats.messages_sent for stats in self.stats_by_topic.values())
-                self.global_stats.messages_received = sum(stats.messages_received for stats in self.stats_by_topic.values())
-                self.global_stats.messages_processed = sum(stats.messages_processed for stats in self.stats_by_topic.values())
-                self.global_stats.messages_failed = sum(stats.messages_failed for stats in self.stats_by_topic.values())
+                self.global_stats.messages_sent = sum(
+                    stats.messages_sent for stats in self.stats_by_topic.values()
+                )
+                self.global_stats.messages_received = sum(
+                    stats.messages_received for stats in self.stats_by_topic.values()
+                )
+                self.global_stats.messages_processed = sum(
+                    stats.messages_processed for stats in self.stats_by_topic.values()
+                )
+                self.global_stats.messages_failed = sum(
+                    stats.messages_failed for stats in self.stats_by_topic.values()
+                )
 
                 # Log warnings for high failure rates
                 for topic, stats in self.stats_by_topic.items():
                     if stats.success_rate < 0.8 and stats.messages_processed > 10:
-                        logger.warning(f" Low success rate for topic {topic}: {stats.success_rate:.2%}")
+                        logger.warning(
+                            f" Low success rate for topic {topic}: {stats.success_rate:.2%}"
+                        )
 
             except Exception as e:
                 logger.error(f" Stats collection task error: {e}")
@@ -815,7 +899,9 @@ class MessageQueueManager:
                 if not self.dead_letter_queue:
                     continue
 
-                logger.info(f" Processing {len(self.dead_letter_queue)} dead letter messages")
+                logger.info(
+                    f" Processing {len(self.dead_letter_queue)} dead letter messages"
+                )
 
                 # Process dead letter messages
                 processed_count = 0
@@ -859,11 +945,17 @@ class MessageQueueManager:
 
                 # Check RabbitMQ connection
                 if self.rabbitmq_connection and self.rabbitmq_connection.is_closed:
-                    logger.warning(" RabbitMQ connection lost, attempting reconnection...")
+                    logger.warning(
+                        " RabbitMQ connection lost, attempting reconnection..."
+                    )
                     await self._initialize_rabbitmq()
 
                 # Check Kafka producer
-                if self.kafka_producer and hasattr(self.kafka_producer, '_closed') and self.kafka_producer._closed:
+                if (
+                    self.kafka_producer
+                    and hasattr(self.kafka_producer, "_closed")
+                    and self.kafka_producer._closed
+                ):
                     logger.warning(" Kafka producer lost, attempting reconnection...")
                     await self._initialize_kafka()
 
@@ -872,7 +964,9 @@ class MessageQueueManager:
                     try:
                         await self.redis_client.ping()
                     except Exception:
-                        logger.warning(" Redis connection lost, attempting reconnection...")
+                        logger.warning(
+                            " Redis connection lost, attempting reconnection..."
+                        )
                         await self._initialize_redis()
 
             except Exception as e:
@@ -910,8 +1004,7 @@ class MessageQueueManager:
             if self.rabbitmq_channel:
                 try:
                     queue = await self.rabbitmq_channel.declare_queue(
-                        f"plexichat.{topic}.queue",
-                        durable=True
+                        f"plexichat.{topic}.queue", durable=True
                     )
                     await queue.purge()
                     success_count += 1
@@ -1000,7 +1093,7 @@ def get_queue_manager(config: Optional[Dict[str, Any]] = None) -> MessageQueueMa
                     "password": "guest",
                     "vhost": "/",
                     "heartbeat": 600,
-                    "prefetch": 10
+                    "prefetch": 10,
                 },
                 "kafka": {
                     "bootstrap_servers": ["localhost:9092"],
@@ -1009,14 +1102,14 @@ def get_queue_manager(config: Optional[Dict[str, Any]] = None) -> MessageQueueMa
                     "linger_ms": 10,
                     "max_request_size": 1048576,
                     "auto_offset_reset": "latest",
-                    "max_poll_records": 500
+                    "max_poll_records": 500,
                 },
                 "redis": {
                     "host": "localhost",
                     "port": 6379,
                     "db": 1,
-                    "max_connections": 20
-                }
+                    "max_connections": 20,
+                },
             }
 
         _queue_manager = MessageQueueManager(config)

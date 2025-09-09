@@ -4,15 +4,15 @@ Handles user management operations with repository pattern.
 """
 
 import asyncio
-from typing import Dict, List, Optional, Set, Tuple, Any
 from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional, Set, Tuple
 
-from plexichat.core.logging import get_logger
 from plexichat.core.authentication import Role
+from plexichat.core.logging import get_logger
 from plexichat.core.security import get_security_system
 
-from .interfaces import IUserService
 from ..config import get_auth_config
+from .interfaces import IUserService
 
 logger = get_logger(__name__)
 
@@ -32,7 +32,7 @@ class UserService(IUserService):
         username: str,
         password: str,
         permissions: Optional[Set[str]] = None,
-        roles: Optional[Set[Role]] = None
+        roles: Optional[Set[Role]] = None,
     ) -> Tuple[bool, List[str]]:
         """
         Register a new user with validation and security checks.
@@ -64,13 +64,19 @@ class UserService(IUserService):
                 issues.append("Username already exists")
 
             # Validate password against policy
-            if hasattr(self.config, 'password_policy'):
-                policy_valid, policy_issues = self._validate_password_policy(password, username)
+            if hasattr(self.config, "password_policy"):
+                policy_valid, policy_issues = self._validate_password_policy(
+                    password, username
+                )
                 if not policy_valid:
                     issues.extend(policy_issues)
 
             # Validate password strength
-            strength_valid, strength_issues = self.security_system.password_manager.validate_password_strength(password)
+            strength_valid, strength_issues = (
+                self.security_system.password_manager.validate_password_strength(
+                    password
+                )
+            )
             if not strength_valid:
                 issues.extend(strength_issues)
 
@@ -79,7 +85,9 @@ class UserService(IUserService):
                 return False, issues
 
             # Hash password
-            password_hash, salt = self.security_system.password_manager.hash_password(password)
+            password_hash, salt = self.security_system.password_manager.hash_password(
+                password
+            )
 
             # Expand role permissions
             final_permissions = permissions or set()
@@ -89,23 +97,26 @@ class UserService(IUserService):
 
             # Create user credentials
             from plexichat.core.security.security_manager import UserCredentials
+
             credentials = UserCredentials(
                 username=username,
                 password_hash=password_hash,
                 salt=salt,
                 permissions=final_permissions,
                 failed_attempts=0,
-                locked_until=None
+                locked_until=None,
             )
 
             # Store in security system
             self.security_system.user_credentials[username] = credentials
 
             logger.info(f"User registered successfully: {username}")
-            logger.security("User registration",
-                          user_id=username,
-                          permissions=list(final_permissions),
-                          roles=[role.value for role in (roles or set())])
+            logger.security(
+                "User registration",
+                user_id=username,
+                permissions=list(final_permissions),
+                roles=[role.value for role in (roles or set())],
+            )
 
             return True, []
 
@@ -114,10 +125,7 @@ class UserService(IUserService):
             return False, [f"Registration failed: {str(e)}"]
 
     async def change_password(
-        self,
-        user_id: str,
-        old_password: str,
-        new_password: str
+        self, user_id: str, old_password: str, new_password: str
     ) -> Tuple[bool, List[str]]:
         """
         Change user password with validation.
@@ -137,35 +145,49 @@ class UserService(IUserService):
                 return False, ["User not found"]
 
             # Verify old password
-            success, _ = await self.security_system.authenticate_user(user_id, old_password)
+            success, _ = await self.security_system.authenticate_user(
+                user_id, old_password
+            )
             if not success:
-                logger.security("Password change failed - invalid old password", user_id=user_id)
+                logger.security(
+                    "Password change failed - invalid old password", user_id=user_id
+                )
                 return False, ["Invalid current password"]
 
             # Validate new password
             issues = []
 
             # Check password policy
-            if hasattr(self.config, 'password_policy'):
-                policy_valid, policy_issues = self._validate_password_policy(new_password, user_id)
+            if hasattr(self.config, "password_policy"):
+                policy_valid, policy_issues = self._validate_password_policy(
+                    new_password, user_id
+                )
                 if not policy_valid:
                     issues.extend(policy_issues)
 
             # Check password strength
-            strength_valid, strength_issues = self.security_system.password_manager.validate_password_strength(new_password)
+            strength_valid, strength_issues = (
+                self.security_system.password_manager.validate_password_strength(
+                    new_password
+                )
+            )
             if not strength_valid:
                 issues.extend(strength_issues)
 
             # Check password history (if enabled)
             if self.config.settings.enable_password_history:
                 if self._is_password_in_history(user_id, new_password):
-                    issues.append("Password cannot be the same as recently used passwords")
+                    issues.append(
+                        "Password cannot be the same as recently used passwords"
+                    )
 
             if issues:
                 return False, issues
 
             # Hash new password
-            password_hash, salt = self.security_system.password_manager.hash_password(new_password)
+            password_hash, salt = self.security_system.password_manager.hash_password(
+                new_password
+            )
 
             # Update credentials
             old_hash = credentials.password_hash
@@ -178,9 +200,9 @@ class UserService(IUserService):
                 self._add_to_password_history(user_id, old_hash)
 
             logger.security("Password changed successfully", user_id=user_id)
-            logger.audit("Password changed",
-                        user_id=user_id,
-                        event_type="password_changed")
+            logger.audit(
+                "Password changed", user_id=user_id, event_type="password_changed"
+            )
 
             return True, []
 
@@ -207,10 +229,12 @@ class UserService(IUserService):
             old_permissions = credentials.permissions.copy()
             credentials.permissions = permissions
 
-            logger.security("User permissions updated",
-                          user_id=user_id,
-                          old_permissions=list(old_permissions),
-                          new_permissions=list(permissions))
+            logger.security(
+                "User permissions updated",
+                user_id=user_id,
+                old_permissions=list(old_permissions),
+                new_permissions=list(permissions),
+            )
 
             return True
 
@@ -231,10 +255,12 @@ class UserService(IUserService):
             # Add role permissions to user
             credentials.permissions.update(role_permissions)
 
-            logger.security("Role assigned",
-                          user_id=user_id,
-                          role=role.value,
-                          new_permissions=list(role_permissions))
+            logger.security(
+                "Role assigned",
+                user_id=user_id,
+                role=role.value,
+                new_permissions=list(role_permissions),
+            )
 
             return True
 
@@ -255,10 +281,12 @@ class UserService(IUserService):
             # Remove role permissions from user
             credentials.permissions.difference_update(role_permissions)
 
-            logger.security("Role revoked",
-                          user_id=user_id,
-                          role=role.value,
-                          removed_permissions=list(role_permissions))
+            logger.security(
+                "Role revoked",
+                user_id=user_id,
+                role=role.value,
+                removed_permissions=list(role_permissions),
+            )
 
             return True
 
@@ -266,7 +294,9 @@ class UserService(IUserService):
             logger.error(f"Error revoking role from {user_id}: {e}")
             return False
 
-    def _validate_password_policy(self, password: str, username: str) -> Tuple[bool, List[str]]:
+    def _validate_password_policy(
+        self, password: str, username: str
+    ) -> Tuple[bool, List[str]]:
         """Validate password against policy."""
         issues = []
 
@@ -275,10 +305,14 @@ class UserService(IUserService):
 
             # Length check
             if len(password) < policy.min_length:
-                issues.append(f"Password must be at least {policy.min_length} characters")
+                issues.append(
+                    f"Password must be at least {policy.min_length} characters"
+                )
 
             if len(password) > policy.max_length:
-                issues.append(f"Password must be no more than {policy.max_length} characters")
+                issues.append(
+                    f"Password must be no more than {policy.max_length} characters"
+                )
 
             # Character requirements
             if policy.require_uppercase and not any(c.isupper() for c in password):
@@ -293,10 +327,16 @@ class UserService(IUserService):
             if policy.require_special_chars:
                 special_chars = sum(1 for c in password if not c.isalnum())
                 if special_chars < policy.min_special_chars:
-                    issues.append(f"Password must contain at least {policy.min_special_chars} special characters")
+                    issues.append(
+                        f"Password must contain at least {policy.min_special_chars} special characters"
+                    )
 
             # Common password check
-            if policy.prevent_common_passwords and password.lower() in ["password", "123456", "qwerty"]:
+            if policy.prevent_common_passwords and password.lower() in [
+                "password",
+                "123456",
+                "qwerty",
+            ]:
                 issues.append("Password is too common")
 
             # Personal info check
@@ -317,9 +357,16 @@ class UserService(IUserService):
             Role.GUEST: set(),
             Role.USER: {"read", "write_own"},
             Role.MODERATOR: {"read", "write_own", "moderate", "delete_others"},
-            Role.ADMIN: {"read", "write_own", "moderate", "delete_others", "admin", "user_management"},
+            Role.ADMIN: {
+                "read",
+                "write_own",
+                "moderate",
+                "delete_others",
+                "admin",
+                "user_management",
+            },
             Role.SUPER_ADMIN: {"*"},
-            Role.SYSTEM: {"*"}
+            Role.SYSTEM: {"*"},
         }
 
         for role in roles:

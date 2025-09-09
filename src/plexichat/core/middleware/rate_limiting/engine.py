@@ -11,42 +11,49 @@ Consolidates features from:
 Note: This engine provides a single API surface and can be used as drop-in replacement
 from this package, while we keep backward-compatible wrappers for old modules.
 """
+
 from __future__ import annotations
 
 import asyncio
-import time
 import hashlib
+import time
+from collections import defaultdict, deque
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, Optional, Tuple, Deque
-from collections import defaultdict, deque
+from typing import Any, Deque, Dict, Optional, Tuple
 
 try:
     from fastapi import Request, Response, status
-    from starlette.middleware.base import BaseHTTPMiddleware
     from fastapi.responses import JSONResponse
+    from starlette.middleware.base import BaseHTTPMiddleware
 except Exception:
     Request = Any
     Response = Any
     BaseHTTPMiddleware = object
     JSONResponse = object
+
     class status:
         HTTP_429_TOO_MANY_REQUESTS = 429
+
 
 # Logging
 try:
     from plexichat.core.logging import get_logger
+
     logger = get_logger(__name__)
 except Exception:
     import logging
+
     logger = logging.getLogger(__name__)
 
 # Config
 try:
     from plexichat.core.config_manager import get_config_manager
+
     CONFIG = get_config_manager()
 except Exception:
     CONFIG = None
+
 
 class RateLimitStrategy(Enum):
     GLOBAL = "global"
@@ -56,10 +63,12 @@ class RateLimitStrategy(Enum):
     PER_METHOD = "per_method"
     PER_USER_AGENT = "per_user_agent"
 
+
 class RateLimitAlgorithm(Enum):
     TOKEN_BUCKET = "token_bucket"
     SLIDING_WINDOW = "sliding_window"
     FIXED_WINDOW = "fixed_window"
+
 
 @dataclass
 class RateLimitConfig:
@@ -87,19 +96,22 @@ class RateLimitConfig:
     patch_requests_per_minute: int = 40
     # Overrides and multipliers
     endpoint_overrides: Dict[str, Dict[str, int]] = field(default_factory=dict)
-    user_tier_multipliers: Dict[str, float] = field(default_factory=lambda: {
-        "guest": 0.5,
-        "user": 1.0,
-        "premium": 2.0,
-        "admin": 10.0,
-        "system": 100.0,
-    })
+    user_tier_multipliers: Dict[str, float] = field(
+        default_factory=lambda: {
+            "guest": 0.5,
+            "user": 1.0,
+            "premium": 2.0,
+            "admin": 10.0,
+            "system": 100.0,
+        }
+    )
     # Bandwidth and concurrency (from account middleware)
     concurrent_requests: int = 10
     bandwidth_per_second: int = 1_000_000  # 1MB/s default
     burst_allowance: int = 5
     # Adaptive multiplier (from dynamic middleware)
     adaptive_multiplier: float = 1.0
+
 
 class TokenBucket:
     def __init__(self, capacity: int, refill_rate: float):
@@ -108,6 +120,7 @@ class TokenBucket:
         self.refill_rate = refill_rate
         self.last_refill = time.time()
         self.lock = asyncio.Lock()
+
     async def consume(self, tokens: int = 1) -> bool:
         async with self.lock:
             now = time.time()
@@ -118,8 +131,14 @@ class TokenBucket:
                 self.tokens -= tokens
                 return True
             return False
+
     def info(self) -> Dict[str, float]:
-        return {"capacity": self.capacity, "tokens": self.tokens, "refill_rate": self.refill_rate}
+        return {
+            "capacity": self.capacity,
+            "tokens": self.tokens,
+            "refill_rate": self.refill_rate,
+        }
+
 
 class SlidingWindow:
     def __init__(self, window_seconds: int, max_requests: int):
@@ -127,6 +146,7 @@ class SlidingWindow:
         self.max_requests = max_requests
         self.requests: Deque[float] = deque()
         self.lock = asyncio.Lock()
+
     async def add(self) -> bool:
         async with self.lock:
             now = time.time()
@@ -136,11 +156,13 @@ class SlidingWindow:
                 return False
             self.requests.append(now)
             return True
+
     def count(self) -> int:
         now = time.time()
         while self.requests and self.requests[0] <= now - self.window_seconds:
             self.requests.popleft()
         return len(self.requests)
+
 
 class FixedWindow:
     def __init__(self, window_seconds: int, max_requests: int):
@@ -149,6 +171,7 @@ class FixedWindow:
         self.window_start = 0
         self.count = 0
         self.lock = asyncio.Lock()
+
     async def add(self) -> bool:
         async with self.lock:
             now = time.time()
@@ -160,6 +183,7 @@ class FixedWindow:
                 return False
             self.count += 1
             return True
+
     def count_current(self) -> int:
         now = time.time()
         start = int(now // self.window_seconds) * self.window_seconds
@@ -167,14 +191,23 @@ class FixedWindow:
             return 0
         return self.count
 
+
 class RateLimitViolation:
-    def __init__(self, strategy: RateLimitStrategy, key: str, limit: int, current: int, retry_after: int):
+    def __init__(
+        self,
+        strategy: RateLimitStrategy,
+        key: str,
+        limit: int,
+        current: int,
+        retry_after: int,
+    ):
         self.strategy = strategy
         self.key = key
         self.limit = limit
         self.current = current
         self.retry_after = retry_after
         self.at = time.time()
+
 
 class UnifiedRateLimiter:
     def __init__(self, config: Optional[RateLimitConfig] = None):
@@ -194,30 +227,53 @@ class UnifiedRateLimiter:
                 tiers = CONFIG.get("ddos.user_tiers", None)
                 if isinstance(tiers, dict) and tiers:
                     base = float(tiers.get("user", 60) or 60)
-                    multipliers = {str(k): (float(v)/base if base else 1.0) for k, v in tiers.items()}
-                    for k in ("guest","user","premium","admin","system"):
+                    multipliers = {
+                        str(k): (float(v) / base if base else 1.0)
+                        for k, v in tiers.items()
+                    }
+                    for k in ("guest", "user", "premium", "admin", "system"):
                         multipliers.setdefault(k, 1.0)
                     self.config.user_tier_multipliers = multipliers
                 # Unified rate limit config
                 rl_cfg = CONFIG.get("rate_limit", None)
                 if rl_cfg is not None:
                     # endpoint_overrides
-                    ep = getattr(rl_cfg, "endpoint_overrides", None) if not isinstance(rl_cfg, dict) else rl_cfg.get("endpoint_overrides")
+                    ep = (
+                        getattr(rl_cfg, "endpoint_overrides", None)
+                        if not isinstance(rl_cfg, dict)
+                        else rl_cfg.get("endpoint_overrides")
+                    )
                     if isinstance(ep, dict):
                         self.config.endpoint_overrides = dict(ep)
                     # user tier multipliers override
-                    ut = getattr(rl_cfg, "user_tier_multipliers", None) if not isinstance(rl_cfg, dict) else rl_cfg.get("user_tier_multipliers")
+                    ut = (
+                        getattr(rl_cfg, "user_tier_multipliers", None)
+                        if not isinstance(rl_cfg, dict)
+                        else rl_cfg.get("user_tier_multipliers")
+                    )
                     if isinstance(ut, dict) and ut:
-                        self.config.user_tier_multipliers.update({str(k): float(v) for k, v in ut.items()})
+                        self.config.user_tier_multipliers.update(
+                            {str(k): float(v) for k, v in ut.items()}
+                        )
                     # basic per-ip/per-user/rate values if present
                     for attr in (
-                        "enabled", "per_ip_requests_per_minute", "per_user_requests_per_minute",
-                        "per_route_requests_per_minute", "global_requests_per_minute", "per_ip_block_duration",
+                        "enabled",
+                        "per_ip_requests_per_minute",
+                        "per_user_requests_per_minute",
+                        "per_route_requests_per_minute",
+                        "global_requests_per_minute",
+                        "per_ip_block_duration",
                         "per_user_block_duration",
                     ):
-                        val = getattr(rl_cfg, attr, None) if not isinstance(rl_cfg, dict) else rl_cfg.get(attr)
+                        val = (
+                            getattr(rl_cfg, attr, None)
+                            if not isinstance(rl_cfg, dict)
+                            else rl_cfg.get(attr)
+                        )
                         if val is not None and hasattr(self.config, attr):
-                            setattr(self.config, attr, type(getattr(self.config, attr))(val))
+                            setattr(
+                                self.config, attr, type(getattr(self.config, attr))(val)
+                            )
         except Exception:
             pass
         # State
@@ -229,23 +285,40 @@ class UnifiedRateLimiter:
         # Concurrency and bandwidth tracking
         self.concurrent: Dict[str, int] = defaultdict(int)
         from collections import deque
-        self.bandwidth: Dict[str, Deque[Tuple[float, int]]] = defaultdict(lambda: deque(maxlen=1000))
+
+        self.bandwidth: Dict[str, Deque[Tuple[float, int]]] = defaultdict(
+            lambda: deque(maxlen=1000)
+        )
 
     def _id(self, request: Request, strategy: RateLimitStrategy) -> str:
         if strategy == RateLimitStrategy.PER_IP:
-            fwd = request.headers.get("X-Forwarded-For") if hasattr(request, 'headers') else None
+            fwd = (
+                request.headers.get("X-Forwarded-For")
+                if hasattr(request, "headers")
+                else None
+            )
             if fwd:
                 return fwd.split(",")[0].strip()
-            return request.client.host if getattr(request, 'client', None) else "unknown"
+            return (
+                request.client.host if getattr(request, "client", None) else "unknown"
+            )
         if strategy == RateLimitStrategy.PER_USER:
             uid = getattr(request.state, "user_id", None)
-            return f"user:{uid}" if uid else f"ip:{self._id(request, RateLimitStrategy.PER_IP)}"
+            return (
+                f"user:{uid}"
+                if uid
+                else f"ip:{self._id(request, RateLimitStrategy.PER_IP)}"
+            )
         if strategy == RateLimitStrategy.PER_ROUTE:
             return f"route:{request.url.path}"
         if strategy == RateLimitStrategy.PER_METHOD:
             return f"method:{request.method}"
         if strategy == RateLimitStrategy.PER_USER_AGENT:
-            ua = request.headers.get("User-Agent", "unknown") if hasattr(request, 'headers') else "unknown"
+            ua = (
+                request.headers.get("User-Agent", "unknown")
+                if hasattr(request, "headers")
+                else "unknown"
+            )
             return f"ua:{hashlib.md5(ua.encode()).hexdigest()[:16]}"
         if strategy == RateLimitStrategy.GLOBAL:
             return "global"
@@ -253,7 +326,7 @@ class UnifiedRateLimiter:
 
     def _limits(self, strategy: RateLimitStrategy, request: Request) -> Tuple[int, int]:
         # Endpoint override
-        endpoint = request.url.path if hasattr(request, 'url') else ''
+        endpoint = request.url.path if hasattr(request, "url") else ""
         if self.config.endpoint_overrides.get(endpoint):
             override = self.config.endpoint_overrides[endpoint]
             if strategy.value in override:
@@ -275,13 +348,15 @@ class UnifiedRateLimiter:
                 "DELETE": self.config.delete_requests_per_minute,
                 "PATCH": self.config.patch_requests_per_minute,
             }
-            limit = method_limits.get(getattr(request, 'method', 'GET'), 60)
+            limit = method_limits.get(getattr(request, "method", "GET"), 60)
             return int(limit * mult), 60
         if strategy == RateLimitStrategy.GLOBAL:
             return self.config.global_requests_per_minute, 60
         return 60, 60
 
-    async def _apply(self, key: str, algo: RateLimitAlgorithm, max_req: int, window: int) -> bool:
+    async def _apply(
+        self, key: str, algo: RateLimitAlgorithm, max_req: int, window: int
+    ) -> bool:
         if algo == RateLimitAlgorithm.TOKEN_BUCKET:
             if key not in self.token_buckets:
                 self.token_buckets[key] = TokenBucket(max_req, max_req / window)
@@ -321,7 +396,9 @@ class UnifiedRateLimiter:
                 self.stats["blocked_requests"] += 1
                 return RateLimitViolation(strat, key, 0, 0, max(retry, 1))
             max_req, window = self._limits(strat, request)
-            allowed = await self._apply(key, self.config.default_algorithm, max_req, window)
+            allowed = await self._apply(
+                key, self.config.default_algorithm, max_req, window
+            )
             if not allowed:
                 current = self._current_count(key, self.config.default_algorithm)
                 block_for = self._block_for(strat)
@@ -364,12 +441,22 @@ class UnifiedRateLimiter:
         """Return a summary of current rate limiting configuration."""
         return {
             "enabled": getattr(self.config, "enabled", True),
-            "global_requests_per_minute": getattr(self.config, "global_requests_per_minute", 0),
-            "per_ip_requests_per_minute": getattr(self.config, "per_ip_requests_per_minute", 0),
-            "per_user_requests_per_minute": getattr(self.config, "per_user_requests_per_minute", 0),
-            "per_route_requests_per_minute": getattr(self.config, "per_route_requests_per_minute", 0),
+            "global_requests_per_minute": getattr(
+                self.config, "global_requests_per_minute", 0
+            ),
+            "per_ip_requests_per_minute": getattr(
+                self.config, "per_ip_requests_per_minute", 0
+            ),
+            "per_user_requests_per_minute": getattr(
+                self.config, "per_user_requests_per_minute", 0
+            ),
+            "per_route_requests_per_minute": getattr(
+                self.config, "per_route_requests_per_minute", 0
+            ),
             "endpoint_overrides": dict(getattr(self.config, "endpoint_overrides", {})),
-            "user_tier_multipliers": dict(getattr(self.config, "user_tier_multipliers", {})),
+            "user_tier_multipliers": dict(
+                getattr(self.config, "user_tier_multipliers", {})
+            ),
         }
 
     def set_enabled(self, enabled: bool) -> None:
@@ -395,64 +482,122 @@ class UnifiedRateLimiter:
         except Exception:
             pass
 
-    async def check_user_action(self, user_id: str, endpoint: str) -> Tuple[bool, Dict[str, Any]]:
+    async def check_user_action(
+        self, user_id: str, endpoint: str
+    ) -> Tuple[bool, Dict[str, Any]]:
         """Check rate limiting for a given user and endpoint without a Request object."""
         # Enforce per-user and per-route strategies using default algorithm and 60s window
         # Build keys as used internally
         user_key = f"user:{user_id}"
         route_key = f"route:{endpoint}"
         # Determine limits
-        user_limit, window = self._limits(RateLimitStrategy.PER_USER, type('R', (), {'url': type('U', (), {'path': endpoint})(), 'headers': {}, 'method': 'GET', 'client': None, 'state': type('S', (), {'user_id': user_id, 'user_tier': 'user'})() }))
-        route_limit, _ = self._limits(RateLimitStrategy.PER_ROUTE, type('R', (), {'url': type('U', (), {'path': endpoint})(), 'headers': {}, 'method': 'GET', 'client': None, 'state': type('S', (), {'user_id': user_id, 'user_tier': 'user'})() }))
+        user_limit, window = self._limits(
+            RateLimitStrategy.PER_USER,
+            type(
+                "R",
+                (),
+                {
+                    "url": type("U", (), {"path": endpoint})(),
+                    "headers": {},
+                    "method": "GET",
+                    "client": None,
+                    "state": type("S", (), {"user_id": user_id, "user_tier": "user"})(),
+                },
+            ),
+        )
+        route_limit, _ = self._limits(
+            RateLimitStrategy.PER_ROUTE,
+            type(
+                "R",
+                (),
+                {
+                    "url": type("U", (), {"path": endpoint})(),
+                    "headers": {},
+                    "method": "GET",
+                    "client": None,
+                    "state": type("S", (), {"user_id": user_id, "user_tier": "user"})(),
+                },
+            ),
+        )
         # Apply both limits
-        ok_user = await self._apply(user_key, self.config.default_algorithm, user_limit, window)
-        ok_route = await self._apply(route_key, self.config.default_algorithm, route_limit, window)
+        ok_user = await self._apply(
+            user_key, self.config.default_algorithm, user_limit, window
+        )
+        ok_route = await self._apply(
+            route_key, self.config.default_algorithm, route_limit, window
+        )
         allowed = ok_user and ok_route
         info = {
-            'limit_user': user_limit,
-            'limit_route': route_limit,
-            'window_seconds': window,
-            'remaining_user': max(0, user_limit - self._current_count(user_key, self.config.default_algorithm)),
-            'remaining_route': max(0, route_limit - self._current_count(route_key, self.config.default_algorithm)),
+            "limit_user": user_limit,
+            "limit_route": route_limit,
+            "window_seconds": window,
+            "remaining_user": max(
+                0,
+                user_limit
+                - self._current_count(user_key, self.config.default_algorithm),
+            ),
+            "remaining_route": max(
+                0,
+                route_limit
+                - self._current_count(route_key, self.config.default_algorithm),
+            ),
         }
         if not allowed:
             # Simplified retry-after: next minute
-            info['retry_after'] = 60
+            info["retry_after"] = 60
         return allowed, info
 
-    async def check_ip_action(self, ip_address: str, endpoint: str = "/") -> Tuple[bool, Dict[str, Any]]:
+    async def check_ip_action(
+        self, ip_address: str, endpoint: str = "/"
+    ) -> Tuple[bool, Dict[str, Any]]:
         """Check rate limiting for a given IP and endpoint without a Request object."""
         # Keys consistent with internal strategies
         ip_key = f"ip:{ip_address}"
         route_key = f"route:{endpoint}"
         # Mock request-like for limits resolution
-        req_mock = type('R', (), {
-            'url': type('U', (), {'path': endpoint})(),
-            'headers': {},
-            'method': 'GET',
-            'client': type('C', (), {'host': ip_address})(),
-            'state': type('S', (), {'user_id': None, 'user_tier': 'guest'})()
-        })
+        req_mock = type(
+            "R",
+            (),
+            {
+                "url": type("U", (), {"path": endpoint})(),
+                "headers": {},
+                "method": "GET",
+                "client": type("C", (), {"host": ip_address})(),
+                "state": type("S", (), {"user_id": None, "user_tier": "guest"})(),
+            },
+        )
         ip_limit, window = self._limits(RateLimitStrategy.PER_IP, req_mock)
         route_limit, _ = self._limits(RateLimitStrategy.PER_ROUTE, req_mock)
-        ok_ip = await self._apply(ip_key, self.config.default_algorithm, ip_limit, window)
-        ok_route = await self._apply(route_key, self.config.default_algorithm, route_limit, window)
+        ok_ip = await self._apply(
+            ip_key, self.config.default_algorithm, ip_limit, window
+        )
+        ok_route = await self._apply(
+            route_key, self.config.default_algorithm, route_limit, window
+        )
         allowed = ok_ip and ok_route
         info = {
-            'limit_ip': ip_limit,
-            'limit_route': route_limit,
-            'window_seconds': window,
-            'remaining_ip': max(0, ip_limit - self._current_count(ip_key, self.config.default_algorithm)),
-            'remaining_route': max(0, route_limit - self._current_count(route_key, self.config.default_algorithm)),
+            "limit_ip": ip_limit,
+            "limit_route": route_limit,
+            "window_seconds": window,
+            "remaining_ip": max(
+                0, ip_limit - self._current_count(ip_key, self.config.default_algorithm)
+            ),
+            "remaining_route": max(
+                0,
+                route_limit
+                - self._current_count(route_key, self.config.default_algorithm),
+            ),
         }
         if not allowed:
-            info['retry_after'] = 60
+            info["retry_after"] = 60
         return allowed, info
+
 
 class RateLimitMiddleware(BaseHTTPMiddleware):
     def __init__(self, app, config: Optional[RateLimitConfig] = None):
         super().__init__(app)
         self.limiter = UnifiedRateLimiter(config)
+
     async def dispatch(self, request: Request, call_next):
         try:
             # Concurrency key (prefer user, fallback to ip)
@@ -465,12 +610,12 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                 return JSONResponse(
                     status_code=status.HTTP_429_TOO_MANY_REQUESTS,
                     content={"error": "Too many concurrent requests", "retry_after": 1},
-                    headers={"Retry-After": "1", "X-RateLimit-Strategy": "concurrency"}
+                    headers={"Retry-After": "1", "X-RateLimit-Strategy": "concurrency"},
                 )
             self.limiter.concurrent[ckey] += 1
             try:
                 # Bandwidth pre-check (rough estimate using request content-length)
-                bw_limit = getattr(self.limiter.config, 'bandwidth_per_second', 0)
+                bw_limit = getattr(self.limiter.config, "bandwidth_per_second", 0)
                 if bw_limit:
                     dq = self.limiter.bandwidth[ckey]
                     now = time.time()
@@ -480,14 +625,20 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                     used = sum(sz for ts, sz in dq)
                     req_size = 0
                     try:
-                        req_size = int(request.headers.get('content-length', '0'))
+                        req_size = int(request.headers.get("content-length", "0"))
                     except Exception:
                         req_size = 0
                     if used + req_size > bw_limit:
                         return JSONResponse(
                             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                            content={"error": "Bandwidth limit exceeded", "retry_after": 1},
-                            headers={"Retry-After": "1", "X-RateLimit-Strategy": "bandwidth"}
+                            content={
+                                "error": "Bandwidth limit exceeded",
+                                "retry_after": 1,
+                            },
+                            headers={
+                                "Retry-After": "1",
+                                "X-RateLimit-Strategy": "bandwidth",
+                            },
                         )
                 # Core rate check
                 v = await self.limiter.check(request)
@@ -515,9 +666,12 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                 # Record response bandwidth
                 try:
                     resp_len = 0
-                    if hasattr(response, 'headers') and 'content-length' in response.headers:
-                        resp_len = int(response.headers['content-length'])
-                    elif hasattr(response, 'body') and response.body:
+                    if (
+                        hasattr(response, "headers")
+                        and "content-length" in response.headers
+                    ):
+                        resp_len = int(response.headers["content-length"])
+                    elif hasattr(response, "body") and response.body:
                         resp_len = len(response.body)
                     dq = self.limiter.bandwidth[ckey]
                     dq.append((time.time(), resp_len))
@@ -525,20 +679,25 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                     pass
                 return response
             finally:
-                self.limiter.concurrent[ckey] = max(0, self.limiter.concurrent[ckey] - 1)
+                self.limiter.concurrent[ckey] = max(
+                    0, self.limiter.concurrent[ckey] - 1
+                )
         except Exception as e:
-            if hasattr(logger, 'error'):
+            if hasattr(logger, "error"):
                 logger.error(f"Rate limiting error: {e}")
             return await call_next(request)
 
+
 # Convenience accessors
 _global: Optional[UnifiedRateLimiter] = None
+
 
 def get_rate_limiter() -> UnifiedRateLimiter:
     global _global
     if _global is None:
         _global = UnifiedRateLimiter()
     return _global
+
 
 def configure_rate_limiter(cfg: RateLimitConfig):
     global _global

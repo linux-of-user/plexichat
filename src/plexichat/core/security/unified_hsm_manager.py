@@ -12,16 +12,16 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
+from uuid import uuid4
 
 from plexichat.core.config import get_config
 from plexichat.core.logging import get_logger
 from plexichat.core.security.unified_audit_system import (
-    get_unified_audit_system,
     SecurityEventType,
     SecuritySeverity,
     ThreatLevel,
+    get_unified_audit_system,
 )
-from uuid import uuid4
 
 """
 PlexiChat Unified HSM Manager - SINGLE SOURCE OF TRUTH
@@ -46,6 +46,7 @@ logger = get_logger(__name__)
 
 class HSMType(Enum):
     """Types of Hardware Security Modules."""
+
     NETWORK_ATTACHED = "network_attached"
     PCIE_CARD = "pcie_card"
     USB_TOKEN = "usb_token"
@@ -56,6 +57,7 @@ class HSMType(Enum):
 
 class KeyType(Enum):
     """Types of cryptographic keys."""
+
     AES = "aes"
     RSA = "rsa"
     ECDSA = "ecdsa"
@@ -69,6 +71,7 @@ class KeyType(Enum):
 
 class KeyUsage(Enum):
     """Key usage purposes."""
+
     ENCRYPTION = "encryption"
     DECRYPTION = "decryption"
     SIGNING = "signing"
@@ -81,6 +84,7 @@ class KeyUsage(Enum):
 
 class SecurityLevel(Enum):
     """Security levels for HSM operations."""
+
     STANDARD = 1
     HIGH = 2
     CRITICAL = 3
@@ -97,6 +101,7 @@ def _enum_value(value: Enum | str | int) -> str:
 @dataclass
 class HSMKey:
     """HSM-managed cryptographic key with enhanced security."""
+
     key_id: str
     key_type: KeyType
     key_size: int
@@ -138,7 +143,9 @@ class HSMKey:
             "expires_at": self.expires_at.isoformat() if self.expires_at else None,
             "metadata": self.metadata,
             "access_count": self.access_count,
-            "last_accessed": self.last_accessed.isoformat() if self.last_accessed else None,
+            "last_accessed": (
+                self.last_accessed.isoformat() if self.last_accessed else None
+            ),
             "is_quantum_safe": self.is_quantum_safe(),
         }
 
@@ -146,6 +153,7 @@ class HSMKey:
 @dataclass
 class HSMDevice:
     """Hardware Security Module device with enhanced capabilities."""
+
     device_id: str
     device_type: HSMType
     manufacturer: str
@@ -191,7 +199,7 @@ class UnifiedHSMInterface:
             SecurityLevel.STANDARD: 1000,
             SecurityLevel.HIGH: 5000,
             SecurityLevel.CRITICAL: 10000,
-            SecurityLevel.QUANTUM_SAFE: 50000
+            SecurityLevel.QUANTUM_SAFE: 50000,
         }.get(device.security_level, 1000)
 
         # Quantum-ready algorithms
@@ -203,10 +211,12 @@ class UnifiedHSMInterface:
             KeyType.QUANTUM_RESISTANT: [256, 512, 1024],
             KeyType.POST_QUANTUM: [256, 512, 1024],
             KeyType.KYBER: [512, 768, 1024],
-            KeyType.DILITHIUM: [2, 3, 5]  # Security levels
+            KeyType.DILITHIUM: [2, 3, 5],  # Security levels
         }
 
-    async def authenticate(self, pin: str, admin_pin: Optional[str] = None, user_id: str = "system") -> bool:
+    async def authenticate(
+        self, pin: str, admin_pin: Optional[str] = None, user_id: str = "system"
+    ) -> bool:
         """Enhanced HSM authentication with comprehensive security and audit logging."""
         try:
             # Enhanced input validation
@@ -225,8 +235,11 @@ class UnifiedHSMInterface:
             # Rate limiting check
             try:
                 from plexichat.core.middleware.rate_limiting import get_rate_limiter
+
                 rl = get_rate_limiter()
-                allowed, _info = await rl.check_user_action(str(user_id), "/security/hsm/authenticate")
+                allowed, _info = await rl.check_user_action(
+                    str(user_id), "/security/hsm/authenticate"
+                )
                 if not allowed:
                     self.audit_system.log_security_event(
                         SecurityEventType.SECURITY_ALERT,
@@ -240,10 +253,11 @@ class UnifiedHSMInterface:
                     return False
             except Exception:
                 pass
-    
 
             # Enhanced authentication logic with multiple factors
-            auth_success = await self._perform_enhanced_authentication(pin, admin_pin, user_id)
+            auth_success = await self._perform_enhanced_authentication(
+                pin, admin_pin, user_id
+            )
 
             # Log authentication result with comprehensive details
             self.audit_system.log_security_event(
@@ -254,8 +268,12 @@ class UnifiedHSMInterface:
                 user_id=user_id,
                 resource=f"hsm://{self.device.device_id}",
                 details={
-                    "device_type": _enum_value(getattr(self.device, "device_type", "unknown")),
-                    "security_level": _enum_value(getattr(self.device, "security_level", SecurityLevel.STANDARD)),
+                    "device_type": _enum_value(
+                        getattr(self.device, "device_type", "unknown")
+                    ),
+                    "security_level": _enum_value(
+                        getattr(self.device, "security_level", SecurityLevel.STANDARD)
+                    ),
                     "admin_auth": admin_pin is not None,
                     "timestamp": datetime.now(timezone.utc).isoformat(),
                     "session_id": str(uuid4()),
@@ -266,7 +284,9 @@ class UnifiedHSMInterface:
                 self.device.is_authenticated = True
                 self.session_active = True
                 self.last_activity = datetime.now(timezone.utc)
-                logger.info(f"Enhanced HSM authentication successful for {self.device.device_id}")
+                logger.info(
+                    f"Enhanced HSM authentication successful for {self.device.device_id}"
+                )
 
                 # Initialize security session
                 await self._initialize_security_session(user_id)
@@ -338,7 +358,12 @@ class UnifiedHSMInterface:
                     "hsm_device": self.device.device_id,
                     "generation_method": "hsm_native",
                     "quantum_safe": key_type
-                    in [KeyType.QUANTUM_RESISTANT, KeyType.POST_QUANTUM, KeyType.KYBER, KeyType.DILITHIUM],
+                    in [
+                        KeyType.QUANTUM_RESISTANT,
+                        KeyType.POST_QUANTUM,
+                        KeyType.KYBER,
+                        KeyType.DILITHIUM,
+                    ],
                 },
             )
 
@@ -388,6 +413,7 @@ class UnifiedHSMManager:
 
     Manages all HSM operations with integration to unified security architecture.
     """
+
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         raw_config: Any = config if isinstance(config, dict) else get_config().get("hsm", {})  # type: ignore[reportUnknownMemberType]
         self.config: Dict[str, Any] = raw_config if isinstance(raw_config, dict) else {}
@@ -409,7 +435,7 @@ class UnifiedHSMManager:
             "decryptions": 0,
             "signatures": 0,
             "verifications": 0,
-            "errors": 0
+            "errors": 0,
         }
 
         # Key management
@@ -513,7 +539,9 @@ class UnifiedHSMManager:
                 await self.add_hsm_device(device)
 
             except Exception as e:
-                logger.error(f"Failed to load HSM config {config.get('device_id')}: {e}")
+                logger.error(
+                    f"Failed to load HSM config {config.get('device_id')}: {e}"
+                )
 
     async def add_hsm_device(self, device: HSMDevice, user_id: str = "system") -> bool:
         """Add HSM device to the unified system."""
@@ -526,13 +554,10 @@ class UnifiedHSMManager:
             self.devices[device.device_id] = hsm_interface
 
             # Set as primary if it's the first real HSM or has higher security level
-            if (
-                not self.primary_hsm
-                or (
-                    device.device_type != HSMType.VIRTUAL_HSM
-                    and device.security_level.value
-                    > self.devices[self.primary_hsm].device.security_level.value
-                )
+            if not self.primary_hsm or (
+                device.device_type != HSMType.VIRTUAL_HSM
+                and device.security_level.value
+                > self.devices[self.primary_hsm].device.security_level.value
             ):
                 self.primary_hsm = device.device_id
             else:
@@ -574,7 +599,13 @@ class UnifiedHSMManager:
 
             return False
 
-    async def authenticate_hsm(self, device_id: str, pin: str, admin_pin: Optional[str] = None, user_id: str = "system") -> bool:
+    async def authenticate_hsm(
+        self,
+        device_id: str,
+        pin: str,
+        admin_pin: Optional[str] = None,
+        user_id: str = "system",
+    ) -> bool:
         """Authenticate with specific HSM."""
         if device_id not in self.devices:
             logger.error(f"HSM device {device_id} not found")
@@ -609,11 +640,15 @@ class UnifiedHSMManager:
             self.operation_metrics["key_generations"] += 1
 
             # Schedule key rotation
-            self.key_rotation_schedule[key.key_id] = datetime.now(timezone.utc) + timedelta(days=300)
+            self.key_rotation_schedule[key.key_id] = datetime.now(
+                timezone.utc
+            ) + timedelta(days=300)
 
         return key
 
-    async def generate_backup_encryption_key(self, user_id: str = "system") -> Optional[HSMKey]:
+    async def generate_backup_encryption_key(
+        self, user_id: str = "system"
+    ) -> Optional[HSMKey]:
         """Generate quantum-safe key for backup encryption."""
         return await self.generate_master_key(
             purpose="backup_encryption",
@@ -647,7 +682,9 @@ class UnifiedHSMManager:
             self.operation_metrics["key_generations"] += 1
 
             # Schedule key rotation
-            self.key_rotation_schedule[key.key_id] = datetime.now(timezone.utc) + timedelta(days=600)
+            self.key_rotation_schedule[key.key_id] = datetime.now(
+                timezone.utc
+            ) + timedelta(days=600)
 
         return key
 
@@ -661,11 +698,15 @@ class UnifiedHSMManager:
             info = hsm.device.to_dict()
             info["session_active"] = hsm.session_active
             info["key_count"] = len(hsm.keys)
-            info["quantum_safe_key_count"] = len([k for k in hsm.keys.values() if k.is_quantum_safe()])
+            info["quantum_safe_key_count"] = len(
+                [k for k in hsm.keys.values() if k.is_quantum_safe()]
+            )
 
             device_status[device_id] = info
             total_keys += len(hsm.keys)
-            quantum_safe_keys += len([k for k in hsm.keys.values() if k.is_quantum_safe()])
+            quantum_safe_keys += len(
+                [k for k in hsm.keys.values() if k.is_quantum_safe()]
+            )
 
         return {
             "hardware_security": {
@@ -679,7 +720,7 @@ class UnifiedHSMManager:
                 "devices": device_status,
                 "operation_metrics": self.operation_metrics,
                 "master_keys": list(self.master_keys.keys()),
-                "scheduled_rotations": len(self.key_rotation_schedule)
+                "scheduled_rotations": len(self.key_rotation_schedule),
             }
         }
 
@@ -728,7 +769,9 @@ class UnifiedHSMManager:
                                 break
 
                         # Schedule next rotation
-                        self.key_rotation_schedule[new_key.key_id] = datetime.now(timezone.utc) + timedelta(days=365)
+                        self.key_rotation_schedule[new_key.key_id] = datetime.now(
+                            timezone.utc
+                        ) + timedelta(days=365)
 
                         # Remove old key from rotation schedule
                         if key_id in self.key_rotation_schedule:
@@ -766,10 +809,16 @@ class UnifiedHSMManager:
                 # Update performance metrics for each HSM
                 for device_id, hsm in self.devices.items():
                     hsm.device.performance_metrics = {
-                        "uptime_hours": (datetime.now(timezone.utc) - datetime.now(timezone.utc).replace(hour=0, minute=0, second=0)).total_seconds() / 3600,
+                        "uptime_hours": (
+                            datetime.now(timezone.utc)
+                            - datetime.now(timezone.utc).replace(
+                                hour=0, minute=0, second=0
+                            )
+                        ).total_seconds()
+                        / 3600,
                         "key_count": len(hsm.keys),
                         "session_active": hsm.session_active,
-                        "last_updated": datetime.now(timezone.utc).isoformat()
+                        "last_updated": datetime.now(timezone.utc).isoformat(),
                     }
 
             except Exception as e:
@@ -780,7 +829,7 @@ class UnifiedHSMManager:
 _unified_hsm_manager: Optional[UnifiedHSMManager] = None
 
 
-def get_unified_hsm_manager() -> 'UnifiedHSMManager':
+def get_unified_hsm_manager() -> "UnifiedHSMManager":
     """Get the global unified HSM manager instance."""
     global _unified_hsm_manager
     if _unified_hsm_manager is None:
@@ -798,5 +847,5 @@ __all__ = [
     "SecurityLevel",
     "HSMKey",
     "HSMDevice",
-    "UnifiedHSMInterface"
+    "UnifiedHSMInterface",
 ]

@@ -18,24 +18,24 @@ Consolidates ALL security functionality from:
 Provides a single, unified interface for all security operations.
 """
 
-import warnings
 import logging
-from typing import Any, Dict, Optional, List, Tuple, Set
+import warnings
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 from plexichat.core.security.security_manager import (
-    SecuritySystem,
-    PasswordManager,
-    TokenManager,
-    InputSanitizer,
-    SecurityLevel,
-    ThreatLevel,
-    SecurityEventType,
     AuthenticationMethod,
     EncryptionAlgorithm,
-    SecurityPolicy,
-    UserCredentials,
+    InputSanitizer,
+    PasswordManager,
     SecurityContext,
+    SecurityEventType,
+    SecurityLevel,
+    SecurityPolicy,
+    SecuritySystem,
     SecurityToken,
+    ThreatLevel,
+    TokenManager,
+    UserCredentials,
     get_security_system,
 )
 
@@ -48,14 +48,15 @@ SecurityManager = SecuritySystem
 # advanced implementation exists elsewhere it will be used; otherwise these
 # provide safe defaults so imports resolve and functionality degrades gracefully.
 
-from dataclasses import dataclass, field
 import asyncio
 import time
+from dataclasses import dataclass, field
 from enum import Enum
 
 
 class KeyDomain(Enum):
     """Key domain for distributed key management."""
+
     AUTH = "auth"
     ENCRYPTION = "encryption"
     SIGNING = "signing"
@@ -77,6 +78,7 @@ class RateLimitRequest:
     - window_seconds: time window (seconds) for the limit
     - user_id: optional user identifier for user-scoped limits
     """
+
     ip_address: str = "unknown"
     endpoint: str = "/"
     method: str = "GET"
@@ -108,7 +110,9 @@ class NetworkProtection:
         # A simple lock to protect the in-memory structure across async calls
         self._lock = asyncio.Lock()
 
-    async def check_request(self, rate_request: RateLimitRequest) -> Tuple[bool, Optional[Dict[str, Any]]]:
+    async def check_request(
+        self, rate_request: RateLimitRequest
+    ) -> Tuple[bool, Optional[Dict[str, Any]]]:
         """
         Check whether the given rate_request should be allowed.
 
@@ -119,7 +123,10 @@ class NetworkProtection:
         if rate_request is None:
             return True, None
 
-        key = (rate_request.ip_address or "unknown", rate_request.action or "__default__")
+        key = (
+            rate_request.ip_address or "unknown",
+            rate_request.action or "__default__",
+        )
         now = time.time()
         window = max(1, int(rate_request.window_seconds or 60))
         limit = max(1, int(rate_request.limit or 1000))
@@ -149,7 +156,9 @@ class NetworkProtection:
                 }
                 # Optionally record the event via logging (non-blocking)
                 try:
-                    logger = logging.getLogger("plexichat.core.security.network_protection")
+                    logger = logging.getLogger(
+                        "plexichat.core.security.network_protection"
+                    )
                     logger.warning(f"Rate limit exceeded: {threat_info}")
                 except Exception:
                     pass
@@ -180,6 +189,7 @@ def get_network_protection() -> NetworkProtection:
 # Distributed Key Manager stub
 class DistributedKeyManager:
     """Stub distributed key manager for testing."""
+
     def __init__(self):
         pass
 
@@ -218,7 +228,6 @@ __all__ = [
     "PasswordManager",
     "TokenManager",
     "InputSanitizer",
-
     # Data classes and enums
     "SecurityLevel",
     "ThreatLevel",
@@ -229,21 +238,17 @@ __all__ = [
     "UserCredentials",
     "SecurityContext",
     "SecurityToken",
-
     # Main functions
     "get_security_system",
-
     # Network protection utilities (required by FastAPI adapter)
     "get_network_protection",
     "RateLimitRequest",
     "NetworkProtection",
-
     # Key management
     "KeyDomain",
     "DistributedKeyManager",
     "get_distributed_key_manager",
     "distributed_key_manager",
-
     # Backward compatibility aliases
     "security_manager",
     "SecurityManager",

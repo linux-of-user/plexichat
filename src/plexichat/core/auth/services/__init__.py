@@ -3,21 +3,21 @@ Authentication Services Module
 Provides service layer for authentication operations with dependency injection.
 """
 
+from .audit_service import AuditService
+from .authentication_service import AuthenticationService
 from .interfaces import (
+    IAuditService,
     IAuthenticationService,
-    IUserService,
+    IMFAProvider,
     ISessionService,
     ITokenService,
-    IMFAProvider,
-    IAuditService
+    IUserService,
 )
-from .authentication_service import AuthenticationService
-from .user_service import UserService
+from .mfa_service import MFAService
+from .service_container import AuthServiceContainer
 from .session_service import SessionService
 from .token_service import TokenService
-from .mfa_service import MFAService
-from .audit_service import AuditService
-from .service_container import AuthServiceContainer
+from .user_service import UserService
 
 __all__ = [
     "IAuthenticationService",
@@ -32,5 +32,5 @@ __all__ = [
     "TokenService",
     "MFAService",
     "AuditService",
-    "AuthServiceContainer"
+    "AuthServiceContainer",
 ]

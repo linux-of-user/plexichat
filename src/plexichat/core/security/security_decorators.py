@@ -6,25 +6,27 @@ Decorators for authentication, authorization, rate limiting, and security enforc
 
 import functools
 import logging
-from typing import Any, Callable, Dict, List, Optional, Union, Tuple
 from enum import Enum
-from itsdangerous import TimedJSONWebSignatureSerializer as Serializer, BadSignature, SignatureExpired
-from fastapi import Request, HTTPException, status
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
-from plexichat.core.config import config
+from fastapi import HTTPException, Request, status
+from itsdangerous import BadSignature, SignatureExpired
+from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 
 # Import unified auth manager
 from plexichat.core.authentication import get_auth_manager
+from plexichat.core.config import config
 
 # Prefer unified logging shim if available, fall back to stdlib logging
 try:
     from plexichat.core.logging import get_logger  # compatibility shim
+
     logger = get_logger(__name__)
 except Exception:
     logger = logging.getLogger(__name__)
 
 try:
-    from plexichat.core.rate_limit_config import get_rate_limiting_config, AccountType
+    from plexichat.core.rate_limit_config import AccountType, get_rate_limiting_config
 except Exception:
     get_rate_limiting_config = None
     AccountType = None
@@ -37,6 +39,7 @@ except Exception:
 
 class RequiredPermission(Enum):
     """Required permission levels."""
+
     READ = "read"
     WRITE = "write"
     ADMIN = "admin"
@@ -71,7 +74,9 @@ def _get_token_from_request(request: Request) -> Optional[str]:
     auth_header = None
     try:
         # starlette's headers are case-insensitive mapping
-        auth_header = request.headers.get("authorization") or request.headers.get("Authorization")
+        auth_header = request.headers.get("authorization") or request.headers.get(
+            "Authorization"
+        )
     except Exception:
         # fallback
         try:
@@ -87,10 +92,15 @@ def _get_token_from_request(request: Request) -> Optional[str]:
 
 def require_auth(func: Callable) -> Callable:
     """Decorator to require authentication by validating a JWT bearer token via UnifiedAuthManager."""
+
     @functools.wraps(func)
     async def wrapper(*args, **kwargs):
         # First, try to find a token passed explicitly
-        token = kwargs.get("token") or kwargs.get("session_token") or kwargs.get("access_token")
+        token = (
+            kwargs.get("token")
+            or kwargs.get("session_token")
+            or kwargs.get("access_token")
+        )
 
         # Then, try to locate Request object and extract Authorization header
         request = _find_request_in_args(args, kwargs)
@@ -101,42 +111,73 @@ def require_auth(func: Callable) -> Callable:
 
         if not token:
             logger.debug("Authentication failed: no token provided")
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication credentials were not provided.")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Authentication credentials were not provided.",
+            )
 
         # Use unified auth manager to validate token
         if not get_auth_manager:
-            logger.error("Authentication configuration error: auth manager is unavailable")
-            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Authentication system not configured.")
+            logger.error(
+                "Authentication configuration error: auth manager is unavailable"
+            )
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Authentication system not configured.",
+            )
 
         auth_manager = get_auth_manager()
         try:
             valid, payload = await auth_manager.validate_token(token)
         except Exception as e:
             logger.exception("Token validation raised an exception")
-            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Error validating authentication token.") from e
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Error validating authentication token.",
+            ) from e
 
         if not valid or not payload:
             logger.info("Invalid or expired token used for authentication")
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired authentication token.")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid or expired authentication token.",
+            )
 
         # Normalize payload into session_data structure for downstream decorators/handlers
         session_data: Dict[str, Any] = {}
         # Payload may already contain user_id and permissions
-        user_id = payload.get("user_id") or payload.get("sub") or payload.get("username")
-        permissions_raw = payload.get("permissions") or payload.get("perms") or payload.get("scopes") or []
+        user_id = (
+            payload.get("user_id") or payload.get("sub") or payload.get("username")
+        )
+        permissions_raw = (
+            payload.get("permissions")
+            or payload.get("perms")
+            or payload.get("scopes")
+            or []
+        )
         # Ensure permissions is a set
         try:
-            permissions = set(permissions_raw) if not isinstance(permissions_raw, set) else permissions_raw
+            permissions = (
+                set(permissions_raw)
+                if not isinstance(permissions_raw, set)
+                else permissions_raw
+            )
         except Exception:
             # If payload contains a single permission string
-            permissions = {permissions_raw} if isinstance(permissions_raw, str) and permissions_raw else set()
+            permissions = (
+                {permissions_raw}
+                if isinstance(permissions_raw, str) and permissions_raw
+                else set()
+            )
 
-        session_data.update({
-            "user_id": user_id,
-            "permissions": permissions,
-            "token": token,
-            "token_payload": payload
-        })
+        session_data.update(
+            {
+                "user_id": user_id,
+                "permissions": permissions,
+                "token": token,
+                "token_payload": payload,
+            }
+        )
 
         # Add session_data to kwargs for downstream use
         kwargs["session_data"] = session_data
@@ -156,6 +197,7 @@ def require_auth(func: Callable) -> Callable:
 
 def require_permission(permission: RequiredPermission):
     """Decorator to require specific permission."""
+
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         async def wrapper(*args, **kwargs):
@@ -167,15 +209,22 @@ def require_permission(permission: RequiredPermission):
                     session_data = getattr(request.state, "session_data", None)
 
             if not session_data:
-                logger.debug("Permission check failed: no authentication information available")
-                raise HTTPException(status_code=401, detail="Authentication required for permission check.")
+                logger.debug(
+                    "Permission check failed: no authentication information available"
+                )
+                raise HTTPException(
+                    status_code=401,
+                    detail="Authentication required for permission check.",
+                )
 
             # Support both dict-based session_data and SessionInfo-like objects
             user_permissions = set()
             if isinstance(session_data, dict):
                 perms = session_data.get("permissions", [])
                 try:
-                    user_permissions = set(perms) if not isinstance(perms, set) else perms
+                    user_permissions = (
+                        set(perms) if not isinstance(perms, set) else perms
+                    )
                 except Exception:
                     user_permissions = {perms} if isinstance(perms, str) else set()
                 user_id = session_data.get("user_id")
@@ -190,17 +239,23 @@ def require_permission(permission: RequiredPermission):
                 return await func(*args, **kwargs)
 
             if permission.value not in user_permissions:
-                logger.info(f"Permission denied for user {user_id}: requires {permission.value}")
-                raise HTTPException(status_code=403, detail=f"Permission denied: {permission.value}")
+                logger.info(
+                    f"Permission denied for user {user_id}: requires {permission.value}"
+                )
+                raise HTTPException(
+                    status_code=403, detail=f"Permission denied: {permission.value}"
+                )
 
             return await func(*args, **kwargs)
 
         return wrapper
+
     return decorator
 
 
 def require_security_level(level: Union[str, int]):
     """Decorator to require minimum security level."""
+
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         async def wrapper(*args, **kwargs):
@@ -211,8 +266,13 @@ def require_security_level(level: Union[str, int]):
                     session_data = getattr(request.state, "session_data", None)
 
             if not session_data:
-                logger.debug("Security level check failed: no authentication information available")
-                raise HTTPException(status_code=401, detail="Authentication required for security level check.")
+                logger.debug(
+                    "Security level check failed: no authentication information available"
+                )
+                raise HTTPException(
+                    status_code=401,
+                    detail="Authentication required for security level check.",
+                )
 
             # Determine user's security level
             user_level = None
@@ -228,23 +288,30 @@ def require_security_level(level: Union[str, int]):
                     # This is intentionally permissive; concrete comparison logic belongs to SecurityLevel implementation
                     if user_level is None:
                         logger.debug("User security level missing; denying access.")
-                        raise HTTPException(status_code=403, detail="Insufficient security level.")
+                        raise HTTPException(
+                            status_code=403, detail="Insufficient security level."
+                        )
                     # We won't try to coerce types here; trust SecurityLevel implementation elsewhere
                 # If no SecurityLevel available, accept the endpoint if user is authenticated
             except HTTPException:
                 raise
             except Exception:
                 logger.exception("Error while evaluating security level")
-                raise HTTPException(status_code=500, detail="Server error while evaluating security level.")
+                raise HTTPException(
+                    status_code=500,
+                    detail="Server error while evaluating security level.",
+                )
 
             return await func(*args, **kwargs)
 
         return wrapper
+
     return decorator
 
 
 def rate_limit(requests_per_minute: int = 60, account_type: Optional[Any] = None):
     """Decorator to apply rate limiting. Uses UnifiedAuthManager metrics and best-effort checks."""
+
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         async def wrapper(*args, **kwargs):
@@ -255,7 +322,9 @@ def rate_limit(requests_per_minute: int = 60, account_type: Optional[Any] = None
                 # try common client identifiers
                 try:
                     client_host = None
-                    if hasattr(request, "client") and getattr(request.client, "host", None):
+                    if hasattr(request, "client") and getattr(
+                        request.client, "host", None
+                    ):
                         client_host = request.client.host
                     elif request.client:
                         client_host = str(request.client)
@@ -281,7 +350,9 @@ def rate_limit(requests_per_minute: int = 60, account_type: Optional[Any] = None
                     cfg = get_rate_limiting_config()
                     rpm = cfg.get_rpm_for_account_type(account_type) or rpm  # type: ignore
                 except Exception:
-                    logger.debug("Failed to load rate limiting config; using default rpm")
+                    logger.debug(
+                        "Failed to load rate limiting config; using default rpm"
+                    )
 
             # Use auth manager to record/check metrics where possible (best-effort)
             try:
@@ -289,12 +360,16 @@ def rate_limit(requests_per_minute: int = 60, account_type: Optional[Any] = None
                     auth_manager = get_auth_manager()
                     # Increment metric for rate limit checks
                     try:
-                        auth_manager._record_metric("rate_limit_checks")  # best-effort internal hook
+                        auth_manager._record_metric(
+                            "rate_limit_checks"
+                        )  # best-effort internal hook
                     except Exception:
                         # If protected, fall back to direct metric update if available
                         try:
                             if hasattr(auth_manager, "metrics"):
-                                auth_manager.metrics["rate_limit_checks"] = auth_manager.metrics.get("rate_limit_checks", 0) + 1
+                                auth_manager.metrics["rate_limit_checks"] = (
+                                    auth_manager.metrics.get("rate_limit_checks", 0) + 1
+                                )
                         except Exception:
                             pass
             except Exception:
@@ -305,12 +380,15 @@ def rate_limit(requests_per_minute: int = 60, account_type: Optional[Any] = None
             # NOTE: This is a placeholder enforcement. Real enforcement should consult a rate-limiter store.
             # For now, do not block; just log. This keeps behavior non-breaking while integrating tracking.
             return await func(*args, **kwargs)
+
         return wrapper
+
     return decorator
 
 
 def audit_access(action: str, resource: str = ""):
     """Decorator to audit access attempts."""
+
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         async def wrapper(*args, **kwargs):
@@ -330,44 +408,61 @@ def audit_access(action: str, resource: str = ""):
 
             try:
                 result = await func(*args, **kwargs)
-                logger.info(f"Access audit: {user_id} successfully {action} on {resource}")
+                logger.info(
+                    f"Access audit: {user_id} successfully {action} on {resource}"
+                )
                 return result
             except HTTPException:
                 # Re-raise HTTPExceptions unchanged after logging
-                logger.warning(f"Access audit: {user_id} failed {action} on {resource}: HTTP error")
+                logger.warning(
+                    f"Access audit: {user_id} failed {action} on {resource}: HTTP error"
+                )
                 raise
             except Exception as e:
-                logger.warning(f"Access audit: {user_id} failed {action} on {resource}: {e}")
+                logger.warning(
+                    f"Access audit: {user_id} failed {action} on {resource}: {e}"
+                )
                 raise
 
         return wrapper
+
     return decorator
 
 
 def sanitize_input(fields: List[str]):
     """Decorator to sanitize input fields."""
+
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         async def wrapper(*args, **kwargs):
             for field in fields:
                 if field in kwargs and isinstance(kwargs[field], str):
-                    kwargs[field] = kwargs[field].replace('<', '&lt;').replace('>', '&gt;')
+                    kwargs[field] = (
+                        kwargs[field].replace("<", "&lt;").replace(">", "&gt;")
+                    )
             return await func(*args, **kwargs)
+
         return wrapper
+
     return decorator
 
 
 def validate_csrf():
     """Decorator to validate CSRF tokens."""
+
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         async def wrapper(*args, **kwargs):
             request = _find_request_in_args(args, kwargs)
             if not request:
                 logger.debug("CSRF validation: no request object found")
-                raise HTTPException(status_code=400, detail="Request required for CSRF validation.")
+                raise HTTPException(
+                    status_code=400, detail="Request required for CSRF validation."
+                )
 
-            csrf_token = request.headers.get('x-csrf-token') or request.headers.get('X-CSRF-Token')
+            csrf_token = request.headers.get("x-csrf-token") or request.headers.get(
+                "X-CSRF-Token"
+            )
             if not csrf_token:
                 logger.warning("CSRF token missing in request headers")
                 raise HTTPException(status_code=403, detail="CSRF token required")
@@ -375,7 +470,9 @@ def validate_csrf():
             # In a real implementation, we'd validate token against session or a token store.
             logger.debug(f"CSRF token validated (presence): {csrf_token[:8]}...")
             return await func(*args, **kwargs)
+
         return wrapper
+
     return decorator
 
 
@@ -384,6 +481,7 @@ from plexichat.core.auth.fastapi_adapter import rate_limit
 
 def audit_access(action: str, resource: str = ""):
     """Decorator to audit access attempts."""
+
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         async def wrapper(*args, **kwargs):
@@ -403,44 +501,61 @@ def audit_access(action: str, resource: str = ""):
 
             try:
                 result = await func(*args, **kwargs)
-                logger.info(f"Access audit: {user_id} successfully {action} on {resource}")
+                logger.info(
+                    f"Access audit: {user_id} successfully {action} on {resource}"
+                )
                 return result
             except HTTPException:
                 # Re-raise HTTPExceptions unchanged after logging
-                logger.warning(f"Access audit: {user_id} failed {action} on {resource}: HTTP error")
+                logger.warning(
+                    f"Access audit: {user_id} failed {action} on {resource}: HTTP error"
+                )
                 raise
             except Exception as e:
-                logger.warning(f"Access audit: {user_id} failed {action} on {resource}: {e}")
+                logger.warning(
+                    f"Access audit: {user_id} failed {action} on {resource}: {e}"
+                )
                 raise
 
         return wrapper
+
     return decorator
 
 
 def sanitize_input(fields: List[str]):
     """Decorator to sanitize input fields."""
+
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         async def wrapper(*args, **kwargs):
             for field in fields:
                 if field in kwargs and isinstance(kwargs[field], str):
-                    kwargs[field] = kwargs[field].replace('<', '&lt;').replace('>', '&gt;')
+                    kwargs[field] = (
+                        kwargs[field].replace("<", "&lt;").replace(">", "&gt;")
+                    )
             return await func(*args, **kwargs)
+
         return wrapper
+
     return decorator
 
 
 def validate_csrf():
     """Decorator to validate CSRF tokens."""
+
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         async def wrapper(*args, **kwargs):
             request = _find_request_in_args(args, kwargs)
             if not request:
                 logger.debug("CSRF validation: no request object found")
-                raise HTTPException(status_code=400, detail="Request required for CSRF validation.")
+                raise HTTPException(
+                    status_code=400, detail="Request required for CSRF validation."
+                )
 
-            csrf_token = request.headers.get('x-csrf-token') or request.headers.get('X-CSRF-Token')
+            csrf_token = request.headers.get("x-csrf-token") or request.headers.get(
+                "X-CSRF-Token"
+            )
             if not csrf_token:
                 logger.warning("CSRF token missing in request headers")
                 raise HTTPException(status_code=403, detail="CSRF token required")
@@ -448,7 +563,9 @@ def validate_csrf():
             # In a real implementation, we'd validate token against session or a token store.
             logger.debug(f"CSRF token validated (presence): {csrf_token[:8]}...")
             return await func(*args, **kwargs)
+
         return wrapper
+
     return decorator
 
 
@@ -459,9 +576,10 @@ def secure_endpoint(
     rate_limit_rpm: int = 60,
     audit_action: str = "",
     sanitize_fields: Optional[List[str]] = None,
-    csrf_protection: bool = False
+    csrf_protection: bool = False,
 ):
     """Comprehensive security decorator combining multiple security measures."""
+
     def decorator(func: Callable) -> Callable:
         # Apply decorators in reverse order (they wrap from inside out)
         secured_func = func
@@ -479,7 +597,9 @@ def secure_endpoint(
             secured_func = audit_access(audit_action)(secured_func)
 
         # Rate limiting
-        secured_func = rate_limit(action=func.__name__, limit=rate_limit_rpm)(secured_func)
+        secured_func = rate_limit(action=func.__name__, limit=rate_limit_rpm)(
+            secured_func
+        )
 
         # Security level check
         if security_level:
@@ -504,7 +624,7 @@ def admin_required(func: Callable) -> Callable:
     return secure_endpoint(
         auth_required=True,
         permission=RequiredPermission.ADMIN,
-        audit_action="admin_access"
+        audit_action="admin_access",
     )(func)
 
 
@@ -519,11 +639,10 @@ def authenticated_only(func: Callable) -> Callable:
 
 def public_endpoint(rate_limit_rpm: int = 100):
     """Decorator for public endpoints with rate limiting."""
+
     def decorator(func: Callable) -> Callable:
-        return secure_endpoint(
-            auth_required=False,
-            rate_limit_rpm=rate_limit_rpm
-        )(func)
+        return secure_endpoint(auth_required=False, rate_limit_rpm=rate_limit_rpm)(func)
+
     return decorator
 
 
@@ -531,7 +650,6 @@ def public_endpoint(rate_limit_rpm: int = 100):
 __all__ = [
     # Enums
     "RequiredPermission",
-
     # Core decorators
     "require_auth",
     "require_permission",
@@ -542,7 +660,6 @@ __all__ = [
     "validate_csrf",
     "secure_endpoint",
     "protect_from_replay",
-
     # Convenience decorators
     "admin_required",
     "require_admin",  # Alias for admin_required
@@ -557,6 +674,7 @@ def protect_from_replay(max_age_seconds: int = 60):
     Expects a signed token in the 'X-Plexi-Signature' header.
     The token should contain a signature of the request body.
     """
+
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         async def wrapper(*args, **kwargs):
@@ -571,15 +689,27 @@ def protect_from_replay(max_age_seconds: int = 60):
                 request = kwargs.get("request")
                 if not isinstance(request, Request):
                     logger.error("Replay protection could not find request object.")
-                    raise HTTPException(status_code=500, detail="Server configuration error.")
+                    raise HTTPException(
+                        status_code=500, detail="Server configuration error."
+                    )
 
             signed_token = request.headers.get("X-Plexi-Signature")
             if not signed_token:
-                raise HTTPException(status_code=400, detail="Missing X-Plexi-Signature header.")
+                raise HTTPException(
+                    status_code=400, detail="Missing X-Plexi-Signature header."
+                )
 
-            if not config or not getattr(config, "security", None) or not getattr(config.security, "jwt_secret", None):
-                logger.error("Replay protection cannot function without a JWT secret key.")
-                raise HTTPException(status_code=500, detail="Server security not configured.")
+            if (
+                not config
+                or not getattr(config, "security", None)
+                or not getattr(config.security, "jwt_secret", None)
+            ):
+                logger.error(
+                    "Replay protection cannot function without a JWT secret key."
+                )
+                raise HTTPException(
+                    status_code=500, detail="Server security not configured."
+                )
 
             s = Serializer(config.security.jwt_secret)
             try:
@@ -596,13 +726,20 @@ def protect_from_replay(max_age_seconds: int = 60):
                     # If payload is a dict or other structure, compare its serialized form
                     try:
                         import json
-                        payload_bytes = json.dumps(payload, sort_keys=True).encode("utf-8")
+
+                        payload_bytes = json.dumps(payload, sort_keys=True).encode(
+                            "utf-8"
+                        )
                     except Exception:
                         payload_bytes = str(payload).encode("utf-8")
 
                 if payload_bytes != request_body:
-                    logger.warning(f"Replay protection failed: signature payload does not match request body.")
-                    raise HTTPException(status_code=400, detail="Signature does not match request body.")
+                    logger.warning(
+                        f"Replay protection failed: signature payload does not match request body."
+                    )
+                    raise HTTPException(
+                        status_code=400, detail="Signature does not match request body."
+                    )
 
             except SignatureExpired:
                 logger.warning(f"Replay protection failed: signature expired.")
@@ -617,5 +754,7 @@ def protect_from_replay(max_age_seconds: int = 60):
                 raise HTTPException(status_code=400, detail="Invalid signature format.")
 
             return await func(*args, **kwargs)
+
         return wrapper
+
     return decorator

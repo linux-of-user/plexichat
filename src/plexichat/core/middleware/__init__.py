@@ -1,16 +1,26 @@
 """PlexiChat Middleware"""
 
 import logging
+
 # Typing imports not used
 
 try:
     from plexichat.core.middleware.middleware_manager import (
-        MiddlewareManager, BaseMiddleware, MiddlewareContext,
-        AuthenticationMiddleware, RateLimitMiddleware, ValidationMiddleware,
-        LoggingMiddleware, PerformanceMiddleware,
-        middleware_manager, register_middleware, unregister_middleware,
-        process_with_middleware, get_middleware_stack
+        AuthenticationMiddleware,
+        BaseMiddleware,
+        LoggingMiddleware,
+        MiddlewareContext,
+        MiddlewareManager,
+        PerformanceMiddleware,
+        RateLimitMiddleware,
+        ValidationMiddleware,
+        get_middleware_stack,
+        middleware_manager,
+        process_with_middleware,
+        register_middleware,
+        unregister_middleware,
     )
+
     logger = logging.getLogger(__name__)
     logger.info("Middleware modules imported")
 except ImportError as e:

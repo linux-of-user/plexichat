@@ -5,10 +5,11 @@
 # pyright: reportReturnType=false
 import logging
 from typing import Any, Dict, List, Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from plexichat.core.auth.fastapi_adapter import require_admin, get_current_user
+from plexichat.core.auth.fastapi_adapter import get_current_user, require_admin
 from plexichat.core.performance.multi_tier_cache_manager import (
     CacheTier,
     MessagePriority,
@@ -41,32 +42,51 @@ router = APIRouter(prefix="/api/cache", tags=["Multi-Tier Cache"])
 
 # Pydantic models for request/response validation
 
+
 class CacheSetRequest(BaseModel):
     """Request model for setting cache values."""
+
     value: Any = Field(..., description="Value to cache")
     ttl_seconds: Optional[int] = Field(None, description="Time to live in seconds")
-    priority: Optional[str] = Field("normal", description="Cache priority (low, normal, high, critical)")
-    headers: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Additional headers")
+    priority: Optional[str] = Field(
+        "normal", description="Cache priority (low, normal, high, critical)"
+    )
+    headers: Optional[Dict[str, Any]] = Field(
+        default_factory=dict, description="Additional headers"
+    )
+
 
 class CacheResponse(BaseModel):
     """Response model for cache operations."""
+
     success: bool = Field(..., description="Operation success status")
     message: str = Field(..., description="Response message")
     data: Optional[Any] = Field(None, description="Response data")
     timestamp: str = Field(..., description="Response timestamp")
 
+
 class CacheClearRequest(BaseModel):
     """Request model for clearing cache."""
-    tier: Optional[str] = Field(None, description="Specific tier to clear (l1_memory, l2_redis, l3_memcached, l4_cdn)")
-    confirm: bool = Field(False, description="Confirmation flag for destructive operation")
+
+    tier: Optional[str] = Field(
+        None,
+        description="Specific tier to clear (l1_memory, l2_redis, l3_memcached, l4_cdn)",
+    )
+    confirm: bool = Field(
+        False, description="Confirmation flag for destructive operation"
+    )
+
 
 class CacheWarmRequest(BaseModel):
     """Request model for cache warming."""
+
     patterns: Optional[List[str]] = Field(None, description="Specific patterns to warm")
     force: bool = Field(False, description="Force warming even if recently completed")
 
+
 class CacheInvalidateRequest(BaseModel):
     """Request model for cache invalidation."""
+
     patterns: List[str] = Field(..., description="Patterns to invalidate")
     cascade: bool = Field(True, description="Cascade invalidation to related keys")
 
@@ -87,22 +107,28 @@ async def get_cache_status(current_user: Dict = Depends(get_current_user)):
         stats = await cache_manager.get_stats()
 
         return {
-            "status": "healthy" if stats.get("availability", {}).get("l1_memory", False) else "degraded",
+            "status": (
+                "healthy"
+                if stats.get("availability", {}).get("l1_memory", False)
+                else "degraded"
+            ),
             "initialized": cache_manager.initialized,
             "statistics": stats,
-            "timestamp": "2025-01-07T12:00:00Z"
+            "timestamp": "2025-01-07T12:00:00Z",
         }
 
     except Exception as e:
         logger.error(f" Cache status error: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to get cache status: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to get cache status: {str(e)}"
+        )
 
 
 @router.get("/stats", response_model=Dict[str, Any])
 async def get_cache_stats(
     tier: Optional[str] = Query(None, description="Specific tier to get stats for"),
     detailed: bool = Query(False, description="Include detailed statistics"),
-    current_user: Dict = Depends(get_current_user)
+    current_user: Dict = Depends(get_current_user),
 ):
     """
     Get detailed cache statistics by tier.
@@ -127,7 +153,7 @@ async def get_cache_stats(
                 "tier": tier,
                 "statistics": tier_stats,
                 "availability": stats.get("availability", {}).get(tier, False),
-                "timestamp": "2025-01-07T12:00:00Z"
+                "timestamp": "2025-01-07T12:00:00Z",
             }
 
         # Return all statistics
@@ -136,7 +162,7 @@ async def get_cache_stats(
             "tier_statistics": stats.get("tiers", {}),
             "availability": stats.get("availability", {}),
             "configuration": stats.get("configuration", {}),
-            "timestamp": "2025-01-07T12:00:00Z"
+            "timestamp": "2025-01-07T12:00:00Z",
         }
 
         if detailed:
@@ -148,14 +174,16 @@ async def get_cache_stats(
         raise
     except Exception as e:
         logger.error(f" Cache stats error: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to get cache statistics: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to get cache statistics: {str(e)}"
+        )
 
 
 @router.get("/{key}", response_model=Dict[str, Any])
 async def get_cached_value(
     key: str,
     default: Optional[str] = Query(None, description="Default value if key not found"),
-    current_user: Dict = Depends(get_current_user)
+    current_user: Dict = Depends(get_current_user),
 ):
     """
     Get cached value by key.
@@ -172,27 +200,29 @@ async def get_cached_value(
         value = await cache_manager.get(key, default)
 
         if value is None and default is None:
-            raise HTTPException(status_code=404, detail=f"Key '{key}' not found in cache")
+            raise HTTPException(
+                status_code=404, detail=f"Key '{key}' not found in cache"
+            )
 
         return {
             "key": key,
             "value": value,
             "found": value is not None,
-            "timestamp": "2025-01-07T12:00:00Z"
+            "timestamp": "2025-01-07T12:00:00Z",
         }
 
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f" Cache get error for key {key}: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to get cached value: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to get cached value: {str(e)}"
+        )
 
 
 @router.post("/{key}", response_model=CacheResponse)
 async def set_cached_value(
-    key: str,
-    request: CacheSetRequest,
-    current_user: Dict = Depends(get_current_user)
+    key: str, request: CacheSetRequest, current_user: Dict = Depends(get_current_user)
 ):
     """
     Set cached value by key.
@@ -211,7 +241,7 @@ async def set_cached_value(
             "low": MessagePriority.LOW,
             "normal": MessagePriority.NORMAL,
             "high": MessagePriority.HIGH,
-            "critical": MessagePriority.CRITICAL
+            "critical": MessagePriority.CRITICAL,
         }
 
         priority = priority_map.get(request.priority, MessagePriority.NORMAL)
@@ -220,7 +250,7 @@ async def set_cached_value(
             key=key,
             value=request.value,
             ttl_seconds=request.ttl_seconds,
-            priority=priority
+            priority=priority,
         )
 
         if not success:
@@ -230,21 +260,20 @@ async def set_cached_value(
             success=True,
             message=f"Successfully cached key '{key}'",
             data={"key": key, "ttl_seconds": request.ttl_seconds},
-            timestamp="2025-01-07T12:00:00Z"
+            timestamp="2025-01-07T12:00:00Z",
         )
 
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f" Cache set error for key {key}: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to set cached value: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to set cached value: {str(e)}"
+        )
 
 
 @router.delete("/{key}", response_model=CacheResponse)
-async def delete_cached_value(
-    key: str,
-    current_user: Dict = Depends(get_current_user)
-):
+async def delete_cached_value(key: str, current_user: Dict = Depends(get_current_user)):
     """
     Delete cached value by key.
 
@@ -260,7 +289,9 @@ async def delete_cached_value(
         # Check if key exists
         exists = await cache_manager.exists(key)
         if not exists:
-            raise HTTPException(status_code=404, detail=f"Key '{key}' not found in cache")
+            raise HTTPException(
+                status_code=404, detail=f"Key '{key}' not found in cache"
+            )
 
         success = await cache_manager.delete(key)
 
@@ -271,20 +302,21 @@ async def delete_cached_value(
             success=True,
             message=f"Successfully deleted key '{key}' from cache",
             data={"key": key},
-            timestamp="2025-01-07T12:00:00Z"
+            timestamp="2025-01-07T12:00:00Z",
         )
 
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f" Cache delete error for key {key}: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to delete cached value: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to delete cached value: {str(e)}"
+        )
 
 
 @router.post("/clear", response_model=CacheResponse)
 async def clear_cache(
-    request: CacheClearRequest,
-    current_user: Dict = Depends(require_admin)
+    request: CacheClearRequest, current_user: Dict = Depends(require_admin)
 ):
     """
     Clear cache tier(s).
@@ -296,7 +328,7 @@ async def clear_cache(
         if not request.confirm:
             raise HTTPException(
                 status_code=400,
-                detail="Confirmation required for destructive cache clear operation"
+                detail="Confirmation required for destructive cache clear operation",
             )
 
         cache_manager = get_cache_manager()
@@ -309,12 +341,14 @@ async def clear_cache(
             "l1_memory": "L1_MEMORY",
             "l2_redis": "L2_REDIS",
             "l3_memcached": "L3_MEMCACHED",
-            "l4_cdn": "L4_CDN"
+            "l4_cdn": "L4_CDN",
         }
 
         if request.tier:
             if request.tier not in tier_map:
-                raise HTTPException(status_code=400, detail=f"Invalid tier: {request.tier}")
+                raise HTTPException(
+                    status_code=400, detail=f"Invalid tier: {request.tier}"
+                )
 
             # Import the enum here to avoid circular imports
             tier_enum = getattr(CacheTier, tier_map[request.tier])
@@ -331,7 +365,7 @@ async def clear_cache(
             success=True,
             message=message,
             data={"tier": request.tier or "all"},
-            timestamp="2025-01-07T12:00:00Z"
+            timestamp="2025-01-07T12:00:00Z",
         )
 
     except HTTPException:
@@ -373,18 +407,19 @@ async def get_cache_health(current_user: Dict = Depends(get_current_user)):
             "healthy_tiers": healthy_tiers,
             "total_tiers": total_tiers,
             "global_stats": stats.get("global", {}),
-            "timestamp": "2025-01-07T12:00:00Z"
+            "timestamp": "2025-01-07T12:00:00Z",
         }
 
     except Exception as e:
         logger.error(f" Cache health check error: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to get cache health: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to get cache health: {str(e)}"
+        )
 
 
 @router.post("/warm", response_model=CacheResponse)
 async def trigger_cache_warming(
-    request: CacheWarmRequest,
-    current_user: Dict = Depends(require_admin)
+    request: CacheWarmRequest, current_user: Dict = Depends(require_admin)
 ):
     """
     Trigger cache warming.
@@ -406,14 +441,16 @@ async def trigger_cache_warming(
             success=True,
             message=f"Cache warming triggered for patterns: {', '.join(patterns)}",
             data={"patterns": patterns, "force": request.force},
-            timestamp="2025-01-07T12:00:00Z"
+            timestamp="2025-01-07T12:00:00Z",
         )
 
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f" Cache warming error: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to trigger cache warming: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to trigger cache warming: {str(e)}"
+        )
 
 
 @router.get("/config", response_model=Dict[str, Any])
@@ -435,18 +472,19 @@ async def get_cache_config(current_user: Dict = Depends(require_admin)):
         return {
             "configuration": config,
             "availability": stats.get("availability", {}),
-            "timestamp": "2025-01-07T12:00:00Z"
+            "timestamp": "2025-01-07T12:00:00Z",
         }
 
     except Exception as e:
         logger.error(f" Cache config error: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to get cache configuration: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to get cache configuration: {str(e)}"
+        )
 
 
 @router.post("/invalidate", response_model=CacheResponse)
 async def invalidate_cache_patterns(
-    request: CacheInvalidateRequest,
-    current_user: Dict = Depends(require_admin)
+    request: CacheInvalidateRequest, current_user: Dict = Depends(require_admin)
 ):
     """
     Invalidate cache patterns.
@@ -470,13 +508,15 @@ async def invalidate_cache_patterns(
             data={
                 "patterns": request.patterns,
                 "cascade": request.cascade,
-                "invalidated_count": invalidated_count
+                "invalidated_count": invalidated_count,
             },
-            timestamp="2025-01-07T12:00:00Z"
+            timestamp="2025-01-07T12:00:00Z",
         )
 
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f" Cache invalidation error: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to invalidate cache patterns: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to invalidate cache patterns: {str(e)}"
+        )

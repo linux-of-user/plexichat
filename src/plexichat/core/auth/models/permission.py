@@ -7,6 +7,7 @@ from enum import Enum
 
 class Permission(Enum):
     """User permissions."""
+
     READ = "read"
     WRITE = "write"
     DELETE = "delete"

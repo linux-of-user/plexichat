@@ -5,6 +5,7 @@ Adds database indexes to improve search performance for messages, users, and cha
 """
 
 import logging
+
 from plexichat.core.database.manager import database_manager
 
 logger = logging.getLogger(__name__)
@@ -58,12 +59,16 @@ async def up() -> bool:
 
         # Execute all index creation statements
         async with database_manager.get_session() as session:
-            all_indexes = message_indexes + user_indexes + channel_indexes + thread_indexes
+            all_indexes = (
+                message_indexes + user_indexes + channel_indexes + thread_indexes
+            )
 
             for index_sql in all_indexes:
                 try:
                     await session.execute(index_sql)
-                    logger.debug(f"Created index: {index_sql.split(' ON ')[1].split('(')[0]}")
+                    logger.debug(
+                        f"Created index: {index_sql.split(' ON ')[1].split('(')[0]}"
+                    )
                 except Exception as e:
                     logger.warning(f"Failed to create index {index_sql}: {e}")
                     # Continue with other indexes

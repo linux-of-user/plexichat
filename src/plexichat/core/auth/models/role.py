@@ -7,6 +7,7 @@ from enum import Enum
 
 class Role(Enum):
     """User roles."""
+
     USER = "user"
     MODERATOR = "moderator"
     ADMIN = "admin"

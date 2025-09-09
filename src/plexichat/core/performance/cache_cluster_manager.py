@@ -7,12 +7,12 @@ failover, load balancing, and consistency management.
 
 import asyncio
 import hashlib
+import json
 import logging
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Set
-import json
 
 logger = logging.getLogger(__name__)
 
@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class CacheNode:
     """Represents a cache node in the cluster."""
+
     node_id: str
     host: str
     port: int
@@ -34,6 +35,7 @@ class CacheNode:
 @dataclass
 class ClusterMetrics:
     """Cluster-wide cache metrics."""
+
     total_nodes: int = 0
     healthy_nodes: int = 0
     total_requests: int = 0
@@ -45,6 +47,7 @@ class ClusterMetrics:
 
 class CacheClusterManager:
     """Manages distributed cache cluster with automatic failover."""
+
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         self.config = config or {}
         self.nodes: Dict[str, CacheNode] = {}
@@ -52,14 +55,14 @@ class CacheClusterManager:
         self.metrics = ClusterMetrics()
 
         # Configuration
-        self.health_check_interval = self.config.get('health_check_interval', 30)
-        self.max_retries = self.config.get('max_retries', 3)
-        self.timeout_seconds = self.config.get('timeout_seconds', 5)
-        self.consistency_level = self.config.get('consistency_level', 'eventual')
+        self.health_check_interval = self.config.get("health_check_interval", 30)
+        self.max_retries = self.config.get("max_retries", 3)
+        self.timeout_seconds = self.config.get("timeout_seconds", 5)
+        self.consistency_level = self.config.get("consistency_level", "eventual")
 
         # Consistent hashing ring
         self.hash_ring: Dict[int, str] = {}
-        self.virtual_nodes = self.config.get('virtual_nodes', 150)
+        self.virtual_nodes = self.config.get("virtual_nodes", 150)
 
         # Background tasks
         self._health_check_task = None
@@ -74,10 +77,10 @@ class CacheClusterManager:
             # Add nodes to cluster
             for node_config in nodes:
                 await self.add_node(
-                    node_config['node_id'],
-                    node_config['host'],
-                    node_config['port'],
-                    node_config.get('weight', 1.0)
+                    node_config["node_id"],
+                    node_config["host"],
+                    node_config["port"],
+                    node_config.get("weight", 1.0),
                 )
 
             # Build consistent hash ring
@@ -86,22 +89,21 @@ class CacheClusterManager:
             # Start background tasks
             await self.start_monitoring()
 
-            logger.info(f"[START] Cache cluster initialized with {len(self.nodes)} nodes")
+            logger.info(
+                f"[START] Cache cluster initialized with {len(self.nodes)} nodes"
+            )
             return True
 
         except Exception as e:
             logger.error(f"Cluster initialization failed: {e}")
             return False
 
-    async def add_node(self, node_id: str, host: str, port: int, weight: float = 1.0) -> bool:
+    async def add_node(
+        self, node_id: str, host: str, port: int, weight: float = 1.0
+    ) -> bool:
         """Add a new node to the cluster."""
         try:
-            node = CacheNode(
-                node_id=node_id,
-                host=host,
-                port=port,
-                weight=weight
-            )
+            node = CacheNode(node_id=node_id, host=host, port=port, weight=weight)
 
             # Test node connectivity
             if await self._test_node_health(node):
@@ -326,7 +328,9 @@ class CacheClusterManager:
 
             # Calculate average response time
             if self.nodes:
-                total_response_time = sum(node.response_time_ms for node in self.nodes.values())
+                total_response_time = sum(
+                    node.response_time_ms for node in self.nodes.values()
+                )
                 self.metrics.avg_response_time = total_response_time / len(self.nodes)
 
             self.metrics.last_updated = datetime.now()
@@ -337,32 +341,48 @@ class CacheClusterManager:
     def get_cluster_status(self) -> Dict[str, Any]:
         """Get comprehensive cluster status."""
         return {
-            'cluster_health': {
-                'total_nodes': self.metrics.total_nodes,
-                'healthy_nodes': self.metrics.healthy_nodes,
-                'unhealthy_nodes': self.metrics.total_nodes - self.metrics.healthy_nodes,
-                'health_percentage': (self.metrics.healthy_nodes / self.metrics.total_nodes * 100) if self.metrics.total_nodes > 0 else 0
+            "cluster_health": {
+                "total_nodes": self.metrics.total_nodes,
+                "healthy_nodes": self.metrics.healthy_nodes,
+                "unhealthy_nodes": self.metrics.total_nodes
+                - self.metrics.healthy_nodes,
+                "health_percentage": (
+                    (self.metrics.healthy_nodes / self.metrics.total_nodes * 100)
+                    if self.metrics.total_nodes > 0
+                    else 0
+                ),
             },
-            'performance': {
-                'avg_response_time_ms': self.metrics.avg_response_time,
-                'total_requests': self.metrics.total_requests,
-                'hit_rate': (self.metrics.total_hits / (self.metrics.total_hits + self.metrics.total_misses)) if (self.metrics.total_hits + self.metrics.total_misses) > 0 else 0
+            "performance": {
+                "avg_response_time_ms": self.metrics.avg_response_time,
+                "total_requests": self.metrics.total_requests,
+                "hit_rate": (
+                    (
+                        self.metrics.total_hits
+                        / (self.metrics.total_hits + self.metrics.total_misses)
+                    )
+                    if (self.metrics.total_hits + self.metrics.total_misses) > 0
+                    else 0
+                ),
             },
-            'nodes': {
+            "nodes": {
                 node_id: {
-                    'host': node.host,
-                    'port': node.port,
-                    'is_healthy': node.is_healthy,
-                    'response_time_ms': node.response_time_ms,
-                    'error_count': node.error_count,
-                    'last_health_check': node.last_health_check.isoformat() if node.last_health_check else None
+                    "host": node.host,
+                    "port": node.port,
+                    "is_healthy": node.is_healthy,
+                    "response_time_ms": node.response_time_ms,
+                    "error_count": node.error_count,
+                    "last_health_check": (
+                        node.last_health_check.isoformat()
+                        if node.last_health_check
+                        else None
+                    ),
                 }
                 for node_id, node in self.nodes.items()
             },
-            'hash_ring': {
-                'virtual_nodes': len(self.hash_ring),
-                'distribution': self._get_hash_ring_distribution()
-            }
+            "hash_ring": {
+                "virtual_nodes": len(self.hash_ring),
+                "distribution": self._get_hash_ring_distribution(),
+            },
         }
 
     def _get_hash_ring_distribution(self) -> Dict[str, int]:

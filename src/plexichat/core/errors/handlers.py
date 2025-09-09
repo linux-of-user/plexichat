@@ -1,4 +1,4 @@
-from fastapi import Request, HTTPException
+from fastapi import HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 
 # Try to import settings with fallback
@@ -8,7 +8,9 @@ except ImportError:
     # Fallback settings if config import fails
     class FallbackSettings:
         app_name = "PlexiChat"
+
     settings = FallbackSettings()
+
 
 async def not_found_handler(request: Request, exc: HTTPException):
     """Handle 404 errors."""
@@ -46,15 +48,16 @@ async def not_found_handler(request: Request, exc: HTTPException):
         </html>
         """
         return HTMLResponse(content=html_content, status_code=404)
-    
+
     return JSONResponse(
         status_code=404,
         content={
             "error": "Not Found",
             "message": "The requested resource was not found",
-            "path": str(request.url.path)
-        }
+            "path": str(request.url.path),
+        },
     )
+
 
 async def internal_error_handler(request: Request, exc: Exception):
     """Handle 500 errors."""
@@ -62,6 +65,6 @@ async def internal_error_handler(request: Request, exc: Exception):
         status_code=500,
         content={
             "error": "Internal Server Error",
-            "message": "An internal server error occurred"
-        }
+            "message": "An internal server error occurred",
+        },
     )

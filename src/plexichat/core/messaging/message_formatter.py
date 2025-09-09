@@ -5,15 +5,16 @@ Handles rich text formatting for messages with markdown-like syntax.
 Provides parsing, rendering, and sanitization for secure message display.
 """
 
-import re
 import html
-from typing import List, Dict, Any, Optional, Tuple
+import re
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any, Dict, List, Optional, Tuple
 
 
 class FormatType(Enum):
     """Types of formatting supported."""
+
     BOLD = "bold"
     ITALIC = "italic"
     CODE = "code"
@@ -26,6 +27,7 @@ class FormatType(Enum):
 @dataclass
 class FormatElement:
     """Represents a formatted element in a message."""
+
     type: FormatType
     content: str
     metadata: Optional[Dict[str, Any]] = None
@@ -47,24 +49,19 @@ class MessageFormatter:
     def __init__(self):
         # Patterns for different formatting types
         self.patterns = {
-            'bold': re.compile(r'\*\*(.*?)\*\*'),
-            'bold_alt': re.compile(r'__(.*?)__'),
-            'italic': re.compile(r'\*(.*?)\*'),
-            'italic_alt': re.compile(r'_(.*?)_'),
-            'code': re.compile(r'`([^`]+)`'),
-            'code_block': re.compile(r'```(.*?)```', re.DOTALL),
-            'link': re.compile(r'\[([^\]]+)\]\(([^)]+)\)'),
-            'mention': re.compile(r'@(\w+)'),
+            "bold": re.compile(r"\*\*(.*?)\*\*"),
+            "bold_alt": re.compile(r"__(.*?)__"),
+            "italic": re.compile(r"\*(.*?)\*"),
+            "italic_alt": re.compile(r"_(.*?)_"),
+            "code": re.compile(r"`([^`]+)`"),
+            "code_block": re.compile(r"```(.*?)```", re.DOTALL),
+            "link": re.compile(r"\[([^\]]+)\]\(([^)]+)\)"),
+            "mention": re.compile(r"@(\w+)"),
         }
 
         # HTML sanitization - allowed tags and attributes
-        self.allowed_tags = {
-            'strong', 'em', 'code', 'pre', 'a', 'span'
-        }
-        self.allowed_attributes = {
-            'a': ['href', 'title'],
-            'span': ['class']
-        }
+        self.allowed_tags = {"strong", "em", "code", "pre", "a", "span"}
+        self.allowed_attributes = {"a": ["href", "title"], "span": ["class"]}
 
     def parse_message(self, content: str) -> List[FormatElement]:
         """
@@ -80,14 +77,14 @@ class MessageFormatter:
 
         # Process in order of priority (most specific first)
         processors = [
-            ('code_block', self._process_code_block),
-            ('link', self._process_link),
-            ('bold', self._process_bold),
-            ('bold_alt', self._process_bold_alt),
-            ('italic', self._process_italic),
-            ('italic_alt', self._process_italic_alt),
-            ('code', self._process_code),
-            ('mention', self._process_mention),
+            ("code_block", self._process_code_block),
+            ("link", self._process_link),
+            ("bold", self._process_bold),
+            ("bold_alt", self._process_bold_alt),
+            ("italic", self._process_italic),
+            ("italic_alt", self._process_italic_alt),
+            ("code", self._process_code),
+            ("mention", self._process_mention),
         ]
 
         while remaining:
@@ -107,10 +104,11 @@ class MessageFormatter:
             if earliest_match:
                 # Add any text before the match
                 if earliest_pos > 0:
-                    elements.append(FormatElement(
-                        type=FormatType.TEXT,
-                        content=remaining[:earliest_pos]
-                    ))
+                    elements.append(
+                        FormatElement(
+                            type=FormatType.TEXT, content=remaining[:earliest_pos]
+                        )
+                    )
 
                 # Process the match
                 element = processor_func(earliest_match)
@@ -118,13 +116,10 @@ class MessageFormatter:
                     elements.append(element)
 
                 # Continue with remaining text
-                remaining = remaining[earliest_match.end():]
+                remaining = remaining[earliest_match.end() :]
             else:
                 # No more matches, add remaining text
-                elements.append(FormatElement(
-                    type=FormatType.TEXT,
-                    content=remaining
-                ))
+                elements.append(FormatElement(type=FormatType.TEXT, content=remaining))
                 break
 
         return elements
@@ -139,26 +134,40 @@ class MessageFormatter:
 
         for element in elements:
             if element.type == FormatType.BOLD:
-                html_parts.append(f"<strong>{self._escape_html(element.content)}</strong>")
+                html_parts.append(
+                    f"<strong>{self._escape_html(element.content)}</strong>"
+                )
             elif element.type == FormatType.ITALIC:
                 html_parts.append(f"<em>{self._escape_html(element.content)}</em>")
             elif element.type == FormatType.CODE:
                 html_parts.append(f"<code>{self._escape_html(element.content)}</code>")
             elif element.type == FormatType.CODE_BLOCK:
-                html_parts.append(f"<pre><code>{self._escape_html(element.content)}</code></pre>")
+                html_parts.append(
+                    f"<pre><code>{self._escape_html(element.content)}</code></pre>"
+                )
             elif element.type == FormatType.LINK:
-                url = element.metadata.get('url', '') if element.metadata else ''
+                url = element.metadata.get("url", "") if element.metadata else ""
                 if self._is_safe_url(url):
-                    html_parts.append(f'<a href="{self._escape_html(url)}" target="_blank" rel="noopener noreferrer">{self._escape_html(element.content)}</a>')
+                    html_parts.append(
+                        f'<a href="{self._escape_html(url)}" target="_blank" rel="noopener noreferrer">{self._escape_html(element.content)}</a>'
+                    )
                 else:
-                    html_parts.append(f'<span class="invalid-link">{self._escape_html(element.content)}</span>')
+                    html_parts.append(
+                        f'<span class="invalid-link">{self._escape_html(element.content)}</span>'
+                    )
             elif element.type == FormatType.MENTION:
-                username = element.metadata.get('username', element.content) if element.metadata else element.content
-                html_parts.append(f'<span class="mention" data-username="{self._escape_html(username)}">@{self._escape_html(element.content)}</span>')
+                username = (
+                    element.metadata.get("username", element.content)
+                    if element.metadata
+                    else element.content
+                )
+                html_parts.append(
+                    f'<span class="mention" data-username="{self._escape_html(username)}">@{self._escape_html(element.content)}</span>'
+                )
             else:  # TEXT
                 html_parts.append(self._escape_html(element.content))
 
-        return ''.join(html_parts)
+        return "".join(html_parts)
 
     def format_message(self, content: str) -> str:
         """
@@ -173,60 +182,42 @@ class MessageFormatter:
         """Process bold formatting."""
         content = match.group(1)
         if content:
-            return FormatElement(
-                type=FormatType.BOLD,
-                content=content
-            )
+            return FormatElement(type=FormatType.BOLD, content=content)
         return None
 
     def _process_bold_alt(self, match) -> Optional[FormatElement]:
         """Process alternative bold formatting."""
         content = match.group(1)
         if content:
-            return FormatElement(
-                type=FormatType.BOLD,
-                content=content
-            )
+            return FormatElement(type=FormatType.BOLD, content=content)
         return None
 
     def _process_italic(self, match) -> Optional[FormatElement]:
         """Process italic formatting."""
         content = match.group(1)
         if content:
-            return FormatElement(
-                type=FormatType.ITALIC,
-                content=content
-            )
+            return FormatElement(type=FormatType.ITALIC, content=content)
         return None
 
     def _process_italic_alt(self, match) -> Optional[FormatElement]:
         """Process alternative italic formatting."""
         content = match.group(1)
         if content:
-            return FormatElement(
-                type=FormatType.ITALIC,
-                content=content
-            )
+            return FormatElement(type=FormatType.ITALIC, content=content)
         return None
 
     def _process_code(self, match) -> Optional[FormatElement]:
         """Process inline code formatting."""
         content = match.group(1)
         if content:
-            return FormatElement(
-                type=FormatType.CODE,
-                content=content
-            )
+            return FormatElement(type=FormatType.CODE, content=content)
         return None
 
     def _process_code_block(self, match) -> Optional[FormatElement]:
         """Process code block formatting."""
         content = match.group(1)
         if content:
-            return FormatElement(
-                type=FormatType.CODE_BLOCK,
-                content=content
-            )
+            return FormatElement(type=FormatType.CODE_BLOCK, content=content)
         return None
 
     def _process_link(self, match) -> Optional[FormatElement]:
@@ -235,9 +226,7 @@ class MessageFormatter:
         url = match.group(2)
         if text and url:
             return FormatElement(
-                type=FormatType.LINK,
-                content=text,
-                metadata={'url': url}
+                type=FormatType.LINK, content=text, metadata={"url": url}
             )
         return None
 
@@ -248,7 +237,7 @@ class MessageFormatter:
             return FormatElement(
                 type=FormatType.MENTION,
                 content=username,
-                metadata={'username': username}
+                metadata={"username": username},
             )
         return None
 
@@ -266,7 +255,7 @@ class MessageFormatter:
             return False
 
         # Check for dangerous protocols
-        dangerous_protocols = ['javascript:', 'data:', 'vbscript:', 'file:']
+        dangerous_protocols = ["javascript:", "data:", "vbscript:", "file:"]
         url_lower = url.lower()
 
         for protocol in dangerous_protocols:
@@ -274,7 +263,7 @@ class MessageFormatter:
                 return False
 
         # Basic URL format check
-        if not re.match(r'^https?://', url_lower):
+        if not re.match(r"^https?://", url_lower):
             return False
 
         return True

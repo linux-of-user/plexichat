@@ -6,15 +6,27 @@ Consolidated utility functions for the entire application.
 import hashlib
 import json
 import logging
+import re
 import secrets
 import time
-import uuid
-import re
 import unicodedata
+import uuid
 from contextlib import contextmanager
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional, Sequence, Set, Tuple, TypeVar, Union, Callable
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    List,
+    Optional,
+    Sequence,
+    Set,
+    Tuple,
+    TypeVar,
+    Union,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +34,15 @@ logger = logging.getLogger(__name__)
 MAX_FILENAME_LENGTH = 120
 SAFE_FILENAME_REPLACEMENT = "_"
 DEFAULT_ALLOWED_EXTENSIONS: Set[str] = {
-    ".txt", ".md", ".json", ".png", ".jpg", ".jpeg", ".gif", ".webp", ".pdf"
+    ".txt",
+    ".md",
+    ".json",
+    ".png",
+    ".jpg",
+    ".jpeg",
+    ".gif",
+    ".webp",
+    ".pdf",
 }
 
 T = TypeVar("T")
@@ -65,15 +85,17 @@ class StringUtils:
         safe = re.sub(r'[<>:"/\\|?*\n\r\t\0]', SAFE_FILENAME_REPLACEMENT, filename)
         # Collapse repeats of replacement
         rep = re.escape(SAFE_FILENAME_REPLACEMENT)
-        safe = re.sub(rf'{rep}+', SAFE_FILENAME_REPLACEMENT, safe)
+        safe = re.sub(rf"{rep}+", SAFE_FILENAME_REPLACEMENT, safe)
         # Strip leading/trailing dots and spaces
         safe = safe.strip(" .")
         return safe[:max_length] if max_length and len(safe) > max_length else safe
 
     @staticmethod
-    def sanitize_filename(filename: str,
-                          max_length: int = MAX_FILENAME_LENGTH,
-                          replace_char: str = SAFE_FILENAME_REPLACEMENT) -> str:
+    def sanitize_filename(
+        filename: str,
+        max_length: int = MAX_FILENAME_LENGTH,
+        replace_char: str = SAFE_FILENAME_REPLACEMENT,
+    ) -> str:
         """Sanitize filename to enforce safe characters and max length.
 
         - Removes path elements
@@ -93,7 +115,7 @@ class StringUtils:
         name = re.sub(r'[<>:"/\\|?*\n\r\t]', replace_char, name)
         # Collapse multiple replacements
         rep = re.escape(replace_char)
-        name = re.sub(rf'{rep}+', replace_char, name)
+        name = re.sub(rf"{rep}+", replace_char, name)
         # Remove leading/trailing separators and dots
         name = name.strip(" .")
         if max_length and len(name) > max_length:
@@ -110,9 +132,11 @@ class StringUtils:
         return name
 
     @staticmethod
-    def validate_filename(filename: str,
-                          allowed_extensions: Optional[Iterable[str]] = None,
-                          max_length: int = MAX_FILENAME_LENGTH) -> Tuple[bool, Optional[str]]:
+    def validate_filename(
+        filename: str,
+        allowed_extensions: Optional[Iterable[str]] = None,
+        max_length: int = MAX_FILENAME_LENGTH,
+    ) -> Tuple[bool, Optional[str]]:
         """Validate filename against common security rules.
 
         Returns (True, None) if valid, otherwise (False, "reason").
@@ -131,7 +155,10 @@ class StringUtils:
             return False, "filename contains directory components"
         suffix = p.suffix.lower()
         if allowed_extensions:
-            allowed = {s.lower() if s.startswith(".") else f".{s.lower()}" for s in allowed_extensions}
+            allowed = {
+                s.lower() if s.startswith(".") else f".{s.lower()}"
+                for s in allowed_extensions
+            }
             if suffix not in allowed:
                 return False, f"extension '{suffix}' not allowed"
         return True, None
@@ -254,7 +281,10 @@ class HashUtils:
         """Hash a password with salt."""
         try:
             import bcrypt  # type: ignore
-            return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+
+            return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode(
+                "utf-8"
+            )
         except Exception:
             # Fallback to simple hash if bcrypt not available
             salt = secrets.token_hex(16)
@@ -266,9 +296,12 @@ class HashUtils:
         try:
             if hashed.startswith("simple:"):
                 _, salt, hash_value = hashed.split(":", 2)
-                return hashlib.sha256((salt + password).encode()).hexdigest() == hash_value
+                return (
+                    hashlib.sha256((salt + password).encode()).hexdigest() == hash_value
+                )
             else:
                 import bcrypt  # type: ignore
+
                 return bcrypt.checkpw(password.encode("utf-8"), hashed.encode("utf-8"))
         except Exception:
             return False
@@ -468,7 +501,12 @@ def timed_operation(name: str, level: int = logging.DEBUG):
         yield
     finally:
         elapsed = time.perf_counter() - start
-        logger.log(level, "Operation '%s' completed in %s", name, DateTimeUtils.format_duration(elapsed))
+        logger.log(
+            level,
+            "Operation '%s' completed in %s",
+            name,
+            DateTimeUtils.format_duration(elapsed),
+        )
 
 
 def timeit(func: Callable[..., T]) -> Callable[..., T]:
@@ -480,14 +518,20 @@ def timeit(func: Callable[..., T]) -> Callable[..., T]:
             return func(*args, **kwargs)
         finally:
             elapsed = time.perf_counter() - start
-            logger.debug("Function %s finished in %s", func.__name__, DateTimeUtils.format_duration(elapsed))
+            logger.debug(
+                "Function %s finished in %s",
+                func.__name__,
+                DateTimeUtils.format_duration(elapsed),
+            )
 
     wrapper.__name__ = getattr(func, "__name__", "wrapped")
     return wrapper
 
 
 # Generic helpers
-def safe_cast(value: Any, to_type: Callable[[Any], T], default: Optional[T] = None) -> Optional[T]:
+def safe_cast(
+    value: Any, to_type: Callable[[Any], T], default: Optional[T] = None
+) -> Optional[T]:
     """Attempt to cast value to target type, return default on failure."""
     try:
         return to_type(value)  # type: ignore

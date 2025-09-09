@@ -17,7 +17,7 @@ import threading
 from collections import defaultdict, deque
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Optional, Any
+from typing import Any, Dict, Optional
 
 
 class DeduplicationFilter(logging.Filter):
@@ -68,7 +68,7 @@ class PluginContextAdapter(logging.LoggerAdapter):
     """LoggerAdapter for per-plugin contexts."""
 
     def __init__(self, logger: logging.Logger, plugin_name: str):
-        super().__init__(logger, {'plugin': plugin_name})
+        super().__init__(logger, {"plugin": plugin_name})
         self.plugin_name = plugin_name
 
     def process(self, msg: str, kwargs: Any) -> tuple:
@@ -78,9 +78,9 @@ class PluginContextAdapter(logging.LoggerAdapter):
             msg = f"[{self.plugin_name}] {msg}"
 
         # Add plugin to extra data
-        extra = kwargs.get('extra', {})
-        extra['plugin'] = self.plugin_name
-        kwargs['extra'] = extra
+        extra = kwargs.get("extra", {})
+        extra["plugin"] = self.plugin_name
+        kwargs["extra"] = extra
 
         return msg, kwargs
 
@@ -90,19 +90,19 @@ class ColorizedConsoleHandler(logging.StreamHandler):
 
     # ANSI escape codes for colors (no Unicode)
     COLORS = {
-        logging.DEBUG: '\033[36m',      # Cyan
-        logging.INFO: '\033[32m',       # Green
-        logging.WARNING: '\033[33m',    # Yellow
-        logging.ERROR: '\033[31m',      # Red
-        logging.CRITICAL: '\033[35m',   # Magenta
+        logging.DEBUG: "\033[36m",  # Cyan
+        logging.INFO: "\033[32m",  # Green
+        logging.WARNING: "\033[33m",  # Yellow
+        logging.ERROR: "\033[31m",  # Red
+        logging.CRITICAL: "\033[35m",  # Magenta
     }
-    RESET = '\033[0m'
+    RESET = "\033[0m"
 
     def __init__(self, stream=None):
         super().__init__(stream or sys.stdout)
-        self.setFormatter(logging.Formatter(
-            '[%(asctime)s] [%(levelname)-8s] %(name)s: %(message)s'
-        ))
+        self.setFormatter(
+            logging.Formatter("[%(asctime)s] [%(levelname)-8s] %(name)s: %(message)s")
+        )
 
     def format(self, record: logging.LogRecord) -> str:
         """Format the record with color."""
@@ -110,15 +110,19 @@ class ColorizedConsoleHandler(logging.StreamHandler):
         message = super().format(record)
 
         # Add color if supported
-        if hasattr(record, 'levelno') and record.levelno in self.COLORS:
+        if hasattr(record, "levelno") and record.levelno in self.COLORS:
             color = self.COLORS[record.levelno]
             # Color only the level name
             level_start = message.find(f"[{record.levelname}")
             if level_start != -1:
                 level_end = message.find("]", level_start) + 1
                 if level_end > level_start:
-                    colored_level = f"{color}{message[level_start:level_end]}{self.RESET}"
-                    message = message[:level_start] + colored_level + message[level_end:]
+                    colored_level = (
+                        f"{color}{message[level_start:level_end]}{self.RESET}"
+                    )
+                    message = (
+                        message[:level_start] + colored_level + message[level_end:]
+                    )
 
         return message
 
@@ -126,8 +130,13 @@ class ColorizedConsoleHandler(logging.StreamHandler):
 class PluginIsolatedRotatingFileHandler(logging.handlers.RotatingFileHandler):
     """Rotating file handler with per-plugin isolation."""
 
-    def __init__(self, plugin_name: str, base_log_dir: str = "logs/plugins",
-                 maxBytes: int = 10*1024*1024, backupCount: int = 5):
+    def __init__(
+        self,
+        plugin_name: str,
+        base_log_dir: str = "logs/plugins",
+        maxBytes: int = 10 * 1024 * 1024,
+        backupCount: int = 5,
+    ):
         self.plugin_name = plugin_name
         self.base_log_dir = Path(base_log_dir)
 
@@ -138,24 +147,24 @@ class PluginIsolatedRotatingFileHandler(logging.handlers.RotatingFileHandler):
         # Plugin-specific log file
         log_file = plugin_dir / f"{plugin_name}.log"
 
-        super().__init__(
-            str(log_file),
-            maxBytes=maxBytes,
-            backupCount=backupCount
-        )
+        super().__init__(str(log_file), maxBytes=maxBytes, backupCount=backupCount)
 
-        self.setFormatter(logging.Formatter(
-            '[%(asctime)s] [%(levelname)-8s] [%(name)s:%(lineno)d] %(funcName)s() - %(message)s'
-        ))
+        self.setFormatter(
+            logging.Formatter(
+                "[%(asctime)s] [%(levelname)-8s] [%(name)s:%(lineno)d] %(funcName)s() - %(message)s"
+            )
+        )
 
 
 class SanitizationFilter(logging.Filter):
     """Sanitize log records: redact secrets/tokens and force ASCII-only output."""
+
     def filter(self, record: logging.LogRecord) -> bool:
         try:
             msg = record.getMessage()
             # Redact common sensitive patterns
             import re
+
             patterns = [
                 (r"(?i)(password\s*[:=]\s*)([^\s,}]+)", r"\1***"),
                 (r"(?i)(token\s*[:=]\s*)([^\s,}]+)", r"\1***"),
@@ -165,20 +174,21 @@ class SanitizationFilter(logging.Filter):
             for pat, repl in patterns:
                 msg = re.sub(pat, repl, msg)
             # Force ASCII-safe output
-            msg_ascii = msg.encode('ascii', errors='replace').decode('ascii')
+            msg_ascii = msg.encode("ascii", errors="replace").decode("ascii")
             record.msg = msg_ascii
         except Exception:
             pass
         return True
 
+
 class UnifiedLogger:
     """Unified logger with all required features."""
 
-    _instance: Optional['UnifiedLogger'] = None
+    _instance: Optional["UnifiedLogger"] = None
     _lock = threading.Lock()
 
     def __init__(self):
-        self.root_logger = logging.getLogger('plexichat')
+        self.root_logger = logging.getLogger("plexichat")
         self.root_logger.setLevel(logging.DEBUG)
 
         # Remove existing handlers to avoid duplicates
@@ -194,11 +204,15 @@ class UnifiedLogger:
         log_dir.mkdir(exist_ok=True)
         main_log_file = log_dir / "latest.txt"
 
-        self.main_file_handler = logging.FileHandler(str(main_log_file), encoding='utf-8')
+        self.main_file_handler = logging.FileHandler(
+            str(main_log_file), encoding="utf-8"
+        )
         self.main_file_handler.setLevel(logging.DEBUG)
-        self.main_file_handler.setFormatter(logging.Formatter(
-            '[%(asctime)s] [%(levelname)-8s] [%(name)s:%(lineno)d] %(funcName)s() - %(message)s'
-        ))
+        self.main_file_handler.setFormatter(
+            logging.Formatter(
+                "[%(asctime)s] [%(levelname)-8s] [%(name)s:%(lineno)d] %(funcName)s() - %(message)s"
+            )
+        )
         self.root_logger.addHandler(self.main_file_handler)
 
         # Add sanitization filter (redaction + ASCII)
@@ -213,11 +227,16 @@ class UnifiedLogger:
         class StackTraceFilter(logging.Filter):
             def filter(self, record: logging.LogRecord) -> bool:
                 try:
-                    if hasattr(record, 'exc_info') and record.exc_info and record.levelno > logging.DEBUG:
+                    if (
+                        hasattr(record, "exc_info")
+                        and record.exc_info
+                        and record.levelno > logging.DEBUG
+                    ):
                         record.exc_info = None
                 except Exception:
                     pass
                 return True
+
         self.stacktrace_filter = StackTraceFilter()
         self.root_logger.addFilter(self.stacktrace_filter)
 
@@ -225,7 +244,7 @@ class UnifiedLogger:
         self.plugin_loggers: Dict[str, logging.LoggerAdapter] = {}
 
     @classmethod
-    def get_instance(cls) -> 'UnifiedLogger':
+    def get_instance(cls) -> "UnifiedLogger":
         """Get singleton instance."""
         if cls._instance is None:
             with cls._lock:
@@ -276,17 +295,23 @@ class UnifiedLogger:
 # Global instance
 _unified_logger = UnifiedLogger.get_instance()
 
+
 # Convenience functions
 def get_plugin_logger(plugin_name: str) -> logging.LoggerAdapter:
     """Get a plugin-specific logger."""
     return _unified_logger.get_plugin_logger(plugin_name)
 
+
 def get_logger(name: str) -> logging.Logger:
     """Get a logger under plexichat namespace."""
     return _unified_logger.get_logger(name)
 
-def setup_logging(console_level: str = "INFO", file_level: str = "DEBUG",
-                 enable_deduplication: bool = True):
+
+def setup_logging(
+    console_level: str = "INFO",
+    file_level: str = "DEBUG",
+    enable_deduplication: bool = True,
+):
     """Setup unified logging system."""
     _unified_logger.set_console_level(console_level)
     _unified_logger.set_file_level(file_level)

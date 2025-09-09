@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 from typing import List, Tuple
+
 try:
     from sss import Shamir
 except ImportError:
@@ -16,6 +17,7 @@ except ImportError:
             @staticmethod
             def combine(shares):
                 raise RuntimeError("Secure Shamir implementation unavailable")
+
 
 class KeyVault:
     """Represents a single, simple file-based key vault."""
@@ -36,6 +38,7 @@ class KeyVault:
         with open(share_file, "rb") as f:
             return f.read()
 
+
 class DistributedKeyManager:
     """Manages a distributed set of key vaults using Shamir's Secret Sharing."""
 
@@ -43,7 +46,9 @@ class DistributedKeyManager:
         self.vaults_dir = vaults_dir
         self.num_vaults = num_vaults
         self.threshold = threshold
-        self.vaults = [KeyVault(self.vaults_dir / f"vault_{i}") for i in range(self.num_vaults)]
+        self.vaults = [
+            KeyVault(self.vaults_dir / f"vault_{i}") for i in range(self.num_vaults)
+        ]
 
     def generate_and_distribute_master_key(self):
         """Generates a new master key, splits it, and distributes the shares."""
@@ -53,7 +58,7 @@ class DistributedKeyManager:
         for i, share in enumerate(shares):
             self.vaults[i].store_share(i, share)
 
-        return master_key # In a real system, you wouldn't return this
+        return master_key  # In a real system, you wouldn't return this
 
     def reconstruct_master_key(self) -> bytes:
         """Reconstructs the master key from the shares in the vaults."""
@@ -66,9 +71,11 @@ class DistributedKeyManager:
                 continue
 
         if len(shares) < self.threshold:
-            raise ValueError("Not enough key shares available to reconstruct the master key.")
+            raise ValueError(
+                "Not enough key shares available to reconstruct the master key."
+            )
 
         # We only need `threshold` number of shares to reconstruct
-        reconstruct_shares = shares[:self.threshold]
+        reconstruct_shares = shares[: self.threshold]
         master_key = Shamir.combine(reconstruct_shares)
         return master_key

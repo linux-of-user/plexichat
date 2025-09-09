@@ -5,9 +5,9 @@ Manages user status functionality including validation, persistence, and real-ti
 """
 
 import logging
-from typing import Dict, List, Optional, Any
-from datetime import datetime, timezone
 from dataclasses import dataclass
+from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional
 
 from plexichat.core.database.manager import database_manager
 from plexichat.core.websocket.websocket_manager import websocket_manager
@@ -16,9 +16,11 @@ logger = logging.getLogger(__name__)
 
 VALID_STATUSES = ["online", "away", "busy", "offline"]
 
+
 @dataclass
 class UserStatus:
     """User status data structure."""
+
     user_id: str
     status: str
     custom_status: Optional[str] = None
@@ -27,6 +29,7 @@ class UserStatus:
     def __post_init__(self):
         if self.status_updated_at is None:
             self.status_updated_at = datetime.now(timezone.utc)
+
 
 class UserStatusService:
     """Service for managing user status operations."""
@@ -57,14 +60,16 @@ class UserStatusService:
                 user_id=user_id,
                 status=row.get("status", "offline"),
                 custom_status=row.get("custom_status"),
-                status_updated_at=row.get("status_updated_at")
+                status_updated_at=row.get("status_updated_at"),
             )
 
         except Exception as e:
             logger.error(f"Error getting user status for {user_id}: {e}")
             return None
 
-    async def update_user_status(self, user_id: str, status: str, custom_status: Optional[str] = None) -> bool:
+    async def update_user_status(
+        self, user_id: str, status: str, custom_status: Optional[str] = None
+    ) -> bool:
         """Update user status."""
         try:
             # Validate status
@@ -83,13 +88,21 @@ class UserStatusService:
                 SET status = ?, custom_status = ?, status_updated_at = ?, updated_at = ?
                 WHERE id = ?
             """
-            params = (status, custom_status, update_time.isoformat(), update_time.isoformat(), user_id)
+            params = (
+                status,
+                custom_status,
+                update_time.isoformat(),
+                update_time.isoformat(),
+                user_id,
+            )
 
             result = await self.db_manager.execute_query(query, params)
 
             if result:
                 # Broadcast status change
-                await self._broadcast_status_change(user_id, status, custom_status, update_time)
+                await self._broadcast_status_change(
+                    user_id, status, custom_status, update_time
+                )
 
                 logger.info(f"Updated status for user {user_id} to {status}")
                 return True
@@ -121,14 +134,16 @@ class UserStatusService:
 
             users = []
             for row in result:
-                users.append({
-                    "id": row.get("id"),
-                    "username": row.get("username"),
-                    "display_name": row.get("display_name"),
-                    "status": row.get("status", "offline"),
-                    "custom_status": row.get("custom_status"),
-                    "status_updated_at": row.get("status_updated_at")
-                })
+                users.append(
+                    {
+                        "id": row.get("id"),
+                        "username": row.get("username"),
+                        "display_name": row.get("display_name"),
+                        "status": row.get("status", "offline"),
+                        "custom_status": row.get("custom_status"),
+                        "status_updated_at": row.get("status_updated_at"),
+                    }
+                )
 
             return users
 
@@ -152,7 +167,13 @@ class UserStatusService:
         """Set user status to offline."""
         return await self.update_user_status(user_id, "offline")
 
-    async def _broadcast_status_change(self, user_id: str, status: str, custom_status: Optional[str], update_time: datetime):
+    async def _broadcast_status_change(
+        self,
+        user_id: str,
+        status: str,
+        custom_status: Optional[str],
+        update_time: datetime,
+    ):
         """Broadcast status change to connected clients."""
         try:
             if not self.websocket_manager:
@@ -163,7 +184,7 @@ class UserStatusService:
                 "user_id": user_id,
                 "status": status,
                 "custom_status": custom_status,
-                "timestamp": update_time.isoformat()
+                "timestamp": update_time.isoformat(),
             }
 
             # Broadcast to all connected clients
@@ -180,17 +201,23 @@ class UserStatusService:
         """Get list of valid status values."""
         return VALID_STATUSES.copy()
 
+
 # Global service instance
 user_status_service = UserStatusService()
+
 
 # Convenience functions
 async def get_user_status(user_id: str) -> Optional[UserStatus]:
     """Get user status via global service."""
     return await user_status_service.get_user_status(user_id)
 
-async def update_user_status(user_id: str, status: str, custom_status: Optional[str] = None) -> bool:
+
+async def update_user_status(
+    user_id: str, status: str, custom_status: Optional[str] = None
+) -> bool:
     """Update user status via global service."""
     return await user_status_service.update_user_status(user_id, status, custom_status)
+
 
 async def get_online_users() -> List[Dict[str, Any]]:
     """Get online users via global service."""

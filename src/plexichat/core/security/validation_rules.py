@@ -9,7 +9,7 @@ SQL_INJECTION_PATTERNS = [
     r"(\bxp_cmdshell\b)",
     r"(\bsp_executesql\b)",
     r"(\bINTO\s+OUTFILE\b)",
-    r"(\bLOAD_FILE\b)"
+    r"(\bLOAD_FILE\b)",
 ]
 
 XSS_PATTERNS = [
@@ -26,7 +26,7 @@ XSS_PATTERNS = [
     r"<style[^>]*>.*?</style>",
     r"expression\s*\(",
     r"url\s*\(",
-    r"@import"
+    r"@import",
 ]
 
 COMMAND_INJECTION_PATTERNS = [
@@ -37,7 +37,7 @@ COMMAND_INJECTION_PATTERNS = [
     r"`.*`",
     r"\$\(.*\)",
     r"\b(wget|curl|nc|netcat|telnet|ssh)\b",
-    r"\b(chmod|chown|sudo|su)\b"
+    r"\b(chmod|chown|sudo|su)\b",
 ]
 
 PATH_TRAVERSAL_PATTERNS = [
@@ -48,12 +48,18 @@ PATH_TRAVERSAL_PATTERNS = [
     r"\.\.%2f",
     r"\.\.%5c",
     r"\.\.%252f",
-    r"\.\.%255c"
+    r"\.\.%255c",
 ]
 
 COMPILED_PATTERNS = {
-    "sql_injection": [re.compile(pattern, re.IGNORECASE) for pattern in SQL_INJECTION_PATTERNS],
+    "sql_injection": [
+        re.compile(pattern, re.IGNORECASE) for pattern in SQL_INJECTION_PATTERNS
+    ],
     "xss": [re.compile(pattern, re.IGNORECASE) for pattern in XSS_PATTERNS],
-    "command_injection": [re.compile(pattern, re.IGNORECASE) for pattern in COMMAND_INJECTION_PATTERNS],
-    "path_traversal": [re.compile(pattern, re.IGNORECASE) for pattern in PATH_TRAVERSAL_PATTERNS]
+    "command_injection": [
+        re.compile(pattern, re.IGNORECASE) for pattern in COMMAND_INJECTION_PATTERNS
+    ],
+    "path_traversal": [
+        re.compile(pattern, re.IGNORECASE) for pattern in PATH_TRAVERSAL_PATTERNS
+    ],
 }

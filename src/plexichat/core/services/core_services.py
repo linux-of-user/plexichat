@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 class ServiceStatus(Enum):
     """Service status enumeration."""
+
     STOPPED = "stopped"
     STARTING = "starting"
     RUNNING = "running"
@@ -49,13 +50,16 @@ class BaseService(ABC):
 
 class ServiceManager:
     """Manages all services in the application."""
+
     def __init__(self):
         self.services: Dict[str, BaseService] = {}
         self.startup_order: List[str] = []
         self.shutdown_order: List[str] = []
         self._lock = asyncio.Lock()
 
-    def register_service(self, service: BaseService, dependencies: Optional[List[str]] = None):
+    def register_service(
+        self, service: BaseService, dependencies: Optional[List[str]] = None
+    ):
         """Register a service with optional dependencies."""
         self.services[service.name] = service
         if dependencies:
@@ -210,7 +214,7 @@ class ServiceManager:
             name: {
                 "status": service.status.value,
                 "dependencies": list(service.dependencies),
-                "dependents": list(service.dependents)
+                "dependents": list(service.dependents),
             }
             for name, service in self.services.items()
         }
@@ -227,6 +231,7 @@ service_manager = ServiceManager()
 # Example service implementations
 class DatabaseService(BaseService):
     """Database service implementation."""
+
     def __init__(self):
         super().__init__("database")
 
@@ -249,6 +254,7 @@ class DatabaseService(BaseService):
 
 class WebService(BaseService):
     """Web service implementation."""
+
     def __init__(self):
         super().__init__("web")
         self.dependencies.add("database")
@@ -273,6 +279,7 @@ class WebService(BaseService):
 # Global database service instance
 _database_service = DatabaseService()
 
+
 def get_database_service() -> DatabaseService:
     """Get the global database service instance."""
     return _database_service
@@ -284,7 +291,9 @@ class ServiceLoader:
     def __init__(self):
         self.loaded_services: Dict[str, BaseService] = {}
 
-    def load_service(self, service_name: str, service_class: type) -> Optional[BaseService]:
+    def load_service(
+        self, service_name: str, service_class: type
+    ) -> Optional[BaseService]:
         """Load a service by name and class."""
         try:
             service = service_class()
@@ -316,7 +325,13 @@ _service_loader = ServiceLoader()
 
 
 __all__ = [
-    "ServiceStatus", "BaseService", "ServiceManager", "service_manager",
-    "DatabaseService", "WebService", "get_database_service",
-    "ServiceLoader", "load_services"
+    "ServiceStatus",
+    "BaseService",
+    "ServiceManager",
+    "service_manager",
+    "DatabaseService",
+    "WebService",
+    "get_database_service",
+    "ServiceLoader",
+    "load_services",
 ]

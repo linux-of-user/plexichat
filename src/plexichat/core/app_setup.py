@@ -1,12 +1,14 @@
+import logging
+from pathlib import Path
+
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from pathlib import Path
-import logging
 
 logger = logging.getLogger(__name__)
 
 from plexichat.core.plugins.manager import unified_plugin_manager
+
 
 def setup_routers(app: FastAPI):
     """Setup API routers with error handling, including dynamic plugin routers."""
@@ -23,7 +25,11 @@ def setup_routers(app: FastAPI):
     for name, (module_path, prefix) in core_routers.items():
         try:
             module = __import__(module_path, fromlist=["router"])
-            router = getattr(module, 'router', None) or getattr(module, 'v1_router', None) or getattr(module, 'root_router', None)
+            router = (
+                getattr(module, "router", None)
+                or getattr(module, "v1_router", None)
+                or getattr(module, "root_router", None)
+            )
             if router:
                 app.include_router(router, prefix=prefix, tags=[name])
                 logger.info(f"[CHECK] Core router '{name}' loaded.")
@@ -42,12 +48,19 @@ def setup_routers(app: FastAPI):
             for plugin_name, router_info in plugin_routers.items():
                 for prefix, router in router_info.items():
                     try:
-                        app.include_router(router, prefix=prefix, tags=[f"plugin: {plugin_name}"])
-                        logger.info(f"[CHECK] Plugin router loaded for '{plugin_name}' at prefix '{prefix}'.")
+                        app.include_router(
+                            router, prefix=prefix, tags=[f"plugin: {plugin_name}"]
+                        )
+                        logger.info(
+                            f"[CHECK] Plugin router loaded for '{plugin_name}' at prefix '{prefix}'."
+                        )
                     except Exception as e:
-                        logger.error(f"Failed to include router from plugin '{plugin_name}' at prefix '{prefix}': {e}")
+                        logger.error(
+                            f"Failed to include router from plugin '{plugin_name}' at prefix '{prefix}': {e}"
+                        )
     except Exception as e:
         logger.error(f"Failed to get plugin routers from manager: {e}", exc_info=True)
+
 
 def setup_static_files(app: FastAPI):
     """Setup static files and templates."""
@@ -67,8 +80,8 @@ def setup_static_files(app: FastAPI):
             templates = Jinja2Templates(directory=str(templates_path))
             logger.info("[CHECK] Templates loaded")
             return templates
-        
+
     except Exception as e:
         logger.warning(f"Could not setup static files/templates: {e}")
-    
+
     return None

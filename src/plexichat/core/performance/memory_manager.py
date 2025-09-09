@@ -8,7 +8,7 @@ and automatic optimization for optimal performance.
 import asyncio
 import gc
 import logging
-import psutil
+import os
 import sys
 import threading
 import time
@@ -18,7 +18,8 @@ from collections import defaultdict, deque
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Set, Type
-import os
+
+import psutil
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +27,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class MemoryMetrics:
     """Memory usage metrics."""
+
     total_memory_mb: float = 0.0
     used_memory_mb: float = 0.0
     available_memory_mb: float = 0.0
@@ -40,6 +42,7 @@ class MemoryMetrics:
 @dataclass
 class ObjectPoolStats:
     """Object pool statistics."""
+
     pool_name: str
     object_type: str
     pool_size: int = 0
@@ -51,16 +54,20 @@ class ObjectPoolStats:
 
 class ObjectPool:
     """Generic object pool for memory optimization."""
-    def __init__(self, object_class: Type, max_size: int = 100,
-                factory_func: Optional[callable] = None):
+
+    def __init__(
+        self,
+        object_class: Type,
+        max_size: int = 100,
+        factory_func: Optional[callable] = None,
+    ):
         self.object_class = object_class
         self.max_size = max_size
         self.factory_func = factory_func or object_class
         self.pool: deque = deque()
         self.active_objects: Set[Any] = set()
         self.stats = ObjectPoolStats(
-            pool_name=f"{object_class.__name__}Pool",
-            object_type=object_class.__name__
+            pool_name=f"{object_class.__name__}Pool", object_type=object_class.__name__
         )
         self.lock = threading.Lock()
 
@@ -89,7 +96,7 @@ class ObjectPool:
 
                 if len(self.pool) < self.max_size:
                     # Reset object state if it has a reset method
-                    if hasattr(obj, 'reset'):
+                    if hasattr(obj, "reset"):
                         try:
                             obj.reset()
                         except Exception as e:
@@ -99,7 +106,7 @@ class ObjectPool:
                     self.pool.append(obj)
                 else:
                     # Pool is full, properly dispose of object
-                    if hasattr(obj, 'close'):
+                    if hasattr(obj, "close"):
                         try:
                             obj.close()
                         except Exception as e:
@@ -113,7 +120,7 @@ class ObjectPool:
             # Close all pooled objects
             while self.pool:
                 obj = self.pool.popleft()
-                if hasattr(obj, 'close'):
+                if hasattr(obj, "close"):
                     try:
                         obj.close()
                     except Exception as e:
@@ -121,7 +128,7 @@ class ObjectPool:
 
             # Close all active objects
             for obj in list(self.active_objects):
-                if hasattr(obj, 'close'):
+                if hasattr(obj, "close"):
                     try:
                         obj.close()
                     except Exception as e:
@@ -147,6 +154,7 @@ class ObjectPool:
 
 class MemoryLeakDetector:
     """Memory leak detection system."""
+
     def __init__(self, check_interval: int = 300):
         self.check_interval = check_interval
         self.object_counts: Dict[str, deque] = defaultdict(lambda: deque(maxlen=10))
@@ -213,7 +221,7 @@ class MemoryLeakDetector:
             # Get tracemalloc snapshot
             if tracemalloc.is_tracing():
                 snapshot = tracemalloc.take_snapshot()
-                top_stats = snapshot.statistics('lineno')
+                top_stats = snapshot.statistics("lineno")
 
                 # Log top memory consumers
                 for stat in top_stats[:5]:
@@ -225,6 +233,7 @@ class MemoryLeakDetector:
 
 class MemoryManager:
     """Advanced memory management system."""
+
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         self.config = config or {}
         self.metrics = MemoryMetrics()
@@ -234,13 +243,13 @@ class MemoryManager:
 
         # Memory monitoring
         self.leak_detector = MemoryLeakDetector(
-            self.config.get('leak_check_interval', 300)
+            self.config.get("leak_check_interval", 300)
         )
 
         # Configuration
-        self.gc_threshold = self.config.get('gc_threshold_mb', 100)
-        self.monitoring_interval = self.config.get('monitoring_interval', 60)
-        self.auto_gc_enabled = self.config.get('auto_gc_enabled', True)
+        self.gc_threshold = self.config.get("gc_threshold_mb", 100)
+        self.monitoring_interval = self.config.get("monitoring_interval", 60)
+        self.auto_gc_enabled = self.config.get("auto_gc_enabled", True)
 
         # Background tasks
         self._monitoring_task = None
@@ -253,7 +262,7 @@ class MemoryManager:
         """Initialize memory management system."""
         try:
             # Start leak detection
-            if self.config.get('leak_detection_enabled', True):
+            if self.config.get("leak_detection_enabled", True):
                 self.leak_detector.start_monitoring()
 
             # Start monitoring
@@ -291,8 +300,13 @@ class MemoryManager:
         except Exception as e:
             logger.error(f"Error during memory management shutdown: {e}")
 
-    def create_object_pool(self, name: str, object_class: Type,
-                        max_size: int = 100, factory_func: Optional[callable] = None) -> ObjectPool:
+    def create_object_pool(
+        self,
+        name: str,
+        object_class: Type,
+        max_size: int = 100,
+        factory_func: Optional[callable] = None,
+    ) -> ObjectPool:
         """Create a new object pool."""
         pool = ObjectPool(object_class, max_size, factory_func)
         self.object_pools[name] = pool
@@ -342,19 +356,25 @@ class MemoryManager:
             # Process memory
             process = psutil.Process(os.getpid())
             process_memory = process.memory_info().rss / (1024 * 1024)
-            self.metrics.peak_memory_mb = max(self.metrics.peak_memory_mb, process_memory)
+            self.metrics.peak_memory_mb = max(
+                self.metrics.peak_memory_mb, process_memory
+            )
 
             # Garbage collection stats
             gc_stats = gc.get_stats()
             if gc_stats:
-                self.metrics.gc_collections = sum(stat['collections'] for stat in gc_stats)
+                self.metrics.gc_collections = sum(
+                    stat["collections"] for stat in gc_stats
+                )
 
             self.metrics.gc_objects = len(gc.get_objects())
             self.metrics.last_updated = datetime.now()
 
             # Check for high memory usage
             if self.metrics.memory_percent > 90:
-                logger.warning(f"[ALERT] High memory usage: {self.metrics.memory_percent:.1f}%")
+                logger.warning(
+                    f"[ALERT] High memory usage: {self.metrics.memory_percent:.1f}%"
+                )
 
         except Exception as e:
             logger.error(f"Error collecting memory metrics: {e}")
@@ -398,17 +418,19 @@ class MemoryManager:
             after_memory = psutil.virtual_memory().used / (1024 * 1024)
 
             stats = {
-                'objects_before': before_objects,
-                'objects_after': after_objects,
-                'objects_collected': before_objects - after_objects,
-                'memory_before_mb': before_memory,
-                'memory_after_mb': after_memory,
-                'memory_freed_mb': before_memory - after_memory,
-                'gc_collected': collected
+                "objects_before": before_objects,
+                "objects_after": after_objects,
+                "objects_collected": before_objects - after_objects,
+                "memory_before_mb": before_memory,
+                "memory_after_mb": after_memory,
+                "memory_freed_mb": before_memory - after_memory,
+                "gc_collected": collected,
             }
 
-            logger.info(f"[DELETE] GC completed: freed {stats['memory_freed_mb']:.1f}MB, "
-                    f"collected {stats['objects_collected']} objects")
+            logger.info(
+                f"[DELETE] GC completed: freed {stats['memory_freed_mb']:.1f}MB, "
+                f"collected {stats['objects_collected']} objects"
+            )
 
             return stats
 
@@ -419,34 +441,34 @@ class MemoryManager:
     def get_memory_stats(self) -> Dict[str, Any]:
         """Get comprehensive memory statistics."""
         return {
-            'system_memory': {
-                'total_mb': self.metrics.total_memory_mb,
-                'used_mb': self.metrics.used_memory_mb,
-                'available_mb': self.metrics.available_memory_mb,
-                'usage_percent': self.metrics.memory_percent,
-                'peak_usage_mb': self.metrics.peak_memory_mb
+            "system_memory": {
+                "total_mb": self.metrics.total_memory_mb,
+                "used_mb": self.metrics.used_memory_mb,
+                "available_mb": self.metrics.available_memory_mb,
+                "usage_percent": self.metrics.memory_percent,
+                "peak_usage_mb": self.metrics.peak_memory_mb,
             },
-            'garbage_collection': {
-                'collections': self.metrics.gc_collections,
-                'objects': self.metrics.gc_objects,
-                'auto_gc_enabled': self.auto_gc_enabled,
-                'gc_threshold_mb': self.gc_threshold
+            "garbage_collection": {
+                "collections": self.metrics.gc_collections,
+                "objects": self.metrics.gc_objects,
+                "auto_gc_enabled": self.auto_gc_enabled,
+                "gc_threshold_mb": self.gc_threshold,
             },
-            'object_pools': {
+            "object_pools": {
                 name: {
-                    'pool_size': pool.stats.pool_size,
-                    'active_objects': pool.stats.active_objects,
-                    'total_created': pool.stats.total_created,
-                    'total_reused': pool.stats.total_reused,
-                    'hit_rate': pool.stats.hit_rate
+                    "pool_size": pool.stats.pool_size,
+                    "active_objects": pool.stats.active_objects,
+                    "total_created": pool.stats.total_created,
+                    "total_reused": pool.stats.total_reused,
+                    "hit_rate": pool.stats.hit_rate,
                 }
                 for name, pool in self.object_pools.items()
             },
-            'leak_detection': {
-                'enabled': self.leak_detector.running,
-                'check_interval': self.leak_detector.check_interval,
-                'leaks_detected': self.metrics.memory_leaks_detected
-            }
+            "leak_detection": {
+                "enabled": self.leak_detector.running,
+                "check_interval": self.leak_detector.check_interval,
+                "leaks_detected": self.metrics.memory_leaks_detected,
+            },
         }
 
     def optimize_memory_usage(self) -> Dict[str, Any]:
@@ -456,7 +478,7 @@ class MemoryManager:
 
             # Force garbage collection
             gc_stats = asyncio.create_task(self.force_garbage_collection())
-            results['garbage_collection'] = gc_stats
+            results["garbage_collection"] = gc_stats
 
             # Clear object pool unused objects
             pools_cleared = 0
@@ -469,23 +491,27 @@ class MemoryManager:
                             pool.pool.popleft()
                     pools_cleared += 1
 
-            results['pools_optimized'] = pools_cleared
+            results["pools_optimized"] = pools_cleared
 
             # Suggest optimizations
             suggestions = []
             if self.metrics.memory_percent > 80:
                 suggestions.append("Consider reducing cache sizes")
             if self.metrics.gc_objects > 100000:
-                suggestions.append("High object count detected, consider object pooling")
+                suggestions.append(
+                    "High object count detected, consider object pooling"
+                )
 
-            results['suggestions'] = suggestions
+            results["suggestions"] = suggestions
 
-            logger.info(f"[CONFIG] Memory optimization completed: {len(suggestions)} suggestions")
+            logger.info(
+                f"[CONFIG] Memory optimization completed: {len(suggestions)} suggestions"
+            )
             return results
 
         except Exception as e:
             logger.error(f"Error during memory optimization: {e}")
-            return {'error': str(e)}
+            return {"error": str(e)}
 
 
 # Global memory manager instance

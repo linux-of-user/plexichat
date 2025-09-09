@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 
 class ErrorSeverity:
     """Error severity levels."""
+
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
@@ -20,6 +21,7 @@ class ErrorSeverity:
 
 class ErrorCategory:
     """Error categories."""
+
     SYSTEM = "system"
     USER = "user"
     NETWORK = "network"
@@ -33,7 +35,12 @@ class ErrorCategory:
 class BaseAPIException(Exception):
     """Base exception for all API errors."""
 
-    def __init__(self, message: str, code: Optional[str] = None, details: Optional[Dict[str, Any]] = None):
+    def __init__(
+        self,
+        message: str,
+        code: Optional[str] = None,
+        details: Optional[Dict[str, Any]] = None,
+    ):
         super().__init__(message)
         self.message = message
         self.code = code or self.__class__.__name__
@@ -50,7 +57,7 @@ class BaseAPIException(Exception):
             "details": self.details,
             "timestamp": self.timestamp.isoformat(),
             "severity": self.severity,
-            "category": self.category
+            "category": self.category,
         }
 
 
@@ -75,7 +82,12 @@ class AuthorizationError(BaseAPIException):
 class ValidationError(BaseAPIException):
     """Data validation failed."""
 
-    def __init__(self, message: str = "Validation failed", field: Optional[str] = None, **kwargs: Any):
+    def __init__(
+        self,
+        message: str = "Validation failed",
+        field: Optional[str] = None,
+        **kwargs: Any,
+    ):
         super().__init__(message, **kwargs)
         self.field = field
         self.severity = ErrorSeverity.MEDIUM
@@ -114,7 +126,12 @@ class FileError(BaseAPIException):
 class ExternalServiceError(BaseAPIException):
     """External service error."""
 
-    def __init__(self, message: str = "External service error", service: Optional[str] = None, **kwargs: Any):
+    def __init__(
+        self,
+        message: str = "External service error",
+        service: Optional[str] = None,
+        **kwargs: Any,
+    ):
         super().__init__(message, **kwargs)
         self.service = service
         self.severity = ErrorSeverity.MEDIUM
@@ -126,7 +143,12 @@ class ExternalServiceError(BaseAPIException):
 class RateLimitError(BaseAPIException):
     """Rate limit exceeded."""
 
-    def __init__(self, message: str = "Rate limit exceeded", limit: Optional[int] = None, **kwargs: Any):
+    def __init__(
+        self,
+        message: str = "Rate limit exceeded",
+        limit: Optional[int] = None,
+        **kwargs: Any,
+    ):
         super().__init__(message, **kwargs)
         self.limit = limit
         self.severity = ErrorSeverity.MEDIUM
@@ -163,7 +185,9 @@ class StartupError(BaseAPIException):
 
 
 # Exception handling utilities
-def handle_exception(exc: Exception, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+def handle_exception(
+    exc: Exception, context: Optional[Dict[str, Any]] = None
+) -> Dict[str, Any]:
     """Handle any exception and return error info."""
     try:
         error_info: Dict[str, Any] = {}
@@ -176,7 +200,7 @@ def handle_exception(exc: Exception, context: Optional[Dict[str, Any]] = None) -
                 "message": str(exc),
                 "timestamp": datetime.now().isoformat(),
                 "severity": ErrorSeverity.MEDIUM,
-                "category": ErrorCategory.SYSTEM
+                "category": ErrorCategory.SYSTEM,
             }
 
         if context:
@@ -190,7 +214,7 @@ def handle_exception(exc: Exception, context: Optional[Dict[str, Any]] = None) -
         return {
             "error": "ExceptionHandlerError",
             "message": "Failed to handle exception",
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
 
 
@@ -201,15 +225,26 @@ def create_error_response(exc: Exception, status_code: int = 500) -> Dict[str, A
         "success": False,
         "error": error_info,
         "status_code": status_code,
-        "timestamp": datetime.now().isoformat()
+        "timestamp": datetime.now().isoformat(),
     }
 
 
 # Export all exception classes
 __all__ = [
-    "ErrorSeverity", "ErrorCategory", "BaseAPIException",
-    "AuthenticationError", "AuthorizationError", "ValidationError",
-    "DatabaseError", "NetworkError", "FileError", "ExternalServiceError",
-    "RateLimitError", "ConfigurationError", "ProcessLockError", "StartupError",
-    "handle_exception", "create_error_response"
+    "ErrorSeverity",
+    "ErrorCategory",
+    "BaseAPIException",
+    "AuthenticationError",
+    "AuthorizationError",
+    "ValidationError",
+    "DatabaseError",
+    "NetworkError",
+    "FileError",
+    "ExternalServiceError",
+    "RateLimitError",
+    "ConfigurationError",
+    "ProcessLockError",
+    "StartupError",
+    "handle_exception",
+    "create_error_response",
 ]

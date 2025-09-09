@@ -13,15 +13,17 @@ Enhanced core module with comprehensive functionality and performance optimizati
 Uses EXISTING database abstraction and optimization systems.
 """
 
-from typing import Any, Dict
 import importlib
+from typing import Any, Dict
 
 # Import consolidated systems
 from plexichat.core.logging import get_logger
+
 logger = get_logger(__name__)
 
 try:
     from plexichat.core.config import get_config
+
     config = get_config()
 except ImportError:
     config = None
@@ -29,6 +31,7 @@ except ImportError:
 
 try:
     from plexichat.core.security import get_security_manager
+
     security_manager = get_security_manager()
 except ImportError:
     security_manager = None
@@ -36,6 +39,7 @@ except ImportError:
 
 try:
     from plexichat.core.authentication import get_auth_manager
+
     auth_manager = get_auth_manager()
 except ImportError:
     auth_manager = None
@@ -43,6 +47,7 @@ except ImportError:
 
 try:
     from plexichat.core.database import get_database_manager
+
     database_manager = get_database_manager()
 except ImportError:
     database_manager = None
@@ -50,6 +55,7 @@ except ImportError:
 
 try:
     from plexichat.core.errors import get_error_manager
+
     error_manager = get_error_manager()
 except ImportError:
     error_manager = None
@@ -57,10 +63,12 @@ except ImportError:
 
 try:
     from plexichat.core.services import get_service_manager
+
     service_manager = get_service_manager()
 except ImportError:
     service_manager = None
     logger.warning("Service management system not available")
+
 
 class CoreManager:
     """Enhanced core manager using consolidated systems."""
@@ -68,12 +76,12 @@ class CoreManager:
     def __init__(self):
         self.components: Dict[str, bool] = {}
         self.managers = {
-            'config': config,
-            'security': security_manager,
-            'auth': auth_manager,
-            'database': database_manager,
-            'errors': error_manager,
-            'services': service_manager
+            "config": config,
+            "security": security_manager,
+            "auth": auth_manager,
+            "database": database_manager,
+            "errors": error_manager,
+            "services": service_manager,
         }
 
     def register_component(self, name: str, status: bool = True):
@@ -92,10 +100,16 @@ class CoreManager:
         """Get core status."""
         return {
             "components": self.components.copy(),
-            "managers": {name: manager is not None for name, manager in self.managers.items()},
+            "managers": {
+                name: manager is not None for name, manager in self.managers.items()
+            },
             "total_components": len(self.components),
-            "active_components": sum(1 for status in self.components.values() if status),
-            "available_managers": sum(1 for manager in self.managers.values() if manager is not None)
+            "active_components": sum(
+                1 for status in self.components.values() if status
+            ),
+            "available_managers": sum(
+                1 for manager in self.managers.values() if manager is not None
+            ),
         }
 
     def get_manager(self, name: str):
@@ -104,9 +118,12 @@ class CoreManager:
 
     def is_secure(self) -> bool:
         """Check if security systems are properly initialized."""
-        return (self.managers['security'] is not None and
-                self.managers['auth'] is not None and
-                self.managers['errors'] is not None)
+        return (
+            self.managers["security"] is not None
+            and self.managers["auth"] is not None
+            and self.managers["errors"] is not None
+        )
+
 
 # Global core manager
 core_manager = CoreManager()
@@ -215,12 +232,15 @@ def register_core_components():
             importlib.import_module("plexichat.core.authentication")
             # Ensure the unified auth manager is initialized
             try:
-                from plexichat.core.authentication import get_auth_manager as _get_auth_manager
+                from plexichat.core.authentication import (
+                    get_auth_manager as _get_auth_manager,
+                )
+
                 global auth_manager
                 if auth_manager is None:
                     try:
                         auth_manager = _get_auth_manager()
-                        core_manager.managers['auth'] = auth_manager
+                        core_manager.managers["auth"] = auth_manager
                     except Exception as e:
                         logger.warning(f"Failed to initialize auth manager: {e}")
                         core_manager.register_component("auth", False)
@@ -228,7 +248,9 @@ def register_core_components():
                 core_manager.register_component("auth", True)
             except Exception as e:
                 # If importing get_auth_manager fails, consider auth unavailable
-                logger.warning(f"Authentication module imported but failed to initialize: {e}")
+                logger.warning(
+                    f"Authentication module imported but failed to initialize: {e}"
+                )
                 core_manager.register_component("auth", False)
         except ImportError:
             core_manager.register_component("auth", False)
@@ -245,29 +267,36 @@ def register_core_components():
     except Exception as e:
         logger.error(f"Error registering core components: {e}")
 
+
 # Initialize core components
 register_core_components()
+
 
 # Component availability checks
 def config_available() -> bool:
     """Check if config is available."""
     return core_manager.is_available("config")
 
+
 def logging_available() -> bool:
     """Check if logging is available."""
     return core_manager.is_available("logging")
+
 
 def exceptions_available() -> bool:
     """Check if exceptions is available."""
     return core_manager.is_available("exceptions")
 
+
 def auth_available() -> bool:
     """Check if auth is available."""
     return core_manager.is_available("auth")
 
+
 def database_available() -> bool:
     """Check if database is available."""
     return core_manager.is_available("database")
+
 
 # Safe imports with error handling
 def import_core_modules():
@@ -316,6 +345,7 @@ def import_core_modules():
     except Exception as e:
         logger.error(f"Error importing core modules: {e}")
 
+
 # Import core modules
 import_core_modules()
 
@@ -331,4 +361,5 @@ __all__ = [
 
 # Version info
 from plexichat.core.config import settings
+
 __version__ = settings.version

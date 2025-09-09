@@ -4,17 +4,17 @@ Defines contracts for authentication services with dependency injection support.
 """
 
 from abc import ABC, abstractmethod
-from typing import Dict, List, Optional, Set, Tuple, Any
 from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 from plexichat.core.authentication import (
+    AuthProvider,
     AuthResult,
-    SessionInfo,
     DeviceInfo,
     MFAChallenge,
-    AuthProvider,
+    MFAMethod,
     Role,
-    MFAMethod
+    SessionInfo,
 )
 
 
@@ -29,23 +29,22 @@ class IAuthenticationService(ABC):
         ip_address: Optional[str] = None,
         user_agent: Optional[str] = None,
         mfa_code: Optional[str] = None,
-        device_trust: bool = False
+        device_trust: bool = False,
     ) -> AuthResult:
         """Authenticate a user with credentials."""
         pass
 
     @abstractmethod
     async def authenticate_oauth2(
-        self,
-        provider: AuthProvider,
-        authorization_code: str,
-        state: str
+        self, provider: AuthProvider, authorization_code: str, state: str
     ) -> AuthResult:
         """Authenticate user via OAuth2."""
         pass
 
     @abstractmethod
-    def get_oauth2_authorization_url(self, provider: AuthProvider, state: Optional[str] = None) -> Optional[str]:
+    def get_oauth2_authorization_url(
+        self, provider: AuthProvider, state: Optional[str] = None
+    ) -> Optional[str]:
         """Get OAuth2 authorization URL."""
         pass
 
@@ -69,17 +68,14 @@ class IUserService(ABC):
         username: str,
         password: str,
         permissions: Optional[Set[str]] = None,
-        roles: Optional[Set[Role]] = None
+        roles: Optional[Set[Role]] = None,
     ) -> Tuple[bool, List[str]]:
         """Register a new user."""
         pass
 
     @abstractmethod
     async def change_password(
-        self,
-        user_id: str,
-        old_password: str,
-        new_password: str
+        self, user_id: str, old_password: str, new_password: str
     ) -> Tuple[bool, List[str]]:
         """Change user password."""
         pass
@@ -109,7 +105,9 @@ class ISessionService(ABC):
     """Interface for session management operations."""
 
     @abstractmethod
-    async def validate_session(self, session_id: str) -> Tuple[bool, Optional[SessionInfo]]:
+    async def validate_session(
+        self, session_id: str
+    ) -> Tuple[bool, Optional[SessionInfo]]:
         """Validate session."""
         pass
 
@@ -147,7 +145,7 @@ class ITokenService(ABC):
         self,
         user_id: str,
         permissions: Set[str],
-        expires_delta: Optional[timedelta] = None
+        expires_delta: Optional[timedelta] = None,
     ) -> str:
         """Create access token."""
         pass
@@ -178,19 +176,13 @@ class IMFAProvider(ABC):
 
     @abstractmethod
     async def create_challenge(
-        self,
-        user_id: str,
-        method: MFAMethod
+        self, user_id: str, method: MFAMethod
     ) -> Optional[MFAChallenge]:
         """Create MFA challenge."""
         pass
 
     @abstractmethod
-    async def verify_challenge(
-        self,
-        challenge_id: str,
-        user_code: str
-    ) -> bool:
+    async def verify_challenge(self, challenge_id: str, user_code: str) -> bool:
         """Verify MFA challenge."""
         pass
 
@@ -226,7 +218,7 @@ class IAuditService(ABC):
         ip_address: Optional[str],
         user_agent: Optional[str],
         success: bool,
-        details: Optional[Dict[str, Any]] = None
+        details: Optional[Dict[str, Any]] = None,
     ):
         """Log authentication event."""
         pass
@@ -238,7 +230,7 @@ class IAuditService(ABC):
         severity: str,
         user_id: Optional[str],
         ip_address: Optional[str],
-        details: Optional[Dict[str, Any]] = None
+        details: Optional[Dict[str, Any]] = None,
     ):
         """Log security event."""
         pass
@@ -249,7 +241,7 @@ class IAuditService(ABC):
         action: str,
         admin_user_id: str,
         target_user_id: Optional[str],
-        details: Optional[Dict[str, Any]] = None
+        details: Optional[Dict[str, Any]] = None,
     ):
         """Log admin action."""
         pass
@@ -261,7 +253,7 @@ class IAuditService(ABC):
         event_type: Optional[str] = None,
         start_date: Optional[datetime] = None,
         end_date: Optional[datetime] = None,
-        limit: int = 100
+        limit: int = 100,
     ) -> List[Dict[str, Any]]:
         """Get audit logs."""
         pass
@@ -273,5 +265,5 @@ __all__ = [
     "ISessionService",
     "ITokenService",
     "IMFAProvider",
-    "IAuditService"
+    "IAuditService",
 ]

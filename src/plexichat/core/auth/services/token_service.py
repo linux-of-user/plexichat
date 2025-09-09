@@ -3,15 +3,16 @@ Token Service
 Manages JWT tokens with advanced security features.
 """
 
-import jwt
 import hashlib
 import secrets
-from typing import Dict, Optional, Tuple, Any
-from datetime import datetime, timezone, timedelta
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from typing import Any, Dict, Optional, Tuple
 
-from plexichat.core.logging import get_logger
+import jwt
+
 from plexichat.core.auth.services.interfaces import ITokenService
+from plexichat.core.logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -19,6 +20,7 @@ logger = get_logger(__name__)
 @dataclass
 class TokenMetadata:
     """Token metadata for tracking and validation."""
+
     token_id: str
     user_id: str
     token_type: str
@@ -50,7 +52,7 @@ class TokenService(ITokenService):
         user_id: str,
         permissions: list,
         device_id: Optional[str] = None,
-        ip_address: Optional[str] = None
+        ip_address: Optional[str] = None,
     ) -> str:
         """Create a new access token."""
         token_id = self._generate_token_id()
@@ -67,7 +69,7 @@ class TokenService(ITokenService):
             "iss": self.issuer,
             "aud": self.audience,
             "device_id": device_id,
-            "ip_address": ip_address
+            "ip_address": ip_address,
         }
 
         token = jwt.encode(payload, self.secret_key, algorithm=self.algorithm)
@@ -80,7 +82,7 @@ class TokenService(ITokenService):
             issued_at=issued_at,
             expires_at=expires_at,
             device_id=device_id,
-            ip_address=ip_address
+            ip_address=ip_address,
         )
         self.active_tokens[token_id] = metadata
 
@@ -91,7 +93,7 @@ class TokenService(ITokenService):
         self,
         user_id: str,
         device_id: Optional[str] = None,
-        ip_address: Optional[str] = None
+        ip_address: Optional[str] = None,
     ) -> str:
         """Create a new refresh token."""
         token_id = self._generate_token_id()
@@ -107,7 +109,7 @@ class TokenService(ITokenService):
             "iss": self.issuer,
             "aud": self.audience,
             "device_id": device_id,
-            "ip_address": ip_address
+            "ip_address": ip_address,
         }
 
         token = jwt.encode(payload, self.secret_key, algorithm=self.algorithm)
@@ -120,7 +122,7 @@ class TokenService(ITokenService):
             issued_at=issued_at,
             expires_at=expires_at,
             device_id=device_id,
-            ip_address=ip_address
+            ip_address=ip_address,
         )
         self.active_tokens[token_id] = metadata
 
@@ -147,7 +149,7 @@ class TokenService(ITokenService):
                 self.secret_key,
                 algorithms=[self.algorithm],
                 audience=self.audience,
-                issuer=self.issuer
+                issuer=self.issuer,
             )
 
             # Update last activity
@@ -187,7 +189,9 @@ class TokenService(ITokenService):
             logger.error(f"Token revocation error: {e}")
             return False
 
-    async def revoke_user_tokens(self, user_id: str, reason: Optional[str] = None) -> int:
+    async def revoke_user_tokens(
+        self, user_id: str, reason: Optional[str] = None
+    ) -> int:
         """Revoke all tokens for a user."""
         revoked_count = 0
         tokens_to_revoke = []
@@ -229,7 +233,7 @@ class TokenService(ITokenService):
             user_id=user_id,
             permissions=permissions,
             device_id=device_id,
-            ip_address=ip_address
+            ip_address=ip_address,
         )
 
     async def cleanup_expired_tokens(self) -> int:
@@ -252,4 +256,5 @@ class TokenService(ITokenService):
     def _generate_token_id(self) -> str:
         """Generate a unique token ID."""
         import uuid
+
         return f"token_{uuid.uuid4().hex}"

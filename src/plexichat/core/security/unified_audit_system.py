@@ -48,6 +48,7 @@ logger = get_logger(__name__)
 
 class SecurityEventType(Enum):
     """Types of security events."""
+
     AUTHENTICATION_SUCCESS = "authentication_success"
     AUTHENTICATION_FAILURE = "authentication_failure"
     AUTHORIZATION_FAILURE = "authorization_failure"
@@ -84,6 +85,7 @@ class SecurityEventType(Enum):
 
 class SecuritySeverity(Enum):
     """Security event severity levels."""
+
     DEBUG = 0
     INFO = 1
     NOTICE = 2
@@ -96,6 +98,7 @@ class SecuritySeverity(Enum):
 
 class ThreatLevel(Enum):
     """Threat severity levels."""
+
     LOW = 1
     MEDIUM = 2
     HIGH = 3
@@ -105,6 +108,7 @@ class ThreatLevel(Enum):
 @dataclass
 class SecurityEvent:
     """Comprehensive security event structure."""
+
     event_id: str
     event_type: SecurityEventType
     timestamp: datetime
@@ -160,13 +164,14 @@ class SecurityEvent:
             "correlation_id": self.correlation_id,
             "parent_event_id": self.parent_event_id,
             "compliance_tags": self.compliance_tags,
-            "retention_period_days": self.retention_period_days
+            "retention_period_days": self.retention_period_days,
         }
 
 
 @dataclass
 class AuditBlock:
     """Blockchain block for audit trail."""
+
     index: int
     timestamp: float
     events: List[SecurityEvent]
@@ -203,6 +208,7 @@ class AuditBlock:
 
 class TamperResistantLogger:
     """Tamper-resistant logging with HMAC integrity verification."""
+
     def __init__(self, log_file: Path, secret_key: bytes):
         self.log_file = log_file
         self.secret_key = secret_key
@@ -222,7 +228,7 @@ class TamperResistantLogger:
             return
 
         try:
-            with open(self.log_file, 'r', encoding='utf-8') as f:
+            with open(self.log_file, "r", encoding="utf-8") as f:
                 lines = f.readlines()
 
             if lines:
@@ -245,7 +251,7 @@ class TamperResistantLogger:
                 "sequence": self.sequence_number,
                 "timestamp": datetime.now(timezone.utc).isoformat(),
                 "data": entry_data,
-                "previous_hash": self.previous_hash
+                "previous_hash": self.previous_hash,
             }
 
             # Calculate HMAC
@@ -260,9 +266,9 @@ class TamperResistantLogger:
             log_entry["hash"] = entry_hash
 
             # Write to file
-            final_json = json.dumps(log_entry, separators=(',', ':'))
-            with open(self.log_file, 'a', encoding='utf-8') as f:
-                f.write(final_json + '\n')
+            final_json = json.dumps(log_entry, separators=(",", ":"))
+            with open(self.log_file, "a", encoding="utf-8") as f:
+                f.write(final_json + "\n")
 
             # Update state
             self.previous_hash = entry_hash
@@ -280,11 +286,11 @@ class TamperResistantLogger:
             "total_entries": 0,
             "corrupted_entries": [],
             "missing_sequences": [],
-            "hash_mismatches": []
+            "hash_mismatches": [],
         }
 
         try:
-            with open(self.log_file, 'r', encoding='utf-8') as f:
+            with open(self.log_file, "r", encoding="utf-8") as f:
                 lines = f.readlines()
 
             previous_hash = "0" * 64
@@ -359,7 +365,7 @@ class TamperResistantLogger:
             verification_results = {
                 "status": "error",
                 "verified": False,
-                "error": str(e)
+                "error": str(e),
             }
 
         return verification_results
@@ -380,7 +386,9 @@ class AuditBlockchain:
 
     def _create_genesis_block(self):
         """Create the first block in the chain."""
-        genesis_block = AuditBlock(index=0, timestamp=time.time(), events=[], previous_hash="0")
+        genesis_block = AuditBlock(
+            index=0, timestamp=time.time(), events=[], previous_hash="0"
+        )
         genesis_block.hash = genesis_block.calculate_hash()
         self.chain.append(genesis_block)
         logger.info("Audit blockchain genesis block created")
@@ -448,7 +456,9 @@ class AuditBlockchain:
 
         return matching_events
 
-    def _event_matches_criteria(self, event: SecurityEvent, criteria: Dict[str, Any]) -> bool:
+    def _event_matches_criteria(
+        self, event: SecurityEvent, criteria: Dict[str, Any]
+    ) -> bool:
         """Check if event matches search criteria."""
         for key, value in criteria.items():
             if key == "event_type" and event.event_type != value:
@@ -476,7 +486,7 @@ class AuditBlockchain:
             "pending_events": len(self.pending_events),
             "chain_valid": self.is_chain_valid(),
             "difficulty": self.difficulty,
-            "last_block_hash": self.chain[-1].hash if self.chain else None
+            "last_block_hash": self.chain[-1].hash if self.chain else None,
         }
 
 
@@ -487,6 +497,7 @@ class UnifiedAuditSystem:
     Consolidates all audit logging and monitoring functionality with
     immutable blockchain-based trails and comprehensive security monitoring.
     """
+
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         if config is not None:
             raw_config: Any = config
@@ -495,7 +506,7 @@ class UnifiedAuditSystem:
             try:
                 unified_config = get_config()
                 # Access audit config through attribute access
-                audit_config = getattr(unified_config, 'audit', {})
+                audit_config = getattr(unified_config, "audit", {})
                 raw_config: Any = audit_config if isinstance(audit_config, dict) else {}
             except (AttributeError, TypeError):
                 # Fallback to empty config if unified config is not available
@@ -646,7 +657,7 @@ class UnifiedAuditSystem:
             "correlation_id": correlation_id,
             "total_events": len(events),
             "timeline": [event.to_dict() for event in events],
-            "generated_at": datetime.now(timezone.utc).isoformat()
+            "generated_at": datetime.now(timezone.utc).isoformat(),
         }
 
     def verify_audit_integrity(self) -> Dict[str, Any]:
@@ -660,7 +671,8 @@ class UnifiedAuditSystem:
                 "stats": self.blockchain.get_blockchain_stats(),
             },
             "tamper_resistant_log": tamper_log_result,
-            "overall_integrity": blockchain_valid and tamper_log_result.get("verified", False),
+            "overall_integrity": blockchain_valid
+            and tamper_log_result.get("verified", False),
         }
 
     def get_compliance_report(
@@ -670,10 +682,7 @@ class UnifiedAuditSystem:
         compliance_standard: str = "general",
     ) -> Dict[str, Any]:
         """Generate compliance report for specified period."""
-        criteria = {
-            "start_time": start_date,
-            "end_time": end_date
-        }
+        criteria = {"start_time": start_date, "end_time": end_date}
 
         events = self.blockchain.search_events(criteria)
 
@@ -687,23 +696,27 @@ class UnifiedAuditSystem:
 
         # Calculate compliance metrics
         total_events = len(events)
-        security_events = len([e for e in events if e.threat_level.value >= ThreatLevel.MEDIUM.value])
-        critical_events = len([e for e in events if e.severity.value >= SecuritySeverity.CRITICAL.value])
+        security_events = len(
+            [e for e in events if e.threat_level.value >= ThreatLevel.MEDIUM.value]
+        )
+        critical_events = len(
+            [e for e in events if e.severity.value >= SecuritySeverity.CRITICAL.value]
+        )
 
         return {
             "compliance_standard": compliance_standard,
             "report_period": {
                 "start": start_date.isoformat(),
-                "end": end_date.isoformat()
+                "end": end_date.isoformat(),
             },
             "summary": {
                 "total_events": total_events,
                 "security_events": security_events,
                 "critical_events": critical_events,
-                "event_categories": event_categories
+                "event_categories": event_categories,
             },
             "integrity_verification": self.verify_audit_integrity(),
-            "generated_at": datetime.now(timezone.utc).isoformat()
+            "generated_at": datetime.now(timezone.utc).isoformat(),
         }
 
     def _update_event_counters(self, event: SecurityEvent):
@@ -735,8 +748,13 @@ class UnifiedAuditSystem:
                 timedelta(minutes=1),
             )
 
-            if recent_failures >= self.alert_thresholds.get("failed_logins_per_minute", 10):
-                self._trigger_alert(event, f"Brute force attack detected: {recent_failures} failed logins")
+            if recent_failures >= self.alert_thresholds.get(
+                "failed_logins_per_minute", 10
+            ):
+                self._trigger_alert(
+                    event,
+                    f"Brute force attack detected: {recent_failures} failed logins",
+                )
 
     def _count_recent_events(
         self,
@@ -747,10 +765,7 @@ class UnifiedAuditSystem:
         """Count recent events of specific type."""
         cutoff_time = datetime.now(timezone.utc) - time_window
 
-        criteria = {
-            "event_type": event_type,
-            "start_time": cutoff_time
-        }
+        criteria = {"event_type": event_type, "start_time": cutoff_time}
 
         if source_ip:
             criteria["source_ip"] = source_ip
@@ -769,7 +784,7 @@ class UnifiedAuditSystem:
             "triggering_event": event.to_dict(),
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "severity": event.severity.value,
-            "threat_level": event.threat_level.value
+            "threat_level": event.threat_level.value,
         }
 
         # Log the alert as a security event
@@ -829,7 +844,8 @@ class UnifiedAuditSystem:
                 # Keep only last 24 hours of metrics
                 cutoff_time = datetime.now(timezone.utc) - timedelta(hours=24)
                 self.metrics_history = [
-                    m for m in self.metrics_history
+                    m
+                    for m in self.metrics_history
                     if datetime.fromisoformat(m["timestamp"]) > cutoff_time
                 ]
 
@@ -867,7 +883,7 @@ class UnifiedAuditSystem:
             "blockchain_blocks": len(self.blockchain.chain),
             "pending_events": len(self.blockchain.pending_events),
             "active_correlations": len(self.correlation_map),
-            "system_health": "healthy"  # Placeholder
+            "system_health": "healthy",  # Placeholder
         }
 
     def get_status(self) -> Dict[str, Any]:
@@ -883,7 +899,7 @@ class UnifiedAuditSystem:
             "metrics_history_size": len(self.metrics_history),
             "tamper_resistant_log": {
                 "file_exists": self.tamper_logger.log_file.exists(),
-                "sequence_number": self.tamper_logger.sequence_number
+                "sequence_number": self.tamper_logger.sequence_number,
             },
         }
 
@@ -892,7 +908,7 @@ class UnifiedAuditSystem:
 _unified_audit_system: Optional[UnifiedAuditSystem] = None
 
 
-def get_unified_audit_system() -> 'UnifiedAuditSystem':
+def get_unified_audit_system() -> "UnifiedAuditSystem":
     """Get the global unified audit system instance."""
     global _unified_audit_system
     if _unified_audit_system is None:
@@ -910,5 +926,5 @@ __all__ = [
     "ThreatLevel",
     "AuditBlock",
     "TamperResistantLogger",
-    "AuditBlockchain"
+    "AuditBlockchain",
 ]

@@ -15,21 +15,26 @@ import asyncio
 import json
 import logging
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Callable, Union
+from typing import Any, Callable, Dict, List, Optional, Union
 
 try:
-    from .unified_plugin_manager import (
-        PluginInterface, PluginMetadata, PluginInfo, PluginType,
-        SecurityLevel, PluginStatus, unified_plugin_manager
-    )
-    from ..logging import get_logger
-    from ..config.manager import get_config
-    from ..database.manager import get_database_manager
     from ...core.performance.cache_manager import get_cache_manager
     from ...infrastructure.monitoring import get_performance_monitor
+    from ..config.manager import get_config
+    from ..database.manager import get_database_manager
+    from ..logging import get_logger
+    from .unified_plugin_manager import (
+        PluginInfo,
+        PluginInterface,
+        PluginMetadata,
+        PluginStatus,
+        PluginType,
+        SecurityLevel,
+        unified_plugin_manager,
+    )
 
     logger = get_logger(__name__)
     config = get_config()
@@ -58,6 +63,7 @@ except ImportError:
 @dataclass
 class EnhancedPluginConfig:
     """Enhanced plugin configuration with validation and optimization settings."""
+
     name: str
     version: str
     description: str
@@ -90,6 +96,7 @@ class EnhancedPluginConfig:
 
 class EnhancedPluginLogger:
     """Enhanced plugin logger with performance monitoring and caching."""
+
     def __init__(self, plugin_name: str):
         self.plugin_name = plugin_name
         self.logger = get_logger(f"plugin.{plugin_name}")
@@ -131,6 +138,7 @@ class EnhancedPluginLogger:
 
 class EnhancedPluginAPI:
     """Enhanced Plugin API with Redis caching and database abstraction."""
+
     def __init__(self, plugin_name: str, config: EnhancedPluginConfig):
         self.plugin_name = plugin_name
         self.config = config
@@ -202,7 +210,7 @@ class EnhancedPluginAPI:
                 params = {
                     "plugin_name": self.plugin_name,
                     "key": key,
-                    "value": serialized_value
+                    "value": serialized_value,
                 }
                 await session.execute(query, params)
                 await session.commit()
@@ -226,7 +234,7 @@ class EnhancedPluginAPI:
                 row = await session.fetchone(query, params)
 
                 if row:
-                    return json.loads(row['value'])
+                    return json.loads(row["value"])
                 return default
         except Exception as e:
             self.logger.error(f"Failed to get value for key '{key}': {e}")
@@ -243,8 +251,7 @@ class EnhancedPluginAPI:
         try:
             async with database_manager.get_session() as session:
                 await session.delete(
-                    "plugin_data",
-                    where={"plugin_name": self.plugin_name, "key": key}
+                    "plugin_data", where={"plugin_name": self.plugin_name, "key": key}
                 )
                 await session.commit()
             return True
@@ -307,6 +314,7 @@ class EnhancedPluginAPI:
 
 class PerformanceTracker:
     """Context manager for tracking plugin operation performance."""
+
     def __init__(self, logger: EnhancedPluginLogger, operation: str):
         self.logger = logger
         self.operation = operation
@@ -324,6 +332,7 @@ class PerformanceTracker:
 
 class EnhancedBasePlugin(PluginInterface):
     """Enhanced base plugin class with optimization systems integration."""
+
     def __init__(self, config: EnhancedPluginConfig):
         self.config = config
         self.api = EnhancedPluginAPI(config.name, config)

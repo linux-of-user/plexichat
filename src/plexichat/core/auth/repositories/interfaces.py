@@ -4,14 +4,10 @@ Defines contracts for data access operations in the authentication system.
 """
 
 from abc import ABC, abstractmethod
-from typing import Dict, List, Optional, Set, Any
 from datetime import datetime
+from typing import Any, Dict, List, Optional, Set
 
-from plexichat.core.authentication import (
-    SessionInfo,
-    DeviceInfo,
-    Role
-)
+from plexichat.core.authentication import DeviceInfo, Role, SessionInfo
 
 
 class IUserRepository(ABC):
@@ -107,7 +103,7 @@ class IAuditRepository(ABC):
         event_type: Optional[str] = None,
         start_date: Optional[datetime] = None,
         end_date: Optional[datetime] = None,
-        limit: int = 100
+        limit: int = 100,
     ) -> List[Dict[str, Any]]:
         """Get audit events with filtering."""
         pass
@@ -117,7 +113,7 @@ class IAuditRepository(ABC):
         self,
         severity: Optional[str] = None,
         start_date: Optional[datetime] = None,
-        end_date: Optional[datetime] = None
+        end_date: Optional[datetime] = None,
     ) -> List[Dict[str, Any]]:
         """Get security-related audit events."""
         pass
@@ -176,5 +172,5 @@ __all__ = [
     "IUserRepository",
     "ISessionRepository",
     "IAuditRepository",
-    "IDeviceRepository"
+    "IDeviceRepository",
 ]

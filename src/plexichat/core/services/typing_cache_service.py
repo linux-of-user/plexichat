@@ -5,11 +5,14 @@ Caching layer for frequently accessed typing data to improve performance.
 """
 
 import logging
-from typing import List, Optional, Dict, Any
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
+from typing import Any, Dict, List, Optional
 
 from plexichat.core.caching.unified_cache_integration import (
-    cache_get, cache_set, cache_delete, CacheKeyBuilder
+    CacheKeyBuilder,
+    cache_delete,
+    cache_get,
+    cache_set,
 )
 from plexichat.core.config import get_setting
 
@@ -20,9 +23,15 @@ class TypingCacheService:
     """Service for caching typing-related data."""
 
     def __init__(self):
-        self.cache_ttl = get_setting("typing.cache_ttl_seconds", 30)  # Cache TTL for typing data
-        self.channel_users_cache_ttl = get_setting("typing.cache_ttl_seconds", 10)  # For channel users list
-        self.typing_status_cache_ttl = get_setting("typing.cache_ttl_seconds", 5)  # For individual typing status
+        self.cache_ttl = get_setting(
+            "typing.cache_ttl_seconds", 30
+        )  # Cache TTL for typing data
+        self.channel_users_cache_ttl = get_setting(
+            "typing.cache_ttl_seconds", 10
+        )  # For channel users list
+        self.typing_status_cache_ttl = get_setting(
+            "typing.cache_ttl_seconds", 5
+        )  # For individual typing status
 
     async def get_cached_typing_users(self, channel_id: str) -> Optional[List[str]]:
         """Get cached typing users for a channel."""
@@ -47,10 +56,12 @@ class TypingCacheService:
                 cache_key,
                 users,
                 ttl=self.channel_users_cache_ttl,
-                tags=["typing", f"channel:{channel_id}"]
+                tags=["typing", f"channel:{channel_id}"],
             )
             if success:
-                logger.debug(f"Cached typing users for channel {channel_id}: {len(users)} users")
+                logger.debug(
+                    f"Cached typing users for channel {channel_id}: {len(users)} users"
+                )
             return success
         except Exception as e:
             logger.warning(f"Error caching typing users: {e}")
@@ -60,7 +71,9 @@ class TypingCacheService:
         """Invalidate all cache entries for a channel."""
         try:
             # Delete channel users cache
-            users_cache_key = CacheKeyBuilder.build("typing", "channel_users", channel_id)
+            users_cache_key = CacheKeyBuilder.build(
+                "typing", "channel_users", channel_id
+            )
             await cache_delete(users_cache_key)
 
             # Delete individual typing status caches for this channel
@@ -73,7 +86,9 @@ class TypingCacheService:
             logger.warning(f"Error invalidating channel cache: {e}")
             return False
 
-    async def get_cached_typing_status(self, user_id: str, channel_id: str) -> Optional[Dict[str, Any]]:
+    async def get_cached_typing_status(
+        self, user_id: str, channel_id: str
+    ) -> Optional[Dict[str, Any]]:
         """Get cached typing status for a user in a channel."""
         cache_key = CacheKeyBuilder.build("typing", "status", user_id, channel_id)
 
@@ -87,7 +102,9 @@ class TypingCacheService:
 
         return None
 
-    async def set_cached_typing_status(self, user_id: str, channel_id: str, status: Dict[str, Any]) -> bool:
+    async def set_cached_typing_status(
+        self, user_id: str, channel_id: str, status: Dict[str, Any]
+    ) -> bool:
         """Cache typing status for a user in a channel."""
         cache_key = CacheKeyBuilder.build("typing", "status", user_id, channel_id)
 
@@ -96,7 +113,7 @@ class TypingCacheService:
                 cache_key,
                 status,
                 ttl=self.typing_status_cache_ttl,
-                tags=["typing", f"user:{user_id}", f"channel:{channel_id}"]
+                tags=["typing", f"user:{user_id}", f"channel:{channel_id}"],
             )
             if success:
                 logger.debug(f"Cached typing status for {user_id} in {channel_id}")
@@ -105,12 +122,16 @@ class TypingCacheService:
             logger.warning(f"Error caching typing status: {e}")
             return False
 
-    async def invalidate_user_cache(self, user_id: str, channel_id: Optional[str] = None) -> bool:
+    async def invalidate_user_cache(
+        self, user_id: str, channel_id: Optional[str] = None
+    ) -> bool:
         """Invalidate cache entries for a user."""
         try:
             if channel_id:
                 # Invalidate specific user-channel combination
-                status_cache_key = CacheKeyBuilder.build("typing", "status", user_id, channel_id)
+                status_cache_key = CacheKeyBuilder.build(
+                    "typing", "status", user_id, channel_id
+                )
                 await cache_delete(status_cache_key)
 
                 # Also invalidate channel users cache
@@ -136,6 +157,7 @@ class TypingCacheService:
 
         # Cache miss - get from database
         from plexichat.core.services.typing_service import typing_service
+
         users = await typing_service.get_typing_users(channel_id)
 
         # Cache the result
@@ -150,6 +172,7 @@ class TypingCacheService:
             # or maintain a registry of all typing-related cache keys
             # For now, we'll clear the entire cache (not ideal but functional)
             from plexichat.core.caching.unified_cache_integration import cache_clear
+
             await cache_clear()
             logger.info("Invalidated all typing cache")
             return True
@@ -161,6 +184,7 @@ class TypingCacheService:
         """Preload cache for a channel (useful for frequently accessed channels)."""
         try:
             from plexichat.core.services.typing_service import typing_service
+
             users = await typing_service.get_typing_users(channel_id)
             await self.set_cached_typing_users(channel_id, users)
             logger.debug(f"Preloaded cache for channel {channel_id}")
@@ -177,7 +201,7 @@ class TypingCacheService:
             "cache_ttl": self.cache_ttl,
             "channel_users_cache_ttl": self.channel_users_cache_ttl,
             "typing_status_cache_ttl": self.typing_status_cache_ttl,
-            "service": "typing_cache"
+            "service": "typing_cache",
         }
 
 

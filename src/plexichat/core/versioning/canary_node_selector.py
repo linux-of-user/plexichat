@@ -17,10 +17,12 @@ Intelligent node selection for canary deployments with:
 
 logger = logging.getLogger(__name__)
 
+
 # CanaryNode dataclass
 @dataclass
 class CanaryNode:
     """Represents a node available for canary deployment."""
+
     node_id: str
     node_type: str = "unknown"
     region: str = "unknown"
@@ -29,8 +31,10 @@ class CanaryNode:
     last_deployment: Optional[datetime] = None
     deployment_success_rate: float = 1.0
 
+
 class CanaryStrategy(Enum):
     """Canary deployment strategies."""
+
     PERCENTAGE_BASED = "percentage_based"
     NODE_COUNT_BASED = "node_count_based"
     GEOGRAPHIC_BASED = "geographic_based"
@@ -39,6 +43,7 @@ class CanaryStrategy(Enum):
 
 class NodeSelectionCriteria(Enum):
     """Criteria for node selection."""
+
     LOWEST_LOAD = "lowest_load"
     HIGHEST_HEALTH = "highest_health"
     GEOGRAPHIC_SPREAD = "geographic_spread"
@@ -49,6 +54,7 @@ class NodeSelectionCriteria(Enum):
 @dataclass
 class NodeMetrics:
     """Node performance and health metrics."""
+
     cpu_usage: float = 0.0
     memory_usage: float = 0.0
     disk_usage: float = 0.0
@@ -66,7 +72,9 @@ class NodeMetrics:
     def health_score(self) -> float:
         """Calculate overall health score (0-1, higher is better)."""
         error_penalty = min(self.error_rate * 10, 0.5)  # Max 50% penalty for errors
-        latency_penalty = min(self.network_latency / 1000, 0.3)  # Max 30% penalty for latency
+        latency_penalty = min(
+            self.network_latency / 1000, 0.3
+        )  # Max 30% penalty for latency
         uptime_score = self.uptime_percentage / 100.0
 
         return max(0.0, uptime_score - error_penalty - latency_penalty)
@@ -355,5 +363,3 @@ class CanaryNodeSelector:
         """Remove node from blacklist."""
         self.blacklisted_nodes.discard(node_id)
         logger.info(f"Node {node_id} removed from blacklist")
-
-

@@ -9,9 +9,9 @@ import asyncio
 import json
 import logging
 import re
-from datetime import datetime, timezone, timedelta
-from typing import Any, Dict, List, Optional, Set, Tuple
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from typing import Any, Dict, List, Optional, Set, Tuple
 from uuid import uuid4
 
 from plexichat.core.database.manager import database_manager
@@ -23,6 +23,7 @@ logger = get_logger(__name__)
 @dataclass
 class SearchFilter:
     """Search filter configuration."""
+
     query: str
     user_id: Optional[str] = None
     channel_id: Optional[str] = None
@@ -37,6 +38,7 @@ class SearchFilter:
 @dataclass
 class SearchResult:
     """Search result data structure."""
+
     message_id: str
     content: str
     user_id: str
@@ -50,6 +52,7 @@ class SearchResult:
 @dataclass
 class SearchSuggestion:
     """Search suggestion data structure."""
+
     text: str
     type: str  # "query", "user", "channel"
     frequency: int = 0
@@ -59,6 +62,7 @@ class SearchSuggestion:
 @dataclass
 class SearchHistory:
     """Search history entry."""
+
     id: str
     user_id: str
     query: str
@@ -118,7 +122,7 @@ class FullTextSearch:
                             message_type = new.message_type
                         WHERE rowid = new.rowid;
                     END
-                    """
+                    """,
                 ]
 
                 for trigger in triggers:
@@ -201,7 +205,9 @@ class FullTextSearch:
                     highlights = []
                     if row["highlight"]:
                         # Extract highlighted terms
-                        highlight_matches = re.findall(r'<mark>(.*?)</mark>', row["highlight"])
+                        highlight_matches = re.findall(
+                            r"<mark>(.*?)</mark>", row["highlight"]
+                        )
                         highlights.extend(highlight_matches)
 
                     result = SearchResult(
@@ -214,8 +220,8 @@ class FullTextSearch:
                         highlights=highlights,
                         metadata={
                             "message_type": row["message_type"],
-                            "attachments": json.loads(row["attachments"] or "[]")
-                        }
+                            "attachments": json.loads(row["attachments"] or "[]"),
+                        },
                     )
                     search_results.append(result)
 
@@ -230,7 +236,7 @@ class FullTextSearch:
         terms = []
 
         # Split query into words
-        words = re.findall(r'\w+', query.lower())
+        words = re.findall(r"\w+", query.lower())
 
         for word in words:
             terms.append(word)
@@ -238,22 +244,22 @@ class FullTextSearch:
             # Add common variations
             if len(word) > 3:
                 # Add stem variations
-                if word.endswith('ing'):
+                if word.endswith("ing"):
                     terms.append(word[:-3])
-                    terms.append(word[:-3] + 'e')
-                elif word.endswith('ed'):
+                    terms.append(word[:-3] + "e")
+                elif word.endswith("ed"):
                     terms.append(word[:-2])
-                    terms.append(word[:-2] + 'e')
-                elif word.endswith('er'):
+                    terms.append(word[:-2] + "e")
+                elif word.endswith("er"):
                     terms.append(word[:-2])
-                elif word.endswith('est'):
+                elif word.endswith("est"):
                     terms.append(word[:-3])
 
                 # Add plural variations
-                if word.endswith('s'):
+                if word.endswith("s"):
                     terms.append(word[:-1])
                 else:
-                    terms.append(word + 's')
+                    terms.append(word + "s")
 
         return list(set(terms))  # Remove duplicates
 
@@ -274,14 +280,18 @@ class SearchSuggestions:
                 "frequency": "INTEGER DEFAULT 1",
                 "last_used": "TEXT",
                 "created_at": "TEXT NOT NULL",
-                "updated_at": "TEXT NOT NULL"
+                "updated_at": "TEXT NOT NULL",
             }
-            return await database_manager.ensure_table_exists(self.suggestions_table, schema)
+            return await database_manager.ensure_table_exists(
+                self.suggestions_table, schema
+            )
         except Exception as e:
             logger.error(f"Failed to initialize suggestions: {e}")
             return False
 
-    async def get_suggestions(self, prefix: str, limit: int = 10) -> List[SearchSuggestion]:
+    async def get_suggestions(
+        self, prefix: str, limit: int = 10
+    ) -> List[SearchSuggestion]:
         """Get search suggestions for a prefix."""
         try:
             async with database_manager.get_session() as session:
@@ -292,7 +302,9 @@ class SearchSuggestions:
                 ORDER BY frequency DESC, last_used DESC
                 LIMIT :limit
                 """
-                results = await session.fetchall(query, {"prefix": f"{prefix}%", "limit": limit})
+                results = await session.fetchall(
+                    query, {"prefix": f"{prefix}%", "limit": limit}
+                )
 
                 suggestions = []
                 for row in results:
@@ -300,7 +312,11 @@ class SearchSuggestions:
                         text=row["text"],
                         type=row["type"],
                         frequency=row["frequency"],
-                        last_used=datetime.fromisoformat(row["last_used"]) if row["last_used"] else None
+                        last_used=(
+                            datetime.fromisoformat(row["last_used"])
+                            if row["last_used"]
+                            else None
+                        ),
                     )
                     suggestions.append(suggestion)
 
@@ -318,7 +334,9 @@ class SearchSuggestions:
 
                 # Check if suggestion exists
                 check_query = f"SELECT id, frequency FROM {self.suggestions_table} WHERE text = :text AND type = :type"
-                existing = await session.fetchone(check_query, {"text": text, "type": suggestion_type})
+                existing = await session.fetchone(
+                    check_query, {"text": text, "type": suggestion_type}
+                )
 
                 if existing:
                     # Update existing
@@ -327,7 +345,10 @@ class SearchSuggestions:
                     SET frequency = frequency + 1, last_used = :last_used, updated_at = :updated_at
                     WHERE id = :id
                     """
-                    await session.execute(update_query, {"last_used": now, "updated_at": now, "id": existing["id"]})
+                    await session.execute(
+                        update_query,
+                        {"last_used": now, "updated_at": now, "id": existing["id"]},
+                    )
                 else:
                     # Insert new
                     suggestion_id = str(uuid4())
@@ -336,14 +357,17 @@ class SearchSuggestions:
                     (id, text, type, frequency, last_used, created_at, updated_at)
                     VALUES (:id, :text, :type, 1, :last_used, :created_at, :updated_at)
                     """
-                    await session.execute(insert_query, {
-                        "id": suggestion_id,
-                        "text": text,
-                        "type": suggestion_type,
-                        "last_used": now,
-                        "created_at": now,
-                        "updated_at": now
-                    })
+                    await session.execute(
+                        insert_query,
+                        {
+                            "id": suggestion_id,
+                            "text": text,
+                            "type": suggestion_type,
+                            "last_used": now,
+                            "created_at": now,
+                            "updated_at": now,
+                        },
+                    )
 
                 await session.commit()
                 return True
@@ -370,9 +394,11 @@ class SearchHistoryService:
                 "result_count": "INTEGER NOT NULL",
                 "timestamp": "TEXT NOT NULL",
                 "duration_ms": "INTEGER NOT NULL",
-                "created_at": "TEXT NOT NULL"
+                "created_at": "TEXT NOT NULL",
             }
-            return await database_manager.ensure_table_exists(self.history_table, schema)
+            return await database_manager.ensure_table_exists(
+                self.history_table, schema
+            )
         except Exception as e:
             logger.error(f"Failed to initialize search history: {e}")
             return False
@@ -386,16 +412,19 @@ class SearchHistoryService:
                 (id, user_id, query, filters, result_count, timestamp, duration_ms, created_at)
                 VALUES (:id, :user_id, :query, :filters, :result_count, :timestamp, :duration_ms, :created_at)
                 """
-                await session.execute(insert_query, {
-                    "id": history.id,
-                    "user_id": history.user_id,
-                    "query": history.query,
-                    "filters": json.dumps(history.filters),
-                    "result_count": history.result_count,
-                    "timestamp": history.timestamp.isoformat(),
-                    "duration_ms": history.duration_ms,
-                    "created_at": datetime.now(timezone.utc).isoformat()
-                })
+                await session.execute(
+                    insert_query,
+                    {
+                        "id": history.id,
+                        "user_id": history.user_id,
+                        "query": history.query,
+                        "filters": json.dumps(history.filters),
+                        "result_count": history.result_count,
+                        "timestamp": history.timestamp.isoformat(),
+                        "duration_ms": history.duration_ms,
+                        "created_at": datetime.now(timezone.utc).isoformat(),
+                    },
+                )
                 await session.commit()
                 return True
 
@@ -403,7 +432,9 @@ class SearchHistoryService:
             logger.error(f"Failed to record search history: {e}")
             return False
 
-    async def get_user_history(self, user_id: str, limit: int = 20) -> List[SearchHistory]:
+    async def get_user_history(
+        self, user_id: str, limit: int = 20
+    ) -> List[SearchHistory]:
         """Get search history for a user."""
         try:
             async with database_manager.get_session() as session:
@@ -414,7 +445,9 @@ class SearchHistoryService:
                 ORDER BY timestamp DESC
                 LIMIT :limit
                 """
-                results = await session.fetchall(query, {"user_id": user_id, "limit": limit})
+                results = await session.fetchall(
+                    query, {"user_id": user_id, "limit": limit}
+                )
 
                 history = []
                 for row in results:
@@ -425,7 +458,7 @@ class SearchHistoryService:
                         filters=json.loads(row["filters"]),
                         result_count=row["result_count"],
                         timestamp=datetime.fromisoformat(row["timestamp"]),
-                        duration_ms=row["duration_ms"]
+                        duration_ms=row["duration_ms"],
                     )
                     history.append(entry)
 
@@ -470,7 +503,9 @@ class AdvancedSearchService:
             logger.error(f"Failed to initialize search service: {e}")
             return False
 
-    async def search_messages(self, filters: SearchFilter, user_id: str) -> Tuple[List[SearchResult], int]:
+    async def search_messages(
+        self, filters: SearchFilter, user_id: str
+    ) -> Tuple[List[SearchResult], int]:
         """Perform advanced message search."""
         if not self._initialized:
             await self.initialize()
@@ -482,7 +517,9 @@ class AdvancedSearchService:
             results = await self.fts.search(filters.query, filters)
 
             # Record search in history
-            duration = int((datetime.now(timezone.utc) - start_time).total_seconds() * 1000)
+            duration = int(
+                (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+            )
             history_entry = SearchHistory(
                 id=str(uuid4()),
                 user_id=user_id,
@@ -490,14 +527,16 @@ class AdvancedSearchService:
                 filters={
                     "user_id": filters.user_id,
                     "channel_id": filters.channel_id,
-                    "date_from": filters.date_from.isoformat() if filters.date_from else None,
+                    "date_from": (
+                        filters.date_from.isoformat() if filters.date_from else None
+                    ),
                     "date_to": filters.date_to.isoformat() if filters.date_to else None,
                     "message_type": filters.message_type,
-                    "has_attachments": filters.has_attachments
+                    "has_attachments": filters.has_attachments,
                 },
                 result_count=len(results),
                 timestamp=start_time,
-                duration_ms=duration
+                duration_ms=duration,
             )
             await self.history.record_search(history_entry)
 
@@ -511,14 +550,18 @@ class AdvancedSearchService:
             logger.error(f"Search failed: {e}")
             return [], 0
 
-    async def get_suggestions(self, prefix: str, limit: int = 10) -> List[SearchSuggestion]:
+    async def get_suggestions(
+        self, prefix: str, limit: int = 10
+    ) -> List[SearchSuggestion]:
         """Get search suggestions."""
         if not self._initialized:
             await self.initialize()
 
         return await self.suggestions.get_suggestions(prefix, limit)
 
-    async def get_search_history(self, user_id: str, limit: int = 20) -> List[SearchHistory]:
+    async def get_search_history(
+        self, user_id: str, limit: int = 20
+    ) -> List[SearchHistory]:
         """Get user's search history."""
         if not self._initialized:
             await self.initialize()
@@ -530,7 +573,9 @@ class AdvancedSearchService:
         try:
             async with database_manager.get_session() as session:
                 # Get total searches
-                total_query = f"SELECT COUNT(*) as total FROM {self.history.history_table}"
+                total_query = (
+                    f"SELECT COUNT(*) as total FROM {self.history.history_table}"
+                )
                 total_result = await session.fetchone(total_query)
                 total_searches = total_result["total"] if total_result else 0
 
@@ -540,7 +585,9 @@ class AdvancedSearchService:
                 SELECT COUNT(*) as recent FROM {self.history.history_table}
                 WHERE timestamp >= :yesterday
                 """
-                recent_result = await session.fetchone(recent_query, {"yesterday": yesterday})
+                recent_result = await session.fetchone(
+                    recent_query, {"yesterday": yesterday}
+                )
                 recent_searches = recent_result["recent"] if recent_result else 0
 
                 # Get popular queries
@@ -561,7 +608,9 @@ class AdvancedSearchService:
                     "total_searches": total_searches,
                     "recent_searches": recent_searches,
                     "popular_queries": popular_queries,
-                    "service_status": "operational" if self._initialized else "initializing"
+                    "service_status": (
+                        "operational" if self._initialized else "initializing"
+                    ),
                 }
 
         except Exception as e:
@@ -589,5 +638,5 @@ __all__ = [
     "SearchSuggestions",
     "SearchHistoryService",
     "AdvancedSearchService",
-    "get_search_service"
+    "get_search_service",
 ]

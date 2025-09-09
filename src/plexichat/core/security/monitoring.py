@@ -11,12 +11,12 @@ Features:
 """
 
 import asyncio
-import time
 import json
-from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Any, Callable
-from datetime import datetime, timezone, timedelta
+import time
 from collections import defaultdict, deque
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from typing import Any, Callable, Dict, List, Optional
 
 from plexichat.core.logging import get_logger
 
@@ -26,6 +26,7 @@ logger = get_logger(__name__)
 @dataclass
 class SecurityAlert:
     """Security alert configuration."""
+
     name: str
     condition: str
     threshold: Any
@@ -38,6 +39,7 @@ class SecurityAlert:
 @dataclass
 class SecurityMetrics:
     """Security metrics data point."""
+
     timestamp: float
     metric_name: str
     value: Any
@@ -58,15 +60,15 @@ class SecurityMonitoringSystem:
 
     def __init__(self, config: Dict[str, Any]):
         self.config = config
-        self.enabled = config.get('metrics_enabled', True)
+        self.enabled = config.get("metrics_enabled", True)
 
         if not self.enabled:
             logger.info("Security monitoring is disabled")
             return
 
         # Alerting settings
-        self.alerts_enabled = config.get('alerts_enabled', True)
-        self.compliance_reporting = config.get('compliance_reporting', True)
+        self.alerts_enabled = config.get("alerts_enabled", True)
+        self.compliance_reporting = config.get("compliance_reporting", True)
 
         # Metrics storage
         self.metrics_buffer: deque = deque(maxlen=10000)
@@ -96,41 +98,41 @@ class SecurityMonitoringSystem:
     def _initialize_default_alerts(self) -> Dict[str, SecurityAlert]:
         """Initialize default security alerts."""
         return {
-            'high_rate_limit_hits': SecurityAlert(
-                name='High Rate Limit Hits',
-                condition='rate_limit_hits_per_minute > 100',
+            "high_rate_limit_hits": SecurityAlert(
+                name="High Rate Limit Hits",
+                condition="rate_limit_hits_per_minute > 100",
                 threshold=100,
-                severity='medium',
-                cooldown_minutes=10
+                severity="medium",
+                cooldown_minutes=10,
             ),
-            'brute_force_detected': SecurityAlert(
-                name='Brute Force Attack Detected',
-                condition='brute_force_blocks_per_hour > 5',
+            "brute_force_detected": SecurityAlert(
+                name="Brute Force Attack Detected",
+                condition="brute_force_blocks_per_hour > 5",
                 threshold=5,
-                severity='high',
-                cooldown_minutes=30
+                severity="high",
+                cooldown_minutes=30,
             ),
-            'sql_injection_attempts': SecurityAlert(
-                name='SQL Injection Attempts',
-                condition='sql_injection_detections_per_hour > 10',
+            "sql_injection_attempts": SecurityAlert(
+                name="SQL Injection Attempts",
+                condition="sql_injection_detections_per_hour > 10",
                 threshold=10,
-                severity='critical',
-                cooldown_minutes=15
+                severity="critical",
+                cooldown_minutes=15,
             ),
-            'suspicious_traffic_spike': SecurityAlert(
-                name='Suspicious Traffic Spike',
-                condition='requests_per_minute > 1000',
+            "suspicious_traffic_spike": SecurityAlert(
+                name="Suspicious Traffic Spike",
+                condition="requests_per_minute > 1000",
                 threshold=1000,
-                severity='high',
-                cooldown_minutes=5
+                severity="high",
+                cooldown_minutes=5,
             ),
-            'failed_authentication_spike': SecurityAlert(
-                name='Failed Authentication Spike',
-                condition='failed_auths_per_minute > 20',
+            "failed_authentication_spike": SecurityAlert(
+                name="Failed Authentication Spike",
+                condition="failed_auths_per_minute > 20",
                 threshold=20,
-                severity='medium',
-                cooldown_minutes=10
-            )
+                severity="medium",
+                cooldown_minutes=10,
+            ),
         }
 
     def _start_monitoring(self):
@@ -173,16 +175,16 @@ class SecurityMonitoringSystem:
             # System resource metrics
             cpu_percent = psutil.cpu_percent()
             memory_percent = psutil.virtual_memory().percent
-            disk_usage = psutil.disk_usage('/').percent
+            disk_usage = psutil.disk_usage("/").percent
 
             # Network metrics
             network_connections = len(psutil.net_connections())
 
             # Record metrics
-            await self.record_metric('system.cpu_percent', cpu_percent)
-            await self.record_metric('system.memory_percent', memory_percent)
-            await self.record_metric('system.disk_usage_percent', disk_usage)
-            await self.record_metric('system.network_connections', network_connections)
+            await self.record_metric("system.cpu_percent", cpu_percent)
+            await self.record_metric("system.memory_percent", memory_percent)
+            await self.record_metric("system.disk_usage_percent", disk_usage)
+            await self.record_metric("system.network_connections", network_connections)
 
         except ImportError:
             # psutil not available
@@ -202,38 +204,45 @@ class SecurityMonitoringSystem:
 
         try:
             # Extract event data
-            event_type = getattr(event, 'event_type', 'unknown')
-            threat_level = getattr(event, 'threat_level', 'low')
-            context = getattr(event, 'context', None)
+            event_type = getattr(event, "event_type", "unknown")
+            threat_level = getattr(event, "threat_level", "low")
+            context = getattr(event, "context", None)
 
             # Record event metrics
-            await self.record_metric('security.events_total', 1, {
-                'event_type': str(event_type),
-                'threat_level': str(threat_level)
-            })
+            await self.record_metric(
+                "security.events_total",
+                1,
+                {"event_type": str(event_type), "threat_level": str(threat_level)},
+            )
 
             # Record specific event types
-            if hasattr(event_type, 'value'):
+            if hasattr(event_type, "value"):
                 event_name = event_type.value
             else:
                 event_name = str(event_type)
 
-            await self.record_metric(f'security.events.{event_name}', 1)
+            await self.record_metric(f"security.events.{event_name}", 1)
 
             # Extract additional context
             if context:
-                ip_address = getattr(context, 'ip_address', None)
-                user_id = getattr(context, 'user_id', None)
+                ip_address = getattr(context, "ip_address", None)
+                user_id = getattr(context, "user_id", None)
 
                 if ip_address:
-                    await self.record_metric('security.events_by_ip', 1, {'ip': ip_address})
+                    await self.record_metric(
+                        "security.events_by_ip", 1, {"ip": ip_address}
+                    )
                 if user_id:
-                    await self.record_metric('security.events_by_user', 1, {'user_id': user_id})
+                    await self.record_metric(
+                        "security.events_by_user", 1, {"user_id": user_id}
+                    )
 
         except Exception as e:
             logger.error(f"Error recording security event: {e}")
 
-    async def record_metric(self, name: str, value: Any, tags: Optional[Dict[str, str]] = None):
+    async def record_metric(
+        self, name: str, value: Any, tags: Optional[Dict[str, str]] = None
+    ):
         """
         Record a metric data point.
 
@@ -247,10 +256,7 @@ class SecurityMonitoringSystem:
 
         try:
             metric = SecurityMetrics(
-                timestamp=time.time(),
-                metric_name=name,
-                value=value,
-                tags=tags or {}
+                timestamp=time.time(), metric_name=name, value=value, tags=tags or {}
             )
 
             self.metrics_buffer.append(metric)
@@ -271,8 +277,11 @@ class SecurityMonitoringSystem:
                     continue
 
                 # Check cooldown
-                if (alert.last_triggered and
-                    current_time - alert.last_triggered < alert.cooldown_minutes * 60):
+                if (
+                    alert.last_triggered
+                    and current_time - alert.last_triggered
+                    < alert.cooldown_minutes * 60
+                ):
                     continue
 
                 # Evaluate condition
@@ -290,24 +299,28 @@ class SecurityMonitoringSystem:
             # Simple condition evaluation (in production, use a proper expression evaluator)
             condition = alert.condition
 
-            if 'rate_limit_hits_per_minute' in condition:
-                rate = self._get_metric_rate('security.events.rate_limit_exceeded', 60)
+            if "rate_limit_hits_per_minute" in condition:
+                rate = self._get_metric_rate("security.events.rate_limit_exceeded", 60)
                 return rate > alert.threshold
 
-            elif 'brute_force_blocks_per_hour' in condition:
-                rate = self._get_metric_rate('security.events.brute_force_attempt', 3600)
+            elif "brute_force_blocks_per_hour" in condition:
+                rate = self._get_metric_rate(
+                    "security.events.brute_force_attempt", 3600
+                )
                 return rate > alert.threshold
 
-            elif 'sql_injection_detections_per_hour' in condition:
-                rate = self._get_metric_rate('security.events.sql_injection_attempt', 3600)
+            elif "sql_injection_detections_per_hour" in condition:
+                rate = self._get_metric_rate(
+                    "security.events.sql_injection_attempt", 3600
+                )
                 return rate > alert.threshold
 
-            elif 'requests_per_minute' in condition:
-                rate = self._get_metric_rate('security.requests_total', 60)
+            elif "requests_per_minute" in condition:
+                rate = self._get_metric_rate("security.requests_total", 60)
                 return rate > alert.threshold
 
-            elif 'failed_auths_per_minute' in condition:
-                rate = self._get_metric_rate('security.events.login_failure', 60)
+            elif "failed_auths_per_minute" in condition:
+                rate = self._get_metric_rate("security.events.login_failure", 60)
                 return rate > alert.threshold
 
             return False
@@ -323,8 +336,11 @@ class SecurityMonitoringSystem:
             window_start = current_time - window_seconds
 
             # Count metrics in the window
-            count = sum(1 for m in self.metrics_buffer
-                       if m.metric_name == metric_name and m.timestamp > window_start)
+            count = sum(
+                1
+                for m in self.metrics_buffer
+                if m.metric_name == metric_name and m.timestamp > window_start
+            )
 
             # Calculate rate
             return count / (window_seconds / 60)  # per minute
@@ -336,12 +352,12 @@ class SecurityMonitoringSystem:
         """Trigger a security alert."""
         try:
             alert_data = {
-                'alert_name': alert.name,
-                'severity': alert.severity,
-                'condition': alert.condition,
-                'threshold': alert.threshold,
-                'timestamp': datetime.now(timezone.utc).isoformat(),
-                'current_metrics': self.get_current_metrics_summary()
+                "alert_name": alert.name,
+                "severity": alert.severity,
+                "condition": alert.condition,
+                "threshold": alert.threshold,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "current_metrics": self.get_current_metrics_summary(),
             }
 
             logger.warning(f"Security Alert Triggered: {alert.name} ({alert.severity})")
@@ -366,24 +382,26 @@ class SecurityMonitoringSystem:
             window_start = current_time - self.aggregation_window
 
             # Aggregate by metric name
-            aggregated = defaultdict(lambda: {'count': 0, 'sum': 0, 'min': float('inf'), 'max': 0})
+            aggregated = defaultdict(
+                lambda: {"count": 0, "sum": 0, "min": float("inf"), "max": 0}
+            )
 
             for metric in self.metrics_buffer:
                 if metric.timestamp > window_start:
                     agg = aggregated[metric.metric_name]
-                    agg['count'] += 1
+                    agg["count"] += 1
 
                     if isinstance(metric.value, (int, float)):
-                        agg['sum'] += metric.value
-                        agg['min'] = min(agg['min'], metric.value)
-                        agg['max'] = max(agg['max'], metric.value)
+                        agg["sum"] += metric.value
+                        agg["min"] = min(agg["min"], metric.value)
+                        agg["max"] = max(agg["max"], metric.value)
 
             # Calculate averages
             for name, agg in aggregated.items():
-                if agg['count'] > 0:
-                    agg['avg'] = agg['sum'] / agg['count']
+                if agg["count"] > 0:
+                    agg["avg"] = agg["sum"] / agg["count"]
                 else:
-                    agg['avg'] = 0
+                    agg["avg"] = 0
 
             self.metrics_aggregation = dict(aggregated)
 
@@ -402,7 +420,7 @@ class SecurityMonitoringSystem:
 
             self.metrics_buffer = deque(
                 (m for m in self.metrics_buffer if m.timestamp > cutoff_time),
-                maxlen=self.metrics_buffer.maxlen
+                maxlen=self.metrics_buffer.maxlen,
             )
 
             removed_count = original_size - len(self.metrics_buffer)
@@ -430,73 +448,85 @@ class SecurityMonitoringSystem:
     def get_current_metrics_summary(self) -> Dict[str, Any]:
         """Get current metrics summary."""
         if not self.enabled:
-            return {'enabled': False}
+            return {"enabled": False}
 
         return {
-            'enabled': True,
-            'total_metrics': len(self.metrics_buffer),
-            'aggregated_metrics': dict(self.metrics_aggregation),
-            'active_alerts': len([a for a in self.alerts.values() if a.enabled]),
-            'recent_alerts': [
+            "enabled": True,
+            "total_metrics": len(self.metrics_buffer),
+            "aggregated_metrics": dict(self.metrics_aggregation),
+            "active_alerts": len([a for a in self.alerts.values() if a.enabled]),
+            "recent_alerts": [
                 {
-                    'name': alert.name,
-                    'severity': alert.severity,
-                    'last_triggered': alert.last_triggered
+                    "name": alert.name,
+                    "severity": alert.severity,
+                    "last_triggered": alert.last_triggered,
                 }
                 for alert in self.alerts.values()
                 if alert.last_triggered
-            ]
+            ],
         }
 
     def get_compliance_report(self) -> Dict[str, Any]:
         """Generate compliance report."""
         if not self.compliance_reporting:
-            return {'enabled': False}
+            return {"enabled": False}
 
         try:
             # Calculate compliance metrics
             report = {
-                'report_generated': datetime.now(timezone.utc).isoformat(),
-                'period_days': 30,
-                'metrics': {}
+                "report_generated": datetime.now(timezone.utc).isoformat(),
+                "period_days": 30,
+                "metrics": {},
             }
 
             # Security event analysis
-            security_events = [m for m in self.metrics_buffer
-                             if m.metric_name.startswith('security.events')]
+            security_events = [
+                m
+                for m in self.metrics_buffer
+                if m.metric_name.startswith("security.events")
+            ]
 
             # Failed authentication rate
-            failed_auths = sum(1 for m in security_events
-                              if 'login_failure' in m.metric_name)
-            total_auths = sum(1 for m in security_events
-                             if 'login' in m.metric_name)
+            failed_auths = sum(
+                1 for m in security_events if "login_failure" in m.metric_name
+            )
+            total_auths = sum(1 for m in security_events if "login" in m.metric_name)
 
-            report['metrics']['authentication_failure_rate'] = (
+            report["metrics"]["authentication_failure_rate"] = (
                 failed_auths / max(total_auths, 1) * 100
             )
 
             # Rate limiting effectiveness
-            rate_limit_hits = sum(1 for m in security_events
-                                if 'rate_limit' in m.metric_name)
-            total_requests = sum(m.value for m in self.metrics_buffer
-                               if m.metric_name == 'security.requests_total')
+            rate_limit_hits = sum(
+                1 for m in security_events if "rate_limit" in m.metric_name
+            )
+            total_requests = sum(
+                m.value
+                for m in self.metrics_buffer
+                if m.metric_name == "security.requests_total"
+            )
 
-            report['metrics']['rate_limiting_effectiveness'] = (
+            report["metrics"]["rate_limiting_effectiveness"] = (
                 rate_limit_hits / max(total_requests, 1) * 100
             )
 
             # Threat detection rate
-            threat_detections = sum(1 for m in security_events
-                                  if any(word in m.metric_name for word in
-                                        ['sql_injection', 'xss', 'malicious']))
+            threat_detections = sum(
+                1
+                for m in security_events
+                if any(
+                    word in m.metric_name
+                    for word in ["sql_injection", "xss", "malicious"]
+                )
+            )
 
-            report['metrics']['threat_detection_rate'] = threat_detections
+            report["metrics"]["threat_detection_rate"] = threat_detections
 
             return report
 
         except Exception as e:
             logger.error(f"Error generating compliance report: {e}")
-            return {'error': str(e)}
+            return {"error": str(e)}
 
     def update_config(self, new_config: Dict[str, Any]):
         """Update monitoring configuration."""
@@ -504,8 +534,10 @@ class SecurityMonitoringSystem:
             return
 
         self.config.update(new_config)
-        self.alerts_enabled = new_config.get('alerts_enabled', self.alerts_enabled)
-        self.compliance_reporting = new_config.get('compliance_reporting', self.compliance_reporting)
+        self.alerts_enabled = new_config.get("alerts_enabled", self.alerts_enabled)
+        self.compliance_reporting = new_config.get(
+            "compliance_reporting", self.compliance_reporting
+        )
 
         logger.info("Security monitoring configuration updated")
 

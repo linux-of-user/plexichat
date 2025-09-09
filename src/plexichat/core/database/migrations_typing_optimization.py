@@ -6,7 +6,6 @@ This module contains database migrations to optimize typing indicator performanc
 
 from plexichat.core.database.migrations import create_migration
 
-
 # Migration to add performance indexes for typing indicators
 create_migration(
     "003_optimize_typing_indexes",
@@ -30,7 +29,7 @@ create_migration(
     DROP INDEX IF EXISTS idx_typing_status_user_channel_expires;
     DROP INDEX IF EXISTS idx_typing_status_cleanup;
     DROP INDEX IF EXISTS idx_typing_status_active;
-    """
+    """,
 )
 
 
@@ -66,7 +65,7 @@ create_migration(
     """,
     """
     DROP TABLE IF EXISTS typing_cleanup_schedule;
-    """
+    """,
 )
 
 
@@ -96,7 +95,7 @@ create_migration(
     """,
     """
     DROP TABLE IF EXISTS typing_config;
-    """
+    """,
 )
 
 
@@ -119,7 +118,7 @@ create_migration(
     """,
     """
     DROP TABLE IF EXISTS typing_cache;
-    """
+    """,
 )
 
 
@@ -143,5 +142,5 @@ create_migration(
     """,
     """
     DROP TABLE IF EXISTS typing_metrics;
-    """
+    """,
 )

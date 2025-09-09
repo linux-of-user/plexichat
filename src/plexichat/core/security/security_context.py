@@ -11,17 +11,19 @@ from typing import Optional, Set
 
 class SecurityLevel(Enum):
     """Security access levels for endpoints."""
-    PUBLIC = 0          # No authentication required
-    BASIC = 1           # Basic authentication required
-    AUTHENTICATED = 2   # Valid user session required
-    ELEVATED = 3        # Enhanced privileges required
-    ADMIN = 4           # Admin access required
-    SYSTEM = 5          # System-level access required
+
+    PUBLIC = 0  # No authentication required
+    BASIC = 1  # Basic authentication required
+    AUTHENTICATED = 2  # Valid user session required
+    ELEVATED = 3  # Enhanced privileges required
+    ADMIN = 4  # Admin access required
+    SYSTEM = 5  # System-level access required
 
 
 @dataclass
 class SecurityContext:
     """Security context for requests."""
+
     user_id: Optional[str] = None
     session_id: Optional[str] = None
     ip_address: Optional[str] = None
@@ -35,7 +37,4 @@ class SecurityContext:
     timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
 
-__all__ = [
-    "SecurityContext",
-    "SecurityLevel"
-]
+__all__ = ["SecurityContext", "SecurityLevel"]

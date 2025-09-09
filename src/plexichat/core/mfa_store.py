@@ -1,12 +1,14 @@
-from typing import Any, Dict, List, Optional, Set
 import hashlib
+from typing import Any, Dict, List, Optional, Set
 
 # Use unified logging system
 try:
     from plexichat.core.logging import get_logger
+
     logger = get_logger(__name__)
 except Exception:  # Fallback to std logging if unified logging not available
     import logging
+
     logger = logging.getLogger(__name__)
 
 # TOTP verification
@@ -14,6 +16,7 @@ try:
     import pyotp  # type: ignore
 except Exception:
     pyotp = None  # Will degrade gracefully
+
 
 class MFAStore:
     """
@@ -24,9 +27,14 @@ class MFAStore:
     - Real TOTP secret storage and verification (if pyotp available)
     - One-time backup codes stored hashed and consumed on use
     """
+
     def __init__(self):
-        self.mfa_devices: Dict[str, List[str]] = {}  # user_id -> List[str] (encrypted device JSON)
-        self.mfa_sessions: Dict[str, Any] = {}  # session_id -> MFASession (or dict representation)
+        self.mfa_devices: Dict[str, List[str]] = (
+            {}
+        )  # user_id -> List[str] (encrypted device JSON)
+        self.mfa_sessions: Dict[str, Any] = (
+            {}
+        )  # session_id -> MFASession (or dict representation)
         # Store backup codes list (legacy support for WebUI encrypted codes)
         self.mfa_backup_codes: Dict[str, List[str]] = {}  # user_id -> List[str]
         # Additionally, maintain hashed codes for backend verification
@@ -69,17 +77,21 @@ class MFAStore:
     def set_backup_codes(self, user_id: str, codes: List[str]):
         # Store legacy encrypted list (for WebUI)
         self.mfa_backup_codes[user_id] = codes
-        logger.info(f"Stored {len(codes)} backup codes (encrypted list) for user {user_id}")
+        logger.info(
+            f"Stored {len(codes)} backup codes (encrypted list) for user {user_id}"
+        )
 
     # Additional secure hashed backup codes for backend verification
     def set_backup_codes_hashed(self, user_id: str, codes: List[str]):
         # Store SHA256 hashes of normalized codes
         hashed = {self._hash_code(c) for c in codes if c and isinstance(c, str)}
         self.mfa_backup_codes_hashed[user_id] = hashed
-        logger.info(f"Configured {len(hashed)} backup codes (hashed) for user {user_id}")
+        logger.info(
+            f"Configured {len(hashed)} backup codes (hashed) for user {user_id}"
+        )
 
     def _hash_code(self, code: str) -> str:
-        return hashlib.sha256(code.strip().upper().encode('utf-8')).hexdigest()
+        return hashlib.sha256(code.strip().upper().encode("utf-8")).hexdigest()
 
     def get_challenge(self, challenge_id: str) -> Optional[Any]:
         return self.mfa_challenges.get(challenge_id)

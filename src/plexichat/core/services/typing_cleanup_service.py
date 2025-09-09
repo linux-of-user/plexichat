@@ -6,16 +6,16 @@ Background service for cleaning up expired typing indicators.
 
 import asyncio
 import logging
-from datetime import datetime, timezone, timedelta
-from typing import Dict, Any, Optional
+from datetime import datetime, timedelta, timezone
+from typing import Any, Dict, Optional
 
+from plexichat.core.config import get_config
 from plexichat.core.services.typing_service import typing_service
 from plexichat.infrastructure.services.background_tasks import (
-    submit_task,
+    TaskPriority,
     submit_scheduled_task,
-    TaskPriority
+    submit_task,
 )
-from plexichat.core.config import get_config
 
 logger = logging.getLogger(__name__)
 
@@ -24,8 +24,12 @@ class TypingCleanupService:
     """Service for managing background cleanup of expired typing states."""
 
     def __init__(self):
-        self.cleanup_interval = get_config("typing.cleanup_interval_seconds", 30)  # seconds
-        self.max_cleanup_age = get_config("typing.max_typing_history_days", 7) * 24 * 60 * 60  # Convert days to seconds
+        self.cleanup_interval = get_config(
+            "typing.cleanup_interval_seconds", 30
+        )  # seconds
+        self.max_cleanup_age = (
+            get_config("typing.max_typing_history_days", 7) * 24 * 60 * 60
+        )  # Convert days to seconds
         self.running = False
         self.cleanup_task_id: Optional[str] = None
 
@@ -62,13 +66,15 @@ class TypingCleanupService:
 
         try:
             # Schedule cleanup to run in cleanup_interval seconds
-            next_run = datetime.now(timezone.utc) + timedelta(seconds=self.cleanup_interval)
+            next_run = datetime.now(timezone.utc) + timedelta(
+                seconds=self.cleanup_interval
+            )
 
             self.cleanup_task_id = await submit_scheduled_task(
                 self._run_cleanup,
                 next_run,
                 name="typing_cleanup",
-                priority=TaskPriority.LOW
+                priority=TaskPriority.LOW,
             )
 
             logger.debug(f"Scheduled next typing cleanup for {next_run}")
@@ -98,7 +104,7 @@ class TypingCleanupService:
             return {
                 "success": True,
                 "cleaned_count": cleaned_count,
-                "timestamp": datetime.now(timezone.utc).isoformat()
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             }
 
         except Exception as e:
@@ -111,7 +117,7 @@ class TypingCleanupService:
             return {
                 "success": False,
                 "error": str(e),
-                "timestamp": datetime.now(timezone.utc).isoformat()
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             }
 
     async def _record_cleanup_metrics(self, cleaned_count: int) -> None:
@@ -119,7 +125,9 @@ class TypingCleanupService:
         try:
             # This would integrate with your metrics system
             # For now, just log the metrics
-            logger.info(f"Typing cleanup completed: {cleaned_count} expired states removed")
+            logger.info(
+                f"Typing cleanup completed: {cleaned_count} expired states removed"
+            )
 
             # You could store this in the typing_metrics table
             # await self._store_metrics("cleanup", cleaned_count, ...)
@@ -138,7 +146,7 @@ class TypingCleanupService:
                 "success": True,
                 "cleaned_count": cleaned_count,
                 "forced": True,
-                "timestamp": datetime.now(timezone.utc).isoformat()
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             }
 
         except Exception as e:
@@ -147,7 +155,7 @@ class TypingCleanupService:
                 "success": False,
                 "error": str(e),
                 "forced": True,
-                "timestamp": datetime.now(timezone.utc).isoformat()
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             }
 
     async def get_status(self) -> Dict[str, Any]:
@@ -157,19 +165,25 @@ class TypingCleanupService:
             "cleanup_interval": self.cleanup_interval,
             "max_cleanup_age": self.max_cleanup_age,
             "next_cleanup_task_id": self.cleanup_task_id,
-            "last_cleanup_result": getattr(self, '_last_result', None)
+            "last_cleanup_result": getattr(self, "_last_result", None),
         }
 
     async def update_config(self, config: Dict[str, Any]) -> bool:
         """Update cleanup service configuration."""
         try:
-            if 'cleanup_interval' in config:
-                self.cleanup_interval = max(10, min(300, config['cleanup_interval']))  # 10s to 5min
+            if "cleanup_interval" in config:
+                self.cleanup_interval = max(
+                    10, min(300, config["cleanup_interval"])
+                )  # 10s to 5min
 
-            if 'max_cleanup_age' in config:
-                self.max_cleanup_age = max(60, min(3600, config['max_cleanup_age']))  # 1min to 1hour
+            if "max_cleanup_age" in config:
+                self.max_cleanup_age = max(
+                    60, min(3600, config["max_cleanup_age"])
+                )  # 1min to 1hour
 
-            logger.info(f"Updated typing cleanup config: interval={self.cleanup_interval}s, max_age={self.max_cleanup_age}s")
+            logger.info(
+                f"Updated typing cleanup config: interval={self.cleanup_interval}s, max_age={self.max_cleanup_age}s"
+            )
             return True
 
         except Exception as e:

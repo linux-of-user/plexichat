@@ -19,39 +19,32 @@ Provides a single, unified interface for all plugin operations.
 """
 
 import warnings
-from typing import Dict, Any, Optional, List
+from typing import Any, Dict, List, Optional
 
 # Import unified plugin system (NEW SINGLE SOURCE OF TRUTH)
 try:
-    from plexichat.core.plugins.manager import (
-        # Main classes
-        UnifiedPluginManager,
-        unified_plugin_manager,
+    from plexichat.core.plugins.manager import (  # Main classes; Data classes; Main functions; Exceptions
+        PluginError,
+        PluginInfo,
         PluginInterface,
         PluginIsolationManager,
-        PluginTestManager,
-
-        # Data classes
         PluginMetadata,
-        PluginInfo,
-        PluginType,
         PluginStatus,
+        PluginTestManager,
+        PluginType,
         SecurityLevel,
-
-        # Main functions
-        get_plugin_manager,
-        discover_plugins,
-        load_plugin,
-        unload_plugin,
-        enable_plugin,
+        UnifiedPluginManager,
         disable_plugin,
-        get_plugin_info,
-        get_all_plugins_info,
-        execute_command,
+        discover_plugins,
         emit_event,
-
-        # Exceptions
-        PluginError,
+        enable_plugin,
+        execute_command,
+        get_all_plugins_info,
+        get_plugin_info,
+        get_plugin_manager,
+        load_plugin,
+        unified_plugin_manager,
+        unload_plugin,
     )
 
     # Backward compatibility aliases
@@ -65,7 +58,7 @@ except ImportError as e:
     warnings.warn(
         f"Failed to import unified plugin system: {e}. Using fallback plugin system.",
         ImportWarning,
-        stacklevel=2
+        stacklevel=2,
     )
 
     logger = logging.getLogger(__name__)
@@ -172,6 +165,7 @@ except ImportError as e:
     class PluginTestManager:
         pass
 
+
 # Legacy initialization function for backward compatibility
 async def initialize_plugin_system() -> bool:
     """Initialize the plugin system (backward compatibility)."""
@@ -179,21 +173,26 @@ async def initialize_plugin_system() -> bool:
         return await unified_plugin_manager.initialize()
     except Exception as e:
         import logging
+
         logger = logging.getLogger(__name__)
         logger.error(f"Failed to initialize plugin system: {e}")
         return False
+
 
 async def get_plugin_manager_instance():
     """Get the plugin manager instance (backward compatibility)."""
     return unified_plugin_manager
 
+
 # Legacy aliases for backward compatibility
 PlexiChatPlugin = PluginInterface
 emit_plugin_event = emit_event
 
+
 def get_plugins():
     """Get all plugins info (backward compatibility)."""
     return get_all_plugins_info()
+
 
 # Export all the main classes and functions
 __all__ = [
@@ -203,14 +202,12 @@ __all__ = [
     "PluginInterface",
     "PluginIsolationManager",
     "PluginTestManager",
-
     # Data classes
     "PluginMetadata",
     "PluginInfo",
     "PluginType",
     "PluginStatus",
     "SecurityLevel",
-
     # Main functions
     "get_plugin_manager",
     "discover_plugins",
@@ -222,18 +219,15 @@ __all__ = [
     "get_all_plugins_info",
     "execute_command",
     "emit_event",
-
     # Backward compatibility aliases
     "plugin_manager",
     "PluginManager",
     "PlexiChatPlugin",
     "emit_plugin_event",
     "get_plugins",
-
     # Legacy functions
     "initialize_plugin_system",
     "get_plugin_manager_instance",
-
     # Exceptions
     "PluginError",
 ]

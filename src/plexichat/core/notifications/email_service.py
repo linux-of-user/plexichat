@@ -7,17 +7,19 @@ Handles sending email notifications with templates and SMTP configuration.
 import asyncio
 import logging
 import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from typing import Dict, List, Optional, Any
 from dataclasses import dataclass
 from datetime import datetime
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
+
 
 @dataclass
 class EmailConfig:
     """Email service configuration."""
+
     smtp_server: str
     smtp_port: int
     smtp_username: str
@@ -28,14 +30,17 @@ class EmailConfig:
     use_ssl: bool = False
     timeout: int = 30
 
+
 @dataclass
 class EmailTemplate:
     """Email notification template."""
+
     template_id: str
     subject_template: str
     html_template: str
     text_template: str
     variables: List[str]
+
 
 class EmailService:
     """Email notification service with template support."""
@@ -79,7 +84,13 @@ class EmailService:
                 You received this notification because you have notifications enabled for this channel.
                 Unsubscribe: {{unsubscribe_url}}
                 """,
-                variables=["sender_name", "channel_name", "message_content", "message_url", "unsubscribe_url"]
+                variables=[
+                    "sender_name",
+                    "channel_name",
+                    "message_content",
+                    "message_url",
+                    "unsubscribe_url",
+                ],
             ),
             "mention_notification": EmailTemplate(
                 template_id="mention_notification",
@@ -112,7 +123,13 @@ class EmailService:
                 You received this notification because you were mentioned in a message.
                 Unsubscribe: {{unsubscribe_url}}
                 """,
-                variables=["sender_name", "channel_name", "message_content", "message_url", "unsubscribe_url"]
+                variables=[
+                    "sender_name",
+                    "channel_name",
+                    "message_content",
+                    "message_url",
+                    "unsubscribe_url",
+                ],
             ),
             "system_notification": EmailTemplate(
                 template_id="system_notification",
@@ -141,15 +158,17 @@ class EmailService:
                 ---
                 This is an automated system notification.
                 """,
-                variables=["title", "message_content", "action_url"]
-            )
+                variables=["title", "message_content", "action_url"],
+            ),
         }
 
     def add_template(self, template: EmailTemplate):
         """Add a custom email template."""
         self.templates[template.template_id] = template
 
-    def _render_template(self, template: EmailTemplate, variables: Dict[str, Any]) -> tuple[str, str]:
+    def _render_template(
+        self, template: EmailTemplate, variables: Dict[str, Any]
+    ) -> tuple[str, str]:
         """Render email template with variables."""
         subject = template.subject_template
         html_body = template.html_template
@@ -163,9 +182,14 @@ class EmailService:
 
         return subject, html_body, text_body
 
-    async def send_email(self, to_email: str, template_id: str,
-                        variables: Dict[str, Any], cc: Optional[List[str]] = None,
-                        bcc: Optional[List[str]] = None) -> bool:
+    async def send_email(
+        self,
+        to_email: str,
+        template_id: str,
+        variables: Dict[str, Any],
+        cc: Optional[List[str]] = None,
+        bcc: Optional[List[str]] = None,
+    ) -> bool:
         """
         Send email notification using template.
 
@@ -188,17 +212,17 @@ class EmailService:
             subject, html_body, text_body = self._render_template(template, variables)
 
             # Create message
-            msg = MIMEMultipart('alternative')
-            msg['Subject'] = subject
-            msg['From'] = f"{self.config.from_name} <{self.config.from_email}>"
-            msg['To'] = to_email
+            msg = MIMEMultipart("alternative")
+            msg["Subject"] = subject
+            msg["From"] = f"{self.config.from_name} <{self.config.from_email}>"
+            msg["To"] = to_email
 
             if cc:
-                msg['Cc'] = ', '.join(cc)
+                msg["Cc"] = ", ".join(cc)
 
             # Attach both HTML and text versions
-            text_part = MIMEText(text_body, 'plain')
-            html_part = MIMEText(html_body, 'html')
+            text_part = MIMEText(text_body, "plain")
+            html_part = MIMEText(html_body, "html")
 
             msg.attach(text_part)
             msg.attach(html_part)
@@ -212,7 +236,9 @@ class EmailService:
 
             await self._send_via_smtp(msg, recipients)
 
-            logger.info(f"Email sent successfully to {to_email} using template '{template_id}'")
+            logger.info(
+                f"Email sent successfully to {to_email} using template '{template_id}'"
+            )
             return True
 
         except Exception as e:
@@ -223,11 +249,17 @@ class EmailService:
         """Send email via SMTP."""
         try:
             if self.config.use_ssl:
-                server = smtplib.SMTP_SSL(self.config.smtp_server, self.config.smtp_port,
-                                        timeout=self.config.timeout)
+                server = smtplib.SMTP_SSL(
+                    self.config.smtp_server,
+                    self.config.smtp_port,
+                    timeout=self.config.timeout,
+                )
             else:
-                server = smtplib.SMTP(self.config.smtp_server, self.config.smtp_port,
-                                    timeout=self.config.timeout)
+                server = smtplib.SMTP(
+                    self.config.smtp_server,
+                    self.config.smtp_port,
+                    timeout=self.config.timeout,
+                )
 
             if self.config.use_tls and not self.config.use_ssl:
                 server.starttls()
@@ -242,7 +274,9 @@ class EmailService:
             logger.error(f"SMTP error: {e}")
             raise
 
-    async def send_bulk_emails(self, email_data: List[Dict[str, Any]]) -> Dict[str, bool]:
+    async def send_bulk_emails(
+        self, email_data: List[Dict[str, Any]]
+    ) -> Dict[str, bool]:
         """
         Send bulk email notifications.
 
@@ -265,18 +299,18 @@ class EmailService:
         async def send_single_email(data: Dict[str, Any]):
             async with semaphore:
                 return await self.send_email(
-                    data['to_email'],
-                    data['template_id'],
-                    data['variables'],
-                    data.get('cc'),
-                    data.get('bcc')
+                    data["to_email"],
+                    data["template_id"],
+                    data["variables"],
+                    data.get("cc"),
+                    data.get("bcc"),
                 )
 
         tasks = [send_single_email(data) for data in email_data]
         send_results = await asyncio.gather(*tasks, return_exceptions=True)
 
         for i, result in enumerate(send_results):
-            email = email_data[i]['to_email']
+            email = email_data[i]["to_email"]
             if isinstance(result, Exception):
                 logger.error(f"Failed to send email to {email}: {result}")
                 results[email] = False
@@ -289,7 +323,9 @@ class EmailService:
         """Get list of available email templates."""
         return list(self.templates.keys())
 
-    def validate_template_variables(self, template_id: str, variables: Dict[str, Any]) -> List[str]:
+    def validate_template_variables(
+        self, template_id: str, variables: Dict[str, Any]
+    ) -> List[str]:
         """Validate that all required template variables are provided."""
         if template_id not in self.templates:
             return [f"Template '{template_id}' not found"]
@@ -303,12 +339,15 @@ class EmailService:
 
         return missing_vars
 
+
 # Global email service instance
 _email_service: Optional[EmailService] = None
+
 
 def get_email_service() -> Optional[EmailService]:
     """Get the global email service instance."""
     return _email_service
+
 
 def initialize_email_service(config: EmailConfig) -> EmailService:
     """Initialize the global email service."""
@@ -316,8 +355,10 @@ def initialize_email_service(config: EmailConfig) -> EmailService:
     _email_service = EmailService(config)
     return _email_service
 
-async def send_notification_email(to_email: str, template_id: str,
-                                variables: Dict[str, Any]) -> bool:
+
+async def send_notification_email(
+    to_email: str, template_id: str, variables: Dict[str, Any]
+) -> bool:
     """Send notification email using global service."""
     service = get_email_service()
     if not service:

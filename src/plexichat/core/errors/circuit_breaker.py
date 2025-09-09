@@ -5,7 +5,6 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Type
 
-
 """
 PlexiChat Circuit Breaker
 
@@ -18,6 +17,7 @@ logger = logging.getLogger(__name__)
 
 class CircuitState(Enum):
     """Circuit breaker states."""
+
     CLOSED = "CLOSED"  # Normal operation
     OPEN = "OPEN"  # Circuit is open, calls are blocked
     HALF_OPEN = "HALF_OPEN"  # Testing if service has recovered
@@ -26,6 +26,7 @@ class CircuitState(Enum):
 @dataclass
 class CircuitBreakerConfig:
     """Configuration for circuit breaker."""
+
     failure_threshold: int = 5  # Number of failures before opening
     timeout_seconds: int = 60  # Time to wait before trying again
     recovery_timeout: int = 30  # Time to wait in half-open state
@@ -177,10 +178,7 @@ class CircuitBreaker:
     def _is_expected_exception(self, exception: Exception) -> bool:
         """Check if exception is one we should count as a failure."""
         expected_exceptions = self.config.expected_exceptions or []
-        return any(
-            isinstance(exception, exc_type)
-            for exc_type in expected_exceptions
-        )
+        return any(isinstance(exception, exc_type) for exc_type in expected_exceptions)
 
     def get_stats(self) -> Dict[str, Any]:
         """Get circuit breaker statistics."""
@@ -192,7 +190,8 @@ class CircuitBreaker:
             "failed_calls": self.stats.failed_calls,
             "success_rate": (
                 self.stats.successful_calls / max(self.stats.total_calls, 1)
-            ) * 100,
+            )
+            * 100,
             "consecutive_failures": self.stats.consecutive_failures,
             "consecutive_successes": self.stats.consecutive_successes,
             "circuit_open_count": self.stats.circuit_open_count,

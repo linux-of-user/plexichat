@@ -11,16 +11,24 @@ Comprehensive monitoring and analytics system providing:
 
 # Use shared fallback implementations
 import logging
+
 logger = logging.getLogger(__name__)
 
 try:
     from plexichat.core.utils.fallbacks import (
-        start_performance_monitoring, stop_performance_monitoring,
-        get_performance_dashboard, get_system_health_status,
-        record_performance_metric, get_fallback_instance,
-        MetricType, AlertLevel, PerformanceMetric,
-        SystemHealthStatus, PerformanceAlert
+        AlertLevel,
+        MetricType,
+        PerformanceAlert,
+        PerformanceMetric,
+        SystemHealthStatus,
+        get_fallback_instance,
+        get_performance_dashboard,
+        get_system_health_status,
+        record_performance_metric,
+        start_performance_monitoring,
+        stop_performance_monitoring,
     )
+
     USE_SHARED_FALLBACKS = True
     logger.info("Using shared fallback implementations for monitoring")
 except ImportError:
@@ -29,7 +37,7 @@ except ImportError:
     logger.warning("Shared fallbacks unavailable, using local implementations")
 
 if USE_SHARED_FALLBACKS:
-    performance_monitor = get_fallback_instance('PerformanceMonitor')
+    performance_monitor = get_fallback_instance("PerformanceMonitor")
 else:
     # Local fallbacks (preserved for compatibility)
     performance_monitor = None
@@ -67,19 +75,21 @@ else:
         def __init__(self, **kwargs):
             self.__dict__.update(kwargs)
 
+
 __all__ = [
-    'performance_monitor',
-    'start_performance_monitoring',
-    'stop_performance_monitoring',
-    'get_performance_dashboard',
-    'get_system_health_status',
-    'record_performance_metric',
-    'MetricType',
-    'AlertLevel',
-    'PerformanceMetric',
-    'SystemHealthStatus',
-    'PerformanceAlert'
+    "performance_monitor",
+    "start_performance_monitoring",
+    "stop_performance_monitoring",
+    "get_performance_dashboard",
+    "get_system_health_status",
+    "record_performance_metric",
+    "MetricType",
+    "AlertLevel",
+    "PerformanceMetric",
+    "SystemHealthStatus",
+    "PerformanceAlert",
 ]
 
 from plexichat.core.utils.fallbacks import get_module_version
+
 __version__ = get_module_version()

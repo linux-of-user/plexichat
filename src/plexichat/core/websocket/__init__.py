@@ -1,14 +1,18 @@
 """PlexiChat WebSocket"""
 
 import logging
-from typing import Any, Dict, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict, Optional
 
 logger = logging.getLogger(__name__)
 
 # Try to import from websocket_manager, fall back to local implementations
 try:
-    from plexichat.core.websocket.websocket_manager import WebSocketManager as _WebSocketManager
-    from plexichat.core.websocket.websocket_manager import WebSocketConnection as _WebSocketConnection
+    from plexichat.core.websocket.websocket_manager import (
+        WebSocketConnection as _WebSocketConnection,
+    )
+    from plexichat.core.websocket.websocket_manager import (
+        WebSocketManager as _WebSocketManager,
+    )
 
     # Use the imported classes
     WebSocketManager = _WebSocketManager  # type: ignore
@@ -25,6 +29,7 @@ except ImportError:
     class WebSocketConnection:  # type: ignore
         def __init__(self):
             pass
+
 
 # Set to None to indicate unavailable
 websocket_manager = None

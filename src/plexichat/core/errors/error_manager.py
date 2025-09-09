@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class ErrorMetrics:
     """Error metrics and statistics."""
+
     total_errors: int = 0
     errors_by_severity: Dict[str, int] = field(default_factory=lambda: defaultdict(int))
     errors_by_category: Dict[str, int] = field(default_factory=lambda: defaultdict(int))
@@ -31,6 +32,7 @@ class ErrorMetrics:
 @dataclass
 class ErrorPattern:
     """Detected error pattern."""
+
     pattern_id: str
     error_type: str
     frequency: int
@@ -44,6 +46,7 @@ class ErrorPattern:
 @dataclass
 class ErrorContext:
     """Error context information."""
+
     error_id: str = ""
     timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     exception: Optional[Exception] = None
@@ -58,10 +61,12 @@ class ErrorContext:
 
 class ErrorManager:
     """Simplified error management system."""
-    
+
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         self.config = config or {}
-        self.error_history: deque = deque(maxlen=self.config.get("max_history_size", 10000))
+        self.error_history: deque = deque(
+            maxlen=self.config.get("max_history_size", 10000)
+        )
         self.error_metrics = ErrorMetrics()
         self.error_patterns: Dict[str, ErrorPattern] = {}
         self.circuit_breakers: Dict[str, CircuitBreaker] = {}
@@ -88,12 +93,14 @@ class ErrorManager:
             self._load_default_recovery_strategies()
 
             if self.monitoring_enabled:
-                self.background_tasks.extend([
-                    asyncio.create_task(self._metrics_collection_loop()),
-                    asyncio.create_task(self._pattern_detection_loop()),
-                    asyncio.create_task(self._health_monitoring_loop()),
-                    asyncio.create_task(self._cleanup_loop())
-                ])
+                self.background_tasks.extend(
+                    [
+                        asyncio.create_task(self._metrics_collection_loop()),
+                        asyncio.create_task(self._pattern_detection_loop()),
+                        asyncio.create_task(self._health_monitoring_loop()),
+                        asyncio.create_task(self._cleanup_loop()),
+                    ]
+                )
 
             self.initialized = True
             logger.info("Error Manager initialized")
@@ -102,10 +109,17 @@ class ErrorManager:
             logger.error(f"Failed to initialize Error Manager: {e}")
             raise
 
-    def handle_error(self, exception: Exception, context: Optional[Dict[str, Any]] = None,
-                    severity: str = "MEDIUM", category: str = "UNKNOWN",
-                    component: Optional[str] = None, user_id: Optional[str] = None,
-                    request_id: Optional[str] = None, attempt_recovery: bool = True) -> "ErrorContext":
+    def handle_error(
+        self,
+        exception: Exception,
+        context: Optional[Dict[str, Any]] = None,
+        severity: str = "MEDIUM",
+        category: str = "UNKNOWN",
+        component: Optional[str] = None,
+        user_id: Optional[str] = None,
+        request_id: Optional[str] = None,
+        attempt_recovery: bool = True,
+    ) -> "ErrorContext":
         """Handle an error with comprehensive processing."""
 
         error_id = str(uuid.uuid4())
@@ -121,7 +135,7 @@ class ErrorManager:
             user_id=user_id or "anonymous",
             request_id=request_id or "no-request",
             context=context or {},
-            stack_trace=traceback.format_exc()
+            stack_trace=traceback.format_exc(),
         )
 
         try:
@@ -196,7 +210,9 @@ class ErrorManager:
         self.error_metrics.errors_by_severity[error_context.severity] += 1
         self.error_metrics.errors_by_category[error_context.category] += 1
         if error_context.exception:
-            self.error_metrics.errors_by_type[type(error_context.exception).__name__] += 1
+            self.error_metrics.errors_by_type[
+                type(error_context.exception).__name__
+            ] += 1
         self.error_metrics.last_updated = datetime.now(timezone.utc)
 
     def _execute_error_callbacks(self, error_context: "ErrorContext"):
@@ -284,9 +300,11 @@ def create_error_response(error_context: "ErrorContext") -> Dict[str, Any]:
     """Create a standardized error response."""
     return {
         "error_id": error_context.error_id,
-        "message": str(error_context.exception) if error_context.exception else "Unknown error",
+        "message": (
+            str(error_context.exception) if error_context.exception else "Unknown error"
+        ),
         "severity": error_context.severity,
         "category": error_context.category,
         "component": error_context.component,
-        "timestamp": error_context.timestamp.isoformat()
+        "timestamp": error_context.timestamp.isoformat(),
     }

@@ -7,14 +7,13 @@ High-performance WebSocket broadcasting optimized specifically for typing events
 import asyncio
 import logging
 import time
-from typing import Dict, List, Set, Optional, Any, Deque
 from collections import defaultdict, deque
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from typing import Any, Deque, Dict, List, Optional, Set
 
-from plexichat.core.websocket.websocket_manager import websocket_manager
 from plexichat.core.config import get_setting
-
+from plexichat.core.websocket.websocket_manager import websocket_manager
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +21,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class TypingBroadcastBatch:
     """Batch of typing events for efficient broadcasting."""
+
     channel_id: str
     events: List[Dict[str, Any]]
     timestamp: datetime
@@ -33,12 +33,20 @@ class OptimizedWebSocketService:
 
     def __init__(self):
         self.broadcast_queue: asyncio.Queue = asyncio.Queue()
-        self.batch_queues: Dict[str, Deque[TypingBroadcastBatch]] = defaultdict(lambda: deque(maxlen=100))
+        self.batch_queues: Dict[str, Deque[TypingBroadcastBatch]] = defaultdict(
+            lambda: deque(maxlen=100)
+        )
         self.channel_subscribers: Dict[str, Set[str]] = defaultdict(set)
         self.running = False
-        self.batch_size = get_setting("typing.broadcast_batch_size", 10)  # Max events per batch
-        self.batch_timeout = get_setting("typing.broadcast_interval_seconds", 0.1)  # Max wait time for batching
-        self.max_concurrent_broadcasts = get_setting("typing.max_concurrent_typing_users", 50)  # Max concurrent broadcast tasks
+        self.batch_size = get_setting(
+            "typing.broadcast_batch_size", 10
+        )  # Max events per batch
+        self.batch_timeout = get_setting(
+            "typing.broadcast_interval_seconds", 0.1
+        )  # Max wait time for batching
+        self.max_concurrent_broadcasts = get_setting(
+            "typing.max_concurrent_typing_users", 50
+        )  # Max concurrent broadcast tasks
 
         # Performance metrics
         self.metrics = {
@@ -47,7 +55,7 @@ class OptimizedWebSocketService:
             "individual_broadcasts": 0,
             "failed_broadcasts": 0,
             "avg_broadcast_time": 0.0,
-            "total_connections_served": 0
+            "total_connections_served": 0,
         }
 
     async def start(self) -> None:
@@ -68,7 +76,9 @@ class OptimizedWebSocketService:
         self.running = False
         logger.info("Optimized WebSocket service stopped")
 
-    async def broadcast_typing_event(self, channel_id: str, event: Dict[str, Any], priority: int = 1) -> None:
+    async def broadcast_typing_event(
+        self, channel_id: str, event: Dict[str, Any], priority: int = 1
+    ) -> None:
         """Broadcast typing event with optimization."""
         if not self.running:
             # Fallback to direct broadcast
@@ -79,7 +89,7 @@ class OptimizedWebSocketService:
             channel_id=channel_id,
             events=[event],
             timestamp=datetime.now(timezone.utc),
-            priority=priority
+            priority=priority,
         )
 
         # Add to batch queue for processing
@@ -88,7 +98,9 @@ class OptimizedWebSocketService:
         # Update metrics
         self.metrics["total_broadcasts"] += 1
 
-    async def broadcast_typing_batch(self, channel_id: str, events: List[Dict[str, Any]], priority: int = 1) -> None:
+    async def broadcast_typing_batch(
+        self, channel_id: str, events: List[Dict[str, Any]], priority: int = 1
+    ) -> None:
         """Broadcast multiple typing events as a batch."""
         if not events:
             return
@@ -103,7 +115,7 @@ class OptimizedWebSocketService:
             channel_id=channel_id,
             events=events,
             timestamp=datetime.now(timezone.utc),
-            priority=priority
+            priority=priority,
         )
 
         await self.broadcast_queue.put(batch)
@@ -118,8 +130,7 @@ class OptimizedWebSocketService:
                 # Wait for first event or timeout
                 try:
                     batch = await asyncio.wait_for(
-                        self.broadcast_queue.get(),
-                        timeout=self.batch_timeout
+                        self.broadcast_queue.get(), timeout=self.batch_timeout
                     )
                 except asyncio.TimeoutError:
                     continue
@@ -131,11 +142,14 @@ class OptimizedWebSocketService:
                 # Try to collect more events for this channel within timeout
                 end_time = time.time() + self.batch_timeout
 
-                while time.time() < end_time and len(batch_cache[channel_id]) < self.batch_size:
+                while (
+                    time.time() < end_time
+                    and len(batch_cache[channel_id]) < self.batch_size
+                ):
                     try:
                         next_batch = await asyncio.wait_for(
                             self.broadcast_queue.get(),
-                            timeout=max(0.001, end_time - time.time())
+                            timeout=max(0.001, end_time - time.time()),
                         )
 
                         if next_batch.channel_id == channel_id:
@@ -160,7 +174,9 @@ class OptimizedWebSocketService:
                 logger.error(f"Error in batch processor: {e}")
                 await asyncio.sleep(0.1)
 
-    async def _process_batch(self, channel_id: str, events: List[Dict[str, Any]]) -> None:
+    async def _process_batch(
+        self, channel_id: str, events: List[Dict[str, Any]]
+    ) -> None:
         """Process a batch of typing events."""
         if len(events) == 1:
             # Single event, send directly
@@ -173,7 +189,7 @@ class OptimizedWebSocketService:
                 "channel_id": channel_id,
                 "events": events,
                 "count": len(events),
-                "timestamp": datetime.now(timezone.utc).isoformat()
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             }
 
             await websocket_manager.send_to_channel(channel_id, batch_message)
@@ -194,7 +210,9 @@ class OptimizedWebSocketService:
 
                     try:
                         if len(batch.events) == 1:
-                            await websocket_manager.send_to_channel(batch.channel_id, batch.events[0])
+                            await websocket_manager.send_to_channel(
+                                batch.channel_id, batch.events[0]
+                            )
                             self.metrics["individual_broadcasts"] += 1
                         else:
                             # Send as batch
@@ -203,20 +221,27 @@ class OptimizedWebSocketService:
                                 "channel_id": batch.channel_id,
                                 "events": batch.events,
                                 "count": len(batch.events),
-                                "timestamp": datetime.now(timezone.utc).isoformat()
+                                "timestamp": datetime.now(timezone.utc).isoformat(),
                             }
-                            await websocket_manager.send_to_channel(batch.channel_id, batch_message)
+                            await websocket_manager.send_to_channel(
+                                batch.channel_id, batch_message
+                            )
                             self.metrics["batched_broadcasts"] += 1
 
                         # Update performance metrics
                         broadcast_time = time.time() - start_time
                         self.metrics["avg_broadcast_time"] = (
-                            (self.metrics["avg_broadcast_time"] * (self.metrics["total_broadcasts"] - len(batch.events))) +
-                            (broadcast_time * len(batch.events))
+                            (
+                                self.metrics["avg_broadcast_time"]
+                                * (self.metrics["total_broadcasts"] - len(batch.events))
+                            )
+                            + (broadcast_time * len(batch.events))
                         ) / self.metrics["total_broadcasts"]
 
                     except Exception as e:
-                        logger.error(f"Failed to broadcast typing batch to {batch.channel_id}: {e}")
+                        logger.error(
+                            f"Failed to broadcast typing batch to {batch.channel_id}: {e}"
+                        )
                         self.metrics["failed_broadcasts"] += len(batch.events)
 
                 self.broadcast_queue.task_done()
@@ -229,7 +254,9 @@ class OptimizedWebSocketService:
         """Get number of connections in a channel."""
         return websocket_manager.get_channel_connection_count(channel_id)
 
-    async def update_channel_subscribers(self, channel_id: str, connection_ids: Set[str]) -> None:
+    async def update_channel_subscribers(
+        self, channel_id: str, connection_ids: Set[str]
+    ) -> None:
         """Update subscriber list for a channel."""
         self.channel_subscribers[channel_id] = connection_ids.copy()
 
@@ -244,7 +271,7 @@ class OptimizedWebSocketService:
             "running": self.running,
             "queue_size": self.broadcast_queue.qsize(),
             "metrics": self.get_metrics(),
-            "timestamp": datetime.now(timezone.utc).isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
 
@@ -262,14 +289,22 @@ async def stop_optimized_websocket_service() -> None:
     await optimized_websocket_service.stop()
 
 
-async def broadcast_typing_event(channel_id: str, event: Dict[str, Any], priority: int = 1) -> None:
+async def broadcast_typing_event(
+    channel_id: str, event: Dict[str, Any], priority: int = 1
+) -> None:
     """Broadcast typing event via optimized service."""
-    await optimized_websocket_service.broadcast_typing_event(channel_id, event, priority)
+    await optimized_websocket_service.broadcast_typing_event(
+        channel_id, event, priority
+    )
 
 
-async def broadcast_typing_batch(channel_id: str, events: List[Dict[str, Any]], priority: int = 1) -> None:
+async def broadcast_typing_batch(
+    channel_id: str, events: List[Dict[str, Any]], priority: int = 1
+) -> None:
     """Broadcast typing events batch via optimized service."""
-    await optimized_websocket_service.broadcast_typing_batch(channel_id, events, priority)
+    await optimized_websocket_service.broadcast_typing_batch(
+        channel_id, events, priority
+    )
 
 
 async def get_websocket_metrics() -> Dict[str, Any]:

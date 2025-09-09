@@ -4,13 +4,13 @@ Manages user sessions with advanced security features.
 """
 
 import asyncio
-from typing import Dict, Optional, Set, List
-from datetime import datetime, timezone, timedelta
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from typing import Dict, List, Optional, Set
 
-from plexichat.core.logging import get_logger
 from plexichat.core.auth.services.interfaces import ISessionService
-from plexichat.core.authentication import SessionInfo, DeviceInfo
+from plexichat.core.authentication import DeviceInfo, SessionInfo
+from plexichat.core.logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -18,6 +18,7 @@ logger = get_logger(__name__)
 @dataclass
 class SessionStore:
     """In-memory session storage for development/testing."""
+
     sessions: Dict[str, SessionInfo] = field(default_factory=dict)
     expired_sessions: Set[str] = field(default_factory=set)
 
@@ -38,7 +39,8 @@ class SessionStore:
     def get_active_sessions(self, user_id: str) -> List[SessionInfo]:
         """Get all active sessions for a user."""
         return [
-            session for session in self.sessions.values()
+            session
+            for session in self.sessions.values()
             if session.user_id == user_id and not self._is_expired(session)
         ]
 
@@ -73,7 +75,7 @@ class SessionService(ISessionService):
         user_id: str,
         device_info: DeviceInfo,
         ip_address: str,
-        permissions: Set[str]
+        permissions: Set[str],
     ) -> SessionInfo:
         """Create a new session for the user."""
         session_id = self._generate_session_id()
@@ -84,7 +86,9 @@ class SessionService(ISessionService):
             # Remove oldest session if limit exceeded
             oldest_session = min(active_sessions, key=lambda s: s.created_at)
             await self.invalidate_session(oldest_session.session_id)
-            logger.warning(f"Removed oldest session for user {user_id} due to concurrent session limit")
+            logger.warning(
+                f"Removed oldest session for user {user_id} due to concurrent session limit"
+            )
 
         session = SessionInfo(
             session_id=session_id,
@@ -94,7 +98,7 @@ class SessionService(ISessionService):
             permissions=permissions,
             created_at=datetime.now(timezone.utc),
             expires_at=datetime.now(timezone.utc) + timedelta(hours=24),  # 24 hours
-            is_active=True
+            is_active=True,
         )
 
         self.session_store.add_session(session)
@@ -147,7 +151,9 @@ class SessionService(ISessionService):
         """Extend session expiration time."""
         session = self.session_store.get_session(session_id)
         if session and session.is_active and not self._is_expired(session):
-            session.expires_at = datetime.now(timezone.utc) + timedelta(hours=extension_hours)
+            session.expires_at = datetime.now(timezone.utc) + timedelta(
+                hours=extension_hours
+            )
             logger.info(f"Extended session {session_id} by {extension_hours} hours")
             return True
         return False
@@ -189,6 +195,7 @@ class SessionService(ISessionService):
     def _generate_session_id(self) -> str:
         """Generate a unique session ID."""
         import uuid
+
         return f"session_{uuid.uuid4().hex}"
 
     def _is_expired(self, session: SessionInfo) -> bool:

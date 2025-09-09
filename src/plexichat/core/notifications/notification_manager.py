@@ -1,5 +1,6 @@
 import socket
 import threading
+
 """
 PlexiChat Notification Manager
 
@@ -11,10 +12,10 @@ import asyncio
 import json
 import logging
 import time
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set
-from dataclasses import dataclass
 from uuid import uuid4
 
 try:
@@ -23,13 +24,21 @@ except ImportError:
     database_manager = None
 
 try:
-    from plexichat.core.threading.thread_manager import async_thread_manager, submit_task
+    from plexichat.core.threading.thread_manager import (
+        async_thread_manager,
+        submit_task,
+    )
 except ImportError:
     async_thread_manager = None
     submit_task = None
 
 try:
-    from plexichat.core.caching.unified_cache_integration import cache_get, cache_set, cache_delete, CacheKeyBuilder
+    from plexichat.core.caching.unified_cache_integration import (
+        CacheKeyBuilder,
+        cache_delete,
+        cache_get,
+        cache_set,
+    )
 except ImportError:
     cache_get = None
     cache_set = None
@@ -50,8 +59,10 @@ except ImportError:
     send_push_notification = None
 
 try:
-    from plexichat.core.performance.optimization_engine import PerformanceOptimizationEngine
     from plexichat.core.logging import get_performance_logger
+    from plexichat.core.performance.optimization_engine import (
+        PerformanceOptimizationEngine,
+    )
 except ImportError:
     PerformanceOptimizationEngine = None
     get_performance_logger = None
@@ -59,8 +70,10 @@ except ImportError:
 logger = logging.getLogger(__name__)
 performance_logger = get_performance_logger() if get_performance_logger else None
 
+
 class NotificationType(Enum):
     """Notification types."""
+
     MESSAGE = "message"
     MENTION = "mention"
     FRIEND_REQUEST = "friend_request"
@@ -69,16 +82,20 @@ class NotificationType(Enum):
     ERROR = "error"
     INFO = "info"
 
+
 class NotificationPriority(Enum):
     """Notification priorities."""
+
     LOW = "low"
     NORMAL = "normal"
     HIGH = "high"
     URGENT = "urgent"
 
+
 @dataclass
 class Notification:
     """Notification data structure."""
+
     notification_id: str
     user_id: int
     notification_type: NotificationType
@@ -90,8 +107,10 @@ class Notification:
     data: Dict[str, Any]
     expires_at: Optional[datetime]
 
+
 class NotificationManager:
     """Notification manager with threading support."""
+
     def __init__(self):
         self.db_manager = database_manager
         self.performance_logger = performance_logger
@@ -128,7 +147,9 @@ class NotificationManager:
         while self.processing:
             try:
                 # Get notification from queue with timeout
-                notification = await asyncio.wait_for(self.notification_queue.get(), timeout=1.0)
+                notification = await asyncio.wait_for(
+                    self.notification_queue.get(), timeout=1.0
+                )
 
                 # Process notification
                 if self.async_thread_manager:
@@ -167,18 +188,21 @@ class NotificationManager:
 
             # Send real-time notification via WebSocket
             if send_to_user:
-                await send_to_user(notification.user_id, {
-                    "type": "notification",
-                    "notification": {
-                        "id": notification.notification_id,
-                        "type": notification.notification_type.value,
-                        "title": notification.title,
-                        "message": notification.message,
-                        "priority": notification.priority.value,
-                        "created_at": notification.created_at.isoformat(),
-                        "data": notification.data
-                    }
-                })
+                await send_to_user(
+                    notification.user_id,
+                    {
+                        "type": "notification",
+                        "notification": {
+                            "id": notification.notification_id,
+                            "type": notification.notification_type.value,
+                            "title": notification.title,
+                            "message": notification.message,
+                            "priority": notification.priority.value,
+                            "created_at": notification.created_at.isoformat(),
+                            "data": notification.data,
+                        },
+                    },
+                )
 
             # Send push notification if enabled
             if preferences.get("push_notifications", True):
@@ -191,17 +215,25 @@ class NotificationManager:
             # Performance tracking
             if self.performance_logger:
                 duration = time.time() - start_time
-                self.performance_logger.record_metric("notification_processing_duration", duration, "seconds")
+                self.performance_logger.record_metric(
+                    "notification_processing_duration", duration, "seconds"
+                )
                 self.performance_logger.increment_counter("notifications_processed", 1)
 
             self.notifications_sent += 1
 
         except Exception as e:
-            logger.error(f"Error processing notification {notification.notification_id}: {e}")
+            logger.error(
+                f"Error processing notification {notification.notification_id}: {e}"
+            )
             if self.performance_logger:
-                self.performance_logger.increment_counter("notification_processing_errors", 1)
+                self.performance_logger.increment_counter(
+                    "notification_processing_errors", 1
+                )
 
-    def _should_send_notification(self, notification: Notification, preferences: Dict[str, Any]) -> bool:
+    def _should_send_notification(
+        self, notification: Notification, preferences: Dict[str, Any]
+    ) -> bool:
         """Check if notification should be sent based on user preferences."""
         try:
             # Check if notifications are enabled
@@ -217,7 +249,9 @@ class NotificationManager:
             min_priority = preferences.get("min_priority", "low")
             priority_levels = {"low": 0, "normal": 1, "high": 2, "urgent": 3}
 
-            if priority_levels.get(notification.priority.value, 0) < priority_levels.get(min_priority, 0):
+            if priority_levels.get(
+                notification.priority.value, 0
+            ) < priority_levels.get(min_priority, 0):
                 return False
 
             # Check quiet hours
@@ -238,8 +272,12 @@ class NotificationManager:
                 return False
 
             now = datetime.now().time()
-            start_time = datetime.strptime(quiet_hours.get("start", "22:00"), "%H:%M").time()
-            end_time = datetime.strptime(quiet_hours.get("end", "08:00"), "%H:%M").time()
+            start_time = datetime.strptime(
+                quiet_hours.get("start", "22:00"), "%H:%M"
+            ).time()
+            end_time = datetime.strptime(
+                quiet_hours.get("end", "08:00"), "%H:%M"
+            ).time()
 
             if start_time <= end_time:
                 return start_time <= now <= end_time
@@ -281,8 +319,8 @@ class NotificationManager:
                         "quiet_hours": {
                             "enabled": False,
                             "start": "22:00",
-                            "end": "08:00"
-                        }
+                            "end": "08:00",
+                        },
                     }
 
                 # Cache preferences
@@ -300,7 +338,7 @@ class NotificationManager:
                 "system_notifications": True,
                 "push_notifications": True,
                 "email_notifications": False,
-                "min_priority": "normal"
+                "min_priority": "normal",
             }
 
         except Exception as e:
@@ -350,7 +388,7 @@ class NotificationManager:
                 "message_id": notification.data.get("message_id"),
                 "channel_id": notification.data.get("channel_id"),
                 "thread_id": notification.data.get("thread_id"),
-                "sender_id": notification.data.get("sender_id")
+                "sender_id": notification.data.get("sender_id"),
             }
 
             # Send push notification
@@ -358,14 +396,18 @@ class NotificationManager:
                 user_id=notification.user_id,
                 title=notification.title,
                 body=notification.message,
-                data=data
+                data=data,
             )
 
             successful_sends = sum(1 for success in results.values() if success)
             if successful_sends > 0:
-                logger.info(f"Push notification sent to user {notification.user_id}: {notification.title} ({successful_sends} devices)")
+                logger.info(
+                    f"Push notification sent to user {notification.user_id}: {notification.title} ({successful_sends} devices)"
+                )
             else:
-                logger.warning(f"Failed to send push notification to user {notification.user_id}")
+                logger.warning(
+                    f"Failed to send push notification to user {notification.user_id}"
+                )
 
         except Exception as e:
             logger.error(f"Error sending push notification: {e}")
@@ -394,15 +436,19 @@ class NotificationManager:
                 "title": notification.title,
                 "message_url": f"https://plexichat.com/messages/{notification.data.get('message_id', '')}",
                 "unsubscribe_url": f"https://plexichat.com/settings/notifications?user={notification.user_id}",
-                "action_url": f"https://plexichat.com/messages/{notification.data.get('message_id', '')}"
+                "action_url": f"https://plexichat.com/messages/{notification.data.get('message_id', '')}",
             }
 
             # Send email
             success = await send_notification_email(user_email, template_id, variables)
             if success:
-                logger.info(f"Email notification sent to user {notification.user_id}: {notification.title}")
+                logger.info(
+                    f"Email notification sent to user {notification.user_id}: {notification.title}"
+                )
             else:
-                logger.error(f"Failed to send email notification to user {notification.user_id}")
+                logger.error(
+                    f"Failed to send email notification to user {notification.user_id}"
+                )
 
         except Exception as e:
             logger.error(f"Error sending email notification: {e}")
@@ -414,7 +460,7 @@ class NotificationManager:
             NotificationType.MESSAGE: "message_notification",
             NotificationType.SYSTEM: "system_notification",
             NotificationType.WARNING: "system_notification",
-            NotificationType.ERROR: "system_notification"
+            NotificationType.ERROR: "system_notification",
         }
         return type_mapping.get(notification.notification_type, "system_notification")
 
@@ -431,9 +477,16 @@ class NotificationManager:
             logger.error(f"Error getting user email for {user_id}: {e}")
             return None
 
-    async def create_notification(self, user_id: int, notification_type: NotificationType,
-                                title: str, message: str, priority: NotificationPriority = NotificationPriority.NORMAL,
-                                data: Dict[str, Any] = None, expires_in_hours: Optional[int] = None) -> str:
+    async def create_notification(
+        self,
+        user_id: int,
+        notification_type: NotificationType,
+        title: str,
+        message: str,
+        priority: NotificationPriority = NotificationPriority.NORMAL,
+        data: Dict[str, Any] = None,
+        expires_in_hours: Optional[int] = None,
+    ) -> str:
         """Create and queue notification."""
         try:
             notification_id = str(uuid4())
@@ -452,7 +505,7 @@ class NotificationManager:
                 created_at=datetime.now(),
                 read_at=None,
                 data=data or {},
-                expires_at=expires_at
+                expires_at=expires_at,
             )
 
             # Queue for processing
@@ -486,7 +539,9 @@ class NotificationManager:
                 if result.rowcount > 0:
                     self.notifications_read += 1
                     if self.performance_logger:
-                        self.performance_logger.increment_counter("notifications_read", 1)
+                        self.performance_logger.increment_counter(
+                            "notifications_read", 1
+                        )
                     return True
 
             return False
@@ -495,8 +550,9 @@ class NotificationManager:
             logger.error(f"Error marking notification as read: {e}")
             return False
 
-    async def get_user_notifications(self, user_id: int, limit: int = 50,
-                                unread_only: bool = False) -> List[Dict[str, Any]]:
+    async def get_user_notifications(
+        self, user_id: int, limit: int = 50, unread_only: bool = False
+    ) -> List[Dict[str, Any]]:
         """Get user notifications."""
         try:
             if not self.db_manager:
@@ -514,26 +570,24 @@ class NotificationManager:
 
             query += " ORDER BY created_at DESC LIMIT ?"
 
-            params = {
-                "user_id": user_id,
-                "expires_at": datetime.now(),
-                "limit": limit
-            }
+            params = {"user_id": user_id, "expires_at": datetime.now(), "limit": limit}
 
             result = await self.db_manager.execute_query(query, params)
 
             notifications = []
             for row in result:
-                notifications.append({
-                    "id": row[0],
-                    "type": row[1],
-                    "title": row[2],
-                    "message": row[3],
-                    "priority": row[4],
-                    "created_at": row[5].isoformat() if row[5] else None,
-                    "read_at": row[6].isoformat() if row[6] else None,
-                    "data": json.loads(row[7]) if row[7] else {}
-                })
+                notifications.append(
+                    {
+                        "id": row[0],
+                        "type": row[1],
+                        "title": row[2],
+                        "message": row[3],
+                        "priority": row[4],
+                        "created_at": row[5].isoformat() if row[5] else None,
+                        "read_at": row[6].isoformat() if row[6] else None,
+                        "data": json.loads(row[7]) if row[7] else {},
+                    }
+                )
 
             return notifications
 
@@ -552,10 +606,7 @@ class NotificationManager:
                 WHERE user_id = ? AND read_at IS NULL
                 AND (expires_at IS NULL OR expires_at > ?)
             """
-            params = {
-                "user_id": user_id,
-                "expires_at": datetime.now()
-            }
+            params = {"user_id": user_id, "expires_at": datetime.now()}
 
             result = await self.db_manager.execute_query(query, params)
             return result[0][0] if result else 0
@@ -576,7 +627,9 @@ class NotificationManager:
                 if result:
                     self.notifications_expired += len(result)
                     if self.performance_logger:
-                        self.performance_logger.record_metric("notifications_expired", len(result), "count")
+                        self.performance_logger.record_metric(
+                            "notifications_expired", len(result), "count"
+                        )
 
                     logger.info(f"Cleaned up {len(result)} expired notifications")
 
@@ -590,14 +643,18 @@ class NotificationManager:
             "notifications_read": self.notifications_read,
             "notifications_expired": self.notifications_expired,
             "queue_size": self.notification_queue.qsize(),
-            "processing": self.processing
+            "processing": self.processing,
         }
+
 
 # Global notification manager
 notification_manager = NotificationManager()
 
+
 # Convenience functions
-async def send_notification(user_id: int, notification_type: str, title: str, message: str, **kwargs) -> str:
+async def send_notification(
+    user_id: int, notification_type: str, title: str, message: str, **kwargs
+) -> str:
     """Send notification using global manager."""
     try:
         ntype = NotificationType(notification_type)
@@ -612,18 +669,29 @@ async def send_notification(user_id: int, notification_type: str, title: str, me
             pass
 
     return await notification_manager.create_notification(
-        user_id, ntype, title, message, priority,
+        user_id,
+        ntype,
+        title,
+        message,
+        priority,
         data=kwargs.get("data"),
-        expires_in_hours=kwargs.get("expires_in_hours")
+        expires_in_hours=kwargs.get("expires_in_hours"),
     )
+
 
 async def mark_notification_read(notification_id: str, user_id: int) -> bool:
     """Mark notification as read using global manager."""
     return await notification_manager.mark_as_read(notification_id, user_id)
 
-async def get_notifications(user_id: int, limit: int = 50, unread_only: bool = False) -> List[Dict[str, Any]]:
+
+async def get_notifications(
+    user_id: int, limit: int = 50, unread_only: bool = False
+) -> List[Dict[str, Any]]:
     """Get notifications using global manager."""
-    return await notification_manager.get_user_notifications(user_id, limit, unread_only)
+    return await notification_manager.get_user_notifications(
+        user_id, limit, unread_only
+    )
+
 
 async def get_unread_notification_count(user_id: int) -> int:
     """Get unread count using global manager."""

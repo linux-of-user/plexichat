@@ -3,12 +3,12 @@ PlexiChat Core Validation
 Essential validation functions for the entire application.
 """
 
-import re
 import json
 import logging
+import re
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
-from dataclasses import dataclass
 
 from plexichat.core.errors.exceptions import ValidationError
 
@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class ValidationResult:
     """Validation result."""
+
     valid: bool
     errors: List[str]
     warnings: List[str]
@@ -28,177 +29,188 @@ class Validator:
     """Core validation class."""
 
     @staticmethod
-    def validate_string(value: Any, min_length: int = 0, max_length: int = 1000,
-                    pattern: Optional[str] = None, required: bool = True) -> ValidationResult:
+    def validate_string(
+        value: Any,
+        min_length: int = 0,
+        max_length: int = 1000,
+        pattern: Optional[str] = None,
+        required: bool = True,
+    ) -> ValidationResult:
         """Validate string value."""
         errors = []
         warnings = []
         cleaned_data = {}
-        
+
         # Check if required
         if required and (value is None or value == ""):
             errors.append("Field is required")
             return ValidationResult(False, errors, warnings, cleaned_data)
-        
+
         # Convert to string if not None
         if value is not None:
             str_value = str(value).strip()
             cleaned_data["value"] = str_value
-            
+
             # Check length
             if len(str_value) < min_length:
                 errors.append(f"Must be at least {min_length} characters")
             if len(str_value) > max_length:
                 errors.append(f"Must be no more than {max_length} characters")
-            
+
             # Check pattern
             if pattern and not re.match(pattern, str_value):
                 errors.append("Invalid format")
-        
+
         return ValidationResult(len(errors) == 0, errors, warnings, cleaned_data)
-    
+
     @staticmethod
     def validate_email(email: str, required: bool = True) -> ValidationResult:
         """Validate email address."""
         errors = []
         warnings = []
         cleaned_data = {}
-        
+
         if required and not email:
             errors.append("Email is required")
             return ValidationResult(False, errors, warnings, cleaned_data)
-        
+
         if email:
             email = email.strip().lower()
             cleaned_data["value"] = email
-            
+
             # Basic email pattern
-            pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+            pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
             if not re.match(pattern, email):
                 errors.append("Invalid email format")
-        
+
         return ValidationResult(len(errors) == 0, errors, warnings, cleaned_data)
-    
+
     @staticmethod
-    def validate_integer(value: Any, min_value: Optional[int] = None, max_value: Optional[int] = None,
-                        required: bool = True) -> ValidationResult:
+    def validate_integer(
+        value: Any,
+        min_value: Optional[int] = None,
+        max_value: Optional[int] = None,
+        required: bool = True,
+    ) -> ValidationResult:
         """Validate integer value."""
         errors = []
         warnings = []
         cleaned_data = {}
-        
+
         if required and value is None:
             errors.append("Field is required")
             return ValidationResult(False, errors, warnings, cleaned_data)
-        
+
         if value is not None:
             try:
                 int_value = int(value)
                 cleaned_data["value"] = int_value
-                
+
                 if min_value is not None and int_value < min_value:
                     errors.append(f"Must be at least {min_value}")
                 if max_value is not None and int_value > max_value:
                     errors.append(f"Must be no more than {max_value}")
-                    
+
             except (ValueError, TypeError):
                 errors.append("Must be a valid integer")
-        
+
         return ValidationResult(len(errors) == 0, errors, warnings, cleaned_data)
-    
+
     @staticmethod
     def validate_password(password: str, min_length: int = 8) -> ValidationResult:
         """Validate password strength."""
         errors = []
         warnings = []
         cleaned_data = {}
-        
+
         if not password:
             errors.append("Password is required")
             return ValidationResult(False, errors, warnings, cleaned_data)
-        
+
         cleaned_data["value"] = password
-        
+
         # Length check
         if len(password) < min_length:
             errors.append(f"Password must be at least {min_length} characters")
-        
+
         # Strength checks
-        if not re.search(r'[a-z]', password):
+        if not re.search(r"[a-z]", password):
             warnings.append("Password should contain lowercase letters")
-        if not re.search(r'[A-Z]', password):
+        if not re.search(r"[A-Z]", password):
             warnings.append("Password should contain uppercase letters")
-        if not re.search(r'\d', password):
+        if not re.search(r"\d", password):
             warnings.append("Password should contain numbers")
         if not re.search(r'[!@#$%^&*(),.?":{}|<>]', password):
             warnings.append("Password should contain special characters")
-        
+
         return ValidationResult(len(errors) == 0, errors, warnings, cleaned_data)
-    
+
     @staticmethod
     def validate_filename(filename: str) -> ValidationResult:
         """Validate filename for security."""
         errors = []
         warnings = []
         cleaned_data = {}
-        
+
         if not filename:
             errors.append("Filename is required")
             return ValidationResult(False, errors, warnings, cleaned_data)
-        
+
         # Clean filename
         clean_name = filename.strip()
         cleaned_data["value"] = clean_name
-        
+
         # Check for dangerous patterns
         dangerous_patterns = [
-            r'\.\./',  # Directory traversal
+            r"\.\./",  # Directory traversal
             r'[<>:"/\\|?*]',  # Invalid characters
-            r'^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])$',  # Windows reserved names
+            r"^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])$",  # Windows reserved names
         ]
-        
+
         for pattern in dangerous_patterns:
             if re.search(pattern, clean_name, re.IGNORECASE):
                 errors.append("Filename contains invalid characters")
                 break
-        
+
         # Length check
         if len(clean_name) > 255:
             errors.append("Filename too long")
-        
+
         return ValidationResult(len(errors) == 0, errors, warnings, cleaned_data)
-    
+
     @staticmethod
     def validate_json(data: str) -> ValidationResult:
         """Validate JSON string."""
         errors = []
         warnings = []
         cleaned_data = {}
-        
+
         if not data:
             errors.append("JSON data is required")
             return ValidationResult(False, errors, warnings, cleaned_data)
-        
+
         try:
             parsed_data = json.loads(data)
             cleaned_data["value"] = parsed_data
         except json.JSONDecodeError as e:
             errors.append(f"Invalid JSON: {str(e)}")
-        
+
         return ValidationResult(len(errors) == 0, errors, warnings, cleaned_data)
 
 
 # Convenience functions
-def validate_required_fields(data: Dict[str, Any], required_fields: List[str]) -> ValidationResult:
+def validate_required_fields(
+    data: Dict[str, Any], required_fields: List[str]
+) -> ValidationResult:
     """Validate that all required fields are present."""
     errors = []
     warnings = []
     cleaned_data = data.copy()
-    
+
     for field in required_fields:
         if field not in data or data[field] is None or data[field] == "":
             errors.append(f"Field '{field}' is required")
-    
+
     return ValidationResult(len(errors) == 0, errors, warnings, cleaned_data)
 
 
@@ -206,10 +218,10 @@ def sanitize_input(text: str, max_length: int = 1000) -> str:
     """Sanitize user input."""
     if not isinstance(text, str):
         text = str(text)
-    
+
     # Remove control characters except newlines and tabs
-    sanitized = ''.join(char for char in text if ord(char) >= 32 or char in '\n\t')
-    
+    sanitized = "".join(char for char in text if ord(char) >= 32 or char in "\n\t")
+
     # Limit length
     return sanitized[:max_length]
 
@@ -217,11 +229,12 @@ def sanitize_input(text: str, max_length: int = 1000) -> str:
 def is_safe_path(path: str, base_path: str = ".") -> bool:
     """Check if a path is safe (no directory traversal)."""
     import os
+
     try:
         # Resolve paths
         abs_base = os.path.abspath(base_path)
         abs_path = os.path.abspath(os.path.join(base_path, path))
-        
+
         # Check if the resolved path is within the base path
         return abs_path.startswith(abs_base)
     except (ValueError, OSError):
@@ -232,6 +245,10 @@ def is_safe_path(path: str, base_path: str = ".") -> bool:
 validator = Validator()
 
 __all__ = [
-    "ValidationResult", "Validator", "validator",
-    "validate_required_fields", "sanitize_input", "is_safe_path"
+    "ValidationResult",
+    "Validator",
+    "validator",
+    "validate_required_fields",
+    "sanitize_input",
+    "is_safe_path",
 ]

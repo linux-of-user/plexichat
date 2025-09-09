@@ -1,6 +1,7 @@
 """PlexiChat Events"""
 
 import logging
+
 # Typing imports not used
 
 # Use shared fallback implementations
@@ -8,10 +9,18 @@ logger = logging.getLogger(__name__)
 
 try:
     from plexichat.core.utils.fallbacks import (
-        EventManager, Event, EventHandler, EventPriority,
-        emit_event, register_event_handler, unregister_event_handler,
-        get_events, event_handler, get_fallback_instance
+        Event,
+        EventHandler,
+        EventManager,
+        EventPriority,
+        emit_event,
+        event_handler,
+        get_events,
+        get_fallback_instance,
+        register_event_handler,
+        unregister_event_handler,
     )
+
     USE_SHARED_FALLBACKS = True
     logger.info("Using shared fallback implementations for events")
 except ImportError:
@@ -20,7 +29,7 @@ except ImportError:
     logger.warning("Shared fallbacks unavailable, using local implementations")
 
 if USE_SHARED_FALLBACKS:
-    event_manager = get_fallback_instance('EventManager')
+    event_manager = get_fallback_instance("EventManager")
     global_event_handler = None
 else:
     # Local fallbacks (preserved for compatibility)
@@ -59,7 +68,9 @@ else:
     def event_handler(*args, **kwargs):  # type: ignore
         def decorator(func):
             return func
+
         return decorator
+
 
 __all__ = [
     "EventManager",

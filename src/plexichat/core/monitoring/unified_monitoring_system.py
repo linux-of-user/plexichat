@@ -4,13 +4,14 @@ PlexiChat Unified Monitoring System
 Provides comprehensive monitoring capabilities for the PlexiChat system.
 """
 
-import logging
 import asyncio
-from plexichat.core.database.manager import database_manager
+import logging
 import time
-from typing import Dict, Any, Optional, List
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional
+
+from plexichat.core.database.manager import database_manager
 
 logger = logging.getLogger(__name__)
 
@@ -18,6 +19,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class MetricData:
     """Metric data structure."""
+
     name: str
     value: float
     unit: str
@@ -28,6 +30,7 @@ class MetricData:
 @dataclass
 class AlertRule:
     """Enhanced alert rule configuration with advanced conditions and policies."""
+
     name: str
     metric: str
     threshold: float
@@ -36,7 +39,9 @@ class AlertRule:
     cooldown: int = 300  # seconds
     severity: str = "warning"  # info, warning, error, critical
     description: str = ""
-    conditions: List[Dict[str, Any]] = field(default_factory=list)  # Advanced conditions
+    conditions: List[Dict[str, Any]] = field(
+        default_factory=list
+    )  # Advanced conditions
     time_window: int = 0  # Time window for trend analysis (seconds)
     trend_type: str = "instant"  # instant, average, trend_up, trend_down
     notification_channels: List[str] = field(default_factory=lambda: ["log"])
@@ -50,9 +55,12 @@ class AlertRule:
             self.notification_channels = ["log"]
         if not self.escalation_policy:
             self.escalation_policy = {}
+
+
 @dataclass
 class AlertRule:
     """Alert rule configuration."""
+
     name: str
     metric: str
     threshold: float
@@ -64,11 +72,13 @@ class AlertRule:
 @dataclass
 class AnalyticsEvent:
     """Analytics event data structure."""
+
     event_type: str
     data: Dict[str, Any]
     timestamp: datetime = field(default_factory=datetime.now)
     user_id: Optional[str] = None
     session_id: Optional[str] = None
+
     def _setup_default_alerts(self):
         """Set up default alert rules with enhanced features."""
         default_rules = [
@@ -81,7 +91,7 @@ class AnalyticsEvent:
                 description="High CPU usage detected",
                 trend_type="average",
                 time_window=300,  # 5 minutes
-                notification_channels=["log", "email"]
+                notification_channels=["log", "email"],
             ),
             AlertRule(
                 name="high_memory",
@@ -91,7 +101,7 @@ class AnalyticsEvent:
                 severity="warning",
                 description="High memory usage detected",
                 trend_type="instant",
-                notification_channels=["log"]
+                notification_channels=["log"],
             ),
             AlertRule(
                 name="low_disk",
@@ -101,7 +111,7 @@ class AnalyticsEvent:
                 severity="error",
                 description="Low disk space warning",
                 trend_type="instant",
-                notification_channels=["log", "email"]
+                notification_channels=["log", "email"],
             ),
             AlertRule(
                 name="high_error_rate",
@@ -112,7 +122,7 @@ class AnalyticsEvent:
                 description="High error rate detected",
                 trend_type="average",
                 time_window=600,  # 10 minutes
-                notification_channels=["log", "webhook"]
+                notification_channels=["log", "webhook"],
             ),
             AlertRule(
                 name="cpu_trend_up",
@@ -123,8 +133,8 @@ class AnalyticsEvent:
                 description="CPU usage trending upward",
                 trend_type="trend_up",
                 time_window=300,  # 5 minutes
-                notification_channels=["log"]
-            )
+                notification_channels=["log"],
+            ),
         ]
 
         for rule in default_rules:
@@ -179,7 +189,7 @@ class UnifiedMonitoringSystem:
                 "retention_days": 30,
                 "created_at": datetime.now().isoformat(),
                 "updated_at": datetime.now().isoformat(),
-                "metadata": "{}"
+                "metadata": "{}",
             }
 
             async with database_manager.get_session() as session:
@@ -189,7 +199,9 @@ class UnifiedMonitoringSystem:
         except Exception as e:
             logger.error(f"Failed to save metric to database: {e}")
 
-    async def _save_alert_to_db(self, rule: AlertRule, metric: MetricData, message: str):
+    async def _save_alert_to_db(
+        self, rule: AlertRule, metric: MetricData, message: str
+    ):
         """Save an alert to the database."""
         try:
             data = {
@@ -206,7 +218,7 @@ class UnifiedMonitoringSystem:
                 "notification_sent": False,
                 "created_at": datetime.now().isoformat(),
                 "updated_at": datetime.now().isoformat(),
-                "metadata": "{}"
+                "metadata": "{}",
             }
 
             async with database_manager.get_session() as session:
@@ -215,6 +227,7 @@ class UnifiedMonitoringSystem:
 
         except Exception as e:
             logger.error(f"Failed to save alert to database: {e}")
+
     def _check_alerts(self, metric: MetricData):
         """Check if metric triggers any alerts with advanced conditions."""
         for rule_name, rule in self.alert_rules.items():
@@ -288,12 +301,14 @@ class UnifiedMonitoringSystem:
             value=avg_value,
             unit=metric.unit,
             timestamp=metric.timestamp,
-            tags=metric.tags
+            tags=metric.tags,
         )
 
         return self._check_instant_condition(rule, temp_metric)
 
-    def _check_trend_condition(self, rule: AlertRule, metric: MetricData, direction: str) -> bool:
+    def _check_trend_condition(
+        self, rule: AlertRule, metric: MetricData, direction: str
+    ) -> bool:
         """Check trend condition (increasing or decreasing)."""
         if rule.time_window <= 0:
             return False
@@ -307,6 +322,7 @@ class UnifiedMonitoringSystem:
 
         # Calculate trend (simple linear regression slope)
         n = len(recent_metrics)
+
     def _trigger_alert(self, rule: AlertRule, metric: MetricData):
         """Trigger an alert with enhanced features."""
         self.last_alerts[rule.name] = datetime.now()
@@ -340,10 +356,12 @@ class UnifiedMonitoringSystem:
         if rule.conditions:
             condition_info = f" with {len(rule.conditions)} additional conditions"
 
-        return (f"ALERT [{rule.severity.upper()}]: {rule.name} - "
-                f"{metric.name} {rule.operator} {rule.threshold} "
-                f"(current: {metric.value:.2f}){trend_info}{condition_info}. "
-                f"{rule.description}")
+        return (
+            f"ALERT [{rule.severity.upper()}]: {rule.name} - "
+            f"{metric.name} {rule.operator} {rule.threshold} "
+            f"(current: {metric.value:.2f}){trend_info}{condition_info}. "
+            f"{rule.description}"
+        )
 
     def _send_notifications(self, rule: AlertRule, metric: MetricData, message: str):
         """Send notifications to configured channels."""
@@ -363,22 +381,30 @@ class UnifiedMonitoringSystem:
             except Exception as e:
                 logger.error(f"Failed to send notification to {channel}: {e}")
 
-    def _send_email_notification(self, rule: AlertRule, metric: MetricData, message: str):
+    def _send_email_notification(
+        self, rule: AlertRule, metric: MetricData, message: str
+    ):
         """Send email notification."""
         # Placeholder for email implementation
         logger.info(f"Email notification would be sent: {message}")
 
-    def _send_webhook_notification(self, rule: AlertRule, metric: MetricData, message: str):
+    def _send_webhook_notification(
+        self, rule: AlertRule, metric: MetricData, message: str
+    ):
         """Send webhook notification."""
         # Placeholder for webhook implementation
         logger.info(f"Webhook notification would be sent: {message}")
 
-    def _send_slack_notification(self, rule: AlertRule, metric: MetricData, message: str):
+    def _send_slack_notification(
+        self, rule: AlertRule, metric: MetricData, message: str
+    ):
         """Send Slack notification."""
         # Placeholder for Slack implementation
         logger.info(f"Slack notification would be sent: {message}")
 
-    async def _save_alert_to_db(self, rule: AlertRule, metric: MetricData, message: str):
+    async def _save_alert_to_db(
+        self, rule: AlertRule, metric: MetricData, message: str
+    ):
         """Save an alert to the database with enhanced fields."""
         try:
             data = {
@@ -388,20 +414,24 @@ class UnifiedMonitoringSystem:
                 "metric_value": metric.value,
                 "threshold": rule.threshold,
                 "operator": rule.operator,
-                "severity": getattr(rule, 'severity', 'warning'),
+                "severity": getattr(rule, "severity", "warning"),
                 "message": message,
                 "status": "active",
                 "acknowledged": False,
                 "notification_sent": False,
                 "created_at": datetime.now().isoformat(),
                 "updated_at": datetime.now().isoformat(),
-                "metadata": str({
-                    "trend_type": getattr(rule, 'trend_type', 'instant'),
-                    "time_window": getattr(rule, 'time_window', 0),
-                    "conditions": getattr(rule, 'conditions', []),
-                    "notification_channels": getattr(rule, 'notification_channels', []),
-                    "escalation_policy": getattr(rule, 'escalation_policy', {})
-                })
+                "metadata": str(
+                    {
+                        "trend_type": getattr(rule, "trend_type", "instant"),
+                        "time_window": getattr(rule, "time_window", 0),
+                        "conditions": getattr(rule, "conditions", []),
+                        "notification_channels": getattr(
+                            rule, "notification_channels", []
+                        ),
+                        "escalation_policy": getattr(rule, "escalation_policy", {}),
+                    }
+                ),
             }
 
             async with database_manager.get_session() as session:
@@ -410,7 +440,10 @@ class UnifiedMonitoringSystem:
 
         except Exception as e:
             logger.error(f"Failed to save alert to database: {e}")
-        x_values = [(m.timestamp - recent_metrics[0].timestamp).total_seconds() for m in recent_metrics]
+        x_values = [
+            (m.timestamp - recent_metrics[0].timestamp).total_seconds()
+            for m in recent_metrics
+        ]
         y_values = [m.value for m in recent_metrics]
 
         # Calculate slope
@@ -446,7 +479,11 @@ class UnifiedMonitoringSystem:
             threshold = condition.get("threshold", rule.threshold)
 
             # Get the metric to check
-            check_metric = metric if metric_name == rule.metric else self.get_latest_metric(metric_name)
+            check_metric = (
+                metric
+                if metric_name == rule.metric
+                else self.get_latest_metric(metric_name)
+            )
             if not check_metric:
                 results.append(False)
                 continue
@@ -472,7 +509,7 @@ class UnifiedMonitoringSystem:
         # Combine results based on condition types
         final_result = results[0] if results else True
         for i, result in enumerate(results[1:], 1):
-            condition_type = rule.conditions[i-1].get("type", "and")
+            condition_type = rule.conditions[i - 1].get("type", "and")
             if condition_type.lower() == "and":
                 final_result = final_result and result
             elif condition_type.lower() == "or":
@@ -480,14 +517,15 @@ class UnifiedMonitoringSystem:
 
         return final_result
 
-    def record_metric(self, name: str, value: float, unit: str = "", tags: Optional[Dict[str, str]] = None):
+    def record_metric(
+        self,
+        name: str,
+        value: float,
+        unit: str = "",
+        tags: Optional[Dict[str, str]] = None,
+    ):
         """Record a metric value."""
-        metric = MetricData(
-            name=name,
-            value=value,
-            unit=unit,
-            tags=tags or {}
-        )
+        metric = MetricData(name=name, value=value, unit=unit, tags=tags or {})
 
         if name not in self.metrics:
             self.metrics[name] = []
@@ -543,7 +581,9 @@ class UnifiedMonitoringSystem:
         # Save alert to database asynchronously
         asyncio.create_task(self._save_alert_to_db(rule, metric, message))
 
-    def get_metrics(self, name: str, since: Optional[datetime] = None) -> List[MetricData]:
+    def get_metrics(
+        self, name: str, since: Optional[datetime] = None
+    ) -> List[MetricData]:
         """Get metrics by name."""
         if name not in self.metrics:
             return []
@@ -580,29 +620,40 @@ class UnifiedMonitoringSystem:
             "total_metrics": sum(len(metrics) for metrics in self.metrics.values()),
             "metric_types": len(self.metrics),
             "alert_rules": len(self.alert_rules),
-            "recent_alerts": len([
-                alert_time for alert_time in self.last_alerts.values()
-                if datetime.now() - alert_time < timedelta(hours=1)
-            ])
+            "recent_alerts": len(
+                [
+                    alert_time
+                    for alert_time in self.last_alerts.values()
+                    if datetime.now() - alert_time < timedelta(hours=1)
+                ]
+            ),
         }
 
         return status
 
-    def track_event(self, event_type: str, data: Dict[str, Any], user_id: Optional[str] = None, session_id: Optional[str] = None):
+    def track_event(
+        self,
+        event_type: str,
+        data: Dict[str, Any],
+        user_id: Optional[str] = None,
+        session_id: Optional[str] = None,
+    ):
         """Track an analytics event."""
         event = AnalyticsEvent(
-            event_type=event_type,
-            data=data,
-            user_id=user_id,
-            session_id=session_id
+            event_type=event_type, data=data, user_id=user_id, session_id=session_id
         )
 
         # Store event as a metric for now
-        self.record_metric(f"event_{event_type}", 1, "count", {
-            "user_id": user_id or "anonymous",
-            "session_id": session_id or "unknown",
-            **data
-        })
+        self.record_metric(
+            f"event_{event_type}",
+            1,
+            "count",
+            {
+                "user_id": user_id or "anonymous",
+                "session_id": session_id or "unknown",
+                **data,
+            },
+        )
 
         logger.info(f"Tracked event: {event_type} for user {user_id}")
 
@@ -612,7 +663,9 @@ unified_monitoring_system = UnifiedMonitoringSystem()
 
 
 # Convenience functions
-def record_metric(name: str, value: float, unit: str = "", tags: Optional[Dict[str, str]] = None):
+def record_metric(
+    name: str, value: float, unit: str = "", tags: Optional[Dict[str, str]] = None
+):
     """Record a metric value."""
     unified_monitoring_system.record_metric(name, value, unit, tags)
 
@@ -632,7 +685,12 @@ def get_system_status() -> Dict[str, Any]:
     return unified_monitoring_system.get_system_status()
 
 
-def track_event(event_type: str, data: Dict[str, Any], user_id: Optional[str] = None, session_id: Optional[str] = None):
+def track_event(
+    event_type: str,
+    data: Dict[str, Any],
+    user_id: Optional[str] = None,
+    session_id: Optional[str] = None,
+):
     """Track an analytics event."""
     unified_monitoring_system.track_event(event_type, data, user_id, session_id)
 
@@ -651,13 +709,16 @@ def get_analytics_metrics(**kwargs) -> Dict[str, Any]:
 UnifiedMonitoringManager = UnifiedMonitoringSystem
 AnalyticsCollector = UnifiedMonitoringSystem  # Another alias
 
+
 # Add EventType enum for compatibility
 class EventType:
     """Event types for analytics."""
+
     USER_ACTION = "user_action"
     SYSTEM_EVENT = "system_event"
     ERROR_EVENT = "error_event"
     PERFORMANCE_EVENT = "performance_event"
+
 
 # Global instance alias
 unified_monitoring_manager = unified_monitoring_system

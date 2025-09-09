@@ -25,13 +25,17 @@ logger = logging.getLogger(__name__)
 
 # Import CanaryNode from canary_node_selector
 try:
-    from plexichat.core.versioning.canary_node_selector import CanaryNode  # type: ignore
+    from plexichat.core.versioning.canary_node_selector import (
+        CanaryNode,  # type: ignore
+    )
 except ImportError:
     CanaryNode = Any
+
 
 # Define HealthCheck classes
 class HealthCheckType(Enum):
     """Health check types."""
+
     HTTP = "http"
     TCP = "tcp"
     CUSTOM = "custom"
@@ -41,9 +45,11 @@ class HealthCheckType(Enum):
     RESPONSE_TIME = "response_time"
     RESOURCE_USAGE = "resource_usage"
 
+
 @dataclass
 class HealthCheck:
     """Health check configuration."""
+
     name: str
     check_type: HealthCheckType
     endpoint: str = ""
@@ -61,6 +67,7 @@ class HealthCheck:
 
 class AlertSeverity(Enum):
     """Alert severity levels."""
+
     INFO = "info"
     WARNING = "warning"
     ERROR = "error"
@@ -69,6 +76,7 @@ class AlertSeverity(Enum):
 
 class MetricTrend(Enum):
     """Metric trend directions."""
+
     IMPROVING = "improving"
     STABLE = "stable"
     DEGRADING = "degrading"
@@ -78,6 +86,7 @@ class MetricTrend(Enum):
 @dataclass
 class HealthAlert:
     """Health monitoring alert."""
+
     alert_id: str
     node_id: str
     severity: AlertSeverity
@@ -99,13 +108,14 @@ class HealthAlert:
             "current_value": self.current_value,
             "threshold": self.threshold,
             "timestamp": self.timestamp.isoformat(),
-            "acknowledged": self.acknowledged
+            "acknowledged": self.acknowledged,
         }
 
 
 @dataclass
 class MetricHistory:
     """Historical metric data for trend analysis."""
+
     metric_name: str
     values: List[float] = field(default_factory=list)
     timestamps: List[datetime] = field(default_factory=list)
@@ -144,9 +154,17 @@ class MetricHistory:
 
         # Determine trend based on slope
         if slope > 0.1:
-            return MetricTrend.DEGRADING if self.metric_name in ["error_rate", "response_time"] else MetricTrend.IMPROVING
+            return (
+                MetricTrend.DEGRADING
+                if self.metric_name in ["error_rate", "response_time"]
+                else MetricTrend.IMPROVING
+            )
         elif slope < -0.1:
-            return MetricTrend.IMPROVING if self.metric_name in ["error_rate", "response_time"] else MetricTrend.DEGRADING
+            return (
+                MetricTrend.IMPROVING
+                if self.metric_name in ["error_rate", "response_time"]
+                else MetricTrend.DEGRADING
+            )
         else:
             return MetricTrend.STABLE
 
@@ -177,7 +195,9 @@ class CanaryHealthMonitor:
     def __init__(self):
         """Initialize the health monitor."""
         self.monitoring_tasks: Dict[str, asyncio.Task] = {}
-        self.metric_history: Dict[str, Dict[str, MetricHistory]] = {}  # node_id -> metric_name -> history
+        self.metric_history: Dict[str, Dict[str, MetricHistory]] = (
+            {}
+        )  # node_id -> metric_name -> history
         self.active_alerts: Dict[str, HealthAlert] = {}
         self.alert_callbacks: List[Callable[[HealthAlert], None]] = []
         self.session: Optional[aiohttp.ClientSession] = None
@@ -190,14 +210,15 @@ class CanaryHealthMonitor:
 
     async def initialize(self):
         """Initialize health monitor."""
-        self.session = aiohttp.ClientSession(
-            timeout=aiohttp.ClientTimeout(total=30)
-        )
+        self.session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
         logger.info("Canary health monitor initialized")
 
-    async def start_monitoring(self, nodes: List[Any],
-                             health_checks: List["HealthCheck"],
-                             duration_minutes: int = 30) -> str:
+    async def start_monitoring(
+        self,
+        nodes: List[Any],
+        health_checks: List["HealthCheck"],
+        duration_minutes: int = 30,
+    ) -> str:
         """Start monitoring canary nodes."""
         monitoring_id = f"monitor_{int(datetime.now().timestamp())}"
 
@@ -207,7 +228,9 @@ class CanaryHealthMonitor:
         )
 
         self.monitoring_tasks[monitoring_id] = task
-        logger.info(f"Started monitoring {len(nodes)} nodes for {duration_minutes} minutes")
+        logger.info(
+            f"Started monitoring {len(nodes)} nodes for {duration_minutes} minutes"
+        )
 
         return monitoring_id
 
@@ -225,8 +248,13 @@ class CanaryHealthMonitor:
             del self.monitoring_tasks[monitoring_id]
             logger.info(f"Stopped monitoring: {monitoring_id}")
 
-    async def _monitor_nodes(self, monitoring_id: str, nodes: List[Any],
-                        health_checks: List["HealthCheck"], duration_minutes: int):
+    async def _monitor_nodes(
+        self,
+        monitoring_id: str,
+        nodes: List[Any],
+        health_checks: List["HealthCheck"],
+        duration_minutes: int,
+    ):
         """Monitor nodes for specified duration."""
         end_time = datetime.now(timezone.utc) + timedelta(minutes=duration_minutes)
 
@@ -252,20 +280,32 @@ class CanaryHealthMonitor:
 
                 if metric_value is not None:
                     # Store metric history
-                    self._store_metric_value(node.node_id, check.metric_name or check.check_type.value, metric_value)
+                    self._store_metric_value(
+                        node.node_id,
+                        check.metric_name or check.check_type.value,
+                        metric_value,
+                    )
 
                     # Check for threshold violations
                     if not check.evaluate(metric_value):
-                        await self._handle_threshold_violation(node, check, metric_value)
+                        await self._handle_threshold_violation(
+                            node, check, metric_value
+                        )
 
                     # Check for anomalies
-                    if self._is_anomalous_value(node.node_id, check.metric_name or check.check_type.value, metric_value):
+                    if self._is_anomalous_value(
+                        node.node_id,
+                        check.metric_name or check.check_type.value,
+                        metric_value,
+                    ):
                         await self._handle_anomaly(node, check, metric_value)
 
         except Exception as e:
             logger.error(f"Health check failed for node {node.node_id}: {e}")
 
-    async def _execute_health_check(self, node: Any, check: "HealthCheck") -> Optional[float]:
+    async def _execute_health_check(
+        self, node: Any, check: "HealthCheck"
+    ) -> Optional[float]:
         """Execute individual health check."""
         try:
             if check.check_type == HealthCheckType.HTTP_ENDPOINT:
@@ -286,7 +326,9 @@ class CanaryHealthMonitor:
             logger.error(f"Health check execution failed: {e}")
             return None
 
-    async def _check_http_endpoint(self, node: Any, check: "HealthCheck") -> Optional[float]:
+    async def _check_http_endpoint(
+        self, node: Any, check: "HealthCheck"
+    ) -> Optional[float]:
         """Check HTTP endpoint health."""
         if not check.endpoint:
             return None
@@ -297,8 +339,12 @@ class CanaryHealthMonitor:
 
             start_time = datetime.now()
             if self.session is None or self.session.closed:
-                self.session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
-            async with self.session.get(url, timeout=aiohttp.ClientTimeout(total=check.timeout_seconds)) as response:
+                self.session = aiohttp.ClientSession(
+                    timeout=aiohttp.ClientTimeout(total=30)
+                )
+            async with self.session.get(
+                url, timeout=aiohttp.ClientTimeout(total=check.timeout_seconds)
+            ) as response:
                 response_time = (datetime.now() - start_time).total_seconds() * 1000
 
                 if check.name == "response_time":
@@ -312,23 +358,31 @@ class CanaryHealthMonitor:
             logger.debug(f"HTTP check failed for {node.node_id}: {e}")
             return 0.0
 
-    async def _check_performance_metrics(self, node: Any, check: "HealthCheck") -> Optional[float]:
+    async def _check_performance_metrics(
+        self, node: Any, check: "HealthCheck"
+    ) -> Optional[float]:
         """Check performance metrics."""
         # Placeholder for performance metrics collection
         # This would integrate with monitoring systems like Prometheus
         return 0.5  # Simulate good performance
 
-    async def _check_error_rate(self, node: Any, check: "HealthCheck") -> Optional[float]:
+    async def _check_error_rate(
+        self, node: Any, check: "HealthCheck"
+    ) -> Optional[float]:
         """Check error rate."""
         # Placeholder for error rate collection
         return 0.1  # Simulate low error rate
 
-    async def _check_response_time(self, node: Any, check: "HealthCheck") -> Optional[float]:
+    async def _check_response_time(
+        self, node: Any, check: "HealthCheck"
+    ) -> Optional[float]:
         """Check response time."""
         # Placeholder for response time collection
         return 150.0  # Simulate good response time
 
-    async def _check_resource_usage(self, node: Any, check: "HealthCheck") -> Optional[float]:
+    async def _check_resource_usage(
+        self, node: Any, check: "HealthCheck"
+    ) -> Optional[float]:
         """Check resource usage."""
         # Placeholder for resource usage collection
         return 0.3  # Simulate moderate resource usage
@@ -345,15 +399,22 @@ class CanaryHealthMonitor:
 
     def _is_anomalous_value(self, node_id: str, metric_name: str, value: float) -> bool:
         """Check if value is anomalous."""
-        if node_id not in self.metric_history or metric_name not in self.metric_history[node_id]:
+        if (
+            node_id not in self.metric_history
+            or metric_name not in self.metric_history[node_id]
+        ):
             return False
 
         history = self.metric_history[node_id][metric_name]
         return history.detect_anomaly(value, self.anomaly_sensitivity)
 
-    async def _handle_threshold_violation(self, node: Any, check: "HealthCheck", value: float):
+    async def _handle_threshold_violation(
+        self, node: Any, check: "HealthCheck", value: float
+    ):
         """Handle threshold violation."""
-        alert_key = f"{node.node_id}_{check.metric_name or check.check_type.value}_threshold"
+        alert_key = (
+            f"{node.node_id}_{check.metric_name or check.check_type.value}_threshold"
+        )
 
         # Check alert cooldown
         if self._is_alert_in_cooldown(alert_key):
@@ -366,7 +427,7 @@ class CanaryHealthMonitor:
             message=f"Threshold violation: {check.metric_name or check.check_type.value} = {value:.2f} (threshold: {check.threshold})",
             metric_name=check.metric_name or check.check_type.value,
             current_value=value,
-            threshold=check.threshold
+            threshold=check.threshold,
         )
 
         await self._emit_alert(alert)
@@ -374,7 +435,9 @@ class CanaryHealthMonitor:
 
     async def _handle_anomaly(self, node: Any, check: "HealthCheck", value: float):
         """Handle anomalous value."""
-        alert_key = f"{node.node_id}_{check.metric_name or check.check_type.value}_anomaly"
+        alert_key = (
+            f"{node.node_id}_{check.metric_name or check.check_type.value}_anomaly"
+        )
 
         # Check alert cooldown
         if self._is_alert_in_cooldown(alert_key):
@@ -387,7 +450,7 @@ class CanaryHealthMonitor:
             message=f"Anomalous value detected: {check.metric_name or check.check_type.value} = {value:.2f}",
             metric_name=check.metric_name or check.check_type.value,
             current_value=value,
-            threshold=0.0
+            threshold=0.0,
         )
 
         await self._emit_alert(alert)
@@ -431,7 +494,7 @@ class CanaryHealthMonitor:
                 metrics[metric_name] = {
                     "current": history.values[-1],
                     "average": history.get_average(),
-                    "trend": history.get_trend().value
+                    "trend": history.get_trend().value,
                 }
 
         return metrics
@@ -453,12 +516,12 @@ class CanaryHealthMonitor:
 
         # Wait for tasks to complete
         if self.monitoring_tasks:
-            await asyncio.gather(*self.monitoring_tasks.values(), return_exceptions=True)
+            await asyncio.gather(
+                *self.monitoring_tasks.values(), return_exceptions=True
+            )
 
         # Close HTTP session
         if self.session:
             await self.session.close()
 
         logger.info("Canary health monitor cleaned up")
-
-

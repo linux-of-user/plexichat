@@ -2,19 +2,20 @@
 PlexiChat Unified Configuration System with Secure Key Vault Integration
 """
 
+import base64
 import json
 import logging
 import os
-import yaml
 import threading
-import base64
 import time
-from pathlib import Path
-from typing import Any, Dict, Optional, Union, List, Callable, Tuple
-from dataclasses import dataclass, field, asdict, is_dataclass
+from dataclasses import asdict, dataclass, field, is_dataclass
 from datetime import datetime
 from enum import Enum
 from functools import reduce
+from pathlib import Path
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+
+import yaml
 
 # Crypto imports (PyCryptodome)
 from Crypto.Cipher import AES
@@ -38,6 +39,7 @@ logger.addHandler(logging.NullHandler())
 @dataclass
 class SystemConfig:
     """System configuration section."""
+
     name: str = "PlexiChat"
     version: str = __version__
     environment: str = "production"
@@ -48,6 +50,7 @@ class SystemConfig:
 @dataclass
 class RateLimitConfig:
     """Configuration for rate limiting."""
+
     enabled: bool = True
     requests_per_minute: int = 60
     burst_limit: int = 10
@@ -59,6 +62,7 @@ class RateLimitConfig:
 @dataclass
 class NetworkConfig:
     """Network configuration section."""
+
     host: str = "0.0.0.0"
     port: int = 8080
     ssl_enabled: bool = False
@@ -74,6 +78,7 @@ class NetworkConfig:
 @dataclass
 class SecurityConfig:
     """Security configuration section."""
+
     secret_key: str = "change-me"
     jwt_secret: str = "change-me-too"
     session_timeout_seconds: int = 3600
@@ -91,6 +96,7 @@ class SecurityConfig:
 @dataclass
 class DatabaseConfig:
     """Database configuration section."""
+
     type: str = "sqlite"
     path: str = "data/plexichat.db"
     host: str = "localhost"
@@ -105,6 +111,7 @@ class DatabaseConfig:
 @dataclass
 class CachingConfig:
     """Caching configuration section."""
+
     enabled: bool = True
     l1_max_items: int = 1000
     l1_memory_size_mb: int = 64
@@ -124,6 +131,7 @@ class CachingConfig:
 @dataclass
 class AIConfig:
     """AI provider configuration section."""
+
     default_provider: str = "openai"
     openai_api_key: str = ""
     anthropic_api_key: str = ""
@@ -133,6 +141,7 @@ class AIConfig:
 @dataclass
 class LoggingConfig:
     """Logging configuration section."""
+
     level: str = "INFO"
     format: str = "text"  # text|json
     log_to_file: bool = True
@@ -148,6 +157,7 @@ class LoggingConfig:
 @dataclass
 class PluginSettings:
     """Plugin system configuration section."""
+
     timeout_seconds: int = 30
     max_memory_mb: int = 128
     sandboxing_enabled: bool = True
@@ -157,9 +167,11 @@ class PluginSettings:
 
 # --- New enhanced configuration sections ---
 
+
 @dataclass
 class ClusterConfig:
     """Cluster configuration section."""
+
     cluster_id: str = "cluster-local"
     cluster_name: str = "PlexiChat Cluster"
     node_type: str = "general"
@@ -178,6 +190,7 @@ class ClusterConfig:
 @dataclass
 class SecurityEnhancedConfig:
     """Enhanced security configuration for advanced features."""
+
     enable_quantum_crypto: bool = False
     pq_algorithm: str = "kyber-768"
     encryption_key_rotation_days: int = 90
@@ -188,13 +201,16 @@ class SecurityEnhancedConfig:
 @dataclass
 class DDoSProtectionConfig:
     """DDoS protection and adaptive rate limiting."""
+
     enabled: bool = True
     dynamic_rate_limiting: bool = True
     base_request_limit: int = 100
     burst_limit: int = 50
     ip_block_threshold: int = 1000
     ip_block_duration_seconds: int = 3600
-    user_tiers: Dict[str, int] = field(default_factory=lambda: {"free": 60, "pro": 600, "admin": 10000})
+    user_tiers: Dict[str, int] = field(
+        default_factory=lambda: {"free": 60, "pro": 600, "admin": 10000}
+    )
     enable_intelligent_blocking: bool = True
     alert_threshold: int = 10000
 
@@ -202,11 +218,26 @@ class DDoSProtectionConfig:
 @dataclass
 class PluginSecurityConfig:
     """Plugin security and sandboxing configuration."""
+
     permission_request_flow_enabled: bool = True
     admin_approval_required: bool = True
-    allowed_builtins: List[str] = field(default_factory=lambda: [
-        "len", "range", "min", "max", "sum", "sorted", "abs", "all", "any", "enumerate", "zip", "map", "filter"
-    ])
+    allowed_builtins: List[str] = field(
+        default_factory=lambda: [
+            "len",
+            "range",
+            "min",
+            "max",
+            "sum",
+            "sorted",
+            "abs",
+            "all",
+            "any",
+            "enumerate",
+            "zip",
+            "map",
+            "filter",
+        ]
+    )
     whitelist_modules: List[str] = field(default_factory=lambda: ["json", "math", "re"])
     max_cpu_seconds: float = 5.0
     max_memory_mb: int = 64
@@ -216,6 +247,7 @@ class PluginSecurityConfig:
 @dataclass
 class BackupConfig:
     """Backup and disaster recovery configuration."""
+
     enabled: bool = True
     schedule_cron: str = "0 2 * * *"  # Default: daily at 02:00
     encryption_key: str = ""  # Sensitive: backup encryption root key
@@ -230,6 +262,7 @@ class BackupConfig:
 @dataclass
 class CallingServiceConfig:
     """Calling service configuration section (encryption/quality)."""
+
     e2e_encryption_enabled: bool = True
     quantum_ready: bool = False
     key_rotation_interval_seconds: int = 3600
@@ -241,6 +274,7 @@ class CallingServiceConfig:
 @dataclass
 class TypingConfig:
     """Typing indicators configuration section."""
+
     enabled: bool = True
     timeout_seconds: int = 3
     cleanup_interval_seconds: int = 30
@@ -258,45 +292,72 @@ class TypingConfig:
 @dataclass
 class KeyboardShortcutsConfig:
     """Keyboard shortcuts configuration section."""
+
     enabled: bool = True
     allow_custom_shortcuts: bool = True
     max_custom_shortcuts_per_user: int = 50
     conflict_detection_enabled: bool = True
-    platform_mappings: Dict[str, Dict[str, str]] = field(default_factory=lambda: {
-        "windows": {
-            "ctrl": "Control",
-            "alt": "Alt",
-            "shift": "Shift",
-            "meta": "Windows"
-        },
-        "mac": {
-            "ctrl": "Control",
-            "alt": "Option",
-            "shift": "Shift",
-            "meta": "Command"
-        },
-        "linux": {
-            "ctrl": "Control",
-            "alt": "Alt",
-            "shift": "Shift",
-            "meta": "Super"
+    platform_mappings: Dict[str, Dict[str, str]] = field(
+        default_factory=lambda: {
+            "windows": {
+                "ctrl": "Control",
+                "alt": "Alt",
+                "shift": "Shift",
+                "meta": "Windows",
+            },
+            "mac": {
+                "ctrl": "Control",
+                "alt": "Option",
+                "shift": "Shift",
+                "meta": "Command",
+            },
+            "linux": {
+                "ctrl": "Control",
+                "alt": "Alt",
+                "shift": "Shift",
+                "meta": "Super",
+            },
         }
-    })
+    )
     accessibility_enabled: bool = True
     accessibility_modifiers: List[str] = field(default_factory=lambda: ["alt", "shift"])
     default_shortcuts_enabled: bool = True
     shortcut_validation_enabled: bool = True
     max_shortcut_length: int = 3
-    reserved_shortcuts: List[str] = field(default_factory=lambda: [
-        "Ctrl+C", "Ctrl+V", "Ctrl+X", "Ctrl+A", "Ctrl+Z", "Ctrl+Y",
-        "Ctrl+S", "Ctrl+O", "Ctrl+N", "Ctrl+W", "Ctrl+Q", "Ctrl+R",
-        "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12"
-    ])
+    reserved_shortcuts: List[str] = field(
+        default_factory=lambda: [
+            "Ctrl+C",
+            "Ctrl+V",
+            "Ctrl+X",
+            "Ctrl+A",
+            "Ctrl+Z",
+            "Ctrl+Y",
+            "Ctrl+S",
+            "Ctrl+O",
+            "Ctrl+N",
+            "Ctrl+W",
+            "Ctrl+Q",
+            "Ctrl+R",
+            "F1",
+            "F2",
+            "F3",
+            "F4",
+            "F5",
+            "F6",
+            "F7",
+            "F8",
+            "F9",
+            "F10",
+            "F11",
+            "F12",
+        ]
+    )
 
 
 @dataclass
 class SupervisorConfig:
     """Supervisor configuration."""
+
     enabled: bool = True
     interval_seconds: int = 30
     backoff_initial_seconds: float = 5.0
@@ -306,6 +367,7 @@ class SupervisorConfig:
 @dataclass
 class RateLimitEngineConfig:
     """Unified rate limit engine configuration."""
+
     enabled: bool = True
     per_ip_requests_per_minute: int = 60
     per_user_requests_per_minute: int = 120
@@ -314,14 +376,21 @@ class RateLimitEngineConfig:
     per_ip_block_duration: int = 300
     per_user_block_duration: int = 180
     endpoint_overrides: Dict[str, Dict[str, int]] = field(default_factory=dict)
-    user_tier_multipliers: Dict[str, float] = field(default_factory=lambda: {
-        "guest": 0.5, "user": 1.0, "premium": 2.0, "admin": 10.0, "system": 100.0
-    })
+    user_tier_multipliers: Dict[str, float] = field(
+        default_factory=lambda: {
+            "guest": 0.5,
+            "user": 1.0,
+            "premium": 2.0,
+            "admin": 10.0,
+            "system": 100.0,
+        }
+    )
 
 
 @dataclass
 class UnifiedConfig:
     """Main unified configuration container."""
+
     system: SystemConfig = field(default_factory=SystemConfig)
     network: NetworkConfig = field(default_factory=NetworkConfig)
     security: SecurityConfig = field(default_factory=SecurityConfig)
@@ -335,7 +404,9 @@ class UnifiedConfig:
 
     # New sections
     cluster: ClusterConfig = field(default_factory=ClusterConfig)
-    security_enhanced: SecurityEnhancedConfig = field(default_factory=SecurityEnhancedConfig)
+    security_enhanced: SecurityEnhancedConfig = field(
+        default_factory=SecurityEnhancedConfig
+    )
     ddos: DDoSProtectionConfig = field(default_factory=DDoSProtectionConfig)
     plugin_security: PluginSecurityConfig = field(default_factory=PluginSecurityConfig)
     backup: BackupConfig = field(default_factory=BackupConfig)
@@ -362,12 +433,16 @@ class UnifiedConfigManager:
             # New sensitive fields
             "cluster.auth_token",
             "security_enhanced.master_encryption_key",
-            "backup.encryption_key"
+            "backup.encryption_key",
         }
 
         # Keys considered critical and not hot-reloadable
         self._critical_keys = set(self.sensitive_keys) | {
-            "database.type", "database.path", "cluster.auth_token", "security.secret_key", "database.password"
+            "database.type",
+            "database.path",
+            "cluster.auth_token",
+            "security.secret_key",
+            "database.password",
         }
 
         # Try to initialize key manager if available
@@ -380,14 +455,24 @@ class UnifiedConfigManager:
                 self.master_key = self.key_manager.reconstruct_master_key()
                 logger.info("Master key reconstructed successfully from key vaults.")
             except Exception as e:
-                logger.error(f"Failed to reconstruct master key: {e}. Secrets will not be available.")
+                logger.error(
+                    f"Failed to reconstruct master key: {e}. Secrets will not be available."
+                )
                 self.master_key = None
         else:
-            logger.debug("DistributedKeyManager not available; skipping key vault initialization.")
+            logger.debug(
+                "DistributedKeyManager not available; skipping key vault initialization."
+            )
 
         # Hot reload control
-        self._hot_reload_enabled = os.environ.get("PLEXI_CONFIG_HOT_RELOAD", "0") in ("1", "true", "True")
-        self._hot_reload_interval = int(os.environ.get("PLEXI_CONFIG_HOT_RELOAD_INTERVAL", "5"))
+        self._hot_reload_enabled = os.environ.get("PLEXI_CONFIG_HOT_RELOAD", "0") in (
+            "1",
+            "true",
+            "True",
+        )
+        self._hot_reload_interval = int(
+            os.environ.get("PLEXI_CONFIG_HOT_RELOAD_INTERVAL", "5")
+        )
         self._file_mtime: Optional[float] = None
         self._hot_reload_thread: Optional[threading.Thread] = None
         self._stop_hot_reload = threading.Event()
@@ -406,35 +491,41 @@ class UnifiedConfigManager:
 
         try:
             cipher = AES.new(self.master_key, AES.MODE_GCM)
-            ciphertext, tag = cipher.encrypt_and_digest(plaintext.encode('utf-8'))
+            ciphertext, tag = cipher.encrypt_and_digest(plaintext.encode("utf-8"))
 
             encrypted_data = {
-                'nonce': base64.b64encode(cipher.nonce).decode('utf-8'),
-                'ciphertext': base64.b64encode(ciphertext).decode('utf-8'),
-                'tag': base64.b64encode(tag).decode('utf-8')
+                "nonce": base64.b64encode(cipher.nonce).decode("utf-8"),
+                "ciphertext": base64.b64encode(ciphertext).decode("utf-8"),
+                "tag": base64.b64encode(tag).decode("utf-8"),
             }
-            return "enc_v1:" + base64.b64encode(json.dumps(encrypted_data).encode('utf-8')).decode('utf-8')
+            return "enc_v1:" + base64.b64encode(
+                json.dumps(encrypted_data).encode("utf-8")
+            ).decode("utf-8")
         except Exception as e:
             logger.error(f"Encryption failed: {e}")
             return plaintext
 
     def _decrypt_secret(self, encrypted_value: str) -> str:
         """Decrypts a secret encrypted with AES-GCM."""
-        if not self.master_key or not isinstance(encrypted_value, str) or not encrypted_value.startswith("enc_v1:"):
+        if (
+            not self.master_key
+            or not isinstance(encrypted_value, str)
+            or not encrypted_value.startswith("enc_v1:")
+        ):
             return encrypted_value
 
         try:
             encrypted_data_b64 = encrypted_value.split("enc_v1:")[1]
-            encrypted_data_json = base64.b64decode(encrypted_data_b64).decode('utf-8')
+            encrypted_data_json = base64.b64decode(encrypted_data_b64).decode("utf-8")
             encrypted_data = json.loads(encrypted_data_json)
 
-            nonce = base64.b64decode(encrypted_data['nonce'])
-            ciphertext = base64.b64decode(encrypted_data['ciphertext'])
-            tag = base64.b64decode(encrypted_data['tag'])
+            nonce = base64.b64decode(encrypted_data["nonce"])
+            ciphertext = base64.b64decode(encrypted_data["ciphertext"])
+            tag = base64.b64decode(encrypted_data["tag"])
 
             cipher = AES.new(self.master_key, AES.MODE_GCM, nonce=nonce)
             plaintext = cipher.decrypt_and_verify(ciphertext, tag)
-            return plaintext.decode('utf-8')
+            return plaintext.decode("utf-8")
         except Exception as e:
             logger.error(f"Failed to decrypt secret: {e}")
             return ""  # Return empty string on decryption failure
@@ -449,9 +540,11 @@ class UnifiedConfigManager:
                 try:
                     mtime = self.config_file.stat().st_mtime
                     self._file_mtime = mtime
-                    with open(self.config_file, 'r', encoding='utf-8') as f:
+                    with open(self.config_file, "r", encoding="utf-8") as f:
                         data = yaml.safe_load(f) or {}
-                        self._update_config_from_dict(data, apply_env=False, validate=False)
+                        self._update_config_from_dict(
+                            data, apply_env=False, validate=False
+                        )
                     logger.info(f"Configuration loaded from {self.config_file}")
                 except Exception as e:
                     logger.error(f"Failed to load configuration: {e}")
@@ -475,7 +568,7 @@ class UnifiedConfigManager:
 
                 # Encrypt sensitive fields in the nested config dict, but avoid double-encrypting
                 for full_key in self.sensitive_keys:
-                    parts = full_key.split('.')
+                    parts = full_key.split(".")
                     node = config_dict
                     skip = False
                     for p in parts[:-1]:
@@ -492,7 +585,7 @@ class UnifiedConfigManager:
                         if isinstance(val, str) and not val.startswith("enc_v1:"):
                             node[last] = self._encrypt_secret(val)
 
-                with open(self.config_file, 'w', encoding='utf-8') as f:
+                with open(self.config_file, "w", encoding="utf-8") as f:
                     yaml.dump(config_dict, f, default_flow_style=False)
                 logger.info(f"Configuration saved to {self.config_file}")
             except Exception as e:
@@ -500,6 +593,7 @@ class UnifiedConfigManager:
 
     def to_dict(self, sanitize: bool = True) -> Dict[str, Any]:
         """Return configuration as a nested dict. If sanitize=True, mask sensitive values."""
+
         def dataclass_to_dict(obj):
             if is_dataclass(obj):
                 result = {}
@@ -514,7 +608,7 @@ class UnifiedConfigManager:
         config_dict = dataclass_to_dict(self._config)
         if sanitize:
             for full_key in self.sensitive_keys:
-                parts = full_key.split('.')
+                parts = full_key.split(".")
                 node = config_dict
                 try:
                     for p in parts[:-1]:
@@ -533,7 +627,7 @@ class UnifiedConfigManager:
         """Get configuration value by dot notation key. Decrypt sensitive values."""
         with self._lock:
             try:
-                parts = key.split('.')
+                parts = key.split(".")
                 value = self._config
                 for part in parts:
                     value = getattr(value, part)
@@ -551,7 +645,7 @@ class UnifiedConfigManager:
         """
         with self._lock:
             try:
-                parts = key.split('.')
+                parts = key.split(".")
                 config_obj = self._config
                 for part in parts[:-1]:
                     config_obj = getattr(config_obj, part)
@@ -574,7 +668,9 @@ class UnifiedConfigManager:
     # ----------------------
     # Internal helpers
     # ----------------------
-    def _update_config_from_dict(self, data: Dict[str, Any], apply_env: bool = True, validate: bool = True) -> None:
+    def _update_config_from_dict(
+        self, data: Dict[str, Any], apply_env: bool = True, validate: bool = True
+    ) -> None:
         """Update configuration from dictionary, decrypting sensitive values."""
         for section_name, section_data in data.items():
             if hasattr(self._config, section_name) and isinstance(section_data, dict):
@@ -617,7 +713,11 @@ class UnifiedConfigManager:
                     # merge into dataclass fields
                     for k, v in new_val.items():
                         if hasattr(current_val, k):
-                            setattr(current_val, k, self._coerce_to_type(getattr(current_val, k), v))
+                            setattr(
+                                current_val,
+                                k,
+                                self._coerce_to_type(getattr(current_val, k), v),
+                            )
                     return current_val
                 return new_val
             # Strings to basic types
@@ -641,7 +741,7 @@ class UnifiedConfigManager:
                         if isinstance(parsed, list):
                             return parsed
                     except Exception:
-                        return [s.strip() for s in new_val.split(',') if s.strip()]
+                        return [s.strip() for s in new_val.split(",") if s.strip()]
                 return [new_val]
             if isinstance(current_val, dict):
                 if isinstance(new_val, dict):
@@ -676,7 +776,7 @@ class UnifiedConfigManager:
             return
 
         for raw_key, raw_val in env_items.items():
-            key_part = raw_key[len(prefix):]
+            key_part = raw_key[len(prefix) :]
             if "__" in key_part:
                 dotted = key_part.replace("__", ".").lower()
             else:
@@ -687,7 +787,7 @@ class UnifiedConfigManager:
                     dotted = parts[0].lower()
             # Normalize multiple dots and underscores
             dotted = dotted.replace("__", ".")
-            dotted = dotted.strip('.')
+            dotted = dotted.strip(".")
             try:
                 # Coerce value into target type if possible
                 # Resolve current value to determine expected type
@@ -723,7 +823,9 @@ class UnifiedConfigManager:
             if int(rpm) < 0:
                 errors.append("network.rate_limiting.requests_per_minute must be >= 0")
         except Exception:
-            errors.append("network.rate_limiting.requests_per_minute invalid or missing")
+            errors.append(
+                "network.rate_limiting.requests_per_minute invalid or missing"
+            )
 
         # Validate plugin sandbox limits
         try:
@@ -759,7 +861,9 @@ class UnifiedConfigManager:
         # Protect critical keys from trivial modification via hot reload
         if dotted_key in self._critical_keys and self._hot_reload_enabled:
             # If hot reload thread attempted to set a critical key, log warning
-            logger.warning(f"Attempted to modify critical config key at runtime: {dotted_key}")
+            logger.warning(
+                f"Attempted to modify critical config key at runtime: {dotted_key}"
+            )
 
         # Example per-key validations
         if dotted_key == "network.port":
@@ -786,9 +890,11 @@ class UnifiedConfigManager:
                         if self._file_mtime is None:
                             self._file_mtime = mtime
                         elif mtime != self._file_mtime:
-                            logger.info("Configuration file change detected; performing hot-reload")
+                            logger.info(
+                                "Configuration file change detected; performing hot-reload"
+                            )
                             try:
-                                with open(self.config_file, 'r', encoding='utf-8') as f:
+                                with open(self.config_file, "r", encoding="utf-8") as f:
                                     data = yaml.safe_load(f) or {}
                                 # Flatten incoming dict to dotted keys
                                 flat = self._flatten_dict(data)
@@ -796,16 +902,24 @@ class UnifiedConfigManager:
                                     for k, v in flat.items():
                                         # Only apply non-critical keys
                                         if k in self._critical_keys:
-                                            logger.warning(f"Skipping hot-reload of critical key: {k}")
+                                            logger.warning(
+                                                f"Skipping hot-reload of critical key: {k}"
+                                            )
                                             continue
                                         try:
                                             # Coerce based on existing value
                                             current_val = self.get(k, None)
-                                            coerced = self._coerce_to_type(current_val, v)
+                                            coerced = self._coerce_to_type(
+                                                current_val, v
+                                            )
                                             self.set(k, coerced)
-                                            logger.info(f"Hot-reloaded config {k} -> {coerced}")
+                                            logger.info(
+                                                f"Hot-reloaded config {k} -> {coerced}"
+                                            )
                                         except Exception as e:
-                                            logger.error(f"Failed to hot-reload key {k}: {e}")
+                                            logger.error(
+                                                f"Failed to hot-reload key {k}: {e}"
+                                            )
                                 self._file_mtime = mtime
                             except Exception as e:
                                 logger.error(f"Error during config hot-reload: {e}")
@@ -817,7 +931,9 @@ class UnifiedConfigManager:
                 self._stop_hot_reload.wait(self._hot_reload_interval)
             logger.info("Config hot-reload thread stopped")
 
-        self._hot_reload_thread = threading.Thread(target=hot_reload_loop, name="ConfigHotReload", daemon=True)
+        self._hot_reload_thread = threading.Thread(
+            target=hot_reload_loop, name="ConfigHotReload", daemon=True
+        )
         self._hot_reload_thread.start()
 
     def stop_hot_reload(self):
@@ -830,7 +946,7 @@ class UnifiedConfigManager:
     def _flatten_dict(self, d: Dict[str, Any], parent: str = "") -> Dict[str, Any]:
         """Flatten a nested dict to dotted keys."""
         items: Dict[str, Any] = {}
-        for k, v in (d.items() if isinstance(d, dict) else []):
+        for k, v in d.items() if isinstance(d, dict) else []:
             new_key = f"{parent}.{k}" if parent else k
             if isinstance(v, dict):
                 items.update(self._flatten_dict(v, new_key))

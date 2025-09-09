@@ -5,18 +5,18 @@ This is the single point where FastAPI integrates with the unified authenticatio
 """
 
 import asyncio
+import inspect
 import logging
 import time
 from datetime import datetime, timedelta
 from functools import wraps
 from typing import Any, Callable, Dict, Optional, Set, Union
-import inspect
 
 from fastapi import Depends, HTTPException, Request, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from plexichat.core.authentication import get_auth_manager
-from plexichat.core.security import get_network_protection, RateLimitRequest
+from plexichat.core.security import RateLimitRequest, get_network_protection
 
 logger = logging.getLogger(__name__)
 
@@ -34,46 +34,45 @@ class FastAPIAuthAdapter:
         self.auth_manager = get_auth_manager()
 
     async def get_current_user(
-        self, 
-        credentials: HTTPAuthorizationCredentials = Depends(security)
+        self, credentials: HTTPAuthorizationCredentials = Depends(security)
     ) -> Dict[str, Any]:
         """
         Get current authenticated user from JWT token.
-        
+
         Args:
             credentials: HTTP Bearer token credentials
-            
+
         Returns:
             Dict containing user information and permissions
-            
+
         Raises:
             HTTPException: If token is invalid or user not found
         """
         try:
             token = credentials.credentials
-            
+
             # Validate token using UnifiedAuthManager
             valid, payload = await self.auth_manager.validate_token(token)
-            
+
             if not valid or not payload:
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
                     detail="Invalid authentication credentials",
-                    headers={"WWW-Authenticate": "Bearer"}
+                    headers={"WWW-Authenticate": "Bearer"},
                 )
-            
+
             # Extract user information from token payload
             user_id = payload.get("user_id") or payload.get("sub")
             if not user_id:
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
                     detail="Invalid token payload",
-                    headers={"WWW-Authenticate": "Bearer"}
+                    headers={"WWW-Authenticate": "Bearer"},
                 )
-            
+
             # Get user permissions from UnifiedAuthManager
             permissions = self.auth_manager.get_user_permissions(user_id)
-            
+
             # Build user context
             user_context = {
                 "id": user_id,
@@ -84,11 +83,11 @@ class FastAPIAuthAdapter:
                 "token_type": payload.get("token_type", "access"),
                 "jti": payload.get("jti"),
                 "exp": payload.get("exp"),
-                "iat": payload.get("iat")
+                "iat": payload.get("iat"),
             }
-            
+
             return user_context
-            
+
         except HTTPException:
             raise
         except Exception as e:
@@ -96,31 +95,32 @@ class FastAPIAuthAdapter:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Authentication error",
-                headers={"WWW-Authenticate": "Bearer"}
+                headers={"WWW-Authenticate": "Bearer"},
             )
 
     async def get_optional_user(
-        self, 
-        credentials: Optional[HTTPAuthorizationCredentials] = Depends(HTTPBearer(auto_error=False))
+        self,
+        credentials: Optional[HTTPAuthorizationCredentials] = Depends(
+            HTTPBearer(auto_error=False)
+        ),
     ) -> Optional[Dict[str, Any]]:
         """
         Get current user if token is provided, otherwise return None.
         Useful for endpoints that can work with or without authentication.
-        
+
         Args:
             credentials: Optional HTTP Bearer token credentials
-            
+
         Returns:
             User dict if authenticated, None otherwise
         """
         if not credentials:
             return None
-            
+
         try:
             # Create a mock credentials object for get_current_user
             mock_credentials = HTTPAuthorizationCredentials(
-                scheme="Bearer",
-                credentials=credentials.credentials
+                scheme="Bearer", credentials=credentials.credentials
             )
             return await self.get_current_user(mock_credentials)
         except HTTPException:
@@ -131,66 +131,81 @@ class FastAPIAuthAdapter:
             return None
 
     async def require_admin(
-        self, 
-        current_user: Dict[str, Any] = Depends(lambda adapter=None: adapter.get_current_user() if adapter else get_current_user())
+        self,
+        current_user: Dict[str, Any] = Depends(
+            lambda adapter=None: (
+                adapter.get_current_user() if adapter else get_current_user()
+            )
+        ),
     ) -> Dict[str, Any]:
         """
         Require admin privileges for the current user.
-        
+
         Args:
             current_user: Current authenticated user
-            
+
         Returns:
             User dict if user has admin privileges
-            
+
         Raises:
             HTTPException: If user lacks admin privileges
         """
         if not current_user.get("is_admin", False):
-            logger.warning(f"Unauthorized admin access attempt by user {current_user.get('id')}")
+            logger.warning(
+                f"Unauthorized admin access attempt by user {current_user.get('id')}"
+            )
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Admin privileges required"
+                detail="Admin privileges required",
             )
-        
+
         return current_user
 
-    def require_user_or_admin(self, target_user_id: Union[str, int]) -> Callable[..., Any]:
+    def require_user_or_admin(
+        self, target_user_id: Union[str, int]
+    ) -> Callable[..., Any]:
         """
         Create a dependency that requires user to be the target user or an admin.
-        
+
         Args:
             target_user_id: The user ID that should have access
-            
+
         Returns:
             FastAPI dependency function
         """
+
         async def _require_user_or_admin(
-            current_user: Dict[str, Any] = Depends(lambda: self.get_current_user())
+            current_user: Dict[str, Any] = Depends(lambda: self.get_current_user()),
         ) -> Dict[str, Any]:
             current_user_id = current_user.get("id") or current_user.get("user_id")
-            
+
             # Convert to string for comparison
-            if str(current_user_id) != str(target_user_id) and not current_user.get("is_admin", False):
+            if str(current_user_id) != str(target_user_id) and not current_user.get(
+                "is_admin", False
+            ):
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
-                    detail="Access denied: insufficient privileges"
+                    detail="Access denied: insufficient privileges",
                 )
-            
+
             return current_user
-        
+
         return _require_user_or_admin
 
     async def get_user_permissions(
-        self, 
-        current_user: Dict[str, Any] = Depends(lambda adapter=None: adapter.get_current_user() if adapter else get_current_user())
+        self,
+        current_user: Dict[str, Any] = Depends(
+            lambda adapter=None: (
+                adapter.get_current_user() if adapter else get_current_user()
+            )
+        ),
     ) -> Set[str]:
         """
         Get permissions for the current user.
-        
+
         Args:
             current_user: Current authenticated user
-            
+
         Returns:
             Set of permission strings
         """
@@ -199,16 +214,16 @@ class FastAPIAuthAdapter:
     async def validate_api_key(self, api_key: str) -> Optional[Dict[str, Any]]:
         """
         Validate API key using UnifiedAuthManager.
-        
+
         Args:
             api_key: API key to validate
-            
+
         Returns:
             User dict if API key is valid, None otherwise
         """
         try:
             user_data = await self.auth_manager.validate_api_key(api_key)
-            
+
             if user_data:
                 # Ensure consistent format
                 return {
@@ -217,34 +232,30 @@ class FastAPIAuthAdapter:
                     "permissions": user_data.get("permissions", set()),
                     "is_active": user_data.get("is_active", True),
                     "is_admin": "admin" in user_data.get("permissions", set()),
-                    "auth_method": "api_key"
+                    "auth_method": "api_key",
                 }
-            
+
             return None
-            
+
         except Exception as e:
             logger.error(f"Error validating API key: {e}")
             return None
 
-    
-
     def rate_limit(
-        self,
-        action: str,
-        limit: int,
-        window_seconds: int = 60
+        self, action: str, limit: int, window_seconds: int = 60
     ) -> Callable[..., Any]:
         """
         Rate limiting decorator that integrates with NetworkProtection.
-        
+
         Args:
             action: Action identifier for rate limiting
             limit: Maximum number of requests allowed
             window_seconds: Time window in seconds (default: 60)
-            
+
         Returns:
             Decorator function
         """
+
         def decorator(func):
             @wraps(func)
             async def wrapper(*args, **kwargs):
@@ -261,16 +272,22 @@ class FastAPIAuthAdapter:
                             break
 
                 if not request:
-                    logger.warning("Rate limiting decorator could not find Request object. Skipping rate limit check.")
+                    logger.warning(
+                        "Rate limiting decorator could not find Request object. Skipping rate limit check."
+                    )
                     return await func(*args, **kwargs)
 
                 network_protection = get_network_protection()
                 if not network_protection:
-                    logger.warning("Network protection not available for rate limiting. Skipping rate limit check.")
+                    logger.warning(
+                        "Network protection not available for rate limiting. Skipping rate limit check."
+                    )
                     return await func(*args, **kwargs)
 
                 rate_request = RateLimitRequest()
-                rate_request.ip_address = request.client.host if request.client else "unknown"
+                rate_request.ip_address = (
+                    request.client.host if request.client else "unknown"
+                )
                 rate_request.endpoint = request.url.path
                 rate_request.method = request.method
                 rate_request.user_agent = request.headers.get("user-agent", "unknown")
@@ -285,37 +302,40 @@ class FastAPIAuthAdapter:
                     raise HTTPException(
                         status_code=status.HTTP_429_TOO_MANY_REQUESTS,
                         detail=f"Rate limit exceeded for action: {action}",
-                        headers={"Retry-After": str(window_seconds)}
+                        headers={"Retry-After": str(window_seconds)},
                     )
-                
+
                 # Call the original function
                 if inspect.iscoroutinefunction(func):
                     return await func(*args, **kwargs)
                 else:
                     return func(*args, **kwargs)
-            
+
             return wrapper
+
         return decorator
 
     async def create_access_token(
-        self, 
-        user_id: str, 
-        permissions: Set[str], 
-        expires_delta: Optional[timedelta] = None
+        self,
+        user_id: str,
+        permissions: Set[str],
+        expires_delta: Optional[timedelta] = None,
     ) -> str:
         """
         Create access token using UnifiedAuthManager.
-        
+
         Args:
             user_id: User identifier
             permissions: User permissions
             expires_delta: Token expiration time
-            
+
         Returns:
             JWT access token
         """
         try:
-            return self.auth_manager.create_access_token(user_id, permissions, expires_delta)
+            return self.auth_manager.create_access_token(
+                user_id, permissions, expires_delta
+            )
         except Exception as e:
             logger.error(f"Error creating access token: {e}")
             return ""
@@ -323,10 +343,10 @@ class FastAPIAuthAdapter:
     async def create_refresh_token(self, user_id: str) -> str:
         """
         Create refresh token using UnifiedAuthManager.
-        
+
         Args:
             user_id: User identifier
-            
+
         Returns:
             JWT refresh token
         """
@@ -339,10 +359,10 @@ class FastAPIAuthAdapter:
     async def revoke_token(self, token: str) -> bool:
         """
         Revoke token using UnifiedAuthManager.
-        
+
         Args:
             token: Token to revoke
-            
+
         Returns:
             True if token was revoked successfully
         """
@@ -355,10 +375,10 @@ class FastAPIAuthAdapter:
     async def invalidate_user_sessions(self, user_id: str) -> int:
         """
         Invalidate all sessions for a user.
-        
+
         Args:
             user_id: User identifier
-            
+
         Returns:
             Number of sessions invalidated
         """
@@ -383,7 +403,7 @@ def get_auth_adapter() -> FastAPIAuthAdapter:
 
 # Convenience dependency functions that use the global adapter
 async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security)
+    credentials: HTTPAuthorizationCredentials = Depends(security),
 ) -> Dict[str, Any]:
     """FastAPI dependency to get current authenticated user."""
     adapter = get_auth_adapter()
@@ -391,7 +411,9 @@ async def get_current_user(
 
 
 async def get_optional_user(
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(HTTPBearer(auto_error=False))
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(
+        HTTPBearer(auto_error=False)
+    ),
 ) -> Optional[Dict[str, Any]]:
     """FastAPI dependency to get optional authenticated user."""
     adapter = get_auth_adapter()
@@ -399,7 +421,7 @@ async def get_optional_user(
 
 
 async def require_admin(
-    current_user: Dict[str, Any] = Depends(get_current_user)
+    current_user: Dict[str, Any] = Depends(get_current_user),
 ) -> Dict[str, Any]:
     """FastAPI dependency that requires admin privileges."""
     adapter = get_auth_adapter()
@@ -413,7 +435,7 @@ def require_user_or_admin(target_user_id: Union[str, int]) -> Callable[..., Any]
 
 
 async def get_user_permissions(
-    current_user: Dict[str, Any] = Depends(get_current_user)
+    current_user: Dict[str, Any] = Depends(get_current_user),
 ) -> Set[str]:
     """FastAPI dependency to get current user permissions."""
     adapter = get_auth_adapter()
@@ -428,7 +450,7 @@ def rate_limit(action: str, limit: int, window_seconds: int = 60) -> Callable[..
 
 # Additional utility functions
 async def get_current_user_with_permissions(
-    credentials: HTTPAuthorizationCredentials = Depends(security)
+    credentials: HTTPAuthorizationCredentials = Depends(security),
 ) -> Dict[str, Any]:
     """
     Get current user with permissions included in the response.
@@ -442,25 +464,24 @@ async def get_current_user_with_permissions(
 async def validate_api_key_dependency(api_key: str) -> Dict[str, Any]:
     """
     FastAPI dependency for API key validation.
-    
+
     Args:
         api_key: API key to validate
-        
+
     Returns:
         User dict if valid
-        
+
     Raises:
         HTTPException: If API key is invalid
     """
     adapter = get_auth_adapter()
     user_data = await adapter.validate_api_key(api_key)
-    
+
     if not user_data:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid API key"
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid API key"
         )
-    
+
     return user_data
 
 
@@ -468,11 +489,11 @@ __all__ = [
     "FastAPIAuthAdapter",
     "get_auth_adapter",
     "get_current_user",
-    "get_optional_user", 
+    "get_optional_user",
     "require_admin",
     "require_user_or_admin",
     "get_user_permissions",
     "get_current_user_with_permissions",
     "validate_api_key_dependency",
-    "rate_limit"
+    "rate_limit",
 ]

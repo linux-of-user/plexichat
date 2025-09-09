@@ -17,7 +17,7 @@ __all__ = [
     "ScalingAction",
     "LoadMetrics",
     "ScalingDecision",
-    "get_edge_computing_manager"
+    "get_edge_computing_manager",
 ]
 
 # Version information

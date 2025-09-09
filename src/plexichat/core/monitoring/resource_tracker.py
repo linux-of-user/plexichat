@@ -8,13 +8,13 @@ Provides historical analysis and resource optimization recommendations.
 import asyncio
 import logging
 import statistics
-from typing import Dict, Any, List, Optional, Tuple
-from datetime import datetime, timedelta
-from dataclasses import dataclass, field
 from collections import defaultdict, deque
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional, Tuple
 
-from plexichat.core.monitoring.unified_monitoring_system import record_metric
 from plexichat.core.database.manager import database_manager
+from plexichat.core.monitoring.unified_monitoring_system import record_metric
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class ResourceUsage:
     """Resource usage data point."""
+
     resource_type: str
     resource_name: str
     current_value: float
@@ -36,6 +37,7 @@ class ResourceUsage:
 @dataclass
 class ResourcePattern:
     """Resource usage pattern analysis."""
+
     resource_type: str
     resource_name: str
     pattern_type: str  # steady, increasing, decreasing, cyclical, bursty
@@ -51,7 +53,9 @@ class ResourceTracker:
 
     def __init__(self, tracking_window_hours: int = 24):
         self.tracking_window = timedelta(hours=tracking_window_hours)
-        self.resource_history: Dict[str, deque] = defaultdict(lambda: deque(maxlen=1000))
+        self.resource_history: Dict[str, deque] = defaultdict(
+            lambda: deque(maxlen=1000)
+        )
         self.patterns_cache: Dict[str, ResourcePattern] = {}
         self.analysis_interval = 300  # 5 minutes
         self.running = False
@@ -83,8 +87,13 @@ class ResourceTracker:
 
         logger.info("Resource tracker stopped")
 
-    def track_resource_usage(self, resource_type: str, resource_name: str,
-                           current_value: float, period_seconds: int = 60):
+    def track_resource_usage(
+        self,
+        resource_type: str,
+        resource_name: str,
+        current_value: float,
+        period_seconds: int = 60,
+    ):
         """Track resource usage data point."""
         now = datetime.now()
 
@@ -119,17 +128,25 @@ class ResourceTracker:
             min_value=min_value,
             avg_value=avg_value,
             timestamp=now,
-            period_seconds=period_seconds
+            period_seconds=period_seconds,
         )
 
         # Save to database asynchronously
         asyncio.create_task(self._save_resource_usage(usage))
 
         # Record metrics
-        record_metric(f"resource_{resource_type}_{resource_name}_current", current_value, "value")
-        record_metric(f"resource_{resource_type}_{resource_name}_max", max_value, "value")
-        record_metric(f"resource_{resource_type}_{resource_name}_min", min_value, "value")
-        record_metric(f"resource_{resource_type}_{resource_name}_avg", avg_value, "value")
+        record_metric(
+            f"resource_{resource_type}_{resource_name}_current", current_value, "value"
+        )
+        record_metric(
+            f"resource_{resource_type}_{resource_name}_max", max_value, "value"
+        )
+        record_metric(
+            f"resource_{resource_type}_{resource_name}_min", min_value, "value"
+        )
+        record_metric(
+            f"resource_{resource_type}_{resource_name}_avg", avg_value, "value"
+        )
 
     async def _save_resource_usage(self, usage: ResourceUsage):
         """Save resource usage to database."""
@@ -145,7 +162,7 @@ class ResourceTracker:
                 "period_seconds": usage.period_seconds,
                 "created_at": datetime.now().isoformat(),
                 "updated_at": datetime.now().isoformat(),
-                "metadata": str(usage.metadata)
+                "metadata": str(usage.metadata),
             }
 
             async with database_manager.get_session() as session:
@@ -178,12 +195,16 @@ class ResourceTracker:
 
                 # Log significant pattern changes
                 if pattern.confidence > 0.8:
-                    logger.info(f"Resource pattern detected: {resource_type}:{resource_name} - {pattern.pattern_type} (confidence: {pattern.confidence:.2f})")
+                    logger.info(
+                        f"Resource pattern detected: {resource_type}:{resource_name} - {pattern.pattern_type} (confidence: {pattern.confidence:.2f})"
+                    )
 
             except Exception as e:
                 logger.error(f"Error analyzing pattern for {history_key}: {e}")
 
-    def _analyze_resource_pattern(self, history_key: str, history: deque) -> ResourcePattern:
+    def _analyze_resource_pattern(
+        self, history_key: str, history: deque
+    ) -> ResourcePattern:
         """Analyze usage pattern for a specific resource."""
         # Extract values and timestamps
         timestamps = [t for t, v in history]
@@ -200,7 +221,7 @@ class ResourceTracker:
                 trend_slope=0.0,
                 peak_times=[],
                 recommendations=["Need more data points for analysis"],
-                analysis_period=self.analysis_interval
+                analysis_period=self.analysis_interval,
             )
 
         x_values = [(t - timestamps[0]).total_seconds() for t in timestamps]
@@ -242,7 +263,7 @@ class ResourceTracker:
             history_key.split(":")[1],
             pattern_type,
             trend_slope,
-            cv
+            cv,
         )
 
         # Find peak usage times (simplified)
@@ -256,7 +277,7 @@ class ResourceTracker:
             trend_slope=trend_slope,
             peak_times=peak_times,
             recommendations=recommendations,
-            analysis_period=self.analysis_interval
+            analysis_period=self.analysis_interval,
         )
 
     def _detect_cyclical_pattern(self, values: List[float]) -> bool:
@@ -271,7 +292,7 @@ class ResourceTracker:
             mean_val = statistics.mean(values)
             autocorr = []
 
-            for lag in range(1, min(10, len(values)//2)):
+            for lag in range(1, min(10, len(values) // 2)):
                 corr = 0
                 count = 0
                 for i in range(len(values) - lag):
@@ -288,7 +309,9 @@ class ResourceTracker:
         except Exception:
             return False
 
-    def _find_peak_times(self, timestamps: List[datetime], values: List[float]) -> List[str]:
+    def _find_peak_times(
+        self, timestamps: List[datetime], values: List[float]
+    ) -> List[str]:
         """Find times when resource usage peaks."""
         if len(values) < 5:
             return []
@@ -307,14 +330,22 @@ class ResourceTracker:
         except Exception:
             return []
 
-    def _generate_recommendations(self, resource_type: str, resource_name: str,
-                                pattern_type: str, trend_slope: float, cv: float) -> List[str]:
+    def _generate_recommendations(
+        self,
+        resource_type: str,
+        resource_name: str,
+        pattern_type: str,
+        trend_slope: float,
+        cv: float,
+    ) -> List[str]:
         """Generate optimization recommendations based on pattern analysis."""
         recommendations = []
 
         if pattern_type == "increasing":
             if resource_type == "memory":
-                recommendations.append("Consider increasing memory allocation or optimizing memory usage")
+                recommendations.append(
+                    "Consider increasing memory allocation or optimizing memory usage"
+                )
             elif resource_type == "cpu":
                 recommendations.append("Monitor for potential performance bottlenecks")
             elif resource_type == "disk":
@@ -326,18 +357,25 @@ class ResourceTracker:
 
         elif pattern_type == "cyclical":
             recommendations.append("Schedule maintenance during low-usage periods")
-            recommendations.append("Implement predictive scaling based on usage patterns")
+            recommendations.append(
+                "Implement predictive scaling based on usage patterns"
+            )
 
         if cv > 0.7:
-            recommendations.append("High variability detected - consider resource optimization")
+            recommendations.append(
+                "High variability detected - consider resource optimization"
+            )
 
         if trend_slope > 0.5:
-            recommendations.append("Strong upward trend - monitor closely for capacity planning")
+            recommendations.append(
+                "Strong upward trend - monitor closely for capacity planning"
+            )
 
         return recommendations[:3]  # Limit to 3 recommendations
 
-    def get_resource_patterns(self, resource_type: Optional[str] = None,
-                            resource_name: Optional[str] = None) -> List[ResourcePattern]:
+    def get_resource_patterns(
+        self, resource_type: Optional[str] = None, resource_name: Optional[str] = None
+    ) -> List[ResourcePattern]:
         """Get analyzed resource patterns."""
         patterns = list(self.patterns_cache.values())
 
@@ -349,8 +387,9 @@ class ResourceTracker:
 
         return patterns
 
-    def get_resource_usage_history(self, resource_type: str, resource_name: str,
-                                 hours: int = 24) -> List[Tuple[datetime, float]]:
+    def get_resource_usage_history(
+        self, resource_type: str, resource_name: str, hours: int = 24
+    ) -> List[Tuple[datetime, float]]:
         """Get historical usage data for a resource."""
         history_key = f"{resource_type}:{resource_name}"
         history = self.resource_history.get(history_key, deque())
@@ -358,8 +397,9 @@ class ResourceTracker:
         cutoff = datetime.now() - timedelta(hours=hours)
         return [(t, v) for t, v in history if t >= cutoff]
 
-    def get_resource_stats(self, resource_type: str, resource_name: str,
-                          hours: int = 24) -> Dict[str, Any]:
+    def get_resource_stats(
+        self, resource_type: str, resource_name: str, hours: int = 24
+    ) -> Dict[str, Any]:
         """Get comprehensive statistics for a resource."""
         history = self.get_resource_usage_history(resource_type, resource_name, hours)
 
@@ -382,8 +422,12 @@ class ResourceTracker:
             "percentiles": {
                 "25": statistics.quantiles(values, n=4)[0] if len(values) >= 4 else 0,
                 "75": statistics.quantiles(values, n=4)[2] if len(values) >= 4 else 0,
-                "95": statistics.quantiles(values, n=20)[18] if len(values) >= 20 else max(values) if values else 0
-            }
+                "95": (
+                    statistics.quantiles(values, n=20)[18]
+                    if len(values) >= 20
+                    else max(values) if values else 0
+                ),
+            },
         }
 
 
@@ -394,22 +438,30 @@ resource_tracker = ResourceTracker()
 # Convenience functions
 def track_memory_usage(current_mb: float, period_seconds: int = 60):
     """Track memory usage."""
-    resource_tracker.track_resource_usage("memory", "system", current_mb, period_seconds)
+    resource_tracker.track_resource_usage(
+        "memory", "system", current_mb, period_seconds
+    )
 
 
 def track_cpu_usage(current_percent: float, period_seconds: int = 60):
     """Track CPU usage."""
-    resource_tracker.track_resource_usage("cpu", "system", current_percent, period_seconds)
+    resource_tracker.track_resource_usage(
+        "cpu", "system", current_percent, period_seconds
+    )
 
 
 def track_disk_usage(current_percent: float, period_seconds: int = 60):
     """Track disk usage."""
-    resource_tracker.track_resource_usage("disk", "system", current_percent, period_seconds)
+    resource_tracker.track_resource_usage(
+        "disk", "system", current_percent, period_seconds
+    )
 
 
 def track_network_usage(current_mbps: float, period_seconds: int = 60):
     """Track network usage."""
-    resource_tracker.track_resource_usage("network", "system", current_mbps, period_seconds)
+    resource_tracker.track_resource_usage(
+        "network", "system", current_mbps, period_seconds
+    )
 
 
 async def start_resource_tracking():
@@ -422,13 +474,16 @@ async def stop_resource_tracking():
     await resource_tracker.stop()
 
 
-def get_resource_patterns(resource_type: Optional[str] = None,
-                         resource_name: Optional[str] = None) -> List[ResourcePattern]:
+def get_resource_patterns(
+    resource_type: Optional[str] = None, resource_name: Optional[str] = None
+) -> List[ResourcePattern]:
     """Get resource usage patterns."""
     return resource_tracker.get_resource_patterns(resource_type, resource_name)
 
 
-def get_resource_stats(resource_type: str, resource_name: str, hours: int = 24) -> Dict[str, Any]:
+def get_resource_stats(
+    resource_type: str, resource_name: str, hours: int = 24
+) -> Dict[str, Any]:
     """Get resource usage statistics."""
     return resource_tracker.get_resource_stats(resource_type, resource_name, hours)
 

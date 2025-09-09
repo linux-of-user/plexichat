@@ -4,22 +4,36 @@ PlexiChat Core Messaging System - SINGLE SOURCE OF TRUTH
 Consolidated messaging functionality with fallback implementations.
 """
 
-import warnings
-import logging
-from typing import Any, Dict, List, Optional
 import asyncio
+import logging
+import warnings
+from typing import Any, Dict, List, Optional
 
 # Use shared fallback implementations
 logger = logging.getLogger(__name__)
 
 try:
     from plexichat.core.utils.fallbacks import (
-        UnifiedMessagingManager, MessageEncryption, MessageValidator,
-        MessageRouter, ChannelManager, MessageMetadata, MessageDelivery,
-        ChannelSettings, MessageType, ChannelType, MessageStatus, EncryptionLevel,
-        send_message, get_message, get_channel_messages, create_channel,
-        get_messaging_manager, get_fallback_instance
+        ChannelManager,
+        ChannelSettings,
+        ChannelType,
+        EncryptionLevel,
+        MessageDelivery,
+        MessageEncryption,
+        MessageMetadata,
+        MessageRouter,
+        MessageStatus,
+        MessageType,
+        MessageValidator,
+        UnifiedMessagingManager,
+        create_channel,
+        get_channel_messages,
+        get_fallback_instance,
+        get_message,
+        get_messaging_manager,
+        send_message,
     )
+
     USE_SHARED_FALLBACKS = True
     logger.info("Using shared fallback implementations for messaging")
 except ImportError:
@@ -28,7 +42,7 @@ except ImportError:
     logger.warning("Shared fallbacks unavailable, using local implementations")
 
 if USE_SHARED_FALLBACKS:
-    unified_messaging_manager = get_fallback_instance('UnifiedMessagingManager')
+    unified_messaging_manager = get_fallback_instance("UnifiedMessagingManager")
 else:
     # Local fallbacks (preserved for compatibility)
     class UnifiedMessagingManager:  # type: ignore
@@ -100,25 +114,31 @@ else:
 
     def get_messaging_manager():  # type: ignore
         return unified_messaging_manager
+
+
 # Backward compatibility aliases
 messaging_manager = unified_messaging_manager
 MessagingManager = UnifiedMessagingManager
 MessageProcessor = UnifiedMessagingManager
 message_processor = unified_messaging_manager
 
+
 # Legacy function aliases
 async def queue_message(sender_id: str, channel_id: str, content: str, **kwargs):
     """Queue message (backward compatibility)."""
     return await send_message(sender_id, channel_id, content, **kwargs)
 
+
 async def process_message_now(sender_id: str, channel_id: str, content: str, **kwargs):
     """Process message immediately (backward compatibility)."""
     return await send_message(sender_id, channel_id, content, **kwargs)
+
 
 # Legacy data class
 class MessageData:
     def __init__(self, **kwargs):
         self.__dict__.update(kwargs)
+
 
 # Export all the main classes and functions
 __all__ = [
@@ -129,7 +149,6 @@ __all__ = [
     "MessageValidator",
     "MessageRouter",
     "ChannelManager",
-
     # Data classes
     "MessageMetadata",
     "MessageDelivery",
@@ -139,14 +158,12 @@ __all__ = [
     "MessageStatus",
     "EncryptionLevel",
     "MessageData",
-
     # Main functions
     "send_message",
     "get_message",
     "get_channel_messages",
     "create_channel",
     "get_messaging_manager",
-
     # Backward compatibility aliases
     "messaging_manager",
     "MessagingManager",

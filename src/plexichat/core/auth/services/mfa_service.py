@@ -4,22 +4,24 @@ Manages multi-factor authentication with TOTP and SMS support.
 """
 
 import asyncio
-import secrets
 import hashlib
-import pyotp
-from typing import Dict, Optional, Tuple, List
-from datetime import datetime, timezone, timedelta
+import secrets
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
 from enum import Enum
+from typing import Dict, List, Optional, Tuple
 
-from plexichat.core.logging import get_logger
+import pyotp
+
 from plexichat.core.auth.services.interfaces import IMFAProvider
+from plexichat.core.logging import get_logger
 
 logger = get_logger(__name__)
 
 
 class MFAType(Enum):
     """MFA method types."""
+
     TOTP = "totp"
     SMS = "sms"
     EMAIL = "email"
@@ -28,6 +30,7 @@ class MFAType(Enum):
 @dataclass
 class MFAChallenge:
     """MFA challenge data."""
+
     challenge_id: str
     user_id: str
     mfa_type: MFAType
@@ -42,6 +45,7 @@ class MFAChallenge:
 @dataclass
 class MFAEnrollment:
     """MFA enrollment data."""
+
     user_id: str
     mfa_type: MFAType
     secret: str
@@ -60,9 +64,7 @@ class MFAService(IMFAProvider):
         self.max_attempts = 3
 
     async def create_mfa_challenge(
-        self,
-        user_id: str,
-        mfa_type: MFAType = MFAType.TOTP
+        self, user_id: str, mfa_type: MFAType = MFAType.TOTP
     ) -> str:
         """Create a new MFA challenge."""
         challenge_id = self._generate_challenge_id()
@@ -82,19 +84,19 @@ class MFAService(IMFAProvider):
             mfa_type=mfa_type,
             secret=secret,
             code=code,
-            expires_at=datetime.now(timezone.utc) + timedelta(seconds=self.challenge_timeout)
+            expires_at=datetime.now(timezone.utc)
+            + timedelta(seconds=self.challenge_timeout),
         )
 
         self.challenges[challenge_id] = challenge
 
-        logger.info(f"Created MFA challenge {challenge_id} for user {user_id} ({mfa_type.value})")
+        logger.info(
+            f"Created MFA challenge {challenge_id} for user {user_id} ({mfa_type.value})"
+        )
         return challenge_id
 
     async def verify_mfa_challenge(
-        self,
-        user_id: str,
-        challenge_id: str,
-        code: str
+        self, user_id: str, challenge_id: str, code: str
     ) -> bool:
         """Verify an MFA challenge."""
         challenge = self.challenges.get(challenge_id)
@@ -123,28 +125,27 @@ class MFAService(IMFAProvider):
             logger.info(f"MFA challenge {challenge_id} verified for user {user_id}")
             return True
         else:
-            logger.warning(f"Invalid MFA code for challenge {challenge_id}, attempt {challenge.attempts}")
+            logger.warning(
+                f"Invalid MFA code for challenge {challenge_id}, attempt {challenge.attempts}"
+            )
             return False
 
     async def enroll_mfa(
-        self,
-        user_id: str,
-        mfa_type: MFAType = MFAType.TOTP
+        self, user_id: str, mfa_type: MFAType = MFAType.TOTP
     ) -> Tuple[bool, str]:
         """Enroll a user for MFA."""
         if user_id in self.enrollments:
             return False, "User already enrolled in MFA"
 
-        secret = pyotp.random_base32() if mfa_type == MFAType.TOTP else secrets.token_hex(16)
+        secret = (
+            pyotp.random_base32() if mfa_type == MFAType.TOTP else secrets.token_hex(16)
+        )
 
         # Generate backup codes
         backup_codes = [str(secrets.randbelow(999999)).zfill(6) for _ in range(10)]
 
         enrollment = MFAEnrollment(
-            user_id=user_id,
-            mfa_type=mfa_type,
-            secret=secret,
-            backup_codes=backup_codes
+            user_id=user_id, mfa_type=mfa_type, secret=secret, backup_codes=backup_codes
         )
 
         self.enrollments[user_id] = enrollment
@@ -161,7 +162,8 @@ class MFAService(IMFAProvider):
 
         # Clean up any active challenges
         challenges_to_remove = [
-            cid for cid, challenge in self.challenges.items()
+            cid
+            for cid, challenge in self.challenges.items()
             if challenge.user_id == user_id
         ]
 
@@ -186,7 +188,7 @@ class MFAService(IMFAProvider):
             "enrolled": True,
             "type": enrollment.mfa_type.value,
             "enrolled_at": enrollment.enrolled_at.isoformat(),
-            "backup_codes_remaining": len(enrollment.backup_codes)
+            "backup_codes_remaining": len(enrollment.backup_codes),
         }
 
     async def cleanup_expired_challenges(self) -> int:
@@ -209,6 +211,7 @@ class MFAService(IMFAProvider):
     def _generate_challenge_id(self) -> str:
         """Generate a unique challenge ID."""
         import uuid
+
         return f"mfa_{uuid.uuid4().hex}"
 
     def _hash_secret(self, secret: str) -> str:

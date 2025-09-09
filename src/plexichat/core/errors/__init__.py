@@ -5,32 +5,53 @@ Single source of truth for all error handling functionality.
 Consolidates error_handling/, error_handlers.py, and exceptions.py into one clean system.
 """
 
-from typing import Any, Dict, Optional, Type, Union, List
 import logging
 from enum import Enum, unique
+from typing import Any, Dict, List, Optional, Type, Union
 
 # Use shared fallback implementations
 logger = logging.getLogger(__name__)
 
 try:
-    from plexichat.core.utils.fallbacks import (
-        # Exceptions
-        BaseAPIException, AuthenticationError, AuthorizationError, ValidationError,
-        DatabaseError, NetworkError, FileError, ExternalServiceError, RateLimitError,
-        ConfigurationError, ProcessLockError, StartupError, SecurityError,
-        # Enums
-        ErrorSeverity, ErrorCategory,
-        # Utilities
-        handle_exception, create_error_response,
-        handle_404, handle_500, handle_validation_error, handle_authentication_error,
-        handle_authorization_error, handle_rate_limit_error, not_found_handler, internal_error_handler,
-        register_error_handlers, CircuitBreaker,
-        # Error Manager
-        get_error_manager, ErrorManager,
-        # ErrorCode system
-        ErrorCode, ERROR_CODE_MAP, get_error_code, error_to_response, raise_for_code, list_error_codes,
-        get_fallback_instance
+    from plexichat.core.utils.fallbacks import (  # Exceptions; Enums; Utilities; Error Manager; ErrorCode system
+        ERROR_CODE_MAP,
+        AuthenticationError,
+        AuthorizationError,
+        BaseAPIException,
+        CircuitBreaker,
+        ConfigurationError,
+        DatabaseError,
+        ErrorCategory,
+        ErrorCode,
+        ErrorManager,
+        ErrorSeverity,
+        ExternalServiceError,
+        FileError,
+        NetworkError,
+        ProcessLockError,
+        RateLimitError,
+        SecurityError,
+        StartupError,
+        ValidationError,
+        create_error_response,
+        error_to_response,
+        get_error_code,
+        get_error_manager,
+        get_fallback_instance,
+        handle_404,
+        handle_500,
+        handle_authentication_error,
+        handle_authorization_error,
+        handle_exception,
+        handle_rate_limit_error,
+        handle_validation_error,
+        internal_error_handler,
+        list_error_codes,
+        not_found_handler,
+        raise_for_code,
+        register_error_handlers,
     )
+
     USE_SHARED_FALLBACKS = True
     logger.info("Using shared fallback implementations for errors")
 except ImportError:
@@ -44,7 +65,12 @@ else:
     # Local fallbacks (preserved for compatibility)
     # Fallback error components
     class BaseAPIException(Exception):  # type: ignore
-        def __init__(self, message: str = "", status_code: int = 500, details: Optional[Dict[str, Any]] = None):
+        def __init__(
+            self,
+            message: str = "",
+            status_code: int = 500,
+            details: Optional[Dict[str, Any]] = None,
+        ):
             super().__init__(message)
             self.message = message
             self.status_code = status_code
@@ -122,7 +148,7 @@ else:
         return {
             "type": type(exc).__name__,
             "message": str(exc),
-            "details": getattr(exc, 'details', {})
+            "details": getattr(exc, "details", {}),
         }
 
     def create_error_response(exc: Exception, status_code: int = 500) -> Dict[str, Any]:
@@ -130,7 +156,7 @@ else:
         return {
             "success": False,
             "error": handle_exception(exc),
-            "status_code": status_code
+            "status_code": status_code,
         }
 
     # Fallback error handlers
@@ -160,7 +186,7 @@ else:
 
     # FastAPI-compatible error handlers - import from handlers.py
     try:
-        from .handlers import not_found_handler, internal_error_handler
+        from .handlers import internal_error_handler, not_found_handler
     except ImportError:
         # Fallback if handlers.py is not available
         from fastapi.responses import JSONResponse
@@ -172,8 +198,8 @@ else:
                 content={
                     "error": "Not Found",
                     "message": "The requested resource was not found",
-                    "path": str(request.url.path)
-                }
+                    "path": str(request.url.path),
+                },
             )
 
         async def internal_error_handler(request, exc):
@@ -182,8 +208,8 @@ else:
                 status_code=500,
                 content={
                     "error": "Internal Server Error",
-                    "message": "An internal server error occurred"
-                }
+                    "message": "An internal server error occurred",
+                },
             )
 
     def register_error_handlers(app):
@@ -196,17 +222,25 @@ else:
                 app.register_error_handler(404, handle_404)
                 app.register_error_handler(500, handle_500)
                 app.register_error_handler(ValidationError, handle_validation_error)
-                app.register_error_handler(AuthenticationError, handle_authentication_error)
-                app.register_error_handler(AuthorizationError, handle_authorization_error)
+                app.register_error_handler(
+                    AuthenticationError, handle_authentication_error
+                )
+                app.register_error_handler(
+                    AuthorizationError, handle_authorization_error
+                )
                 app.register_error_handler(RateLimitError, handle_rate_limit_error)
         except Exception:
             # If registration fails, log and continue - this is a best-effort fallback.
-            logger.debug("register_error_handlers: best-effort registration failed", exc_info=True)
+            logger.debug(
+                "register_error_handlers: best-effort registration failed",
+                exc_info=True,
+            )
             pass
 
     # Fallback circuit breaker
     class CircuitBreaker:
         """Fallback circuit breaker."""
+
         def __init__(self, *args, **kwargs):
             pass
 
@@ -216,6 +250,7 @@ else:
     # Fallback error manager
     class ErrorManager:
         """Fallback error manager."""
+
         def __init__(self):
             self.errors: List[Dict[str, Any]] = []
 
@@ -234,38 +269,141 @@ else:
     @unique
     class ErrorCode(Enum):
         # Authentication
-        AUTH_INVALID_CREDENTIALS = ("AUTH_INVALID_CREDENTIALS", 401, "Invalid credentials", ErrorCategory.AUTHENTICATION, ErrorSeverity.HIGH)
-        AUTH_TOKEN_EXPIRED = ("AUTH_TOKEN_EXPIRED", 401, "Authentication token has expired", ErrorCategory.AUTHENTICATION, ErrorSeverity.MEDIUM)
-        AUTH_NO_TOKEN = ("AUTH_NO_TOKEN", 401, "Authentication token missing", ErrorCategory.AUTHENTICATION, ErrorSeverity.MEDIUM)
+        AUTH_INVALID_CREDENTIALS = (
+            "AUTH_INVALID_CREDENTIALS",
+            401,
+            "Invalid credentials",
+            ErrorCategory.AUTHENTICATION,
+            ErrorSeverity.HIGH,
+        )
+        AUTH_TOKEN_EXPIRED = (
+            "AUTH_TOKEN_EXPIRED",
+            401,
+            "Authentication token has expired",
+            ErrorCategory.AUTHENTICATION,
+            ErrorSeverity.MEDIUM,
+        )
+        AUTH_NO_TOKEN = (
+            "AUTH_NO_TOKEN",
+            401,
+            "Authentication token missing",
+            ErrorCategory.AUTHENTICATION,
+            ErrorSeverity.MEDIUM,
+        )
 
         # Authorization
-        AUTHZ_FORBIDDEN = ("AUTHZ_FORBIDDEN", 403, "Action is forbidden", ErrorCategory.AUTHORIZATION, ErrorSeverity.HIGH)
+        AUTHZ_FORBIDDEN = (
+            "AUTHZ_FORBIDDEN",
+            403,
+            "Action is forbidden",
+            ErrorCategory.AUTHORIZATION,
+            ErrorSeverity.HIGH,
+        )
 
         # Validation
-        VALIDATION_FIELD_MISSING = ("VALIDATION_FIELD_MISSING", 400, "Required field is missing", ErrorCategory.VALIDATION, ErrorSeverity.MEDIUM)
-        VALIDATION_INVALID_FORMAT = ("VALIDATION_INVALID_FORMAT", 400, "Invalid field format", ErrorCategory.VALIDATION, ErrorSeverity.MEDIUM)
+        VALIDATION_FIELD_MISSING = (
+            "VALIDATION_FIELD_MISSING",
+            400,
+            "Required field is missing",
+            ErrorCategory.VALIDATION,
+            ErrorSeverity.MEDIUM,
+        )
+        VALIDATION_INVALID_FORMAT = (
+            "VALIDATION_INVALID_FORMAT",
+            400,
+            "Invalid field format",
+            ErrorCategory.VALIDATION,
+            ErrorSeverity.MEDIUM,
+        )
 
         # Database
-        DB_CONNECTION_FAILED = ("DB_CONNECTION_FAILED", 500, "Failed to connect to database", ErrorCategory.DATABASE, ErrorSeverity.CRITICAL)
-        DB_QUERY_FAILED = ("DB_QUERY_FAILED", 500, "Database query failed", ErrorCategory.DATABASE, ErrorSeverity.HIGH)
+        DB_CONNECTION_FAILED = (
+            "DB_CONNECTION_FAILED",
+            500,
+            "Failed to connect to database",
+            ErrorCategory.DATABASE,
+            ErrorSeverity.CRITICAL,
+        )
+        DB_QUERY_FAILED = (
+            "DB_QUERY_FAILED",
+            500,
+            "Database query failed",
+            ErrorCategory.DATABASE,
+            ErrorSeverity.HIGH,
+        )
 
         # Network
-        NETWORK_TIMEOUT = ("NETWORK_TIMEOUT", 503, "Network timeout", ErrorCategory.NETWORK, ErrorSeverity.MEDIUM)
+        NETWORK_TIMEOUT = (
+            "NETWORK_TIMEOUT",
+            503,
+            "Network timeout",
+            ErrorCategory.NETWORK,
+            ErrorSeverity.MEDIUM,
+        )
 
         # Security
-        SECURITY_SQL_INJECTION = ("SECURITY_SQL_INJECTION", 400, "Potential SQL injection detected", ErrorCategory.SECURITY, ErrorSeverity.CRITICAL)
-        SECURITY_XSS_DETECTED = ("SECURITY_XSS_DETECTED", 400, "Potential cross-site scripting detected", ErrorCategory.SECURITY, ErrorSeverity.CRITICAL)
-        SECURITY_RATE_LIMIT = ("SECURITY_RATE_LIMIT", 429, "Rate limit exceeded", ErrorCategory.SECURITY, ErrorSeverity.MEDIUM)
+        SECURITY_SQL_INJECTION = (
+            "SECURITY_SQL_INJECTION",
+            400,
+            "Potential SQL injection detected",
+            ErrorCategory.SECURITY,
+            ErrorSeverity.CRITICAL,
+        )
+        SECURITY_XSS_DETECTED = (
+            "SECURITY_XSS_DETECTED",
+            400,
+            "Potential cross-site scripting detected",
+            ErrorCategory.SECURITY,
+            ErrorSeverity.CRITICAL,
+        )
+        SECURITY_RATE_LIMIT = (
+            "SECURITY_RATE_LIMIT",
+            429,
+            "Rate limit exceeded",
+            ErrorCategory.SECURITY,
+            ErrorSeverity.MEDIUM,
+        )
 
         # System
-        SYSTEM_CONFIGURATION_ERROR = ("SYSTEM_CONFIGURATION_ERROR", 500, "System configuration error", ErrorCategory.SYSTEM, ErrorSeverity.CRITICAL)
-        SYSTEM_STARTUP_ERROR = ("SYSTEM_STARTUP_ERROR", 500, "System startup error", ErrorCategory.SYSTEM, ErrorSeverity.CRITICAL)
+        SYSTEM_CONFIGURATION_ERROR = (
+            "SYSTEM_CONFIGURATION_ERROR",
+            500,
+            "System configuration error",
+            ErrorCategory.SYSTEM,
+            ErrorSeverity.CRITICAL,
+        )
+        SYSTEM_STARTUP_ERROR = (
+            "SYSTEM_STARTUP_ERROR",
+            500,
+            "System startup error",
+            ErrorCategory.SYSTEM,
+            ErrorSeverity.CRITICAL,
+        )
 
         # File / External
-        FILE_NOT_FOUND = ("FILE_NOT_FOUND", 404, "Requested file not found", ErrorCategory.FILE, ErrorSeverity.MEDIUM)
-        EXTERNAL_SERVICE_FAILURE = ("EXTERNAL_SERVICE_FAILURE", 502, "External service failure", ErrorCategory.EXTERNAL, ErrorSeverity.HIGH)
+        FILE_NOT_FOUND = (
+            "FILE_NOT_FOUND",
+            404,
+            "Requested file not found",
+            ErrorCategory.FILE,
+            ErrorSeverity.MEDIUM,
+        )
+        EXTERNAL_SERVICE_FAILURE = (
+            "EXTERNAL_SERVICE_FAILURE",
+            502,
+            "External service failure",
+            ErrorCategory.EXTERNAL,
+            ErrorSeverity.HIGH,
+        )
 
-        def __init__(self, code: str, http_status: int, message: str, category: str, severity: str):
+        def __init__(
+            self,
+            code: str,
+            http_status: int,
+            message: str,
+            category: str,
+            severity: str,
+        ):
             self._code = code
             self._http_status = http_status
             self._message = message
@@ -309,7 +447,9 @@ else:
             return None
         return ERROR_CODE_MAP.get(identifier)
 
-    def error_to_response(error_code: Union[str, ErrorCode], details: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    def error_to_response(
+        error_code: Union[str, ErrorCode], details: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
         """
         Create a standardized error response dictionary from an ErrorCode.
 
@@ -329,7 +469,9 @@ else:
         ec = get_error_code(error_code)
         if ec is None:
             # Fallback to generic error response
-            logger.debug("error_to_response: unknown error code provided: %s", error_code)
+            logger.debug(
+                "error_to_response: unknown error code provided: %s", error_code
+            )
             return {
                 "success": False,
                 "error": {
@@ -337,9 +479,9 @@ else:
                     "message": "An unknown error occurred",
                     "category": ErrorCategory.SYSTEM,
                     "severity": ErrorSeverity.MEDIUM,
-                    "details": details or {}
+                    "details": details or {},
                 },
-                "status_code": 500
+                "status_code": 500,
             }
 
         return {
@@ -349,12 +491,14 @@ else:
                 "message": ec.message,
                 "category": ec.category,
                 "severity": ec.severity,
-                "details": details or {}
+                "details": details or {},
             },
-            "status_code": ec.status
+            "status_code": ec.status,
         }
 
-    def raise_for_code(error_code: Union[str, ErrorCode], details: Optional[Dict[str, Any]] = None) -> None:
+    def raise_for_code(
+        error_code: Union[str, ErrorCode], details: Optional[Dict[str, Any]] = None
+    ) -> None:
         """
         Raise a BaseAPIException constructed from the provided ErrorCode.
 
@@ -363,28 +507,34 @@ else:
         """
         ec = get_error_code(error_code)
         if ec is None:
-            raise BaseAPIException("Unknown error code", status_code=500, details=details or {})
+            raise BaseAPIException(
+                "Unknown error code", status_code=500, details=details or {}
+            )
         raise BaseAPIException(ec.message, status_code=ec.status, details=details or {})
 
     def list_error_codes() -> List[Dict[str, Any]]:
         """Return a list of all standardized error codes with metadata."""
         codes = []
         for ec in ErrorCode:
-            codes.append({
-                "code": ec.code,
-                "status": ec.status,
-                "message": ec.message,
-                "category": ec.category,
-                "severity": ec.severity,
-            })
+            codes.append(
+                {
+                    "code": ec.code,
+                    "status": ec.status,
+                    "message": ec.message,
+                    "category": ec.category,
+                    "severity": ec.severity,
+                }
+            )
         return codes
 
     # Log that the standardized error code system is available
-    logger.info("Standardized ErrorCode system initialized with %d codes", len(ERROR_CODE_MAP))
+    logger.info(
+        "Standardized ErrorCode system initialized with %d codes", len(ERROR_CODE_MAP)
+    )
 
     # Ensure error_manager is always available
     error_manager = get_error_manager()
-    
+
     # Export all the main classes and functions
     __all__ = [
         # Exceptions
@@ -403,7 +553,6 @@ else:
         "SecurityError",
         "handle_exception",
         "create_error_response",
-    
         # Handlers
         "handle_404",
         "handle_500",
@@ -414,18 +563,14 @@ else:
         "not_found_handler",
         "internal_error_handler",
         "register_error_handlers",
-    
         # Circuit breaker
         "CircuitBreaker",
-    
         # Error manager
         "ErrorManager",
         "get_error_manager",
-    
         # Severity & Category
         "ErrorSeverity",
         "ErrorCategory",
-    
         # Standardized error codes
         "ErrorCode",
         "ERROR_CODE_MAP",
@@ -434,7 +579,7 @@ else:
         "raise_for_code",
         "list_error_codes",
     ]
-    
+
     from plexichat.core.utils.fallbacks import get_module_version
-    
+
     __version__ = get_module_version()

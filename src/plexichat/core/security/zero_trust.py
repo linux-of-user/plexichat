@@ -14,11 +14,11 @@ import asyncio
 import hashlib
 import json
 import time
+from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set, Tuple
-from collections import defaultdict
 
 from plexichat.core.logging import get_logger
 
@@ -27,6 +27,7 @@ logger = get_logger(__name__)
 
 class TrustLevel(Enum):
     """Trust levels for zero-trust model."""
+
     UNTRUSTED = 0
     LOW = 1
     MEDIUM = 2
@@ -36,6 +37,7 @@ class TrustLevel(Enum):
 
 class RiskLevel(Enum):
     """Risk assessment levels."""
+
     MINIMAL = 1
     LOW = 2
     MEDIUM = 3
@@ -45,6 +47,7 @@ class RiskLevel(Enum):
 
 class IncidentSeverity(Enum):
     """Security incident severity levels."""
+
     INFO = "info"
     LOW = "low"
     MEDIUM = "medium"
@@ -55,6 +58,7 @@ class IncidentSeverity(Enum):
 @dataclass
 class UserContext:
     """User context for zero-trust evaluation."""
+
     user_id: str
     ip_address: str
     user_agent: str
@@ -76,13 +80,14 @@ class UserContext:
             "session_id": self.session_id,
             "last_activity": self.last_activity.isoformat(),
             "trust_level": self.trust_level.value,
-            "risk_score": self.risk_score
+            "risk_score": self.risk_score,
         }
 
 
 @dataclass
 class SecurityIncident:
     """Security incident record."""
+
     incident_id: str
     incident_type: str
     severity: IncidentSeverity
@@ -98,6 +103,7 @@ class SecurityIncident:
 @dataclass
 class BehaviorPattern:
     """User behavior pattern."""
+
     user_id: str
     pattern_type: str
     typical_hours: Set[int] = field(default_factory=set)
@@ -123,7 +129,7 @@ class BehavioralAnalyzer:
             "ip_address": context.ip_address,
             "device_fingerprint": context.device_fingerprint,
             "location": context.location,
-            "hour": datetime.now().hour
+            "hour": datetime.now().hour,
         }
 
         self.activity_history[user_id].append(activity)
@@ -131,14 +137,15 @@ class BehavioralAnalyzer:
         # Clean old history
         cutoff_date = datetime.now() - timedelta(days=self.max_history_days)
         self.activity_history[user_id] = [
-            a for a in self.activity_history[user_id]
-            if a["timestamp"] > cutoff_date
+            a for a in self.activity_history[user_id] if a["timestamp"] > cutoff_date
         ]
 
         # Update behavior pattern
         self._update_behavior_pattern(user_id)
 
-    def analyze_behavior(self, user_id: str, context: UserContext) -> Tuple[bool, float, List[str]]:
+    def analyze_behavior(
+        self, user_id: str, context: UserContext
+    ) -> Tuple[bool, float, List[str]]:
         """Analyze current behavior against established patterns."""
         pattern = self.user_patterns.get(user_id)
         if not pattern:
@@ -183,15 +190,15 @@ class BehavioralAnalyzer:
     def _update_behavior_pattern(self, user_id: str):
         """Update behavior pattern based on recent activity."""
         if user_id not in self.user_patterns:
-            self.user_patterns[user_id] = BehaviorPattern(user_id=user_id, pattern_type="learned")
+            self.user_patterns[user_id] = BehaviorPattern(
+                user_id=user_id, pattern_type="learned"
+            )
 
         pattern = self.user_patterns[user_id]
         recent_activities = self.activity_history[user_id][-100:]  # Last 100 activities
 
         # Update typical hours
-        pattern.typical_hours = {
-            activity["hour"] for activity in recent_activities
-        }
+        pattern.typical_hours = {activity["hour"] for activity in recent_activities}
 
         # Update typical locations
         pattern.typical_locations = {
@@ -234,18 +241,18 @@ class ZeroTrustEngine:
                 "require_mfa_for_high_risk": True,
                 "max_failed_attempts": 3,
                 "session_timeout_minutes": 60,
-                "require_device_verification": True
+                "require_device_verification": True,
             },
             "authorization": {
                 "default_access_level": "minimal",
                 "require_justification_for_elevated_access": True,
-                "max_privilege_duration_hours": 8
+                "max_privilege_duration_hours": 8,
             },
             "monitoring": {
                 "continuous_verification_interval_minutes": 15,
                 "behavioral_analysis_enabled": True,
-                "incident_auto_response": True
-            }
+                "incident_auto_response": True,
+            },
         }
 
     async def evaluate_trust(
@@ -257,8 +264,9 @@ class ZeroTrustEngine:
             self.behavioral_analyzer.record_activity(user_id, requested_action, context)
 
             # Analyze behavior
-            is_normal_behavior, behavior_risk, behavior_anomalies = \
+            is_normal_behavior, behavior_risk, behavior_anomalies = (
                 self.behavioral_analyzer.analyze_behavior(user_id, context)
+            )
 
             # Calculate base risk score
             risk_score = behavior_risk
@@ -267,9 +275,14 @@ class ZeroTrustEngine:
             # Check session context
             if context.session_id in self.active_sessions:
                 session_context = self.active_sessions[context.session_id]
-                session_age = (datetime.now() - session_context.last_activity).total_seconds() / 60
+                session_age = (
+                    datetime.now() - session_context.last_activity
+                ).total_seconds() / 60
 
-                if session_age > self.trust_policies["authentication"]["session_timeout_minutes"]:
+                if (
+                    session_age
+                    > self.trust_policies["authentication"]["session_timeout_minutes"]
+                ):
                     risk_score += 0.5
                     risk_factors.append("Session timeout exceeded")
 
@@ -300,7 +313,9 @@ class ZeroTrustEngine:
             context.risk_score = risk_score
             self.user_contexts[user_id] = context
 
-            logger.info(f"Trust evaluation for {user_id}: {trust_level.name} (risk: {risk_score:.2f})")
+            logger.info(
+                f"Trust evaluation for {user_id}: {trust_level.name} (risk: {risk_score:.2f})"
+            )
 
             return trust_level, risk_score, risk_factors
 
@@ -344,7 +359,10 @@ class ZeroTrustEngine:
                 return False, reason
 
             # Additional verification for high-risk actions
-            if risk_score > 0.5 and self.trust_policies["authentication"]["require_mfa_for_high_risk"]:
+            if (
+                risk_score > 0.5
+                and self.trust_policies["authentication"]["require_mfa_for_high_risk"]
+            ):
                 return False, "Additional verification required (MFA)"
 
             # Update session
@@ -362,7 +380,9 @@ class ZeroTrustEngine:
         try:
             current_time = datetime.now()
             verification_interval = timedelta(
-                minutes=self.trust_policies["monitoring"]["continuous_verification_interval_minutes"]
+                minutes=self.trust_policies["monitoring"][
+                    "continuous_verification_interval_minutes"
+                ]
             )
 
             for session_id, context in list(self.active_sessions.items()):
@@ -413,16 +433,21 @@ class ZeroTrustEngine:
             user_id=user_id,
             ip_address=ip_address,
             description=description,
-            evidence=evidence or {}
+            evidence=evidence or {},
         )
 
         self.security_incidents.append(incident)
 
         # Auto-response for critical incidents
-        if severity == IncidentSeverity.CRITICAL and self.trust_policies["monitoring"]["incident_auto_response"]:
+        if (
+            severity == IncidentSeverity.CRITICAL
+            and self.trust_policies["monitoring"]["incident_auto_response"]
+        ):
             await self._auto_respond_to_incident(incident)
 
-        logger.warning(f"Security incident created: {incident.incident_id} - {description}")
+        logger.warning(
+            f"Security incident created: {incident.incident_id} - {description}"
+        )
 
     async def _auto_respond_to_incident(self, incident: SecurityIncident):
         """Automatically respond to security incidents."""
@@ -430,23 +455,32 @@ class ZeroTrustEngine:
             if incident.user_id:
                 # Terminate all sessions for the user
                 user_sessions = [
-                    session_id for session_id, context in self.active_sessions.items()
+                    session_id
+                    for session_id, context in self.active_sessions.items()
                     if context.user_id == incident.user_id
                 ]
 
                 for session_id in user_sessions:
-                    await self._terminate_session(session_id, f"Auto-response to incident {incident.incident_id}")
+                    await self._terminate_session(
+                        session_id, f"Auto-response to incident {incident.incident_id}"
+                    )
 
-                incident.response_actions.append(f"Terminated {len(user_sessions)} sessions")
+                incident.response_actions.append(
+                    f"Terminated {len(user_sessions)} sessions"
+                )
 
             if incident.ip_address:
                 # Block IP address (placeholder)
-                incident.response_actions.append(f"Blocked IP address {incident.ip_address}")
+                incident.response_actions.append(
+                    f"Blocked IP address {incident.ip_address}"
+                )
 
             logger.info(f"Auto-response completed for incident {incident.incident_id}")
 
         except Exception as e:
-            logger.error(f"Auto-response failed for incident {incident.incident_id}: {e}")
+            logger.error(
+                f"Auto-response failed for incident {incident.incident_id}: {e}"
+            )
 
     async def _terminate_session(self, session_id: str, reason: str):
         """Terminate a user session."""
@@ -483,23 +517,32 @@ class ZeroTrustEngine:
     def get_security_dashboard(self) -> Dict[str, Any]:
         """Get security dashboard data."""
         recent_incidents = [
-            incident for incident in self.security_incidents
+            incident
+            for incident in self.security_incidents
             if (datetime.now() - incident.timestamp).days < 7
         ]
 
         return {
             "active_sessions": len(self.active_sessions),
             "recent_incidents": len(recent_incidents),
-            "critical_incidents": len([i for i in recent_incidents if i.severity == IncidentSeverity.CRITICAL]),
-            "high_risk_users": len([c for c in self.user_contexts.values() if c.risk_score > 0.7]),
+            "critical_incidents": len(
+                [i for i in recent_incidents if i.severity == IncidentSeverity.CRITICAL]
+            ),
+            "high_risk_users": len(
+                [c for c in self.user_contexts.values() if c.risk_score > 0.7]
+            ),
             "trust_level_distribution": {
-                level.name: len([c for c in self.user_contexts.values() if c.trust_level == level])
+                level.name: len(
+                    [c for c in self.user_contexts.values() if c.trust_level == level]
+                )
                 for level in TrustLevel
             },
             "incident_types": {
-                incident_type: len([i for i in recent_incidents if i.incident_type == incident_type])
+                incident_type: len(
+                    [i for i in recent_incidents if i.incident_type == incident_type]
+                )
                 for incident_type in set(i.incident_type for i in recent_incidents)
-            }
+            },
         }
 
 

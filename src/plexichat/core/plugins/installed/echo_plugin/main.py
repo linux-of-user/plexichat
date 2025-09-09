@@ -7,19 +7,23 @@
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
 import logging
-from plexichat.core.plugins.sdk import PluginInterface
-from fastapi import APIRouter, Request
 from typing import Optional
+
+from fastapi import APIRouter, Request
+
+from plexichat.core.plugins.sdk import PluginInterface
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1/echo", tags=["Echo"])
+
 
 @router.post("/")
 async def echo_message(request: Request):
     data = await request.json()
     message = data.get("message", "")
     return {"echo": message}
+
 
 class EchoPlugin(PluginInterface):
     """
@@ -39,5 +43,5 @@ class EchoPlugin(PluginInterface):
             "name": "Echo Plugin",
             "version": "1.0.0",
             "description": "A simple Echo plugin that echoes messages.",
-            "plugin_type": "utility"
+            "plugin_type": "utility",
         }

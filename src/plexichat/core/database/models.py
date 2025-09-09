@@ -5,9 +5,9 @@ Base model classes and table management utilities.
 """
 
 import logging
-from typing import Any, Dict, List, Optional
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional
 from uuid import uuid4
 
 from plexichat.core.database.manager import database_manager
@@ -18,14 +18,15 @@ logger = logging.getLogger(__name__)
 @dataclass
 class BaseModel:
     """Base model for database entities."""
+
     id: str = field(default_factory=lambda: str(uuid4()))
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    
+
     def update_timestamp(self):
         """Update the updated_at timestamp."""
         self.updated_at = datetime.now(timezone.utc)
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert model to dictionary."""
         result = {}
@@ -35,18 +36,18 @@ class BaseModel:
             else:
                 result[key] = value
         return result
-    
+
     @classmethod
     def from_dict(cls, data: Dict[str, Any]):
         """Create model from dictionary."""
         # Convert datetime strings back to datetime objects
         for key, value in data.items():
-            if key.endswith('_at') and isinstance(value, str):
+            if key.endswith("_at") and isinstance(value, str):
                 try:
-                    data[key] = datetime.fromisoformat(value.replace('Z', '+00:00'))
+                    data[key] = datetime.fromisoformat(value.replace("Z", "+00:00"))
                 except ValueError:
                     pass
-        
+
         return cls(**data)
 
 
@@ -66,7 +67,7 @@ USER_SCHEMA = {
     "updated_at": "TEXT NOT NULL",
     "last_login": "TEXT",
     "preferences": "TEXT DEFAULT '{}'",
-    "metadata": "TEXT DEFAULT '{}'"
+    "metadata": "TEXT DEFAULT '{}'",
 }
 
 MESSAGE_SCHEMA = {
@@ -83,7 +84,7 @@ MESSAGE_SCHEMA = {
     "updated_at": "TEXT NOT NULL",
     "edited_at": "TEXT",
     "deleted_at": "TEXT",
-    "metadata": "TEXT DEFAULT '{}'"
+    "metadata": "TEXT DEFAULT '{}'",
 }
 THREAD_SCHEMA = {
     "id": "TEXT PRIMARY KEY",
@@ -97,7 +98,7 @@ THREAD_SCHEMA = {
     "last_message_at": "TEXT",
     "created_at": "TEXT NOT NULL",
     "updated_at": "TEXT NOT NULL",
-    "metadata": "TEXT DEFAULT '{}'"
+    "metadata": "TEXT DEFAULT '{}'",
 }
 
 MESSAGE_THREADS_SCHEMA = {
@@ -108,7 +109,7 @@ MESSAGE_THREADS_SCHEMA = {
     "created_at": "TEXT NOT NULL",
     "updated_at": "TEXT NOT NULL",
     "reply_count": "INTEGER DEFAULT 0",
-    "is_archived": "BOOLEAN DEFAULT FALSE"
+    "is_archived": "BOOLEAN DEFAULT FALSE",
 }
 
 THREAD_REPLIES_SCHEMA = {
@@ -117,7 +118,7 @@ THREAD_REPLIES_SCHEMA = {
     "message_content": "TEXT NOT NULL",
     "user_id": "TEXT NOT NULL",
     "created_at": "TEXT NOT NULL",
-    "is_edited": "BOOLEAN DEFAULT FALSE"
+    "is_edited": "BOOLEAN DEFAULT FALSE",
 }
 
 
@@ -132,7 +133,7 @@ CHANNEL_SCHEMA = {
     "is_archived": "BOOLEAN DEFAULT FALSE",
     "created_at": "TEXT NOT NULL",
     "updated_at": "TEXT NOT NULL",
-    "metadata": "TEXT DEFAULT '{}'"
+    "metadata": "TEXT DEFAULT '{}'",
 }
 
 SESSION_SCHEMA = {
@@ -152,7 +153,7 @@ SESSION_SCHEMA = {
     "device_info": "TEXT DEFAULT '{}'",
     "auth_provider": "TEXT DEFAULT 'local'",
     "mfa_verified": "BOOLEAN DEFAULT FALSE",
-    "risk_score": "REAL DEFAULT 0.0"
+    "risk_score": "REAL DEFAULT 0.0",
 }
 
 DEVICE_SCHEMA = {
@@ -168,7 +169,7 @@ DEVICE_SCHEMA = {
     "last_seen": "TEXT NOT NULL",
     "created_at": "TEXT NOT NULL",
     "updated_at": "TEXT NOT NULL",
-    "metadata": "TEXT DEFAULT '{}'"
+    "metadata": "TEXT DEFAULT '{}'",
 }
 
 MFA_CHALLENGE_SCHEMA = {
@@ -183,7 +184,7 @@ MFA_CHALLENGE_SCHEMA = {
     "is_verified": "BOOLEAN DEFAULT FALSE",
     "created_at": "TEXT NOT NULL",
     "updated_at": "TEXT NOT NULL",
-    "metadata": "TEXT DEFAULT '{}'"
+    "metadata": "TEXT DEFAULT '{}'",
 }
 
 PLUGIN_SCHEMA = {
@@ -202,7 +203,7 @@ PLUGIN_SCHEMA = {
     "updated_at": "TEXT NOT NULL",
     "installed_at": "TEXT",
     "last_error": "TEXT",
-    "metadata": "TEXT DEFAULT '{}'"
+    "metadata": "TEXT DEFAULT '{}'",
 }
 
 EVENT_SCHEMA = {
@@ -217,7 +218,7 @@ EVENT_SCHEMA = {
     "created_at": "TEXT NOT NULL",
     "updated_at": "TEXT NOT NULL",
     "processed_at": "TEXT",
-    "metadata": "TEXT DEFAULT '{}'"
+    "metadata": "TEXT DEFAULT '{}'",
 }
 
 # New Schemas
@@ -233,7 +234,7 @@ CLIENT_SETTINGS_SCHEMA = {
     "size_bytes": "INTEGER DEFAULT 0",
     "created_at": "TEXT NOT NULL",
     "updated_at": "TEXT NOT NULL",
-    "metadata": "TEXT DEFAULT '{}'"
+    "metadata": "TEXT DEFAULT '{}'",
 }
 
 PLUGIN_PERMISSIONS_SCHEMA = {
@@ -249,7 +250,7 @@ PLUGIN_PERMISSIONS_SCHEMA = {
     "reason": "TEXT",
     "created_at": "TEXT NOT NULL",
     "updated_at": "TEXT NOT NULL",
-    "metadata": "TEXT DEFAULT '{}'"
+    "metadata": "TEXT DEFAULT '{}'",
 }
 
 CLUSTER_NODES_SCHEMA = {
@@ -266,7 +267,7 @@ CLUSTER_NODES_SCHEMA = {
     "is_leader": "BOOLEAN DEFAULT FALSE",
     "created_at": "TEXT NOT NULL",
     "updated_at": "TEXT NOT NULL",
-    "metadata": "TEXT DEFAULT '{}'"
+    "metadata": "TEXT DEFAULT '{}'",
 }
 
 BACKUP_METADATA_SCHEMA = {
@@ -287,7 +288,7 @@ BACKUP_METADATA_SCHEMA = {
     "verified": "BOOLEAN DEFAULT FALSE",
     "created_at": "TEXT NOT NULL",
     "updated_at": "TEXT NOT NULL",
-    "metadata": "TEXT DEFAULT '{}'"
+    "metadata": "TEXT DEFAULT '{}'",
 }
 # Performance Monitoring Schemas
 PERFORMANCE_METRICS_SCHEMA = {
@@ -301,7 +302,7 @@ PERFORMANCE_METRICS_SCHEMA = {
     "retention_days": "INTEGER DEFAULT 30",
     "created_at": "TEXT NOT NULL",
     "updated_at": "TEXT NOT NULL",
-    "metadata": "TEXT DEFAULT '{}'"
+    "metadata": "TEXT DEFAULT '{}'",
 }
 
 ALERT_RULES_SCHEMA = {
@@ -317,7 +318,7 @@ ALERT_RULES_SCHEMA = {
     "notification_channels": "TEXT DEFAULT '[]'",
     "created_at": "TEXT NOT NULL",
     "updated_at": "TEXT NOT NULL",
-    "metadata": "TEXT DEFAULT '{}'"
+    "metadata": "TEXT DEFAULT '{}'",
 }
 
 ALERTS_SCHEMA = {
@@ -338,7 +339,7 @@ ALERTS_SCHEMA = {
     "notification_sent": "BOOLEAN DEFAULT FALSE",
     "created_at": "TEXT NOT NULL",
     "updated_at": "TEXT NOT NULL",
-    "metadata": "TEXT DEFAULT '{}'"
+    "metadata": "TEXT DEFAULT '{}'",
 }
 
 PERFORMANCE_DASHBOARDS_SCHEMA = {
@@ -351,7 +352,7 @@ PERFORMANCE_DASHBOARDS_SCHEMA = {
     "tags": "TEXT DEFAULT '[]'",
     "created_at": "TEXT NOT NULL",
     "updated_at": "TEXT NOT NULL",
-    "metadata": "TEXT DEFAULT '{}'"
+    "metadata": "TEXT DEFAULT '{}'",
 }
 
 RESOURCE_TRACKING_SCHEMA = {
@@ -367,7 +368,7 @@ RESOURCE_TRACKING_SCHEMA = {
     "period_seconds": "INTEGER DEFAULT 60",
     "created_at": "TEXT NOT NULL",
     "updated_at": "TEXT NOT NULL",
-    "metadata": "TEXT DEFAULT '{}'"
+    "metadata": "TEXT DEFAULT '{}'",
 }
 
 # Typing Status Schema
@@ -379,7 +380,7 @@ TYPING_STATUS_SCHEMA = {
     "expires_at": "TEXT NOT NULL",
     "created_at": "TEXT NOT NULL",
     "updated_at": "TEXT NOT NULL",
-    "metadata": "TEXT DEFAULT '{}'"
+    "metadata": "TEXT DEFAULT '{}'",
 }
 # Keyboard Shortcuts Schema
 KEYBOARD_SHORTCUTS_SCHEMA = {
@@ -391,7 +392,7 @@ KEYBOARD_SHORTCUTS_SCHEMA = {
     "is_custom": "BOOLEAN DEFAULT TRUE",
     "created_at": "TEXT NOT NULL",
     "updated_at": "TEXT NOT NULL",
-    "metadata": "TEXT DEFAULT '{}'"
+    "metadata": "TEXT DEFAULT '{}'",
 }
 
 
@@ -425,17 +426,17 @@ async def create_tables() -> bool:
         "keyboard_shortcuts": KEYBOARD_SHORTCUTS_SCHEMA,
         "typing_status": TYPING_STATUS_SCHEMA,
     }
-    
+
     try:
         for table_name, schema in tables.items():
             success = await database_manager.ensure_table_exists(table_name, schema)
             if not success:
                 logger.error(f"Failed to create table: {table_name}")
                 return False
-        
+
         logger.info("All tables created successfully")
         return True
-        
+
     except Exception as e:
         logger.error(f"Failed to create tables: {e}")
         return False
@@ -469,16 +470,16 @@ async def drop_tables(table_names: Optional[List[str]] = None) -> bool:
             "cluster_nodes",
             "backup_metadata",
         ]
-    
+
     try:
         async with database_manager.get_session() as session:
             for table_name in table_names:
                 await session.execute(f"DROP TABLE IF EXISTS {table_name}")
             await session.commit()
-        
+
         logger.info(f"Dropped tables: {', '.join(table_names)}")
         return True
-        
+
     except Exception as e:
         logger.error(f"Failed to drop tables: {e}")
         return False

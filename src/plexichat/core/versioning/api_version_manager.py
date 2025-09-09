@@ -21,6 +21,7 @@ class APIVersionManager:
         # Get current version from centralized version manager
         try:
             from plexichat.version import __version__ as get_version
+
             current_version = get_version()
         except ImportError:
             current_version = "b.1.1-86"

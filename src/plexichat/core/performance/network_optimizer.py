@@ -7,14 +7,15 @@ monitoring, and CDN integration for optimal performance.
 
 import asyncio
 import gzip
+import json
 import logging
+import ssl
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Union
+
 import aiohttp
-import ssl
-import json
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +23,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class ConnectionMetrics:
     """Connection performance metrics."""
+
     total_connections: int = 0
     active_connections: int = 0
     failed_connections: int = 0
@@ -36,6 +38,7 @@ class ConnectionMetrics:
 @dataclass
 class NetworkConfig:
     """Network optimization configuration."""
+
     # Connection pooling
     max_connections: int = 100
     max_connections_per_host: int = 30
@@ -64,6 +67,7 @@ class NetworkConfig:
 
 class NetworkOptimizer:
     """Advanced network optimization manager."""
+
     def __init__(self, config: Optional[NetworkConfig] = None):
         self.config = config or NetworkConfig()
         self.metrics = ConnectionMetrics()
@@ -74,9 +78,9 @@ class NetworkOptimizer:
 
         # Compression tracking
         self.compression_stats = {
-            'requests_compressed': 0,
-            'bytes_before_compression': 0,
-            'bytes_after_compression': 0
+            "requests_compressed": 0,
+            "bytes_before_compression": 0,
+            "bytes_after_compression": 0,
         }
 
         # CDN integration
@@ -104,22 +108,26 @@ class NetworkOptimizer:
                 use_dns_cache=True,
                 keepalive_timeout=self.config.keepalive_timeout,
                 enable_cleanup_closed=True,
-                ssl=ssl_context if self.config.ssl_verify else False
+                ssl=ssl_context if self.config.ssl_verify else False,
             )
 
             timeout = aiohttp.ClientTimeout(
                 total=self.config.connection_timeout,
                 connect=self.config.connection_timeout,
-                sock_read=self.config.read_timeout
+                sock_read=self.config.read_timeout,
             )
 
             self.http_session = aiohttp.ClientSession(
                 connector=connector,
                 timeout=timeout,
                 headers={
-                    'User-Agent': 'PlexiChat/1.0',
-                    'Accept-Encoding': 'gzip, deflate' if self.config.enable_compression else 'identity'
-                }
+                    "User-Agent": "PlexiChat/1.0",
+                    "Accept-Encoding": (
+                        "gzip, deflate"
+                        if self.config.enable_compression
+                        else "identity"
+                    ),
+                },
             )
 
             # Initialize CDN session if enabled
@@ -164,14 +172,20 @@ class NetworkOptimizer:
         except Exception as e:
             logger.error(f"Error during network optimizer shutdown: {e}")
 
-    async def make_request(self, method: str, url: str,
-                        data: Optional[Union[str, bytes, Dict]] = None,
-                        headers: Optional[Dict[str, str]] = None,
-                        compress: bool = True) -> Dict[str, Any]:
+    async def make_request(
+        self,
+        method: str,
+        url: str,
+        data: Optional[Union[str, bytes, Dict]] = None,
+        headers: Optional[Dict[str, str]] = None,
+        compress: bool = True,
+    ) -> Dict[str, Any]:
         """Make optimized HTTP request with compression and monitoring."""
         start_time = time.time()
         if not self.http_session:
-            raise RuntimeError("NetworkOptimizer not initialized. Call initialize() first.")
+            raise RuntimeError(
+                "NetworkOptimizer not initialized. Call initialize() first."
+            )
 
         try:
             # Prepare headers
@@ -183,8 +197,8 @@ class NetworkOptimizer:
                 compressed_data = await self._compress_data(data)
                 if compressed_data and len(compressed_data) < len(str(data).encode()):
                     data = compressed_data
-                    request_headers['Content-Encoding'] = 'gzip'
-                    self.compression_stats['requests_compressed'] += 1
+                    request_headers["Content-Encoding"] = "gzip"
+                    self.compression_stats["requests_compressed"] += 1
 
             # Make request
             async with self.http_session.request(
@@ -195,18 +209,22 @@ class NetworkOptimizer:
                 response_data = await response.read()
 
                 # Decompress if needed
-                if response.headers.get('Content-Encoding') == 'gzip':
+                if response.headers.get("Content-Encoding") == "gzip":
                     response_data = gzip.decompress(response_data)
 
                 # Update metrics
                 request_time = time.time() - start_time
-                await self._update_request_metrics(request_time, len(str(data).encode()) if data else 0, len(response_data))
+                await self._update_request_metrics(
+                    request_time,
+                    len(str(data).encode()) if data else 0,
+                    len(response_data),
+                )
 
                 return {
-                    'status': response.status,
-                    'headers': dict(response.headers),
-                    'data': response_data,
-                    'request_time': request_time
+                    "status": response.status,
+                    "headers": dict(response.headers),
+                    "data": response_data,
+                    "request_time": request_time,
                 }
 
         except Exception as e:
@@ -230,11 +248,13 @@ class NetworkOptimizer:
                 return None
 
             # Compress
-            compressed = gzip.compress(data_bytes, compresslevel=self.config.compression_level)
+            compressed = gzip.compress(
+                data_bytes, compresslevel=self.config.compression_level
+            )
 
             # Update compression stats
-            self.compression_stats['bytes_before_compression'] += len(data_bytes)
-            self.compression_stats['bytes_after_compression'] += len(compressed)
+            self.compression_stats["bytes_before_compression"] += len(data_bytes)
+            self.compression_stats["bytes_after_compression"] += len(compressed)
 
             return compressed
 
@@ -251,7 +271,9 @@ class NetworkOptimizer:
 
         # Optimize SSL settings
         context.check_hostname = True
-        context.verify_mode = ssl.CERT_REQUIRED if self.config.ssl_verify else ssl.CERT_NONE
+        context.verify_mode = (
+            ssl.CERT_REQUIRED if self.config.ssl_verify else ssl.CERT_NONE
+        )
 
         # Enable session reuse
         context.options |= ssl.OP_NO_SSLv2
@@ -268,13 +290,13 @@ class NetworkOptimizer:
                 limit=50,
                 limit_per_host=20,
                 ttl_dns_cache=600,  # Longer DNS cache for CDN
-                use_dns_cache=True
+                use_dns_cache=True,
             )
 
             self.cdn_session = aiohttp.ClientSession(
                 connector=cdn_connector,
                 timeout=aiohttp.ClientTimeout(total=30),
-                headers={'User-Agent': 'PlexiChat-CDN/1.0'}
+                headers={"User-Agent": "PlexiChat-CDN/1.0"},
             )
 
             logger.info("[WORLD] CDN integration initialized")
@@ -310,16 +332,20 @@ class NetworkOptimizer:
         """Collect network performance metrics."""
         try:
             # Update connection metrics from session
-            if self.http_session and not self.http_session.closed and hasattr(self.http_session.connector, '_conns'):
+            if (
+                self.http_session
+                and not self.http_session.closed
+                and hasattr(self.http_session.connector, "_conns")
+            ):
                 connector = self.http_session.connector
                 if connector:
                     self.metrics.active_connections = len(connector._conns)
 
             # Calculate compression ratio
-            if self.compression_stats['bytes_before_compression'] > 0:
-                self.metrics.compression_ratio = (
-                    1 - (self.compression_stats['bytes_after_compression'] /
-                         self.compression_stats['bytes_before_compression'])
+            if self.compression_stats["bytes_before_compression"] > 0:
+                self.metrics.compression_ratio = 1 - (
+                    self.compression_stats["bytes_after_compression"]
+                    / self.compression_stats["bytes_before_compression"]
                 )
 
             self.metrics.last_updated = datetime.now()
@@ -327,7 +353,9 @@ class NetworkOptimizer:
         except Exception as e:
             logger.error(f"Error collecting network metrics: {e}")
 
-    async def _update_request_metrics(self, request_time: float, bytes_sent: int, bytes_received: int):
+    async def _update_request_metrics(
+        self, request_time: float, bytes_sent: int, bytes_received: int
+    ):
         """Update request metrics."""
         self.metrics.total_connections += 1
         self.metrics.bytes_sent += bytes_sent
@@ -336,9 +364,9 @@ class NetworkOptimizer:
         # Update average response time
         if self.metrics.total_connections > 1:
             self.metrics.avg_response_time = (
-                (self.metrics.avg_response_time * (self.metrics.total_connections - 1) + request_time) /
-                self.metrics.total_connections
-            )
+                self.metrics.avg_response_time * (self.metrics.total_connections - 1)
+                + request_time
+            ) / self.metrics.total_connections
         else:
             self.metrics.avg_response_time = request_time
 
@@ -348,9 +376,12 @@ class NetworkOptimizer:
             try:
                 # Clean up old CDN cache entries
                 if self.cdn_cache:
-                    cutoff_time = datetime.now() - timedelta(seconds=self.config.cdn_cache_ttl)
+                    cutoff_time = datetime.now() - timedelta(
+                        seconds=self.config.cdn_cache_ttl
+                    )
                     expired_keys = [
-                        key for key, (data, timestamp) in self.cdn_cache.items()
+                        key
+                        for key, (data, timestamp) in self.cdn_cache.items()
                         if timestamp < cutoff_time
                     ]
 
@@ -368,40 +399,48 @@ class NetworkOptimizer:
     def get_network_stats(self) -> Dict[str, Any]:
         """Get comprehensive network statistics."""
         return {
-            'connections': {
-                'total': self.metrics.total_connections,
-                'active': self.metrics.active_connections,
-                'failed': self.metrics.failed_connections,
-                'success_rate': (
-                    (self.metrics.total_connections - self.metrics.failed_connections) /
-                    self.metrics.total_connections
-                ) if self.metrics.total_connections > 0 else 0
+            "connections": {
+                "total": self.metrics.total_connections,
+                "active": self.metrics.active_connections,
+                "failed": self.metrics.failed_connections,
+                "success_rate": (
+                    (
+                        (
+                            self.metrics.total_connections
+                            - self.metrics.failed_connections
+                        )
+                        / self.metrics.total_connections
+                    )
+                    if self.metrics.total_connections > 0
+                    else 0
+                ),
             },
-            'performance': {
-                'avg_response_time_ms': self.metrics.avg_response_time * 1000,
-                'avg_connection_time_ms': self.metrics.avg_connection_time * 1000,
-                'bytes_sent': self.metrics.bytes_sent,
-                'bytes_received': self.metrics.bytes_received,
-                'total_bandwidth': self.metrics.bytes_sent + self.metrics.bytes_received
+            "performance": {
+                "avg_response_time_ms": self.metrics.avg_response_time * 1000,
+                "avg_connection_time_ms": self.metrics.avg_connection_time * 1000,
+                "bytes_sent": self.metrics.bytes_sent,
+                "bytes_received": self.metrics.bytes_received,
+                "total_bandwidth": self.metrics.bytes_sent
+                + self.metrics.bytes_received,
             },
-            'compression': {
-                'enabled': self.config.enable_compression,
-                'requests_compressed': self.compression_stats['requests_compressed'],
-                'compression_ratio': self.metrics.compression_ratio,
-                'bytes_saved': (
-                    self.compression_stats['bytes_before_compression'] -
-                    self.compression_stats['bytes_after_compression']
-                )
+            "compression": {
+                "enabled": self.config.enable_compression,
+                "requests_compressed": self.compression_stats["requests_compressed"],
+                "compression_ratio": self.metrics.compression_ratio,
+                "bytes_saved": (
+                    self.compression_stats["bytes_before_compression"]
+                    - self.compression_stats["bytes_after_compression"]
+                ),
             },
-            'cdn': {
-                'enabled': self.config.cdn_enabled,
-                'cache_entries': len(self.cdn_cache),
-                'base_url': self.config.cdn_base_url
+            "cdn": {
+                "enabled": self.config.cdn_enabled,
+                "cache_entries": len(self.cdn_cache),
+                "base_url": self.config.cdn_base_url,
             },
-            'ssl': {
-                'verification_enabled': self.config.ssl_verify,
-                'context_configured': self.config.ssl_context is not None
-            }
+            "ssl": {
+                "verification_enabled": self.config.ssl_verify,
+                "context_configured": self.config.ssl_context is not None,
+            },
         }
 
     async def optimize_request_routing(self, url: str) -> str:
@@ -417,7 +456,9 @@ class NetworkOptimizer:
             cache_key = f"cdn:{url}"
             if cache_key in self.cdn_cache:
                 cached_data, timestamp = self.cdn_cache[cache_key]
-                if datetime.now() - timestamp < timedelta(seconds=self.config.cdn_cache_ttl):
+                if datetime.now() - timestamp < timedelta(
+                    seconds=self.config.cdn_cache_ttl
+                ):
                     return cached_data
 
             return cdn_url
@@ -427,7 +468,16 @@ class NetworkOptimizer:
     def _should_use_cdn(self, url: str) -> bool:
         """Determine if request should use CDN."""
         # Use CDN for static content
-        static_extensions = ['.js', '.css', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico']
+        static_extensions = [
+            ".js",
+            ".css",
+            ".png",
+            ".jpg",
+            ".jpeg",
+            ".gif",
+            ".svg",
+            ".ico",
+        ]
         return any(url.lower().endswith(ext) for ext in static_extensions)
 
 

@@ -9,6 +9,7 @@ from plexichat.core.database.manager import DatabaseSession, database_manager
 # Re-export for convenience
 __all__ = ["DatabaseSession", "get_session"]
 
+
 async def get_session():
     """Get a database session."""
     return database_manager.get_session()

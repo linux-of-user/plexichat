@@ -16,7 +16,6 @@ from typing import Any, Dict, List, Optional
 
 import aioredis
 
-
 """
 PlexiChat Distributed Caching System
 
@@ -28,6 +27,7 @@ logger = logging.getLogger(__name__)
 
 class CacheStrategy(Enum):
     """Cache distribution strategies."""
+
     CONSISTENT_HASHING = "consistent_hashing"
     ROUND_ROBIN = "round_robin"
     LEAST_LOADED = "least_loaded"
@@ -47,6 +47,7 @@ class CacheLevel(Enum):
 @dataclass
 class CacheNode:
     """Distributed cache node."""
+
     node_id: str
     host: str
     port: int
@@ -75,6 +76,7 @@ class CacheNode:
 @dataclass
 class CacheEntry:
     """Cache entry with metadata."""
+
     key: str
     value: Any
     ttl: Optional[int] = None
@@ -110,6 +112,7 @@ class DistributedCacheManager:
     - Compression and serialization
     - TTL and eviction policies
     """
+
     def __init__(self):
         self.nodes: Dict[str, CacheNode] = {}
         self.strategy = CacheStrategy.CONSISTENT_HASHING

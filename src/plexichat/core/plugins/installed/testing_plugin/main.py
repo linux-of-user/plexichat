@@ -28,25 +28,25 @@ TOTAL: 400+ COMPREHENSIVE TESTS
 """
 
 import asyncio
+import base64
+import hashlib
 import json
-import time
 import logging
 import os
-import sys
-import subprocess
-import threading
-import uuid
-import hashlib
-import base64
 import random
+import shutil
 import string
-from pathlib import Path
-from typing import Dict, List, Optional, Any, Union, Tuple
+import subprocess
+import sys
+import tempfile
+import threading
+import time
+import uuid
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from concurrent.futures import ThreadPoolExecutor, as_completed
-import tempfile
-import shutil
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 # Safe imports with fallbacks
 try:
@@ -73,7 +73,8 @@ except ImportError:
 enhanced_cli = None
 CLICommand = None
 try:
-    from plexichat.interfaces.cli.advanced_cli import advanced_cli as enhanced_cli, CLICommand
+    from plexichat.interfaces.cli.advanced_cli import CLICommand
+    from plexichat.interfaces.cli.advanced_cli import advanced_cli as enhanced_cli
 except ImportError:
     pass
 
@@ -90,13 +91,17 @@ except ImportError:
         def __init__(self, plugin_id: str, config=None):
             self.plugin_id = plugin_id
             self.config = config or {}
+
         async def initialize(self) -> bool:
             return True
+
         async def shutdown(self) -> bool:
             return True
 
+
 class PluginBase(PluginInterface):
     """Base plugin class with safe fallback."""
+
     def __init__(self, plugin_id: str = "testing_plugin", config: dict = None):
         super().__init__(plugin_id, config or {})
         self.name = "testing_plugin"
@@ -116,6 +121,7 @@ class PluginBase(PluginInterface):
 @dataclass
 class TestResult:
     """Comprehensive test result data structure."""
+
     test_id: str
     test_name: str
     test_category: str
@@ -139,6 +145,7 @@ class TestResult:
 @dataclass
 class TestSuite:
     """Comprehensive test suite configuration."""
+
     suite_id: str
     name: str
     description: str
@@ -155,6 +162,7 @@ class TestSuite:
 @dataclass
 class TestReport:
     """Comprehensive test report."""
+
     report_id: str
     timestamp: datetime
     total_tests: int
@@ -172,26 +180,29 @@ class TestReport:
 
 class TestDataGenerator:
     """Generates comprehensive test data for all PlexiChat features."""
+
     @staticmethod
     def generate_user_data(count: int = 10) -> List[Dict[str, Any]]:
         """Generate test user data."""
         users = []
         for i in range(count):
-            users.append({
-                "username": f"testuser{i+1}",
-                "email": f"testuser{i+1}@example.com",
-                "password": f"TestPass{i+1}!",
-                "first_name": f"Test{i+1}",
-                "last_name": f"User{i+1}",
-                "role": "admin" if i == 0 else "user",
-                "avatar": f"https://example.com/avatar{i+1}.jpg",
-                "bio": f"Test user {i+1} for comprehensive testing",
-                "preferences": {
-                    "theme": "dark" if i % 2 == 0 else "light",
-                    "notifications": True,
-                    "language": "en"
+            users.append(
+                {
+                    "username": f"testuser{i+1}",
+                    "email": f"testuser{i+1}@example.com",
+                    "password": f"TestPass{i+1}!",
+                    "first_name": f"Test{i+1}",
+                    "last_name": f"User{i+1}",
+                    "role": "admin" if i == 0 else "user",
+                    "avatar": f"https://example.com/avatar{i+1}.jpg",
+                    "bio": f"Test user {i+1} for comprehensive testing",
+                    "preferences": {
+                        "theme": "dark" if i % 2 == 0 else "light",
+                        "notifications": True,
+                        "language": "en",
+                    },
                 }
-            })
+            )
         return users
 
     @staticmethod
@@ -199,65 +210,134 @@ class TestDataGenerator:
         """Generate test message data."""
         message_types = [
             {"type": "text", "content": "Hello, this is a test message!"},
-            {"type": "text", "content": "This is a longer test message with multiple sentences. It contains various punctuation marks! And questions? Plus some numbers: 123, 456, 789."},
-            {"type": "markdown", "content": "**Bold text** and *italic text* with `code` and [links](https://example.com)"},
-            {"type": "code", "content": "```python\nprint('Hello, World!')\nfor i in range(10):\n    print(f'Number: {i}')\n```"},
-            {"type": "emoji", "content": "Testing emojis: [LAUNCH] [SUCCESS] [SPARKLE] [COMPUTER] [HOT] [STAR] [STAR] [IDEA] [TARGET] [TROPHY]"},
-            {"type": "unicode", "content": "Unicode test: nihao mrhba Zdravstvuy konnichiha [WORLD]"},
+            {
+                "type": "text",
+                "content": "This is a longer test message with multiple sentences. It contains various punctuation marks! And questions? Plus some numbers: 123, 456, 789.",
+            },
+            {
+                "type": "markdown",
+                "content": "**Bold text** and *italic text* with `code` and [links](https://example.com)",
+            },
+            {
+                "type": "code",
+                "content": "```python\nprint('Hello, World!')\nfor i in range(10):\n    print(f'Number: {i}')\n```",
+            },
+            {
+                "type": "emoji",
+                "content": "Testing emojis: [LAUNCH] [SUCCESS] [SPARKLE] [COMPUTER] [HOT] [STAR] [STAR] [IDEA] [TARGET] [TROPHY]",
+            },
+            {
+                "type": "unicode",
+                "content": "Unicode test: nihao mrhba Zdravstvuy konnichiha [WORLD]",
+            },
             {"type": "special_chars", "content": "!@#$%^&*()_+-=[]{}|;':\",./<>?"},
             {"type": "long", "content": "A" * 1000},  # Long message
             {"type": "empty", "content": ""},
-            {"type": "whitespace", "content": "   \n\t   \n   "}
+            {"type": "whitespace", "content": "   \n\t   \n   "},
         ]
 
         messages = []
         for i in range(count):
             msg_type = message_types[i % len(message_types)]
-            messages.append({
-                "id": str(uuid.uuid4()),
-                "content": msg_type["content"],
-                "type": msg_type["type"],
-                "sender_id": f"testuser{(i % 10) + 1}",
-                "channel_id": f"testchannel{(i % 5) + 1}",
-                "timestamp": datetime.now() - timedelta(minutes=i),
-                "edited": i % 7 == 0,
-                "reactions": ["[THUMBS_UP]", "[HEART]"] if i % 3 == 0 else [],
-                "thread_id": f"thread{i//10}" if i % 10 == 0 else None,
-                "reply_to": f"msg{i-1}" if i > 0 and i % 5 == 0 else None
-            })
+            messages.append(
+                {
+                    "id": str(uuid.uuid4()),
+                    "content": msg_type["content"],
+                    "type": msg_type["type"],
+                    "sender_id": f"testuser{(i % 10) + 1}",
+                    "channel_id": f"testchannel{(i % 5) + 1}",
+                    "timestamp": datetime.now() - timedelta(minutes=i),
+                    "edited": i % 7 == 0,
+                    "reactions": ["[THUMBS_UP]", "[HEART]"] if i % 3 == 0 else [],
+                    "thread_id": f"thread{i//10}" if i % 10 == 0 else None,
+                    "reply_to": f"msg{i-1}" if i > 0 and i % 5 == 0 else None,
+                }
+            )
         return messages
 
     @staticmethod
     def generate_file_data(count: int = 20) -> List[Dict[str, Any]]:
         """Generate test file data."""
         file_types = [
-            {"name": "test.txt", "content": "Test file content", "type": "text/plain", "size": 100},
-            {"name": "test.json", "content": '{"test": "data"}', "type": "application/json", "size": 200},
-            {"name": "test.md", "content": "# Test\nMarkdown content", "type": "text/markdown", "size": 150},
-            {"name": "test.py", "content": "print('Hello')", "type": "text/x-python", "size": 50},
-            {"name": "test.jpg", "content": "fake_image_data", "type": "image/jpeg", "size": 5000},
-            {"name": "test.png", "content": "fake_png_data", "type": "image/png", "size": 3000},
-            {"name": "test.pdf", "content": "fake_pdf_data", "type": "application/pdf", "size": 10000},
-            {"name": "test.mp4", "content": "fake_video_data", "type": "video/mp4", "size": 50000},
-            {"name": "test.mp3", "content": "fake_audio_data", "type": "audio/mpeg", "size": 8000},
-            {"name": "large_file.bin", "content": "x" * 100000, "type": "application/octet-stream", "size": 100000}
+            {
+                "name": "test.txt",
+                "content": "Test file content",
+                "type": "text/plain",
+                "size": 100,
+            },
+            {
+                "name": "test.json",
+                "content": '{"test": "data"}',
+                "type": "application/json",
+                "size": 200,
+            },
+            {
+                "name": "test.md",
+                "content": "# Test\nMarkdown content",
+                "type": "text/markdown",
+                "size": 150,
+            },
+            {
+                "name": "test.py",
+                "content": "print('Hello')",
+                "type": "text/x-python",
+                "size": 50,
+            },
+            {
+                "name": "test.jpg",
+                "content": "fake_image_data",
+                "type": "image/jpeg",
+                "size": 5000,
+            },
+            {
+                "name": "test.png",
+                "content": "fake_png_data",
+                "type": "image/png",
+                "size": 3000,
+            },
+            {
+                "name": "test.pdf",
+                "content": "fake_pdf_data",
+                "type": "application/pdf",
+                "size": 10000,
+            },
+            {
+                "name": "test.mp4",
+                "content": "fake_video_data",
+                "type": "video/mp4",
+                "size": 50000,
+            },
+            {
+                "name": "test.mp3",
+                "content": "fake_audio_data",
+                "type": "audio/mpeg",
+                "size": 8000,
+            },
+            {
+                "name": "large_file.bin",
+                "content": "x" * 100000,
+                "type": "application/octet-stream",
+                "size": 100000,
+            },
         ]
 
         files = []
         for i in range(count):
             file_type = file_types[i % len(file_types)]
-            files.append({
-                "id": str(uuid.uuid4()),
-                "filename": f"{i}_{file_type['name']}",
-                "content": file_type["content"],
-                "content_type": file_type["type"],
-                "size": file_type["size"],
-                "uploader_id": f"testuser{(i % 10) + 1}",
-                "upload_time": datetime.now() - timedelta(hours=i),
-                "public": i % 3 == 0,
-                "encrypted": i % 4 == 0,
-                "checksum": hashlib.md5(file_type["content"].encode()).hexdigest()
-            })
+            files.append(
+                {
+                    "id": str(uuid.uuid4()),
+                    "filename": f"{i}_{file_type['name']}",
+                    "content": file_type["content"],
+                    "content_type": file_type["type"],
+                    "size": file_type["size"],
+                    "uploader_id": f"testuser{(i % 10) + 1}",
+                    "upload_time": datetime.now() - timedelta(hours=i),
+                    "public": i % 3 == 0,
+                    "encrypted": i % 4 == 0,
+                    "checksum": hashlib.md5(file_type["content"].encode()).hexdigest(),
+                }
+            )
         return files
 
     @staticmethod
@@ -274,7 +354,7 @@ class TestDataGenerator:
                 "' OR 'a'='a",
                 "') OR ('1'='1",
                 "1' OR '1'='1' --",
-                "' OR 1=1 LIMIT 1 --"
+                "' OR 1=1 LIMIT 1 --",
             ],
             "xss": [
                 "<script>alert('xss')</script>",
@@ -286,7 +366,7 @@ class TestDataGenerator:
                 "<input onfocus=alert('xss') autofocus>",
                 "<select onfocus=alert('xss') autofocus>",
                 "<textarea onfocus=alert('xss') autofocus>",
-                "<keygen onfocus=alert('xss') autofocus>"
+                "<keygen onfocus=alert('xss') autofocus>",
             ],
             "command_injection": [
                 "; ls -la",
@@ -298,7 +378,7 @@ class TestDataGenerator:
                 "&& wget malware.exe",
                 "; python -c 'import os; os.system(\"ls\")'",
                 "| bash",
-                "; /bin/sh"
+                "; /bin/sh",
             ],
             "path_traversal": [
                 "../../../etc/passwd",
@@ -310,7 +390,7 @@ class TestDataGenerator:
                 "../../../../../../etc/passwd%00",
                 "....\\....\\....\\etc\\passwd",
                 "..///////..////..//////etc/passwd",
-                "/var/www/../../etc/passwd"
+                "/var/www/../../etc/passwd",
             ],
             "ldap_injection": [
                 "*)(uid=*",
@@ -322,15 +402,16 @@ class TestDataGenerator:
                 "*)(objectClass=*)",
                 "*))(|(cn=*",
                 "*)(userPassword=*)",
-                "*)(mail=*)"
-            ]
+                "*)(mail=*)",
+            ],
         }
 
 
 class ComprehensiveEndpointTester:
     """Most comprehensive endpoint testing system ever created."""
+
     def __init__(self, base_url: str = "http://localhost:8000", timeout: int = 30):
-        self.base_url = base_url.rstrip('/')
+        self.base_url = base_url.rstrip("/")
         self.timeout = timeout
         self.session = requests.Session() if requests else None
         self.results: List[TestResult] = []
@@ -338,14 +419,28 @@ class ComprehensiveEndpointTester:
         self.security_payloads = self.test_data_generator.generate_security_payloads()
         self.performance_metrics = {}
         self.test_counter = 0
-    
-    async def test_endpoint(self, test_name: str, endpoint: str, method: str = "GET",
-                        data: Optional[Dict] = None, headers: Optional[Dict] = None,
-                        expected_status: int = 200, test_category: str = "api",
-                        test_type: str = "functional") -> TestResult:
+
+    async def test_endpoint(
+        self,
+        test_name: str,
+        endpoint: str,
+        method: str = "GET",
+        data: Optional[Dict] = None,
+        headers: Optional[Dict] = None,
+        expected_status: int = 200,
+        test_category: str = "api",
+        test_type: str = "functional",
+    ) -> TestResult:
         """Test a single endpoint with comprehensive metrics."""
         if not self.session:
-            return self._create_error_result(test_name, endpoint, method, "requests library not available", test_category, test_type)
+            return self._create_error_result(
+                test_name,
+                endpoint,
+                method,
+                "requests library not available",
+                test_category,
+                test_type,
+            )
 
         url = f"{self.base_url}{endpoint}"
         start_time = time.time()
@@ -358,7 +453,7 @@ class ComprehensiveEndpointTester:
                 url=url,
                 json=data,
                 headers=headers or {},
-                timeout=self.timeout
+                timeout=self.timeout,
             )
 
             response_time = time.time() - start_time
@@ -367,7 +462,13 @@ class ComprehensiveEndpointTester:
             try:
                 response_data = response.json()
             except:
-                response_data = {"text": response.text[:1000] if hasattr(response, 'text') else str(response)}
+                response_data = {
+                    "text": (
+                        response.text[:1000]
+                        if hasattr(response, "text")
+                        else str(response)
+                    )
+                }
 
             # Create comprehensive test result
             result = TestResult(
@@ -385,31 +486,67 @@ class ComprehensiveEndpointTester:
                 duration=response_time,
                 metrics={
                     "response_size": len(str(response_data)),
-                    "headers_count": len(response.headers) if hasattr(response, 'headers') else 0,
-                    "url": url
-                }
+                    "headers_count": (
+                        len(response.headers) if hasattr(response, "headers") else 0
+                    ),
+                    "url": url,
+                },
             )
 
             if not success:
-                result.error = f"Expected status {expected_status}, got {response.status_code}"
+                result.error = (
+                    f"Expected status {expected_status}, got {response.status_code}"
+                )
 
             # Add assertions
             result.assertions = [
-                {"assertion": "status_code", "expected": expected_status, "actual": response.status_code, "passed": success},
-                {"assertion": "response_time", "expected": "< 5s", "actual": f"{response_time:.3f}s", "passed": response_time < 5.0},
-                {"assertion": "has_response", "expected": True, "actual": bool(response_data), "passed": bool(response_data)}
+                {
+                    "assertion": "status_code",
+                    "expected": expected_status,
+                    "actual": response.status_code,
+                    "passed": success,
+                },
+                {
+                    "assertion": "response_time",
+                    "expected": "< 5s",
+                    "actual": f"{response_time:.3f}s",
+                    "passed": response_time < 5.0,
+                },
+                {
+                    "assertion": "has_response",
+                    "expected": True,
+                    "actual": bool(response_data),
+                    "passed": bool(response_data),
+                },
             ]
 
         except Exception as e:
             response_time = time.time() - start_time
-            result = self._create_error_result(test_name, endpoint, method, str(e), test_category, test_type, response_time, test_id)
+            result = self._create_error_result(
+                test_name,
+                endpoint,
+                method,
+                str(e),
+                test_category,
+                test_type,
+                response_time,
+                test_id,
+            )
 
         self.results.append(result)
         return result
 
-    def _create_error_result(self, test_name: str, endpoint: str, method: str, error: str,
-                        test_category: str, test_type: str, response_time: float = 0.0,
-                        test_id: str = None) -> TestResult:
+    def _create_error_result(
+        self,
+        test_name: str,
+        endpoint: str,
+        method: str,
+        error: str,
+        test_category: str,
+        test_type: str,
+        response_time: float = 0.0,
+        test_id: str = None,
+    ) -> TestResult:
         """Create an error test result."""
         if not test_id:
             test_id = f"test_{self.test_counter}_{int(time.time())}"
@@ -428,11 +565,18 @@ class ComprehensiveEndpointTester:
             error=error,
             duration=response_time,
             assertions=[
-                {"assertion": "no_error", "expected": True, "actual": False, "passed": False}
-            ]
+                {
+                    "assertion": "no_error",
+                    "expected": True,
+                    "actual": False,
+                    "passed": False,
+                }
+            ],
         )
-    
-    async def test_multiple_endpoints(self, endpoints: List[Dict[str, Any]]) -> List[TestResult]:
+
+    async def test_multiple_endpoints(
+        self, endpoints: List[Dict[str, Any]]
+    ) -> List[TestResult]:
         """Test multiple endpoints concurrently."""
         tasks = []
         for endpoint_config in endpoints:
@@ -443,7 +587,9 @@ class ComprehensiveEndpointTester:
 
     # ==================== COMPREHENSIVE AUTHENTICATION TESTING ====================
 
-    async def test_authentication_comprehensive(self, verbose: bool = False) -> List[TestResult]:
+    async def test_authentication_comprehensive(
+        self, verbose: bool = False
+    ) -> List[TestResult]:
         """Comprehensive authentication testing suite - 25+ tests."""
         if verbose:
             print("[SECURE] Running Comprehensive Authentication Tests...")
@@ -460,17 +606,42 @@ class ComprehensiveEndpointTester:
                 data=user,
                 expected_status=201,
                 test_category="authentication",
-                test_type="registration"
+                test_type="registration",
             )
             results.append(result)
 
         # Test 6-10: Login Tests
         login_tests = [
-            {"username": "testuser1", "password": "TestPass1!", "expected": 200, "name": "Valid Login"},
-            {"username": "testuser1", "password": "wrongpass", "expected": 401, "name": "Invalid Password"},
-            {"username": "nonexistent", "password": "TestPass1!", "expected": 401, "name": "Invalid Username"},
-            {"username": "", "password": "TestPass1!", "expected": 400, "name": "Empty Username"},
-            {"username": "testuser1", "password": "", "expected": 400, "name": "Empty Password"}
+            {
+                "username": "testuser1",
+                "password": "TestPass1!",
+                "expected": 200,
+                "name": "Valid Login",
+            },
+            {
+                "username": "testuser1",
+                "password": "wrongpass",
+                "expected": 401,
+                "name": "Invalid Password",
+            },
+            {
+                "username": "nonexistent",
+                "password": "TestPass1!",
+                "expected": 401,
+                "name": "Invalid Username",
+            },
+            {
+                "username": "",
+                "password": "TestPass1!",
+                "expected": 400,
+                "name": "Empty Username",
+            },
+            {
+                "username": "testuser1",
+                "password": "",
+                "expected": 400,
+                "name": "Empty Password",
+            },
         ]
 
         for test in login_tests:
@@ -481,7 +652,7 @@ class ComprehensiveEndpointTester:
                 data={"username": test["username"], "password": test["password"]},
                 expected_status=test["expected"],
                 test_category="authentication",
-                test_type="login"
+                test_type="login",
             )
             results.append(result)
 
@@ -491,11 +662,17 @@ class ComprehensiveEndpointTester:
             {"token": "invalid_token", "expected": 401, "name": "Invalid Token"},
             {"token": "", "expected": 401, "name": "Empty Token"},
             {"token": "expired_token", "expected": 401, "name": "Expired Token"},
-            {"token": "malformed.token.here", "expected": 401, "name": "Malformed Token"}
+            {
+                "token": "malformed.token.here",
+                "expected": 401,
+                "name": "Malformed Token",
+            },
         ]
 
         for test in token_tests:
-            headers = {"Authorization": f"Bearer {test['token']}"} if test['token'] else {}
+            headers = (
+                {"Authorization": f"Bearer {test['token']}"} if test["token"] else {}
+            )
             result = await self.test_endpoint(
                 test_name=f"Token Validation - {test['name']}",
                 endpoint="/api/auth/validate",
@@ -503,17 +680,33 @@ class ComprehensiveEndpointTester:
                 headers=headers,
                 expected_status=test["expected"],
                 test_category="authentication",
-                test_type="token_validation"
+                test_type="token_validation",
             )
             results.append(result)
 
         # Test 16-20: Password Reset Tests
         password_reset_tests = [
-            {"email": "testuser1@example.com", "expected": 200, "name": "Valid Email Reset"},
-            {"email": "nonexistent@example.com", "expected": 404, "name": "Invalid Email Reset"},
-            {"email": "invalid-email", "expected": 400, "name": "Malformed Email Reset"},
+            {
+                "email": "testuser1@example.com",
+                "expected": 200,
+                "name": "Valid Email Reset",
+            },
+            {
+                "email": "nonexistent@example.com",
+                "expected": 404,
+                "name": "Invalid Email Reset",
+            },
+            {
+                "email": "invalid-email",
+                "expected": 400,
+                "name": "Malformed Email Reset",
+            },
             {"email": "", "expected": 400, "name": "Empty Email Reset"},
-            {"email": "test@" + "a" * 300 + ".com", "expected": 400, "name": "Too Long Email Reset"}
+            {
+                "email": "test@" + "a" * 300 + ".com",
+                "expected": 400,
+                "name": "Too Long Email Reset",
+            },
         ]
 
         for test in password_reset_tests:
@@ -524,7 +717,7 @@ class ComprehensiveEndpointTester:
                 data={"email": test["email"]},
                 expected_status=test["expected"],
                 test_category="authentication",
-                test_type="password_reset"
+                test_type="password_reset",
             )
             results.append(result)
 
@@ -534,7 +727,7 @@ class ComprehensiveEndpointTester:
             {"action": "refresh", "expected": 200, "name": "Refresh Session"},
             {"action": "logout", "expected": 200, "name": "Logout Session"},
             {"action": "logout_all", "expected": 200, "name": "Logout All Sessions"},
-            {"action": "validate", "expected": 200, "name": "Validate Session"}
+            {"action": "validate", "expected": 200, "name": "Validate Session"},
         ]
 
         for test in session_tests:
@@ -545,7 +738,7 @@ class ComprehensiveEndpointTester:
                 data={"session_id": "test_session_123"},
                 expected_status=test["expected"],
                 test_category="authentication",
-                test_type="session_management"
+                test_type="session_management",
             )
             results.append(result)
 
@@ -557,7 +750,9 @@ class ComprehensiveEndpointTester:
 
     # ==================== COMPREHENSIVE MESSAGING TESTING ====================
 
-    async def test_messaging_comprehensive(self, verbose: bool = False) -> List[TestResult]:
+    async def test_messaging_comprehensive(
+        self, verbose: bool = False
+    ) -> List[TestResult]:
         """Comprehensive messaging system testing suite - 35+ tests."""
         if verbose:
             print("[CHAT] Running Comprehensive Messaging Tests...")
@@ -574,7 +769,7 @@ class ComprehensiveEndpointTester:
                 data=message,
                 expected_status=201,
                 test_category="messaging",
-                test_type="message_creation"
+                test_type="message_creation",
             )
             results.append(result)
 
@@ -582,9 +777,12 @@ class ComprehensiveEndpointTester:
         retrieval_tests = [
             {"endpoint": "/api/messages", "name": "Get All Messages"},
             {"endpoint": "/api/messages?limit=10", "name": "Get Limited Messages"},
-            {"endpoint": "/api/messages?channel=testchannel1", "name": "Get Channel Messages"},
+            {
+                "endpoint": "/api/messages?channel=testchannel1",
+                "name": "Get Channel Messages",
+            },
             {"endpoint": "/api/messages?user=testuser1", "name": "Get User Messages"},
-            {"endpoint": "/api/messages?search=test", "name": "Search Messages"}
+            {"endpoint": "/api/messages?search=test", "name": "Search Messages"},
         ]
 
         for test in retrieval_tests:
@@ -594,17 +792,25 @@ class ComprehensiveEndpointTester:
                 method="GET",
                 expected_status=200,
                 test_category="messaging",
-                test_type="message_retrieval"
+                test_type="message_retrieval",
             )
             results.append(result)
 
         # Test 16-20: Message Editing Tests
         edit_tests = [
-            {"content": "Edited message content", "expected": 200, "name": "Valid Edit"},
+            {
+                "content": "Edited message content",
+                "expected": 200,
+                "name": "Valid Edit",
+            },
             {"content": "", "expected": 400, "name": "Empty Content Edit"},
             {"content": "A" * 10000, "expected": 400, "name": "Too Long Edit"},
-            {"content": "Normal edit with emojis [SUCCESS]", "expected": 200, "name": "Emoji Edit"},
-            {"content": "**Markdown** edit", "expected": 200, "name": "Markdown Edit"}
+            {
+                "content": "Normal edit with emojis [SUCCESS]",
+                "expected": 200,
+                "name": "Emoji Edit",
+            },
+            {"content": "**Markdown** edit", "expected": 200, "name": "Markdown Edit"},
         ]
 
         for test in edit_tests:
@@ -615,17 +821,37 @@ class ComprehensiveEndpointTester:
                 data={"content": test["content"]},
                 expected_status=test["expected"],
                 test_category="messaging",
-                test_type="message_editing"
+                test_type="message_editing",
             )
             results.append(result)
 
         # Test 21-25: Message Reactions Tests
         reaction_tests = [
-            {"emoji": "[THUMBS_UP]", "action": "add", "expected": 200, "name": "Add Thumbs Up"},
+            {
+                "emoji": "[THUMBS_UP]",
+                "action": "add",
+                "expected": 200,
+                "name": "Add Thumbs Up",
+            },
             {"emoji": "[HEART]", "action": "add", "expected": 200, "name": "Add Heart"},
-            {"emoji": "[THUMBS_UP]", "action": "remove", "expected": 200, "name": "Remove Thumbs Up"},
-            {"emoji": "[LAUNCH]", "action": "add", "expected": 200, "name": "Add Rocket"},
-            {"emoji": "invalid", "action": "add", "expected": 400, "name": "Invalid Emoji"}
+            {
+                "emoji": "[THUMBS_UP]",
+                "action": "remove",
+                "expected": 200,
+                "name": "Remove Thumbs Up",
+            },
+            {
+                "emoji": "[LAUNCH]",
+                "action": "add",
+                "expected": 200,
+                "name": "Add Rocket",
+            },
+            {
+                "emoji": "invalid",
+                "action": "add",
+                "expected": 400,
+                "name": "Invalid Emoji",
+            },
         ]
 
         for test in reaction_tests:
@@ -636,17 +862,42 @@ class ComprehensiveEndpointTester:
                 data={"emoji": test["emoji"], "action": test["action"]},
                 expected_status=test["expected"],
                 test_category="messaging",
-                test_type="message_reactions"
+                test_type="message_reactions",
             )
             results.append(result)
 
         # Test 26-30: Message Threading Tests
         thread_tests = [
-            {"parent_id": "msg123", "content": "Thread reply 1", "expected": 201, "name": "Create Thread Reply"},
-            {"parent_id": "msg123", "content": "Thread reply 2", "expected": 201, "name": "Add to Thread"},
-            {"parent_id": "nonexistent", "content": "Reply", "expected": 404, "name": "Invalid Parent"},
-            {"parent_id": "msg123", "content": "", "expected": 400, "name": "Empty Thread Reply"},
-            {"parent_id": "msg123", "content": "A" * 5000, "expected": 400, "name": "Too Long Thread Reply"}
+            {
+                "parent_id": "msg123",
+                "content": "Thread reply 1",
+                "expected": 201,
+                "name": "Create Thread Reply",
+            },
+            {
+                "parent_id": "msg123",
+                "content": "Thread reply 2",
+                "expected": 201,
+                "name": "Add to Thread",
+            },
+            {
+                "parent_id": "nonexistent",
+                "content": "Reply",
+                "expected": 404,
+                "name": "Invalid Parent",
+            },
+            {
+                "parent_id": "msg123",
+                "content": "",
+                "expected": 400,
+                "name": "Empty Thread Reply",
+            },
+            {
+                "parent_id": "msg123",
+                "content": "A" * 5000,
+                "expected": 400,
+                "name": "Too Long Thread Reply",
+            },
         ]
 
         for test in thread_tests:
@@ -657,7 +908,7 @@ class ComprehensiveEndpointTester:
                 data={"parent_id": test["parent_id"], "content": test["content"]},
                 expected_status=test["expected"],
                 test_category="messaging",
-                test_type="message_threading"
+                test_type="message_threading",
             )
             results.append(result)
 
@@ -665,9 +916,13 @@ class ComprehensiveEndpointTester:
         deletion_tests = [
             {"message_id": "msg123", "expected": 200, "name": "Delete Own Message"},
             {"message_id": "msg456", "expected": 403, "name": "Delete Others Message"},
-            {"message_id": "nonexistent", "expected": 404, "name": "Delete Nonexistent"},
+            {
+                "message_id": "nonexistent",
+                "expected": 404,
+                "name": "Delete Nonexistent",
+            },
             {"message_id": "", "expected": 400, "name": "Delete Empty ID"},
-            {"message_id": "msg789", "expected": 200, "name": "Admin Delete"}
+            {"message_id": "msg789", "expected": 200, "name": "Admin Delete"},
         ]
 
         for test in deletion_tests:
@@ -677,7 +932,7 @@ class ComprehensiveEndpointTester:
                 method="DELETE",
                 expected_status=test["expected"],
                 test_category="messaging",
-                test_type="message_deletion"
+                test_type="message_deletion",
             )
             results.append(result)
 
@@ -689,7 +944,9 @@ class ComprehensiveEndpointTester:
 
     # ==================== COMPREHENSIVE FILE MANAGEMENT TESTING ====================
 
-    async def test_file_management_comprehensive(self, verbose: bool = False) -> List[TestResult]:
+    async def test_file_management_comprehensive(
+        self, verbose: bool = False
+    ) -> List[TestResult]:
         """Comprehensive file management testing suite - 30+ tests."""
         if verbose:
             print("[FOLDER] Running Comprehensive File Management Tests...")
@@ -707,21 +964,29 @@ class ComprehensiveEndpointTester:
                     "filename": file_data["filename"],
                     "content": file_data["content"],
                     "content_type": file_data["content_type"],
-                    "size": file_data["size"]
+                    "size": file_data["size"],
                 },
                 expected_status=201,
                 test_category="file_management",
-                test_type="file_upload"
+                test_type="file_upload",
             )
             results.append(result)
 
         # Test 11-15: File Download Tests
         download_tests = [
             {"file_id": "file123", "expected": 200, "name": "Download Existing File"},
-            {"file_id": "nonexistent", "expected": 404, "name": "Download Nonexistent File"},
-            {"file_id": "private_file", "expected": 403, "name": "Download Private File"},
+            {
+                "file_id": "nonexistent",
+                "expected": 404,
+                "name": "Download Nonexistent File",
+            },
+            {
+                "file_id": "private_file",
+                "expected": 403,
+                "name": "Download Private File",
+            },
             {"file_id": "", "expected": 400, "name": "Download Empty ID"},
-            {"file_id": "large_file", "expected": 200, "name": "Download Large File"}
+            {"file_id": "large_file", "expected": 200, "name": "Download Large File"},
         ]
 
         for test in download_tests:
@@ -731,17 +996,37 @@ class ComprehensiveEndpointTester:
                 method="GET",
                 expected_status=test["expected"],
                 test_category="file_management",
-                test_type="file_download"
+                test_type="file_download",
             )
             results.append(result)
 
         # Test 16-20: File Metadata Tests
         metadata_tests = [
             {"file_id": "file123", "expected": 200, "name": "Get File Metadata"},
-            {"file_id": "nonexistent", "expected": 404, "name": "Get Nonexistent Metadata"},
-            {"file_id": "file123", "method": "PUT", "data": {"description": "Updated"}, "expected": 200, "name": "Update Metadata"},
-            {"file_id": "file123", "method": "PUT", "data": {"tags": ["test", "file"]}, "expected": 200, "name": "Update Tags"},
-            {"file_id": "private_file", "expected": 403, "name": "Get Private Metadata"}
+            {
+                "file_id": "nonexistent",
+                "expected": 404,
+                "name": "Get Nonexistent Metadata",
+            },
+            {
+                "file_id": "file123",
+                "method": "PUT",
+                "data": {"description": "Updated"},
+                "expected": 200,
+                "name": "Update Metadata",
+            },
+            {
+                "file_id": "file123",
+                "method": "PUT",
+                "data": {"tags": ["test", "file"]},
+                "expected": 200,
+                "name": "Update Tags",
+            },
+            {
+                "file_id": "private_file",
+                "expected": 403,
+                "name": "Get Private Metadata",
+            },
         ]
 
         for test in metadata_tests:
@@ -754,17 +1039,47 @@ class ComprehensiveEndpointTester:
                 data=data,
                 expected_status=test["expected"],
                 test_category="file_management",
-                test_type="file_metadata"
+                test_type="file_metadata",
             )
             results.append(result)
 
         # Test 21-25: File Sharing Tests
         sharing_tests = [
-            {"file_id": "file123", "permissions": "read", "user": "testuser2", "expected": 200, "name": "Share Read Permission"},
-            {"file_id": "file123", "permissions": "write", "user": "testuser2", "expected": 200, "name": "Share Write Permission"},
-            {"file_id": "file123", "permissions": "admin", "user": "testuser2", "expected": 200, "name": "Share Admin Permission"},
-            {"file_id": "nonexistent", "permissions": "read", "user": "testuser2", "expected": 404, "name": "Share Nonexistent File"},
-            {"file_id": "file123", "permissions": "invalid", "user": "testuser2", "expected": 400, "name": "Invalid Permission"}
+            {
+                "file_id": "file123",
+                "permissions": "read",
+                "user": "testuser2",
+                "expected": 200,
+                "name": "Share Read Permission",
+            },
+            {
+                "file_id": "file123",
+                "permissions": "write",
+                "user": "testuser2",
+                "expected": 200,
+                "name": "Share Write Permission",
+            },
+            {
+                "file_id": "file123",
+                "permissions": "admin",
+                "user": "testuser2",
+                "expected": 200,
+                "name": "Share Admin Permission",
+            },
+            {
+                "file_id": "nonexistent",
+                "permissions": "read",
+                "user": "testuser2",
+                "expected": 404,
+                "name": "Share Nonexistent File",
+            },
+            {
+                "file_id": "file123",
+                "permissions": "invalid",
+                "user": "testuser2",
+                "expected": 400,
+                "name": "Invalid Permission",
+            },
         ]
 
         for test in sharing_tests:
@@ -775,7 +1090,7 @@ class ComprehensiveEndpointTester:
                 data={"permissions": test["permissions"], "user_id": test["user"]},
                 expected_status=test["expected"],
                 test_category="file_management",
-                test_type="file_sharing"
+                test_type="file_sharing",
             )
             results.append(result)
 
@@ -783,9 +1098,18 @@ class ComprehensiveEndpointTester:
         deletion_tests = [
             {"file_id": "file123", "expected": 200, "name": "Delete Own File"},
             {"file_id": "others_file", "expected": 403, "name": "Delete Others File"},
-            {"file_id": "nonexistent", "expected": 404, "name": "Delete Nonexistent File"},
+            {
+                "file_id": "nonexistent",
+                "expected": 404,
+                "name": "Delete Nonexistent File",
+            },
             {"file_id": "system_file", "expected": 403, "name": "Delete System File"},
-            {"file_id": "file456", "force": True, "expected": 200, "name": "Force Delete File"}
+            {
+                "file_id": "file456",
+                "force": True,
+                "expected": 200,
+                "name": "Force Delete File",
+            },
         ]
 
         for test in deletion_tests:
@@ -797,7 +1121,7 @@ class ComprehensiveEndpointTester:
                 data=data,
                 expected_status=test["expected"],
                 test_category="file_management",
-                test_type="file_deletion"
+                test_type="file_deletion",
             )
             results.append(result)
 
@@ -809,7 +1133,9 @@ class ComprehensiveEndpointTester:
 
     # ==================== COMPREHENSIVE SECURITY TESTING ====================
 
-    async def test_security_comprehensive(self, verbose: bool = False) -> List[TestResult]:
+    async def test_security_comprehensive(
+        self, verbose: bool = False
+    ) -> List[TestResult]:
         """Comprehensive security testing suite - 50+ tests."""
         if verbose:
             print("[LOCKED] Running Comprehensive Security Tests...")
@@ -825,7 +1151,7 @@ class ComprehensiveEndpointTester:
                 data={"search": payload},
                 expected_status=400,  # Should be blocked
                 test_category="security",
-                test_type="sql_injection"
+                test_type="sql_injection",
             )
             results.append(result)
 
@@ -838,7 +1164,7 @@ class ComprehensiveEndpointTester:
                 data={"content": payload},
                 expected_status=400,  # Should be blocked
                 test_category="security",
-                test_type="xss"
+                test_type="xss",
             )
             results.append(result)
 
@@ -851,7 +1177,7 @@ class ComprehensiveEndpointTester:
                 data={"command": payload},
                 expected_status=403,  # Should be blocked
                 test_category="security",
-                test_type="command_injection"
+                test_type="command_injection",
             )
             results.append(result)
 
@@ -863,17 +1189,23 @@ class ComprehensiveEndpointTester:
                 method="GET",
                 expected_status=400,  # Should be blocked
                 test_category="security",
-                test_type="path_traversal"
+                test_type="path_traversal",
             )
             results.append(result)
 
         # Test 41-45: Authentication Bypass Tests
         auth_bypass_tests = [
-            {"headers": {"Authorization": "Bearer invalid_token"}, "name": "Invalid Token"},
+            {
+                "headers": {"Authorization": "Bearer invalid_token"},
+                "name": "Invalid Token",
+            },
             {"headers": {"Authorization": ""}, "name": "Empty Token"},
             {"headers": {"X-User-ID": "1"}, "name": "Header Injection"},
-            {"headers": {"Authorization": "Bearer " + "A" * 1000}, "name": "Long Token"},
-            {"headers": {}, "name": "No Authorization"}
+            {
+                "headers": {"Authorization": "Bearer " + "A" * 1000},
+                "name": "Long Token",
+            },
+            {"headers": {}, "name": "No Authorization"},
         ]
 
         for test in auth_bypass_tests:
@@ -884,7 +1216,7 @@ class ComprehensiveEndpointTester:
                 headers=test["headers"],
                 expected_status=401,  # Should be unauthorized
                 test_category="security",
-                test_type="auth_bypass"
+                test_type="auth_bypass",
             )
             results.append(result)
 
@@ -895,9 +1227,11 @@ class ComprehensiveEndpointTester:
                 test_name=f"Rate Limit Test {i+1}",
                 endpoint="/api/status",
                 method="GET",
-                expected_status=200 if i < 10 else 429,  # Should be rate limited after 10
+                expected_status=(
+                    200 if i < 10 else 429
+                ),  # Should be rate limited after 10
                 test_category="security",
-                test_type="rate_limiting"
+                test_type="rate_limiting",
             )
             rate_limit_results.append(result)
             if i < 19:  # Small delay except for last request
@@ -914,23 +1248,26 @@ class ComprehensiveEndpointTester:
     def generate_report(self, format: str = "json") -> str:
         """Generate test report in specified format."""
         if format.lower() == "json":
-            return json.dumps([
-                {
-                    "endpoint": r.endpoint,
-                    "method": r.method,
-                    "status_code": r.status_code,
-                    "response_time": r.response_time,
-                    "success": r.success,
-                    "error": r.error,
-                    "timestamp": r.timestamp.isoformat()
-                }
-                for r in self.results
-            ], indent=2)
-        
+            return json.dumps(
+                [
+                    {
+                        "endpoint": r.endpoint,
+                        "method": r.method,
+                        "status_code": r.status_code,
+                        "response_time": r.response_time,
+                        "success": r.success,
+                        "error": r.error,
+                        "timestamp": r.timestamp.isoformat(),
+                    }
+                    for r in self.results
+                ],
+                indent=2,
+            )
+
         elif format.lower() == "text":
             report = "Endpoint Test Report\n"
             report += "=" * 50 + "\n\n"
-            
+
             for result in self.results:
                 status = "[OK] PASS" if result.success else "[FAIL] FAIL"
                 report += f"{status} {result.method} {result.endpoint}\n"
@@ -939,14 +1276,14 @@ class ComprehensiveEndpointTester:
                 if result.error:
                     report += f"  Error: {result.error}\n"
                 report += "\n"
-            
+
             # Summary
             total = len(self.results)
             passed = sum(1 for r in self.results if r.success)
             report += f"Summary: {passed}/{total} tests passed\n"
-            
+
             return report
-        
+
         return "Unsupported format"
 
 
@@ -973,6 +1310,7 @@ class ComprehensiveTestingPlugin(PluginBase):
     - Integration Testing (30 tests)
     - Regression Testing (25 tests)
     """
+
     def __init__(self, plugin_id: str = "testing_plugin", config: dict = None):
         super().__init__(plugin_id, config)
         self.name = "comprehensive_testing_plugin"
@@ -1001,7 +1339,7 @@ class ComprehensiveTestingPlugin(PluginBase):
                 category="security",
                 tests=[],
                 parallel=True,
-                timeout=600
+                timeout=600,
             ),
             "messaging": TestSuite(
                 suite_id="msg_suite",
@@ -1010,7 +1348,7 @@ class ComprehensiveTestingPlugin(PluginBase):
                 category="functionality",
                 tests=[],
                 parallel=True,
-                timeout=900
+                timeout=900,
             ),
             "file_management": TestSuite(
                 suite_id="file_suite",
@@ -1019,7 +1357,7 @@ class ComprehensiveTestingPlugin(PluginBase):
                 category="functionality",
                 tests=[],
                 parallel=True,
-                timeout=1200
+                timeout=1200,
             ),
             "security": TestSuite(
                 suite_id="sec_suite",
@@ -1028,7 +1366,7 @@ class ComprehensiveTestingPlugin(PluginBase):
                 category="security",
                 tests=[],
                 parallel=False,  # Security tests should run sequentially
-                timeout=1800
+                timeout=1800,
             ),
             "performance": TestSuite(
                 suite_id="perf_suite",
@@ -1037,7 +1375,7 @@ class ComprehensiveTestingPlugin(PluginBase):
                 category="performance",
                 tests=[],
                 parallel=True,
-                timeout=3600
+                timeout=3600,
             ),
             "integration": TestSuite(
                 suite_id="int_suite",
@@ -1046,8 +1384,8 @@ class ComprehensiveTestingPlugin(PluginBase):
                 category="integration",
                 tests=[],
                 parallel=False,
-                timeout=2400
-            )
+                timeout=2400,
+            ),
         }
 
     async def initialize(self) -> bool:
@@ -1059,7 +1397,7 @@ class ComprehensiveTestingPlugin(PluginBase):
             # Initialize comprehensive endpoint tester
             self.tester = ComprehensiveEndpointTester(
                 base_url=self.config.get("base_url", "http://localhost:8000"),
-                timeout=self.config.get("default_timeout", 30)
+                timeout=self.config.get("default_timeout", 30),
             )
 
             # Register CLI commands
@@ -1071,180 +1409,212 @@ class ComprehensiveTestingPlugin(PluginBase):
         except Exception as e:
             self.logger.error(f"Failed to initialize comprehensive testing plugin: {e}")
             return False
-    
+
     async def cleanup(self) -> bool:
         """Cleanup plugin resources."""
         try:
             # Unregister CLI commands
             await self.unregister_cli_commands()
-            
+
             # Close session
-            if self.tester and hasattr(self.tester, 'session'):
+            if self.tester and hasattr(self.tester, "session"):
                 self.tester.session.close()
-            
+
             self.logger.info("Testing plugin cleaned up successfully")
             return True
-            
+
         except Exception as e:
             self.logger.error(f"Failed to cleanup testing plugin: {e}")
             return False
-    
+
     def load_config(self) -> Dict[str, Any]:
         """Load plugin configuration."""
         try:
             config_path = Path(__file__).parent / "plugin.json"
-            with open(config_path, 'r') as f:
+            with open(config_path, "r") as f:
                 plugin_data = json.load(f)
                 return plugin_data.get("config", {})
         except Exception as e:
             self.logger.warning(f"Failed to load config: {e}")
             return {}
-    
+
     async def register_cli_commands(self):
         """Register CLI commands with the enhanced CLI system."""
         try:
             # Check if CLI system is available
             if enhanced_cli is None or CLICommand is None:
-                self.logger.warning("Enhanced CLI system not available - CLI commands will not be registered")
+                self.logger.warning(
+                    "Enhanced CLI system not available - CLI commands will not be registered"
+                )
                 return
 
             # Register test-endpoint command
-            enhanced_cli.register_command(CLICommand(
-                name="test-endpoint",
-                description="Test API endpoints with comprehensive validation",
-                category="testing",
-                handler=self.cmd_test_endpoint,
-                aliases=["test-api", "endpoint-test"],
-                examples=[
-                    "test-endpoint /api/status",
-                    "test-endpoint /api/users --method POST --data '{\"name\":\"test\"}'",
-                    "test-endpoint --all --format json"
-                ]
-            ))
+            enhanced_cli.register_command(
+                CLICommand(
+                    name="test-endpoint",
+                    description="Test API endpoints with comprehensive validation",
+                    category="testing",
+                    handler=self.cmd_test_endpoint,
+                    aliases=["test-api", "endpoint-test"],
+                    examples=[
+                        "test-endpoint /api/status",
+                        'test-endpoint /api/users --method POST --data \'{"name":"test"}\'',
+                        "test-endpoint --all --format json",
+                    ],
+                )
+            )
 
             # Register test-suite command
-            enhanced_cli.register_command(CLICommand(
-                name="test-suite",
-                description="Run comprehensive test suites",
-                category="testing",
-                handler=self.cmd_test_suite,
-                aliases=["test-all", "suite"],
-                examples=[
-                    "test-suite --category unit",
-                    "test-suite --category integration --verbose"
-                ]
-            ))
-            
+            enhanced_cli.register_command(
+                CLICommand(
+                    name="test-suite",
+                    description="Run comprehensive test suites",
+                    category="testing",
+                    handler=self.cmd_test_suite,
+                    aliases=["test-all", "suite"],
+                    examples=[
+                        "test-suite --category unit",
+                        "test-suite --category integration --verbose",
+                    ],
+                )
+            )
+
             # Register test-load command
-            enhanced_cli.register_command(CLICommand(
-                name="test-load",
-                description="Perform load testing on endpoints",
-                category="testing",
-                handler=self.cmd_test_load,
-                aliases=["load-test", "stress-test"],
-                examples=[
-                    "test-load /api/status --users 100 --duration 60s"
-                ]
-            ))
+            enhanced_cli.register_command(
+                CLICommand(
+                    name="test-load",
+                    description="Perform load testing on endpoints",
+                    category="testing",
+                    handler=self.cmd_test_load,
+                    aliases=["load-test", "stress-test"],
+                    examples=["test-load /api/status --users 100 --duration 60s"],
+                )
+            )
 
             # Register test-security command
-            enhanced_cli.register_command(CLICommand(
-                name="test-security",
-                description="Run security tests and vulnerability scans",
-                category="testing",
-                handler=self.cmd_test_security,
-                aliases=["security-test", "vuln-scan"],
-                examples=[
-                    "test-security --endpoints /api/auth"
-                ]
-            ))
+            enhanced_cli.register_command(
+                CLICommand(
+                    name="test-security",
+                    description="Run security tests and vulnerability scans",
+                    category="testing",
+                    handler=self.cmd_test_security,
+                    aliases=["security-test", "vuln-scan"],
+                    examples=["test-security --endpoints /api/auth"],
+                )
+            )
 
             # Register test-report command
-            enhanced_cli.register_command(CLICommand(
-                name="test-report",
-                description="Generate and view test reports",
-                category="testing",
-                handler=self.cmd_test_report,
-                aliases=["report", "test-results"],
-                examples=[
-                    "test-report --latest",
-                    "test-report --format html --output reports/"
-                ]
-            ))
+            enhanced_cli.register_command(
+                CLICommand(
+                    name="test-report",
+                    description="Generate and view test reports",
+                    category="testing",
+                    handler=self.cmd_test_report,
+                    aliases=["report", "test-results"],
+                    examples=[
+                        "test-report --latest",
+                        "test-report --format html --output reports/",
+                    ],
+                )
+            )
 
             # Register comprehensive testing command
-            enhanced_cli.register_command(CLICommand(
-                name="test-comprehensive",
-                description="Run MASSIVE comprehensive testing suite (400+ tests)",
-                category="testing",
-                handler=self.cmd_test_comprehensive,
-                aliases=["test-full", "comprehensive-test", "e2e-test", "test-everything"],
-                examples=[
-                    "test-comprehensive",
-                    "test-comprehensive --suite authentication",
-                    "test-comprehensive --suite messaging --verbose",
-                    "test-comprehensive --parallel --no-cleanup",
-                    "test-comprehensive --all --report-format html"
-                ]
-            ))
+            enhanced_cli.register_command(
+                CLICommand(
+                    name="test-comprehensive",
+                    description="Run MASSIVE comprehensive testing suite (400+ tests)",
+                    category="testing",
+                    handler=self.cmd_test_comprehensive,
+                    aliases=[
+                        "test-full",
+                        "comprehensive-test",
+                        "e2e-test",
+                        "test-everything",
+                    ],
+                    examples=[
+                        "test-comprehensive",
+                        "test-comprehensive --suite authentication",
+                        "test-comprehensive --suite messaging --verbose",
+                        "test-comprehensive --parallel --no-cleanup",
+                        "test-comprehensive --all --report-format html",
+                    ],
+                )
+            )
 
             # Register individual test suite commands
-            enhanced_cli.register_command(CLICommand(
-                name="test-auth",
-                description="Run comprehensive authentication tests (25+ tests)",
-                category="testing",
-                handler=self.cmd_test_auth,
-                aliases=["test-authentication"],
-                examples=["test-auth", "test-auth --verbose"]
-            ))
+            enhanced_cli.register_command(
+                CLICommand(
+                    name="test-auth",
+                    description="Run comprehensive authentication tests (25+ tests)",
+                    category="testing",
+                    handler=self.cmd_test_auth,
+                    aliases=["test-authentication"],
+                    examples=["test-auth", "test-auth --verbose"],
+                )
+            )
 
-            enhanced_cli.register_command(CLICommand(
-                name="test-messaging",
-                description="Run comprehensive messaging tests (35+ tests)",
-                category="testing",
-                handler=self.cmd_test_messaging,
-                aliases=["test-messages"],
-                examples=["test-messaging", "test-messaging --verbose"]
-            ))
+            enhanced_cli.register_command(
+                CLICommand(
+                    name="test-messaging",
+                    description="Run comprehensive messaging tests (35+ tests)",
+                    category="testing",
+                    handler=self.cmd_test_messaging,
+                    aliases=["test-messages"],
+                    examples=["test-messaging", "test-messaging --verbose"],
+                )
+            )
 
-            enhanced_cli.register_command(CLICommand(
-                name="test-files",
-                description="Run comprehensive file management tests (30+ tests)",
-                category="testing",
-                handler=self.cmd_test_files,
-                aliases=["test-file-management"],
-                examples=["test-files", "test-files --verbose"]
-            ))
+            enhanced_cli.register_command(
+                CLICommand(
+                    name="test-files",
+                    description="Run comprehensive file management tests (30+ tests)",
+                    category="testing",
+                    handler=self.cmd_test_files,
+                    aliases=["test-file-management"],
+                    examples=["test-files", "test-files --verbose"],
+                )
+            )
 
-            enhanced_cli.register_command(CLICommand(
-                name="test-security-full",
-                description="Run comprehensive security tests (50+ tests)",
-                category="testing",
-                handler=self.cmd_test_security_full,
-                aliases=["test-sec", "security-audit"],
-                examples=["test-security-full", "test-security-full --verbose"]
-            ))
-            
+            enhanced_cli.register_command(
+                CLICommand(
+                    name="test-security-full",
+                    description="Run comprehensive security tests (50+ tests)",
+                    category="testing",
+                    handler=self.cmd_test_security_full,
+                    aliases=["test-sec", "security-audit"],
+                    examples=["test-security-full", "test-security-full --verbose"],
+                )
+            )
+
             self.logger.info("CLI commands registered successfully")
-            
+
         except Exception as e:
             self.logger.error(f"Failed to register CLI commands: {e}")
-    
+
     async def unregister_cli_commands(self):
         """Unregister CLI commands."""
         try:
             # Check if CLI system is available
             if enhanced_cli is None:
-                self.logger.warning("Enhanced CLI system not available - no commands to unregister")
+                self.logger.warning(
+                    "Enhanced CLI system not available - no commands to unregister"
+                )
                 return
 
-            commands = ["test-endpoint", "test-suite", "test-load", "test-security", "test-report", "test-comprehensive"]
+            commands = [
+                "test-endpoint",
+                "test-suite",
+                "test-load",
+                "test-security",
+                "test-report",
+                "test-comprehensive",
+            ]
             for cmd in commands:
-                if hasattr(enhanced_cli, 'unregister_command'):
+                if hasattr(enhanced_cli, "unregister_command"):
                     enhanced_cli.unregister_command(cmd)
-            
+
             self.logger.info("CLI commands unregistered successfully")
-            
+
         except Exception as e:
             self.logger.error(f"Failed to unregister CLI commands: {e}")
 
@@ -1403,7 +1773,9 @@ Success Rate: {success_rate:.1f}%
             # Run test suites
             if not suite_filter or suite_filter == "authentication":
                 print("\n[SECURE] RUNNING AUTHENTICATION TESTS (25+ tests)...")
-                auth_results = await self.tester.test_authentication_comprehensive(verbose)
+                auth_results = await self.tester.test_authentication_comprehensive(
+                    verbose
+                )
                 all_results.extend(auth_results)
 
             if not suite_filter or suite_filter == "messaging":
@@ -1413,7 +1785,9 @@ Success Rate: {success_rate:.1f}%
 
             if not suite_filter or suite_filter == "file_management":
                 print("\n[FOLDER] RUNNING FILE MANAGEMENT TESTS (30+ tests)...")
-                file_results = await self.tester.test_file_management_comprehensive(verbose)
+                file_results = await self.tester.test_file_management_comprehensive(
+                    verbose
+                )
                 all_results.extend(file_results)
 
             if not suite_filter or suite_filter == "security":
@@ -1454,7 +1828,9 @@ Success Rate: {success_rate:.1f}%
 
             # Generate comprehensive report
             total_time = time.time() - start_time
-            self._generate_massive_comprehensive_report(all_results, total_time, report_format)
+            self._generate_massive_comprehensive_report(
+                all_results, total_time, report_format
+            )
 
             # Return overall success
             passed = sum(1 for r in all_results if r.success)
@@ -1558,19 +1934,24 @@ Success Rate: {success_rate:.1f}%
                 method=method,
                 data=data,
                 headers=headers,
-                expected_status=expected_status
+                expected_status=expected_status,
             )
 
             # Display result
             if output_format == "json":
-                print(json.dumps({
-                    "endpoint": result.endpoint,
-                    "method": result.method,
-                    "status_code": result.status_code,
-                    "response_time": result.response_time,
-                    "success": result.success,
-                    "error": result.error
-                }, indent=2))
+                print(
+                    json.dumps(
+                        {
+                            "endpoint": result.endpoint,
+                            "method": result.method,
+                            "status_code": result.status_code,
+                            "response_time": result.response_time,
+                            "success": result.success,
+                            "error": result.error,
+                        },
+                        indent=2,
+                    )
+                )
             else:
                 status = "[OK] PASS" if result.success else "[FAIL] FAIL"
                 print(f"{status} {result.method} {result.endpoint}")
@@ -1679,7 +2060,7 @@ Success Rate: {success_rate:.1f}%
                 elif args[i] == "--duration" and i + 1 < len(args):
                     try:
                         duration_str = args[i + 1]
-                        if duration_str.endswith('s'):
+                        if duration_str.endswith("s"):
                             duration = int(duration_str[:-1])
                         else:
                             duration = int(duration_str)
@@ -1693,7 +2074,9 @@ Success Rate: {success_rate:.1f}%
                 else:
                     i += 1
 
-            print(f"Load testing {method} {endpoint} with {users} users for {duration}s...")
+            print(
+                f"Load testing {method} {endpoint} with {users} users for {duration}s..."
+            )
 
             # Simple load test implementation
             start_time = time.time()
@@ -1718,7 +2101,9 @@ Success Rate: {success_rate:.1f}%
             if results:
                 total_requests = len(results)
                 successful_requests = sum(1 for r in results if r.success)
-                avg_response_time = sum(r.response_time for r in results) / total_requests
+                avg_response_time = (
+                    sum(r.response_time for r in results) / total_requests
+                )
                 max_response_time = max(r.response_time for r in results)
                 min_response_time = min(r.response_time for r in results)
 
@@ -1780,7 +2165,7 @@ Success Rate: {success_rate:.1f}%
                     "/api/users",
                     "/api/admin",
                     "/api/status",
-                    "/api/health"
+                    "/api/health",
                 ]
 
             print("Running security tests...")
@@ -1792,40 +2177,52 @@ Success Rate: {success_rate:.1f}%
                 # Test for common vulnerabilities
 
                 # 1. SQL Injection test
-                sql_payloads = ["' OR '1'='1", "'; DROP TABLE users; --", "' UNION SELECT * FROM users --"]
+                sql_payloads = [
+                    "' OR '1'='1",
+                    "'; DROP TABLE users; --",
+                    "' UNION SELECT * FROM users --",
+                ]
                 for payload in sql_payloads:
                     result = await self.tester.test_endpoint(
-                        endpoint=f"{endpoint}?id={payload}",
-                        method="GET"
+                        endpoint=f"{endpoint}?id={payload}", method="GET"
                     )
                     if result.status_code == 200 and result.response_data:
                         # Check for SQL error messages
                         response_text = str(result.response_data).lower()
-                        if any(error in response_text for error in ["sql", "mysql", "postgres", "sqlite"]):
-                            security_issues.append({
-                                "endpoint": endpoint,
-                                "vulnerability": "Potential SQL Injection",
-                                "payload": payload,
-                                "severity": "HIGH"
-                            })
+                        if any(
+                            error in response_text
+                            for error in ["sql", "mysql", "postgres", "sqlite"]
+                        ):
+                            security_issues.append(
+                                {
+                                    "endpoint": endpoint,
+                                    "vulnerability": "Potential SQL Injection",
+                                    "payload": payload,
+                                    "severity": "HIGH",
+                                }
+                            )
 
                 # 2. XSS test
-                xss_payloads = ["<script>alert('xss')</script>", "javascript:alert('xss')", "<img src=x onerror=alert('xss')>"]
+                xss_payloads = [
+                    "<script>alert('xss')</script>",
+                    "javascript:alert('xss')",
+                    "<img src=x onerror=alert('xss')>",
+                ]
                 for payload in xss_payloads:
                     result = await self.tester.test_endpoint(
-                        endpoint=endpoint,
-                        method="POST",
-                        data={"input": payload}
+                        endpoint=endpoint, method="POST", data={"input": payload}
                     )
                     if result.status_code == 200 and result.response_data:
                         response_text = str(result.response_data)
                         if payload in response_text:
-                            security_issues.append({
-                                "endpoint": endpoint,
-                                "vulnerability": "Potential XSS",
-                                "payload": payload,
-                                "severity": "MEDIUM"
-                            })
+                            security_issues.append(
+                                {
+                                    "endpoint": endpoint,
+                                    "vulnerability": "Potential XSS",
+                                    "payload": payload,
+                                    "severity": "MEDIUM",
+                                }
+                            )
 
                 # 3. Authentication bypass test
                 auth_tests = [
@@ -1835,24 +2232,30 @@ Success Rate: {success_rate:.1f}%
                 ]
                 for test in auth_tests:
                     result = await self.tester.test_endpoint(
-                        endpoint=endpoint,
-                        method="GET",
-                        headers=test.get("headers", {})
+                        endpoint=endpoint, method="GET", headers=test.get("headers", {})
                     )
                     if result.status_code == 200:
-                        security_issues.append({
-                            "endpoint": endpoint,
-                            "vulnerability": "Potential Authentication Bypass",
-                            "test": str(test),
-                            "severity": "HIGH"
-                        })
+                        security_issues.append(
+                            {
+                                "endpoint": endpoint,
+                                "vulnerability": "Potential Authentication Bypass",
+                                "test": str(test),
+                                "severity": "HIGH",
+                            }
+                        )
 
             # Display results
             if security_issues:
-                print(f"\n[WARN]  Found {len(security_issues)} potential security issues:")
+                print(
+                    f"\n[WARN]  Found {len(security_issues)} potential security issues:"
+                )
                 for issue in security_issues:
-                    severity_color = "[RED]" if issue["severity"] == "HIGH" else "[YELLOW]"
-                    print(f"{severity_color} {issue['severity']}: {issue['vulnerability']}")
+                    severity_color = (
+                        "[RED]" if issue["severity"] == "HIGH" else "[YELLOW]"
+                    )
+                    print(
+                        f"{severity_color} {issue['severity']}: {issue['vulnerability']}"
+                    )
                     print(f"   Endpoint: {issue['endpoint']}")
                     if "payload" in issue:
                         print(f"   Payload: {issue['payload']}")
@@ -1860,7 +2263,7 @@ Success Rate: {success_rate:.1f}%
 
                 if generate_report:
                     report_file = f"security_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
-                    with open(report_file, 'w') as f:
+                    with open(report_file, "w") as f:
                         json.dump(security_issues, f, indent=2)
                     print(f"Security report saved to: {report_file}")
 
@@ -1913,11 +2316,11 @@ Success Rate: {success_rate:.1f}%
             # Output report
             if output_dir:
                 Path(output_dir).mkdir(parents=True, exist_ok=True)
-                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                 filename = f"test_report_{timestamp}.{output_format}"
                 filepath = Path(output_dir) / filename
 
-                with open(filepath, 'w') as f:
+                with open(filepath, "w") as f:
                     f.write(report)
 
                 print(f"Report saved to: {filepath}")
@@ -2008,9 +2411,22 @@ Success Rate: {success_rate:.1f}%
         """Test account creation functionality."""
         try:
             test_accounts = [
-                {"username": "testuser1", "email": "test1@example.com", "password": "TestPass123!"},
-                {"username": "testuser2", "email": "test2@example.com", "password": "TestPass456!"},
-                {"username": "testadmin", "email": "admin@example.com", "password": "AdminPass789!", "role": "admin"}
+                {
+                    "username": "testuser1",
+                    "email": "test1@example.com",
+                    "password": "TestPass123!",
+                },
+                {
+                    "username": "testuser2",
+                    "email": "test2@example.com",
+                    "password": "TestPass456!",
+                },
+                {
+                    "username": "testadmin",
+                    "email": "admin@example.com",
+                    "password": "AdminPass789!",
+                    "role": "admin",
+                },
             ]
 
             success_count = 0
@@ -2024,19 +2440,25 @@ Success Rate: {success_rate:.1f}%
                     endpoint="/api/users/register",
                     method="POST",
                     data=account,
-                    expected_status=201
+                    expected_status=201,
                 )
 
                 if result.success:
                     success_count += 1
                     if verbose:
-                        print(f"    [OK] Account {account['username']} created successfully")
+                        print(
+                            f"    [OK] Account {account['username']} created successfully"
+                        )
                 else:
                     if verbose:
-                        print(f"    [FAIL] Failed to create account {account['username']}: {result.error}")
+                        print(
+                            f"    [FAIL] Failed to create account {account['username']}: {result.error}"
+                        )
 
             success_rate = success_count / len(test_accounts)
-            print(f"  Account Creation: {success_count}/{len(test_accounts)} successful ({success_rate*100:.1f}%)")
+            print(
+                f"  Account Creation: {success_count}/{len(test_accounts)} successful ({success_rate*100:.1f}%)"
+            )
 
             return success_rate >= 0.8  # 80% success rate required
 
@@ -2049,9 +2471,15 @@ Success Rate: {success_rate:.1f}%
         try:
             test_messages = [
                 {"content": "Hello, this is a test message!", "type": "text"},
-                {"content": "This is a longer test message with emojis [LAUNCH] [SUCCESS] [SPARKLE]", "type": "text"},
-                {"content": "Testing markdown **bold** and *italic* text", "type": "markdown"},
-                {"content": "```python\nprint('Hello, World!')\n```", "type": "code"}
+                {
+                    "content": "This is a longer test message with emojis [LAUNCH] [SUCCESS] [SPARKLE]",
+                    "type": "text",
+                },
+                {
+                    "content": "Testing markdown **bold** and *italic* text",
+                    "type": "markdown",
+                },
+                {"content": "```python\nprint('Hello, World!')\n```", "type": "code"},
             ]
 
             success_count = 0
@@ -2065,7 +2493,7 @@ Success Rate: {success_rate:.1f}%
                     endpoint="/api/messages",
                     method="POST",
                     data=message,
-                    expected_status=201
+                    expected_status=201,
                 )
 
                 if result.success:
@@ -2075,9 +2503,7 @@ Success Rate: {success_rate:.1f}%
 
                     # Test message retrieval
                     get_result = await self.tester.test_endpoint(
-                        endpoint="/api/messages",
-                        method="GET",
-                        expected_status=200
+                        endpoint="/api/messages", method="GET", expected_status=200
                     )
 
                     if not get_result.success and verbose:
@@ -2087,7 +2513,9 @@ Success Rate: {success_rate:.1f}%
                         print(f"    [FAIL] Failed to send message: {result.error}")
 
             success_rate = success_count / len(test_messages)
-            print(f"  Message System: {success_count}/{len(test_messages)} successful ({success_rate*100:.1f}%)")
+            print(
+                f"  Message System: {success_count}/{len(test_messages)} successful ({success_rate*100:.1f}%)"
+            )
 
             return success_rate >= 0.8
 
@@ -2100,9 +2528,21 @@ Success Rate: {success_rate:.1f}%
         try:
             # Create test files
             test_files = [
-                {"name": "test.txt", "content": "This is a test file", "type": "text/plain"},
-                {"name": "test.json", "content": '{"test": "data"}', "type": "application/json"},
-                {"name": "test.md", "content": "# Test Markdown\n\nThis is a test.", "type": "text/markdown"}
+                {
+                    "name": "test.txt",
+                    "content": "This is a test file",
+                    "type": "text/plain",
+                },
+                {
+                    "name": "test.json",
+                    "content": '{"test": "data"}',
+                    "type": "application/json",
+                },
+                {
+                    "name": "test.md",
+                    "content": "# Test Markdown\n\nThis is a test.",
+                    "type": "text/markdown",
+                },
             ]
 
             success_count = 0
@@ -2118,9 +2558,9 @@ Success Rate: {success_rate:.1f}%
                     data={
                         "filename": file_info["name"],
                         "content": file_info["content"],
-                        "content_type": file_info["type"]
+                        "content_type": file_info["type"],
                     },
-                    expected_status=201
+                    expected_status=201,
                 )
 
                 if result.success:
@@ -2134,9 +2574,9 @@ Success Rate: {success_rate:.1f}%
                         method="POST",
                         data={
                             "content": f"Message with attachment: {file_info['name']}",
-                            "attachments": [{"filename": file_info["name"]}]
+                            "attachments": [{"filename": file_info["name"]}],
                         },
-                        expected_status=201
+                        expected_status=201,
                     )
 
                     if not attach_result.success and verbose:
@@ -2146,7 +2586,9 @@ Success Rate: {success_rate:.1f}%
                         print(f"    [FAIL] Failed to upload file: {result.error}")
 
             success_rate = success_count / len(test_files)
-            print(f"  File Attachments: {success_count}/{len(test_files)} successful ({success_rate*100:.1f}%)")
+            print(
+                f"  File Attachments: {success_count}/{len(test_files)} successful ({success_rate*100:.1f}%)"
+            )
 
             return success_rate >= 0.8
 
@@ -2161,7 +2603,7 @@ Success Rate: {success_rate:.1f}%
                 {"action": "initiate_call", "target": "testuser1", "type": "audio"},
                 {"action": "initiate_call", "target": "testuser2", "type": "video"},
                 {"action": "join_call", "call_id": "test_call_123"},
-                {"action": "end_call", "call_id": "test_call_123"}
+                {"action": "end_call", "call_id": "test_call_123"},
             ]
 
             success_count = 0
@@ -2173,10 +2615,7 @@ Success Rate: {success_rate:.1f}%
                 # Simulate voice call API
                 endpoint = f"/api/calls/{test['action']}"
                 result = await self.tester.test_endpoint(
-                    endpoint=endpoint,
-                    method="POST",
-                    data=test,
-                    expected_status=200
+                    endpoint=endpoint, method="POST", data=test, expected_status=200
                 )
 
                 if result.success:
@@ -2188,9 +2627,13 @@ Success Rate: {success_rate:.1f}%
                         print(f"    [FAIL] Voice call action failed: {result.error}")
 
             success_rate = success_count / len(voice_tests)
-            print(f"  Voice Calls: {success_count}/{len(voice_tests)} successful ({success_rate*100:.1f}%)")
+            print(
+                f"  Voice Calls: {success_count}/{len(voice_tests)} successful ({success_rate*100:.1f}%)"
+            )
 
-            return success_rate >= 0.7  # 70% success rate (voice calls might not be fully implemented)
+            return (
+                success_rate >= 0.7
+            )  # 70% success rate (voice calls might not be fully implemented)
 
         except Exception as e:
             print(f"  Error testing voice calls: {e}")
@@ -2205,8 +2648,16 @@ Success Rate: {success_rate:.1f}%
                 {"endpoint": "/api/users", "method": "GET", "expected": 200},
                 {"endpoint": "/api/messages", "method": "GET", "expected": 200},
                 {"endpoint": "/api/files", "method": "GET", "expected": 200},
-                {"endpoint": "/api/auth/login", "method": "POST", "expected": 401},  # No credentials
-                {"endpoint": "/api/admin/stats", "method": "GET", "expected": 401}   # No auth
+                {
+                    "endpoint": "/api/auth/login",
+                    "method": "POST",
+                    "expected": 401,
+                },  # No credentials
+                {
+                    "endpoint": "/api/admin/stats",
+                    "method": "GET",
+                    "expected": 401,
+                },  # No auth
             ]
 
             success_count = 0
@@ -2218,7 +2669,7 @@ Success Rate: {success_rate:.1f}%
                 result = await self.tester.test_endpoint(
                     endpoint=test["endpoint"],
                     method=test["method"],
-                    expected_status=test["expected"]
+                    expected_status=test["expected"],
                 )
 
                 if result.success:
@@ -2230,7 +2681,9 @@ Success Rate: {success_rate:.1f}%
                         print(f"    [FAIL] API endpoint failed: {result.error}")
 
             success_rate = success_count / len(api_tests)
-            print(f"  API Endpoints: {success_count}/{len(api_tests)} successful ({success_rate*100:.1f}%)")
+            print(
+                f"  API Endpoints: {success_count}/{len(api_tests)} successful ({success_rate*100:.1f}%)"
+            )
 
             return success_rate >= 0.8
 
@@ -2242,10 +2695,22 @@ Success Rate: {success_rate:.1f}%
         """Test security features."""
         try:
             security_tests = [
-                {"name": "SQL Injection", "payload": "' OR '1'='1", "endpoint": "/api/users"},
-                {"name": "XSS", "payload": "<script>alert('xss')</script>", "endpoint": "/api/messages"},
-                {"name": "Auth Bypass", "headers": {"Authorization": "Bearer invalid"}, "endpoint": "/api/admin"},
-                {"name": "Rate Limiting", "repeat": 10, "endpoint": "/api/status"}
+                {
+                    "name": "SQL Injection",
+                    "payload": "' OR '1'='1",
+                    "endpoint": "/api/users",
+                },
+                {
+                    "name": "XSS",
+                    "payload": "<script>alert('xss')</script>",
+                    "endpoint": "/api/messages",
+                },
+                {
+                    "name": "Auth Bypass",
+                    "headers": {"Authorization": "Bearer invalid"},
+                    "endpoint": "/api/admin",
+                },
+                {"name": "Rate Limiting", "repeat": 10, "endpoint": "/api/status"},
             ]
 
             success_count = 0
@@ -2259,8 +2724,7 @@ Success Rate: {success_rate:.1f}%
                     rate_limit_triggered = False
                     for i in range(test["repeat"]):
                         result = await self.tester.test_endpoint(
-                            endpoint=test["endpoint"],
-                            method="GET"
+                            endpoint=test["endpoint"], method="GET"
                         )
                         if result.status_code == 429:  # Too Many Requests
                             rate_limit_triggered = True
@@ -2275,14 +2739,18 @@ Success Rate: {success_rate:.1f}%
                             print(f"    [WARN] Rate limiting not detected")
                 else:
                     # Test for security vulnerabilities
-                    data = {"input": test.get("payload", "")} if "payload" in test else None
+                    data = (
+                        {"input": test.get("payload", "")}
+                        if "payload" in test
+                        else None
+                    )
                     headers = test.get("headers", {})
 
                     result = await self.tester.test_endpoint(
                         endpoint=test["endpoint"],
                         method="POST" if data else "GET",
                         data=data,
-                        headers=headers
+                        headers=headers,
                     )
 
                     # Security test passes if the attack is blocked (4xx/5xx status)
@@ -2292,10 +2760,14 @@ Success Rate: {success_rate:.1f}%
                             print(f"    [OK] Security test passed (attack blocked)")
                     else:
                         if verbose:
-                            print(f"    [WARN] Potential security vulnerability detected")
+                            print(
+                                f"    [WARN] Potential security vulnerability detected"
+                            )
 
             success_rate = success_count / len(security_tests)
-            print(f"  Security Features: {success_count}/{len(security_tests)} successful ({success_rate*100:.1f}%)")
+            print(
+                f"  Security Features: {success_count}/{len(security_tests)} successful ({success_rate*100:.1f}%)"
+            )
 
             return success_rate >= 0.7
 
@@ -2308,9 +2780,15 @@ Success Rate: {success_rate:.1f}%
         try:
             cleanup_tasks = [
                 {"action": "delete_test_users", "endpoint": "/api/admin/cleanup/users"},
-                {"action": "delete_test_messages", "endpoint": "/api/admin/cleanup/messages"},
+                {
+                    "action": "delete_test_messages",
+                    "endpoint": "/api/admin/cleanup/messages",
+                },
                 {"action": "delete_test_files", "endpoint": "/api/admin/cleanup/files"},
-                {"action": "clear_test_sessions", "endpoint": "/api/admin/cleanup/sessions"}
+                {
+                    "action": "clear_test_sessions",
+                    "endpoint": "/api/admin/cleanup/sessions",
+                },
             ]
 
             success_count = 0
@@ -2320,12 +2798,12 @@ Success Rate: {success_rate:.1f}%
                     print(f"  Cleaning up: {task['action']}")
 
                 result = await self.tester.test_endpoint(
-                    endpoint=task["endpoint"],
-                    method="DELETE",
-                    data={"test_mode": True}
+                    endpoint=task["endpoint"], method="DELETE", data={"test_mode": True}
                 )
 
-                if result.success or result.status_code == 404:  # 404 is OK (nothing to clean)
+                if (
+                    result.success or result.status_code == 404
+                ):  # 404 is OK (nothing to clean)
                     success_count += 1
                     if verbose:
                         print(f"    [OK] Cleanup successful")
@@ -2334,7 +2812,9 @@ Success Rate: {success_rate:.1f}%
                         print(f"    [WARN] Cleanup failed: {result.error}")
 
             success_rate = success_count / len(cleanup_tasks)
-            print(f"  Cleanup: {success_count}/{len(cleanup_tasks)} successful ({success_rate*100:.1f}%)")
+            print(
+                f"  Cleanup: {success_count}/{len(cleanup_tasks)} successful ({success_rate*100:.1f}%)"
+            )
 
             return True  # Cleanup failures are not critical
 
@@ -2371,7 +2851,9 @@ Success Rate: {success_rate:.1f}%
 
     # ==================== ADDITIONAL COMPREHENSIVE TEST METHODS ====================
 
-    async def _test_performance_comprehensive(self, verbose: bool = False) -> List[TestResult]:
+    async def _test_performance_comprehensive(
+        self, verbose: bool = False
+    ) -> List[TestResult]:
         """Comprehensive performance testing suite - 40+ tests."""
         if verbose:
             print("[CHART] Running Comprehensive Performance Tests...")
@@ -2386,13 +2868,15 @@ Success Rate: {success_rate:.1f}%
                 method="GET",
                 expected_status=200,
                 test_category="performance",
-                test_type="load_testing"
+                test_type="load_testing",
             )
             results.append(result)
 
         return results
 
-    async def _test_integration_comprehensive(self, verbose: bool = False) -> List[TestResult]:
+    async def _test_integration_comprehensive(
+        self, verbose: bool = False
+    ) -> List[TestResult]:
         """Comprehensive integration testing suite - 30+ tests."""
         if verbose:
             print("[REFRESH] Running Comprehensive Integration Tests...")
@@ -2401,11 +2885,36 @@ Success Rate: {success_rate:.1f}%
 
         # Integration tests
         integration_tests = [
-            {"endpoint": "/api/integration/gui", "method": "GET", "expected": 200, "name": "GUI Integration"},
-            {"endpoint": "/api/integration/webui", "method": "GET", "expected": 200, "name": "WebUI Integration"},
-            {"endpoint": "/api/integration/cli", "method": "GET", "expected": 200, "name": "CLI Integration"},
-            {"endpoint": "/api/integration/database", "method": "GET", "expected": 200, "name": "Database Integration"},
-            {"endpoint": "/api/integration/plugins", "method": "GET", "expected": 200, "name": "Plugin Integration"}
+            {
+                "endpoint": "/api/integration/gui",
+                "method": "GET",
+                "expected": 200,
+                "name": "GUI Integration",
+            },
+            {
+                "endpoint": "/api/integration/webui",
+                "method": "GET",
+                "expected": 200,
+                "name": "WebUI Integration",
+            },
+            {
+                "endpoint": "/api/integration/cli",
+                "method": "GET",
+                "expected": 200,
+                "name": "CLI Integration",
+            },
+            {
+                "endpoint": "/api/integration/database",
+                "method": "GET",
+                "expected": 200,
+                "name": "Database Integration",
+            },
+            {
+                "endpoint": "/api/integration/plugins",
+                "method": "GET",
+                "expected": 200,
+                "name": "Plugin Integration",
+            },
         ]
 
         for i, test in enumerate(integration_tests):
@@ -2415,7 +2924,7 @@ Success Rate: {success_rate:.1f}%
                 method=test["method"],
                 expected_status=test["expected"],
                 test_category="integration",
-                test_type="system_integration"
+                test_type="system_integration",
             )
             results.append(result)
 
@@ -2431,7 +2940,7 @@ Success Rate: {success_rate:.1f}%
             "/api/admin/cleanup/test-messages",
             "/api/admin/cleanup/test-files",
             "/api/admin/cleanup/test-sessions",
-            "/api/admin/cleanup/test-calls"
+            "/api/admin/cleanup/test-calls",
         ]
 
         for endpoint in cleanup_endpoints:
@@ -2442,12 +2951,14 @@ Success Rate: {success_rate:.1f}%
                     method="DELETE",
                     expected_status=200,
                     test_category="cleanup",
-                    test_type="data_cleanup"
+                    test_type="data_cleanup",
                 )
             except:
                 pass  # Cleanup failures are not critical
 
-    def _generate_massive_comprehensive_report(self, results: List[TestResult], total_time: float, format: str = "text"):
+    def _generate_massive_comprehensive_report(
+        self, results: List[TestResult], total_time: float, format: str = "text"
+    ):
         """Generate massive comprehensive test report."""
         print("\n" + "=" * 100)
         print("[TARGET] MASSIVE COMPREHENSIVE PLEXICHAT TEST REPORT")
@@ -2463,7 +2974,9 @@ Success Rate: {success_rate:.1f}%
         # Print category summaries
         for category, cat_results in categories.items():
             passed = sum(1 for r in cat_results if r.success)
-            print(f"\n[CHART] {category.upper()}: {passed}/{len(cat_results)} passed ({passed/len(cat_results)*100:.1f}%)")
+            print(
+                f"\n[CHART] {category.upper()}: {passed}/{len(cat_results)} passed ({passed/len(cat_results)*100:.1f}%)"
+            )
 
             if format == "verbose":
                 for result in cat_results:
@@ -2505,7 +3018,9 @@ Success Rate: {success_rate:.1f}%
         elif success_rate >= 70:
             print("[WARN]  FAIR! PlexiChat has some issues that need attention.")
         else:
-            print("[FAIL] POOR! PlexiChat has significant issues requiring immediate attention.")
+            print(
+                "[FAIL] POOR! PlexiChat has significant issues requiring immediate attention."
+            )
 
         print("=" * 100)
 
@@ -2516,9 +3031,16 @@ Success Rate: {success_rate:.1f}%
             "version": self.version,
             "description": "MASSIVE COMPREHENSIVE TESTING PLUGIN - 400+ tests covering EVERY PlexiChat feature",
             "commands": [
-                "test-comprehensive", "test-auth", "test-messaging", "test-files",
-                "test-security-full", "test-endpoint", "test-suite", "test-load",
-                "test-security", "test-report"
+                "test-comprehensive",
+                "test-auth",
+                "test-messaging",
+                "test-files",
+                "test-security-full",
+                "test-endpoint",
+                "test-suite",
+                "test-load",
+                "test-security",
+                "test-report",
             ],
             "test_suites": [
                 "Authentication & Authorization (25+ tests)",
@@ -2530,7 +3052,7 @@ Success Rate: {success_rate:.1f}%
                 "User Management (20+ tests)",
                 "Plugin System (20+ tests)",
                 "Performance Testing (40+ tests)",
-                "Integration Testing (30+ tests)"
+                "Integration Testing (30+ tests)",
             ],
             "total_tests": "400+",
             "features": [
@@ -2541,22 +3063,25 @@ Success Rate: {success_rate:.1f}%
                 "Automated test data generation",
                 "Detailed reporting and analytics",
                 "Parallel test execution",
-                "Test cleanup and management"
-            ]
+                "Test cleanup and management",
+            ],
         }
 
 
 # Plugin instance
 plugin_instance = ComprehensiveTestingPlugin()
 
+
 # Plugin entry points
 async def initialize():
     """Plugin initialization entry point."""
     return await plugin_instance.initialize()
 
+
 async def cleanup():
     """Plugin cleanup entry point."""
     return await plugin_instance.cleanup()
+
 
 # Legacy function for compatibility
 def get_plugin_info():

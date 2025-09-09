@@ -6,14 +6,15 @@ Collects system performance metrics at regular intervals and stores them.
 
 import asyncio
 import logging
-import psutil
 import time
-from typing import Dict, Any, Optional, List
-from datetime import datetime, timedelta
 from dataclasses import dataclass
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional
 
-from plexichat.core.monitoring.unified_monitoring_system import record_metric
+import psutil
+
 from plexichat.core.database.manager import database_manager
+from plexichat.core.monitoring.unified_monitoring_system import record_metric
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +22,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class CollectionConfig:
     """Configuration for metrics collection."""
+
     interval_seconds: int = 60
     enabled: bool = True
     cpu_enabled: bool = True
@@ -106,24 +108,39 @@ class MetricsCollector:
         try:
             # Overall CPU usage
             cpu_percent = psutil.cpu_percent(interval=1)
-            record_metric("cpu_usage_percent", cpu_percent, "percent", {"type": "overall"})
+            record_metric(
+                "cpu_usage_percent", cpu_percent, "percent", {"type": "overall"}
+            )
 
             # Per-core CPU usage
             cpu_per_core = psutil.cpu_percent(interval=1, percpu=True)
             for i, core_percent in enumerate(cpu_per_core):
-                record_metric(f"cpu_core_{i}_usage_percent", core_percent, "percent", {"core": str(i)})
+                record_metric(
+                    f"cpu_core_{i}_usage_percent",
+                    core_percent,
+                    "percent",
+                    {"core": str(i)},
+                )
 
             # CPU frequency
             cpu_freq = psutil.cpu_freq()
             if cpu_freq:
-                record_metric("cpu_frequency_mhz", cpu_freq.current, "MHz", {"type": "current"})
-                record_metric("cpu_frequency_min_mhz", cpu_freq.min, "MHz", {"type": "min"})
-                record_metric("cpu_frequency_max_mhz", cpu_freq.max, "MHz", {"type": "max"})
+                record_metric(
+                    "cpu_frequency_mhz", cpu_freq.current, "MHz", {"type": "current"}
+                )
+                record_metric(
+                    "cpu_frequency_min_mhz", cpu_freq.min, "MHz", {"type": "min"}
+                )
+                record_metric(
+                    "cpu_frequency_max_mhz", cpu_freq.max, "MHz", {"type": "max"}
+                )
 
             # CPU times
             cpu_times = psutil.cpu_times()
             record_metric("cpu_time_user", cpu_times.user, "seconds", {"type": "user"})
-            record_metric("cpu_time_system", cpu_times.system, "seconds", {"type": "system"})
+            record_metric(
+                "cpu_time_system", cpu_times.system, "seconds", {"type": "system"}
+            )
             record_metric("cpu_time_idle", cpu_times.idle, "seconds", {"type": "idle"})
 
         except Exception as e:
@@ -134,10 +151,19 @@ class MetricsCollector:
         try:
             memory = psutil.virtual_memory()
 
-            record_metric("memory_total_bytes", memory.total, "bytes", {"type": "total"})
-            record_metric("memory_available_bytes", memory.available, "bytes", {"type": "available"})
+            record_metric(
+                "memory_total_bytes", memory.total, "bytes", {"type": "total"}
+            )
+            record_metric(
+                "memory_available_bytes",
+                memory.available,
+                "bytes",
+                {"type": "available"},
+            )
             record_metric("memory_used_bytes", memory.used, "bytes", {"type": "used"})
-            record_metric("memory_percent", memory.percent, "percent", {"type": "usage"})
+            record_metric(
+                "memory_percent", memory.percent, "percent", {"type": "usage"}
+            )
             record_metric("memory_free_bytes", memory.free, "bytes", {"type": "free"})
 
             # Swap memory
@@ -154,7 +180,7 @@ class MetricsCollector:
         """Collect disk usage metrics."""
         try:
             # Overall disk usage
-            disk = psutil.disk_usage('/')
+            disk = psutil.disk_usage("/")
             record_metric("disk_total_bytes", disk.total, "bytes", {"mount": "/"})
             record_metric("disk_used_bytes", disk.used, "bytes", {"mount": "/"})
             record_metric("disk_free_bytes", disk.free, "bytes", {"mount": "/"})
@@ -163,10 +189,18 @@ class MetricsCollector:
             # Disk I/O
             disk_io = psutil.disk_io_counters()
             if disk_io:
-                record_metric("disk_read_bytes", disk_io.read_bytes, "bytes", {"type": "read"})
-                record_metric("disk_write_bytes", disk_io.write_bytes, "bytes", {"type": "write"})
-                record_metric("disk_read_count", disk_io.read_count, "count", {"type": "read"})
-                record_metric("disk_write_count", disk_io.write_count, "count", {"type": "write"})
+                record_metric(
+                    "disk_read_bytes", disk_io.read_bytes, "bytes", {"type": "read"}
+                )
+                record_metric(
+                    "disk_write_bytes", disk_io.write_bytes, "bytes", {"type": "write"}
+                )
+                record_metric(
+                    "disk_read_count", disk_io.read_count, "count", {"type": "read"}
+                )
+                record_metric(
+                    "disk_write_count", disk_io.write_count, "count", {"type": "write"}
+                )
 
         except Exception as e:
             logger.error(f"Failed to collect disk metrics: {e}")
@@ -176,14 +210,42 @@ class MetricsCollector:
         try:
             network = psutil.net_io_counters()
             if network:
-                record_metric("network_bytes_sent", network.bytes_sent, "bytes", {"direction": "sent"})
-                record_metric("network_bytes_recv", network.bytes_recv, "bytes", {"direction": "received"})
-                record_metric("network_packets_sent", network.packets_sent, "count", {"direction": "sent"})
-                record_metric("network_packets_recv", network.packets_recv, "count", {"direction": "received"})
-                record_metric("network_errin", network.errin, "count", {"type": "errors_in"})
-                record_metric("network_errout", network.errout, "count", {"type": "errors_out"})
-                record_metric("network_dropin", network.dropin, "count", {"type": "drops_in"})
-                record_metric("network_dropout", network.dropout, "count", {"type": "drops_out"})
+                record_metric(
+                    "network_bytes_sent",
+                    network.bytes_sent,
+                    "bytes",
+                    {"direction": "sent"},
+                )
+                record_metric(
+                    "network_bytes_recv",
+                    network.bytes_recv,
+                    "bytes",
+                    {"direction": "received"},
+                )
+                record_metric(
+                    "network_packets_sent",
+                    network.packets_sent,
+                    "count",
+                    {"direction": "sent"},
+                )
+                record_metric(
+                    "network_packets_recv",
+                    network.packets_recv,
+                    "count",
+                    {"direction": "received"},
+                )
+                record_metric(
+                    "network_errin", network.errin, "count", {"type": "errors_in"}
+                )
+                record_metric(
+                    "network_errout", network.errout, "count", {"type": "errors_out"}
+                )
+                record_metric(
+                    "network_dropin", network.dropin, "count", {"type": "drops_in"}
+                )
+                record_metric(
+                    "network_dropout", network.dropout, "count", {"type": "drops_out"}
+                )
 
         except Exception as e:
             logger.error(f"Failed to collect network metrics: {e}")
@@ -212,7 +274,9 @@ class MetricsCollector:
         """Get collector status."""
         return {
             "running": self.running,
-            "last_collection": self.last_collection.isoformat() if self.last_collection else None,
+            "last_collection": (
+                self.last_collection.isoformat() if self.last_collection else None
+            ),
             "interval_seconds": self.config.interval_seconds,
             "enabled_metrics": {
                 "cpu": self.config.cpu_enabled,
@@ -220,7 +284,7 @@ class MetricsCollector:
                 "disk": self.config.disk_enabled,
                 "network": self.config.network_enabled,
                 "process": self.config.process_enabled,
-            }
+            },
         }
 
 

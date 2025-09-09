@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 """
 PlexiChat Changelog Management System
@@ -51,6 +51,7 @@ else:
 
 class ChangeType(Enum):
     """Types of changes in changelog."""
+
     ADDED = "Added"
     CHANGED = "Changed"
     DEPRECATED = "Deprecated"
@@ -63,6 +64,7 @@ class ChangeType(Enum):
 @dataclass
 class ChangeEntry:
     """Individual change entry."""
+
     type: ChangeType
     description: str
     component: Optional[str] = None
@@ -84,11 +86,11 @@ class ChangeEntry:
             "component": self.component,
             "issue_id": self.issue_id,
             "author": self.author,
-            "commit_hash": self.commit_hash
+            "commit_hash": self.commit_hash,
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'ChangeEntry':
+    def from_dict(cls, data: Dict[str, Any]) -> "ChangeEntry":
         """Create from dictionary."""
         return cls(
             type=ChangeType(data["type"]),
@@ -96,13 +98,14 @@ class ChangeEntry:
             component=data.get("component"),
             issue_id=data.get("issue_id"),
             author=data.get("author"),
-            commit_hash=data.get("commit_hash")
+            commit_hash=data.get("commit_hash"),
         )
 
 
 @dataclass
 class VersionChangelog:
     """Changelog for a specific version."""
+
     version: Version
     release_date: datetime
     changes: Dict[ChangeType, List[ChangeEntry]] = field(default_factory=dict)
@@ -121,7 +124,10 @@ class VersionChangelog:
 
     def has_breaking_changes(self) -> bool:
         """Check if version has breaking changes."""
-        return ChangeType.BREAKING in self.changes and len(self.changes[ChangeType.BREAKING]) > 0
+        return (
+            ChangeType.BREAKING in self.changes
+            and len(self.changes[ChangeType.BREAKING]) > 0
+        )
 
     def to_markdown(self) -> str:
         """Convert to markdown format."""
@@ -165,17 +171,17 @@ class VersionChangelog:
                 for change_type, changes in self.changes.items()
             },
             "summary": self.summary,
-            "migration_notes": self.migration_notes
+            "migration_notes": self.migration_notes,
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'VersionChangelog':
+    def from_dict(cls, data: Dict[str, Any]) -> "VersionChangelog":
         """Create from dictionary."""
         changelog = cls(
             version=Version.parse(data["version"]),
             release_date=datetime.fromisoformat(data["release_date"]),
             summary=data.get("summary"),
-            migration_notes=data.get("migration_notes", [])
+            migration_notes=data.get("migration_notes", []),
         )
         # Parse changes
         for change_type_str, changes_data in data.get("changes", {}).items():
@@ -202,7 +208,7 @@ class ChangelogManager:
         try:
             # Load from JSON data file if exists
             if self.changelog_data_file and self.changelog_data_file.exists():
-                with open(self.changelog_data_file, 'r', encoding='utf-8') as f:
+                with open(self.changelog_data_file, "r", encoding="utf-8") as f:
                     data = json.load(f)
 
                     # Validate data structure
@@ -214,13 +220,17 @@ class ChangelogManager:
                         try:
                             # Validate changelog_data structure
                             if not isinstance(changelog_data, dict):
-                                logger.warning(f"Changelog data for version {version_str} is not a dictionary, skipping")
+                                logger.warning(
+                                    f"Changelog data for version {version_str} is not a dictionary, skipping"
+                                )
                                 continue
 
                             changelog = VersionChangelog.from_dict(changelog_data)
                             self.version_changelogs[version_str] = changelog
                         except Exception as e:
-                            logger.warning(f"Failed to load changelog for version {version_str}: {e}")
+                            logger.warning(
+                                f"Failed to load changelog for version {version_str}: {e}"
+                            )
                             continue
 
             # Parse markdown file if JSON doesn't exist
@@ -238,7 +248,7 @@ class ChangelogManager:
                 for version_str, changelog in self.version_changelogs.items()
             }
             temp_json = str(self.changelog_data_file) + ".tmp"
-            with open(temp_json, 'w') as f:
+            with open(temp_json, "w") as f:
                 json.dump(data, f, indent=2)
             shutil.move(temp_json, self.changelog_data_file)
 
@@ -250,19 +260,23 @@ class ChangelogManager:
     def _parse_markdown_changelog(self):
         """Parse existing markdown changelog."""
         try:
-            with open(self.changelog_file, 'r', encoding='utf-8', errors='ignore') as f:
+            with open(self.changelog_file, "r", encoding="utf-8", errors="ignore") as f:
                 content = f.read()
 
             # Simple parsing - extract version headers and changes
-            version_pattern = r'## \[([^\]]+)\] - (\d{4}-\d{2}-\d{2})'
+            version_pattern = r"## \[([^\]]+)\] - (\d{4}-\d{2}-\d{2})"
             versions = re.findall(version_pattern, content)
 
             for version_str, date_str in versions:
                 try:
                     version = Version.parse(version_str)
-                    release_date = datetime.strptime(date_str, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+                    release_date = datetime.strptime(date_str, "%Y-%m-%d").replace(
+                        tzinfo=timezone.utc
+                    )
 
-                    changelog = VersionChangelog(version=version, release_date=release_date)
+                    changelog = VersionChangelog(
+                        version=version, release_date=release_date
+                    )
                     self.version_changelogs[version_str] = changelog
                 except Exception as e:
                     logger.warning(f"Failed to parse version {version_str}: {e}")
@@ -287,18 +301,16 @@ class ChangelogManager:
                 "- Examples: 0a1, 0b1, 0r1, 0a2, 1r1",
                 "",
                 "---",
-                ""
+                "",
             ]
             # Sort versions in descending order
             sorted_versions = sorted(
-                self.version_changelogs.values(),
-                key=lambda x: x.version,
-                reverse=True
+                self.version_changelogs.values(), key=lambda x: x.version, reverse=True
             )
             for changelog in sorted_versions:
                 lines.append(changelog.to_markdown())
             temp_md = str(self.changelog_file) + ".tmp"
-            with open(temp_md, 'w', encoding='utf-8') as f:
+            with open(temp_md, "w", encoding="utf-8") as f:
                 f.write("\n".join(lines))
             shutil.move(temp_md, self.changelog_file)
         except Exception as e:
@@ -315,12 +327,12 @@ class ChangelogManager:
         """Get changelog for specific version."""
         return self.version_changelogs.get(str(version))
 
-    def create_version_changelog(self, version: Version, summary: Optional[str] = None) -> VersionChangelog:
+    def create_version_changelog(
+        self, version: Version, summary: Optional[str] = None
+    ) -> VersionChangelog:
         """Create new version changelog."""
         changelog = VersionChangelog(
-            version=version,
-            release_date=datetime.now(timezone.utc),
-            summary=summary
+            version=version, release_date=datetime.now(timezone.utc), summary=summary
         )
         return changelog
 
@@ -328,12 +340,16 @@ class ChangelogManager:
         """Add change to version changelog."""
         version_str = str(version)
         if version_str not in self.version_changelogs:
-            self.version_changelogs[version_str] = self.create_version_changelog(version)
+            self.version_changelogs[version_str] = self.create_version_changelog(
+                version
+            )
 
         self.version_changelogs[version_str].add_change(change)
         self._save_changelog()
 
-    def get_changes_since_version(self, since_version: Version) -> List[VersionChangelog]:
+    def get_changes_since_version(
+        self, since_version: Version
+    ) -> List[VersionChangelog]:
         """Get all changes since a specific version."""
         changes = []
         for changelog in self.version_changelogs.values():
@@ -342,12 +358,16 @@ class ChangelogManager:
 
         return sorted(changes, key=lambda x: x.version)
 
-    def get_breaking_changes_since_version(self, since_version: Version) -> List[ChangeEntry]:
+    def get_breaking_changes_since_version(
+        self, since_version: Version
+    ) -> List[ChangeEntry]:
         """Get breaking changes since a specific version."""
         breaking_changes = []
         for changelog in self.version_changelogs.values():
             if changelog.version > since_version:
-                breaking_changes.extend(changelog.get_changes_by_type(ChangeType.BREAKING))
+                breaking_changes.extend(
+                    changelog.get_changes_by_type(ChangeType.BREAKING)
+                )
 
         return breaking_changes
 
@@ -360,45 +380,48 @@ class ChangelogManager:
             f"# PlexiChat {version} Release Notes",
             "",
             f"Released: {changelog.release_date.strftime('%Y-%m-%d')}",
-            ""
+            "",
         ]
         if changelog.summary:
             lines.extend([changelog.summary, ""])
         # Highlight breaking changes
         breaking_changes = changelog.get_changes_by_type(ChangeType.BREAKING)
         if breaking_changes:
-            lines.extend([
-                "##  Breaking Changes",
-                "",
-                "**Important**: This version contains breaking changes that may require manual intervention.",
-                ""
-            ])
+            lines.extend(
+                [
+                    "##  Breaking Changes",
+                    "",
+                    "**Important**: This version contains breaking changes that may require manual intervention.",
+                    "",
+                ]
+            )
             for change in breaking_changes:
                 lines.append(f"- {change.description}")
             lines.append("")
         # Add other changes
-        for change_type in [ChangeType.ADDED, ChangeType.CHANGED, ChangeType.FIXED, ChangeType.SECURITY]:
+        for change_type in [
+            ChangeType.ADDED,
+            ChangeType.CHANGED,
+            ChangeType.FIXED,
+            ChangeType.SECURITY,
+        ]:
             changes = changelog.get_changes_by_type(change_type)
             if changes:
-                lines.extend([
-                    f"## {change_type.value}",
-                    ""
-                ])
+                lines.extend([f"## {change_type.value}", ""])
                 for change in changes:
                     lines.append(change.to_markdown())
                 lines.append("")
         # Migration notes
         if changelog.migration_notes:
-            lines.extend([
-                "##  Migration Notes",
-                ""
-            ])
+            lines.extend(["##  Migration Notes", ""])
             for note in changelog.migration_notes:
                 lines.append(f"- {note}")
             lines.append("")
         return "\n".join(lines)
 
-    def auto_generate_changelog_from_commits(self, version: Version, commits: List[Dict[str, Any]]) -> VersionChangelog:
+    def auto_generate_changelog_from_commits(
+        self, version: Version, commits: List[Dict[str, Any]]
+    ) -> VersionChangelog:
         """Auto-generate changelog from commit messages."""
         changelog = self.create_version_changelog(version)
 
@@ -415,10 +438,15 @@ class ChangelogManager:
 
         return changelog
 
-    def _parse_commit_message(self, message: str, author: Optional[str] = None, commit_hash: Optional[str] = None) -> Optional[ChangeEntry]:
+    def _parse_commit_message(
+        self,
+        message: str,
+        author: Optional[str] = None,
+        commit_hash: Optional[str] = None,
+    ) -> Optional[ChangeEntry]:
         """Parse commit message for changelog entry."""
         # Conventional commit pattern: type(scope): description
-        pattern = r'^(feat|fix|docs|style|refactor|test|chore|security|breaking)(?:\(([^)]+)\))?: (.+)$'
+        pattern = r"^(feat|fix|docs|style|refactor|test|chore|security|breaking)(?:\(([^)]+)\))?: (.+)$"
         match = re.match(pattern, message.strip(), re.IGNORECASE)
         if not match:
             return None
@@ -433,7 +461,7 @@ class ChangelogManager:
             "test": ChangeType.CHANGED,
             "chore": ChangeType.CHANGED,
             "security": ChangeType.SECURITY,
-            "breaking": ChangeType.BREAKING
+            "breaking": ChangeType.BREAKING,
         }
         change_type = type_mapping.get(commit_type.lower(), ChangeType.CHANGED)
         return ChangeEntry(
@@ -441,10 +469,8 @@ class ChangelogManager:
             description=description,
             component=scope,
             author=author,
-            commit_hash=commit_hash
+            commit_hash=commit_hash,
         )
-
-
 
 
 # Global changelog manager instance

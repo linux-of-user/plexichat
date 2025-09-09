@@ -1,17 +1,22 @@
 """PlexiChat Files"""
 
 import logging
-from typing import Any, Dict, Optional, List
+from typing import Any, Dict, List, Optional
 
 # Use shared fallback implementations
 logger = logging.getLogger(__name__)
 
 try:
     from plexichat.core.utils.fallbacks import (
-        FileManager, FileMetadata,
-        upload_file, get_file_metadata, get_file_data, delete_file,
-        get_fallback_instance
+        FileManager,
+        FileMetadata,
+        delete_file,
+        get_fallback_instance,
+        get_file_data,
+        get_file_metadata,
+        upload_file,
     )
+
     USE_SHARED_FALLBACKS = True
     logger.info("Using shared fallback implementations for files")
 except ImportError:
@@ -20,7 +25,7 @@ except ImportError:
     logger.warning("Shared fallbacks unavailable, using local implementations")
 
 if USE_SHARED_FALLBACKS:
-    file_manager = get_fallback_instance('FileManager')
+    file_manager = get_fallback_instance("FileManager")
 else:
     # Local fallbacks (preserved for compatibility)
     class FileManager:  # type: ignore
@@ -44,6 +49,7 @@ else:
 
     def delete_file(*args, **kwargs):  # type: ignore
         return False
+
 
 __all__ = [
     "FileManager",
