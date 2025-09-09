@@ -98,3 +98,13 @@ __all__ = [
     "apply_fallback",
     "fallback_manager",
 ]
+
+def get_module_version(module_name: str) -> str:
+    """
+    Get version information for a module using fallback mechanism.
+    Returns a default version string when full versioning system is unavailable.
+    """
+    logger.info(f"Fallback module version for {module_name}")
+    return "1.0.0-fallback"
+
+__all__.append("get_module_version")
