@@ -1,11 +1,13 @@
-from abc import ABC, abstractmethod
 import asyncio
 import logging
-from typing import Any, Dict, Optional
-from jinja2 import Template, Environment, FileSystemLoader
 import os
+from abc import ABC, abstractmethod
+from typing import Any, Dict, Optional
+
+from jinja2 import Environment, FileSystemLoader, Template
 
 logger = logging.getLogger(__name__)
+
 
 class NotificationSender(ABC):
     """
@@ -18,7 +20,9 @@ class NotificationSender(ABC):
         self.max_retries = 3
         self.retry_delay = 1  # seconds
 
-    async def _render_template(self, template_name: str, context: Dict[str, Any]) -> str:
+    async def _render_template(
+        self, template_name: str, context: Dict[str, Any]
+    ) -> str:
         """
         Render a template with the given context.
         """
@@ -39,21 +43,25 @@ class NotificationSender(ABC):
         recipient = notification_data["recipient"]
         for attempt in range(self.max_retries):
             try:
-                success = await self._send_via_platform(rendered_content, recipient, notification_data)
+                success = await self._send_via_platform(
+                    rendered_content, recipient, notification_data
+                )
                 if success:
                     logger.info(f"Notification sent successfully to {recipient}")
                     return True
             except Exception as e:
                 logger.warning(f"Attempt {attempt + 1} failed for {recipient}: {e}")
                 if attempt < self.max_retries - 1:
-                    await asyncio.sleep(self.retry_delay * (2 ** attempt))
+                    await asyncio.sleep(self.retry_delay * (2**attempt))
                 else:
                     logger.error(f"All retries failed for {recipient}: {e}")
                     raise
         return False
 
     @abstractmethod
-    async def _send_via_platform(self, rendered_content: str, recipient: str, notification_data: Dict[str, Any]) -> bool:
+    async def _send_via_platform(
+        self, rendered_content: str, recipient: str, notification_data: Dict[str, Any]
+    ) -> bool:
         """
         Abstract method to be overridden by subclasses for platform-specific sending.
         """

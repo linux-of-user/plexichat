@@ -1,19 +1,22 @@
-from .base_sender import NotificationSender
-from .email_service import EmailNotificationSender
-from .push_service import PushNotificationSender
 import asyncio
-from typing import Dict, Any, List, Optional
 import logging
 from dataclasses import dataclass
 from enum import Enum
 from queue import PriorityQueue
+from typing import Any, Dict, List, Optional
+
+from .base_sender import NotificationSender
+from .email_service import EmailNotificationSender
+from .push_service import PushNotificationSender
 
 logger = logging.getLogger(__name__)
+
 
 class NotificationPriority(Enum):
     LOW = 1
     NORMAL = 2
     HIGH = 3
+
 
 @dataclass
 class QueuedNotification:
@@ -21,22 +24,36 @@ class QueuedNotification:
     data: Dict[str, Any]
     notification_id: str
 
+
 class NotificationManager(NotificationSender):
     """
     Manages notification queue and processing using sender instances.
     """
 
-    def __init__(self, email_sender: Optional[EmailNotificationSender] = None, push_sender: Optional[PushNotificationSender] = None):
+    def __init__(
+        self,
+        email_sender: Optional[EmailNotificationSender] = None,
+        push_sender: Optional[PushNotificationSender] = None,
+    ):
         super().__init__()
         self.email_sender = email_sender or EmailNotificationSender(
-            smtp_server="localhost", smtp_port=587, username="user", password="pass", from_email="noreply@plexichat.com"
+            smtp_server="localhost",
+            smtp_port=587,
+            username="user",
+            password="pass",
+            from_email="noreply@plexichat.com",
         )
         self.push_sender = push_sender or PushNotificationSender()
         self.queue = PriorityQueue()
         self.max_workers = 5
         self.is_processing = False
 
-    def queue_notification(self, notification_data: Dict[str, Any], priority: NotificationPriority = NotificationPriority.NORMAL, notification_id: str = "") -> None:
+    def queue_notification(
+        self,
+        notification_data: Dict[str, Any],
+        priority: NotificationPriority = NotificationPriority.NORMAL,
+        notification_id: str = "",
+    ) -> None:
         """
         Queue a notification for processing.
         """
@@ -63,7 +80,9 @@ class NotificationManager(NotificationSender):
                 await asyncio.sleep(1)  # Backoff
         self.is_processing = False
 
-    async def _handle_notification(self, data: Dict[str, Any], notification_id: str) -> None:
+    async def _handle_notification(
+        self, data: Dict[str, Any], notification_id: str
+    ) -> None:
         """
         Handle a single notification based on type.
         """
@@ -76,7 +95,7 @@ class NotificationManager(NotificationSender):
             else:
                 logger.error(f"Unknown notification type: {notification_type}")
                 success = False
-            
+
             if success:
                 logger.info(f"Processed {notification_id} successfully")
             else:
@@ -84,7 +103,9 @@ class NotificationManager(NotificationSender):
                 # Retry logic: re-queue with reduced priority or max retries
                 if data.get("retry_count", 0) < 3:
                     data["retry_count"] = data.get("retry_count", 0) + 1
-                    self.queue_notification(data, NotificationPriority.LOW, notification_id)
+                    self.queue_notification(
+                        data, NotificationPriority.LOW, notification_id
+                    )
         except Exception as e:
             logger.error(f"Error handling {notification_id}: {e}")
 
