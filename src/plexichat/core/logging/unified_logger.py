@@ -323,6 +323,43 @@ class UnifiedLogger:
             if self.dedup_filter in self.root_logger.filters:
                 self.root_logger.removeFilter(self.dedup_filter)
 
+    def get_handler_factory(self, level: str = "INFO", format_type: str = "standard") -> logging.Handler:
+        """Create a logging handler based on type and level."""
+        log_level = getattr(logging, level.upper(), logging.INFO)
+        
+        if format_type == "colored":
+            handler = ColorizedConsoleHandler()
+            handler.setLevel(log_level)
+            handler.setFormatter(ColoredFormatter())
+            return handler
+        elif format_type == "structured":
+            from logging.handlers import RotatingFileHandler
+            log_dir = Path("logs")
+            log_dir.mkdir(exist_ok=True)
+            structured_file = log_dir / "structured.log"
+            handler = RotatingFileHandler(structured_file, maxBytes=10*1024*1024, backupCount=5)
+            handler.setLevel(log_level)
+            handler.setFormatter(StructuredFormatter())
+            return handler
+        elif format_type == "file":
+            log_dir = Path("logs")
+            log_dir.mkdir(exist_ok=True)
+            log_file = log_dir / "plexichat.log"
+            handler = logging.FileHandler(log_file, encoding="utf-8")
+            handler.setLevel(log_level)
+            handler.setFormatter(logging.Formatter(
+                "[%(asctime)s] [%(levelname)-8s] [%(name)s:%(lineno)d] %(funcName)s() - %(message)s"
+            ))
+            return handler
+        else:
+            # Default console handler
+            handler = logging.StreamHandler()
+            handler.setLevel(log_level)
+            handler.setFormatter(logging.Formatter(
+                "[%(asctime)s] [%(levelname)-8s] %(message)s"
+            ))
+            return handler
+
     @classmethod
     def get_instance(cls) -> "UnifiedLogger":
         """Get singleton instance."""
@@ -398,7 +435,7 @@ def sanitize_for_logging(text: Union[str, Any]) -> str:
         "\U0001f44e": "[THUMBSDOWN]",
         "\U00002705": "[CHECK]",
         "\U0000274c": "[CROSS]",
-        "\U000026a0": "[WARNING]",
+        "\u26a0": "[WARNING]",
         "\U0001f6a8": "[ALERT]",
         "\u2713": "[OK]",
         "\u2717": "[X]",
