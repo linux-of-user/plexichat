@@ -1,19 +1,15 @@
 """Core notifications module with fallback implementations."""
 
-try:
-    from plexichat.core.utils.fallbacks import (
-        Notification,
-        NotificationManager,
-        NotificationPriority,
-        NotificationType,
-        get_fallback_instance,
-        get_module_version,
-        get_notifications,
-        send_notification,
-    )
-except ImportError:
-    # Retain old fallbacks
-    pass
+from plexichat.core.utils.fallbacks import (
+    Notification,
+    NotificationManager,
+    NotificationPriority,
+    NotificationType,
+    get_fallback_instance,
+    get_module_version,
+    get_notifications,
+    send_notification,
+)
 
 __version__ = get_module_version()
 __all__ = [
