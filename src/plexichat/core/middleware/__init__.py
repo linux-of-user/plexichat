@@ -33,6 +33,6 @@ __all__ = [
     "get_middleware_stack",
 ]
 
-from plexichat.core.config_manager import get_config
+from plexichat.core.utils.fallbacks import get_module_version
 
-__version__ = get_config("system.version", "0.0.0")
+__version__ = get_module_version()
