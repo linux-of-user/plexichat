@@ -1,5 +1,5 @@
-"""
-Thin wrapper for Unicode sanitization - all functionality now in unified_logger.py
-"""
+"""Unicode sanitization utilities - re-export from unified_logger."""
 
-from .unified_logger import sanitize_for_logging, sanitize_log_message
+from .unified_logger import sanitize_for_logging
+
+__all__ = ['sanitize_for_logging']
