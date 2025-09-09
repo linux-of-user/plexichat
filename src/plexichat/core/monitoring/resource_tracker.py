@@ -14,7 +14,7 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Tuple
 
 from plexichat.core.database.manager import database_manager
-from plexichat.core.monitoring.unified_monitoring_system import record_metric
+from .base_monitor import MonitorBase
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +48,7 @@ class ResourcePattern:
     analysis_period: int  # seconds
 
 
-class ResourceTracker:
+class ResourceTracker(MonitorBase):
     """Resource tracking and analysis service."""
 
     def __init__(self, tracking_window_hours: int = 24):
@@ -68,8 +68,7 @@ class ResourceTracker:
         if self.running:
             return
 
-        self.running = True
-        self.task = asyncio.create_task(self._analysis_loop())
+        await super().start()
         logger.info("Resource tracker started")
 
     async def stop(self):
@@ -77,13 +76,7 @@ class ResourceTracker:
         if not self.running:
             return
 
-        self.running = False
-        if self.task:
-            self.task.cancel()
-            try:
-                await self.task
-            except asyncio.CancelledError:
-                pass
+        await super().stop()
 
         logger.info("Resource tracker stopped")
 
@@ -135,16 +128,16 @@ class ResourceTracker:
         asyncio.create_task(self._save_resource_usage(usage))
 
         # Record metrics
-        record_metric(
+        self.record_metric(
             f"resource_{resource_type}_{resource_name}_current", current_value, "value"
         )
-        record_metric(
+        self.record_metric(
             f"resource_{resource_type}_{resource_name}_max", max_value, "value"
         )
-        record_metric(
+        self.record_metric(
             f"resource_{resource_type}_{resource_name}_min", min_value, "value"
         )
-        record_metric(
+        self.record_metric(
             f"resource_{resource_type}_{resource_name}_avg", avg_value, "value"
         )
 
@@ -172,15 +165,12 @@ class ResourceTracker:
         except Exception as e:
             logger.error(f"Failed to save resource usage: {e}")
 
-    async def _analysis_loop(self):
-        """Main analysis loop."""
-        while self.running:
-            try:
-                await self._analyze_patterns()
-                await asyncio.sleep(self.analysis_interval)
-            except Exception as e:
-                logger.error(f"Error in resource analysis: {e}")
-                await asyncio.sleep(self.analysis_interval)
+    async def _collect_metrics(self):
+        """Override to perform resource pattern analysis."""
+        try:
+            await self._analyze_patterns()
+        except Exception as e:
+            logger.error(f"Error in resource analysis: {e}")
 
     async def _analyze_patterns(self):
         """Analyze resource usage patterns."""
