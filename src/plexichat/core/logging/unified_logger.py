@@ -12,6 +12,7 @@ Implements unified logging with:
 import logging
 import logging.handlers
 import os
+import re
 import sys
 import threading
 from collections import defaultdict, deque
@@ -283,6 +284,7 @@ class UnifiedLogger:
         # Plugin loggers cache
         self.plugin_loggers: Dict[str, logging.LoggerAdapter] = {}
 
+
 def redact_pii(
     data: Union[str, Dict, List, Any], max_length: int = 1000
 ) -> Union[str, Dict, List, Any]:
@@ -301,6 +303,7 @@ def redact_pii(
             return f"[DATA_REDACTED_{len(str_data)}chars]"
         return _redact_string(str_data, max_length)
 
+
 def _redact_string(text: str, max_length: int = 1000) -> str:
     if not text:
         return text
@@ -314,6 +317,7 @@ def _redact_string(text: str, max_length: int = 1000) -> str:
         redacted = field_pattern.sub(f"{field}: [REDACTED]", redacted)
     return redacted
 
+
 def _redact_dict(data: Dict[str, Any]) -> Dict[str, Any]:
     redacted = {}
     for key, value in data.items():
@@ -324,8 +328,10 @@ def _redact_dict(data: Dict[str, Any]) -> Dict[str, Any]:
             redacted[key] = redact_pii(value)
     return redacted
 
+
 def _redact_list(data: List[Any]) -> List[Any]:
     return [redact_pii(item) for item in data]
+
 
 def sanitize_for_logging(text: Union[str, Any]) -> str:
     """
@@ -370,6 +376,7 @@ def sanitize_for_logging(text: Union[str, Any]) -> str:
         text = re.sub(r"[^\x00-\x7F]+", "[UNICODE]", text)
     return text
 
+
 def sanitize_log_message(message: str, *args, **kwargs) -> tuple:
     """
     Sanitize a log message and its arguments for safe output.
@@ -384,8 +391,10 @@ def sanitize_log_message(message: str, *args, **kwargs) -> tuple:
             sanitized_kwargs[key] = value
     return sanitized_message, sanitized_args, sanitized_kwargs
 
+
 class ColoredFormatter(logging.Formatter):
     """Colored log formatter for console output."""
+
     COLORS = {
         logging.DEBUG: "\033[36m",  # Cyan
         logging.INFO: "\033[32m",  # Green
@@ -403,12 +412,18 @@ class ColoredFormatter(logging.Formatter):
             if level_start != -1:
                 level_end = message.find("]", level_start) + 1
                 if level_end > level_start:
-                    colored_level = f"{color}{message[level_start:level_end]}{self.RESET}"
-                    message = message[:level_start] + colored_level + message[level_end:]
+                    colored_level = (
+                        f"{color}{message[level_start:level_end]}{self.RESET}"
+                    )
+                    message = (
+                        message[:level_start] + colored_level + message[level_end:]
+                    )
         return message
+
 
 class StructuredFormatter(logging.Formatter):
     """JSON structured log formatter."""
+
     import json
     from datetime import datetime
 

@@ -25,12 +25,12 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Union
 
 from .unified_logger import (
-    get_logger,
     ColoredFormatter,
     StructuredFormatter,
     get_handler_factory,
+    get_logger,
     redact_pii,
-    sanitize_for_logging
+    sanitize_for_logging,
 )
 
 # Re-export for backward compatibility
@@ -310,10 +310,6 @@ class LogEntry:
             },
             "extra": self.extra_data,
         }
-
-
-
-
 
 
 class PerformanceTracker:
@@ -638,7 +634,7 @@ class UnifiedLoggingManager:
         try:
             console_handler = get_handler_factory(
                 level=getattr(self.config.logging, "console_level", "INFO"),
-                format_type="colored"
+                format_type="colored",
             )
 
             # Add to root logger
