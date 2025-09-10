@@ -1,6 +1,6 @@
 import logging
 
-from plexichat.core.errors.error_manager import ErrorHandler
+from plexichat.core.errors.manager import ErrorHandler
 
 def get_logger(name=None):
     """Return a logger with error handling."""

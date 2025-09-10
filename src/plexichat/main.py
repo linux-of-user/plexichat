@@ -785,7 +785,7 @@ async def security_middleware(request, call_next):
     # Helper to produce error responses using centralized error codes when available
     def _make_error_response(default_status: int, default_content: Dict[str, Any]):
         try:
-            from plexichat.core.errors.error_codes import make_error_response, ErrorCode
+            from plexichat.core.errors.base import make_error_response, ErrorCode
             # map generic scenarios to ErrorCode when possible
             # For our two common cases below use pre-defined enums if present
             return make_error_response(default_status, default_content)
@@ -986,7 +986,7 @@ from plexichat.core.app_setup import setup_routers, setup_static_files
 setup_routers(app)
 templates = setup_static_files(app)
 
-from plexichat.core.errors import not_found_handler, internal_error_handler
+from plexichat.core.errors.handlers import not_found_handler, internal_error_handler
 
 app.add_exception_handler(404, not_found_handler)
 app.add_exception_handler(500, internal_error_handler)

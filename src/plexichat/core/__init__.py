@@ -54,7 +54,7 @@ except ImportError:
     logger.warning("Database system not available")
 
 try:
-    from plexichat.core.errors import get_error_manager
+    from plexichat.core.errors.manager import get_error_manager
 
     error_manager = get_error_manager()
 except ImportError:

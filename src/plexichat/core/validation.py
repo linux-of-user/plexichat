@@ -10,7 +10,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
 
-from plexichat.core.errors.exceptions import ValidationError
+from plexichat.core.errors.base import ValidationError
 
 logger = logging.getLogger(__name__)
 
