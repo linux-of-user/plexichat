@@ -5,6 +5,9 @@ import platform
 import shutil
 import subprocess
 import sys
+import sys
+if sys.version_info < (3, 7):
+    print("Warning: Python <3.7 detected; dataclasses not natively supported, using __future__ imports")
 import tarfile
 import urllib.request
 import venv
