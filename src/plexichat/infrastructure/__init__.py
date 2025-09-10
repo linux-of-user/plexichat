@@ -123,9 +123,6 @@ def register_core_components():
             infrastructure_manager.register_component("cache_manager", False)
 
         # Monitoring components
-        try:
-            importlib.import_module("plexichat.infrastructure.monitoring")
-            infrastructure_manager.register_component("monitoring", True)
         except ImportError:
             infrastructure_manager.register_component("monitoring", False)
 
@@ -206,11 +203,6 @@ def import_infrastructure_modules():
 
         # Monitoring
         if monitoring_available():
-            try:
-                importlib.import_module("plexichat.infrastructure.monitoring")
-                logger.info("Monitoring imported successfully")
-            except ImportError as e:
-                logger.warning(f"Could not import monitoring: {e}")
 
     except Exception as e:
         logger.error(f"Error importing infrastructure modules: {e}")
