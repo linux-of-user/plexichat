@@ -23,6 +23,7 @@ class LogCategory(Enum):
     SECURITY = "security"
     PERFORMANCE = "performance"
     AUDIT = "audit"
+    DATABASE = "database"
     ERROR = "error"
 
 
