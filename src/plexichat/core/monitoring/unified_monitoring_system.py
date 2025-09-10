@@ -145,7 +145,7 @@ class AnalyticsEvent:
 
 class UnifiedMonitoringSystem(MonitorBase):
     """Unified monitoring system for PlexiChat."""
-
+    
     def __init__(self):
         self.metrics: Dict[str, List[MetricData]] = {}
         self.alert_rules: Dict[str, AlertRule] = {}
@@ -153,6 +153,17 @@ class UnifiedMonitoringSystem(MonitorBase):
         self.initialized = False
 
         logger.info("Unified monitoring system initialized")
+
+    async def _collect_metrics(self):
+        """Collect current system metrics."""
+        return {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "total_events": sum(self.event_counters.values()),
+            "blockchain_blocks": len(self.blockchain.chain),
+            "pending_events": len(self.pending_events),
+            "active_correlations": len(self.correlation_map),
+            "system_health": "healthy",  # Placeholder
+        }
 
     def initialize(self) -> bool:
         """Initialize the monitoring system."""
