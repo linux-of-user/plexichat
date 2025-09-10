@@ -1,3 +1,4 @@
+from __future__ import dataclasses
 import asyncio
 import logging
 from dataclasses import dataclass

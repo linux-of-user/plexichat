@@ -1,3 +1,4 @@
+from __future__ import dataclasses
 """Error management with async background tasks, metrics, circuit breakers."""
 
 import asyncio
