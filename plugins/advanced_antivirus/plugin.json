@@ -9,7 +9,7 @@
   "permissions": [
     "basic"
   ],
-  "security_level": "standard",
+  "security_level": "sandboxed",
   "enabled": true,
   "created_at": "2025-07-26T20:51:34.607520"
 }

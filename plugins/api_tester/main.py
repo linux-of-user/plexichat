@@ -26,10 +26,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 # Plugin interface imports
-import sys
-sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
-
-from plugin_internal import PluginInterface
+from plexichat.core.plugins.manager import PluginInterface
 from typing import Optional
 
 logger = get_logger(__name__)
