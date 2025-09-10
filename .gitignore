@@ -378,3 +378,6 @@ plexichat.lock
 test-install-config.json
 version.json
 src/plexichat/core/auth/default_credentials.py
+
+# Cleanup temp storage
+backup_storage/
