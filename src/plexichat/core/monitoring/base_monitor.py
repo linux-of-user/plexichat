@@ -10,6 +10,7 @@ import logging
 from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import Any, Dict, List, Optional
+from dataclasses import dataclass, field
 
 from plexichat.core.database.manager import database_manager
 
