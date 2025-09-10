@@ -170,4 +170,5 @@ def get_logging_manager(name: str = "plexichat", level: str = "INFO") -> logging
     """
     return get_logger(name, level)
 
+
 __all__.append("get_logging_manager")
