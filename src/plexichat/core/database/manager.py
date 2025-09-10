@@ -124,7 +124,7 @@ class DatabaseSession:
         try:
             return await self.connection.execute(query, params or {})
         except Exception as e:
-            logger.error(f"Query execution failed: {e}", category=LogCategory.DATABASE)
+            logger.error(f"Query execution failed: {e}")
             raise
 
     async def fetchall(
@@ -189,7 +189,7 @@ class DatabaseSession:
                     )
             except Exception as e:
                 logger.error(
-                    f"Failed to commit transaction: {e}", category=LogCategory.DATABASE
+                    f"Failed to commit transaction: {e}"
                 )
                 raise
 
@@ -230,7 +230,7 @@ class DatabaseSession:
                         await result
             except Exception as e:
                 logger.error(
-                    f"Failed to close connection: {e}", category=LogCategory.DATABASE
+                    f"Failed to close connection: {e}"
                 )
 
 
@@ -269,8 +269,7 @@ class DatabaseManager:
 
         try:
             self.logger.info(
-                f"Initializing database manager with {self.config.db_type}",
-                category=LogCategory.DATABASE,
+                f"Initializing database manager with {self.config.db_type}"
             )
 
             # Create database engine based on type
@@ -313,8 +312,7 @@ class DatabaseManager:
 
         except Exception as e:
             self.logger.error(
-                f"Failed to initialize database manager: {e}",
-                category=LogCategory.DATABASE,
+                f"Failed to initialize database manager: {e}"
             )
             self._initialized = False  # Reset on failure
             return False
@@ -349,7 +347,7 @@ class DatabaseManager:
 
         except Exception as e:
             self.logger.error(
-                f"SQLite initialization failed: {e}", category=LogCategory.DATABASE
+                f"SQLite initialization failed: {e}"
             )
             raise
 
@@ -383,7 +381,7 @@ class DatabaseManager:
 
         except Exception as e:
             self.logger.error(
-                f"PostgreSQL initialization failed: {e}", category=LogCategory.DATABASE
+                f"PostgreSQL initialization failed: {e}"
             )
             raise
 
@@ -416,7 +414,7 @@ class DatabaseManager:
 
         except Exception as e:
             self.logger.error(
-                f"MySQL initialization failed: {e}", category=LogCategory.DATABASE
+                f"MySQL initialization failed: {e}"
             )
             raise
 
@@ -463,7 +461,7 @@ class DatabaseManager:
             )
         except Exception as e:
             self.logger.error(
-                f"Failed to create essential tables: {e}", category=LogCategory.DATABASE
+                f"Failed to create essential tables: {e}"
             )
             raise
 
@@ -583,7 +581,7 @@ class DatabaseManager:
                     await session.execute(create_query)
                     await session.commit()
                     self.logger.info(
-                        f"Created table: {table_name}", category=LogCategory.DATABASE
+                        f"Created table: {table_name}"
                     )
 
                 return True
@@ -603,7 +601,7 @@ class DatabaseManager:
                 return True
         except Exception as e:
             self.logger.error(
-                f"Database health check failed: {e}", category=LogCategory.DATABASE
+                f"Database health check failed: {e}"
             )
             return False
 
@@ -652,5 +650,5 @@ async def execute_transaction(
             await session.commit()
             return True
     except Exception as e:
-        logger.error(f"Transaction failed: {e}", category=LogCategory.DATABASE)
+        logger.error(f"Transaction failed: {e}")
         return False
