@@ -345,18 +345,20 @@ class UnifiedAuthManager:
         logger.info(
             "Advanced UnifiedAuthManager initialized with database-backed storage"
         )
-        logger.audit(
+        logger.info(
             "Authentication manager initialized",
-            component="auth_manager",
-            event_type="system_initialization",
-            features=[
-                "mfa",
-                "oauth2",
-                "rbac",
-                "brute_force_protection",
-                "device_tracking",
-                "database_storage",
-            ],
+            extra={
+                "component": "auth_manager",
+                "event_type": "system_initialization",
+                "features": [
+                    "mfa",
+                    "oauth2",
+                    "rbac",
+                    "brute_force_protection",
+                    "device_tracking",
+                    "database_storage",
+                ],
+            }
         )
 
     def _record_metric(
@@ -519,11 +521,13 @@ class UnifiedAuthManager:
                             session_id=row["id"],
                             user_id=row["user_id"],
                         )
-                        logger.audit(
+                        logger.info(
                             "Session expired",
-                            session_id=row["id"],
-                            user_id=row["user_id"],
-                            event_type="session_expired",
+                            extra={
+                                "session_id": row["id"],
+                                "user_id": row["user_id"],
+                                "event_type": "session_expired",
+                            }
                         )
 
                 # Clean up expired MFA challenges
@@ -704,11 +708,13 @@ class UnifiedAuthManager:
                 ip_address=ip_address,
                 failed_attempts=protection.failed_attempts,
             )
-            logger.audit(
+            logger.info(
                 "Brute force protection activated",
-                ip_address=ip_address,
-                event_type="brute_force_block",
-                failed_attempts=protection.failed_attempts,
+                extra={
+                    "ip_address": ip_address,
+                    "event_type": "brute_force_block",
+                    "failed_attempts": protection.failed_attempts,
+                }
             )
 
     def _validate_password_policy(
@@ -920,12 +926,14 @@ class UnifiedAuthManager:
                         challenge_id=challenge_id,
                         method=method.value,
                     )
-                    logger.audit(
+                    logger.info(
                         "MFA challenge issued",
-                        user_id=user_id,
-                        challenge_id=challenge_id,
-                        event_type="mfa_challenge_created",
-                        method=method.value,
+                        extra={
+                            "user_id": user_id,
+                            "challenge_id": challenge_id,
+                            "event_type": "mfa_challenge_created",
+                            "method": method.value,
+                        }
                     )
 
                     return challenge
@@ -1025,12 +1033,14 @@ class UnifiedAuthManager:
                         user_id=challenge_result["user_id"],
                         method=method.value,
                     )
-                    logger.audit(
+                    logger.info(
                         "MFA verification successful",
-                        user_id=challenge_result["user_id"],
-                        challenge_id=challenge_id,
-                        event_type="mfa_verified",
-                        method=method.value,
+                        extra={
+                            "user_id": challenge_result["user_id"],
+                            "challenge_id": challenge_id,
+                            "event_type": "mfa_verified",
+                            "method": method.value,
+                        }
                     )
 
                     return True
@@ -1063,10 +1073,12 @@ class UnifiedAuthManager:
         try:
             self.oauth2_providers[provider] = config
             logger.info(f"OAuth2 provider configured: {provider.value}")
-            logger.audit(
+            logger.info(
                 "OAuth2 provider configured",
-                provider=provider.value,
-                event_type="oauth2_provider_configured",
+                extra={
+                    "provider": provider.value,
+                    "event_type": "oauth2_provider_configured",
+                }
             )
         except Exception as e:
             logger.error(f"Error configuring OAuth2 provider {provider.value}: {e}")
@@ -1193,11 +1205,13 @@ class UnifiedAuthManager:
                 provider=provider.value,
                 session_id=session_id,
             )
-            logger.audit(
+            logger.info(
                 "OAuth2 authentication",
-                user_id=user_id,
-                provider=provider.value,
-                event_type="oauth2_login_success",
+                extra={
+                    "user_id": user_id,
+                    "provider": provider.value,
+                    "event_type": "oauth2_login_success",
+                }
             )
 
             return AuthResult(
@@ -1315,12 +1329,14 @@ class UnifiedAuthManager:
                     user_id=username,
                     ip_address=ip_address,
                 )
-                logger.audit(
+                logger.info(
                     "Authentication blocked",
-                    user_id=username,
-                    ip_address=ip_address,
-                    event_type="brute_force_block",
-                    reason="brute_force_protection",
+                    extra={
+                        "user_id": username,
+                        "ip_address": ip_address,
+                        "event_type": "brute_force_block",
+                        "reason": "brute_force_protection",
+                    }
                 )
 
                 return AuthResult(
@@ -1348,12 +1364,14 @@ class UnifiedAuthManager:
                     ip_address=ip_address,
                     device_id=device_info.device_id,
                 )
-                logger.audit(
+                logger.info(
                     "Authentication failed",
-                    user_id=username,
-                    ip_address=ip_address,
-                    event_type="login_failure",
-                    reason="invalid_credentials",
+                    extra={
+                        "user_id": username,
+                        "ip_address": ip_address,
+                        "event_type": "login_failure",
+                        "reason": "invalid_credentials",
+                    }
                 )
                 logger.performance(
                     "user_authentication",
@@ -1424,12 +1442,14 @@ class UnifiedAuthManager:
                             challenge_id=challenge_id,
                             method=challenge.method.value,
                         )
-                        logger.audit(
+                        logger.info(
                             "MFA challenge issued",
-                            user_id=username,
-                            challenge_id=challenge_id,
-                            event_type="mfa_challenge_created",
-                            method=challenge.method.value,
+                            extra={
+                                "user_id": username,
+                                "challenge_id": challenge_id,
+                                "event_type": "mfa_challenge_created",
+                                "method": challenge.method.value,
+                            }
                         )
 
                         logger.security(
@@ -1570,12 +1590,14 @@ class UnifiedAuthManager:
                                 user_id=username,
                                 method=method.value,
                             )
-                            logger.audit(
+                            logger.info(
                                 "MFA verification successful",
-                                user_id=username,
-                                challenge_id=challenge_id,
-                                event_type="mfa_verified",
-                                method=method.value,
+                                extra={
+                                    "user_id": username,
+                                    "challenge_id": challenge_id,
+                                    "event_type": "mfa_verified",
+                                    "method": method.value,
+                                }
                             )
                         else:
                             # Update attempts
@@ -1772,16 +1794,18 @@ class UnifiedAuthManager:
                 mfa_verified=mfa_verified or not requires_mfa,
                 roles=[role.value for role in roles],
             )
-            logger.audit(
+            logger.info(
                 "User login successful",
-                user_id=username,
-                session_id=session_id,
-                ip_address=ip_address,
-                event_type="login_success",
-                device_id=device_info.device_id,
-                risk_score=risk_score,
-                mfa_verified=mfa_verified or not requires_mfa,
-                auth_provider=AuthProvider.LOCAL.value,
+                extra={
+                    "user_id": username,
+                    "session_id": session_id,
+                    "ip_address": ip_address,
+                    "event_type": "login_success",
+                    "device_id": device_info.device_id,
+                    "risk_score": risk_score,
+                    "mfa_verified": mfa_verified or not requires_mfa,
+                    "auth_provider": AuthProvider.LOCAL.value,
+                }
             )
             logger.performance(
                 "user_authentication",
@@ -2021,11 +2045,13 @@ class UnifiedAuthManager:
                         session_id=session_id,
                         user_id=session.user_id,
                     )
-                    logger.audit(
+                    logger.info(
                         "Session expired",
-                        session_id=session_id,
-                        user_id=session.user_id,
-                        event_type="session_expired",
+                        extra={
+                            "session_id": session_id,
+                            "user_id": session.user_id,
+                            "event_type": "session_expired",
+                        }
                     )
                     return False, None
 
@@ -2125,8 +2151,12 @@ class UnifiedAuthManager:
                     self._record_metric("api_key_validation_time_ms", duration, "ms")
 
                     logger.security("API key validation successful", user_id=username)
-                    logger.audit(
-                        "API key used", user_id=username, event_type="api_key_access"
+                    logger.info(
+                        "API key used",
+                        extra={
+                            "user_id": username,
+                            "event_type": "api_key_access"
+                        }
                     )
                     logger.performance(
                         "api_key_validation",
@@ -2183,11 +2213,13 @@ class UnifiedAuthManager:
             self._record_metric("tokens_issued")
 
             logger.security("Access token created", user_id=user_id)
-            logger.audit(
+            logger.info(
                 "Access token issued",
-                user_id=user_id,
-                event_type="token_created",
-                token_type="access",
+                extra={
+                    "user_id": user_id,
+                    "event_type": "token_created",
+                    "token_type": "access",
+                }
             )
 
             return token
@@ -2210,11 +2242,13 @@ class UnifiedAuthManager:
             self._record_metric("tokens_issued")
 
             logger.security("Refresh token created", user_id=user_id)
-            logger.audit(
+            logger.info(
                 "Refresh token issued",
-                user_id=user_id,
-                event_type="token_created",
-                token_type="refresh",
+                extra={
+                    "user_id": user_id,
+                    "event_type": "token_created",
+                    "token_type": "refresh",
+                }
             )
 
             return token
@@ -2246,8 +2280,12 @@ class UnifiedAuthManager:
             if success:
                 self._record_metric("tokens_revoked")
                 logger.security("Token revoked", user_id=user_id)
-                logger.audit(
-                    "Token revoked", user_id=user_id, event_type="token_revoked"
+                logger.info(
+                    "Token revoked",
+                    extra={
+                        "user_id": user_id,
+                        "event_type": "token_revoked"
+                    }
                 )
 
             return success
@@ -2288,11 +2326,13 @@ class UnifiedAuthManager:
                 logger.security(
                     "Session invalidated", session_id=session_id, user_id=user_id
                 )
-                logger.audit(
+                logger.info(
                     "Session invalidated",
-                    session_id=session_id,
-                    user_id=user_id,
-                    event_type="session_invalidated",
+                    extra={
+                        "session_id": session_id,
+                        "user_id": user_id,
+                        "event_type": "session_invalidated",
+                    }
                 )
 
                 return True
@@ -2334,11 +2374,13 @@ class UnifiedAuthManager:
                     user_id=user_id,
                     session_count=session_count,
                 )
-                logger.audit(
+                logger.info(
                     "All user sessions invalidated",
-                    user_id=user_id,
-                    event_type="all_sessions_invalidated",
-                    session_count=session_count,
+                    extra={
+                        "user_id": user_id,
+                        "event_type": "all_sessions_invalidated",
+                        "session_count": session_count,
+                    }
                 )
 
                 return session_count
@@ -2418,12 +2460,14 @@ class UnifiedAuthManager:
                 permissions=list(final_permissions),
                 roles=[role.value for role in (roles or set())],
             )
-            logger.audit(
+            logger.info(
                 "User registration",
-                user_id=username,
-                event_type="user_registered",
-                permissions=list(final_permissions),
-                roles=[role.value for role in (roles or set())],
+                extra={
+                    "user_id": username,
+                    "event_type": "user_registered",
+                    "permissions": list(final_permissions),
+                    "roles": [role.value for role in (roles or set())],
+                }
             )
 
             return True, []
@@ -2499,12 +2543,14 @@ class UnifiedAuthManager:
                     user_id=user_id,
                     elevation_expires_at=elevation_expires_at,
                 )
-                logger.audit(
+                logger.info(
                     "Session elevated",
-                    session_id=session_id,
-                    user_id=user_id,
-                    event_type="session_elevated",
-                    elevation_expires_at=elevation_expires_at,
+                    extra={
+                        "session_id": session_id,
+                        "user_id": user_id,
+                        "event_type": "session_elevated",
+                        "elevation_expires_at": elevation_expires_at,
+                    }
                 )
 
                 return True
@@ -2581,11 +2627,13 @@ class UnifiedAuthManager:
                 role=role.value,
                 new_permissions=list(role_permissions),
             )
-            logger.audit(
+            logger.info(
                 "Role assigned",
-                user_id=user_id,
-                role=role.value,
-                event_type="role_assigned",
+                extra={
+                    "user_id": user_id,
+                    "role": role.value,
+                    "event_type": "role_assigned",
+                }
             )
 
             return True
@@ -2615,11 +2663,13 @@ class UnifiedAuthManager:
                 role=role.value,
                 removed_permissions=list(role_permissions),
             )
-            logger.audit(
+            logger.info(
                 "Role revoked",
-                user_id=user_id,
-                role=role.value,
-                event_type="role_revoked",
+                extra={
+                    "user_id": user_id,
+                    "role": role.value,
+                    "event_type": "role_revoked",
+                }
             )
 
             return True
@@ -2672,8 +2722,12 @@ class UnifiedAuthManager:
                 credentials.salt = salt
 
                 logger.security("Password changed successfully", user_id=user_id)
-                logger.audit(
-                    "Password changed", user_id=user_id, event_type="password_changed"
+                logger.info(
+                    "Password changed",
+                    extra={
+                        "user_id": user_id,
+                        "event_type": "password_changed"
+                    }
                 )
 
                 # Invalidate all user sessions except current one
@@ -2722,12 +2776,14 @@ class UnifiedAuthManager:
                     old_permissions=list(old_permissions),
                     new_permissions=list(permissions),
                 )
-                logger.audit(
+                logger.info(
                     "User permissions changed",
-                    user_id=user_id,
-                    event_type="permissions_updated",
-                    old_permissions=list(old_permissions),
-                    new_permissions=list(permissions),
+                    extra={
+                        "user_id": user_id,
+                        "event_type": "permissions_updated",
+                        "old_permissions": list(old_permissions),
+                        "new_permissions": list(permissions),
+                    }
                 )
 
                 return True
@@ -2961,13 +3017,15 @@ class UnifiedAuthManager:
                 or cleaned_brute_force > 0
                 or cleaned_devices > 0
             ):
-                logger.audit(
+                logger.info(
                     "Comprehensive cleanup performed",
-                    event_type="system_cleanup",
-                    expired_sessions_removed=expired_sessions,
-                    expired_challenges_removed=expired_challenges,
-                    cleaned_brute_force_entries=cleaned_brute_force,
-                    cleaned_old_devices=cleaned_devices,
+                    extra={
+                        "event_type": "system_cleanup",
+                        "expired_sessions_removed": expired_sessions,
+                        "expired_challenges_removed": expired_challenges,
+                        "cleaned_brute_force_entries": cleaned_brute_force,
+                        "cleaned_old_devices": cleaned_devices,
+                    }
                 )
 
         except Exception as e:

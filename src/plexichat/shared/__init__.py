@@ -38,10 +38,10 @@ try:
     # # from . import exceptions
     # # from . import constants
 
-    logger.info("Shared components imported successfully", category=LogCategory.SYSTEM)
+    logger.info("Shared components imported successfully")
 
 except ImportError as e:
-    logger.warning(f"Some shared components not available: {e}", category=LogCategory.SYSTEM)
+    logger.warning(f"Some shared components not available: {e}")
 
 __all__ = [
     # No modules currently imported

@@ -367,7 +367,7 @@ class ErrorCodeMapping:
         PlexiChatErrorCode.FILE_SIZE_EXCEEDED: {
             "category": ErrorCategory.FILE_SYSTEM,
             "severity": ErrorSeverity.MEDIUM,
-            "http_status": HTTPStatus.PAYLOAD_TOO_LARGE,
+            "http_status": HTTPStatus.REQUEST_ENTITY_TOO_LARGE,
             "message": "File size exceeds maximum allowed",
             "user_message": "File is too large. Please upload a smaller file",
         },

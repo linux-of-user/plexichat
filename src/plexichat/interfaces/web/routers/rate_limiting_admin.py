@@ -48,10 +48,6 @@ except Exception as e:
         def __init__(self):
             self.enabled = True
 
-    class IPBlacklistConfig:
-        def __init__(self):
-            self.enabled = True
-
     # Fallback functions
     def get_rate_limiting_config():
         return None

@@ -2,7 +2,7 @@ import json
 import logging
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 try:
     from plexichat.core.middleware.rate_limiting import (  # type: ignore
@@ -57,6 +57,19 @@ Supports different user tiers, endpoint-specific overrides, and dynamic adjustme
 
 logger = logging.getLogger(__name__)
 
+
+@dataclass
+class IPBlacklistConfig:
+    """Configuration for IP blacklisting."""
+    enabled: bool = True
+    permanent_blacklist: list[str] = field(default_factory=list)
+    temporary_blacklist: dict[str, int] = field(default_factory=dict)
+    whitelist: list[str] = field(default_factory=list)
+    geo_blocking_enabled: bool = False
+    blocked_countries: list[str] = field(default_factory=list)
+    auto_blacklist_enabled: bool = True
+    auto_blacklist_threshold: int = 100
+    auto_blacklist_duration: int = 3600
 
 @dataclass
 class EndpointRateLimit:
@@ -282,3 +295,12 @@ def get_rate_limit_config_manager() -> RateLimitConfigManager:
 def get_rate_limit_config() -> RateLimitConfig:
     """Get the current rate limiting configuration."""
     return get_rate_limit_config_manager().get_config()
+
+__all__ = [
+    "RateLimitConfig",
+    "EndpointRateLimit",
+    "RateLimitConfigManager",
+    "get_rate_limit_config_manager",
+    "get_rate_limit_config",
+    "IPBlacklistConfig",
+]

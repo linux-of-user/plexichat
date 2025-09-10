@@ -14,21 +14,22 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 # FastAPI availability check
-fastapi_available = False
+FASTAPI_AVAILABLE = False
 try:
     import fastapi
 
-    fastapi_available = True
+    FASTAPI_AVAILABLE = True
 except ImportError:
     pass
 
 # Import psutil safely
+PSUTIL_AVAILABLE = False
 try:
     import psutil
 
-    psutil_available = True
+    PSUTIL_AVAILABLE = True
 except ImportError:
-    psutil_available = False
+    pass
 
 # Import logging safely
 try:
@@ -205,7 +206,7 @@ class IntegratedProtectionSystem:
 
     async def _update_system_metrics(self) -> None:
         """Update current system metrics."""
-        if psutil_available:
+        if PSUTIL_AVAILABLE:
             try:
                 import psutil
 
