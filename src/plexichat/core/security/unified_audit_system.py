@@ -19,6 +19,7 @@ from datetime import datetime, timedelta, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+from dataclasses import dataclass, field
 
 from plexichat.core.config import get_config
 from plexichat.core.logging import get_logger
