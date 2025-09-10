@@ -1,4 +1,5 @@
 import hashlib
+from plexichat.core.services.message_service import message_service
 import json
 from datetime import datetime
 from typing import Dict, List, Optional

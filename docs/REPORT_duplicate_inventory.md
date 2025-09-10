@@ -1,0 +1,4287 @@
+# Duplicate and Structural Overlap Inventory
+Generated on 2025-09-10T17:32:25.8600408+01:00
+
+## Exact duplicate files by content (hash)
+- Hash 6BDF66B5BF2A44E658BEA2EE86695AB150A06E600BF67CD5CCE245AD54962C61 (Count=3)
+  - .\src\plexichat\infrastructure\utils\__init__.py (len=3)
+  - .\src\plexichat\infrastructure\utils\monitoring\__init__.py (len=3)
+  - .\src\plexichat\interfaces\web\components\__init__.py (len=3)
+- Hash 890FD29EABB0D28EE5C0342FE03845A0E936198276C9B72B9398747790019D00 (Count=2)
+  - .\plugins\echo\requirements.txt (len=106)
+  - .\plugins\hello_world\requirements.txt (len=106)
+- Hash E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855 (Count=5)
+  - .agent.md (len=0)
+  - .\src\plexichat\core\security\pqc_extensions.py (len=0)
+  - .\src\plexichat\core\utils\py.typed (len=0)
+  - .\tests\property\test_advanced_constraint_verification.py (len=0)
+  - .\tests\unit\test_core_manager.py (len=0)
+
+## Files sharing the same filename across different paths (project scope)
+- __init__.py (Count=81)
+  - .\core\caching\__init__.py (len=472)
+  - .\core\clustering\__init__.py (len=204)
+  - .\core\errors\__init__.py (len=904)
+  - .\core\events\__init__.py (len=756)
+  - .\core\files\__init__.py (len=435)
+  - .\core\messaging\__init__.py (len=737)
+  - .\core\middleware\__init__.py (len=223)
+  - .\core\monitoring\__init__.py (len=596)
+  - .\core\notifications\__init__.py (len=302)
+  - .\core\performance\__init__.py (len=391)
+  - .\core\scheduler\__init__.py (len=495)
+  - .\core\security\__init__.py (len=407)
+  - .\core\services\__init__.py (len=263)
+  - .\core\threading\__init__.py (len=207)
+  - .\core\utils\__init__.py (len=129)
+  - .\core\versioning\__init__.py (len=204)
+  - .\plugins\advanced_antivirus\__init__.py (len=978)
+  - .\plugins\advanced_antivirus\core\__init__.py (len=4040)
+  - .\plugins\ai_providers\providers\__init__.py (len=2425)
+  - .\src\plexichat\__init__.py (len=9727)
+  - .\src\plexichat\core\__init__.py (len=11762)
+  - .\src\plexichat\core\auth\config\__init__.py (len=493)
+  - .\src\plexichat\core\auth\models\__init__.py (len=146)
+  - .\src\plexichat\core\auth\repositories\__init__.py (len=665)
+  - .\src\plexichat\core\auth\services\__init__.py (len=921)
+  - .\src\plexichat\core\cache\__init__.py (len=299)
+  - .\src\plexichat\core\caching\__init__.py (len=3038)
+  - .\src\plexichat\core\clustering\__init__.py (len=26617)
+  - .\src\plexichat\core\database\__init__.py (len=1356)
+  - .\src\plexichat\core\errors\__init__.py (len=19693)
+  - .\src\plexichat\core\events\__init__.py (len=2256)
+  - .\src\plexichat\core\files\__init__.py (len=1689)
+  - .\src\plexichat\core\logging\__init__.py (len=478)
+  - .\src\plexichat\core\messaging\__init__.py (len=4935)
+  - .\src\plexichat\core\middleware\__init__.py (len=1260)
+  - .\src\plexichat\core\middleware\rate_limiting\__init__.py (len=789)
+  - .\src\plexichat\core\monitoring\__init__.py (len=2579)
+  - .\src\plexichat\core\notifications\__init__.py (len=2269)
+  - .\src\plexichat\core\performance\__init__.py (len=851)
+  - .\src\plexichat\core\plugins\__init__.py (len=6408)
+  - .\src\plexichat\core\scheduler\__init__.py (len=2247)
+  - .\src\plexichat\core\security\__init__.py (len=8109)
+  - .\src\plexichat\core\services\__init__.py (len=2092)
+  - .\src\plexichat\core\threading\__init__.py (len=979)
+  - .\src\plexichat\core\updates\__init__.py (len=216)
+  - .\src\plexichat\core\utils\__init__.py (len=216)
+  - .\src\plexichat\core\versioning\__init__.py (len=101)
+  - .\src\plexichat\core\websocket\__init__.py (len=1451)
+  - .\src\plexichat\features\__init__.py (len=3763)
+  - .\src\plexichat\features\ai\__init__.py (len=2518)
+  - .\src\plexichat\features\ai\api\__init__.py (len=414)
+  - .\src\plexichat\features\ai\cli\__init__.py (len=449)
+  - .\src\plexichat\features\ai\core\__init__.py (len=702)
+  - .\src\plexichat\features\ai\features\__init__.py (len=1527)
+  - .\src\plexichat\features\ai\moderation\__init__.py (len=1433)
+  - .\src\plexichat\features\ai\providers\__init__.py (len=994)
+  - .\src\plexichat\features\ai\webui\__init__.py (len=430)
+  - .\src\plexichat\features\backup\__init__.py (len=755)
+  - .\src\plexichat\infrastructure\__init__.py (len=9625)
+  - .\src\plexichat\infrastructure\modules\__init__.py (len=16346)
+  - .\src\plexichat\infrastructure\services\__init__.py (len=14952)
+  - .\src\plexichat\infrastructure\utils\__init__.py (len=3)
+  - .\src\plexichat\infrastructure\utils\monitoring\__init__.py (len=3)
+  - .\src\plexichat\interfaces\__init__.py (len=2243)
+  - .\src\plexichat\interfaces\api\v1\__init__.py (len=2070)
+  - .\src\plexichat\interfaces\cli\__init__.py (len=541)
+  - .\src\plexichat\interfaces\web\__init__.py (len=2058)
+  - .\src\plexichat\interfaces\web\components\__init__.py (len=3)
+  - .\src\plexichat\interfaces\web\middleware\__init__.py (len=833)
+  - .\src\plexichat\interfaces\web\routers\__init__.py (len=295)
+  - .\src\plexichat\interfaces\web\routes\__init__.py (len=795)
+  - .\src\plexichat\interfaces\web\routes\collaboration\__init__.py (len=384)
+  - .\src\plexichat\interfaces\web\schemas\__init__.py (len=303)
+  - .\src\plexichat\shared\__init__.py (len=1424)
+  - .\tests\__init__.py (len=154)
+  - .\tests\e2e\__init__.py (len=219)
+  - .\tests\integration\__init__.py (len=222)
+  - .\tests\property\__init__.py (len=233)
+  - .\tests\security\__init__.py (len=810)
+  - .\tests\unit\__init__.py (len=209)
+  - .\tests\websocket\__init__.py (len=201)
+- plugin.json (Count=28)
+  - .\plugins\advanced_analytics\plugin.json (len=4500)
+  - .\plugins\advanced_antivirus\plugin.json (len=348)
+  - .\plugins\ai_providers\plugin.json (len=2264)
+  - .\plugins\analytics_dashboard\plugin.json (len=3415)
+  - .\plugins\api_integration_layer\plugin.json (len=4493)
+  - .\plugins\api_tester\plugin.json (len=2041)
+  - .\plugins\code_analyzer\plugin.json (len=2270)
+  - .\plugins\comprehensive_api_test\plugin.json (len=639)
+  - .\plugins\dark_theme_pro\plugin.json (len=7917)
+  - .\plugins\data_visualizer\plugin.json (len=2120)
+  - .\plugins\dev_tools\plugin.json (len=2560)
+  - .\plugins\echo\plugin.json (len=1991)
+  - .\plugins\file_manager\plugin.json (len=1892)
+  - .\plugins\hello_world\plugin.json (len=1593)
+  - .\plugins\network_scanner\plugin.json (len=2283)
+  - .\plugins\notification_center\plugin.json (len=5655)
+  - .\plugins\performance_monitor\plugin.json (len=1858)
+  - .\plugins\quantum_backup\plugin.json (len=5914)
+  - .\plugins\security_toolkit\plugin.json (len=1933)
+  - .\plugins\system_manager\plugin.json (len=3613)
+  - .\plugins\system_monitoring\plugin.json (len=5741)
+  - .\plugins\user_manager\plugin.json (len=3499)
+  - .\plugins\webhook_manager\plugin.json (len=3462)
+  - .\plugins\workflow_automation\plugin.json (len=5077)
+  - .\src\plexichat\core\plugins\installed\ai_providers\plugin.json (len=3353)
+  - .\src\plexichat\core\plugins\installed\echo_plugin\plugin.json (len=291)
+  - .\src\plexichat\core\plugins\installed\hello_world_plugin\plugin.json (len=303)
+  - .\src\plexichat\core\plugins\installed\testing_plugin\plugin.json (len=5044)
+- main.py (Count=23)
+  - .\plugins\advanced_antivirus\main.py (len=9055)
+  - .\plugins\ai_providers\main.py (len=11693)
+  - .\plugins\api_integration_layer\main.py (len=34557)
+  - .\plugins\api_tester\main.py (len=68680)
+  - .\plugins\code_analyzer\main.py (len=25277)
+  - .\plugins\comprehensive_api_test\main.py (len=26587)
+  - .\plugins\data_visualizer\main.py (len=20317)
+  - .\plugins\dev_tools\main.py (len=31344)
+  - .\plugins\echo\main.py (len=15106)
+  - .\plugins\file_manager\main.py (len=25459)
+  - .\plugins\hello_world\main.py (len=10158)
+  - .\plugins\network_scanner\main.py (len=27940)
+  - .\plugins\performance_monitor\main.py (len=13598)
+  - .\plugins\security_toolkit\main.py (len=12346)
+  - .\src\plexichat\core\plugins\installed\ai_providers\main.py (len=14949)
+  - .\src\plexichat\core\plugins\installed\echo_plugin\main.py (len=1315)
+  - .\src\plexichat\core\plugins\installed\hello_world_plugin\main.py (len=1528)
+  - .\src\plexichat\core\plugins\installed\random_quote_plugin\main.py (len=1953)
+  - .\src\plexichat\core\plugins\installed\testing_plugin\main.py (len=117109)
+  - .\src\plexichat\interfaces\cli\ultimate\main.py (len=3459)
+  - .\src\plexichat\interfaces\web\main.py (len=1889)
+  - .\src\plexichat\main.py (len=51013)
+  - .\src\plexichat\plugins\echo\main.py (len=252)
+- requirements.txt (Count=14)
+  - .\docs\requirements.txt (len=742)
+  - .\plugins\ai_providers\requirements.txt (len=57)
+  - .\plugins\api_integration_layer\requirements.txt (len=149)
+  - .\plugins\api_tester\requirements.txt (len=117)
+  - .\plugins\code_analyzer\requirements.txt (len=127)
+  - .\plugins\data_visualizer\requirements.txt (len=140)
+  - .\plugins\dev_tools\requirements.txt (len=104)
+  - .\plugins\echo\requirements.txt (len=106)
+  - .\plugins\file_manager\requirements.txt (len=134)
+  - .\plugins\hello_world\requirements.txt (len=106)
+  - .\plugins\network_scanner\requirements.txt (len=127)
+  - .\plugins\performance_monitor\requirements.txt (len=89)
+  - .\plugins\security_toolkit\requirements.txt (len=131)
+  - .\requirements.txt (len=6972)
+- index.html (Count=6)
+  - .\docs\api\index.html (len=1007)
+  - .\src\plexichat\interfaces\web\templates\admin\index.html (len=43831)
+  - .\src\plexichat\interfaces\web\templates\dashboard\index.html (len=14129)
+  - .\src\plexichat\interfaces\web\templates\docs\index.html (len=16346)
+  - .\src\plexichat\interfaces\web\templates\index.html (len=24002)
+  - .\src\plexichat\interfaces\web\templates\setup\index.html (len=5295)
+- base.py (Count=4)
+  - .\core\errors\base.py (len=5800)
+  - .\core\messaging\base.py (len=2563)
+  - .\src\plexichat\core\database\migrations\base.py (len=13947)
+  - .\src\plexichat\core\errors\base.py (len=34046)
+- conftest.py (Count=4)
+  - .\tests\conftest.py (len=18500)
+  - .\tests\integration\conftest.py (len=9254)
+  - .\tests\property\conftest.py (len=6326)
+  - .\tests\unit\conftest.py (len=7608)
+- exceptions.py (Count=3)
+  - .\core\errors\exceptions.py (len=2215)
+  - .\src\plexichat\core\errors\exceptions.py (len=3016)
+  - .\src\plexichat\shared\exceptions.py (len=2878)
+- admin.py (Count=3)
+  - .\src\plexichat\interfaces\api\v1\admin.py (len=11467)
+  - .\src\plexichat\interfaces\cli\commands\admin.py (len=2416)
+  - .\src\plexichat\interfaces\web\routers\admin.py (len=60556)
+- user.py (Count=3)
+  - .\src\plexichat\core\user.py (len=335)
+  - .\src\plexichat\interfaces\api\schemas\user.py (len=1823)
+  - .\src\plexichat\interfaces\web\schemas\user.py (len=5258)
+- dashboard.html (Count=3)
+  - .\src\plexichat\interfaces\web\templates\admin\dashboard.html (len=41520)
+  - .\src\plexichat\interfaces\web\templates\simplified\dashboard.html (len=14535)
+  - .\src\plexichat\interfaces\web\templates\testing\dashboard.html (len=28126)
+- manager.py (Count=3)
+  - .\src\plexichat\core\cache\manager.py (len=15271)
+  - .\src\plexichat\core\database\manager.py (len=24384)
+  - .\src\plexichat\core\plugins\manager.py (len=50060)
+- test_authentication.py (Count=3)
+  - .\tests\security\test_authentication.py (len=11897)
+  - .\tests\test_authentication.py (len=18745)
+  - .\tests\unit\test_authentication.py (len=18816)
+- system.py (Count=3)
+  - .\src\plexichat\interfaces\api\v1\system.py (len=10296)
+  - .\src\plexichat\interfaces\cli\commands\system.py (len=2033)
+  - .\src\plexichat\interfaces\web\routers\system.py (len=16045)
+- README.md (Count=3)
+  - .\docs\includes\README.md (len=165)
+  - .\docs\README.md (len=19133)
+  - .\src\plexichat\infrastructure\installer\README.md (len=3574)
+- interfaces.py (Count=3)
+  - .\src\plexichat\core\auth\repositories\interfaces.py (len=4828)
+  - .\src\plexichat\core\auth\services\interfaces.py (len=7194)
+  - .\src\plexichat\infrastructure\modules\interfaces.py (len=17389)
+- files.py (Count=3)
+  - .\src\plexichat\interfaces\api\v1\files.py (len=16334)
+  - .\src\plexichat\interfaces\web\routers\files.py (len=22480)
+  - .\src\plexichat\interfaces\web\schemas\files.py (len=8157)
+- plugins.py (Count=2)
+  - .\src\plexichat\interfaces\cli\commands\plugins.py (len=27787)
+  - .\src\plexichat\interfaces\web\routers\plugins.py (len=32735)
+- push_service.py (Count=2)
+  - .\core\notifications\push_service.py (len=2605)
+  - .\src\plexichat\core\notifications\push_service.py (len=16021)
+- auth.py (Count=2)
+  - .\src\plexichat\interfaces\api\v1\auth.py (len=11136)
+  - .\src\plexichat\interfaces\web\schemas\auth.py (len=2537)
+- security.py (Count=2)
+  - .\src\plexichat\infrastructure\utils\security.py (len=17245)
+  - .\src\plexichat\interfaces\cli\commands\security.py (len=43591)
+- admin.html (Count=2)
+  - .\src\plexichat\interfaces\web\templates\setup\admin.html (len=10477)
+  - .\src\plexichat\interfaces\web\templates\simplified\admin.html (len=17463)
+- status.py (Count=2)
+  - .\src\plexichat\interfaces\web\routers\status.py (len=9407)
+  - .\src\plexichat\interfaces\web\schemas\status.py (len=1146)
+- unified_messaging_system.py (Count=2)
+  - .\core\messaging\unified_messaging_system.py (len=2588)
+  - .\src\plexichat\core\messaging\unified_messaging_system.py (len=36787)
+- updates.py (Count=2)
+  - .\src\plexichat\interfaces\cli\commands\updates.py (len=4718)
+  - .\src\plexichat\interfaces\web\routers\updates.py (len=16021)
+- users.py (Count=2)
+  - .\src\plexichat\interfaces\api\v1\users.py (len=5396)
+  - .\src\plexichat\interfaces\web\routers\users.py (len=20365)
+- utils.py (Count=2)
+  - .\src\plexichat\core\utils.py (len=20812)
+  - .\src\plexichat\infrastructure\utils.py (len=12359)
+- security_manager.py (Count=2)
+  - .\src\plexichat\core\plugins\security_manager.py (len=93304)
+  - .\src\plexichat\core\security\security_manager.py (len=35263)
+- orchestrator.py (Count=2)
+  - .\src\plexichat\core\orchestrator.py (len=8291)
+  - .\src\plexichat\infrastructure\containerization\orchestrator.py (len=16951)
+- marketplace.html (Count=2)
+  - .\src\plexichat\interfaces\web\static\plugin-manager\marketplace.html (len=1564)
+  - .\src\plexichat\interfaces\web\templates\plugins\marketplace.html (len=20491)
+- models.py (Count=2)
+  - .\src\plexichat\core\database\models.py (len=16017)
+  - .\src\plexichat\shared\models.py (len=7254)
+- base.html (Count=2)
+  - .\src\plexichat\interfaces\web\templates\admin\base.html (len=8532)
+  - .\src\plexichat\interfaces\web\templates\base.html (len=14267)
+- cluster.py (Count=2)
+  - .\src\plexichat\interfaces\cli\commands\cluster.py (len=19464)
+  - .\src\plexichat\interfaces\web\routers\cluster.py (len=44891)
+- config_manager.py (Count=2)
+  - .\src\plexichat\core\config_manager.py (len=38446)
+  - .\src\plexichat\interfaces\web\core\config_manager.py (len=17057)
+- DEPLOYMENT.md (Count=2)
+  - .\docs\DEPLOYMENT.md (len=18828)
+  - .\docs\runbooks\deployment.md (len=2431)
+- email_service.py (Count=2)
+  - .\core\notifications\email_service.py (len=2200)
+  - .\src\plexichat\core\notifications\email_service.py (len=12821)
+- engine.py (Count=2)
+  - .\src\plexichat\core\middleware\rate_limiting\engine.py (len=27949)
+  - .\src\plexichat\infrastructure\analytics\engine.py (len=10957)
+- error_codes.py (Count=2)
+  - .\core\errors\error_codes.py (len=535)
+  - .\src\plexichat\core\errors\error_codes.py (len=13747)
+- error_manager.py (Count=2)
+  - .\core\errors\error_manager.py (len=3114)
+  - .\src\plexichat\core\errors\error_manager.py (len=11690)
+- fallbacks.py (Count=2)
+  - .\core\utils\fallbacks.py (len=8772)
+  - .\src\plexichat\core\utils\fallbacks.py (len=4052)
+- handlers.py (Count=2)
+  - .\core\errors\handlers.py (len=2110)
+  - .\src\plexichat\core\errors\handlers.py (len=2707)
+- login.html (Count=2)
+  - .\src\plexichat\interfaces\web\templates\auth\login.html (len=25597)
+  - .\src\plexichat\interfaces\web\templates\login.html (len=10175)
+- logs.py (Count=2)
+  - .\src\plexichat\interfaces\cli\commands\logs.py (len=3311)
+  - .\src\plexichat\interfaces\web\routers\logs.py (len=3131)
+- validation.py (Count=2)
+  - .\src\plexichat\core\validation.py (len=8163)
+  - .\src\plexichat\infrastructure\utils\validation.py (len=15526)
+- message_processor.py (Count=2)
+  - .\core\messaging\message_processor.py (len=1817)
+  - .\src\plexichat\core\messaging\message_processor.py (len=8880)
+- messages.py (Count=2)
+  - .\src\plexichat\interfaces\api\v1\messages.py (len=9036)
+  - .\src\plexichat\interfaces\web\routers\messages.py (len=14726)
+- notification_manager.py (Count=2)
+  - .\core\notifications\notification_manager.py (len=4041)
+  - .\src\plexichat\core\notifications\notification_manager.py (len=25666)
+- websocket_manager.py (Count=2)
+  - .\src\plexichat\core\websocket\websocket_manager.py (len=25585)
+  - .\src\plexichat\interfaces\websocket\websocket_manager.py (len=6994)
+
+## Structural duplication between core/ and src/plexichat/core/
+Found 27 files sharing the same relative path:
+- REL: caching\__init__.py
+  - core: .\core\caching\__init__.py (len=472)
+  - src:  .\src\plexichat\core\caching\__init__.py (len=3038)
+  - status: DIFFERENT
+- REL: clustering\__init__.py
+  - core: .\core\clustering\__init__.py (len=204)
+  - src:  .\src\plexichat\core\clustering\__init__.py (len=26617)
+  - status: DIFFERENT
+- REL: errors\__init__.py
+  - core: .\core\errors\__init__.py (len=904)
+  - src:  .\src\plexichat\core\errors\__init__.py (len=19693)
+  - status: DIFFERENT
+- REL: errors\base.py
+  - core: .\core\errors\base.py (len=5800)
+  - src:  .\src\plexichat\core\errors\base.py (len=34046)
+  - status: DIFFERENT
+- REL: errors\error_codes.py
+  - core: .\core\errors\error_codes.py (len=535)
+  - src:  .\src\plexichat\core\errors\error_codes.py (len=13747)
+  - status: DIFFERENT
+- REL: errors\error_manager.py
+  - core: .\core\errors\error_manager.py (len=3114)
+  - src:  .\src\plexichat\core\errors\error_manager.py (len=11690)
+  - status: DIFFERENT
+- REL: errors\exceptions.py
+  - core: .\core\errors\exceptions.py (len=2215)
+  - src:  .\src\plexichat\core\errors\exceptions.py (len=3016)
+  - status: DIFFERENT
+- REL: errors\handlers.py
+  - core: .\core\errors\handlers.py (len=2110)
+  - src:  .\src\plexichat\core\errors\handlers.py (len=2707)
+  - status: DIFFERENT
+- REL: events\__init__.py
+  - core: .\core\events\__init__.py (len=756)
+  - src:  .\src\plexichat\core\events\__init__.py (len=2256)
+  - status: DIFFERENT
+- REL: files\__init__.py
+  - core: .\core\files\__init__.py (len=435)
+  - src:  .\src\plexichat\core\files\__init__.py (len=1689)
+  - status: DIFFERENT
+- REL: messaging\__init__.py
+  - core: .\core\messaging\__init__.py (len=737)
+  - src:  .\src\plexichat\core\messaging\__init__.py (len=4935)
+  - status: DIFFERENT
+- REL: messaging\message_processor.py
+  - core: .\core\messaging\message_processor.py (len=1817)
+  - src:  .\src\plexichat\core\messaging\message_processor.py (len=8880)
+  - status: DIFFERENT
+- REL: messaging\unified_messaging_system.py
+  - core: .\core\messaging\unified_messaging_system.py (len=2588)
+  - src:  .\src\plexichat\core\messaging\unified_messaging_system.py (len=36787)
+  - status: DIFFERENT
+- REL: middleware\__init__.py
+  - core: .\core\middleware\__init__.py (len=223)
+  - src:  .\src\plexichat\core\middleware\__init__.py (len=1260)
+  - status: DIFFERENT
+- REL: monitoring\__init__.py
+  - core: .\core\monitoring\__init__.py (len=596)
+  - src:  .\src\plexichat\core\monitoring\__init__.py (len=2579)
+  - status: DIFFERENT
+- REL: notifications\__init__.py
+  - core: .\core\notifications\__init__.py (len=302)
+  - src:  .\src\plexichat\core\notifications\__init__.py (len=2269)
+  - status: DIFFERENT
+- REL: notifications\email_service.py
+  - core: .\core\notifications\email_service.py (len=2200)
+  - src:  .\src\plexichat\core\notifications\email_service.py (len=12821)
+  - status: DIFFERENT
+- REL: notifications\notification_manager.py
+  - core: .\core\notifications\notification_manager.py (len=4041)
+  - src:  .\src\plexichat\core\notifications\notification_manager.py (len=25666)
+  - status: DIFFERENT
+- REL: notifications\push_service.py
+  - core: .\core\notifications\push_service.py (len=2605)
+  - src:  .\src\plexichat\core\notifications\push_service.py (len=16021)
+  - status: DIFFERENT
+- REL: performance\__init__.py
+  - core: .\core\performance\__init__.py (len=391)
+  - src:  .\src\plexichat\core\performance\__init__.py (len=851)
+  - status: DIFFERENT
+- REL: scheduler\__init__.py
+  - core: .\core\scheduler\__init__.py (len=495)
+  - src:  .\src\plexichat\core\scheduler\__init__.py (len=2247)
+  - status: DIFFERENT
+- REL: security\__init__.py
+  - core: .\core\security\__init__.py (len=407)
+  - src:  .\src\plexichat\core\security\__init__.py (len=8109)
+  - status: DIFFERENT
+- REL: services\__init__.py
+  - core: .\core\services\__init__.py (len=263)
+  - src:  .\src\plexichat\core\services\__init__.py (len=2092)
+  - status: DIFFERENT
+- REL: threading\__init__.py
+  - core: .\core\threading\__init__.py (len=207)
+  - src:  .\src\plexichat\core\threading\__init__.py (len=979)
+  - status: DIFFERENT
+- REL: utils\__init__.py
+  - core: .\core\utils\__init__.py (len=129)
+  - src:  .\src\plexichat\core\utils\__init__.py (len=216)
+  - status: DIFFERENT
+- REL: utils\fallbacks.py
+  - core: .\core\utils\fallbacks.py (len=8772)
+  - src:  .\src\plexichat\core\utils\fallbacks.py (len=4052)
+  - status: DIFFERENT
+- REL: versioning\__init__.py
+  - core: .\core\versioning\__init__.py (len=204)
+  - src:  .\src\plexichat\core\versioning\__init__.py (len=101)
+  - status: DIFFERENT
+
+## Overlapping router filenames between API v1 and Web routers
+- __init__.py
+  - API: .\src\plexichat\interfaces\api\v1\__init__.py
+  - WEB: .\src\plexichat\interfaces\web\routers\__init__.py
+- admin.py
+  - API: .\src\plexichat\interfaces\api\v1\admin.py
+  - WEB: .\src\plexichat\interfaces\web\routers\admin.py
+- files.py
+  - API: .\src\plexichat\interfaces\api\v1\files.py
+  - WEB: .\src\plexichat\interfaces\web\routers\files.py
+- messages.py
+  - API: .\src\plexichat\interfaces\api\v1\messages.py
+  - WEB: .\src\plexichat\interfaces\web\routers\messages.py
+- system.py
+  - API: .\src\plexichat\interfaces\api\v1\system.py
+  - WEB: .\src\plexichat\interfaces\web\routers\system.py
+- users.py
+  - API: .\src\plexichat\interfaces\api\v1\users.py
+  - WEB: .\src\plexichat\interfaces\web\routers\users.py
+
+## Files matching unified_* pattern
+- .\src\plexichat\core\caching\unified_cache_integration.py (len=15588)
+- .\src\plexichat\core\logging\unified_logger.py (len=5569)
+- .\src\plexichat\core\messaging\unified_messaging_system.py (len=36787)
+- .\src\plexichat\core\monitoring\unified_monitoring_system.py (len=11131)
+- .\src\plexichat\core\security\unified_audit_system.py (len=33062)
+- .\src\plexichat\core\security\unified_hsm_manager.py (len=31062)
+- .\src\plexichat\core\security\unified_security_module.py (len=23088)
+- .\src\plexichat\infrastructure\services\unified_security_service.py (len=22522)
+- .\src\plexichat\interfaces\cli\unified_cli_default.py (len=14022)
+- .\core\messaging\unified_messaging_system.py (len=2588)
+
+## Duplicate directory leaf names across project
+- Dir: __pycache__ (Count=113)
+  - .\core\notifications\__pycache__
+  - .\docs\__pycache__
+  - .\plugins\advanced_antivirus\__pycache__
+  - .\plugins\advanced_antivirus\core\__pycache__
+  - .\plugins\ai_providers\__pycache__
+  - .\plugins\ai_providers\providers\__pycache__
+  - .\plugins\ai_providers\tests\__pycache__
+  - .\plugins\ai_providers\webui\__pycache__
+  - .\plugins\api_integration_layer\__pycache__
+  - .\plugins\api_tester\__pycache__
+  - .\plugins\code_analyzer\__pycache__
+  - .\plugins\comprehensive_api_test\__pycache__
+  - .\plugins\data_visualizer\__pycache__
+  - .\plugins\dev_tools\__pycache__
+  - .\plugins\echo\__pycache__
+  - .\plugins\file_manager\__pycache__
+  - .\plugins\file_manager\tests\__pycache__
+  - .\plugins\hello_world\__pycache__
+  - .\plugins\network_scanner\__pycache__
+  - .\plugins\performance_monitor\__pycache__
+  - .\plugins\security_toolkit\__pycache__
+  - .\src\plexichat\__pycache__
+  - .\src\plexichat\core\__pycache__
+  - .\src\plexichat\core\auth\__pycache__
+  - .\src\plexichat\core\auth\config\__pycache__
+  - .\src\plexichat\core\auth\models\__pycache__
+  - .\src\plexichat\core\auth\repositories\__pycache__
+  - .\src\plexichat\core\auth\services\__pycache__
+  - .\src\plexichat\core\cache\__pycache__
+  - .\src\plexichat\core\caching\__pycache__
+  - .\src\plexichat\core\clustering\__pycache__
+  - .\src\plexichat\core\database\__pycache__
+  - .\src\plexichat\core\database\migrations\__pycache__
+  - .\src\plexichat\core\errors\__pycache__
+  - .\src\plexichat\core\events\__pycache__
+  - .\src\plexichat\core\files\__pycache__
+  - .\src\plexichat\core\logging\__pycache__
+  - .\src\plexichat\core\messaging\__pycache__
+  - .\src\plexichat\core\middleware\__pycache__
+  - .\src\plexichat\core\middleware\rate_limiting\__pycache__
+  - .\src\plexichat\core\monitoring\__pycache__
+  - .\src\plexichat\core\notifications\__pycache__
+  - .\src\plexichat\core\performance\__pycache__
+  - .\src\plexichat\core\plugins\__pycache__
+  - .\src\plexichat\core\plugins\installed\ai_providers\__pycache__
+  - .\src\plexichat\core\plugins\installed\echo_plugin\__pycache__
+  - .\src\plexichat\core\plugins\installed\hello_world_plugin\__pycache__
+  - .\src\plexichat\core\plugins\installed\random_quote_plugin\__pycache__
+  - .\src\plexichat\core\plugins\installed\testing_plugin\__pycache__
+  - .\src\plexichat\core\scheduler\__pycache__
+  - .\src\plexichat\core\security\__pycache__
+  - .\src\plexichat\core\services\__pycache__
+  - .\src\plexichat\core\testing\__pycache__
+  - .\src\plexichat\core\threading\__pycache__
+  - .\src\plexichat\core\updates\__pycache__
+  - .\src\plexichat\core\utils\__pycache__
+  - .\src\plexichat\core\versioning\__pycache__
+  - .\src\plexichat\core\websocket\__pycache__
+  - .\src\plexichat\features\__pycache__
+  - .\src\plexichat\features\ai\__pycache__
+  - .\src\plexichat\features\ai\api\__pycache__
+  - .\src\plexichat\features\ai\cli\__pycache__
+  - .\src\plexichat\features\ai\core\__pycache__
+  - .\src\plexichat\features\ai\features\__pycache__
+  - .\src\plexichat\features\ai\moderation\__pycache__
+  - .\src\plexichat\features\ai\monitoring\__pycache__
+  - .\src\plexichat\features\ai\providers\__pycache__
+  - .\src\plexichat\features\ai\webui\__pycache__
+  - .\src\plexichat\features\backup\__pycache__
+  - .\src\plexichat\infrastructure\__pycache__
+  - .\src\plexichat\infrastructure\analytics\__pycache__
+  - .\src\plexichat\infrastructure\containerization\__pycache__
+  - .\src\plexichat\infrastructure\debugging\__pycache__
+  - .\src\plexichat\infrastructure\deployment\__pycache__
+  - .\src\plexichat\infrastructure\events\__pycache__
+  - .\src\plexichat\infrastructure\messaging\__pycache__
+  - .\src\plexichat\infrastructure\microservices\__pycache__
+  - .\src\plexichat\infrastructure\middleware\__pycache__
+  - .\src\plexichat\infrastructure\modules\__pycache__
+  - .\src\plexichat\infrastructure\scalability\__pycache__
+  - .\src\plexichat\infrastructure\services\__pycache__
+  - .\src\plexichat\infrastructure\services\modules\__pycache__
+  - .\src\plexichat\infrastructure\utils\__pycache__
+  - .\src\plexichat\infrastructure\utils\monitoring\__pycache__
+  - .\src\plexichat\integration\__pycache__
+  - .\src\plexichat\interfaces\__pycache__
+  - .\src\plexichat\interfaces\api\__pycache__
+  - .\src\plexichat\interfaces\api\routers\__pycache__
+  - .\src\plexichat\interfaces\api\schemas\__pycache__
+  - .\src\plexichat\interfaces\api\v1\__pycache__
+  - .\src\plexichat\interfaces\cli\__pycache__
+  - .\src\plexichat\interfaces\cli\commands\__pycache__
+  - .\src\plexichat\interfaces\cli\ultimate\__pycache__
+  - .\src\plexichat\interfaces\web\__pycache__
+  - .\src\plexichat\interfaces\web\components\__pycache__
+  - .\src\plexichat\interfaces\web\core\__pycache__
+  - .\src\plexichat\interfaces\web\middleware\__pycache__
+  - .\src\plexichat\interfaces\web\routers\__pycache__
+  - .\src\plexichat\interfaces\web\routes\__pycache__
+  - .\src\plexichat\interfaces\web\routes\admin\__pycache__
+  - .\src\plexichat\interfaces\web\routes\collaboration\__pycache__
+  - .\src\plexichat\interfaces\web\schemas\__pycache__
+  - .\src\plexichat\interfaces\websocket\__pycache__
+  - .\src\plexichat\plugins\echo\__pycache__
+  - .\src\plexichat\shared\__pycache__
+  - .\tests\__pycache__
+  - .\tests\e2e\__pycache__
+  - .\tests\integration\__pycache__
+  - .\tests\performance\__pycache__
+  - .\tests\property\__pycache__
+  - .\tests\security\__pycache__
+  - .\tests\unit\__pycache__
+  - .\tests\websocket\__pycache__
+- Dir: data (Count=11)
+  - .\plugins\ai_providers\data
+  - .\plugins\api_integration_layer\data
+  - .\plugins\code_analyzer\data
+  - .\plugins\data_visualizer\data
+  - .\plugins\dev_tools\data
+  - .\plugins\echo\data
+  - .\plugins\file_manager\data
+  - .\plugins\hello_world\data
+  - .\plugins\network_scanner\data
+  - .\plugins\performance_monitor\data
+  - .\plugins\security_toolkit\data
+- Dir: middleware (Count=5)
+  - .\core\middleware
+  - .\src\plexichat\core\auth\middleware
+  - .\src\plexichat\core\middleware
+  - .\src\plexichat\infrastructure\middleware
+  - .\src\plexichat\interfaces\web\middleware
+- Dir: monitoring (Count=4)
+  - .\core\monitoring
+  - .\src\plexichat\core\monitoring
+  - .\src\plexichat\features\ai\monitoring
+  - .\src\plexichat\infrastructure\utils\monitoring
+- Dir: services (Count=4)
+  - .\core\services
+  - .\src\plexichat\core\auth\services
+  - .\src\plexichat\core\services
+  - .\src\plexichat\infrastructure\services
+- Dir: core (Count=4)
+  - .\plugins\advanced_antivirus\core
+  - .\src\plexichat\core
+  - .\src\plexichat\features\ai\core
+  - .\src\plexichat\interfaces\web\core
+- Dir: events (Count=4)
+  - .\core\events
+  - .\src\plexichat\core\auth\events
+  - .\src\plexichat\core\events
+  - .\src\plexichat\infrastructure\events
+- Dir: performance (Count=3)
+  - .\core\performance
+  - .\src\plexichat\core\performance
+  - .\tests\performance
+- Dir: websocket (Count=3)
+  - .\src\plexichat\core\websocket
+  - .\src\plexichat\interfaces\websocket
+  - .\tests\websocket
+- Dir: messaging (Count=3)
+  - .\core\messaging
+  - .\src\plexichat\core\messaging
+  - .\src\plexichat\infrastructure\messaging
+- Dir: security (Count=3)
+  - .\core\security
+  - .\src\plexichat\core\security
+  - .\tests\security
+- Dir: errors (Count=3)
+  - .\core\errors
+  - .\src\plexichat\core\errors
+  - .\src\plexichat\interfaces\web\templates\errors
+- Dir: api (Count=3)
+  - .\docs\api
+  - .\src\plexichat\features\ai\api
+  - .\src\plexichat\interfaces\api
+- Dir: utils (Count=3)
+  - .\core\utils
+  - .\src\plexichat\core\utils
+  - .\src\plexichat\infrastructure\utils
+- Dir: plugins (Count=3)
+  - .\src\plexichat\core\plugins
+  - .\src\plexichat\interfaces\web\templates\plugins
+  - .\src\plexichat\plugins
+- Dir: static (Count=2)
+  - .\plugins\file_manager\ui\static
+  - .\src\plexichat\interfaces\web\static
+- Dir: templates (Count=2)
+  - .\src\plexichat\features\ai\webui\templates
+  - .\src\plexichat\interfaces\web\templates
+- Dir: testing (Count=2)
+  - .\src\plexichat\core\testing
+  - .\src\plexichat\interfaces\web\templates\testing
+- Dir: schemas (Count=2)
+  - .\src\plexichat\interfaces\api\schemas
+  - .\src\plexichat\interfaces\web\schemas
+- Dir: tests (Count=2)
+  - .\plugins\ai_providers\tests
+  - .\plugins\file_manager\tests
+- Dir: threading (Count=2)
+  - .\core\threading
+  - .\src\plexichat\core\threading
+- Dir: scheduler (Count=2)
+  - .\core\scheduler
+  - .\src\plexichat\core\scheduler
+- Dir: versioning (Count=2)
+  - .\core\versioning
+  - .\src\plexichat\core\versioning
+- Dir: routers (Count=2)
+  - .\src\plexichat\interfaces\api\routers
+  - .\src\plexichat\interfaces\web\routers
+- Dir: modules (Count=2)
+  - .\src\plexichat\infrastructure\modules
+  - .\src\plexichat\infrastructure\services\modules
+- Dir: notifications (Count=2)
+  - .\core\notifications
+  - .\src\plexichat\core\notifications
+- Dir: integration (Count=2)
+  - .\src\plexichat\integration
+  - .\tests\integration
+- Dir: files (Count=2)
+  - .\core\files
+  - .\src\plexichat\core\files
+- Dir: features (Count=2)
+  - .\src\plexichat\features
+  - .\src\plexichat\features\ai\features
+- Dir: echo (Count=2)
+  - .\plugins\echo
+  - .\src\plexichat\plugins\echo
+- Dir: clustering (Count=2)
+  - .\core\clustering
+  - .\src\plexichat\core\clustering
+- Dir: cli (Count=2)
+  - .\src\plexichat\features\ai\cli
+  - .\src\plexichat\interfaces\cli
+- Dir: caching (Count=2)
+  - .\core\caching
+  - .\src\plexichat\core\caching
+- Dir: auth (Count=2)
+  - .\src\plexichat\core\auth
+  - .\src\plexichat\interfaces\web\templates\auth
+- Dir: ai_providers (Count=2)
+  - .\plugins\ai_providers
+  - .\src\plexichat\core\plugins\installed\ai_providers
+- Dir: admin (Count=2)
+  - .\src\plexichat\interfaces\web\routes\admin
+  - .\src\plexichat\interfaces\web\templates\admin
+- Dir: providers (Count=2)
+  - .\plugins\ai_providers\providers
+  - .\src\plexichat\features\ai\providers
+- Dir: webui (Count=2)
+  - .\plugins\ai_providers\webui
+  - .\src\plexichat\features\ai\webui
+
+## Duplicate identifiers across modules (class and function names)
+Note: Common names (e.g., __init__, main, get) may appear frequently and are not necessarily problematic. Focus on domain-specific names with higher duplication.
+- def __init__ (Count=540)
+  - .\src\plexichat\__init__.py
+  - .\src\plexichat\plugins_internal.py
+  - .\src\plexichat\plugins_internal.py
+  - .\src\plexichat\plugins_internal.py
+  - .\src\plexichat\plugins_internal.py
+  - .\src\plexichat\plugins_internal.py
+  - .\src\plexichat\plugins_internal.py
+  - .\src\plexichat\plugins_internal.py
+  - .\src\plexichat\core\__init__.py
+  - .\src\plexichat\core\authentication.py
+  - .\src\plexichat\core\config_manager.py
+  - .\src\plexichat\core\config.py
+  - .\src\plexichat\core\config.py
+  - .\src\plexichat\core\mfa_store.py
+  - .\src\plexichat\core\orchestrator.py
+  - .\src\plexichat\core\orchestrator.py
+  - .\src\plexichat\core\orchestrator.py
+  - .\src\plexichat\core\rate_limit_config.py
+  - .\src\plexichat\core\search_service.py
+  - .\src\plexichat\core\search_service.py
+  - .\src\plexichat\core\search_service.py
+  - .\src\plexichat\core\search_service.py
+  - .\src\plexichat\core\utils.py
+  - .\src\plexichat\core\utils.py
+  - .\src\plexichat\core\auth\exceptions_auth.py
+  - .\src\plexichat\core\auth\exceptions_auth.py
+  - .\src\plexichat\core\auth\exceptions_auth.py
+  - .\src\plexichat\core\auth\exceptions_auth.py
+  - .\src\plexichat\core\auth\exceptions_auth.py
+  - .\src\plexichat\core\auth\exceptions_auth.py
+  - .\src\plexichat\core\auth\exceptions_auth.py
+  - .\src\plexichat\core\auth\exceptions_auth.py
+  - .\src\plexichat\core\auth\exceptions_auth.py
+  - .\src\plexichat\core\auth\exceptions_auth.py
+  - .\src\plexichat\core\auth\exceptions_auth.py
+  - .\src\plexichat\core\auth\fastapi_adapter.py
+  - .\src\plexichat\core\auth\config\auth_config.py
+  - .\src\plexichat\core\auth\services\audit_service.py
+  - .\src\plexichat\core\auth\services\authentication_service.py
+  - .\src\plexichat\core\auth\services\authorization_service.py
+  - .\src\plexichat\core\auth\services\mfa_service.py
+  - .\src\plexichat\core\auth\services\service_container.py
+  - .\src\plexichat\core\auth\services\session_service.py
+  - .\src\plexichat\core\auth\services\token_service.py
+  - .\src\plexichat\core\auth\services\user_service.py
+  - .\src\plexichat\core\cache\manager.py
+  - .\src\plexichat\core\caching\__init__.py
+  - .\src\plexichat\core\caching\__init__.py
+  - .\src\plexichat\core\caching\__init__.py
+  - .\src\plexichat\core\caching\cache_manager.py
+  - .\src\plexichat\core\caching\cache_manager.py
+  - .\src\plexichat\core\caching\cache_manager.py
+  - .\src\plexichat\core\caching\unified_cache_integration.py
+  - .\src\plexichat\core\clustering\__init__.py
+  - .\src\plexichat\core\clustering\__init__.py
+  - .\src\plexichat\core\clustering\cluster_manager.py
+  - .\src\plexichat\core\clustering\node_manager.py
+  - .\src\plexichat\core\clustering\node_manager.py
+  - .\src\plexichat\core\clustering\node_manager.py
+  - .\src\plexichat\core\clustering\node_manager.py
+  - .\src\plexichat\core\database\connection.py
+  - .\src\plexichat\core\database\connection.py
+  - .\src\plexichat\core\database\manager.py
+  - .\src\plexichat\core\database\manager.py
+  - .\src\plexichat\core\database\migrations.py
+  - .\src\plexichat\core\database\migrations.py
+  - .\src\plexichat\core\database\optimizations.py
+  - .\src\plexichat\core\database\migrations\base.py
+  - .\src\plexichat\core\errors\__init__.py
+  - .\src\plexichat\core\errors\__init__.py
+  - .\src\plexichat\core\errors\__init__.py
+  - .\src\plexichat\core\errors\__init__.py
+  - .\src\plexichat\core\errors\__init__.py
+  - .\src\plexichat\core\errors\__init__.py
+  - .\src\plexichat\core\errors\__init__.py
+  - .\src\plexichat\core\errors\__init__.py
+  - .\src\plexichat\core\errors\__init__.py
+  - .\src\plexichat\core\errors\__init__.py
+  - .\src\plexichat\core\errors\__init__.py
+  - .\src\plexichat\core\errors\__init__.py
+  - .\src\plexichat\core\errors\__init__.py
+  - .\src\plexichat\core\errors\__init__.py
+  - .\src\plexichat\core\errors\__init__.py
+  - .\src\plexichat\core\errors\__init__.py
+  - .\src\plexichat\core\errors\base.py
+  - .\src\plexichat\core\errors\base.py
+  - .\src\plexichat\core\errors\base.py
+  - .\src\plexichat\core\errors\base.py
+  - .\src\plexichat\core\errors\base.py
+  - .\src\plexichat\core\errors\base.py
+  - .\src\plexichat\core\errors\base.py
+  - .\src\plexichat\core\errors\base.py
+  - .\src\plexichat\core\errors\base.py
+  - .\src\plexichat\core\errors\base.py
+  - .\src\plexichat\core\errors\base.py
+  - .\src\plexichat\core\errors\base.py
+  - .\src\plexichat\core\errors\base.py
+  - .\src\plexichat\core\errors\circuit_breaker.py
+  - .\src\plexichat\core\errors\circuit_breaker.py
+  - .\src\plexichat\core\errors\circuit_breaker.py
+  - .\src\plexichat\core\errors\error_manager.py
+  - .\src\plexichat\core\errors\exceptions.py
+  - .\src\plexichat\core\events\__init__.py
+  - .\src\plexichat\core\events\__init__.py
+  - .\src\plexichat\core\events\__init__.py
+  - .\src\plexichat\core\events\event_manager.py
+  - .\src\plexichat\core\files\__init__.py
+  - .\src\plexichat\core\files\__init__.py
+  - .\src\plexichat\core\files\enhanced_file_sharing.py
+  - .\src\plexichat\core\files\file_manager.py
+  - .\src\plexichat\core\logging\unified_logger.py
+  - .\src\plexichat\core\logging\unified_logger.py
+  - .\src\plexichat\core\messaging\__init__.py
+  - .\src\plexichat\core\messaging\__init__.py
+  - .\src\plexichat\core\messaging\__init__.py
+  - .\src\plexichat\core\messaging\__init__.py
+  - .\src\plexichat\core\messaging\__init__.py
+  - .\src\plexichat\core\messaging\__init__.py
+  - .\src\plexichat\core\messaging\__init__.py
+  - .\src\plexichat\core\messaging\__init__.py
+  - .\src\plexichat\core\messaging\__init__.py
+  - .\src\plexichat\core\messaging\message_formatter.py
+  - .\src\plexichat\core\messaging\message_processor.py
+  - .\src\plexichat\core\messaging\unified_messaging_system.py
+  - .\src\plexichat\core\messaging\unified_messaging_system.py
+  - .\src\plexichat\core\messaging\unified_messaging_system.py
+  - .\src\plexichat\core\messaging\unified_messaging_system.py
+  - .\src\plexichat\core\messaging\unified_messaging_system.py
+  - .\src\plexichat\core\middleware\integrated_protection_system.py
+  - .\src\plexichat\core\middleware\ip_blacklist_middleware.py
+  - .\src\plexichat\core\middleware\middleware_manager.py
+  - .\src\plexichat\core\middleware\middleware_manager.py
+  - .\src\plexichat\core\middleware\middleware_manager.py
+  - .\src\plexichat\core\middleware\middleware_manager.py
+  - .\src\plexichat\core\middleware\middleware_manager.py
+  - .\src\plexichat\core\middleware\middleware_manager.py
+  - .\src\plexichat\core\middleware\middleware_manager.py
+  - .\src\plexichat\core\middleware\rate_limiting.py
+  - .\src\plexichat\core\middleware\rate_limiting.py
+  - .\src\plexichat\core\middleware\rate_limiting.py
+  - .\src\plexichat\core\middleware\rate_limiting.py
+  - .\src\plexichat\core\middleware\rate_limiting\engine.py
+  - .\src\plexichat\core\middleware\rate_limiting\engine.py
+  - .\src\plexichat\core\middleware\rate_limiting\engine.py
+  - .\src\plexichat\core\middleware\rate_limiting\engine.py
+  - .\src\plexichat\core\middleware\rate_limiting\engine.py
+  - .\src\plexichat\core\middleware\rate_limiting\engine.py
+  - .\src\plexichat\core\monitoring\__init__.py
+  - .\src\plexichat\core\monitoring\__init__.py
+  - .\src\plexichat\core\monitoring\__init__.py
+  - .\src\plexichat\core\monitoring\base_monitor.py
+  - .\src\plexichat\core\monitoring\metrics_collector.py
+  - .\src\plexichat\core\monitoring\resource_tracker.py
+  - .\src\plexichat\core\monitoring\unified_monitoring_system.py
+  - .\src\plexichat\core\notifications\__init__.py
+  - .\src\plexichat\core\notifications\__init__.py
+  - .\src\plexichat\core\notifications\email_service.py
+  - .\src\plexichat\core\notifications\notification_manager.py
+  - .\src\plexichat\core\notifications\push_service.py
+  - .\src\plexichat\core\performance\auth_cache.py
+  - .\src\plexichat\core\performance\cache_cluster_manager.py
+  - .\src\plexichat\core\performance\distributed_cache.py
+  - .\src\plexichat\core\performance\edge_computing_manager.py
+  - .\src\plexichat\core\performance\edge_computing_manager.py
+  - .\src\plexichat\core\performance\edge_computing_manager.py
+  - .\src\plexichat\core\performance\edge_computing_manager.py
+  - .\src\plexichat\core\performance\latency_optimizer.py
+  - .\src\plexichat\core\performance\latency_optimizer.py
+  - .\src\plexichat\core\performance\latency_optimizer.py
+  - .\src\plexichat\core\performance\latency_optimizer.py
+  - .\src\plexichat\core\performance\latency_optimizer.py
+  - .\src\plexichat\core\performance\memory_manager.py
+  - .\src\plexichat\core\performance\memory_manager.py
+  - .\src\plexichat\core\performance\memory_manager.py
+  - .\src\plexichat\core\performance\message_queue_manager.py
+  - .\src\plexichat\core\performance\microsecond_optimizer.py
+  - .\src\plexichat\core\performance\microsecond_optimizer.py
+  - .\src\plexichat\core\performance\microsecond_optimizer.py
+  - .\src\plexichat\core\performance\microsecond_optimizer.py
+  - .\src\plexichat\core\performance\microsecond_optimizer.py
+  - .\src\plexichat\core\performance\multi_tier_cache_manager.py
+  - .\src\plexichat\core\performance\multi_tier_cache_manager.py
+  - .\src\plexichat\core\performance\multi_tier_cache_manager.py
+  - .\src\plexichat\core\performance\multi_tier_cache_manager.py
+  - .\src\plexichat\core\performance\network_optimizer.py
+  - .\src\plexichat\core\performance\resource_manager.py
+  - .\src\plexichat\core\performance\resource_manager.py
+  - .\src\plexichat\core\performance\resource_manager.py
+  - .\src\plexichat\core\performance\scalability_manager.py
+  - .\src\plexichat\core\performance\scalability_manager.py
+  - .\src\plexichat\core\performance\scalability_manager.py
+  - .\src\plexichat\core\performance\scalability_manager.py
+  - .\src\plexichat\core\plugins\__init__.py
+  - .\src\plexichat\core\plugins\__init__.py
+  - .\src\plexichat\core\plugins\manager.py
+  - .\src\plexichat\core\plugins\manager.py
+  - .\src\plexichat\core\plugins\manager.py
+  - .\src\plexichat\core\plugins\manager.py
+  - .\src\plexichat\core\plugins\manager.py
+  - .\src\plexichat\core\plugins\manager.py
+  - .\src\plexichat\core\plugins\manager.py
+  - .\src\plexichat\core\plugins\manager.py
+  - .\src\plexichat\core\plugins\plugin_manager.py
+  - .\src\plexichat\core\plugins\plugin_manager.py
+  - .\src\plexichat\core\plugins\plugin_manager.py
+  - .\src\plexichat\core\plugins\plugin_manager.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+  - .\src\plexichat\core\plugins\sdk.py
+  - .\src\plexichat\core\plugins\sdk.py
+  - .\src\plexichat\core\plugins\sdk.py
+  - .\src\plexichat\core\plugins\sdk.py
+  - .\src\plexichat\core\plugins\security_manager.py
+  - .\src\plexichat\core\plugins\security_manager.py
+  - .\src\plexichat\core\plugins\security_manager.py
+  - .\src\plexichat\core\plugins\security_manager.py
+  - .\src\plexichat\core\plugins\security_manager.py
+  - .\src\plexichat\core\plugins\security_manager.py
+  - .\src\plexichat\core\plugins\security_manager.py
+  - .\src\plexichat\core\plugins\installed\ai_providers\main.py
+  - .\src\plexichat\core\plugins\installed\ai_providers\main.py
+  - .\src\plexichat\core\plugins\installed\ai_providers\main.py
+  - .\src\plexichat\core\plugins\installed\ai_providers\main.py
+  - .\src\plexichat\core\plugins\installed\ai_providers\main.py
+  - .\src\plexichat\core\plugins\installed\ai_providers\main.py
+  - .\src\plexichat\core\plugins\installed\ai_providers\main.py
+  - .\src\plexichat\core\plugins\installed\ai_providers\main.py
+  - .\src\plexichat\core\plugins\installed\ai_providers\main.py
+  - .\src\plexichat\core\plugins\installed\ai_providers\main.py
+  - .\src\plexichat\core\plugins\installed\ai_providers\main.py
+  - .\src\plexichat\core\plugins\installed\echo_plugin\main.py
+  - .\src\plexichat\core\plugins\installed\hello_world_plugin\main.py
+  - .\src\plexichat\core\plugins\installed\random_quote_plugin\main.py
+  - .\src\plexichat\core\plugins\installed\testing_plugin\main.py
+  - .\src\plexichat\core\plugins\installed\testing_plugin\main.py
+  - .\src\plexichat\core\plugins\installed\testing_plugin\main.py
+  - .\src\plexichat\core\plugins\installed\testing_plugin\main.py
+  - .\src\plexichat\core\scheduler\__init__.py
+  - .\src\plexichat\core\scheduler\__init__.py
+  - .\src\plexichat\core\scheduler\task_scheduler.py
+  - .\src\plexichat\core\security\__init__.py
+  - .\src\plexichat\core\security\__init__.py
+  - .\src\plexichat\core\security\auth_integration.py
+  - .\src\plexichat\core\security\comprehensive_security_manager.py
+  - .\src\plexichat\core\security\comprehensive_security_manager.py
+  - .\src\plexichat\core\security\content_validation.py
+  - .\src\plexichat\core\security\db_security.py
+  - .\src\plexichat\core\security\ddos_protection.py
+  - .\src\plexichat\core\security\ddos_protection.py
+  - .\src\plexichat\core\security\ddos_protection.py
+  - .\src\plexichat\core\security\ddos_protection.py
+  - .\src\plexichat\core\security\ddos_protection.py
+  - .\src\plexichat\core\security\key_vault.py
+  - .\src\plexichat\core\security\key_vault.py
+  - .\src\plexichat\core\security\monitoring.py
+  - .\src\plexichat\core\security\oram.py
+  - .\src\plexichat\core\security\oram.py
+  - .\src\plexichat\core\security\oram.py
+  - .\src\plexichat\core\security\plugin_hooks.py
+  - .\src\plexichat\core\security\quantum_encryption.py
+  - .\src\plexichat\core\security\quantum_encryption.py
+  - .\src\plexichat\core\security\quantum_encryption.py
+  - .\src\plexichat\core\security\quantum_encryption.py
+  - .\src\plexichat\core\security\quantum_encryption.py
+  - .\src\plexichat\core\security\quantum_encryption.py
+  - .\src\plexichat\core\security\security_manager.py
+  - .\src\plexichat\core\security\security_manager.py
+  - .\src\plexichat\core\security\security_manager.py
+  - .\src\plexichat\core\security\security_manager.py
+  - .\src\plexichat\core\security\unified_audit_system.py
+  - .\src\plexichat\core\security\unified_audit_system.py
+  - .\src\plexichat\core\security\unified_audit_system.py
+  - .\src\plexichat\core\security\unified_hsm_manager.py
+  - .\src\plexichat\core\security\unified_hsm_manager.py
+  - .\src\plexichat\core\security\unified_security_module.py
+  - .\src\plexichat\core\security\waf_middleware.py
+  - .\src\plexichat\core\security\waf_middleware.py
+  - .\src\plexichat\core\security\waf_middleware.py
+  - .\src\plexichat\core\security\zero_trust.py
+  - .\src\plexichat\core\security\zero_trust.py
+  - .\src\plexichat\core\services\__init__.py
+  - .\src\plexichat\core\services\chat_export_service.py
+  - .\src\plexichat\core\services\core_services.py
+  - .\src\plexichat\core\services\core_services.py
+  - .\src\plexichat\core\services\core_services.py
+  - .\src\plexichat\core\services\core_services.py
+  - .\src\plexichat\core\services\core_services.py
+  - .\src\plexichat\core\services\keyboard_shortcuts_service.py
+  - .\src\plexichat\core\services\message_threads_service.py
+  - .\src\plexichat\core\services\optimized_websocket_service.py
+  - .\src\plexichat\core\services\typing_cache_service.py
+  - .\src\plexichat\core\services\typing_cleanup_service.py
+  - .\src\plexichat\core\services\typing_service.py
+  - .\src\plexichat\core\services\user_status_service.py
+  - .\src\plexichat\core\testing\comprehensive_endpoint_tester.py
+  - .\src\plexichat\core\testing\comprehensive_endpoint_tester.py
+  - .\src\plexichat\core\threading\thread_manager.py
+  - .\src\plexichat\core\threading\thread_manager.py
+  - .\src\plexichat\core\utils\fallbacks.py
+  - .\src\plexichat\core\versioning\api_version_manager.py
+  - .\src\plexichat\core\versioning\api_version_manager.py
+  - .\src\plexichat\core\versioning\api_version_manager.py
+  - .\src\plexichat\core\versioning\canary_health_monitor.py
+  - .\src\plexichat\core\versioning\canary_node_selector.py
+  - .\src\plexichat\core\versioning\changelog_manager.py
+  - .\src\plexichat\core\versioning\changelog_manager.py
+  - .\src\plexichat\core\versioning\simple_update_system.py
+  - .\src\plexichat\core\websocket\__init__.py
+  - .\src\plexichat\core\websocket\__init__.py
+  - .\src\plexichat\core\websocket\websocket_manager.py
+  - .\src\plexichat\features\__init__.py
+  - .\src\plexichat\features\ai\ai_coordinator.py
+  - .\src\plexichat\features\ai\cli\ai_cli.py
+  - .\src\plexichat\features\ai\core\ai_abstraction_layer.py
+  - .\src\plexichat\features\ai\core\ai_abstraction_layer.py
+  - .\src\plexichat\features\ai\features\ai_powered_features_service.py
+  - .\src\plexichat\features\ai\features\ai_powered_features_service.py
+  - .\src\plexichat\features\ai\moderation\feedback_collector.py
+  - .\src\plexichat\features\ai\moderation\feedback_data_service.py
+  - .\src\plexichat\features\ai\moderation\moderation_data_service.py
+  - .\src\plexichat\features\ai\moderation\moderation_engine.py
+  - .\src\plexichat\features\ai\moderation\training_data_service.py
+  - .\src\plexichat\features\ai\monitoring\analytics_data_service.py
+  - .\src\plexichat\features\ai\providers\anthropic_provider.py
+  - .\src\plexichat\features\ai\providers\base_provider.py
+  - .\src\plexichat\features\ai\providers\ollama_provider.py
+  - .\src\plexichat\features\ai\providers\openai_provider.py
+  - .\src\plexichat\features\backup\backup_engine.py
+  - .\src\plexichat\features\backup\backup_manager.py
+  - .\src\plexichat\features\backup\backup_manager.py
+  - .\src\plexichat\features\backup\backup_repository.py
+  - .\src\plexichat\features\backup\encryption_service.py
+  - .\src\plexichat\features\backup\recovery_service.py
+  - .\src\plexichat\features\backup\storage_manager.py
+  - .\src\plexichat\features\backup\version_manager.py
+  - .\src\plexichat\infrastructure\__init__.py
+  - .\src\plexichat\infrastructure\utils.py
+  - .\src\plexichat\infrastructure\utils.py
+  - .\src\plexichat\infrastructure\utils.py
+  - .\src\plexichat\infrastructure\analytics\analytics_service.py
+  - .\src\plexichat\infrastructure\analytics\engine.py
+  - .\src\plexichat\infrastructure\containerization\orchestrator.py
+  - .\src\plexichat\infrastructure\debugging\comprehensive_debug_manager.py
+  - .\src\plexichat\infrastructure\debugging\debug_manager.py
+  - .\src\plexichat\infrastructure\debugging\debug_manager.py
+  - .\src\plexichat\infrastructure\debugging\plugin_debug_integration.py
+  - .\src\plexichat\infrastructure\deployment\deployment_manager.py
+  - .\src\plexichat\infrastructure\deployment\deployment_manager.py
+  - .\src\plexichat\infrastructure\deployment\deployment_manager.py
+  - .\src\plexichat\infrastructure\deployment\deployment_manager.py
+  - .\src\plexichat\infrastructure\events\bus.py
+  - .\src\plexichat\infrastructure\messaging\async_task_queue.py
+  - .\src\plexichat\infrastructure\messaging\async_task_queue.py
+  - .\src\plexichat\infrastructure\microservices\decomposition.py
+  - .\src\plexichat\infrastructure\microservices\decomposition.py
+  - .\src\plexichat\infrastructure\microservices\decomposition.py
+  - .\src\plexichat\infrastructure\microservices\decomposition.py
+  - .\src\plexichat\infrastructure\microservices\service_registry.py
+  - .\src\plexichat\infrastructure\modules\__init__.py
+  - .\src\plexichat\infrastructure\modules\__init__.py
+  - .\src\plexichat\infrastructure\modules\interfaces.py
+  - .\src\plexichat\infrastructure\scalability\coordinator.py
+  - .\src\plexichat\infrastructure\scalability\coordinator.py
+  - .\src\plexichat\infrastructure\services\__init__.py
+  - .\src\plexichat\infrastructure\services\advanced_ddos_service.py
+  - .\src\plexichat\infrastructure\services\advanced_ddos_service.py
+  - .\src\plexichat\infrastructure\services\advanced_messaging_service.py
+  - .\src\plexichat\infrastructure\services\advanced_recovery_system.py
+  - .\src\plexichat\infrastructure\services\background_tasks.py
+  - .\src\plexichat\infrastructure\services\background_tasks.py
+  - .\src\plexichat\infrastructure\services\backup_status_monitor.py
+  - .\src\plexichat\infrastructure\services\base_service.py
+  - .\src\plexichat\infrastructure\services\base_service.py
+  - .\src\plexichat\infrastructure\services\calling_service.py
+  - .\src\plexichat\infrastructure\services\calling_service.py
+  - .\src\plexichat\infrastructure\services\calling_service.py
+  - .\src\plexichat\infrastructure\services\calling_service.py
+  - .\src\plexichat\infrastructure\services\client_settings_service.py
+  - .\src\plexichat\infrastructure\services\client_settings_service.py
+  - .\src\plexichat\infrastructure\services\client_settings_service.py
+  - .\src\plexichat\infrastructure\services\client_settings_service.py
+  - .\src\plexichat\infrastructure\services\collaboration_service.py
+  - .\src\plexichat\infrastructure\services\collaboration_service.py
+  - .\src\plexichat\infrastructure\services\communication_service.py
+  - .\src\plexichat\infrastructure\services\communication_service.py
+  - .\src\plexichat\infrastructure\services\etl_pipeline_service.py
+  - .\src\plexichat\infrastructure\services\etl_pipeline_service.py
+  - .\src\plexichat\infrastructure\services\file_permissions.py
+  - .\src\plexichat\infrastructure\services\health.py
+  - .\src\plexichat\infrastructure\services\intelligent_shard_distribution.py
+  - .\src\plexichat\infrastructure\services\intelligent_shard_distribution.py
+  - .\src\plexichat\infrastructure\services\log_management.py
+  - .\src\plexichat\infrastructure\services\log_management.py
+  - .\src\plexichat\infrastructure\services\message_service.py
+  - .\src\plexichat\infrastructure\services\message_service.py
+  - .\src\plexichat\infrastructure\services\message_service.py
+  - .\src\plexichat\infrastructure\services\missing_modules.py
+  - .\src\plexichat\infrastructure\services\missing_modules.py
+  - .\src\plexichat\infrastructure\services\missing_modules.py
+  - .\src\plexichat\infrastructure\services\missing_modules.py
+  - .\src\plexichat\infrastructure\services\missing_modules.py
+  - .\src\plexichat\infrastructure\services\missing_modules.py
+  - .\src\plexichat\infrastructure\services\missing_modules.py
+  - .\src\plexichat\infrastructure\services\missing_modules.py
+  - .\src\plexichat\infrastructure\services\missing_modules.py
+  - .\src\plexichat\infrastructure\services\missing_modules.py
+  - .\src\plexichat\infrastructure\services\missing_modules.py
+  - .\src\plexichat\infrastructure\services\moderation_service.py
+  - .\src\plexichat\infrastructure\services\p2p_messaging.py
+  - .\src\plexichat\infrastructure\services\p2p_messaging.py
+  - .\src\plexichat\infrastructure\services\performance_service.py
+  - .\src\plexichat\infrastructure\services\performance_service.py
+  - .\src\plexichat\infrastructure\services\plugin_marketplace_service.py
+  - .\src\plexichat\infrastructure\services\plugin_oauth_provider.py
+  - .\src\plexichat\infrastructure\services\theming_service.py
+  - .\src\plexichat\infrastructure\services\unified_security_service.py
+  - .\src\plexichat\infrastructure\services\user_management.py
+  - .\src\plexichat\infrastructure\services\modules\metrics_service.py
+  - .\src\plexichat\infrastructure\utils\helpers_optimized.py
+  - .\src\plexichat\infrastructure\utils\helpers.py
+  - .\src\plexichat\infrastructure\utils\ip_security.py
+  - .\src\plexichat\infrastructure\utils\performance.py
+  - .\src\plexichat\infrastructure\utils\performance.py
+  - .\src\plexichat\infrastructure\utils\performance.py
+  - .\src\plexichat\infrastructure\utils\scheduling.py
+  - .\src\plexichat\infrastructure\utils\scheduling.py
+  - .\src\plexichat\infrastructure\utils\security.py
+  - .\src\plexichat\infrastructure\utils\shutdown.py
+  - .\src\plexichat\infrastructure\utils\snowflake.py
+  - .\src\plexichat\infrastructure\utils\utilities.py
+  - .\src\plexichat\infrastructure\utils\validation.py
+  - .\src\plexichat\integration\master_coordinator.py
+  - .\src\plexichat\interfaces\__init__.py
+  - .\src\plexichat\interfaces\api\v1\rate_limits.py
+  - .\src\plexichat\interfaces\api\v1\realtime.py
+  - .\src\plexichat\interfaces\cli\advanced_cli.py
+  - .\src\plexichat\interfaces\cli\console_manager.py
+  - .\src\plexichat\interfaces\cli\interactive_dashboard.py
+  - .\src\plexichat\interfaces\cli\unified_cli_default.py
+  - .\src\plexichat\interfaces\cli\commands\ai.py
+  - .\src\plexichat\interfaces\cli\commands\ai.py
+  - .\src\plexichat\interfaces\cli\commands\antivirus.py
+  - .\src\plexichat\interfaces\cli\commands\automation.py
+  - .\src\plexichat\interfaces\cli\commands\backup.py
+  - .\src\plexichat\interfaces\cli\commands\cluster.py
+  - .\src\plexichat\interfaces\cli\commands\logs.py
+  - .\src\plexichat\interfaces\cli\commands\plugins.py
+  - .\src\plexichat\interfaces\cli\commands\plugins.py
+  - .\src\plexichat\interfaces\cli\commands\plugins.py
+  - .\src\plexichat\interfaces\cli\commands\security.py
+  - .\src\plexichat\interfaces\cli\commands\updates.py
+  - .\src\plexichat\interfaces\cli\ultimate\cli_coordinator.py
+  - .\src\plexichat\interfaces\web\components\advanced_database_wizard.py
+  - .\src\plexichat\interfaces\web\components\thread_component.py
+  - .\src\plexichat\interfaces\web\core\advanced_router.py
+  - .\src\plexichat\interfaces\web\core\config_manager.py
+  - .\src\plexichat\interfaces\web\core\mfa_manager.py
+  - .\src\plexichat\interfaces\web\middleware\comprehensive_security_middleware.py
+  - .\src\plexichat\interfaces\web\middleware\comprehensive_security_middleware.py
+  - .\src\plexichat\interfaces\web\middleware\comprehensive_security_middleware.py
+  - .\src\plexichat\interfaces\web\middleware\comprehensive_security_middleware.py
+  - .\src\plexichat\interfaces\web\middleware\security_middleware.py
+  - .\src\plexichat\interfaces\web\routers\admin.py
+  - .\src\plexichat\interfaces\web\routers\cluster.py
+  - .\src\plexichat\interfaces\web\routers\database_setup.py
+  - .\src\plexichat\interfaces\web\routers\files.py
+  - .\src\plexichat\interfaces\web\routers\files.py
+  - .\src\plexichat\interfaces\web\routers\login.py
+  - .\src\plexichat\interfaces\web\routers\messages.py
+  - .\src\plexichat\interfaces\web\routers\messaging_websocket_router.py
+  - .\src\plexichat\interfaces\web\routers\plugins.py
+  - .\src\plexichat\interfaces\web\routers\plugins.py
+  - .\src\plexichat\interfaces\web\routers\rate_limiting_admin.py
+  - .\src\plexichat\interfaces\web\routers\status.py
+  - .\src\plexichat\interfaces\web\routers\system.py
+  - .\src\plexichat\interfaces\web\routers\updates.py
+  - .\src\plexichat\interfaces\web\routers\users.py
+  - .\src\plexichat\interfaces\web\routers\users.py
+  - .\src\plexichat\interfaces\web\routers\web.py
+  - .\src\plexichat\interfaces\web\routers\webhooks.py
+  - .\src\plexichat\interfaces\web\routers\websocket.py
+  - .\src\plexichat\interfaces\web\routers\websocket.py
+  - .\src\plexichat\interfaces\web\routes\admin\zero_knowledge_security_routes.py
+  - .\src\plexichat\interfaces\websocket\websocket_manager.py
+  - .\src\plexichat\plugins\echo\main.py
+  - .\src\plexichat\shared\exceptions.py
+  - .\core\errors\base.py
+  - .\core\errors\error_manager.py
+  - .\core\errors\exceptions.py
+  - .\core\errors\exceptions.py
+  - .\core\errors\exceptions.py
+  - .\core\errors\exceptions.py
+  - .\core\messaging\base.py
+  - .\core\messaging\message_processor.py
+  - .\core\messaging\unified_messaging_system.py
+  - .\core\notifications\base_sender.py
+  - .\core\notifications\email_service.py
+  - .\core\notifications\notification_manager.py
+  - .\core\notifications\push_service.py
+  - .\core\notifications\test_integration.py
+  - .\core\utils\fallbacks.py
+  - .\core\utils\fallbacks.py
+  - .\core\utils\fallbacks.py
+  - .\core\utils\fallbacks.py
+  - .\core\utils\fallbacks.py
+  - .\core\utils\fallbacks.py
+  - .\core\utils\fallbacks.py
+  - .\core\utils\fallbacks.py
+  - .\core\utils\fallbacks.py
+  - .\core\utils\fallbacks.py
+  - .\core\utils\fallbacks.py
+  - .\core\utils\fallbacks.py
+  - .\core\utils\fallbacks.py
+  - .\core\utils\fallbacks.py
+  - .\core\utils\fallbacks.py
+  - .\core\utils\fallbacks.py
+  - .\core\utils\fallbacks.py
+  - .\core\utils\fallbacks.py
+  - .\core\utils\fallbacks.py
+  - .\core\utils\fallbacks.py
+  - .\core\utils\fallbacks.py
+  - .\core\utils\fallbacks.py
+  - .\core\utils\fallbacks.py
+  - .\core\utils\fallbacks.py
+  - .\core\utils\fallbacks.py
+  - .\core\utils\fallbacks.py
+  - .\core\utils\fallbacks.py
+- def decorator (Count=76)
+  - .\src\plexichat\core\auth\fastapi_adapter.py
+  - .\src\plexichat\core\caching\__init__.py
+  - .\src\plexichat\core\caching\__init__.py
+  - .\src\plexichat\core\caching\cache_manager.py
+  - .\src\plexichat\core\caching\cache_manager.py
+  - .\src\plexichat\core\caching\cache_manager.py
+  - .\src\plexichat\core\caching\cache_manager.py
+  - .\src\plexichat\core\caching\unified_cache_integration.py
+  - .\src\plexichat\core\errors\circuit_breaker.py
+  - .\src\plexichat\core\events\__init__.py
+  - .\src\plexichat\core\events\event_manager.py
+  - .\src\plexichat\core\events\event_manager.py
+  - .\src\plexichat\core\performance\latency_optimizer.py
+  - .\src\plexichat\core\security\security_decorators.py
+  - .\src\plexichat\core\security\security_decorators.py
+  - .\src\plexichat\core\security\security_decorators.py
+  - .\src\plexichat\core\security\security_decorators.py
+  - .\src\plexichat\core\security\security_decorators.py
+  - .\src\plexichat\core\security\security_decorators.py
+  - .\src\plexichat\core\security\security_decorators.py
+  - .\src\plexichat\core\security\security_decorators.py
+  - .\src\plexichat\core\security\security_decorators.py
+  - .\src\plexichat\core\security\security_decorators.py
+  - .\src\plexichat\core\security\security_decorators.py
+  - .\src\plexichat\core\security\security_decorators.py
+  - .\src\plexichat\core\threading\thread_manager.py
+  - .\src\plexichat\core\versioning\api_version_manager.py
+  - .\src\plexichat\infrastructure\utils.py
+  - .\src\plexichat\infrastructure\utils.py
+  - .\src\plexichat\infrastructure\debugging\comprehensive_debug_manager.py
+  - .\src\plexichat\infrastructure\debugging\debug_manager.py
+  - .\src\plexichat\infrastructure\debugging\debug_manager.py
+  - .\src\plexichat\infrastructure\debugging\plugin_debug_integration.py
+  - .\src\plexichat\infrastructure\debugging\plugin_debug_integration.py
+  - .\src\plexichat\infrastructure\debugging\plugin_debug_integration.py
+  - .\src\plexichat\infrastructure\services\client_settings_service.py
+  - .\src\plexichat\infrastructure\services\client_settings_service.py
+  - .\src\plexichat\infrastructure\utils\common_utils.py
+  - .\src\plexichat\infrastructure\utils\helpers_optimized.py
+  - .\src\plexichat\infrastructure\utils\helpers_optimized.py
+  - .\src\plexichat\infrastructure\utils\helpers_optimized.py
+  - .\src\plexichat\infrastructure\utils\helpers.py
+  - .\src\plexichat\infrastructure\utils\helpers.py
+  - .\src\plexichat\infrastructure\utils\helpers.py
+  - .\src\plexichat\infrastructure\utils\performance.py
+  - .\src\plexichat\infrastructure\utils\performance.py
+  - .\src\plexichat\infrastructure\utils\performance.py
+  - .\src\plexichat\infrastructure\utils\performance.py
+  - .\src\plexichat\infrastructure\utils\scheduling.py
+  - .\src\plexichat\infrastructure\utils\utilities.py
+  - .\src\plexichat\infrastructure\utils\utilities.py
+  - .\src\plexichat\infrastructure\utils\validation.py
+  - .\src\plexichat\interfaces\web\routers\admin.py
+  - .\src\plexichat\interfaces\web\routers\admin.py
+  - .\src\plexichat\interfaces\web\routers\admin.py
+  - .\src\plexichat\interfaces\web\routers\admin.py
+  - .\src\plexichat\interfaces\web\routers\messages.py
+  - .\src\plexichat\interfaces\web\routers\rate_limiting_admin.py
+  - .\src\plexichat\interfaces\web\routers\rate_limiting_admin.py
+  - .\src\plexichat\interfaces\web\routers\rate_limiting_admin.py
+  - .\src\plexichat\interfaces\web\routers\secure_api_example.py
+  - .\src\plexichat\interfaces\web\routers\secure_api_example.py
+  - .\src\plexichat\interfaces\web\routers\secure_api_example.py
+  - .\src\plexichat\interfaces\web\routers\secure_api_example.py
+  - .\src\plexichat\interfaces\web\routers\secure_api_example.py
+  - .\src\plexichat\interfaces\web\routers\secure_api_example.py
+  - .\src\plexichat\interfaces\web\routers\secure_api_example.py
+  - .\src\plexichat\interfaces\web\routers\users.py
+  - .\src\plexichat\interfaces\web\routers\users.py
+  - .\src\plexichat\interfaces\web\routers\users.py
+  - .\src\plexichat\interfaces\web\routers\users.py
+  - .\src\plexichat\interfaces\web\routers\users.py
+  - .\src\plexichat\interfaces\web\routes\admin\zero_knowledge_security_routes.py
+  - .\src\plexichat\interfaces\web\routes\admin\zero_knowledge_security_routes.py
+  - .\src\plexichat\interfaces\web\routes\admin\zero_knowledge_security_routes.py
+  - .\src\plexichat\interfaces\web\routes\admin\zero_knowledge_security_routes.py
+- def __post_init__ (Count=30)
+  - .\src\plexichat\core\auth\config\auth_config.py
+  - .\src\plexichat\core\auth\config\oauth_config.py
+  - .\src\plexichat\core\auth\config\oauth_config.py
+  - .\src\plexichat\core\auth\config\password_policy_config.py
+  - .\src\plexichat\core\auth\config\security_config.py
+  - .\src\plexichat\core\auth\config\security_config.py
+  - .\src\plexichat\core\clustering\__init__.py
+  - .\src\plexichat\core\errors\circuit_breaker.py
+  - .\src\plexichat\core\monitoring\base_monitor.py
+  - .\src\plexichat\core\monitoring\unified_monitoring_system.py
+  - .\src\plexichat\core\performance\edge_computing_manager.py
+  - .\src\plexichat\core\performance\message_queue_manager.py
+  - .\src\plexichat\core\performance\microsecond_optimizer.py
+  - .\src\plexichat\core\plugins\sdk.py
+  - .\src\plexichat\core\security\content_validation.py
+  - .\src\plexichat\core\security\db_security.py
+  - .\src\plexichat\core\services\typing_service.py
+  - .\src\plexichat\core\services\user_status_service.py
+  - .\src\plexichat\core\threading\thread_manager.py
+  - .\src\plexichat\features\ai\core\ai_abstraction_layer.py
+  - .\src\plexichat\features\ai\core\ai_abstraction_layer.py
+  - .\src\plexichat\features\ai\moderation\moderation_engine.py
+  - .\src\plexichat\infrastructure\debugging\debug_manager.py
+  - .\src\plexichat\infrastructure\services\p2p_messaging.py
+  - .\src\plexichat\infrastructure\services\theming_service.py
+  - .\src\plexichat\interfaces\web\core\config_manager.py
+  - .\src\plexichat\interfaces\web\core\config_manager.py
+  - .\src\plexichat\interfaces\web\core\config_manager.py
+  - .\src\plexichat\interfaces\web\core\mfa_manager.py
+  - .\core\errors\base.py
+- def to_dict (Count=27)
+  - .\src\plexichat\core\config_manager.py
+  - .\src\plexichat\core\utils.py
+  - .\src\plexichat\core\auth\config\password_policy_config.py
+  - .\src\plexichat\core\database\models.py
+  - .\src\plexichat\core\errors\base.py
+  - .\src\plexichat\core\errors\exceptions.py
+  - .\src\plexichat\core\performance\message_queue_manager.py
+  - .\src\plexichat\core\security\unified_audit_system.py
+  - .\src\plexichat\core\security\unified_hsm_manager.py
+  - .\src\plexichat\core\security\unified_hsm_manager.py
+  - .\src\plexichat\core\security\zero_trust.py
+  - .\src\plexichat\core\services\keyboard_shortcuts_service.py
+  - .\src\plexichat\core\services\typing_service.py
+  - .\src\plexichat\core\versioning\canary_health_monitor.py
+  - .\src\plexichat\core\versioning\changelog_manager.py
+  - .\src\plexichat\core\versioning\changelog_manager.py
+  - .\src\plexichat\features\ai\moderation\feedback_collector.py
+  - .\src\plexichat\features\ai\moderation\moderation_engine.py
+  - .\src\plexichat\infrastructure\analytics\analytics_service.py
+  - .\src\plexichat\infrastructure\analytics\engine.py
+  - .\src\plexichat\infrastructure\analytics\engine.py
+  - .\src\plexichat\infrastructure\messaging\async_task_queue.py
+  - .\src\plexichat\infrastructure\microservices\service_registry.py
+  - .\src\plexichat\infrastructure\services\p2p_messaging.py
+  - .\src\plexichat\shared\models.py
+  - .\src\plexichat\shared\types.py
+  - .\core\errors\base.py
+- def get_stats (Count=18)
+  - .\src\plexichat\core\cache\manager.py
+  - .\src\plexichat\core\caching\cache_manager.py
+  - .\src\plexichat\core\caching\unified_cache_integration.py
+  - .\src\plexichat\core\errors\circuit_breaker.py
+  - .\src\plexichat\core\events\event_manager.py
+  - .\src\plexichat\core\files\file_manager.py
+  - .\src\plexichat\core\middleware\middleware_manager.py
+  - .\src\plexichat\core\middleware\rate_limiting\engine.py
+  - .\src\plexichat\core\notifications\notification_manager.py
+  - .\src\plexichat\core\performance\memory_manager.py
+  - .\src\plexichat\core\plugins\plugin_manager.py
+  - .\src\plexichat\core\scheduler\task_scheduler.py
+  - .\src\plexichat\core\websocket\websocket_manager.py
+  - .\src\plexichat\infrastructure\utils.py
+  - .\src\plexichat\infrastructure\analytics\engine.py
+  - .\src\plexichat\infrastructure\events\bus.py
+  - .\src\plexichat\interfaces\cli\console_manager.py
+  - .\src\plexichat\interfaces\websocket\websocket_manager.py
+- def wrapper (Count=17)
+  - .\src\plexichat\core\utils.py
+  - .\src\plexichat\core\caching\cache_manager.py
+  - .\src\plexichat\core\caching\cache_manager.py
+  - .\src\plexichat\core\threading\thread_manager.py
+  - .\src\plexichat\infrastructure\debugging\comprehensive_debug_manager.py
+  - .\src\plexichat\infrastructure\debugging\debug_manager.py
+  - .\src\plexichat\infrastructure\utils\common_utils.py
+  - .\src\plexichat\infrastructure\utils\helpers_optimized.py
+  - .\src\plexichat\infrastructure\utils\helpers_optimized.py
+  - .\src\plexichat\infrastructure\utils\helpers.py
+  - .\src\plexichat\infrastructure\utils\helpers.py
+  - .\src\plexichat\infrastructure\utils\performance.py
+  - .\src\plexichat\infrastructure\utils\utilities.py
+  - .\src\plexichat\infrastructure\utils\utilities.py
+  - .\src\plexichat\infrastructure\utils\validation.py
+  - .\src\plexichat\interfaces\web\routes\admin\ai_features_routes.py
+  - .\core\utils\fallbacks.py
+- def get (Count=15)
+  - .\src\plexichat\core\config_manager.py
+  - .\src\plexichat\core\config.py
+  - .\src\plexichat\core\orchestrator.py
+  - .\src\plexichat\core\caching\__init__.py
+  - .\src\plexichat\core\caching\__init__.py
+  - .\src\plexichat\core\caching\cache_manager.py
+  - .\src\plexichat\core\caching\cache_manager.py
+  - .\src\plexichat\core\services\__init__.py
+  - .\src\plexichat\core\websocket\websocket_manager.py
+  - .\src\plexichat\infrastructure\utils.py
+  - .\src\plexichat\infrastructure\services\missing_modules.py
+  - .\src\plexichat\infrastructure\utils\utilities.py
+  - .\src\plexichat\interfaces\cli\commands\settings.py
+  - .\src\plexichat\interfaces\cli\commands\settings.py
+  - .\core\utils\fallbacks.py
+- def sanitize_input (Count=14)
+  - .\src\plexichat\core\validation.py
+  - .\src\plexichat\core\security\security_decorators.py
+  - .\src\plexichat\core\security\security_decorators.py
+  - .\src\plexichat\core\security\security_manager.py
+  - .\src\plexichat\infrastructure\utils.py
+  - .\src\plexichat\infrastructure\utils\common_utils.py
+  - .\src\plexichat\infrastructure\utils\security.py
+  - .\src\plexichat\infrastructure\utils\security.py
+  - .\src\plexichat\infrastructure\utils\validation.py
+  - .\src\plexichat\infrastructure\utils\validation.py
+  - .\src\plexichat\interfaces\web\routers\admin.py
+  - .\src\plexichat\interfaces\web\routers\setup.py
+  - .\src\plexichat\interfaces\web\routers\webhooks.py
+  - .\src\plexichat\interfaces\web\routers\websocket.py
+- def set (Count=13)
+  - .\src\plexichat\core\config_manager.py
+  - .\src\plexichat\core\config.py
+  - .\src\plexichat\core\caching\__init__.py
+  - .\src\plexichat\core\caching\__init__.py
+  - .\src\plexichat\core\caching\cache_manager.py
+  - .\src\plexichat\core\caching\cache_manager.py
+  - .\src\plexichat\core\websocket\websocket_manager.py
+  - .\src\plexichat\infrastructure\utils.py
+  - .\src\plexichat\infrastructure\services\missing_modules.py
+  - .\src\plexichat\infrastructure\utils\utilities.py
+  - .\src\plexichat\interfaces\cli\commands\settings.py
+  - .\src\plexichat\interfaces\cli\commands\settings.py
+  - .\core\utils\fallbacks.py
+- def get_plugin_info (Count=12)
+  - .\src\plexichat\plugins_internal.py
+  - .\src\plexichat\core\plugins\__init__.py
+  - .\src\plexichat\core\plugins\__init__.py
+  - .\src\plexichat\core\plugins\manager.py
+  - .\src\plexichat\core\plugins\manager.py
+  - .\src\plexichat\core\plugins\plugin_manager.py
+  - .\src\plexichat\core\plugins\plugin_manager.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+  - .\src\plexichat\core\plugins\installed\testing_plugin\main.py
+  - .\src\plexichat\core\plugins\installed\testing_plugin\main.py
+  - .\src\plexichat\interfaces\cli\commands\plugins.py
+- def get_config (Count=12)
+  - .\src\plexichat\core\config_manager.py
+  - .\src\plexichat\core\config.py
+  - .\src\plexichat\core\rate_limit_config.py
+  - .\src\plexichat\features\__init__.py
+  - .\src\plexichat\infrastructure\services\base_service.py
+  - .\src\plexichat\infrastructure\services\collaboration_service.py
+  - .\src\plexichat\interfaces\api\v1\client_settings.py
+  - .\src\plexichat\interfaces\api\v1\rate_limits.py
+  - .\src\plexichat\interfaces\api\v1\rate_limits.py
+  - .\src\plexichat\interfaces\cli\commands\settings.py
+  - .\src\plexichat\shared\types.py
+  - .\core\utils\fallbacks.py
+- class ValidationError (Count=12)
+  - .\src\plexichat\core\utils.py
+  - .\src\plexichat\core\errors\__init__.py
+  - .\src\plexichat\core\errors\base.py
+  - .\src\plexichat\core\errors\exceptions.py
+  - .\src\plexichat\core\plugins\manager.py
+  - .\src\plexichat\core\plugins\plugin_manager.py
+  - .\src\plexichat\core\plugins\security_manager.py
+  - .\src\plexichat\features\ai\__init__.py
+  - .\src\plexichat\infrastructure\services\client_settings_service.py
+  - .\src\plexichat\shared\exceptions.py
+  - .\core\errors\exceptions.py
+  - .\core\utils\fallbacks.py
+- class SecurityLevel (Count=12)
+  - .\src\plexichat\core\auth\config\security_config.py
+  - .\src\plexichat\core\plugins\__init__.py
+  - .\src\plexichat\core\plugins\manager.py
+  - .\src\plexichat\core\plugins\plugin_manager.py
+  - .\src\plexichat\core\security\security_context.py
+  - .\src\plexichat\core\security\unified_hsm_manager.py
+  - .\src\plexichat\features\backup\backup_engine.py
+  - .\src\plexichat\interfaces\web\middleware\security_middleware.py
+  - .\src\plexichat\interfaces\web\routers\admin.py
+  - .\src\plexichat\interfaces\web\routers\rate_limiting_admin.py
+  - .\src\plexichat\interfaces\web\routers\users.py
+  - .\src\plexichat\shared\types.py
+- def get_metrics (Count=12)
+  - .\src\plexichat\core\errors\error_manager.py
+  - .\src\plexichat\core\monitoring\base_monitor.py
+  - .\src\plexichat\core\monitoring\unified_monitoring_system.py
+  - .\src\plexichat\core\monitoring\unified_monitoring_system.py
+  - .\src\plexichat\core\performance\latency_optimizer.py
+  - .\src\plexichat\core\services\optimized_websocket_service.py
+  - .\src\plexichat\features\ai\providers\base_provider.py
+  - .\src\plexichat\infrastructure\services\advanced_ddos_service.py
+  - .\src\plexichat\infrastructure\services\etl_pipeline_service.py
+  - .\src\plexichat\infrastructure\utils\performance.py
+  - .\src\plexichat\interfaces\web\middleware\comprehensive_security_middleware.py
+  - .\core\errors\error_manager.py
+- def validate_username (Count=12)
+  - .\src\plexichat\infrastructure\utils\common_utils.py
+  - .\src\plexichat\infrastructure\utils\validation.py
+  - .\src\plexichat\infrastructure\utils\validation.py
+  - .\src\plexichat\interfaces\web\routers\admin.py
+  - .\src\plexichat\interfaces\web\routers\setup.py
+  - .\src\plexichat\interfaces\web\schemas\auth_optimized.py
+  - .\src\plexichat\interfaces\web\schemas\auth.py
+  - .\src\plexichat\interfaces\web\schemas\user_optimized.py
+  - .\src\plexichat\interfaces\web\schemas\user_optimized.py
+  - .\src\plexichat\interfaces\web\schemas\user.py
+  - .\src\plexichat\interfaces\web\schemas\user.py
+  - .\src\plexichat\shared\validators.py
+- class Config (Count=11)
+  - .\src\plexichat\interfaces\api\schemas\user.py
+  - .\src\plexichat\interfaces\web\routers\messages.py
+  - .\src\plexichat\interfaces\web\routers\messages.py
+  - .\src\plexichat\interfaces\web\routers\messages.py
+  - .\src\plexichat\interfaces\web\routers\messages.py
+  - .\src\plexichat\interfaces\web\schemas\files_optimized.py
+  - .\src\plexichat\interfaces\web\schemas\files.py
+  - .\src\plexichat\interfaces\web\schemas\message_optimized.py
+  - .\src\plexichat\interfaces\web\schemas\message.py
+  - .\src\plexichat\interfaces\web\schemas\user_optimized.py
+  - .\src\plexichat\interfaces\web\schemas\user.py
+- def from_dict (Count=10)
+  - .\src\plexichat\core\auth\config\password_policy_config.py
+  - .\src\plexichat\core\database\models.py
+  - .\src\plexichat\core\performance\message_queue_manager.py
+  - .\src\plexichat\core\plugins\manager.py
+  - .\src\plexichat\core\plugins\plugin_manager.py
+  - .\src\plexichat\core\versioning\changelog_manager.py
+  - .\src\plexichat\core\versioning\changelog_manager.py
+  - .\src\plexichat\infrastructure\messaging\async_task_queue.py
+  - .\src\plexichat\infrastructure\services\p2p_messaging.py
+  - .\src\plexichat\shared\types.py
+- def get_status (Count=10)
+  - .\src\plexichat\__init__.py
+  - .\src\plexichat\core\__init__.py
+  - .\src\plexichat\core\orchestrator.py
+  - .\src\plexichat\core\monitoring\metrics_collector.py
+  - .\src\plexichat\core\security\unified_audit_system.py
+  - .\src\plexichat\core\threading\thread_manager.py
+  - .\src\plexichat\infrastructure\__init__.py
+  - .\src\plexichat\infrastructure\modules\__init__.py
+  - .\src\plexichat\infrastructure\services\__init__.py
+  - .\src\plexichat\interfaces\web\schemas\status.py
+- def info (Count=9)
+  - .\src\plexichat\plugins_internal.py
+  - .\src\plexichat\core\middleware\rate_limiting\engine.py
+  - .\src\plexichat\core\plugins\manager.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+  - .\src\plexichat\core\plugins\sdk.py
+  - .\src\plexichat\interfaces\cli\commands\system.py
+  - .\src\plexichat\interfaces\web\middleware\comprehensive_security_middleware.py
+  - .\src\plexichat\interfaces\web\middleware\comprehensive_security_middleware.py
+- def validate_password (Count=9)
+  - .\src\plexichat\core\validation.py
+  - .\src\plexichat\infrastructure\utils\common_utils.py
+  - .\src\plexichat\infrastructure\utils\validation.py
+  - .\src\plexichat\infrastructure\utils\validation.py
+  - .\src\plexichat\interfaces\web\routers\admin.py
+  - .\src\plexichat\interfaces\web\routers\setup.py
+  - .\src\plexichat\interfaces\web\schemas\user_optimized.py
+  - .\src\plexichat\interfaces\web\schemas\user.py
+  - .\src\plexichat\shared\validators.py
+- class Message (Count=9)
+  - .\src\plexichat\core\messaging\unified_messaging_system.py
+  - .\src\plexichat\core\performance\message_queue_manager.py
+  - .\src\plexichat\infrastructure\services\intelligent_shard_distribution.py
+  - .\src\plexichat\infrastructure\services\message_service.py
+  - .\src\plexichat\infrastructure\services\moderation_service.py
+  - .\src\plexichat\interfaces\api\v1.py
+  - .\src\plexichat\interfaces\web\routers\messages.py
+  - .\src\plexichat\shared\models.py
+  - .\core\notifications\test_integration.py
+- class MessageType (Count=8)
+  - .\src\plexichat\core\messaging\__init__.py
+  - .\src\plexichat\core\messaging\unified_messaging_system.py
+  - .\src\plexichat\infrastructure\services\communication_service.py
+  - .\src\plexichat\infrastructure\services\message_service.py
+  - .\src\plexichat\interfaces\web\schemas\message_optimized.py
+  - .\src\plexichat\interfaces\web\schemas\message.py
+  - .\src\plexichat\shared\types.py
+  - .\core\utils\fallbacks.py
+- def is_expired (Count=8)
+  - .\src\plexichat\core\caching\cache_manager.py
+  - .\src\plexichat\core\caching\unified_cache_integration.py
+  - .\src\plexichat\core\database\connection.py
+  - .\src\plexichat\core\performance\distributed_cache.py
+  - .\src\plexichat\core\performance\message_queue_manager.py
+  - .\src\plexichat\core\security\unified_hsm_manager.py
+  - .\src\plexichat\core\services\typing_service.py
+  - .\src\plexichat\infrastructure\utils\common_utils.py
+- def get_system_status (Count=8)
+  - .\src\plexichat\core\orchestrator.py
+  - .\src\plexichat\core\messaging\unified_messaging_system.py
+  - .\src\plexichat\core\middleware\integrated_protection_system.py
+  - .\src\plexichat\core\monitoring\base_monitor.py
+  - .\src\plexichat\core\monitoring\unified_monitoring_system.py
+  - .\src\plexichat\core\monitoring\unified_monitoring_system.py
+  - .\src\plexichat\core\performance\edge_computing_manager.py
+  - .\src\plexichat\integration\master_coordinator.py
+- def main (Count=8)
+  - .\src\plexichat\features\ai\cli\ai_cli.py
+  - .\src\plexichat\infrastructure\utils\shutdown.py
+  - .\src\plexichat\interfaces\cli\cli_manager.py
+  - .\src\plexichat\interfaces\cli\main_cli.py
+  - .\src\plexichat\interfaces\cli\main_cli.py
+  - .\src\plexichat\interfaces\cli\unified_cli_default.py
+  - .\src\plexichat\interfaces\cli\commands\logs.py
+  - .\src\plexichat\interfaces\cli\ultimate\main.py
+- def rate_limit (Count=8)
+  - .\src\plexichat\core\auth\fastapi_adapter.py
+  - .\src\plexichat\core\auth\fastapi_adapter.py
+  - .\src\plexichat\core\security\security_decorators.py
+  - .\src\plexichat\infrastructure\utils\performance.py
+  - .\src\plexichat\interfaces\web\routers\admin.py
+  - .\src\plexichat\interfaces\web\routers\rate_limiting_admin.py
+  - .\src\plexichat\interfaces\web\routers\secure_api_example.py
+  - .\src\plexichat\interfaces\web\routers\users.py
+- def get_current_user (Count=8)
+  - .\src\plexichat\interfaces\api\v1.py
+  - .\src\plexichat\interfaces\api\v1\export.py
+  - .\src\plexichat\interfaces\api\v1\groups.py
+  - .\src\plexichat\interfaces\api\v1\messages.py
+  - .\src\plexichat\interfaces\api\v1\search.py
+  - .\src\plexichat\interfaces\api\v1\typing.py
+  - .\src\plexichat\interfaces\api\v1\user_settings.py
+  - .\src\plexichat\interfaces\api\v1\users.py
+- def get_logger (Count=8)
+  - .\src\plexichat\core\logging\unified_logger.py
+  - .\src\plexichat\core\plugins\sdk.py
+  - .\src\plexichat\core\testing\comprehensive_endpoint_tester.py
+  - .\src\plexichat\features\ai\features\ai_powered_features_service.py
+  - .\src\plexichat\infrastructure\services\base_service.py
+  - .\src\plexichat\infrastructure\services\communication_service.py
+  - .\src\plexichat\infrastructure\utils\structured_logging.py
+  - .\src\plexichat\interfaces\web\routes\admin\zero_knowledge_security_routes.py
+- def validate_filename (Count=8)
+  - .\src\plexichat\core\utils.py
+  - .\src\plexichat\core\validation.py
+  - .\src\plexichat\interfaces\web\schemas\files_optimized.py
+  - .\src\plexichat\interfaces\web\schemas\files_optimized.py
+  - .\src\plexichat\interfaces\web\schemas\files_optimized.py
+  - .\src\plexichat\interfaces\web\schemas\files.py
+  - .\src\plexichat\interfaces\web\schemas\files.py
+  - .\src\plexichat\interfaces\web\schemas\files.py
+- def has_permission (Count=8)
+  - .\src\plexichat\plugins_internal.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+  - .\src\plexichat\core\plugins\security_manager.py
+  - .\src\plexichat\features\ai\core\ai_abstraction_layer.py
+  - .\src\plexichat\infrastructure\services\moderation_service.py
+  - .\src\plexichat\interfaces\web\routers\admin.py
+  - .\src\plexichat\interfaces\web\routers\plugins.py
+- def update_config (Count=8)
+  - .\src\plexichat\core\rate_limit_config.py
+  - .\src\plexichat\core\security\auth_integration.py
+  - .\src\plexichat\core\security\content_validation.py
+  - .\src\plexichat\core\security\db_security.py
+  - .\src\plexichat\core\security\monitoring.py
+  - .\src\plexichat\core\security\plugin_hooks.py
+  - .\src\plexichat\interfaces\api\v1\rate_limits.py
+  - .\src\plexichat\interfaces\api\v1\rate_limits.py
+- class ThreatLevel (Count=8)
+  - .\src\plexichat\core\security\comprehensive_security_manager.py
+  - .\src\plexichat\core\security\ddos_protection.py
+  - .\src\plexichat\core\security\security_manager.py
+  - .\src\plexichat\core\security\unified_audit_system.py
+  - .\src\plexichat\core\security\unified_security_module.py
+  - .\src\plexichat\core\security\waf_middleware.py
+  - .\src\plexichat\infrastructure\services\advanced_ddos_service.py
+  - .\src\plexichat\interfaces\cli\commands\antivirus.py
+- def sync_wrapper (Count=8)
+  - .\src\plexichat\core\caching\unified_cache_integration.py
+  - .\src\plexichat\core\errors\circuit_breaker.py
+  - .\src\plexichat\infrastructure\utils.py
+  - .\src\plexichat\infrastructure\debugging\plugin_debug_integration.py
+  - .\src\plexichat\infrastructure\debugging\plugin_debug_integration.py
+  - .\src\plexichat\infrastructure\debugging\plugin_debug_integration.py
+  - .\src\plexichat\infrastructure\utils\performance.py
+  - .\src\plexichat\infrastructure\utils\performance.py
+- class SecurityError (Count=7)
+  - .\src\plexichat\core\errors\__init__.py
+  - .\src\plexichat\core\plugins\manager.py
+  - .\src\plexichat\core\plugins\plugin_manager.py
+  - .\src\plexichat\core\plugins\security_manager.py
+  - .\src\plexichat\features\ai\__init__.py
+  - .\src\plexichat\infrastructure\services\client_settings_service.py
+  - .\src\plexichat\shared\exceptions.py
+- def validate_email (Count=7)
+  - .\src\plexichat\core\validation.py
+  - .\src\plexichat\infrastructure\utils\common_utils.py
+  - .\src\plexichat\infrastructure\utils\validation.py
+  - .\src\plexichat\infrastructure\utils\validation.py
+  - .\src\plexichat\interfaces\web\routers\admin.py
+  - .\src\plexichat\interfaces\web\routers\setup.py
+  - .\src\plexichat\shared\validators.py
+- class Event (Count=7)
+  - .\src\plexichat\core\events\__init__.py
+  - .\src\plexichat\core\events\event_manager.py
+  - .\src\plexichat\core\plugins\manager.py
+  - .\src\plexichat\core\plugins\plugin_manager.py
+  - .\src\plexichat\infrastructure\events\bus.py
+  - .\src\plexichat\shared\models.py
+  - .\core\utils\fallbacks.py
+- def get_performance_summary (Count=7)
+  - .\src\plexichat\infrastructure\analytics\engine.py
+  - .\src\plexichat\infrastructure\debugging\comprehensive_debug_manager.py
+  - .\src\plexichat\infrastructure\debugging\debug_manager.py
+  - .\src\plexichat\infrastructure\debugging\plugin_debug_integration.py
+  - .\src\plexichat\infrastructure\services\performance_service.py
+  - .\src\plexichat\interfaces\web\routes\dashboard_routes.py
+  - .\src\plexichat\interfaces\web\routes\performance_routes.py
+- class RateLimitError (Count=7)
+  - .\src\plexichat\core\auth\exceptions_auth.py
+  - .\src\plexichat\core\errors\__init__.py
+  - .\src\plexichat\core\errors\base.py
+  - .\src\plexichat\core\errors\exceptions.py
+  - .\src\plexichat\features\ai\__init__.py
+  - .\src\plexichat\infrastructure\services\client_settings_service.py
+  - .\src\plexichat\shared\exceptions.py
+- def record_metric (Count=7)
+  - .\src\plexichat\core\monitoring\base_monitor.py
+  - .\src\plexichat\core\monitoring\unified_monitoring_system.py
+  - .\src\plexichat\core\monitoring\unified_monitoring_system.py
+  - .\src\plexichat\core\websocket\websocket_manager.py
+  - .\src\plexichat\infrastructure\debugging\comprehensive_debug_manager.py
+  - .\src\plexichat\infrastructure\utils\performance.py
+  - .\src\plexichat\infrastructure\utils\performance.py
+- class AuthenticationError (Count=7)
+  - .\src\plexichat\core\auth\exceptions_auth.py
+  - .\src\plexichat\core\errors\__init__.py
+  - .\src\plexichat\core\errors\base.py
+  - .\src\plexichat\core\errors\exceptions.py
+  - .\src\plexichat\shared\exceptions.py
+  - .\core\errors\exceptions.py
+  - .\core\utils\fallbacks.py
+- def log_error (Count=7)
+  - .\src\plexichat\core\errors\__init__.py
+  - .\src\plexichat\core\errors\base.py
+  - .\src\plexichat\core\errors\error_codes.py
+  - .\src\plexichat\infrastructure\debugging\debug_manager.py
+  - .\src\plexichat\infrastructure\debugging\plugin_debug_integration.py
+  - .\core\errors\base.py
+  - .\core\utils\fallbacks.py
+- def hash_password (Count=6)
+  - .\src\plexichat\core\utils.py
+  - .\src\plexichat\core\security\security_manager.py
+  - .\src\plexichat\infrastructure\utils\common_utils.py
+  - .\src\plexichat\infrastructure\utils\security.py
+  - .\src\plexichat\infrastructure\utils\security.py
+  - .\src\plexichat\interfaces\web\routers\users.py
+- def verify_password (Count=6)
+  - .\src\plexichat\core\utils.py
+  - .\src\plexichat\core\security\security_manager.py
+  - .\src\plexichat\infrastructure\utils\common_utils.py
+  - .\src\plexichat\infrastructure\utils\security.py
+  - .\src\plexichat\infrastructure\utils\security.py
+  - .\src\plexichat\interfaces\web\routers\users.py
+- def error (Count=6)
+  - .\src\plexichat\plugins_internal.py
+  - .\src\plexichat\core\plugins\manager.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+  - .\src\plexichat\core\plugins\sdk.py
+  - .\src\plexichat\interfaces\web\middleware\comprehensive_security_middleware.py
+- class CacheEntry (Count=6)
+  - .\src\plexichat\core\caching\__init__.py
+  - .\src\plexichat\core\caching\cache_manager.py
+  - .\src\plexichat\core\caching\unified_cache_integration.py
+  - .\src\plexichat\core\performance\distributed_cache.py
+  - .\src\plexichat\core\performance\multi_tier_cache_manager.py
+  - .\core\utils\fallbacks.py
+- def delete (Count=6)
+  - .\src\plexichat\core\caching\__init__.py
+  - .\src\plexichat\core\caching\cache_manager.py
+  - .\src\plexichat\core\websocket\websocket_manager.py
+  - .\src\plexichat\infrastructure\utils.py
+  - .\src\plexichat\interfaces\cli\commands\backup.py
+  - .\src\plexichat\interfaces\cli\commands\settings.py
+- def _get_client_ip (Count=6)
+  - .\src\plexichat\core\middleware\ip_blacklist_middleware.py
+  - .\src\plexichat\core\security\ddos_protection.py
+  - .\src\plexichat\core\security\waf_middleware.py
+  - .\src\plexichat\interfaces\web\middleware\comprehensive_security_middleware.py
+  - .\src\plexichat\interfaces\web\middleware\comprehensive_security_middleware.py
+  - .\src\plexichat\interfaces\web\middleware\security_middleware.py
+- class MessageCreate (Count=6)
+  - .\src\plexichat\interfaces\api\v1.py
+  - .\src\plexichat\interfaces\api\v1\messages.py
+  - .\src\plexichat\interfaces\api\v1\messages.py
+  - .\src\plexichat\interfaces\web\routers\messages.py
+  - .\src\plexichat\interfaces\web\schemas\message_optimized.py
+  - .\src\plexichat\interfaces\web\schemas\message.py
+- class DatabaseError (Count=6)
+  - .\src\plexichat\core\errors\__init__.py
+  - .\src\plexichat\core\errors\base.py
+  - .\src\plexichat\core\errors\exceptions.py
+  - .\src\plexichat\shared\exceptions.py
+  - .\core\errors\exceptions.py
+  - .\core\utils\fallbacks.py
+- class EventManager (Count=6)
+  - .\src\plexichat\plugins_internal.py
+  - .\src\plexichat\core\events\__init__.py
+  - .\src\plexichat\core\events\event_manager.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+  - .\core\utils\fallbacks.py
+- def request_permission (Count=6)
+  - .\src\plexichat\plugins_internal.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+  - .\src\plexichat\core\plugins\security_manager.py
+  - .\src\plexichat\interfaces\cli\commands\plugins.py
+  - .\src\plexichat\interfaces\web\routers\plugins.py
+- class MockSettings (Count=6)
+  - .\src\plexichat\infrastructure\utils\security.py
+  - .\src\plexichat\interfaces\web\routers\login.py
+  - .\src\plexichat\interfaces\web\routers\status.py
+  - .\src\plexichat\interfaces\web\routers\system.py
+  - .\src\plexichat\interfaces\web\routers\updates.py
+  - .\src\plexichat\interfaces\web\routers\websocket.py
+- def warning (Count=6)
+  - .\src\plexichat\plugins_internal.py
+  - .\src\plexichat\core\plugins\manager.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+  - .\src\plexichat\core\plugins\sdk.py
+  - .\src\plexichat\interfaces\web\middleware\comprehensive_security_middleware.py
+- def parse_datetime (Count=6)
+  - .\src\plexichat\infrastructure\utils\helpers_optimized.py
+  - .\src\plexichat\infrastructure\utils\helpers_optimized.py
+  - .\src\plexichat\infrastructure\utils\helpers_optimized.py
+  - .\src\plexichat\infrastructure\utils\helpers.py
+  - .\src\plexichat\infrastructure\utils\helpers.py
+  - .\src\plexichat\infrastructure\utils\utilities.py
+- def get_session (Count=6)
+  - .\src\plexichat\core\mfa_store.py
+  - .\src\plexichat\core\auth\repositories\interfaces.py
+  - .\src\plexichat\core\auth\services\session_service.py
+  - .\src\plexichat\core\database\manager.py
+  - .\src\plexichat\infrastructure\services\collaboration_service.py
+  - .\src\plexichat\interfaces\web\core\mfa_manager.py
+- class NodeStatus (Count=5)
+  - .\src\plexichat\core\clustering\__init__.py
+  - .\src\plexichat\core\clustering\cluster_manager.py
+  - .\src\plexichat\core\clustering\node_manager.py
+  - .\src\plexichat\core\performance\scalability_manager.py
+  - .\src\plexichat\shared\types.py
+- def get_available_models (Count=5)
+  - .\src\plexichat\features\ai\ai_coordinator.py
+  - .\src\plexichat\features\ai\providers\anthropic_provider.py
+  - .\src\plexichat\features\ai\providers\base_provider.py
+  - .\src\plexichat\features\ai\providers\ollama_provider.py
+  - .\src\plexichat\features\ai\providers\openai_provider.py
+- class NotificationPriority (Count=5)
+  - .\src\plexichat\core\notifications\__init__.py
+  - .\src\plexichat\core\notifications\notification_manager.py
+  - .\src\plexichat\infrastructure\services\communication_service.py
+  - .\core\notifications\notification_manager.py
+  - .\core\utils\fallbacks.py
+- def get_max_plugin_memory (Count=5)
+  - .\src\plexichat\core\config_manager.py
+  - .\src\plexichat\core\config_manager.py
+  - .\src\plexichat\core\plugins\manager.py
+  - .\src\plexichat\core\plugins\plugin_manager.py
+  - .\src\plexichat\core\plugins\security_manager.py
+- def decrypt_data (Count=5)
+  - .\src\plexichat\features\backup\encryption_service.py
+  - .\src\plexichat\infrastructure\services\missing_modules.py
+  - .\src\plexichat\infrastructure\utils\security.py
+  - .\src\plexichat\infrastructure\utils\security.py
+  - .\src\plexichat\shared\types.py
+- class PluginInterface (Count=5)
+  - .\src\plexichat\core\plugins\__init__.py
+  - .\src\plexichat\core\plugins\manager.py
+  - .\src\plexichat\core\plugins\installed\ai_providers\main.py
+  - .\src\plexichat\core\plugins\installed\testing_plugin\main.py
+  - .\src\plexichat\shared\types.py
+- def format_file_size (Count=5)
+  - .\src\plexichat\infrastructure\utils\common_utils.py
+  - .\src\plexichat\infrastructure\utils\helpers_optimized.py
+  - .\src\plexichat\infrastructure\utils\helpers_optimized.py
+  - .\src\plexichat\infrastructure\utils\helpers.py
+  - .\src\plexichat\infrastructure\utils\helpers.py
+- def format_datetime (Count=5)
+  - .\src\plexichat\infrastructure\utils\helpers_optimized.py
+  - .\src\plexichat\infrastructure\utils\helpers_optimized.py
+  - .\src\plexichat\infrastructure\utils\helpers.py
+  - .\src\plexichat\infrastructure\utils\helpers.py
+  - .\src\plexichat\infrastructure\utils\utilities.py
+- def encrypt_data (Count=5)
+  - .\src\plexichat\features\backup\encryption_service.py
+  - .\src\plexichat\infrastructure\services\missing_modules.py
+  - .\src\plexichat\infrastructure\utils\security.py
+  - .\src\plexichat\infrastructure\utils\security.py
+  - .\src\plexichat\shared\types.py
+- def debug (Count=5)
+  - .\src\plexichat\plugins_internal.py
+  - .\src\plexichat\core\plugins\manager.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+  - .\src\plexichat\core\plugins\sdk.py
+- def cached (Count=5)
+  - .\src\plexichat\core\caching\__init__.py
+  - .\src\plexichat\core\caching\cache_manager.py
+  - .\src\plexichat\core\caching\cache_manager.py
+  - .\src\plexichat\core\caching\unified_cache_integration.py
+  - .\core\utils\fallbacks.py
+- def audit_access (Count=5)
+  - .\src\plexichat\core\security\security_decorators.py
+  - .\src\plexichat\core\security\security_decorators.py
+  - .\src\plexichat\interfaces\web\routers\rate_limiting_admin.py
+  - .\src\plexichat\interfaces\web\routers\secure_api_example.py
+  - .\src\plexichat\interfaces\web\routers\users.py
+- def assign_role (Count=5)
+  - .\src\plexichat\core\authentication.py
+  - .\src\plexichat\core\auth\services\authorization_service.py
+  - .\src\plexichat\core\auth\services\interfaces.py
+  - .\src\plexichat\core\auth\services\user_service.py
+  - .\src\plexichat\infrastructure\services\moderation_service.py
+- class RateLimitConfig (Count=5)
+  - .\src\plexichat\core\config_manager.py
+  - .\src\plexichat\core\rate_limit_config.py
+  - .\src\plexichat\core\middleware\integrated_protection_system.py
+  - .\src\plexichat\core\middleware\rate_limiting.py
+  - .\src\plexichat\core\middleware\rate_limiting\engine.py
+- class UserUpdate (Count=5)
+  - .\src\plexichat\interfaces\api\schemas\user.py
+  - .\src\plexichat\interfaces\api\v1\users.py
+  - .\src\plexichat\interfaces\web\routers\users.py
+  - .\src\plexichat\interfaces\web\schemas\user_optimized.py
+  - .\src\plexichat\interfaces\web\schemas\user.py
+- class UserCreate (Count=5)
+  - .\src\plexichat\interfaces\api\v1.py
+  - .\src\plexichat\interfaces\api\schemas\user.py
+  - .\src\plexichat\interfaces\web\routers\users.py
+  - .\src\plexichat\interfaces\web\schemas\user_optimized.py
+  - .\src\plexichat\interfaces\web\schemas\user.py
+- class User (Count=5)
+  - .\src\plexichat\core\user.py
+  - .\src\plexichat\infrastructure\services\message_service.py
+  - .\src\plexichat\interfaces\api\v1.py
+  - .\src\plexichat\interfaces\web\routers\messages.py
+  - .\src\plexichat\shared\models.py
+- class TaskStatus (Count=5)
+  - .\src\plexichat\core\scheduler\__init__.py
+  - .\src\plexichat\core\scheduler\task_scheduler.py
+  - .\src\plexichat\infrastructure\messaging\async_task_queue.py
+  - .\src\plexichat\infrastructure\services\background_tasks.py
+  - .\core\utils\fallbacks.py
+- def get_all_plugins_info (Count=5)
+  - .\src\plexichat\core\plugins\__init__.py
+  - .\src\plexichat\core\plugins\manager.py
+  - .\src\plexichat\core\plugins\manager.py
+  - .\src\plexichat\core\plugins\plugin_manager.py
+  - .\src\plexichat\core\plugins\plugin_manager.py
+- def create_error_response (Count=5)
+  - .\src\plexichat\core\errors\__init__.py
+  - .\src\plexichat\core\errors\base.py
+  - .\src\plexichat\core\errors\error_manager.py
+  - .\core\errors\base.py
+  - .\core\utils\fallbacks.py
+- def get_metadata (Count=5)
+  - .\src\plexichat\core\plugins\installed\ai_providers\main.py
+  - .\src\plexichat\core\plugins\installed\echo_plugin\main.py
+  - .\src\plexichat\core\plugins\installed\hello_world_plugin\main.py
+  - .\src\plexichat\core\plugins\installed\random_quote_plugin\main.py
+  - .\src\plexichat\infrastructure\modules\interfaces.py
+- class NodeMetrics (Count=5)
+  - .\src\plexichat\core\clustering\__init__.py
+  - .\src\plexichat\core\clustering\cluster_manager.py
+  - .\src\plexichat\core\clustering\node_manager.py
+  - .\src\plexichat\core\performance\scalability_manager.py
+  - .\src\plexichat\core\versioning\canary_node_selector.py
+- class CacheManager (Count=5)
+  - .\src\plexichat\core\caching\__init__.py
+  - .\src\plexichat\core\caching\cache_manager.py
+  - .\src\plexichat\core\websocket\websocket_manager.py
+  - .\src\plexichat\infrastructure\utils.py
+  - .\core\utils\fallbacks.py
+- class BaseService (Count=5)
+  - .\src\plexichat\core\services\core_services.py
+  - .\src\plexichat\features\ai\features\ai_powered_features_service.py
+  - .\src\plexichat\infrastructure\services\base_service.py
+  - .\src\plexichat\infrastructure\services\collaboration_service.py
+  - .\src\plexichat\infrastructure\services\communication_service.py
+- def track_performance (Count=5)
+  - .\src\plexichat\core\plugins\manager.py
+  - .\src\plexichat\core\plugins\manager.py
+  - .\src\plexichat\core\plugins\sdk.py
+  - .\src\plexichat\core\plugins\sdk.py
+  - .\src\plexichat\infrastructure\utils\performance.py
+- def require_admin (Count=5)
+  - .\src\plexichat\interfaces\api\v1\rate_limits.py
+  - .\src\plexichat\interfaces\web\routers\rate_limiting_admin.py
+  - .\src\plexichat\interfaces\web\routers\secure_api_example.py
+  - .\src\plexichat\interfaces\web\routes\admin\ai_features_routes.py
+  - .\src\plexichat\interfaces\web\routes\admin\zero_knowledge_security_routes.py
+- def register_event_handler (Count=5)
+  - .\src\plexichat\core\events\__init__.py
+  - .\src\plexichat\core\events\event_manager.py
+  - .\src\plexichat\infrastructure\modules\interfaces.py
+  - .\src\plexichat\infrastructure\modules\interfaces.py
+  - .\core\utils\fallbacks.py
+- def validate_file_upload (Count=5)
+  - .\src\plexichat\core\security\security_manager.py
+  - .\src\plexichat\infrastructure\utils.py
+  - .\src\plexichat\infrastructure\utils\security.py
+  - .\src\plexichat\infrastructure\utils\validation.py
+  - .\src\plexichat\infrastructure\utils\validation.py
+- def is_healthy (Count=5)
+  - .\src\plexichat\core\clustering\__init__.py
+  - .\src\plexichat\core\clustering\cluster_manager.py
+  - .\src\plexichat\core\performance\distributed_cache.py
+  - .\src\plexichat\infrastructure\microservices\service_registry.py
+  - .\src\plexichat\infrastructure\modules\interfaces.py
+- class EncryptionAlgorithm (Count=5)
+  - .\src\plexichat\core\auth\config\security_config.py
+  - .\src\plexichat\core\security\quantum_encryption.py
+  - .\src\plexichat\core\security\security_manager.py
+  - .\src\plexichat\features\backup\encryption_service.py
+  - .\src\plexichat\shared\types.py
+- class AuthorizationError (Count=5)
+  - .\src\plexichat\core\auth\exceptions_auth.py
+  - .\src\plexichat\core\errors\__init__.py
+  - .\src\plexichat\core\errors\base.py
+  - .\src\plexichat\core\errors\exceptions.py
+  - .\src\plexichat\shared\exceptions.py
+- class CacheStrategy (Count=5)
+  - .\src\plexichat\core\cache\manager.py
+  - .\src\plexichat\core\caching\unified_cache_integration.py
+  - .\src\plexichat\core\performance\distributed_cache.py
+  - .\src\plexichat\core\performance\latency_optimizer.py
+  - .\src\plexichat\core\performance\multi_tier_cache_manager.py
+- def get_security_status (Count=5)
+  - .\src\plexichat\core\security\comprehensive_security_manager.py
+  - .\src\plexichat\core\security\db_security.py
+  - .\src\plexichat\core\security\security_manager.py
+  - .\src\plexichat\core\security\unified_security_module.py
+  - .\src\plexichat\infrastructure\services\unified_security_service.py
+- def handle_exception (Count=5)
+  - .\src\plexichat\core\errors\__init__.py
+  - .\src\plexichat\core\errors\base.py
+  - .\src\plexichat\core\errors\error_manager.py
+  - .\core\errors\base.py
+  - .\core\utils\fallbacks.py
+- def validate_tags (Count=5)
+  - .\src\plexichat\interfaces\api\v1\backups.py
+  - .\src\plexichat\interfaces\web\schemas\files_optimized.py
+  - .\src\plexichat\interfaces\web\schemas\files_optimized.py
+  - .\src\plexichat\interfaces\web\schemas\files.py
+  - .\src\plexichat\interfaces\web\schemas\files.py
+- def get_plugin_timeout (Count=5)
+  - .\src\plexichat\core\config_manager.py
+  - .\src\plexichat\core\config_manager.py
+  - .\src\plexichat\core\plugins\manager.py
+  - .\src\plexichat\core\plugins\plugin_manager.py
+  - .\src\plexichat\core\plugins\security_manager.py
+- def get_service (Count=5)
+  - .\src\plexichat\core\services\__init__.py
+  - .\src\plexichat\core\services\core_services.py
+  - .\src\plexichat\core\services\core_services.py
+  - .\src\plexichat\infrastructure\services\base_service.py
+  - .\src\plexichat\infrastructure\services\missing_modules.py
+- def get_plugin_sandbox_enabled (Count=5)
+  - .\src\plexichat\core\config_manager.py
+  - .\src\plexichat\core\config_manager.py
+  - .\src\plexichat\core\plugins\manager.py
+  - .\src\plexichat\core\plugins\plugin_manager.py
+  - .\src\plexichat\core\plugins\security_manager.py
+- def stop (Count=4)
+  - .\src\plexichat\infrastructure\utils\scheduling.py
+  - .\src\plexichat\interfaces\cli\console_manager.py
+  - .\src\plexichat\interfaces\cli\interactive_dashboard.py
+  - .\core\utils\fallbacks.py
+- def __enter__ (Count=4)
+  - .\src\plexichat\core\plugins\manager.py
+  - .\src\plexichat\core\plugins\sdk.py
+  - .\src\plexichat\interfaces\web\routers\files.py
+  - .\src\plexichat\interfaces\web\routers\users.py
+- def __exit__ (Count=4)
+  - .\src\plexichat\core\plugins\manager.py
+  - .\src\plexichat\core\plugins\sdk.py
+  - .\src\plexichat\interfaces\web\routers\files.py
+  - .\src\plexichat\interfaces\web\routers\users.py
+- def truncate_text (Count=4)
+  - .\src\plexichat\infrastructure\utils\helpers_optimized.py
+  - .\src\plexichat\infrastructure\utils\helpers_optimized.py
+  - .\src\plexichat\infrastructure\utils\helpers.py
+  - .\src\plexichat\infrastructure\utils\helpers.py
+- class TaskScheduler (Count=4)
+  - .\src\plexichat\core\scheduler\__init__.py
+  - .\src\plexichat\core\scheduler\task_scheduler.py
+  - .\src\plexichat\infrastructure\utils\scheduling.py
+  - .\core\utils\fallbacks.py
+- class NotificationManager (Count=4)
+  - .\src\plexichat\core\notifications\__init__.py
+  - .\src\plexichat\core\notifications\notification_manager.py
+  - .\core\notifications\notification_manager.py
+  - .\core\utils\fallbacks.py
+- class TaskPriority (Count=4)
+  - .\src\plexichat\infrastructure\messaging\async_task_queue.py
+  - .\src\plexichat\infrastructure\scalability\coordinator.py
+  - .\src\plexichat\infrastructure\services\background_tasks.py
+  - .\src\plexichat\shared\types.py
+- class SystemMetrics (Count=4)
+  - .\src\plexichat\core\middleware\integrated_protection_system.py
+  - .\src\plexichat\infrastructure\services\performance_service.py
+  - .\src\plexichat\integration\master_coordinator.py
+  - .\src\plexichat\interfaces\cli\console_manager.py
+- def update_user_permissions (Count=4)
+  - .\src\plexichat\core\authentication.py
+  - .\src\plexichat\core\auth\repositories\interfaces.py
+  - .\src\plexichat\core\auth\services\interfaces.py
+  - .\src\plexichat\core\auth\services\user_service.py
+- class UserResponse (Count=4)
+  - .\src\plexichat\interfaces\api\schemas\user.py
+  - .\src\plexichat\interfaces\web\routers\users.py
+  - .\src\plexichat\interfaces\web\schemas\user_optimized.py
+  - .\src\plexichat\interfaces\web\schemas\user.py
+- def track_event (Count=4)
+  - .\src\plexichat\core\monitoring\unified_monitoring_system.py
+  - .\src\plexichat\core\monitoring\unified_monitoring_system.py
+  - .\src\plexichat\infrastructure\analytics\engine.py
+  - .\src\plexichat\infrastructure\analytics\engine.py
+- class status (Count=4)
+  - .\src\plexichat\core\middleware\rate_limiting\engine.py
+  - .\src\plexichat\core\plugins\manager.py
+  - .\src\plexichat\core\plugins\plugin_manager.py
+  - .\src\plexichat\shared\models.py
+- class ServiceStatus (Count=4)
+  - .\src\plexichat\core\services\core_services.py
+  - .\src\plexichat\infrastructure\microservices\service_registry.py
+  - .\src\plexichat\infrastructure\services\__init__.py
+  - .\src\plexichat\infrastructure\services\missing_modules.py
+- def update_user_tier_multiplier (Count=4)
+  - .\src\plexichat\core\rate_limit_config.py
+  - .\src\plexichat\core\middleware\rate_limiting\engine.py
+  - .\src\plexichat\interfaces\api\v1\rate_limits.py
+  - .\src\plexichat\interfaces\api\v1\rate_limits.py
+- class SecurityEventType (Count=4)
+  - .\src\plexichat\core\security\comprehensive_security_manager.py
+  - .\src\plexichat\core\security\security_manager.py
+  - .\src\plexichat\core\security\unified_audit_system.py
+  - .\src\plexichat\core\security\unified_security_module.py
+- def status (Count=4)
+  - .\src\plexichat\core\errors\__init__.py
+  - .\src\plexichat\interfaces\cli\commands\backup.py
+  - .\src\plexichat\interfaces\cli\commands\database.py
+  - .\src\plexichat\interfaces\cli\commands\system.py
+- class SecurityConfig (Count=4)
+  - .\src\plexichat\core\config_manager.py
+  - .\src\plexichat\core\auth\config\security_config.py
+  - .\src\plexichat\core\security\comprehensive_security_manager.py
+  - .\src\plexichat\infrastructure\services\client_settings_service.py
+- class SafeFileManager (Count=4)
+  - .\src\plexichat\plugins_internal.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+  - .\src\plexichat\core\plugins\security_manager.py
+- def validate_content (Count=4)
+  - .\src\plexichat\interfaces\web\schemas\message_optimized.py
+  - .\src\plexichat\interfaces\web\schemas\message_optimized.py
+  - .\src\plexichat\interfaces\web\schemas\message.py
+  - .\src\plexichat\interfaces\web\schemas\message.py
+- def validate_json (Count=4)
+  - .\src\plexichat\core\validation.py
+  - .\src\plexichat\infrastructure\utils\validation.py
+  - .\src\plexichat\infrastructure\utils\validation.py
+  - .\src\plexichat\shared\validators.py
+- class PluginType (Count=4)
+  - .\src\plexichat\core\plugins\__init__.py
+  - .\src\plexichat\core\plugins\manager.py
+  - .\src\plexichat\core\plugins\plugin_manager.py
+  - .\src\plexichat\core\plugins\installed\ai_providers\main.py
+- class PerformanceMonitor (Count=4)
+  - .\src\plexichat\core\clustering\__init__.py
+  - .\src\plexichat\core\performance\edge_computing_manager.py
+  - .\src\plexichat\infrastructure\utils.py
+  - .\core\utils\fallbacks.py
+- class PluginMetadata (Count=4)
+  - .\src\plexichat\core\plugins\__init__.py
+  - .\src\plexichat\core\plugins\manager.py
+  - .\src\plexichat\core\plugins\plugin_manager.py
+  - .\src\plexichat\core\plugins\installed\ai_providers\main.py
+- def validate_query (Count=4)
+  - .\src\plexichat\interfaces\web\schemas\files_optimized.py
+  - .\src\plexichat\interfaces\web\schemas\files.py
+  - .\src\plexichat\interfaces\web\schemas\message_optimized.py
+  - .\src\plexichat\interfaces\web\schemas\message.py
+- class PluginError (Count=4)
+  - .\src\plexichat\core\plugins\__init__.py
+  - .\src\plexichat\core\plugins\manager.py
+  - .\src\plexichat\core\plugins\plugin_manager.py
+  - .\src\plexichat\core\plugins\security_manager.py
+- class ServiceType (Count=4)
+  - .\src\plexichat\infrastructure\microservices\decomposition.py
+  - .\src\plexichat\infrastructure\microservices\service_registry.py
+  - .\src\plexichat\infrastructure\modules\__init__.py
+  - .\src\plexichat\infrastructure\services\__init__.py
+- class PerformanceTracker (Count=4)
+  - .\src\plexichat\core\plugins\manager.py
+  - .\src\plexichat\core\plugins\sdk.py
+  - .\src\plexichat\infrastructure\utils\performance.py
+  - .\src\plexichat\interfaces\web\routers\users.py
+- def _get_foreign_keys (Count=4)
+  - .\src\plexichat\core\database\migrations\add_new_schemas.py
+  - .\src\plexichat\core\database\migrations\add_plugin_permissions.py
+  - .\src\plexichat\core\database\migrations\add_search_indexes.py
+  - .\src\plexichat\core\database\migrations\base.py
+- def _get_check_constraints (Count=4)
+  - .\src\plexichat\core\database\migrations\add_new_schemas.py
+  - .\src\plexichat\core\database\migrations\add_plugin_permissions.py
+  - .\src\plexichat\core\database\migrations\add_search_indexes.py
+  - .\src\plexichat\core\database\migrations\base.py
+- def emit_event (Count=4)
+  - .\src\plexichat\core\events\__init__.py
+  - .\src\plexichat\infrastructure\modules\interfaces.py
+  - .\src\plexichat\infrastructure\modules\interfaces.py
+  - .\core\utils\fallbacks.py
+- def open (Count=4)
+  - .\src\plexichat\plugins_internal.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+  - .\src\plexichat\core\plugins\security_manager.py
+- def load_config (Count=4)
+  - .\src\plexichat\core\config.py
+  - .\src\plexichat\core\rate_limit_config.py
+  - .\src\plexichat\core\plugins\installed\testing_plugin\main.py
+  - .\src\plexichat\features\ai\moderation\moderation_engine.py
+- def extract_hashtags (Count=4)
+  - .\src\plexichat\infrastructure\utils\helpers_optimized.py
+  - .\src\plexichat\infrastructure\utils\helpers_optimized.py
+  - .\src\plexichat\infrastructure\utils\helpers.py
+  - .\src\plexichat\infrastructure\utils\helpers.py
+- def extract_mentions (Count=4)
+  - .\src\plexichat\infrastructure\utils\helpers_optimized.py
+  - .\src\plexichat\infrastructure\utils\helpers_optimized.py
+  - .\src\plexichat\infrastructure\utils\helpers.py
+  - .\src\plexichat\infrastructure\utils\helpers.py
+- def extract_urls (Count=4)
+  - .\src\plexichat\infrastructure\utils\helpers_optimized.py
+  - .\src\plexichat\infrastructure\utils\helpers_optimized.py
+  - .\src\plexichat\infrastructure\utils\helpers.py
+  - .\src\plexichat\infrastructure\utils\helpers.py
+- def emit (Count=4)
+  - .\src\plexichat\plugins_internal.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+  - .\core\utils\fallbacks.py
+- def is_model_available (Count=4)
+  - .\src\plexichat\features\ai\providers\anthropic_provider.py
+  - .\src\plexichat\features\ai\providers\base_provider.py
+  - .\src\plexichat\features\ai\providers\ollama_provider.py
+  - .\src\plexichat\features\ai\providers\openai_provider.py
+- def generate_short_id (Count=4)
+  - .\src\plexichat\infrastructure\utils\helpers_optimized.py
+  - .\src\plexichat\infrastructure\utils\helpers_optimized.py
+  - .\src\plexichat\infrastructure\utils\helpers.py
+  - .\src\plexichat\infrastructure\utils\helpers.py
+- def generate_uuid (Count=4)
+  - .\src\plexichat\infrastructure\utils\helpers_optimized.py
+  - .\src\plexichat\infrastructure\utils\helpers_optimized.py
+  - .\src\plexichat\infrastructure\utils\helpers.py
+  - .\src\plexichat\infrastructure\utils\helpers.py
+- def get_user_permissions (Count=4)
+  - .\src\plexichat\core\authentication.py
+  - .\src\plexichat\core\auth\repositories\interfaces.py
+  - .\src\plexichat\core\auth\services\interfaces.py
+  - .\src\plexichat\core\auth\services\user_service.py
+- def get_client_ip (Count=4)
+  - .\src\plexichat\infrastructure\utils\ip_security.py
+  - .\src\plexichat\interfaces\api\v1\backups.py
+  - .\src\plexichat\interfaces\api\v1\shards.py
+  - .\src\plexichat\interfaces\web\routers\admin.py
+- def get_typing_users (Count=4)
+  - .\src\plexichat\core\websocket\websocket_manager.py
+  - .\src\plexichat\core\websocket\websocket_manager.py
+  - .\src\plexichat\interfaces\web\routes\collaboration\chat.py
+  - .\src\plexichat\interfaces\websocket\websocket_manager.py
+- def get_security_summary (Count=4)
+  - .\src\plexichat\core\plugins\security_manager.py
+  - .\src\plexichat\interfaces\cli\commands\plugins.py
+  - .\src\plexichat\interfaces\web\routers\plugins.py
+  - .\src\plexichat\interfaces\web\routers\plugins.py
+- def is_available (Count=4)
+  - .\src\plexichat\__init__.py
+  - .\src\plexichat\core\__init__.py
+  - .\src\plexichat\infrastructure\__init__.py
+  - .\src\plexichat\interfaces\__init__.py
+- def slugify (Count=4)
+  - .\src\plexichat\infrastructure\utils\helpers_optimized.py
+  - .\src\plexichat\infrastructure\utils\helpers_optimized.py
+  - .\src\plexichat\infrastructure\utils\helpers.py
+  - .\src\plexichat\infrastructure\utils\helpers.py
+- def deny_permission (Count=4)
+  - .\src\plexichat\core\plugins\security_manager.py
+  - .\src\plexichat\interfaces\cli\commands\plugins.py
+  - .\src\plexichat\interfaces\web\routers\plugins.py
+  - .\src\plexichat\interfaces\web\routers\plugins.py
+- def quarantine_plugin (Count=4)
+  - .\src\plexichat\core\plugins\security_manager.py
+  - .\src\plexichat\interfaces\cli\commands\plugins.py
+  - .\src\plexichat\interfaces\web\routers\plugins.py
+  - .\src\plexichat\interfaces\web\routers\plugins.py
+- def set_security_policy (Count=4)
+  - .\src\plexichat\core\plugins\security_manager.py
+  - .\src\plexichat\interfaces\cli\commands\plugins.py
+  - .\src\plexichat\interfaces\web\routers\plugins.py
+  - .\src\plexichat\interfaces\web\routers\plugins.py
+- def secure_endpoint (Count=4)
+  - .\src\plexichat\core\security\security_decorators.py
+  - .\src\plexichat\interfaces\web\routers\admin.py
+  - .\src\plexichat\interfaces\web\routers\secure_api_example.py
+  - .\src\plexichat\interfaces\web\routers\users.py
+- def get_pending_permission_requests (Count=4)
+  - .\src\plexichat\core\plugins\security_manager.py
+  - .\src\plexichat\interfaces\cli\commands\plugins.py
+  - .\src\plexichat\interfaces\web\routers\plugins.py
+  - .\src\plexichat\interfaces\web\routers\plugins.py
+- def _get_indexes (Count=4)
+  - .\src\plexichat\core\database\migrations\add_new_schemas.py
+  - .\src\plexichat\core\database\migrations\add_plugin_permissions.py
+  - .\src\plexichat\core\database\migrations\add_search_indexes.py
+  - .\src\plexichat\core\database\migrations\base.py
+- def _get_tables (Count=4)
+  - .\src\plexichat\core\database\migrations\add_new_schemas.py
+  - .\src\plexichat\core\database\migrations\add_plugin_permissions.py
+  - .\src\plexichat\core\database\migrations\add_search_indexes.py
+  - .\src\plexichat\core\database\migrations\base.py
+- def _load_configuration (Count=4)
+  - .\src\plexichat\core\auth\config\auth_config.py
+  - .\src\plexichat\features\ai\core\ai_abstraction_layer.py
+  - .\src\plexichat\infrastructure\services\client_settings_service.py
+  - .\src\plexichat\infrastructure\services\communication_service.py
+- def paginate_list (Count=4)
+  - .\src\plexichat\infrastructure\utils\helpers_optimized.py
+  - .\src\plexichat\infrastructure\utils\helpers_optimized.py
+  - .\src\plexichat\infrastructure\utils\helpers.py
+  - .\src\plexichat\infrastructure\utils\helpers.py
+- def _rebuild_hash_ring (Count=4)
+  - .\src\plexichat\core\clustering\__init__.py
+  - .\src\plexichat\core\clustering\cluster_manager.py
+  - .\src\plexichat\core\performance\cache_cluster_manager.py
+  - .\src\plexichat\core\performance\distributed_cache.py
+- def safe_json_loads (Count=4)
+  - .\src\plexichat\infrastructure\utils\helpers_optimized.py
+  - .\src\plexichat\infrastructure\utils\helpers_optimized.py
+  - .\src\plexichat\infrastructure\utils\helpers.py
+  - .\src\plexichat\infrastructure\utils\helpers.py
+- def safe_json_dumps (Count=4)
+  - .\src\plexichat\infrastructure\utils\helpers_optimized.py
+  - .\src\plexichat\infrastructure\utils\helpers_optimized.py
+  - .\src\plexichat\infrastructure\utils\helpers.py
+  - .\src\plexichat\infrastructure\utils\helpers.py
+- def cache_get (Count=4)
+  - .\src\plexichat\core\caching\__init__.py
+  - .\src\plexichat\core\caching\cache_manager.py
+  - .\src\plexichat\core\websocket\websocket_manager.py
+  - .\core\utils\fallbacks.py
+- def remove_endpoint_override (Count=4)
+  - .\src\plexichat\core\rate_limit_config.py
+  - .\src\plexichat\core\middleware\rate_limiting\engine.py
+  - .\src\plexichat\interfaces\api\v1\rate_limits.py
+  - .\src\plexichat\interfaces\api\v1\rate_limits.py
+- def release_from_quarantine (Count=4)
+  - .\src\plexichat\core\plugins\security_manager.py
+  - .\src\plexichat\interfaces\cli\commands\plugins.py
+  - .\src\plexichat\interfaces\web\routers\plugins.py
+  - .\src\plexichat\interfaces\web\routers\plugins.py
+- def register (Count=4)
+  - .\src\plexichat\core\orchestrator.py
+  - .\src\plexichat\core\services\__init__.py
+  - .\src\plexichat\infrastructure\services\base_service.py
+  - .\core\utils\fallbacks.py
+- def add_endpoint_override (Count=4)
+  - .\src\plexichat\core\rate_limit_config.py
+  - .\src\plexichat\core\middleware\rate_limiting\engine.py
+  - .\src\plexichat\interfaces\api\v1\rate_limits.py
+  - .\src\plexichat\interfaces\api\v1\rate_limits.py
+- def get_plugin_permissions (Count=4)
+  - .\src\plexichat\core\plugins\security_manager.py
+  - .\src\plexichat\interfaces\cli\commands\plugins.py
+  - .\src\plexichat\interfaces\web\routers\plugins.py
+  - .\src\plexichat\interfaces\web\routers\plugins.py
+- def approve_permission (Count=4)
+  - .\src\plexichat\core\plugins\security_manager.py
+  - .\src\plexichat\interfaces\cli\commands\plugins.py
+  - .\src\plexichat\interfaces\web\routers\plugins.py
+  - .\src\plexichat\interfaces\web\routers\plugins.py
+- class EventPriority (Count=4)
+  - .\src\plexichat\core\events\__init__.py
+  - .\src\plexichat\core\events\event_manager.py
+  - .\src\plexichat\infrastructure\events\bus.py
+  - .\core\utils\fallbacks.py
+- class DateTimeUtils (Count=4)
+  - .\src\plexichat\core\utils.py
+  - .\src\plexichat\infrastructure\utils\common_utils.py
+  - .\src\plexichat\infrastructure\utils\helpers_optimized.py
+  - .\src\plexichat\infrastructure\utils\utilities.py
+- class DatabaseConfig (Count=4)
+  - .\src\plexichat\core\config_manager.py
+  - .\src\plexichat\core\database\manager.py
+  - .\src\plexichat\infrastructure\services\missing_modules.py
+  - .\src\plexichat\interfaces\web\routers\database_setup.py
+- class ConfigurationError (Count=4)
+  - .\src\plexichat\core\errors\__init__.py
+  - .\src\plexichat\core\errors\base.py
+  - .\src\plexichat\core\errors\exceptions.py
+  - .\src\plexichat\shared\exceptions.py
+- class ModerationAction (Count=4)
+  - .\src\plexichat\features\ai\features\ai_powered_features_service.py
+  - .\src\plexichat\features\ai\moderation\__init__.py
+  - .\src\plexichat\features\ai\moderation\moderation_engine.py
+  - .\src\plexichat\infrastructure\services\moderation_service.py
+- class BaseAPIException (Count=4)
+  - .\src\plexichat\core\errors\__init__.py
+  - .\src\plexichat\core\errors\exceptions.py
+  - .\core\errors\exceptions.py
+  - .\core\utils\fallbacks.py
+- class ConfigManager (Count=4)
+  - .\src\plexichat\plugins_internal.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+  - .\src\plexichat\infrastructure\utils\utilities.py
+- class DistributedCacheManager (Count=4)
+  - .\src\plexichat\core\caching\__init__.py
+  - .\src\plexichat\core\caching\cache_manager.py
+  - .\src\plexichat\core\performance\distributed_cache.py
+  - .\core\utils\fallbacks.py
+- class FileShare (Count=4)
+  - .\src\plexichat\infrastructure\services\file_permissions.py
+  - .\src\plexichat\infrastructure\services\message_service.py
+  - .\src\plexichat\interfaces\web\schemas\files_optimized.py
+  - .\src\plexichat\interfaces\web\schemas\files.py
+- class CacheKeyBuilder (Count=4)
+  - .\src\plexichat\core\caching\unified_cache_integration.py
+  - .\src\plexichat\core\websocket\websocket_manager.py
+  - .\src\plexichat\infrastructure\services\advanced_messaging_service.py
+  - .\src\plexichat\infrastructure\services\collaboration_service.py
+- class FileManager (Count=4)
+  - .\src\plexichat\core\files\__init__.py
+  - .\src\plexichat\core\files\file_manager.py
+  - .\src\plexichat\infrastructure\utils\utilities.py
+  - .\core\utils\fallbacks.py
+- class ModuleCapability (Count=4)
+  - .\src\plexichat\core\plugins\manager.py
+  - .\src\plexichat\core\plugins\plugin_manager.py
+  - .\src\plexichat\core\plugins\installed\ai_providers\main.py
+  - .\src\plexichat\infrastructure\modules\interfaces.py
+- class ErrorCategory (Count=4)
+  - .\src\plexichat\core\errors\__init__.py
+  - .\src\plexichat\core\errors\base.py
+  - .\core\errors\base.py
+  - .\core\utils\fallbacks.py
+- class NetworkError (Count=4)
+  - .\src\plexichat\core\errors\__init__.py
+  - .\src\plexichat\core\errors\base.py
+  - .\src\plexichat\core\errors\exceptions.py
+  - .\src\plexichat\shared\exceptions.py
+- class MessageData (Count=4)
+  - .\src\plexichat\core\messaging\__init__.py
+  - .\src\plexichat\core\messaging\message_processor.py
+  - .\src\plexichat\interfaces\web\routers\secure_api_example.py
+  - .\src\plexichat\shared\types.py
+- class EventHandler (Count=4)
+  - .\src\plexichat\core\events\__init__.py
+  - .\src\plexichat\core\events\event_manager.py
+  - .\src\plexichat\infrastructure\events\bus.py
+  - .\core\utils\fallbacks.py
+- class ModulePriority (Count=4)
+  - .\src\plexichat\core\plugins\manager.py
+  - .\src\plexichat\core\plugins\plugin_manager.py
+  - .\src\plexichat\core\plugins\installed\ai_providers\main.py
+  - .\src\plexichat\infrastructure\modules\interfaces.py
+- class NetworkBroker (Count=4)
+  - .\src\plexichat\plugins_internal.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+  - .\src\plexichat\core\plugins\security_manager.py
+- class ErrorManager (Count=4)
+  - .\src\plexichat\core\errors\__init__.py
+  - .\src\plexichat\core\errors\error_manager.py
+  - .\core\errors\error_manager.py
+  - .\core\utils\fallbacks.py
+- class ErrorSeverity (Count=4)
+  - .\src\plexichat\core\errors\__init__.py
+  - .\src\plexichat\core\errors\base.py
+  - .\core\errors\base.py
+  - .\core\utils\fallbacks.py
+- class ClusterManager (Count=3)
+  - .\src\plexichat\core\clustering\__init__.py
+  - .\src\plexichat\core\clustering\cluster_manager.py
+  - .\core\utils\fallbacks.py
+- def _calculate_health_score (Count=3)
+  - .\src\plexichat\infrastructure\services\performance_service.py
+  - .\src\plexichat\interfaces\web\routes\dashboard_routes.py
+  - .\src\plexichat\interfaces\web\routes\performance_routes.py
+- class MessageEncryption (Count=3)
+  - .\src\plexichat\core\messaging\__init__.py
+  - .\src\plexichat\core\messaging\unified_messaging_system.py
+  - .\core\utils\fallbacks.py
+- def _start_background_tasks (Count=3)
+  - .\src\plexichat\core\security\unified_security_module.py
+  - .\src\plexichat\infrastructure\analytics\engine.py
+  - .\src\plexichat\infrastructure\services\advanced_ddos_service.py
+- class ChannelType (Count=3)
+  - .\src\plexichat\core\messaging\__init__.py
+  - .\src\plexichat\core\messaging\unified_messaging_system.py
+  - .\core\utils\fallbacks.py
+- def register_component (Count=3)
+  - .\src\plexichat\core\__init__.py
+  - .\src\plexichat\core\orchestrator.py
+  - .\src\plexichat\infrastructure\__init__.py
+- def _update_stats (Count=3)
+  - .\src\plexichat\core\performance\memory_manager.py
+  - .\src\plexichat\infrastructure\microservices\service_registry.py
+  - .\src\plexichat\interfaces\cli\ultimate\cli_coordinator.py
+- def add_alert_callback (Count=3)
+  - .\src\plexichat\core\security\ddos_protection.py
+  - .\src\plexichat\core\security\monitoring.py
+  - .\src\plexichat\infrastructure\services\performance_service.py
+- class CircuitBreaker (Count=3)
+  - .\src\plexichat\core\errors\__init__.py
+  - .\src\plexichat\core\errors\circuit_breaker.py
+  - .\src\plexichat\core\performance\scalability_manager.py
+- class InputSanitizer (Count=3)
+  - .\src\plexichat\core\security\security_manager.py
+  - .\src\plexichat\interfaces\web\routers\webhooks.py
+  - .\src\plexichat\interfaces\web\routers\websocket.py
+- def record_error (Count=3)
+  - .\src\plexichat\infrastructure\debugging\comprehensive_debug_manager.py
+  - .\src\plexichat\infrastructure\debugging\comprehensive_debug_manager.py
+  - .\src\plexichat\infrastructure\modules\interfaces.py
+- def admin_endpoint (Count=3)
+  - .\src\plexichat\interfaces\web\routers\admin.py
+  - .\src\plexichat\interfaces\web\routers\secure_api_example.py
+  - .\src\plexichat\interfaces\web\routers\users.py
+- class DatabaseManager (Count=3)
+  - .\src\plexichat\core\database\manager.py
+  - .\src\plexichat\core\websocket\websocket_manager.py
+  - .\src\plexichat\infrastructure\services\health.py
+- def async_cached_decorator (Count=3)
+  - .\src\plexichat\core\caching\__init__.py
+  - .\src\plexichat\core\caching\cache_manager.py
+  - .\src\plexichat\core\caching\cache_manager.py
+- class DatabaseService (Count=3)
+  - .\src\plexichat\core\services\core_services.py
+  - .\src\plexichat\infrastructure\services\missing_modules.py
+  - .\src\plexichat\interfaces\web\routers\database_setup.py
+- def cache_delete (Count=3)
+  - .\src\plexichat\core\caching\__init__.py
+  - .\src\plexichat\core\caching\cache_manager.py
+  - .\src\plexichat\core\websocket\websocket_manager.py
+- class HealthCheck (Count=3)
+  - .\src\plexichat\core\versioning\canary_health_monitor.py
+  - .\src\plexichat\infrastructure\services\health.py
+  - .\src\plexichat\shared\types.py
+- def register_command (Count=3)
+  - .\src\plexichat\interfaces\cli\advanced_cli.py
+  - .\src\plexichat\interfaces\cli\unified_cli_default.py
+  - .\src\plexichat\interfaces\cli\ultimate\cli_coordinator.py
+- def _restricted_open (Count=3)
+  - .\src\plexichat\core\plugins\manager.py
+  - .\src\plexichat\core\plugins\plugin_manager.py
+  - .\src\plexichat\core\plugins\security_manager.py
+- def _restricted_import (Count=3)
+  - .\src\plexichat\core\plugins\manager.py
+  - .\src\plexichat\core\plugins\plugin_manager.py
+  - .\src\plexichat\core\plugins\security_manager.py
+- def _restricted_exec (Count=3)
+  - .\src\plexichat\core\plugins\manager.py
+  - .\src\plexichat\core\plugins\plugin_manager.py
+  - .\src\plexichat\core\plugins\security_manager.py
+- def _expand_role_permissions (Count=3)
+  - .\src\plexichat\core\authentication.py
+  - .\src\plexichat\core\auth\services\authentication_service.py
+  - .\src\plexichat\core\auth\services\user_service.py
+- def sanitize_filename (Count=3)
+  - .\src\plexichat\core\utils.py
+  - .\src\plexichat\infrastructure\utils\utilities.py
+  - .\src\plexichat\interfaces\web\routers\files.py
+- class ClusterMetrics (Count=3)
+  - .\src\plexichat\core\performance\cache_cluster_manager.py
+  - .\src\plexichat\infrastructure\services\performance_service.py
+  - .\src\plexichat\interfaces\web\routers\cluster.py
+- def save_config (Count=3)
+  - .\src\plexichat\core\config.py
+  - .\src\plexichat\core\rate_limit_config.py
+  - .\src\plexichat\infrastructure\utils\utilities.py
+- class ClusterNode (Count=3)
+  - .\src\plexichat\core\clustering\__init__.py
+  - .\src\plexichat\core\clustering\cluster_manager.py
+  - .\src\plexichat\features\backup\backup_manager.py
+- def _generate_session_id (Count=3)
+  - .\src\plexichat\core\authentication.py
+  - .\src\plexichat\core\auth\services\authentication_service.py
+  - .\src\plexichat\core\auth\services\session_service.py
+- def _get_active_alerts (Count=3)
+  - .\src\plexichat\infrastructure\services\performance_service.py
+  - .\src\plexichat\interfaces\web\routes\dashboard_routes.py
+  - .\src\plexichat\interfaces\web\routes\performance_routes.py
+- def revoke_role (Count=3)
+  - .\src\plexichat\core\authentication.py
+  - .\src\plexichat\core\auth\services\interfaces.py
+  - .\src\plexichat\core\auth\services\user_service.py
+- def revoke_plugin_module_permission (Count=3)
+  - .\src\plexichat\core\plugins\manager.py
+  - .\src\plexichat\core\plugins\plugin_manager.py
+  - .\src\plexichat\interfaces\cli\commands\admin.py
+- def save (Count=3)
+  - .\src\plexichat\core\config_manager.py
+  - .\src\plexichat\interfaces\cli\commands\settings.py
+  - .\src\plexichat\interfaces\cli\commands\settings.py
+- def _get_processor (Count=3)
+  - .\core\messaging\base.py
+  - .\core\messaging\message_processor.py
+  - .\core\messaging\unified_messaging_system.py
+- def _get_user_roles (Count=3)
+  - .\src\plexichat\core\authentication.py
+  - .\src\plexichat\core\auth\services\authentication_service.py
+  - .\src\plexichat\core\security\db_security.py
+- class ClusterStatus (Count=3)
+  - .\src\plexichat\core\clustering\__init__.py
+  - .\src\plexichat\core\clustering\cluster_manager.py
+  - .\src\plexichat\interfaces\web\routers\cluster.py
+- def _is_suspicious_ip (Count=3)
+  - .\src\plexichat\core\authentication.py
+  - .\src\plexichat\core\auth\services\authentication_service.py
+  - .\src\plexichat\core\security\zero_trust.py
+- def _load_config (Count=3)
+  - .\src\plexichat\core\security\quantum_encryption.py
+  - .\src\plexichat\infrastructure\utils\ip_security.py
+  - .\src\plexichat\infrastructure\utils\utilities.py
+- def cache_set (Count=3)
+  - .\src\plexichat\core\caching\__init__.py
+  - .\src\plexichat\core\caching\cache_manager.py
+  - .\src\plexichat\core\websocket\websocket_manager.py
+- def save_configuration (Count=3)
+  - .\src\plexichat\core\auth\config\auth_config.py
+  - .\src\plexichat\interfaces\web\core\config_manager.py
+  - .\src\plexichat\interfaces\web\routes\admin\zero_knowledge_security_routes.py
+- def register_user (Count=3)
+  - .\src\plexichat\core\authentication.py
+  - .\src\plexichat\core\auth\services\interfaces.py
+  - .\src\plexichat\core\auth\services\user_service.py
+- def register_service (Count=3)
+  - .\src\plexichat\core\services\__init__.py
+  - .\src\plexichat\core\services\core_services.py
+  - .\src\plexichat\infrastructure\services\missing_modules.py
+- def _restricted_eval (Count=3)
+  - .\src\plexichat\core\plugins\manager.py
+  - .\src\plexichat\core\plugins\plugin_manager.py
+  - .\src\plexichat\core\plugins\security_manager.py
+- def require_auth (Count=3)
+  - .\src\plexichat\core\security\security_decorators.py
+  - .\src\plexichat\interfaces\web\routers\secure_api_example.py
+  - .\src\plexichat\interfaces\web\routers\users.py
+- class DebugLevel (Count=3)
+  - .\src\plexichat\infrastructure\debugging\comprehensive_debug_manager.py
+  - .\src\plexichat\infrastructure\debugging\debug_manager.py
+  - .\src\plexichat\infrastructure\debugging\plugin_debug_integration.py
+- def clear (Count=3)
+  - .\src\plexichat\core\caching\cache_manager.py
+  - .\src\plexichat\core\security\oram.py
+  - .\src\plexichat\infrastructure\utils.py
+- def check_permission (Count=3)
+  - .\src\plexichat\core\auth\permissions.py
+  - .\src\plexichat\core\auth\services\authorization_service.py
+  - .\src\plexichat\core\database\manager.py
+- def get_session_timeout (Count=3)
+  - .\src\plexichat\core\auth\config\auth_config.py
+  - .\src\plexichat\core\auth\config\security_config.py
+  - .\src\plexichat\interfaces\web\core\config_manager.py
+- def generate_secure_token (Count=3)
+  - .\src\plexichat\infrastructure\utils\common_utils.py
+  - .\src\plexichat\infrastructure\utils\security.py
+  - .\src\plexichat\infrastructure\utils\security.py
+- class FileListResponse (Count=3)
+  - .\src\plexichat\interfaces\web\routers\files.py
+  - .\src\plexichat\interfaces\web\schemas\files_optimized.py
+  - .\src\plexichat\interfaces\web\schemas\files.py
+- class FileError (Count=3)
+  - .\src\plexichat\core\errors\__init__.py
+  - .\src\plexichat\core\errors\base.py
+  - .\src\plexichat\core\errors\exceptions.py
+- def get_security_manager (Count=3)
+  - .\src\plexichat\core\plugins\security_manager.py
+  - .\src\plexichat\core\security\comprehensive_security_manager.py
+  - .\src\plexichat\interfaces\cli\commands\plugins.py
+- def get_sdk_info (Count=3)
+  - .\src\plexichat\plugins_internal.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+- def get_available_methods (Count=3)
+  - .\src\plexichat\core\auth\services\interfaces.py
+  - .\src\plexichat\infrastructure\modules\interfaces.py
+  - .\src\plexichat\infrastructure\modules\interfaces.py
+- def get_resource_stats (Count=3)
+  - .\src\plexichat\core\monitoring\resource_tracker.py
+  - .\src\plexichat\core\monitoring\resource_tracker.py
+  - .\src\plexichat\core\performance\resource_manager.py
+- def get_cache_stats (Count=3)
+  - .\src\plexichat\core\performance\auth_cache.py
+  - .\src\plexichat\core\performance\multi_tier_cache_manager.py
+  - .\src\plexichat\core\services\typing_cache_service.py
+- def get_required_permissions (Count=3)
+  - .\src\plexichat\core\plugins\installed\ai_providers\main.py
+  - .\src\plexichat\infrastructure\modules\interfaces.py
+  - .\src\plexichat\infrastructure\modules\interfaces.py
+- def generate_id (Count=3)
+  - .\src\plexichat\core\utils.py
+  - .\src\plexichat\infrastructure\utils\snowflake.py
+  - .\src\plexichat\infrastructure\utils\utilities.py
+- class ErrorCodeMapping (Count=3)
+  - .\src\plexichat\core\errors\base.py
+  - .\src\plexichat\core\errors\error_codes.py
+  - .\core\errors\base.py
+- def get_plugin_module_requests (Count=3)
+  - .\src\plexichat\core\plugins\manager.py
+  - .\src\plexichat\core\plugins\plugin_manager.py
+  - .\src\plexichat\interfaces\cli\commands\admin.py
+- def get_current_metrics (Count=3)
+  - .\src\plexichat\infrastructure\services\performance_service.py
+  - .\src\plexichat\interfaces\web\routes\dashboard_routes.py
+  - .\src\plexichat\interfaces\web\routes\performance_routes.py
+- class ExternalServiceError (Count=3)
+  - .\src\plexichat\core\errors\__init__.py
+  - .\src\plexichat\core\errors\base.py
+  - .\src\plexichat\core\errors\exceptions.py
+- def get_plugin_config (Count=3)
+  - .\src\plexichat\plugins_internal.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+- def get_effective_limits_for_user (Count=3)
+  - .\src\plexichat\core\rate_limit_config.py
+  - .\src\plexichat\interfaces\api\v1\rate_limits.py
+  - .\src\plexichat\interfaces\api\v1\rate_limits.py
+- def get_error_manager (Count=3)
+  - .\src\plexichat\core\errors\__init__.py
+  - .\src\plexichat\core\errors\error_manager.py
+  - .\core\utils\fallbacks.py
+- def get_performance_logger (Count=3)
+  - .\src\plexichat\core\middleware\middleware_manager.py
+  - .\src\plexichat\core\scheduler\task_scheduler.py
+  - .\src\plexichat\core\websocket\websocket_manager.py
+- class ErrorResponse (Count=3)
+  - .\src\plexichat\core\errors\base.py
+  - .\src\plexichat\interfaces\web\schemas\error.py
+  - .\core\errors\base.py
+- def get_oauth2_authorization_url (Count=3)
+  - .\src\plexichat\core\authentication.py
+  - .\src\plexichat\core\auth\services\authentication_service.py
+  - .\src\plexichat\core\auth\services\interfaces.py
+- def get_latest_metric (Count=3)
+  - .\src\plexichat\core\monitoring\base_monitor.py
+  - .\src\plexichat\core\monitoring\unified_monitoring_system.py
+  - .\src\plexichat\core\monitoring\unified_monitoring_system.py
+- class ErrorContext (Count=3)
+  - .\src\plexichat\core\errors\base.py
+  - .\src\plexichat\core\errors\error_manager.py
+  - .\core\errors\error_manager.py
+- def check_compatibility (Count=3)
+  - .\src\plexichat\plugins_internal.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+- class FileMetadata (Count=3)
+  - .\src\plexichat\core\files\__init__.py
+  - .\src\plexichat\core\files\file_manager.py
+  - .\core\utils\fallbacks.py
+- class EnhancedBackup (Count=3)
+  - .\src\plexichat\infrastructure\services\advanced_recovery_system.py
+  - .\src\plexichat\infrastructure\services\backup_status_monitor.py
+  - .\src\plexichat\infrastructure\services\intelligent_shard_distribution.py
+- def check_plugin_permission (Count=3)
+  - .\src\plexichat\plugins_internal.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+  - .\src\plexichat\core\plugins\security_manager.py
+- def log_security_event (Count=3)
+  - .\src\plexichat\core\auth\services\interfaces.py
+  - .\src\plexichat\core\security\unified_audit_system.py
+  - .\src\plexichat\interfaces\api\v1\shards.py
+- def cleanup_expired_sessions (Count=3)
+  - .\src\plexichat\core\auth\repositories\interfaces.py
+  - .\src\plexichat\core\auth\services\interfaces.py
+  - .\src\plexichat\core\auth\services\session_service.py
+- def set_plugin_config (Count=3)
+  - .\src\plexichat\plugins_internal.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+- def cli (Count=3)
+  - .\src\plexichat\interfaces\cli\cli_manager.py
+  - .\src\plexichat\interfaces\cli\main_cli.py
+  - .\src\plexichat\interfaces\cli\unified_cli_default.py
+- def create_access_token (Count=3)
+  - .\src\plexichat\core\authentication.py
+  - .\src\plexichat\core\auth\services\interfaces.py
+  - .\src\plexichat\core\security\security_manager.py
+- def create_admin (Count=3)
+  - .\src\plexichat\interfaces\cli\commands\admin.py
+  - .\src\plexichat\interfaces\cli\commands\admin.py
+  - .\src\plexichat\interfaces\web\routers\admin.py
+- class FileUpload (Count=3)
+  - .\src\plexichat\interfaces\api\v1.py
+  - .\src\plexichat\interfaces\web\schemas\files_optimized.py
+  - .\src\plexichat\interfaces\web\schemas\files.py
+- def create_plugin_api (Count=3)
+  - .\src\plexichat\plugins_internal.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+- def create_refresh_token (Count=3)
+  - .\src\plexichat\core\authentication.py
+  - .\src\plexichat\core\auth\services\interfaces.py
+  - .\src\plexichat\core\security\security_manager.py
+- class EnhancedBackupShard (Count=3)
+  - .\src\plexichat\infrastructure\services\advanced_recovery_system.py
+  - .\src\plexichat\infrastructure\services\backup_status_monitor.py
+  - .\src\plexichat\infrastructure\services\intelligent_shard_distribution.py
+- def create_sandbox (Count=3)
+  - .\src\plexichat\core\plugins\security_manager.py
+  - .\src\plexichat\interfaces\web\routers\plugins.py
+  - .\src\plexichat\interfaces\web\routers\plugins.py
+- def listen (Count=3)
+  - .\src\plexichat\plugins_internal.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+- def list_services (Count=3)
+  - .\src\plexichat\core\services\__init__.py
+  - .\src\plexichat\infrastructure\services\base_service.py
+  - .\src\plexichat\infrastructure\services\missing_modules.py
+- def list_admins (Count=3)
+  - .\src\plexichat\interfaces\cli\commands\admin.py
+  - .\src\plexichat\interfaces\cli\commands\admin.py
+  - .\src\plexichat\interfaces\web\routers\admin.py
+- def is_valid_email (Count=3)
+  - .\src\plexichat\core\utils.py
+  - .\src\plexichat\infrastructure\utils\utilities.py
+  - .\src\plexichat\infrastructure\utils\validation.py
+- class DeviceShardAssignment (Count=3)
+  - .\src\plexichat\infrastructure\services\advanced_recovery_system.py
+  - .\src\plexichat\infrastructure\services\backup_status_monitor.py
+  - .\src\plexichat\infrastructure\services\intelligent_shard_distribution.py
+- class DeviceStatus (Count=3)
+  - .\src\plexichat\infrastructure\services\advanced_recovery_system.py
+  - .\src\plexichat\infrastructure\services\backup_status_monitor.py
+  - .\src\plexichat\infrastructure\services\intelligent_shard_distribution.py
+- def initialize (Count=3)
+  - .\src\plexichat\core\monitoring\base_monitor.py
+  - .\src\plexichat\core\monitoring\unified_monitoring_system.py
+  - .\src\plexichat\shared\types.py
+- def encrypt (Count=3)
+  - .\src\plexichat\core\security\quantum_encryption.py
+  - .\src\plexichat\shared\types.py
+  - .\core\utils\fallbacks.py
+- def end_timer (Count=3)
+  - .\src\plexichat\infrastructure\utils.py
+  - .\src\plexichat\infrastructure\utils\performance.py
+  - .\src\plexichat\infrastructure\utils\performance.py
+- def grant_plugin_module_permission (Count=3)
+  - .\src\plexichat\core\plugins\manager.py
+  - .\src\plexichat\core\plugins\plugin_manager.py
+  - .\src\plexichat\interfaces\cli\commands\admin.py
+- def critical (Count=3)
+  - .\src\plexichat\plugins_internal.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+- class WebSocketManager (Count=3)
+  - .\src\plexichat\core\websocket\__init__.py
+  - .\src\plexichat\core\websocket\websocket_manager.py
+  - .\src\plexichat\infrastructure\services\calling_service.py
+- def _load_default_config (Count=3)
+  - .\src\plexichat\core\rate_limit_config.py
+  - .\src\plexichat\infrastructure\services\plugin_marketplace_service.py
+  - .\src\plexichat\infrastructure\services\plugin_oauth_provider.py
+- class PluginTestManager (Count=3)
+  - .\src\plexichat\core\plugins\__init__.py
+  - .\src\plexichat\core\plugins\manager.py
+  - .\src\plexichat\core\plugins\plugin_manager.py
+- class TokenResponse (Count=3)
+  - .\src\plexichat\interfaces\api\v1\auth.py
+  - .\src\plexichat\interfaces\web\schemas\auth_optimized.py
+  - .\src\plexichat\interfaces\web\schemas\auth.py
+- def validate (Count=3)
+  - .\src\plexichat\interfaces\cli\commands\settings.py
+  - .\src\plexichat\shared\types.py
+  - .\core\utils\fallbacks.py
+- class Permission (Count=3)
+  - .\src\plexichat\core\auth\models\permission.py
+  - .\src\plexichat\infrastructure\services\moderation_service.py
+  - .\src\plexichat\shared\models.py
+- class TaskType (Count=3)
+  - .\src\plexichat\core\scheduler\__init__.py
+  - .\src\plexichat\core\scheduler\task_scheduler.py
+  - .\core\utils\fallbacks.py
+- class MessageService (Count=3)
+  - .\src\plexichat\infrastructure\services\message_service.py
+  - .\src\plexichat\infrastructure\services\missing_modules.py
+  - .\src\plexichat\interfaces\web\routers\messages.py
+- class PermissionChecker (Count=3)
+  - .\src\plexichat\plugins_internal.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+- class ScheduledTask (Count=3)
+  - .\src\plexichat\core\scheduler\__init__.py
+  - .\src\plexichat\core\scheduler\task_scheduler.py
+  - .\core\utils\fallbacks.py
+- class PermissionType (Count=3)
+  - .\src\plexichat\plugins_internal.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+  - .\src\plexichat\core\plugins\security_manager.py
+- class PlexiChatErrorCode (Count=3)
+  - .\src\plexichat\core\errors\base.py
+  - .\src\plexichat\core\errors\error_codes.py
+  - .\core\errors\base.py
+- class PluginStatus (Count=3)
+  - .\src\plexichat\core\plugins\__init__.py
+  - .\src\plexichat\core\plugins\manager.py
+  - .\src\plexichat\core\plugins\plugin_manager.py
+- class MessageThread (Count=3)
+  - .\src\plexichat\infrastructure\services\communication_service.py
+  - .\src\plexichat\interfaces\web\schemas\message_optimized.py
+  - .\src\plexichat\interfaces\web\schemas\message.py
+- class MetricType (Count=3)
+  - .\src\plexichat\core\monitoring\__init__.py
+  - .\src\plexichat\infrastructure\analytics\analytics_service.py
+  - .\core\utils\fallbacks.py
+- class StorageDevice (Count=3)
+  - .\src\plexichat\infrastructure\services\advanced_recovery_system.py
+  - .\src\plexichat\infrastructure\services\backup_status_monitor.py
+  - .\src\plexichat\infrastructure\services\intelligent_shard_distribution.py
+- class StartupError (Count=3)
+  - .\src\plexichat\core\errors\__init__.py
+  - .\src\plexichat\core\errors\base.py
+  - .\src\plexichat\core\errors\exceptions.py
+- class SecurityEvent (Count=3)
+  - .\src\plexichat\core\security\comprehensive_security_manager.py
+  - .\src\plexichat\core\security\unified_audit_system.py
+  - .\src\plexichat\core\security\unified_security_module.py
+- class MetricData (Count=3)
+  - .\src\plexichat\core\monitoring\base_monitor.py
+  - .\src\plexichat\core\monitoring\unified_monitoring_system.py
+  - .\src\plexichat\infrastructure\analytics\engine.py
+- class MessageValidator (Count=3)
+  - .\src\plexichat\core\messaging\__init__.py
+  - .\src\plexichat\core\messaging\unified_messaging_system.py
+  - .\core\utils\fallbacks.py
+- class PluginLogger (Count=3)
+  - .\src\plexichat\plugins_internal.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+- class PluginIsolationManager (Count=3)
+  - .\src\plexichat\core\plugins\__init__.py
+  - .\src\plexichat\core\plugins\manager.py
+  - .\src\plexichat\core\plugins\plugin_manager.py
+- class ServiceHealth (Count=3)
+  - .\src\plexichat\infrastructure\services\__init__.py
+  - .\src\plexichat\infrastructure\services\base_service.py
+  - .\src\plexichat\infrastructure\services\collaboration_service.py
+- class ModerationSeverity (Count=3)
+  - .\src\plexichat\features\ai\moderation\__init__.py
+  - .\src\plexichat\features\ai\moderation\moderation_engine.py
+  - .\src\plexichat\infrastructure\services\moderation_service.py
+- class ServiceManager (Count=3)
+  - .\src\plexichat\core\services\__init__.py
+  - .\src\plexichat\core\services\core_services.py
+  - .\core\utils\fallbacks.py
+- class PluginInfo (Count=3)
+  - .\src\plexichat\core\plugins\__init__.py
+  - .\src\plexichat\core\plugins\manager.py
+  - .\src\plexichat\core\plugins\plugin_manager.py
+- class ModuleMetrics (Count=3)
+  - .\src\plexichat\core\plugins\manager.py
+  - .\src\plexichat\core\plugins\plugin_manager.py
+  - .\src\plexichat\infrastructure\modules\interfaces.py
+- class PluginAPIError (Count=3)
+  - .\src\plexichat\plugins_internal.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+- class PluginAPI (Count=3)
+  - .\src\plexichat\plugins_internal.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+- class Plugin (Count=3)
+  - .\src\plexichat\core\plugins\manager.py
+  - .\src\plexichat\core\plugins\plugin_manager.py
+  - .\src\plexichat\shared\models.py
+- class ServiceRegistry (Count=3)
+  - .\src\plexichat\infrastructure\microservices\decomposition.py
+  - .\src\plexichat\infrastructure\microservices\service_registry.py
+  - .\src\plexichat\infrastructure\services\base_service.py
+- def unlisten (Count=3)
+  - .\src\plexichat\plugins_internal.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+- class PluginSecurityError (Count=3)
+  - .\src\plexichat\plugins_internal.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+- class PlexiError (Count=3)
+  - .\core\messaging\base.py
+  - .\core\messaging\message_processor.py
+  - .\core\messaging\unified_messaging_system.py
+- def update_metrics (Count=3)
+  - .\src\plexichat\core\clustering\__init__.py
+  - .\src\plexichat\core\clustering\cluster_manager.py
+  - .\src\plexichat\features\ai\providers\base_provider.py
+- class ModulePermissions (Count=3)
+  - .\src\plexichat\core\plugins\installed\ai_providers\main.py
+  - .\src\plexichat\core\plugins\installed\ai_providers\main.py
+  - .\src\plexichat\infrastructure\modules\interfaces.py
+- class PluginPermissionError (Count=3)
+  - .\src\plexichat\plugins_internal.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+- def submit_task (Count=3)
+  - .\src\plexichat\core\threading\thread_manager.py
+  - .\src\plexichat\core\threading\thread_manager.py
+  - .\src\plexichat\core\websocket\websocket_manager.py
+- def stats (Count=3)
+  - .\src\plexichat\core\performance\latency_optimizer.py
+  - .\src\plexichat\interfaces\cli\commands\settings.py
+  - .\src\plexichat\interfaces\web\routes\collaboration_routes.py
+- class PerformanceMetrics (Count=3)
+  - .\src\plexichat\core\performance\latency_optimizer.py
+  - .\src\plexichat\interfaces\api\v1\system.py
+  - .\src\plexichat\interfaces\web\middleware\comprehensive_security_middleware.py
+- class ProcessLockError (Count=3)
+  - .\src\plexichat\core\errors\__init__.py
+  - .\src\plexichat\core\errors\base.py
+  - .\src\plexichat\core\errors\exceptions.py
+- def start_timer (Count=3)
+  - .\src\plexichat\infrastructure\utils.py
+  - .\src\plexichat\infrastructure\utils\performance.py
+  - .\src\plexichat\infrastructure\utils\performance.py
+- def validate_url (Count=3)
+  - .\src\plexichat\infrastructure\utils\validation.py
+  - .\src\plexichat\infrastructure\utils\validation.py
+  - .\src\plexichat\shared\validators.py
+- class ModuleState (Count=3)
+  - .\src\plexichat\core\plugins\manager.py
+  - .\src\plexichat\core\plugins\plugin_manager.py
+  - .\src\plexichat\infrastructure\modules\interfaces.py
+- class UserRole (Count=3)
+  - .\src\plexichat\infrastructure\services\collaboration_service.py
+  - .\src\plexichat\infrastructure\services\moderation_service.py
+  - .\src\plexichat\interfaces\api\schemas\user.py
+- class ProfilerType (Count=3)
+  - .\src\plexichat\infrastructure\debugging\comprehensive_debug_manager.py
+  - .\src\plexichat\infrastructure\debugging\debug_manager.py
+  - .\src\plexichat\infrastructure\debugging\plugin_debug_integration.py
+- class MessagePriority (Count=3)
+  - .\src\plexichat\core\performance\message_queue_manager.py
+  - .\src\plexichat\interfaces\web\schemas\message_optimized.py
+  - .\src\plexichat\interfaces\web\schemas\message.py
+- class RateLimiter (Count=3)
+  - .\src\plexichat\core\security\waf_middleware.py
+  - .\src\plexichat\infrastructure\utils.py
+  - .\src\plexichat\infrastructure\utils\performance.py
+- class ValidationUtils (Count=3)
+  - .\src\plexichat\core\utils.py
+  - .\src\plexichat\infrastructure\utils\common_utils.py
+  - .\src\plexichat\infrastructure\utils\utilities.py
+- def start (Count=3)
+  - .\src\plexichat\infrastructure\utils\scheduling.py
+  - .\src\plexichat\interfaces\cli\console_manager.py
+  - .\core\utils\fallbacks.py
+- class Notification (Count=3)
+  - .\src\plexichat\core\notifications\__init__.py
+  - .\src\plexichat\core\notifications\notification_manager.py
+  - .\core\utils\fallbacks.py
+- class NodeType (Count=3)
+  - .\src\plexichat\core\clustering\__init__.py
+  - .\src\plexichat\core\clustering\cluster_manager.py
+  - .\src\plexichat\core\clustering\node_manager.py
+- class RateLimitMiddleware (Count=3)
+  - .\src\plexichat\core\middleware\middleware_manager.py
+  - .\src\plexichat\core\middleware\rate_limiting.py
+  - .\src\plexichat\core\middleware\rate_limiting\engine.py
+- class MessageReaction (Count=3)
+  - .\src\plexichat\infrastructure\services\communication_service.py
+  - .\src\plexichat\interfaces\web\schemas\message_optimized.py
+  - .\src\plexichat\interfaces\web\schemas\message.py
+- class RequiredPermission (Count=3)
+  - .\src\plexichat\core\security\security_decorators.py
+  - .\src\plexichat\interfaces\web\routers\admin.py
+  - .\src\plexichat\interfaces\web\routers\users.py
+- class AlertRule (Count=3)
+  - .\src\plexichat\core\monitoring\base_monitor.py
+  - .\src\plexichat\core\monitoring\unified_monitoring_system.py
+  - .\src\plexichat\core\monitoring\unified_monitoring_system.py
+- class CacheNode (Count=3)
+  - .\src\plexichat\core\performance\cache_cluster_manager.py
+  - .\src\plexichat\core\performance\distributed_cache.py
+  - .\src\plexichat\infrastructure\scalability\coordinator.py
+- class MessageResponse (Count=3)
+  - .\src\plexichat\interfaces\api\v1\messages.py
+  - .\src\plexichat\interfaces\web\schemas\message_optimized.py
+  - .\src\plexichat\interfaces\web\schemas\message.py
+- class Priority (Count=3)
+  - .\src\plexichat\core\plugins\manager.py
+  - .\src\plexichat\core\plugins\plugin_manager.py
+  - .\src\plexichat\shared\models.py
+- def stop_monitoring (Count=3)
+  - .\src\plexichat\core\performance\memory_manager.py
+  - .\src\plexichat\core\plugins\security_manager.py
+  - .\src\plexichat\infrastructure\services\backup_status_monitor.py
+- class Role (Count=3)
+  - .\src\plexichat\core\authentication.py
+  - .\src\plexichat\core\auth\models\role.py
+  - .\src\plexichat\shared\models.py
+- class OAuth2Config (Count=3)
+  - .\src\plexichat\core\authentication.py
+  - .\src\plexichat\core\auth\config\oauth_config.py
+  - .\src\plexichat\core\auth\services\authentication_service.py
+- class NotificationType (Count=3)
+  - .\src\plexichat\core\notifications\__init__.py
+  - .\src\plexichat\core\notifications\notification_manager.py
+  - .\core\utils\fallbacks.py
+- class UserProfile (Count=3)
+  - .\src\plexichat\interfaces\api\v1\users.py
+  - .\src\plexichat\interfaces\web\schemas\user_optimized.py
+  - .\src\plexichat\interfaces\web\schemas\user.py
+- class UserListResponse (Count=3)
+  - .\src\plexichat\interfaces\web\routers\users.py
+  - .\src\plexichat\interfaces\web\schemas\user_optimized.py
+  - .\src\plexichat\interfaces\web\schemas\user.py
+- class EncryptionManager (Count=2)
+  - .\src\plexichat\infrastructure\services\calling_service.py
+  - .\src\plexichat\infrastructure\services\client_settings_service.py
+- class AsyncThreadManager (Count=2)
+  - .\src\plexichat\core\threading\thread_manager.py
+  - .\src\plexichat\core\websocket\websocket_manager.py
+- def internal_error (Count=2)
+  - .\src\plexichat\interfaces\web\routes\admin\ai_features_routes.py
+  - .\src\plexichat\interfaces\web\routes\admin\zero_knowledge_security_routes.py
+- def get_user_message (Count=2)
+  - .\src\plexichat\core\errors\base.py
+  - .\src\plexichat\core\errors\error_codes.py
+- def is_mfa_enabled (Count=2)
+  - .\src\plexichat\core\auth\services\interfaces.py
+  - .\src\plexichat\interfaces\web\core\mfa_manager.py
+- def get_user_sessions (Count=2)
+  - .\src\plexichat\core\auth\repositories\interfaces.py
+  - .\src\plexichat\infrastructure\services\collaboration_service.py
+- def validate_input (Count=2)
+  - .\src\plexichat\infrastructure\utils\validation.py
+  - .\src\plexichat\interfaces\web\routers\secure_api_example.py
+- class EncryptionService (Count=2)
+  - .\src\plexichat\features\backup\encryption_service.py
+  - .\src\plexichat\infrastructure\services\missing_modules.py
+- def is_allowed (Count=2)
+  - .\src\plexichat\infrastructure\utils.py
+  - .\src\plexichat\infrastructure\utils\performance.py
+- class DummyPerformanceService (Count=2)
+  - .\src\plexichat\interfaces\web\routes\dashboard_routes.py
+  - .\src\plexichat\interfaces\web\routes\performance_routes.py
+- class EchoPlugin (Count=2)
+  - .\src\plexichat\core\plugins\installed\echo_plugin\main.py
+  - .\src\plexichat\plugins\echo\main.py
+- def get_version_info (Count=2)
+  - .\src\plexichat\core\versioning\api_version_manager.py
+  - .\src\plexichat\interfaces\cli\commands\updates.py
+- def health_score (Count=2)
+  - .\src\plexichat\core\clustering\cluster_manager.py
+  - .\src\plexichat\core\versioning\canary_node_selector.py
+- def is_feature_enabled (Count=2)
+  - .\src\plexichat\core\auth\config\auth_config.py
+  - .\src\plexichat\interfaces\web\core\config_manager.py
+- def handle (Count=2)
+  - .\core\utils\fallbacks.py
+  - .\core\utils\fallbacks.py
+- class DistributedKeyManager (Count=2)
+  - .\src\plexichat\core\security\__init__.py
+  - .\src\plexichat\core\security\key_vault.py
+- def hash_string (Count=2)
+  - .\src\plexichat\core\utils.py
+  - .\src\plexichat\infrastructure\utils\utilities.py
+- class EncryptionLevel (Count=2)
+  - .\src\plexichat\core\messaging\__init__.py
+  - .\src\plexichat\core\messaging\unified_messaging_system.py
+- class EncryptionKey (Count=2)
+  - .\src\plexichat\core\security\quantum_encryption.py
+  - .\src\plexichat\features\backup\encryption_service.py
+- def is_ip_allowed (Count=2)
+  - .\src\plexichat\infrastructure\utils\ip_security.py
+  - .\src\plexichat\infrastructure\utils\ip_security.py
+- def shutdown (Count=2)
+  - .\src\plexichat\core\threading\thread_manager.py
+  - .\src\plexichat\core\threading\thread_manager.py
+- class EnhancedPluginConfig (Count=2)
+  - .\src\plexichat\core\plugins\manager.py
+  - .\src\plexichat\core\plugins\sdk.py
+- def validate_integer (Count=2)
+  - .\src\plexichat\core\validation.py
+  - .\src\plexichat\shared\validators.py
+- def get_rate_limiting_config (Count=2)
+  - .\src\plexichat\core\middleware\ip_blacklist_middleware.py
+  - .\src\plexichat\interfaces\web\routers\rate_limiting_admin.py
+- def get_rate_limit_config_manager (Count=2)
+  - .\src\plexichat\core\rate_limit_config.py
+  - .\src\plexichat\interfaces\api\v1\rate_limits.py
+- def validate_plugins_internal (Count=2)
+  - .\src\plexichat\core\plugins\sdk_generator.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+- class ErrorDetail (Count=2)
+  - .\src\plexichat\interfaces\api\v1\auth.py
+  - .\src\plexichat\interfaces\web\schemas\error.py
+- def validate_required_fields (Count=2)
+  - .\src\plexichat\core\validation.py
+  - .\src\plexichat\infrastructure\utils\utilities.py
+- class AIRequest (Count=2)
+  - .\src\plexichat\features\ai\core\ai_abstraction_layer.py
+  - .\src\plexichat\interfaces\cli\commands\ai.py
+- def validate_token (Count=2)
+  - .\src\plexichat\infrastructure\services\missing_modules.py
+  - .\core\utils\fallbacks.py
+- def get_performance_service (Count=2)
+  - .\src\plexichat\interfaces\web\routes\dashboard_routes.py
+  - .\src\plexichat\interfaces\web\routes\performance_routes.py
+- def get_performance_metrics (Count=2)
+  - .\src\plexichat\features\ai\ai_coordinator.py
+  - .\src\plexichat\infrastructure\utils\performance.py
+- class AIProvider (Count=2)
+  - .\src\plexichat\features\ai\core\ai_abstraction_layer.py
+  - .\src\plexichat\interfaces\cli\commands\ai.py
+- def get_notifications (Count=2)
+  - .\src\plexichat\core\notifications\__init__.py
+  - .\core\utils\fallbacks.py
+- def get_module_version (Count=2)
+  - .\src\plexichat\core\utils\fallbacks.py
+  - .\core\utils\fallbacks.py
+- def get_model_info (Count=2)
+  - .\src\plexichat\features\ai\ai_coordinator.py
+  - .\src\plexichat\features\ai\providers\base_provider.py
+- def get_middleware_stack (Count=2)
+  - .\src\plexichat\core\middleware\middleware_manager.py
+  - .\src\plexichat\core\middleware\middleware_manager.py
+- class AICommandLineInterface (Count=2)
+  - .\src\plexichat\features\ai\cli\ai_cli.py
+  - .\src\plexichat\interfaces\cli\commands\ai.py
+- def get_real_time_stats (Count=2)
+  - .\src\plexichat\infrastructure\analytics\analytics_service.py
+  - .\src\plexichat\infrastructure\analytics\engine.py
+- def get_registry_status (Count=2)
+  - .\src\plexichat\infrastructure\microservices\decomposition.py
+  - .\src\plexichat\infrastructure\microservices\service_registry.py
+- def get_replica_nodes (Count=2)
+  - .\src\plexichat\core\clustering\__init__.py
+  - .\src\plexichat\core\performance\cache_cluster_manager.py
+- def get_resource_patterns (Count=2)
+  - .\src\plexichat\core\monitoring\resource_tracker.py
+  - .\src\plexichat\core\monitoring\resource_tracker.py
+- class EnhancedBasePlugin (Count=2)
+  - .\src\plexichat\core\plugins\manager.py
+  - .\src\plexichat\core\plugins\sdk.py
+- def get_severity (Count=2)
+  - .\src\plexichat\core\errors\base.py
+  - .\src\plexichat\core\errors\error_codes.py
+- def get_setting (Count=2)
+  - .\src\plexichat\core\config.py
+  - .\src\plexichat\core\auth\config\auth_config.py
+- def get_session_stats (Count=2)
+  - .\src\plexichat\infrastructure\services\collaboration_service.py
+  - .\src\plexichat\interfaces\web\routes\collaboration_routes.py
+- class EnhancedPluginAPI (Count=2)
+  - .\src\plexichat\core\plugins\manager.py
+  - .\src\plexichat\core\plugins\sdk.py
+- def get_service_status (Count=2)
+  - .\src\plexichat\core\services\core_services.py
+  - .\src\plexichat\infrastructure\services\missing_modules.py
+- def get_service_manager (Count=2)
+  - .\src\plexichat\core\services\__init__.py
+  - .\core\utils\fallbacks.py
+- def get_token_info (Count=2)
+  - .\src\plexichat\core\auth\services\interfaces.py
+  - .\src\plexichat\core\middleware\rate_limiting.py
+- def is_plugin_enabled (Count=2)
+  - .\src\plexichat\core\plugins\security_manager.py
+  - .\src\plexichat\core\plugins\security_manager.py
+- class EnhancedPluginLogger (Count=2)
+  - .\src\plexichat\core\plugins\manager.py
+  - .\src\plexichat\core\plugins\sdk.py
+- class EnhancedUser (Count=2)
+  - .\src\plexichat\infrastructure\services\intelligent_shard_distribution.py
+  - .\src\plexichat\infrastructure\services\moderation_service.py
+- def get_security_stats (Count=2)
+  - .\src\plexichat\infrastructure\utils\ip_security.py
+  - .\src\plexichat\interfaces\web\middleware\security_middleware.py
+- def get_security_policy (Count=2)
+  - .\src\plexichat\core\plugins\security_manager.py
+  - .\src\plexichat\interfaces\cli\commands\plugins.py
+- class AnalyticsService (Count=2)
+  - .\src\plexichat\infrastructure\analytics\analytics_service.py
+  - .\src\plexichat\infrastructure\services\missing_modules.py
+- def get_scheduled_tasks (Count=2)
+  - .\src\plexichat\core\scheduler\__init__.py
+  - .\src\plexichat\core\scheduler\task_scheduler.py
+- class AnalyticsEvent (Count=2)
+  - .\src\plexichat\core\monitoring\unified_monitoring_system.py
+  - .\src\plexichat\infrastructure\analytics\engine.py
+- def get_security_system (Count=2)
+  - .\src\plexichat\core\auth\services\authorization_service.py
+  - .\src\plexichat\core\security\security_manager.py
+- def is_rate_limited (Count=2)
+  - .\src\plexichat\core\middleware\rate_limiting.py
+  - .\src\plexichat\core\security\waf_middleware.py
+- def load_module (Count=2)
+  - .\src\plexichat\core\orchestrator.py
+  - .\src\plexichat\core\orchestrator.py
+- class AsyncUtils (Count=2)
+  - .\src\plexichat\infrastructure\utils.py
+  - .\src\plexichat\infrastructure\utils\common_utils.py
+- def require_user_or_admin (Count=2)
+  - .\src\plexichat\core\auth\fastapi_adapter.py
+  - .\src\plexichat\core\auth\fastapi_adapter.py
+- class CacheLevel (Count=2)
+  - .\src\plexichat\core\cache\manager.py
+  - .\src\plexichat\core\performance\distributed_cache.py
+- def system (Count=2)
+  - .\src\plexichat\interfaces\cli\commands\settings.py
+  - .\src\plexichat\interfaces\cli\commands\system.py
+- def take_memory_snapshot (Count=2)
+  - .\src\plexichat\infrastructure\debugging\debug_manager.py
+  - .\src\plexichat\infrastructure\debugging\plugin_debug_integration.py
+- class CollaborationService (Count=2)
+  - .\src\plexichat\infrastructure\services\collaboration_service.py
+  - .\src\plexichat\interfaces\web\routes\collaboration_routes.py
+- def remove_from_blacklist (Count=2)
+  - .\src\plexichat\core\middleware\ip_blacklist_middleware.py
+  - .\src\plexichat\infrastructure\utils\ip_security.py
+- class ComprehensiveEndpointTester (Count=2)
+  - .\src\plexichat\core\plugins\installed\testing_plugin\main.py
+  - .\src\plexichat\core\testing\comprehensive_endpoint_tester.py
+- def remove_alert_rule (Count=2)
+  - .\src\plexichat\core\monitoring\base_monitor.py
+  - .\src\plexichat\core\monitoring\unified_monitoring_system.py
+- def retry_on_failure (Count=2)
+  - .\src\plexichat\infrastructure\utils\helpers_optimized.py
+  - .\src\plexichat\infrastructure\utils\helpers.py
+- def get_message (Count=2)
+  - .\src\plexichat\core\errors\base.py
+  - .\src\plexichat\core\errors\error_codes.py
+- class CompressionType (Count=2)
+  - .\src\plexichat\core\performance\latency_optimizer.py
+  - .\src\plexichat\core\performance\multi_tier_cache_manager.py
+- def time_ago (Count=2)
+  - .\src\plexichat\core\utils.py
+  - .\src\plexichat\infrastructure\utils\utilities.py
+- def to_markdown (Count=2)
+  - .\src\plexichat\core\versioning\changelog_manager.py
+  - .\src\plexichat\core\versioning\changelog_manager.py
+- def track_error (Count=2)
+  - .\src\plexichat\infrastructure\analytics\engine.py
+  - .\src\plexichat\infrastructure\analytics\engine.py
+- class BaseModel (Count=2)
+  - .\src\plexichat\core\database\models.py
+  - .\src\plexichat\shared\models.py
+- def track_metric (Count=2)
+  - .\src\plexichat\infrastructure\analytics\engine.py
+  - .\src\plexichat\infrastructure\analytics\engine.py
+- def register_middleware (Count=2)
+  - .\src\plexichat\core\middleware\middleware_manager.py
+  - .\src\plexichat\core\middleware\middleware_manager.py
+- def register_core_components (Count=2)
+  - .\src\plexichat\core\__init__.py
+  - .\src\plexichat\infrastructure\__init__.py
+- def reload (Count=2)
+  - .\src\plexichat\core\config_manager.py
+  - .\src\plexichat\interfaces\cli\commands\settings.py
+- def revoke_permission (Count=2)
+  - .\src\plexichat\core\auth\services\authorization_service.py
+  - .\src\plexichat\core\plugins\security_manager.py
+- def subscribe (Count=2)
+  - .\src\plexichat\infrastructure\events\bus.py
+  - .\src\plexichat\infrastructure\events\bus.py
+- def run (Count=2)
+  - .\src\plexichat\infrastructure\utils\shutdown.py
+  - .\src\plexichat\interfaces\cli\commands\logs.py
+- def show_help (Count=2)
+  - .\src\plexichat\interfaces\cli\advanced_cli.py
+  - .\src\plexichat\interfaces\cli\unified_cli_default.py
+- def show_changelog (Count=2)
+  - .\src\plexichat\core\versioning\simple_update_system.py
+  - .\src\plexichat\interfaces\cli\commands\updates.py
+- def set_setting (Count=2)
+  - .\src\plexichat\core\auth\config\auth_config.py
+  - .\src\plexichat\interfaces\cli\commands\settings.py
+- class ChannelManager (Count=2)
+  - .\src\plexichat\core\messaging\__init__.py
+  - .\src\plexichat\core\messaging\unified_messaging_system.py
+- def start_debug_session (Count=2)
+  - .\src\plexichat\infrastructure\debugging\comprehensive_debug_manager.py
+  - .\src\plexichat\infrastructure\debugging\plugin_debug_integration.py
+- def start_monitoring (Count=2)
+  - .\src\plexichat\core\performance\memory_manager.py
+  - .\src\plexichat\core\plugins\security_manager.py
+- def send_notification (Count=2)
+  - .\src\plexichat\core\notifications\__init__.py
+  - .\core\utils\fallbacks.py
+- def send (Count=2)
+  - .\core\utils\fallbacks.py
+  - .\core\utils\fallbacks.py
+- def start_performance_monitoring (Count=2)
+  - .\src\plexichat\core\monitoring\__init__.py
+  - .\core\utils\fallbacks.py
+- def select_node (Count=2)
+  - .\src\plexichat\core\performance\edge_computing_manager.py
+  - .\src\plexichat\core\performance\scalability_manager.py
+- def search_logs (Count=2)
+  - .\src\plexichat\infrastructure\services\log_management.py
+  - .\src\plexichat\interfaces\cli\commands\logs.py
+- def schedule_recurring (Count=2)
+  - .\src\plexichat\core\scheduler\__init__.py
+  - .\core\utils\fallbacks.py
+- def schedule_once (Count=2)
+  - .\src\plexichat\core\scheduler\__init__.py
+  - .\core\utils\fallbacks.py
+- def schedule (Count=2)
+  - .\src\plexichat\interfaces\cli\commands\backup.py
+  - .\core\utils\fallbacks.py
+- def sanitize_log_data (Count=2)
+  - .\src\plexichat\interfaces\api\v1\backups.py
+  - .\src\plexichat\interfaces\api\v1\shards.py
+- def sanitize_for_logging (Count=2)
+  - .\src\plexichat\core\logging\unified_logger.py
+  - .\src\plexichat\interfaces\api\main_api.py
+- class CacheStats (Count=2)
+  - .\src\plexichat\core\cache\manager.py
+  - .\src\plexichat\core\performance\multi_tier_cache_manager.py
+- def safe_filename (Count=2)
+  - .\src\plexichat\core\utils.py
+  - .\src\plexichat\infrastructure\utils\common_utils.py
+- def stop_performance_monitoring (Count=2)
+  - .\src\plexichat\core\monitoring\__init__.py
+  - .\core\utils\fallbacks.py
+- def register_connection (Count=2)
+  - .\src\plexichat\core\performance\resource_manager.py
+  - .\src\plexichat\core\security\ddos_protection.py
+- def is_safe_path (Count=2)
+  - .\src\plexichat\core\validation.py
+  - .\src\plexichat\infrastructure\utils.py
+- def truncate (Count=2)
+  - .\src\plexichat\core\utils.py
+  - .\src\plexichat\infrastructure\utils\utilities.py
+- def register_check (Count=2)
+  - .\src\plexichat\infrastructure\services\health.py
+  - .\src\plexichat\infrastructure\services\missing_modules.py
+- def upload_file (Count=2)
+  - .\src\plexichat\core\files\__init__.py
+  - .\core\utils\fallbacks.py
+- def log_performance (Count=2)
+  - .\src\plexichat\core\websocket\websocket_manager.py
+  - .\src\plexichat\infrastructure\utils\common_utils.py
+- def log_event (Count=2)
+  - .\src\plexichat\core\auth\repositories\interfaces.py
+  - .\src\plexichat\infrastructure\debugging\debug_manager.py
+- class DebugManager (Count=2)
+  - .\src\plexichat\infrastructure\debugging\comprehensive_debug_manager.py
+  - .\src\plexichat\infrastructure\debugging\debug_manager.py
+- def log_debug (Count=2)
+  - .\src\plexichat\infrastructure\debugging\comprehensive_debug_manager.py
+  - .\src\plexichat\infrastructure\debugging\plugin_debug_integration.py
+- def user_key (Count=2)
+  - .\src\plexichat\core\caching\unified_cache_integration.py
+  - .\src\plexichat\infrastructure\services\collaboration_service.py
+- def log_audit_event (Count=2)
+  - .\src\plexichat\interfaces\cli\commands\plugins.py
+  - .\src\plexichat\interfaces\web\routers\plugins.py
+- class Channel (Count=2)
+  - .\src\plexichat\core\messaging\unified_messaging_system.py
+  - .\src\plexichat\shared\models.py
+- class AutoScalingConfig (Count=2)
+  - .\src\plexichat\core\performance\edge_computing_manager.py
+  - .\src\plexichat\core\performance\scalability_manager.py
+- class DebugSession (Count=2)
+  - .\src\plexichat\infrastructure\debugging\comprehensive_debug_manager.py
+  - .\src\plexichat\infrastructure\debugging\debug_manager.py
+- def validate_config (Count=2)
+  - .\src\plexichat\infrastructure\modules\interfaces.py
+  - .\src\plexichat\infrastructure\modules\interfaces.py
+- def validate_configuration (Count=2)
+  - .\src\plexichat\core\auth\config\auth_config.py
+  - .\src\plexichat\interfaces\web\core\config_manager.py
+- class AuditEventType (Count=2)
+  - .\src\plexichat\core\auth\services\audit_service.py
+  - .\src\plexichat\core\plugins\security_manager.py
+- def load (Count=2)
+  - .\src\plexichat\core\config_manager.py
+  - .\src\plexichat\interfaces\cli\commands\settings.py
+- def validate_csrf (Count=2)
+  - .\src\plexichat\core\security\security_decorators.py
+  - .\src\plexichat\core\security\security_decorators.py
+- class AttackType (Count=2)
+  - .\src\plexichat\core\security\ddos_protection.py
+  - .\src\plexichat\core\security\waf_middleware.py
+- def list (Count=2)
+  - .\src\plexichat\core\services\__init__.py
+  - .\src\plexichat\interfaces\cli\ultimate\main.py
+- def is_valid_url (Count=2)
+  - .\src\plexichat\infrastructure\utils\utilities.py
+  - .\src\plexichat\infrastructure\utils\validation.py
+- def validate_backup_id (Count=2)
+  - .\src\plexichat\interfaces\api\v1\shards.py
+  - .\src\plexichat\interfaces\api\v1\shards.py
+- def now (Count=2)
+  - .\src\plexichat\core\utils.py
+  - .\src\plexichat\infrastructure\utils\utilities.py
+- class BackupCreateRequest (Count=2)
+  - .\src\plexichat\interfaces\api\v1\backups.py
+  - .\src\plexichat\interfaces\web\routers\backup_management.py
+- def update_timestamp (Count=2)
+  - .\src\plexichat\core\database\models.py
+  - .\src\plexichat\shared\models.py
+- def register_alert_callback (Count=2)
+  - .\src\plexichat\core\versioning\canary_health_monitor.py
+  - .\src\plexichat\infrastructure\services\modules\metrics_service.py
+- def record_performance_metric (Count=2)
+  - .\src\plexichat\core\monitoring\__init__.py
+  - .\src\plexichat\infrastructure\debugging\comprehensive_debug_manager.py
+- class ConnectionManager (Count=2)
+  - .\src\plexichat\interfaces\api\v1\realtime.py
+  - .\src\plexichat\interfaces\web\routers\websocket.py
+- def unregister (Count=2)
+  - .\src\plexichat\core\orchestrator.py
+  - .\src\plexichat\infrastructure\services\base_service.py
+- def unregister_connection (Count=2)
+  - .\src\plexichat\core\performance\resource_manager.py
+  - .\src\plexichat\core\security\ddos_protection.py
+- def record_activity (Count=2)
+  - .\src\plexichat\core\security\zero_trust.py
+  - .\src\plexichat\infrastructure\modules\interfaces.py
+- def read_log_entries (Count=2)
+  - .\src\plexichat\infrastructure\services\log_management.py
+  - .\src\plexichat\interfaces\cli\commands\logs.py
+- def unregister_event_handler (Count=2)
+  - .\src\plexichat\core\events\__init__.py
+  - .\src\plexichat\core\events\event_manager.py
+- def publish (Count=2)
+  - .\src\plexichat\infrastructure\events\bus.py
+  - .\src\plexichat\infrastructure\events\bus.py
+- def protect_from_replay (Count=2)
+  - .\src\plexichat\core\security\security_decorators.py
+  - .\src\plexichat\interfaces\web\routers\admin.py
+- def process_request (Count=2)
+  - .\src\plexichat\core\security\ddos_protection.py
+  - .\core\utils\fallbacks.py
+- def print_colored (Count=2)
+  - .\src\plexichat\infrastructure\utils\shutdown.py
+  - .\src\plexichat\interfaces\cli\commands\security.py
+- def unregister_middleware (Count=2)
+  - .\src\plexichat\core\middleware\middleware_manager.py
+  - .\src\plexichat\core\middleware\middleware_manager.py
+- def passwords_match (Count=2)
+  - .\src\plexichat\interfaces\web\schemas\auth_optimized.py
+  - .\src\plexichat\interfaces\web\schemas\auth.py
+- def parse_iso (Count=2)
+  - .\src\plexichat\infrastructure\utils\common_utils.py
+  - .\src\plexichat\infrastructure\utils\helpers_optimized.py
+- def unsubscribe (Count=2)
+  - .\src\plexichat\infrastructure\events\bus.py
+  - .\src\plexichat\infrastructure\events\bus.py
+- class BackupStatus (Count=2)
+  - .\src\plexichat\features\backup\backup_engine.py
+  - .\src\plexichat\interfaces\web\routers\backup_management.py
+- def optimize (Count=2)
+  - .\src\plexichat\core\performance\optimization_engine.py
+  - .\src\plexichat\interfaces\cli\commands\database.py
+- class DBOperation (Count=2)
+  - .\src\plexichat\core\auth\permissions.py
+  - .\src\plexichat\core\database\manager.py
+- class BackupType (Count=2)
+  - .\src\plexichat\features\backup\backup_engine.py
+  - .\src\plexichat\interfaces\web\routers\backup_management.py
+- class NodeInfo (Count=2)
+  - .\src\plexichat\core\clustering\node_manager.py
+  - .\src\plexichat\interfaces\web\routers\cluster.py
+- def from_env (Count=2)
+  - .\src\plexichat\core\auth\config\oauth_config.py
+  - .\src\plexichat\core\auth\config\security_config.py
+- class EventType (Count=2)
+  - .\src\plexichat\core\monitoring\unified_monitoring_system.py
+  - .\src\plexichat\infrastructure\analytics\engine.py
+- def _create_security_response (Count=2)
+  - .\src\plexichat\interfaces\web\middleware\comprehensive_security_middleware.py
+  - .\src\plexichat\interfaces\web\middleware\security_middleware.py
+- def _create_plugin_sdk_content (Count=2)
+  - .\src\plexichat\core\plugins\manager.py
+  - .\src\plexichat\core\plugins\plugin_manager.py
+- def _create_parser (Count=2)
+  - .\src\plexichat\interfaces\cli\commands\cluster.py
+  - .\src\plexichat\interfaces\cli\commands\logs.py
+- def _create_default_config (Count=2)
+  - .\src\plexichat\features\ai\moderation\moderation_engine.py
+  - .\src\plexichat\infrastructure\utils\utilities.py
+- def _cleanup_old_data (Count=2)
+  - .\src\plexichat\core\errors\error_manager.py
+  - .\src\plexichat\core\security\ddos_protection.py
+- def _check_brute_force_protection (Count=2)
+  - .\src\plexichat\core\authentication.py
+  - .\src\plexichat\core\security\auth_integration.py
+- def _can_scale_up (Count=2)
+  - .\src\plexichat\core\performance\edge_computing_manager.py
+  - .\src\plexichat\core\performance\scalability_manager.py
+- def _can_scale_down (Count=2)
+  - .\src\plexichat\core\performance\edge_computing_manager.py
+  - .\src\plexichat\core\performance\scalability_manager.py
+- def _calculate_trends (Count=2)
+  - .\src\plexichat\infrastructure\services\performance_service.py
+  - .\src\plexichat\interfaces\web\routes\performance_routes.py
+- def _calculate_next_run (Count=2)
+  - .\src\plexichat\core\scheduler\task_scheduler.py
+  - .\src\plexichat\features\backup\backup_manager.py
+- def _add_security_headers (Count=2)
+  - .\src\plexichat\interfaces\web\middleware\comprehensive_security_middleware.py
+  - .\src\plexichat\interfaces\web\middleware\security_middleware.py
+- def __str__ (Count=2)
+  - .\src\plexichat\core\versioning\changelog_manager.py
+  - .\src\plexichat\features\ai\providers\base_provider.py
+- def __getattr__ (Count=2)
+  - .\src\plexichat\core\config.py
+  - .\src\plexichat\interfaces\cli\unified_cli_default.py
+- class MessageListResponse (Count=2)
+  - .\src\plexichat\interfaces\web\schemas\message_optimized.py
+  - .\src\plexichat\interfaces\web\schemas\message.py
+- class MessageMetadata (Count=2)
+  - .\src\plexichat\core\messaging\__init__.py
+  - .\src\plexichat\core\messaging\unified_messaging_system.py
+- class WebSocketConnection (Count=2)
+  - .\src\plexichat\core\websocket\__init__.py
+  - .\src\plexichat\core\websocket\websocket_manager.py
+- class WebService (Count=2)
+  - .\src\plexichat\core\services\core_services.py
+  - .\src\plexichat\interfaces\web\routers\web.py
+- class WebhookEvent (Count=2)
+  - .\src\plexichat\infrastructure\services\plugin_marketplace_service.py
+  - .\src\plexichat\interfaces\web\routers\webhooks.py
+- class WebhookDelivery (Count=2)
+  - .\src\plexichat\infrastructure\services\plugin_marketplace_service.py
+  - .\src\plexichat\interfaces\web\routers\webhooks.py
+- class VersionManager (Count=2)
+  - .\src\plexichat\features\backup\version_manager.py
+  - .\core\utils\fallbacks.py
+- class VersionInfo (Count=2)
+  - .\src\plexichat\features\backup\version_manager.py
+  - .\src\plexichat\interfaces\web\routers\updates.py
+- class ValidationErrorResponse (Count=2)
+  - .\src\plexichat\interfaces\web\routers\messages.py
+  - .\src\plexichat\interfaces\web\schemas\error.py
+- class MessageProcessor (Count=2)
+  - .\src\plexichat\core\messaging\message_processor.py
+  - .\core\messaging\message_processor.py
+- def _encrypt_aes_gcm (Count=2)
+  - .\src\plexichat\core\security\quantum_encryption.py
+  - .\src\plexichat\features\backup\encryption_service.py
+- def _encrypt_chacha20 (Count=2)
+  - .\src\plexichat\core\security\quantum_encryption.py
+  - .\src\plexichat\features\backup\encryption_service.py
+- def _generate_cache_key (Count=2)
+  - .\src\plexichat\core\performance\auth_cache.py
+  - .\src\plexichat\core\performance\latency_optimizer.py
+- def _generate_encryption_key (Count=2)
+  - .\src\plexichat\core\security\db_security.py
+  - .\src\plexichat\features\backup\encryption_service.py
+- def _validate_config (Count=2)
+  - .\src\plexichat\core\config_manager.py
+  - .\src\plexichat\core\security\unified_security_module.py
+- def _update_response_time (Count=2)
+  - .\src\plexichat\core\performance\distributed_cache.py
+  - .\src\plexichat\core\performance\multi_tier_cache_manager.py
+- def _trigger_alert (Count=2)
+  - .\src\plexichat\core\monitoring\base_monitor.py
+  - .\src\plexichat\core\security\unified_audit_system.py
+- def _start_monitoring (Count=2)
+  - .\src\plexichat\core\security\ddos_protection.py
+  - .\src\plexichat\core\security\monitoring.py
+- def _setup_default_alerts (Count=2)
+  - .\src\plexichat\core\monitoring\base_monitor.py
+  - .\src\plexichat\core\monitoring\unified_monitoring_system.py
+- def _round_robin_select (Count=2)
+  - .\src\plexichat\core\performance\edge_computing_manager.py
+  - .\src\plexichat\core\performance\scalability_manager.py
+- class KeyType (Count=2)
+  - .\src\plexichat\core\security\quantum_encryption.py
+  - .\src\plexichat\core\security\unified_hsm_manager.py
+- def _process_message_sync (Count=2)
+  - .\src\plexichat\core\messaging\message_processor.py
+  - .\src\plexichat\interfaces\web\routers\messages.py
+- def _parse_user_agent (Count=2)
+  - .\src\plexichat\core\authentication.py
+  - .\src\plexichat\core\auth\services\authentication_service.py
+- def _load_models (Count=2)
+  - .\src\plexichat\features\ai\providers\anthropic_provider.py
+  - .\src\plexichat\features\ai\providers\openai_provider.py
+- class LoadBalancer (Count=2)
+  - .\src\plexichat\core\performance\edge_computing_manager.py
+  - .\src\plexichat\core\performance\scalability_manager.py
+- class UserStatus (Count=2)
+  - .\src\plexichat\core\services\user_status_service.py
+  - .\src\plexichat\interfaces\api\schemas\user.py
+- def _least_connections_select (Count=2)
+  - .\src\plexichat\core\performance\edge_computing_manager.py
+  - .\src\plexichat\core\performance\scalability_manager.py
+- def _initialize_default_policies (Count=2)
+  - .\src\plexichat\core\security\security_manager.py
+  - .\src\plexichat\core\security\zero_trust.py
+- def _init_database (Count=2)
+  - .\src\plexichat\features\ai\moderation\feedback_collector.py
+  - .\src\plexichat\features\ai\moderation\moderation_engine.py
+- class LogEntry (Count=2)
+  - .\src\plexichat\infrastructure\services\log_management.py
+  - .\src\plexichat\interfaces\cli\console_manager.py
+- def _get_security_tier (Count=2)
+  - .\src\plexichat\infrastructure\modules\__init__.py
+  - .\src\plexichat\infrastructure\services\__init__.py
+- class LoginRequest (Count=2)
+  - .\src\plexichat\interfaces\web\schemas\auth_optimized.py
+  - .\src\plexichat\interfaces\web\schemas\auth.py
+- class LogoutResponse (Count=2)
+  - .\src\plexichat\interfaces\web\schemas\auth_optimized.py
+  - .\src\plexichat\interfaces\web\schemas\auth.py
+- def _get_default_config (Count=2)
+  - .\src\plexichat\core\database\manager.py
+  - .\src\plexichat\core\security\unified_security_module.py
+- class MarkReadRequest (Count=2)
+  - .\src\plexichat\interfaces\api\routers\notification_router.py
+  - .\src\plexichat\interfaces\api\v1\notifications.py
+- class MessageBase (Count=2)
+  - .\src\plexichat\interfaces\web\schemas\message_optimized.py
+  - .\src\plexichat\interfaces\web\schemas\message.py
+- def _generate_preview (Count=2)
+  - .\src\plexichat\core\files\enhanced_file_sharing.py
+  - .\src\plexichat\core\files\file_manager.py
+- def _generate_plugin_sdk (Count=2)
+  - .\src\plexichat\core\plugins\manager.py
+  - .\src\plexichat\core\plugins\plugin_manager.py
+- def _is_expired (Count=2)
+  - .\src\plexichat\core\auth\services\session_service.py
+  - .\src\plexichat\core\auth\services\session_service.py
+- def _validate_configuration (Count=2)
+  - .\src\plexichat\core\auth\config\auth_config.py
+  - .\src\plexichat\core\auth\config\password_policy_config.py
+- class UserStats (Count=2)
+  - .\src\plexichat\interfaces\web\schemas\user_optimized.py
+  - .\src\plexichat\interfaces\web\schemas\user.py
+- class UserInfo (Count=2)
+  - .\src\plexichat\interfaces\web\schemas\auth_optimized.py
+  - .\src\plexichat\interfaces\web\schemas\auth.py
+- class SearchResult (Count=2)
+  - .\src\plexichat\core\search_service.py
+  - .\src\plexichat\interfaces\api\v1\search.py
+- class ScalingAction (Count=2)
+  - .\src\plexichat\core\performance\edge_computing_manager.py
+  - .\src\plexichat\core\performance\scalability_manager.py
+- class Migration (Count=2)
+  - .\src\plexichat\core\database\migrations.py
+  - .\src\plexichat\core\database\migrations\base.py
+- class ResourceUsage (Count=2)
+  - .\src\plexichat\core\monitoring\resource_tracker.py
+  - .\src\plexichat\core\plugins\security_manager.py
+- class ResourceType (Count=2)
+  - .\src\plexichat\core\auth\permissions.py
+  - .\src\plexichat\core\database\manager.py
+- class RefreshTokenRequest (Count=2)
+  - .\src\plexichat\interfaces\web\schemas\auth_optimized.py
+  - .\src\plexichat\interfaces\web\schemas\auth.py
+- class RecoveryPlan (Count=2)
+  - .\src\plexichat\features\backup\backup_manager.py
+  - .\src\plexichat\infrastructure\services\advanced_recovery_system.py
+- class RateLimitStrategy (Count=2)
+  - .\src\plexichat\core\middleware\integrated_protection_system.py
+  - .\src\plexichat\core\middleware\rate_limiting\engine.py
+- class MockConfigManager (Count=2)
+  - .\src\plexichat\interfaces\api\v1\rate_limits.py
+  - .\src\plexichat\interfaces\cli\commands\settings.py
+- class RateLimitAlgorithm (Count=2)
+  - .\src\plexichat\core\rate_limit_config.py
+  - .\src\plexichat\core\middleware\rate_limiting\engine.py
+- class QuantumEncryptionManager (Count=2)
+  - .\src\plexichat\core\security\quantum_encryption.py
+  - .\src\plexichat\features\backup\backup_manager.py
+- class ModerationCategory (Count=2)
+  - .\src\plexichat\features\ai\moderation\__init__.py
+  - .\src\plexichat\features\ai\moderation\moderation_engine.py
+- class ModerationResult (Count=2)
+  - .\src\plexichat\features\ai\features\ai_powered_features_service.py
+  - .\src\plexichat\features\ai\moderation\moderation_engine.py
+- class PlexiChatException (Count=2)
+  - .\src\plexichat\core\errors\base.py
+  - .\core\errors\base.py
+- class PermissionError (Count=2)
+  - .\src\plexichat\core\auth\permissions.py
+  - .\src\plexichat\core\database\manager.py
+- class PerformanceMetric (Count=2)
+  - .\src\plexichat\core\monitoring\__init__.py
+  - .\src\plexichat\infrastructure\debugging\comprehensive_debug_manager.py
+- class PasswordChangeRequest (Count=2)
+  - .\src\plexichat\interfaces\web\schemas\auth_optimized.py
+  - .\src\plexichat\interfaces\web\schemas\auth.py
+- class NotificationStatsResponse (Count=2)
+  - .\src\plexichat\interfaces\api\routers\notification_router.py
+  - .\src\plexichat\interfaces\api\v1\notifications.py
+- class NotificationResponse (Count=2)
+  - .\src\plexichat\interfaces\api\routers\notification_router.py
+  - .\src\plexichat\interfaces\api\v1\notifications.py
+- class NotificationPreferencesResponse (Count=2)
+  - .\src\plexichat\interfaces\api\routers\notification_router.py
+  - .\src\plexichat\interfaces\api\v1\notifications.py
+- class NotificationPreferencesRequest (Count=2)
+  - .\src\plexichat\interfaces\api\routers\notification_router.py
+  - .\src\plexichat\interfaces\api\v1\notifications.py
+- class NotificationListResponse (Count=2)
+  - .\src\plexichat\interfaces\api\routers\notification_router.py
+  - .\src\plexichat\interfaces\api\v1\notifications.py
+- class NetworkConfig (Count=2)
+  - .\src\plexichat\core\config_manager.py
+  - .\src\plexichat\core\performance\network_optimizer.py
+- class MFAChallenge (Count=2)
+  - .\src\plexichat\core\authentication.py
+  - .\src\plexichat\core\auth\services\mfa_service.py
+- class SecurityHeadersMiddleware (Count=2)
+  - .\src\plexichat\interfaces\web\routers\admin.py
+  - .\src\plexichat\interfaces\web\routers\setup.py
+- class Metric (Count=2)
+  - .\src\plexichat\infrastructure\analytics\analytics_service.py
+  - .\src\plexichat\shared\models.py
+- class SecurityPolicy (Count=2)
+  - .\src\plexichat\core\plugins\security_manager.py
+  - .\src\plexichat\core\security\security_manager.py
+- class UserBase (Count=2)
+  - .\src\plexichat\interfaces\web\schemas\user_optimized.py
+  - .\src\plexichat\interfaces\web\schemas\user.py
+- class MessageRouter (Count=2)
+  - .\src\plexichat\core\messaging\__init__.py
+  - .\src\plexichat\core\messaging\unified_messaging_system.py
+- class UpdateStatus (Count=2)
+  - .\src\plexichat\core\versioning\simple_update_system.py
+  - .\src\plexichat\interfaces\web\routers\updates.py
+- class UnifiedPluginManager (Count=2)
+  - .\src\plexichat\core\plugins\__init__.py
+  - .\src\plexichat\core\plugins\manager.py
+- class UnifiedMessagingManager (Count=2)
+  - .\src\plexichat\core\messaging\__init__.py
+  - .\core\utils\fallbacks.py
+- class MessageSearch (Count=2)
+  - .\src\plexichat\interfaces\web\schemas\message_optimized.py
+  - .\src\plexichat\interfaces\web\schemas\message.py
+- class Thread (Count=2)
+  - .\src\plexichat\core\messaging\unified_messaging_system.py
+  - .\src\plexichat\core\services\message_threads_service.py
+- class TestResult (Count=2)
+  - .\src\plexichat\core\plugins\installed\testing_plugin\main.py
+  - .\src\plexichat\core\testing\comprehensive_endpoint_tester.py
+- class MessageStats (Count=2)
+  - .\src\plexichat\interfaces\web\schemas\message_optimized.py
+  - .\src\plexichat\interfaces\web\schemas\message.py
+- class TaskResult (Count=2)
+  - .\src\plexichat\infrastructure\messaging\async_task_queue.py
+  - .\src\plexichat\infrastructure\services\background_tasks.py
+- class MessageStatus (Count=2)
+  - .\src\plexichat\core\messaging\__init__.py
+  - .\src\plexichat\core\messaging\unified_messaging_system.py
+- class UserService (Count=2)
+  - .\src\plexichat\core\auth\services\user_service.py
+  - .\src\plexichat\interfaces\web\routers\users.py
+- class Task (Count=2)
+  - .\src\plexichat\infrastructure\messaging\async_task_queue.py
+  - .\src\plexichat\shared\models.py
+- class StringUtils (Count=2)
+  - .\src\plexichat\core\utils.py
+  - .\src\plexichat\infrastructure\utils\utilities.py
+- class MessageUpdate (Count=2)
+  - .\src\plexichat\interfaces\web\schemas\message_optimized.py
+  - .\src\plexichat\interfaces\web\schemas\message.py
+- class Settings (Count=2)
+  - .\src\plexichat\core\config.py
+  - .\src\plexichat\infrastructure\utils\scheduling.py
+- class MessageWithReactions (Count=2)
+  - .\src\plexichat\interfaces\web\schemas\message_optimized.py
+  - .\src\plexichat\interfaces\web\schemas\message.py
+- class ServiceState (Count=2)
+  - .\src\plexichat\features\ai\features\ai_powered_features_service.py
+  - .\src\plexichat\infrastructure\services\base_service.py
+- class ServicePriority (Count=2)
+  - .\src\plexichat\infrastructure\modules\__init__.py
+  - .\src\plexichat\infrastructure\services\__init__.py
+- class ServiceMetadata (Count=2)
+  - .\src\plexichat\infrastructure\modules\__init__.py
+  - .\src\plexichat\infrastructure\services\__init__.py
+- class ServiceLoader (Count=2)
+  - .\src\plexichat\core\services\core_services.py
+  - .\src\plexichat\infrastructure\services\missing_modules.py
+- class ServiceEndpoint (Count=2)
+  - .\src\plexichat\infrastructure\microservices\decomposition.py
+  - .\src\plexichat\infrastructure\microservices\service_registry.py
+- class SendNotificationRequest (Count=2)
+  - .\src\plexichat\interfaces\api\routers\notification_router.py
+  - .\src\plexichat\interfaces\api\v1\notifications.py
+- class SecurityUtils (Count=2)
+  - .\src\plexichat\infrastructure\utils.py
+  - .\src\plexichat\infrastructure\utils\common_utils.py
+- class SystemConfig (Count=2)
+  - .\src\plexichat\core\config_manager.py
+  - .\src\plexichat\interfaces\web\routers\secure_api_example.py
+- def get_mapping (Count=2)
+  - .\src\plexichat\core\errors\base.py
+  - .\src\plexichat\core\errors\error_codes.py
+- def _validate_password_policy (Count=2)
+  - .\src\plexichat\core\authentication.py
+  - .\src\plexichat\core\auth\services\user_service.py
+- def add_change (Count=2)
+  - .\src\plexichat\core\versioning\changelog_manager.py
+  - .\src\plexichat\core\versioning\changelog_manager.py
+- def get_auth_manager (Count=2)
+  - .\src\plexichat\core\authentication.py
+  - .\src\plexichat\interfaces\web\middleware\comprehensive_security_middleware.py
+- def get_audit_events (Count=2)
+  - .\src\plexichat\interfaces\web\routers\plugins.py
+  - .\src\plexichat\interfaces\web\routers\plugins.py
+- def get_api_version (Count=2)
+  - .\src\plexichat\infrastructure\modules\interfaces.py
+  - .\src\plexichat\infrastructure\modules\interfaces.py
+- class FileBase (Count=2)
+  - .\src\plexichat\interfaces\web\schemas\files_optimized.py
+  - .\src\plexichat\interfaces\web\schemas\files.py
+- def get_all_plugin_security_features (Count=2)
+  - .\src\plexichat\core\plugins\manager.py
+  - .\src\plexichat\core\plugins\plugin_manager.py
+- def get_all_plugin_routers (Count=2)
+  - .\src\plexichat\core\plugins\manager.py
+  - .\src\plexichat\core\plugins\plugin_manager.py
+- def get_all_plugin_db_extensions (Count=2)
+  - .\src\plexichat\core\plugins\manager.py
+  - .\src\plexichat\core\plugins\plugin_manager.py
+- def get_ai_features_service (Count=2)
+  - .\src\plexichat\features\ai\features\__init__.py
+  - .\src\plexichat\interfaces\web\routes\admin\ai_features_routes.py
+- def get_active_sessions (Count=2)
+  - .\src\plexichat\core\auth\services\interfaces.py
+  - .\src\plexichat\core\auth\services\session_service.py
+- class FileInfo (Count=2)
+  - .\src\plexichat\interfaces\api\v1\files.py
+  - .\src\plexichat\interfaces\web\routers\file_management.py
+- def generate_token (Count=2)
+  - .\src\plexichat\core\utils.py
+  - .\src\plexichat\infrastructure\services\missing_modules.py
+- def generate_plugins_internal (Count=2)
+  - .\src\plexichat\core\plugins\sdk_generator.py
+  - .\src\plexichat\core\plugins\sdk_generator.py
+- def generate_key (Count=2)
+  - .\src\plexichat\features\backup\encryption_service.py
+  - .\src\plexichat\infrastructure\services\missing_modules.py
+- def generate_color_from_string (Count=2)
+  - .\src\plexichat\infrastructure\utils\helpers_optimized.py
+  - .\src\plexichat\infrastructure\utils\helpers.py
+- def format_permission (Count=2)
+  - .\src\plexichat\core\auth\permissions.py
+  - .\src\plexichat\core\database\manager.py
+- def format_duration (Count=2)
+  - .\src\plexichat\core\utils.py
+  - .\src\plexichat\infrastructure\utils\utilities.py
+- class FilePermission (Count=2)
+  - .\src\plexichat\infrastructure\services\file_permissions.py
+  - .\src\plexichat\infrastructure\services\message_service.py
+- def format_bytes (Count=2)
+  - .\src\plexichat\core\utils.py
+  - .\src\plexichat\infrastructure\utils\utilities.py
+- def format (Count=2)
+  - .\src\plexichat\core\logging\unified_logger.py
+  - .\src\plexichat\core\logging\unified_logger.py
+- class FilePermissionService (Count=2)
+  - .\src\plexichat\infrastructure\services\file_permissions.py
+  - .\src\plexichat\infrastructure\services\message_service.py
+- class FilePermissionType (Count=2)
+  - .\src\plexichat\infrastructure\services\file_permissions.py
+  - .\src\plexichat\infrastructure\services\message_service.py
+- class FileRecord (Count=2)
+  - .\src\plexichat\infrastructure\services\file_permissions.py
+  - .\src\plexichat\infrastructure\services\message_service.py
+- def export_logs (Count=2)
+  - .\src\plexichat\infrastructure\services\log_management.py
+  - .\src\plexichat\interfaces\cli\commands\logs.py
+- class FileAccessLog (Count=2)
+  - .\src\plexichat\infrastructure\services\file_permissions.py
+  - .\src\plexichat\infrastructure\services\message_service.py
+- def get_cache_manager (Count=2)
+  - .\src\plexichat\core\caching\unified_cache_integration.py
+  - .\src\plexichat\core\performance\multi_tier_cache_manager.py
+- def get_category (Count=2)
+  - .\src\plexichat\core\errors\base.py
+  - .\src\plexichat\core\errors\error_codes.py
+- def get_channel_connection_count (Count=2)
+  - .\src\plexichat\core\websocket\websocket_manager.py
+  - .\src\plexichat\interfaces\websocket\websocket_manager.py
+- def get_log_statistics (Count=2)
+  - .\src\plexichat\infrastructure\services\log_management.py
+  - .\src\plexichat\interfaces\cli\commands\logs.py
+- def get_log_files (Count=2)
+  - .\src\plexichat\infrastructure\services\log_management.py
+  - .\src\plexichat\interfaces\cli\commands\logs.py
+- def get_latest_metrics (Count=2)
+  - .\src\plexichat\infrastructure\services\performance_service.py
+  - .\src\plexichat\infrastructure\services\modules\metrics_service.py
+- def get_http_status (Count=2)
+  - .\src\plexichat\core\errors\base.py
+  - .\src\plexichat\core\errors\error_codes.py
+- def get_historical_metrics (Count=2)
+  - .\src\plexichat\infrastructure\services\performance_service.py
+  - .\src\plexichat\interfaces\web\routes\performance_routes.py
+- def get_health_status (Count=2)
+  - .\src\plexichat\features\ai\ai_coordinator.py
+  - .\src\plexichat\features\ai\core\ai_abstraction_layer.py
+- def get_file_metadata (Count=2)
+  - .\src\plexichat\core\files\__init__.py
+  - .\core\utils\fallbacks.py
+- def get_events (Count=2)
+  - .\src\plexichat\core\auth\repositories\interfaces.py
+  - .\src\plexichat\core\events\__init__.py
+- def get_event_handlers (Count=2)
+  - .\src\plexichat\core\plugins\manager.py
+  - .\src\plexichat\core\plugins\manager.py
+- def get_errors_by_severity (Count=2)
+  - .\src\plexichat\core\errors\base.py
+  - .\src\plexichat\core\errors\error_codes.py
+- def get_errors_by_category (Count=2)
+  - .\src\plexichat\core\errors\base.py
+  - .\src\plexichat\core\errors\error_codes.py
+- def export_debug_data (Count=2)
+  - .\src\plexichat\infrastructure\debugging\comprehensive_debug_manager.py
+  - .\src\plexichat\infrastructure\debugging\debug_manager.py
+- def get_error_summary (Count=2)
+  - .\src\plexichat\infrastructure\debugging\comprehensive_debug_manager.py
+  - .\src\plexichat\infrastructure\debugging\debug_manager.py
+- def get_database_service (Count=2)
+  - .\src\plexichat\core\services\core_services.py
+  - .\src\plexichat\infrastructure\services\missing_modules.py
+- def get_current_config (Count=2)
+  - .\src\plexichat\infrastructure\modules\interfaces.py
+  - .\src\plexichat\infrastructure\modules\interfaces.py
+- def get_critical_errors (Count=2)
+  - .\src\plexichat\core\errors\base.py
+  - .\src\plexichat\core\errors\error_codes.py
+- def get_connection_count (Count=2)
+  - .\src\plexichat\core\websocket\websocket_manager.py
+  - .\src\plexichat\interfaces\websocket\websocket_manager.py
+- def get_config_schema (Count=2)
+  - .\src\plexichat\infrastructure\modules\interfaces.py
+  - .\src\plexichat\infrastructure\modules\interfaces.py
+- def get_config_manager (Count=2)
+  - .\src\plexichat\core\config_manager.py
+  - .\src\plexichat\interfaces\cli\commands\settings.py
+- class FallbackLogger (Count=2)
+  - .\src\plexichat\interfaces\web\middleware\comprehensive_security_middleware.py
+  - .\src\plexichat\interfaces\web\middleware\comprehensive_security_middleware.py
+- def get_compliance_report (Count=2)
+  - .\src\plexichat\core\security\monitoring.py
+  - .\src\plexichat\core\security\unified_audit_system.py
+- def get_commands (Count=2)
+  - .\src\plexichat\core\plugins\manager.py
+  - .\src\plexichat\core\plugins\manager.py
+- def get_command (Count=2)
+  - .\src\plexichat\interfaces\cli\advanced_cli.py
+  - .\src\plexichat\interfaces\cli\ultimate\cli_coordinator.py
+- class FileAccessLevel (Count=2)
+  - .\src\plexichat\infrastructure\services\file_permissions.py
+  - .\src\plexichat\infrastructure\services\message_service.py
+- def get_debug_manager (Count=2)
+  - .\src\plexichat\infrastructure\debugging\debug_manager.py
+  - .\src\plexichat\infrastructure\debugging\plugin_debug_integration.py
+- def add_alert_rule (Count=2)
+  - .\src\plexichat\core\monitoring\base_monitor.py
+  - .\src\plexichat\core\monitoring\unified_monitoring_system.py
+- def event_handler (Count=2)
+  - .\src\plexichat\core\events\__init__.py
+  - .\src\plexichat\core\events\event_manager.py
+- class FileResponse (Count=2)
+  - .\src\plexichat\interfaces\web\schemas\files_optimized.py
+  - .\src\plexichat\interfaces\web\schemas\files.py
+- def cleanup_old_archives (Count=2)
+  - .\src\plexichat\infrastructure\services\log_management.py
+  - .\src\plexichat\interfaces\cli\commands\logs.py
+- def cleanup_expired_permissions (Count=2)
+  - .\src\plexichat\core\auth\services\authorization_service.py
+  - .\src\plexichat\core\plugins\security_manager.py
+- def cleanup_expired_blocks (Count=2)
+  - .\src\plexichat\core\security\auth_integration.py
+  - .\src\plexichat\core\security\ddos_protection.py
+- def cleanup (Count=2)
+  - .\src\plexichat\core\performance\memory_manager.py
+  - .\src\plexichat\shared\types.py
+- def check_rate_limit (Count=2)
+  - .\src\plexichat\features\ai\core\ai_abstraction_layer.py
+  - .\src\plexichat\interfaces\web\routers\cli.py
+- def calculate_reading_time (Count=2)
+  - .\src\plexichat\infrastructure\utils\helpers_optimized.py
+  - .\src\plexichat\infrastructure\utils\helpers.py
+- class FileUtils (Count=2)
+  - .\src\plexichat\core\utils.py
+  - .\src\plexichat\infrastructure\utils\common_utils.py
+- def build (Count=2)
+  - .\src\plexichat\core\caching\unified_cache_integration.py
+  - .\src\plexichat\core\websocket\websocket_manager.py
+- def bad_request (Count=2)
+  - .\src\plexichat\interfaces\web\routes\admin\ai_features_routes.py
+  - .\src\plexichat\interfaces\web\routes\admin\zero_knowledge_security_routes.py
+- def authenticate (Count=2)
+  - .\src\plexichat\shared\types.py
+  - .\core\utils\fallbacks.py
+- def auth_available (Count=2)
+  - .\src\plexichat\core\__init__.py
+  - .\src\plexichat\infrastructure\__init__.py
+- class HealthCheckService (Count=2)
+  - .\src\plexichat\infrastructure\services\health.py
+  - .\src\plexichat\infrastructure\services\missing_modules.py
+- def audit (Count=2)
+  - .\src\plexichat\interfaces\web\middleware\comprehensive_security_middleware.py
+  - .\src\plexichat\interfaces\web\middleware\comprehensive_security_middleware.py
+- class HealthStatus (Count=2)
+  - .\src\plexichat\infrastructure\services\health.py
+  - .\src\plexichat\interfaces\api\v1\system.py
+- def archive_old_logs (Count=2)
+  - .\src\plexichat\infrastructure\services\log_management.py
+  - .\src\plexichat\interfaces\cli\commands\logs.py
+- class HelperUtilities (Count=2)
+  - .\src\plexichat\infrastructure\utils\helpers_optimized.py
+  - .\src\plexichat\infrastructure\utils\helpers.py
+- def apply_config (Count=2)
+  - .\src\plexichat\infrastructure\modules\interfaces.py
+  - .\src\plexichat\infrastructure\modules\interfaces.py
+- def api_statistics (Count=2)
+  - .\src\plexichat\interfaces\web\routes\admin\ai_features_routes.py
+  - .\src\plexichat\interfaces\web\routes\admin\zero_knowledge_security_routes.py
+- def api_health (Count=2)
+  - .\src\plexichat\interfaces\web\routes\admin\ai_features_routes.py
+  - .\src\plexichat\interfaces\web\routes\admin\zero_knowledge_security_routes.py
+- def address (Count=2)
+  - .\src\plexichat\core\clustering\cluster_manager.py
+  - .\src\plexichat\core\performance\distributed_cache.py
+- def add_to_whitelist (Count=2)
+  - .\src\plexichat\core\middleware\ip_blacklist_middleware.py
+  - .\src\plexichat\infrastructure\utils\ip_security.py
+- def add_event_handler (Count=2)
+  - .\src\plexichat\infrastructure\modules\__init__.py
+  - .\src\plexichat\infrastructure\services\__init__.py
+- def add_custom_metric (Count=2)
+  - .\src\plexichat\infrastructure\services\performance_service.py
+  - .\src\plexichat\infrastructure\services\performance_service.py
+- def clear_history (Count=2)
+  - .\src\plexichat\infrastructure\debugging\comprehensive_debug_manager.py
+  - .\src\plexichat\infrastructure\events\bus.py
+- def config_management (Count=2)
+  - .\src\plexichat\interfaces\web\routes\admin\ai_features_routes.py
+  - .\src\plexichat\interfaces\web\routes\admin\zero_knowledge_security_routes.py
+- def convert_schema (Count=2)
+  - .\src\plexichat\core\database\migrations\add_new_schemas.py
+  - .\src\plexichat\core\database\migrations\add_plugin_permissions.py
+- def create_validation_error_response (Count=2)
+  - .\src\plexichat\core\errors\base.py
+  - .\core\errors\base.py
+- def ensure_directory (Count=2)
+  - .\src\plexichat\infrastructure\utils\common_utils.py
+  - .\src\plexichat\infrastructure\utils\utilities.py
+- def end_debug_session (Count=2)
+  - .\src\plexichat\infrastructure\debugging\comprehensive_debug_manager.py
+  - .\src\plexichat\infrastructure\debugging\plugin_debug_integration.py
+- def encrypt_realtime (Count=2)
+  - .\src\plexichat\core\security\quantum_encryption.py
+  - .\src\plexichat\core\security\quantum_encryption.py
+- def encrypt_message (Count=2)
+  - .\src\plexichat\core\messaging\unified_messaging_system.py
+  - .\src\plexichat\interfaces\api\v1\messages.py
+- class FileSearch (Count=2)
+  - .\src\plexichat\interfaces\web\schemas\files_optimized.py
+  - .\src\plexichat\interfaces\web\schemas\files.py
+- def enable_plugin (Count=2)
+  - .\src\plexichat\core\security\plugin_hooks.py
+  - .\src\plexichat\interfaces\cli\commands\plugins.py
+- class FileService (Count=2)
+  - .\src\plexichat\infrastructure\services\missing_modules.py
+  - .\src\plexichat\interfaces\web\routers\files.py
+- def do_upload (Count=2)
+  - .\src\plexichat\features\backup\storage_manager.py
+  - .\src\plexichat\features\backup\storage_manager.py
+- def do_delete (Count=2)
+  - .\src\plexichat\features\backup\storage_manager.py
+  - .\src\plexichat\features\backup\storage_manager.py
+- def disconnect (Count=2)
+  - .\src\plexichat\interfaces\api\v1\realtime.py
+  - .\src\plexichat\interfaces\web\routers\websocket.py
+- def disable_plugin (Count=2)
+  - .\src\plexichat\core\security\plugin_hooks.py
+  - .\src\plexichat\interfaces\cli\commands\plugins.py
+- def evaluate (Count=2)
+  - .\src\plexichat\core\versioning\canary_health_monitor.py
+  - .\src\plexichat\shared\types.py
+- class FileShareResponse (Count=2)
+  - .\src\plexichat\interfaces\web\schemas\files_optimized.py
+  - .\src\plexichat\interfaces\web\schemas\files.py
+- class FileStats (Count=2)
+  - .\src\plexichat\interfaces\web\schemas\files_optimized.py
+  - .\src\plexichat\interfaces\web\schemas\files.py
+- def deep_merge_dicts (Count=2)
+  - .\src\plexichat\infrastructure\utils\helpers_optimized.py
+  - .\src\plexichat\infrastructure\utils\helpers.py
+- def decrypt_realtime (Count=2)
+  - .\src\plexichat\core\security\quantum_encryption.py
+  - .\src\plexichat\core\security\quantum_encryption.py
+- class FileStatus (Count=2)
+  - .\src\plexichat\interfaces\web\schemas\files_optimized.py
+  - .\src\plexichat\interfaces\web\schemas\files.py
+- def decrypt (Count=2)
+  - .\src\plexichat\core\security\quantum_encryption.py
+  - .\src\plexichat\shared\types.py
+- class FileType (Count=2)
+  - .\src\plexichat\interfaces\web\schemas\files_optimized.py
+  - .\src\plexichat\interfaces\web\schemas\files.py
+- def debug_context (Count=2)
+  - .\src\plexichat\infrastructure\debugging\comprehensive_debug_manager.py
+  - .\src\plexichat\infrastructure\debugging\plugin_debug_integration.py
+- class FileUpdate (Count=2)
+  - .\src\plexichat\interfaces\web\schemas\files_optimized.py
+  - .\src\plexichat\interfaces\web\schemas\files.py
+- def debounce (Count=2)
+  - .\src\plexichat\infrastructure\utils\helpers_optimized.py
+  - .\src\plexichat\infrastructure\utils\helpers.py
+- def database_available (Count=2)
+  - .\src\plexichat\core\__init__.py
+  - .\src\plexichat\infrastructure\__init__.py
+- def dashboard (Count=2)
+  - .\src\plexichat\interfaces\web\routes\admin\ai_features_routes.py
+  - .\src\plexichat\interfaces\web\routes\admin\zero_knowledge_security_routes.py
+- def delete_session (Count=2)
+  - .\src\plexichat\core\mfa_store.py
+  - .\src\plexichat\core\auth\repositories\interfaces.py
+- class AccountType (Count=2)
+  - .\src\plexichat\core\middleware\integrated_protection_system.py
+  - .\src\plexichat\interfaces\web\routers\rate_limiting_admin.py
+
+

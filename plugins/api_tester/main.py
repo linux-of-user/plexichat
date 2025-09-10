@@ -1675,3 +1675,5 @@ class Plugin(PluginInterface):
 def create_plugin():
     """Create plugin instance."""
     return Plugin("comprehensive_api_tester")
+
+plugin = create_plugin()

@@ -1220,6 +1220,8 @@ def main():
     webui_port = webui_config.get("port", 8080) if isinstance(webui_config, dict) else 8080
 
     def run_server(app, host, port, network_config, ssl_config=None):
+        # Note: For Windows 11, ensure firewall allows inbound TCP on port 8000:
+        # netsh advfirewall firewall add rule name="PlexiChat API" dir=in action=allow protocol=TCP localport=8000
         if ssl_config and ssl_config.get("enabled"):
             import ssl
 
@@ -1227,7 +1229,7 @@ def main():
                 "TLSv1.2": ssl.PROTOCOL_TLSv1_2,
                 "TLSv1.3": ssl.PROTOCOL_TLS,
             }
-            ssl_version = protocol_map.get(ssl_config.get("version"), ssl.PROTOCOL_TLS)
+            ssl_version = protocol_map.get(ssl_config.get("version"), ssl.PROCOL_TLS)
 
             uvicorn.run(
                 app,
@@ -1240,7 +1242,22 @@ def main():
                 timeout_keep_alive=network_config.timeout_keep_alive,
             )
         else:
-            uvicorn.run(app, host=host, port=port, timeout_keep_alive=network_config.timeout_keep_alive)
+            try:
+                uvicorn.run(
+                    app,
+                    host='0.0.0.0',
+                    port=8000,
+                    log_level='info',
+                    timeout_keep_alive=network_config.timeout_keep_alive
+                )
+                logger.info(f"Server successfully bound to http://0.0.0.0:8000")
+            except OSError as e:
+                if "Address already in use" in str(e):
+                    logger.error("Port 8000 in use; try a different port or kill conflicting process (e.g., netstat -ano | findstr :8000).")
+                    sys.exit(1)
+                else:
+                    logger.error(f"Failed to bind server: {e}")
+                    raise
 
     threads = []
 
