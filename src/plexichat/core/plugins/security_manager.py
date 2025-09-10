@@ -66,7 +66,7 @@ except ImportError:
 
 try:
     from plexichat.core.database.manager import database_manager
-    from plexichat.core.files.file_manager import file_manager
+    from plexichat.core.files import file_manager
 except ImportError:
     database_manager = None
     file_manager = None

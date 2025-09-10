@@ -20,7 +20,7 @@ except Exception:
 
 # Use the centralized file manager
 try:
-    from plexichat.core.files.file_manager import file_manager
+    from plexichat.core.files import file_manager
 except Exception:
     file_manager = None
 

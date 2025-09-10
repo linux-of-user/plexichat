@@ -75,7 +75,7 @@ router = APIRouter(prefix="/files", tags=["files"])
 performance_logger = get_performance_logger() if get_performance_logger else None
 
 # Model imports
-from plexichat.core.files import FileRecord
+from plexichat.core.files.file_record import FileRecord
 
 # Optional imports for enhanced functionality
 try:

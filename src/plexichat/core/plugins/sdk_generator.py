@@ -388,7 +388,7 @@ class PluginSDKGenerator:
 
             # Scan file manager for safe methods
             try:
-                from plexichat.core.files.file_manager import FileManager
+                from plexichat.core.files import FileManager
 
                 file_methods = []
                 safe_file_methods = ["upload_file", "get_file_metadata", "delete_file"]

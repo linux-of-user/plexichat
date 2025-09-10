@@ -133,7 +133,7 @@ This document provides a comprehensive security controls matrix that maps all im
 
 | Control ID | Control Name | Implementation | Test Procedure | Monitoring | Compliance Mapping |
 |------------|--------------|----------------|----------------|------------|-------------------|
-| FS-01 | File Type Validation | `plexichat.core.files.validator.FileTypeValidator` | `test_file_security.py::test_file_type_validation` | File validation logs | SOC 2, ISO 27001 |
+| FS-01 | File Type Validation | `plexichat.core.files.validator.` | `test_file_security.py::test_file_type_validation` | File validation logs | SOC 2, ISO 27001 |
 | FS-02 | Malware Scanning | `plexichat.plugins.advanced_antivirus.AntiVirusScanner` | `test_file_security.py::test_malware_scanning` | Scan result logs | SOC 2, ISO 27001 |
 | FS-03 | Content Analysis | `plexichat.core.files.analyzer.ContentAnalyzer` | `test_file_security.py::test_content_analysis` | Analysis logs | SOC 2, ISO 27001 |
 | FS-04 | Secure Storage | `plexichat.core.files.storage.SecureFileStorage` | `test_file_security.py::test_secure_storage` | Storage access logs | SOC 2, ISO 27001, GDPR |

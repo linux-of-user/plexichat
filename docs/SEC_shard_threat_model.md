@@ -311,7 +311,7 @@ Risk scores calculated using: **Risk Score = (Likelihood × Impact) × Technical
 | **DDoS Protection** | DP-01 | Traffic analysis via `plexichat.core.security.ddos_protection.TrafficAnalyzer` | Tested | DDoS logs |
 | **WAF** | WAF-01 | Request filtering via `plexichat.core.security.waf_middleware.RequestFilter` | Tested | Filter logs |
 | **Database Security** | DB-01 | Parameterization via `plexichat.core.database.query_builder.ParameterizedQuery` | Tested | Query logs |
-| **File Security** | FS-01 | Type validation via `plexichat.core.files.validator.FileTypeValidator` | Tested | File logs |
+| **File Security** | FS-01 | Type validation via `plexichat.core.files.validator.` | Tested | File logs |
 | **Network Security** | NS-01 | TLS 1.3 via `plexichat.core.security.waf_middleware.TLSConfig` | Tested | TLS logs |
 | **Incident Response** | IR-01 | Detection via `plexichat.core.security.monitoring.IncidentDetector` | Tested | Detection logs |
 

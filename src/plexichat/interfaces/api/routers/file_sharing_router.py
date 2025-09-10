@@ -20,7 +20,7 @@ from plexichat.core.files.enhanced_file_sharing import (
     share_file, create_file_version, get_file_versions,
     batch_delete_files, check_file_access, get_user_files
 )
-from plexichat.core.files.file_manager import upload_file as core_upload_file, get_file_metadata, get_file_data
+from plexichat.core.files import upload_file as core_upload_file, get_file_metadata, get_file_data
 from plexichat.core.auth.fastapi_adapter import get_current_user
 
 logger = logging.getLogger(__name__)
