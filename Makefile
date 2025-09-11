@@ -423,5 +423,24 @@ $(call log_info,Starting Docker development environment...)
 docker run -it --rm -p 8000:8000 -v $(PWD):/app -w /app plexichat-dev:latest bash
 $(call log_success,Development environment stopped)
 
+# Static analysis targets
+install-pre-commit: ## Install and setup pre-commit hooks
+	$(call log_info,Installing pre-commit...)
+	@if ! command -v pipx >/dev/null 2>&1; then \
+		$(call log_error,pipx not found. Install with: python -m pip install pipx); \
+		exit 1; \
+	fi
+	pipx install pre-commit
+	pre-commit install
+	$(call log_success,pre-commit installed and hooks configured)
+
+static-check: install-pre-commit ## Run static analysis checks
+	$(call log_info,Running static analysis checks...)
+	pre-commit run --all-files
+	ruff check src/ --output-format json > ruff.json
+	mypy src/ --output-file-json mypy.json
+	python -m plexichat.infrastructure.utils.static_analysis_reporter ruff.json mypy.json
+	$(call log_success,Static analysis completed successfully)
+
 # Update .PHONY list
-.PHONY: help docs docs-serve docs-lint docs-clean docs-install docs-dev docs-check clean install test lint cythonize numba-compile compile-all docs-rebuild docs-quick docs-validate dev-docs watch-docs ci-docs debug-docs docs-stats docker-build docker-cythonize docker-test docker-serve docker-dev
+.PHONY: help docs docs-serve docs-lint docs-clean docs-install docs-dev docs-check clean install test lint cythonize numba-compile compile-all docs-rebuild docs-quick docs-validate dev-docs watch-docs ci-docs debug-docs docs-stats docker-build docker-cythonize docker-test docker-serve docker-dev install-pre-commit static-check
