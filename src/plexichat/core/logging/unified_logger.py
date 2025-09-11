@@ -1,10 +1,11 @@
+from collections.abc import Callable
+from enum import Enum
 import json
 import logging
+from logging.handlers import RotatingFileHandler
 import re
 import sys
-from enum import Enum
-from logging.handlers import RotatingFileHandler
-from typing import List, Optional
+from typing import ClassVar
 
 # Default PII patterns for redaction (consolidated from plan)
 DEFAULT_PII_PATTERNS = [
@@ -26,10 +27,13 @@ class LogCategory(Enum):
     ERROR = "error"
 
 
+SanitizeFunc = Callable[[str], str]
+
+
 class ColoredFormatter(logging.Formatter):
     """Colored console formatter using ANSI codes."""
 
-    COLORS = {
+    COLORS: ClassVar[dict[str, str]] = {
         "DEBUG": "\033[36m",  # Cyan
         "INFO": "\033[32m",  # Green
         "WARNING": "\033[33m",  # Yellow
@@ -38,13 +42,16 @@ class ColoredFormatter(logging.Formatter):
         "RESET": "\033[0m",
     }
 
-    def __init__(self, fmt: str = None, datefmt: str = None, sanitize_func=None):
-        self.sanitize_func = sanitize_func
+    def __init__(
+        self,
+        fmt: str | None = None,
+        datefmt: str | None = None,
+        sanitize_func: SanitizeFunc | None = None,
+    ) -> None:
+        self.sanitize_func: SanitizeFunc = sanitize_func or (lambda x: x)
         super().__init__(fmt=fmt, datefmt=datefmt)
-        if self.sanitize_func is None:
-            self.sanitize_func = lambda x: x
 
-    def format(self, record):
+    def format(self, record: logging.LogRecord) -> str:
         log_message = super().format(record)
         log_message = self.sanitize_func(log_message)
         color = self.COLORS.get(record.levelname, self.COLORS["RESET"])
@@ -54,16 +61,14 @@ class ColoredFormatter(logging.Formatter):
 class StructuredFormatter(logging.Formatter):
     """JSON structured formatter for logs."""
 
-    def __init__(self, sanitize_func=None):
-        self.sanitize_func = sanitize_func
+    def __init__(self, sanitize_func: SanitizeFunc | None = None) -> None:
+        self.sanitize_func: SanitizeFunc = sanitize_func or (lambda x: x)
         super().__init__(
             fmt="%(asctime)s %(levelname)s %(message)s %(module)s:%(lineno)d"
         )
-        if self.sanitize_func is None:
-            self.sanitize_func = lambda x: x
 
-    def format(self, record):
-        log_dict = {
+    def format(self, record: logging.LogRecord) -> str:
+        log_dict: dict[str, str | int | None] = {
             "timestamp": self.formatTime(record),
             "level": record.levelname,
             "message": self.sanitize_func(record.getMessage()),
@@ -76,7 +81,7 @@ class StructuredFormatter(logging.Formatter):
         return json.dumps(log_dict)
 
 
-def redact_pii(message: str, patterns: Optional[List[str]] = None) -> str:
+def redact_pii(message: str, patterns: list[str] | None = None) -> str:
     """Redact PII from message using regex patterns."""
     if patterns is None:
         patterns = DEFAULT_PII_PATTERNS
@@ -102,8 +107,8 @@ def get_handler_factory(
     rotation_max_bytes: int = 10 * 1024 * 1024,  # 10MB
     backup_count: int = 5,
     log_file: str = "app.log",
-    sanitize_func=None,
-) -> logging.Handler:
+    sanitize_func: SanitizeFunc | None = None,
+) -> logging.Handler | list[logging.Handler]:
     """Factory for creating configured handlers."""
     handler = RotatingFileHandler(
         log_file, maxBytes=rotation_max_bytes, backupCount=backup_count
@@ -128,60 +133,28 @@ def get_handler_factory(
     return handler
 
 
-class EnhancedLogger:
-    """Enhanced logger with security, audit, and other specialized methods."""
-    
-    def __init__(self, logger: logging.Logger):
-        self._logger = logger
-    
-    def __getattr__(self, name):
-        # Delegate all standard logging methods to the underlying logger
-        return getattr(self._logger, name)
-    
-    def security(self, message: str, *args, **kwargs):
-        """Log security-related messages."""
-        self._logger.warning(f"[SECURITY] {message}", *args, **kwargs)
-    
-    def audit(self, message: str, *args, **kwargs):
-        """Log audit-related messages."""  
-        self._logger.info(f"[AUDIT] {message}", *args, **kwargs)
-
-
-def get_logger(name: str = "plexichat", level: str = "INFO") -> EnhancedLogger:
-    """Get configured logger with sanitization and enhanced methods."""
+def get_logger(name: str = "plexichat", level: str = "INFO") -> logging.Logger:
+    """Get configured logger with sanitization."""
     logger = logging.getLogger(name)
-    if not logger.handlers:  # Avoid duplicate handlers
-        logger.setLevel(getattr(logging, level.upper()))
+    if logger.handlers:  # Avoid duplicate handlers
+        return logger
+    logger.setLevel(getattr(logging, level.upper()))
 
-        # Default to structured file + colored console
-        handlers = get_handler_factory(
-            level=level, format_type="structured", sanitize_func=sanitize_for_logging
-        )
-        if isinstance(handlers, list):
-            for h in handlers:
-                logger.addHandler(h)
-        else:
-            logger.addHandler(handlers)
+    # Default to structured file + colored console
+    handlers = get_handler_factory(
+        level=level, format_type="structured", sanitize_func=sanitize_for_logging
+    )
+    if isinstance(handlers, list):
+        for h in handlers:
+            logger.addHandler(h)
+    else:
+        logger.addHandler(handlers)
 
-    # Return enhanced logger wrapper
-    return EnhancedLogger(logger)
-
-
-# Make utilities available at module level
-__all__ = [
-    "get_logger",
-    "redact_pii",
-    "sanitize_for_logging",
-    "ColoredFormatter",
-    "StructuredFormatter",
-    "get_handler_factory",
-    "LogCategory",
-    "DEFAULT_PII_PATTERNS",
-    "EnhancedLogger",
-]
+    # For plugins, extensible: e.g., logger.addHandler(get_handler_factory(plugin_mode='analytics'))
+    return logger
 
 
-def get_logging_manager(name: str = "plexichat", level: str = "INFO") -> EnhancedLogger:
+def get_logging_manager(name: str = "plexichat", level: str = "INFO") -> logging.Logger:
     """
     Get the unified logging manager instance for the application.
     Returns a configured logger with sanitization and handlers.
@@ -189,4 +162,15 @@ def get_logging_manager(name: str = "plexichat", level: str = "INFO") -> Enhance
     return get_logger(name, level)
 
 
-__all__.append("get_logging_manager")
+# Make utilities available at module level
+__all__ = [
+    "ColoredFormatter",
+    "DEFAULT_PII_PATTERNS",
+    "LogCategory",
+    "StructuredFormatter",
+    "get_handler_factory",
+    "get_logger",
+    "get_logging_manager",
+    "redact_pii",
+    "sanitize_for_logging",
+]

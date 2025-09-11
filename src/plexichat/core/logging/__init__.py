@@ -1,6 +1,6 @@
 """PlexiChat core logging module - re-exports from unified_logger."""
 
-from .unified_logger import (
+from plexichat.core.logging.unified_logger import (
     ColoredFormatter,
     LogCategory,
     StructuredFormatter,
@@ -12,12 +12,12 @@ from .unified_logger import (
 )
 
 __all__ = [
-    "get_logger",
-    "redact_pii",
-    "sanitize_for_logging",
     "ColoredFormatter",
+    "LogCategory",
     "StructuredFormatter",
     "get_handler_factory",
-    "LogCategory",
+    "get_logger",
     "get_logging_manager",
+    "redact_pii",
+    "sanitize_for_logging",
 ]
