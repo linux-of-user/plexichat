@@ -4,6 +4,7 @@
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
 import logging
+import asyncio
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -15,6 +16,8 @@ from plexichat.core.performance.multi_tier_cache_manager import (
     MessagePriority,
     get_cache_manager,
 )
+from plexichat.infrastructure.utils.compilation import optimizer
+from .cache_lookup import fast_cache_get, tier_select
 
 """
 PlexiChat Multi-Tier Cache API Endpoints
@@ -186,10 +189,10 @@ async def get_cached_value(
     current_user: dict = Depends(get_current_user),
 ):
     """
-    Get cached value by key.
+    Get cached value by key with Cython-optimized lookup.
 
-    Retrieves value from the most appropriate cache tier,
-    with automatic promotion to faster tiers.
+    Retrieves value from the most appropriate cache tier using optimized
+    tier selection and key validation, with automatic promotion to faster tiers.
     """
     try:
         cache_manager = get_cache_manager()
@@ -197,7 +200,15 @@ async def get_cached_value(
         if not cache_manager.initialized:
             raise HTTPException(status_code=503, detail="Cache system not initialized")
 
-        value = await cache_manager.get(key, default)
+        # Use optimized cache lookup
+        tier_order = ["L1_MEMORY", "L2_REDIS", "L3_MEMCACHED", "L4_CDN"]
+        result = fast_cache_get(key, tier_order)
+        
+        if result:
+            # Found in cache - get actual value from manager
+            value = await cache_manager.get(key, default)
+        else:
+            value = default
 
         if value is None and default is None:
             raise HTTPException(
@@ -208,6 +219,7 @@ async def get_cached_value(
             "key": key,
             "value": value,
             "found": value is not None,
+            "tier_hint": result if result else "not_found",
             "timestamp": "2025-01-07T12:00:00Z",
         }
 
@@ -218,6 +230,13 @@ async def get_cached_value(
         raise HTTPException(
             status_code=500, detail=f"Failed to get cached value: {e!s}"
         )
+
+# Register the cache lookup function for compilation (Cython)
+optimizer.register_function(
+    "plexichat.core.performance.cache_lookup",
+    "fast_cache_get",
+    compiler="cython"
+)
 
 
 @router.post("/{key}", response_model=CacheResponse)

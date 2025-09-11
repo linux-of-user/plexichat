@@ -17,7 +17,11 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set
 
+import numba
+from numba import njit
 import psutil
+
+from plexichat.infrastructure.utils.compilation import optimizer
 
 logger = logging.getLogger(__name__)
 
@@ -828,22 +832,34 @@ class ClusterManager:
         except Exception as e:
             logger.error(f"Error handling node failure {node_id}: {e}")
 
+    @njit
+    def _rebuild_hash_ring_internal(self, node_ids_list, virtual_nodes_per_node):
+        """Numba-optimized internal hash ring builder."""
+        hash_ring = {}
+        for node_id_bytes in node_ids_list:
+            node_id = node_id_bytes.decode('utf-8')
+            for i in range(virtual_nodes_per_node):
+                virtual_key = f"{node_id}:{i}".encode('utf-8')
+                import hashlib
+                m = hashlib.md5()
+                m.update(virtual_key)
+                hash_value = int(m.hexdigest(), 16)
+                hash_ring[hash_value] = node_id
+        return hash_ring
+
     def _rebuild_hash_ring(self) -> None:
-        """Rebuild consistent hash ring for load balancing."""
+        """Rebuild consistent hash ring for load balancing with Numba optimization."""
         try:
             self.consistent_hash_ring.clear()
 
-            for node_id in self.healthy_nodes:
-                if node_id not in self.nodes:
-                    continue
-
-                node = self.nodes[node_id]
-
-                # Create virtual nodes for better distribution
-                for i in range(int(self.virtual_nodes_per_node * node.weight)):
-                    virtual_key = f"{node_id}:{i}"
-                    hash_value = int(hashlib.md5(virtual_key.encode()).hexdigest(), 16)
-                    self.consistent_hash_ring[hash_value] = node_id
+            # Prepare node IDs for Numba
+            node_ids = [nid.encode('utf-8') for nid in self.healthy_nodes if nid in self.nodes]
+            if node_ids:
+                # Use compiled function
+                compiled_ring = self._rebuild_hash_ring_internal(
+                    node_ids, int(self.virtual_nodes_per_node)
+                )
+                self.consistent_hash_ring = dict(compiled_ring)
 
             logger.debug(
                 f"Hash ring rebuilt with {len(self.consistent_hash_ring)} virtual nodes"
@@ -851,6 +867,13 @@ class ClusterManager:
 
         except Exception as e:
             logger.error(f"Error rebuilding hash ring: {e}")
+
+# Register the hash ring function for compilation (Numba)
+optimizer.register_function(
+    "plexichat.core.clustering.cluster_manager",
+    "_rebuild_hash_ring_internal",
+    compiler="numba"
+)
 
     async def _get_node_by_consistent_hash(self, key: str) -> Optional[ClusterNode]:
         """Get node using consistent hashing."""

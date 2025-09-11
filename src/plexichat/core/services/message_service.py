@@ -4,10 +4,13 @@ so features stay consistent across interfaces. No features are removed.
 """
 from __future__ import annotations
 
-import hashlib
+import asyncio
 import logging
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
+
+from plexichat.infrastructure.utils.compilation import optimizer
+from .message_checksum import calculate_checksum
 
 logger = logging.getLogger(__name__)
 
@@ -19,8 +22,19 @@ class Message:
     message_type: str = "text"
     flags: Optional[List[str]] = None
 
-    def checksum(self) -> str:
-        return hashlib.sha256(self.content.encode('utf-8')).hexdigest()
+    async def checksum(self) -> str:
+        """Async wrapper for optimized checksum calculation."""
+        loop = asyncio.get_event_loop()
+        return await loop.run_in_executor(
+            None, lambda: calculate_checksum(self.content)
+        )
+
+# Register the checksum function for compilation (Cython)
+optimizer.register_function(
+    "plexichat.core.services.message_service",
+    "calculate_checksum",
+    compiler="cython"
+)
 
 
 class MessageService:
