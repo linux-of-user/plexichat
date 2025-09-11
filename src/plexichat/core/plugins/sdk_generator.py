@@ -69,7 +69,7 @@ class APIModule:
 class PluginSDKGenerator:
     """Generates the secure plugins_internal.py module for plugin access to PlexiChat services."""
 
-    def __init__(self, output_dir: Optional[Path] = None):
+    def __init__(self, output_dir: Optional[Path] = None) -> None:
         self.logger = logging.getLogger(__name__)
 
         # Set output directory - plugins_internal.py should be in src/plexichat/
@@ -337,7 +337,7 @@ class PluginSDKGenerator:
 
         try:
             # Import and scan the plugin manager for existing safe APIs
-            from plexichat.core.plugins.manager import EnhancedPluginAPI
+            from src.plexichat.core.plugins.manager import EnhancedPluginAPI
 
             # Scan EnhancedPluginAPI for safe methods
             api_methods = []
@@ -362,7 +362,7 @@ class PluginSDKGenerator:
 
             # Scan database manager for safe methods
             try:
-                from plexichat.core.database.manager import DatabaseSession
+                from src.plexichat.core.database.manager import DatabaseSession
 
                 db_methods = []
                 safe_db_methods = ["insert", "update", "delete", "fetchone", "fetchall"]
@@ -388,7 +388,7 @@ class PluginSDKGenerator:
 
             # Scan file manager for safe methods
             try:
-                from plexichat.core.files import FileManager
+                from src.plexichat.core.files import FileManager
 
                 file_methods = []
                 safe_file_methods = ["upload_file", "get_file_metadata", "delete_file"]
@@ -449,7 +449,7 @@ PLEXICHAT_VERSION = "{{ plexichat_version }}"
 
 # Import core security components
 try:
-    from plexichat.core.plugins.security_manager import (
+    from src.plexichat.core.plugins.security_manager import (
         SafeFileManager, NetworkBroker, PermissionType, 
         plugin_security_manager, check_plugin_permission
     )

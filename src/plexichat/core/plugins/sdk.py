@@ -21,12 +21,12 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Union
 
 try:
-    from ...core.performance.cache_manager import get_cache_manager
-    from ...infrastructure.monitoring import get_performance_monitor
-    from ..config.manager import get_config
-    from ..database.manager import get_database_manager
-    from ..logging import get_logger
-    from .unified_plugin_manager import (
+    from src.plexichat.core.performance.cache_manager import get_cache_manager
+    from src.plexichat.infrastructure.monitoring import get_performance_monitor
+    from src.plexichat.core.config.manager import get_config
+    from src.plexichat.core.database.manager import get_database_manager
+    from src.plexichat.core.logging import get_logger
+    from src.plexichat.core.plugins.manager import (
         PluginInfo,
         PluginInterface,
         PluginMetadata,

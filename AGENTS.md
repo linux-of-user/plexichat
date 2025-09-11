@@ -1,49 +1,49 @@
-# PlexiChat - Agent Development Guide
+# PlexiChat Development Guide
 
-## Commands
+## Setup & Commands
 
 ### Initial Setup
 ```bash
-python -m venv venv                    # Create virtual environment
-source venv/bin/activate               # Activate (Linux/Mac)
-# OR venv\Scripts\activate             # Activate (Windows)
-pip install -e .                      # Install package in editable mode
-pip install -e .[dev,test]             # Install with dev/test dependencies
+python run.py setup --level developer    # Full dev environment with linting/testing tools
+python -m venv venv                      # Creates virtual env in ./venv (see .gitignore)
+# On Windows: venv\Scripts\activate
+# On Unix/macOS: source venv/bin/activate
+pip install -r requirements.txt
 ```
 
-### Build & Test
+### Build & Development
 ```bash
-make docs                              # Build documentation
-make docs-serve                       # Serve docs locally (port 8000)
-python -m pytest                      # Run tests
-python -m pytest --cov=src/plexichat  # Run tests with coverage
-ruff check src/                       # Run linter
-black src/                            # Format code
+python run.py                            # Start API server, WebUI, and CLI
+make docs                               # Build documentation 
+make docs-serve                         # Serve docs locally (port 8000)
 ```
 
-### Development Server
+### Code Quality
 ```bash
-python run.py                         # Start full stack (API + WebUI + CLI)
-python run.py --nowebui --nocli       # API server only
-python run.py --noserver --nocli      # WebUI only
+ruff check src/                         # Lint code
+ruff format src/                        # Format code 
+mypy src/                              # Type checking
+black src/                             # Code formatting
 ```
 
-## Tech Stack & Architecture
+### Testing
+```bash
+pytest                                  # Run all tests
+pytest -m unit                         # Unit tests only
+pytest --cov=plexichat --cov-report=html  # With coverage
+```
 
-**Backend**: FastAPI, SQLAlchemy, Alembic, Redis, asyncpg  
-**Frontend**: WebUI components (details in `/interfaces`)  
-**Database**: PostgreSQL with Redis caching  
-**Security**: Cryptography, PassLib, python-jose  
-**Monitoring**: Prometheus, structlog  
+## Tech Stack
 
-**Structure**: Clean architecture with `/src/plexichat` containing `core/`, `features/`, `infrastructure/`, `interfaces/`, and `plugins/`
+**Backend**: FastAPI, SQLAlchemy, Redis, PostgreSQL/SQLite  
+**Frontend**: FastAPI + WebUI  
+**Architecture**: Plugin-based modular system with core/plugins/infrastructure layers  
+**Auth**: JWT + bcrypt, 2FA support, unified auth manager  
 
 ## Code Style
 
-- **Python 3.11+** required
-- **Black** formatter (88 char line length)
-- **Ruff** linter with comprehensive rules
-- **Type hints** required (pyright/mypy)
-- **Async/await** patterns preferred
-- Import order: stdlib, third-party, first-party
-
+- **Python 3.11+** with type hints
+- **Line length**: 88 chars (Black)
+- **Import order**: stdlib → third-party → first-party (isort)
+- **Docstrings**: Google style for public APIs
+- **No comments** in simple code, prefer descriptive names

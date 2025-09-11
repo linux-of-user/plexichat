@@ -23,7 +23,7 @@ from typing import Any, Dict, List, Optional
 
 # Import unified plugin system (NEW SINGLE SOURCE OF TRUTH)
 try:
-    from plexichat.core.plugins.manager import (  # Main classes; Data classes; Main functions; Exceptions
+    from src.plexichat.core.plugins.manager import (  # Main classes; Data classes; Main functions; Exceptions
         PluginError,
         PluginInfo,
         PluginInterface,
@@ -122,34 +122,34 @@ except ImportError as e:
     plugin_manager = unified_plugin_manager
     PluginManager = UnifiedPluginManager
 
-    async def get_plugin_manager():
+    async def get_plugin_manager() -> UnifiedPluginManager:
         return unified_plugin_manager
 
-    async def discover_plugins():
+    async def discover_plugins() -> List[str]:
         return []
 
-    async def load_plugin(plugin_name: str):
+    async def load_plugin(plugin_name: str) -> bool:
         return False
 
-    async def unload_plugin(plugin_name: str):
+    async def unload_plugin(plugin_name: str) -> bool:
         return False
 
-    async def enable_plugin(plugin_name: str):
+    async def enable_plugin(plugin_name: str) -> bool:
         return False
 
-    async def disable_plugin(plugin_name: str):
+    async def disable_plugin(plugin_name: str) -> bool:
         return False
 
-    def get_plugin_info(plugin_name: str):
+    def get_plugin_info(plugin_name: str) -> Optional[Dict[str, Any]]:
         return None
 
-    def get_all_plugins_info():
+    def get_all_plugins_info() -> Dict[str, Any]:
         return {}
 
-    async def execute_command(command_name: str, *args, **kwargs):
+    async def execute_command(command_name: str, *args: Any, **kwargs: Any) -> Any:
         raise PluginError("Plugin system not available")
 
-    async def emit_event(event_name: str, *args, **kwargs):
+    async def emit_event(event_name: str, *args: Any, **kwargs: Any) -> List[Any]:
         return []
 
     # Fallback classes
@@ -179,7 +179,7 @@ async def initialize_plugin_system() -> bool:
         return False
 
 
-async def get_plugin_manager_instance():
+async def get_plugin_manager_instance() -> UnifiedPluginManager:
     """Get the plugin manager instance (backward compatibility)."""
     return unified_plugin_manager
 
@@ -189,7 +189,7 @@ PlexiChatPlugin = PluginInterface
 emit_plugin_event = emit_event
 
 
-def get_plugins():
+def get_plugins() -> Dict[str, Any]:
     """Get all plugins info (backward compatibility)."""
     return get_all_plugins_info()
 
@@ -232,6 +232,6 @@ __all__ = [
     "PluginError",
 ]
 
-from plexichat.core.config_manager import get_config
+from src.plexichat.core.config_manager import get_config
 
 __version__ = get_config("system.version", "0.0.0")

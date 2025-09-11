@@ -34,14 +34,14 @@ from typing import Any, Callable, Dict, List, Optional, Set, Union
 # optional and will fall back to lightweight generation if missing.
 # ======================================================================
 try:
-    from plexichat.core.plugins.sdk_generator import PluginSDKGenerator
-    from plexichat.core.plugins.sdk_generator import sdk_generator as core_sdk_generator
+    from src.plexichat.core.plugins.sdk_generator import PluginSDKGenerator
+    from src.plexichat.core.plugins.sdk_generator import sdk_generator as core_sdk_generator
 except Exception:
     core_sdk_generator = None
     PluginSDKGenerator = None
 
 try:
-    from plexichat.core.plugins.security_manager import (
+    from src.plexichat.core.plugins.security_manager import (
         plugin_security_manager as core_plugin_security_manager,
     )
 except Exception:
@@ -55,7 +55,7 @@ logger = logging.getLogger(__name__)
 
 # Shared components
 try:
-    from plexichat.shared.models import Event, Plugin, Priority, Status
+    from src.plexichat.shared.models import Event, Plugin, Priority, Status
 except ImportError:
 
     class Plugin:
@@ -72,14 +72,14 @@ except ImportError:
 
 
 try:
-    from plexichat.shared.types import PluginConfig, PluginId, PluginResult
+    from src.plexichat.shared.types import PluginConfig, PluginId, PluginResult
 except ImportError:
     PluginId = str
     PluginConfig = dict
     PluginResult = dict
 
 try:
-    from plexichat.shared.exceptions import PluginError, SecurityError, ValidationError
+    from src.plexichat.shared.exceptions import PluginError, SecurityError, ValidationError
 except ImportError:
 
     class PluginError(Exception):
@@ -94,7 +94,7 @@ except ImportError:
 
 # Core configurations
 try:
-    from plexichat.core.config_manager import (
+    from src.plexichat.core.config_manager import (
         get_max_plugin_memory,
         get_plugin_sandbox_enabled,
         get_plugin_timeout,
@@ -113,30 +113,30 @@ except ImportError:
 
 # Core services (for SDK)
 try:
-    from plexichat.core.database.manager import database_manager
+    from src.plexichat.core.database.manager import database_manager
 except ImportError:
     database_manager = None
 try:
-    from plexichat.core.logging import get_logger
+    from src.plexichat.core.logging import get_logger
 except ImportError:
     get_logger = logging.getLogger
 try:
-    from plexichat.core.performance import performance_monitor
+    from src.plexichat.core.performance import performance_monitor
 except ImportError:
     performance_monitor = None
 try:
-    from plexichat.core.cache import secure_cache as cache_manager
+    from src.plexichat.core.cache import secure_cache as cache_manager
 except ImportError:
     cache_manager = None
 try:
-    from plexichat.core.config import config
+    from src.plexichat.core.config import config
 except ImportError:
     config = {}
 
 # Enhanced plugin systems
 # try:
-#     from .advanced_plugin_security import enhanced_plugin_security, SecurityLevel as EnhancedSecurityLevel
-#     from .plugin_dependency_manager import plugin_dependency_manager
+#     from src.plexichat.core.pluginsadvanced_plugin_security import enhanced_plugin_security, SecurityLevel as EnhancedSecurityLevel
+#     from src.plexichat.core.pluginsplugin_dependency_manager import plugin_dependency_manager
 # except ImportError:
 enhanced_plugin_security = None
 plugin_dependency_manager = None
@@ -144,7 +144,7 @@ EnhancedSecurityLevel = None
 
 # AI integration
 # try:
-#     from plexichat.features.ai.advanced_ai_system import intelligent_assistant, ai_provider_manager
+#     from src.plexichat.features.ai.advanced_ai_system import intelligent_assistant, ai_provider_manager
 # except ImportError:
 intelligent_assistant = None
 ai_provider_manager = None
@@ -357,11 +357,11 @@ class EnhancedPluginLogger:
     def __init__(self, plugin_name: str):
         self.plugin_name = plugin_name
         try:
-            from plexichat.core.logging.unified_logger import get_plugin_logger as _gpl
+            from src.plexichat.core.logging.unified_logger import get_plugin_logger as _gpl
 
             self.logger = _gpl(plugin_name)
         except Exception:
-            from plexichat.core.logging import get_logger as _gl
+            from src.plexichat.core.logging import get_logger as _gl
 
             self.logger = _gl(f"plugin.{plugin_name}")
         self._performance_metrics = {}
@@ -807,7 +807,7 @@ class PluginTestManager:
 
 
 class UnifiedPluginManager:
-    def __init__(self, plugins_dir: Optional[Path] = None):
+    def __init__(self, plugins_dir: Optional[Path] = None) -> None:
         self.logger = logging.getLogger(__name__)
         if plugins_dir is None:
             project_root = Path(__file__).resolve().parents[4]
@@ -956,7 +956,7 @@ This SDK provides the core interfaces for developing PlexiChat plugins.
 import logging, json
 from abc import ABC, abstractmethod
 from typing import Dict, Any, List, Optional, Callable
-from plexichat.core.plugins.manager import EnhancedBasePlugin, EnhancedPluginConfig, EnhancedPluginAPI
+from src.plexichat.core.plugins.manager import EnhancedBasePlugin, EnhancedPluginConfig, EnhancedPluginAPI
 __all__ = ['EnhancedBasePlugin', 'EnhancedPluginConfig', 'EnhancedPluginAPI']
 # Auto-generated on: {datetime.now().isoformat()}
 '''
@@ -1082,8 +1082,8 @@ __all__ = ['EnhancedBasePlugin', 'EnhancedPluginConfig', 'EnhancedPluginAPI']
             raise PluginError(f"No 'plugin' instance in {plugin_name}")
         instance = getattr(module, "plugin")
         # For sandboxed plugins, check against the SDK's EnhancedBasePlugin class
-        # since sandboxed plugins inherit from plexichat.core.plugins.sdk.EnhancedBasePlugin
-        from .sdk import EnhancedBasePlugin as SDK_EnhancedBasePlugin
+        # since sandboxed plugins inherit from src.plexichat.core.plugins.sdk.EnhancedBasePlugin
+        from src.plexichat.core.pluginssdk import EnhancedBasePlugin as SDK_EnhancedBasePlugin
 
         if not isinstance(instance, (EnhancedBasePlugin, SDK_EnhancedBasePlugin)):
             logger.error(f"Plugin {plugin_name} instance type: {type(instance)}")

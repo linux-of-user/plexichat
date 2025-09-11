@@ -39,10 +39,10 @@ from weakref import WeakSet
 import psutil
 
 # Core imports with fallbacks
-from plexichat.core.security.security_manager import get_security_system
+from src.plexichat.core.security.security_manager import get_security_system
 
 try:
-    from plexichat.core.config_manager import (
+    from src.plexichat.core.config_manager import (
         get_max_plugin_memory,
         get_plugin_sandbox_enabled,
         get_plugin_timeout,
@@ -60,19 +60,19 @@ except ImportError:
 
 
 try:
-    from plexichat.core.logging import get_logger
+    from src.plexichat.core.logging import get_logger
 except ImportError:
     get_logger = logging.getLogger
 
 try:
-    from plexichat.core.database.manager import database_manager
-    from plexichat.core.files import file_manager
+    from src.plexichat.core.database.manager import database_manager
+    from src.plexichat.core.files import file_manager
 except ImportError:
     database_manager = None
     file_manager = None
 
 try:
-    from plexichat.shared.exceptions import PluginError, SecurityError, ValidationError
+    from src.plexichat.shared.exceptions import PluginError, SecurityError, ValidationError
 except ImportError:
 
     class SecurityError(Exception):
@@ -102,7 +102,7 @@ class SafeFileManager:
         """Safe file open that checks permissions."""
         # Optional shared sanitization using core security system controlled by config
         try:
-            from plexichat.core.config_manager import get_config
+            from src.plexichat.core.config_manager import get_config
 
             sec_cfg = get_config("security", None)
             sanitation_enabled = (
@@ -121,7 +121,7 @@ class SafeFileManager:
             pass
         # Enforce strict sandbox if configured
         try:
-            from plexichat.core.config_manager import get_config
+            from src.plexichat.core.config_manager import get_config
 
             sec_cfg = get_config("security", None)
             strict = (
@@ -1363,7 +1363,7 @@ class PluginSecurityManager:
 
             # Run the plugin permissions migration to ensure tables exist
             try:
-                from plexichat.core.database.migrations.add_plugin_permissions import (
+                from src.plexichat.core.database.migrations.add_plugin_permissions import (
                     apply_migration,
                 )
 

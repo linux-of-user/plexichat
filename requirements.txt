@@ -207,7 +207,7 @@ ipykernel>=6.27.1
 
 # Security auditing & scanning (development)
 # talisman>=0.2.1           # security headers for local testing
-trivy>=0.16.0             # optional vulnerability scanner wrapper (for CI)
+# trivy>=0.16.0             # optional vulnerability scanner wrapper (for CI)
 
 # === OS-SPECIFIC FALLBACKS ===
 # System packages to install when pip packages fail

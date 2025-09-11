@@ -28,7 +28,7 @@ from typing import Any, Callable, Dict, List, Optional, Set, Union
 
 # Import shared components (with fallbacks)
 try:
-    from plexichat.shared.models import Event, Plugin, Priority, Status
+    from src.plexichat.shared.models import Event, Plugin, Priority, Status
 except ImportError:
     # Create placeholder classes
     class Plugin:
@@ -45,7 +45,7 @@ except ImportError:
 
 
 try:
-    from plexichat.shared.types import PluginConfig, PluginId, PluginResult
+    from src.plexichat.shared.types import PluginConfig, PluginId, PluginResult
 except ImportError:
     # Use basic types as fallbacks
     PluginId = str
@@ -53,7 +53,7 @@ except ImportError:
     PluginResult = dict
 
 try:
-    from plexichat.shared.exceptions import PluginError, SecurityError, ValidationError
+    from src.plexichat.shared.exceptions import PluginError, SecurityError, ValidationError
 except ImportError:
     # Create basic exception classes
     class PluginError(Exception):
@@ -67,7 +67,7 @@ except ImportError:
 
 
 try:
-    from plexichat.core.unified_config import (
+    from src.plexichat.core.unified_config import (
         get_max_plugin_memory,
         get_plugin_sandbox_enabled,
         get_plugin_timeout,
@@ -86,13 +86,13 @@ except ImportError:
 
 # Core imports (with fallbacks)
 try:
-    from plexichat.core.database.manager import database_manager
+    from src.plexichat.core.database.manager import database_manager
 except ImportError:
     database_manager = None
 
 # SDK generator - ensure plugins_internal exists
 try:
-    from plexichat.core.plugins.sdk_generator import (
+    from src.plexichat.core.plugins.sdk_generator import (
         generate_plugins_internal,
         regenerate_plugins_internal_if_needed,
         sdk_generator,
@@ -104,7 +104,7 @@ except ImportError:
 
 # Security manager integration
 try:
-    from plexichat.core.plugins.security_manager import (
+    from src.plexichat.core.plugins.security_manager import (
         PermissionType,
         PluginSecurityManager,
         create_plugin_sandbox,
@@ -290,7 +290,7 @@ class PluginInfo:
 
 # The PluginInterface is now defined in the SDK.
 # This manager will work with plugins that inherit from EnhancedBasePlugin.
-from plexichat.core.plugins.sdk import EnhancedBasePlugin
+from src.plexichat.core.plugins.sdk import EnhancedBasePlugin
 
 
 class PluginIsolationManager:
@@ -450,7 +450,7 @@ class PluginIsolationManager:
 
             # Log successful sandboxed loading
             try:
-                from plexichat.core.logging import get_logger
+                from src.plexichat.core.logging import get_logger
 
                 sandbox_logger = get_logger(f"plugin.{plugin_name}.sandbox")
                 sandbox_logger.info(
@@ -566,7 +566,7 @@ class PluginIsolationManager:
 
         # Use existing logging system for plugin file operations
         try:
-            from plexichat.core.logging import get_logger
+            from src.plexichat.core.logging import get_logger
 
             logger = get_logger(f"plugin.{plugin_name}.filesystem")
             logger.info(f"Plugin file access: {filename} (mode: {mode})")
@@ -788,7 +788,7 @@ from abc import ABC, abstractmethod
 from typing import Dict, Any, List, Optional, Callable
 
 # Re-importing the core SDK classes to expose them to plugins
-from plexichat.core.plugins.sdk import EnhancedBasePlugin, EnhancedPluginConfig, EnhancedPluginAPI
+from src.plexichat.core.plugins.sdk import EnhancedBasePlugin, EnhancedPluginConfig, EnhancedPluginAPI
 
 # This makes the core SDK classes available to plugins that `import plugins_internal`
 __all__ = [
