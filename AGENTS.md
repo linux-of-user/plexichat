@@ -2,54 +2,52 @@
 
 ## Setup Commands
 
+### Initial Setup
 ```bash
-# Virtual environment setup
-python -m venv .venv                    # Create virtual environment
-.venv\Scripts\activate                  # Activate (Windows)
-source .venv/bin/activate              # Activate (Unix)
+# Create and activate virtual environment
+python -m venv .venv
+.venv\Scripts\activate   # Windows
+source .venv/bin/activate  # Linux/Mac
 
 # Install dependencies
-pip install -r requirements.txt        # Core dependencies
-pip install -e ".[dev]"               # Development dependencies
-python run.py setup --level minimal    # Core dependencies
-python run.py setup --level full       # Full feature set
-python run.py setup --level developer  # All deps + dev tools
+pip install -r requirements.txt
+# Or use the custom installer: python run.py setup --level full
 ```
 
-## Development Commands
-
+### Build & Quality
 ```bash
-# Build & Lint
-ruff check .                          # Linting
-ruff check src/                       # Lint src directory
-black .                              # Code formatting
-black --check src/                   # Check src formatting
-isort --check-only src/              # Check import sorting
-pyright                              # Type checking
-make lint                            # Run all linting tasks
-python -m build                      # Build package
+# Run linting
+ruff check src/
+black --check src/
+isort --check-only src/
 
-# Testing
-pytest                               # Run tests
-pytest --cov                         # Run with coverage
+# Run type checking
+pyright src/
 
-# Development Server
-python run.py                        # Start full application
-python run.py --nowebui --nocli      # API server only
-uvicorn plexichat.main:app --reload  # FastAPI dev server
+# Run tests
+pytest
+```
+
+### Development Server
+```bash
+# Start development server
+python run.py
+
+# Or build documentation
+make docs-serve
 ```
 
 ## Tech Stack & Architecture
-- **Backend**: FastAPI with async/await, SQLAlchemy, Redis
-- **Database**: PostgreSQL (async via asyncpg), SQLite
-- **Structure**: Clean architecture with core/infrastructure/interfaces layers
-- **Plugins**: Dynamic plugin system with SDK generation
-- **Testing**: pytest, pytest-asyncio, pytest-cov
-- **Code Quality**: ruff, black, pyright, pre-commit
+
+- **Backend**: FastAPI + SQLAlchemy (async) + Pydantic
+- **Database**: SQLite (default), PostgreSQL (production)
+- **Plugin System**: Dynamic loading with sandboxing
+- **Architecture**: Layered (core, infrastructure, interfaces, plugins)
+- **Key directories**: `src/plexichat/` (main code), `core/` (business logic), `plugins/` (extensions)
 
 ## Code Style
-- Line length: 88 characters
-- Tools: Black, isort, Ruff for formatting/linting
-- Type hints required for all public functions
-- Follow existing patterns in src/plexichat/
-- Plugin-based architecture with core modules in `src/plexichat/core/` and plugins in `src/plexichat/plugins/`
+
+- **Formatting**: Black (88 chars), isort for imports
+- **Linting**: Ruff + Pyright for type checking
+- **Testing**: pytest with asyncio support, 80%+ coverage required
+- **Docstrings**: Google style, type hints mandatory

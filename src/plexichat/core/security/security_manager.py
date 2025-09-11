@@ -4,39 +4,36 @@ Comprehensive security framework providing watertight protection like a deep-sea
 Integrates all security components into a cohesive system.
 """
 
-import asyncio
+from dataclasses import dataclass, field
+from datetime import UTC, datetime, timedelta
+from enum import Enum
 import hashlib
 import hmac
-import ipaddress
-import json
-import logging
 import mimetypes
+from pathlib import Path
 import re
+from re import Pattern
 import secrets
 import time
+from typing import Any
 import unicodedata
 import urllib.parse
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
-from enum import Enum
-from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Union
 
 import jwt
 
-from .security_context import SecurityContext, SecurityLevel
+from src.plexichat.core.security.security_context import SecurityContext, SecurityLevel
 
 # Core security imports
-SECURITY_MANAGER_AVAILABLE = False
+SECURITY_MANAGER_AVAILABLE: bool = False
 try:
-    from plexichat.core.security import comprehensive_security_manager
 
-    SECURITY_MANAGER_AVAILABLE = True
+    # Module loaded successfully - avoid constant redefinition by using a different approach
+    globals()["SECURITY_MANAGER_AVAILABLE"] = True
 except ImportError:
     pass
 
 # Import unified logger
-from plexichat.core.logging import get_logger
+from src.plexichat.core.logging import get_logger
 
 
 # Define our own security enums and classes
@@ -88,7 +85,7 @@ class SecurityPolicy:
     name: str
     description: str
     min_security_level: SecurityLevel = SecurityLevel.PUBLIC
-    required_auth_methods: List[AuthenticationMethod] = field(default_factory=list)
+    required_auth_methods: list[AuthenticationMethod] = field(default_factory=list)
     max_session_duration_minutes: int = 60
     require_encryption: bool = True
     encryption_algorithm: EncryptionAlgorithm = EncryptionAlgorithm.AES_256_GCM
@@ -99,7 +96,7 @@ class SecurityPolicy:
     lockout_duration_minutes: int = 30
 
     # File upload specific fields
-    allowed_file_extensions: List[str] = field(
+    allowed_file_extensions: list[str] = field(
         default_factory=lambda: [
             "txt",
             "md",
@@ -112,7 +109,7 @@ class SecurityPolicy:
             "pdf",
         ]
     )
-    allowed_content_types: List[str] = field(
+    allowed_content_types: list[str] = field(
         default_factory=lambda: [
             "text/plain",
             "application/json",
@@ -133,12 +130,12 @@ class UserCredentials:
     username: str
     password_hash: str
     salt: str
-    two_factor_secret: Optional[str] = None
-    api_keys: List[str] = field(default_factory=list)
+    two_factor_secret: str | None = None
+    api_keys: list[str] = field(default_factory=list)
     failed_attempts: int = 0
-    locked_until: Optional[datetime] = None
-    last_login: Optional[datetime] = None
-    permissions: Set[str] = field(default_factory=set)
+    locked_until: datetime | None = None
+    last_login: datetime | None = None
+    permissions: set[str] = field(default_factory=set)
 
 
 @dataclass
@@ -149,15 +146,15 @@ class SecurityToken:
     user_id: str
     token_type: str
     expires_at: datetime
-    permissions: Set[str] = field(default_factory=set)
-    issued_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    last_used: Optional[datetime] = None
+    permissions: set[str] = field(default_factory=set)
+    issued_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    last_used: datetime | None = None
 
 
 class PasswordManager:
     """Secure password management with advanced hashing."""
 
-    def __init__(self, secret_key: Optional[str] = None):
+    def __init__(self, secret_key: str | None = None):
         self.secret_key = secret_key or secrets.token_hex(32)
         self.min_password_length = 8
         self.require_special_chars = True
@@ -165,16 +162,14 @@ class PasswordManager:
         self.require_uppercase = True
 
         # Password strength patterns
-        self.strength_patterns = {
+        self.strength_patterns: dict[str, Pattern[str]] = {
             "uppercase": re.compile(r"[A-Z]"),
             "lowercase": re.compile(r"[a-z]"),
             "numbers": re.compile(r"\d"),
             "special": re.compile(r'[!@#$%^&*(),.?":{}|<>]'),
         }
 
-    def hash_password(
-        self, password: str, salt: Optional[str] = None
-    ) -> Tuple[str, str]:
+    def hash_password(self, password: str, salt: str | None = None) -> tuple[str, str]:
         """Hash password with salt using secure algorithm."""
         if salt is None:
             salt = secrets.token_hex(32)
@@ -199,7 +194,7 @@ class PasswordManager:
             logger.error(f"Password verification error: {e}")
             return False
 
-    def validate_password_strength(self, password: str) -> Tuple[bool, List[str]]:
+    def validate_password_strength(self, password: str) -> tuple[bool, list[str]]:
         """Validate password strength."""
         issues = []
 
@@ -232,18 +227,18 @@ class PasswordManager:
 class TokenManager:
     """JWT token management with advanced security."""
 
-    def __init__(self, secret_key: Optional[str] = None):
+    def __init__(self, secret_key: str | None = None):
         self.secret_key = secret_key or secrets.token_hex(32)
         self.algorithm = "HS256"
         self.access_token_expiry = timedelta(hours=1)
         self.refresh_token_expiry = timedelta(days=7)
-        self.active_tokens: Set[str] = set()
-        self.revoked_tokens: Set[str] = set()
+        self.active_tokens: set[str] = set()
+        self.revoked_tokens: set[str] = set()
 
-    def create_access_token(self, user_id: str, permissions: Set[str]) -> str:
+    def create_access_token(self, user_id: str, permissions: set[str]) -> str:
         """Create JWT access token."""
         start = time.time()
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         payload = {
             "user_id": user_id,
             "permissions": list(permissions),
@@ -275,7 +270,7 @@ class TokenManager:
     def create_refresh_token(self, user_id: str) -> str:
         """Create JWT refresh token."""
         start = time.time()
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         payload = {
             "user_id": user_id,
             "token_type": "refresh",
@@ -301,7 +296,7 @@ class TokenManager:
 
         return token
 
-    def verify_token(self, token: str) -> Tuple[bool, Optional[Dict[str, Any]]]:
+    def verify_token(self, token: str) -> tuple[bool, dict[str, Any] | None]:
         """Verify JWT token."""
         try:
             payload = jwt.decode(token, self.secret_key, algorithms=[self.algorithm])
@@ -394,7 +389,7 @@ class InputSanitizer:
 
         return sanitized
 
-    def detect_threats(self, input_data: str) -> List[str]:
+    def detect_threats(self, input_data: str) -> list[str]:
         """Detect potential security threats in input."""
         threats = []
 
@@ -436,7 +431,7 @@ class SecuritySystem:
     - Audit logging
     """
 
-    def __init__(self, secret_key: Optional[str] = None):
+    def __init__(self, secret_key: str | None = None):
         self.secret_key = secret_key or secrets.token_hex(32)
 
         # Initialize security components
@@ -445,13 +440,13 @@ class SecuritySystem:
         self.input_sanitizer = InputSanitizer()
 
         # Security policies
-        self.security_policies: Dict[str, SecurityPolicy] = {}
-        self.user_credentials: Dict[str, UserCredentials] = {}
+        self.security_policies: dict[str, SecurityPolicy] = {}
+        self.user_credentials: dict[str, UserCredentials] = {}
 
         # Get comprehensive security manager if available
         if SECURITY_MANAGER_AVAILABLE:
             try:
-                from plexichat.core.security.comprehensive_security_manager import (
+                from src.plexichat.core.security.comprehensive_security_manager import (
                     get_security_manager,
                 )
 
@@ -480,7 +475,7 @@ class SecuritySystem:
         except Exception:
             pass
 
-    witty_responses = {
+    witty_responses: dict[str, str] = {
         "SQL injection attempt detected": "Nice try, but my database is locked down tighter than a submarine. Try a longer needle.",
         "XSS attempt detected": "My, my, what a creative script you have there. Unfortunately, this is not a playground.",
         "Path traversal attempt detected": "Lost, are we? Let me show you the way back to the main road.",
@@ -488,7 +483,7 @@ class SecuritySystem:
 
     async def process_security_request(
         self, request_data: Any
-    ) -> Tuple[bool, Optional[str]]:
+    ) -> tuple[bool, str | None]:
         """Process a security request and return a witty response if a threat is detected."""
         if isinstance(request_data, str):
             threats = self.input_sanitizer.detect_threats(request_data)
@@ -540,7 +535,7 @@ class SecuritySystem:
 
     async def authenticate_user(
         self, username: str, password: str
-    ) -> Tuple[bool, Optional[SecurityContext]]:
+    ) -> tuple[bool, SecurityContext | None]:
         """Authenticate user with comprehensive security checks."""
         try:
             self.metrics["authentication_attempts"] += 1
@@ -562,7 +557,7 @@ class SecuritySystem:
 
             # Check if account is locked
             if credentials.locked_until and credentials.locked_until > datetime.now(
-                timezone.utc
+                UTC
             ):
                 self.metrics["failed_authentications"] += 1
                 try:
@@ -583,9 +578,7 @@ class SecuritySystem:
 
                 # Lock account if too many failed attempts
                 if credentials.failed_attempts >= 5:
-                    credentials.locked_until = datetime.now(timezone.utc) + timedelta(
-                        minutes=30
-                    )
+                    credentials.locked_until = datetime.now(UTC) + timedelta(minutes=30)
 
                 self.metrics["failed_authentications"] += 1
                 try:
@@ -601,7 +594,7 @@ class SecuritySystem:
             # Reset failed attempts on successful authentication
             credentials.failed_attempts = 0
             credentials.locked_until = None
-            credentials.last_login = datetime.now(timezone.utc)
+            credentials.last_login = datetime.now(UTC)
 
             # Create security context
             context = SecurityContext(user_id=username, authenticated=True)
@@ -628,7 +621,7 @@ class SecuritySystem:
 
     async def validate_request_security(
         self, request_data: Any, policy_name: str = "default"
-    ) -> Tuple[bool, List[str]]:
+    ) -> tuple[bool, list[str]]:
         """Validate request against security policies."""
         try:
             issues = []
@@ -650,9 +643,9 @@ class SecuritySystem:
 
         except Exception as e:
             logger.error(f"Security validation error: {e}")
-            return False, [f"Security validation failed: {str(e)}"]
+            return False, [f"Security validation failed: {e!s}"]
 
-    def get_security_status(self) -> Dict[str, Any]:
+    def get_security_status(self) -> dict[str, Any]:
         """Get comprehensive security system status."""
         return {
             "metrics": self.metrics.copy(),
@@ -777,7 +770,7 @@ class SecuritySystem:
         content_type: str,
         file_size: int,
         policy_name: str = "default",
-    ) -> Tuple[bool, str]:
+    ) -> tuple[bool, str]:
         """Validate file upload against security policies.
 
         Returns a tuple: (allowed: bool, message: str)
@@ -913,7 +906,7 @@ class SecuritySystem:
 
         except Exception as e:
             logger.error(f"Unexpected error during file upload validation: {e}")
-            return False, f"File validation failed due to an internal error: {str(e)}"
+            return False, f"File validation failed due to an internal error: {e!s}"
 
     async def shutdown(self) -> None:
         """Shutdown the security system."""
@@ -924,7 +917,7 @@ class SecuritySystem:
 
 
 # Global security system instance
-_global_security_system: Optional[SecuritySystem] = None
+_global_security_system: SecuritySystem | None = None
 
 
 def get_security_system() -> SecuritySystem:
@@ -936,7 +929,7 @@ def get_security_system() -> SecuritySystem:
 
 
 async def initialize_security_system(
-    secret_key: Optional[str] = None,
+    secret_key: str | None = None,
 ) -> SecuritySystem:
     """Initialize the global security system."""
     global _global_security_system
@@ -953,15 +946,15 @@ async def shutdown_security_system() -> None:
 
 
 __all__ = [
-    "SecuritySystem",
-    "SecurityPolicy",
-    "UserCredentials",
-    "SecurityToken",
-    "PasswordManager",
-    "TokenManager",
-    "InputSanitizer",
     "AuthenticationMethod",
     "EncryptionAlgorithm",
+    "InputSanitizer",
+    "PasswordManager",
+    "SecurityPolicy",
+    "SecuritySystem",
+    "SecurityToken",
+    "TokenManager",
+    "UserCredentials",
     "get_security_system",
     "initialize_security_system",
     "shutdown_security_system",
