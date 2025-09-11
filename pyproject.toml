@@ -482,3 +482,14 @@ repos = [
     { repo = "https://github.com/astral-sh/ruff-pre-commit", rev = "v0.1.8", hooks = [{ id = "ruff", args = ["--fix"] }] },
     { repo = "https://github.com/pre-commit/mirrors-mypy", rev = "v1.8.0", hooks = [{ id = "mypy", additional_dependencies = ["types-all"] }] }
 ]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["plexichat*"]
+
+[tool.setuptools.package-dir]
+"" = ["src"]
+
+# Cython extension configuration
+[tool.cythonize]
+language_level = 3

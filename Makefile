@@ -285,6 +285,24 @@ lint: docs-lint ## Run all linting tasks
 	@# Add other lint tasks here as needed
 	$(call log_success,All linting tasks completed)
 
+# Compilation targets
+cythonize: ## Cythonize all .pyx files in src/plexichat
+	$(call log_info,Cythonizing Python files...)
+	@if ! command -v cythonize >/dev/null 2>&1; then \
+		$(call log_error,Cython not available. Run: pip install cython); \
+		exit 1; \
+	fi
+	@cythonize -i src/plexichat/**/*.pyx
+	$(call log_success,Cythonization completed)
+
+numba-compile: ## Compile Numba JIT functions (placeholder - JIT at runtime)
+	$(call log_info,Numba JIT compilation (runtime)...
+	@echo "Numba functions will be JIT-compiled on first use."
+	$(call log_success,Numba ready)
+
+compile-all: cythonize numba-compile ## Build all compiled extensions
+	$(call log_success,All compilation targets completed)
+
 # Advanced documentation targets
 docs-rebuild: docs-clean docs ## Clean and rebuild documentation
 	$(call log_success,Documentation rebuilt successfully)
