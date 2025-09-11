@@ -9,7 +9,6 @@ from pathlib import Path
 # Use the FastAPI auth adapter as the unified dependency provider for authentication
 from plexichat.core.auth.fastapi_adapter import (
     get_current_user,
-    get_optional_user,
     require_admin
 )
 from plexichat.core.logging import get_logger
@@ -23,7 +22,6 @@ def get_performance_service():
         def get_performance_summary(self): return {}
         def get_historical_metrics(self, *a, **k): return []
         def _calculate_trends(self, *a, **k): return []
-    import asyncio
     async def dummy():
         return DummyPerformanceService()
     return dummy()
@@ -31,7 +29,6 @@ def get_performance_service():
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-from typing import Optional
 
 """
 PlexiChat Performance Dashboard Web Routes

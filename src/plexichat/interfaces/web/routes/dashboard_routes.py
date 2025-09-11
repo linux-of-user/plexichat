@@ -20,7 +20,6 @@ PlexiChat Main Dashboard Web Routes
 Main dashboard web routes providing overview of system status, quick access
 to key features, and navigation to specialized dashboards.
 """
-import time
 # from typing import Optional  # Unused import
 
 # Initialize router and templates
@@ -131,7 +130,6 @@ def get_performance_service():
         def get_current_metrics(self): return {"system": {}, "application": {}}
         def _get_active_alerts(self): return []
         def get_performance_summary(self): return {}
-    import asyncio
     async def dummy():
         return DummyPerformanceService()
     return dummy()

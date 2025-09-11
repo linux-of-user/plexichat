@@ -1,4 +1,3 @@
-import threading
 
 """
 PlexiChat Message Processor
@@ -8,7 +7,6 @@ Message processing with threading and performance optimization.
 
 
 import asyncio
-import json
 import logging
 import time
 from dataclasses import dataclass
@@ -267,6 +265,5 @@ class MessageProcessor:
 
     def _extract_urls(self, content: str) -> List[str]:
         """Extract URLs from content."""
-        import re
 
         url_pattern = r"https?://[^\s<>]+"

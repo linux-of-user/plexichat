@@ -9,21 +9,13 @@ This module provides a comprehensive error code management system with:
 """
 
 import logging
-from enum import Enum
 from http import HTTPStatus
 from typing import Any, Dict, List, Optional
 
 from .base import (
     ErrorCategory,
     ErrorSeverity,
-    create_error_response,
-    create_authentication_error_response,
-    create_authorization_error_response,
-    create_system_error_response,
-    create_validation_error_response,
     PlexiChatErrorCode as BasePlexiChatErrorCode,
-    PlexiChatException,
-    ErrorResponse,
 )
 
 logger = logging.getLogger(__name__)

@@ -7,7 +7,6 @@ Command-line interface for AI management and operations.
 
 import logging
 import asyncio
-from typing import Optional, Dict, Any, List
 
 logger = logging.getLogger(__name__)
 

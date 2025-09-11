@@ -70,7 +70,6 @@ from plexichat.interfaces.api.v1.shards import router as shards_router
 from plexichat.interfaces.api.v1.threads import router as threads_router
 from plexichat.interfaces.api.v1.export import router as export_router
 from plexichat.interfaces.api.v1.keyboard import router as keyboard_router
-from plexichat.interfaces.api.routers.performance_router import router as performance_router
 
 # Try to import enhanced file sharing router with fallback
 try:

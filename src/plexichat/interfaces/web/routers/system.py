@@ -39,7 +39,6 @@ except ImportError:
 # Authentication imports - use unified FastAPI adapter
 from plexichat.core.auth.fastapi_adapter import get_current_user, require_admin
 
-from plexichat.core.analytics import analytics_engine
 
 # Configuration imports
 try:
@@ -61,18 +60,12 @@ performance_logger = get_performance_logger() if get_performance_logger else Non
 from plexichat.core.security.security_decorators import (
     secure_endpoint,
     RequiredPermission,
-    require_auth,
-    rate_limit,
-    audit_access,
-    sanitize_input,
-    validate_csrf,
-    admin_required,
 )
 
 # Try to initialize logging system if available (optional)
 try:
     from plexichat.core.logging import (
-        get_logging_system, LogCategory, LogLevel, PerformanceTracker, SecurityMetrics
+        get_logging_system
     )
     logging_system = get_logging_system()
     if logging_system:

@@ -4,7 +4,6 @@ Authentication utilities for PlexiChat API
 
 import logging
 from fastapi import HTTPException, status
-from typing import Optional
 
 try:
     from plexichat.core.database.manager import database_manager

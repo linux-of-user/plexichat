@@ -14,7 +14,6 @@ from pathlib import Path
 from fastapi import APIRouter, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-from typing import Optional
 
 from plexichat.features.ai.core.ai_abstraction_layer import (
     AIAbstractionLayer,

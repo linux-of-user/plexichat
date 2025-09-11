@@ -5,8 +5,7 @@ Comprehensive help system with interactive tutorials, searchable documentation,
 keyboard shortcuts reference, FAQ section, and contextual help.
 """
 
-import json
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 from pathlib import Path
 
 from fastapi import APIRouter, Request, Depends, HTTPException

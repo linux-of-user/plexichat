@@ -4,11 +4,9 @@
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
 import asyncio
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
-import time
-import warnings
 import logging
 
 from sqlmodel import Session, func, select

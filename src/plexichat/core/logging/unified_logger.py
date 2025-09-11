@@ -4,8 +4,7 @@ import re
 import sys
 from enum import Enum
 from logging.handlers import RotatingFileHandler
-from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import List, Optional
 
 # Default PII patterns for redaction (consolidated from plan)
 DEFAULT_PII_PATTERNS = [

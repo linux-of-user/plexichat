@@ -3,8 +3,6 @@
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
-import re
-import unicodedata
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
@@ -13,7 +11,7 @@ from sqlmodel import Session, and_, or_, select
 
 from plexichat.core.database import get_engine
 from plexichat.core.logging import get_logger
-from plexichat.shared.models import Emoji, Message, MessageReaction, MessageType
+from plexichat.shared.models import Message, MessageReaction, MessageType
 
 engine = get_engine()
 logger = get_logger(__name__)

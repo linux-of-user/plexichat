@@ -5,13 +5,11 @@ Provides comprehensive search functionality with full-text search, filters,
 search suggestions, and search history tracking.
 """
 
-import asyncio
 import json
-import logging
 import re
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 from uuid import uuid4
 
 from plexichat.core.database.manager import database_manager

@@ -28,7 +28,7 @@ PLEXICHAT_VERSION = "1.0.0"
 
 # Import core security components
 try:
-    from plexichat.core.plugins.security_manager import (
+    from src.plexichat.core.plugins.security_manager import (
         SafeFileManager, NetworkBroker, PermissionType, 
         plugin_security_manager, check_plugin_permission
     )

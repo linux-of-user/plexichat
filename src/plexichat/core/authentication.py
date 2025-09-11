@@ -4,8 +4,6 @@ Provides a unified interface for authentication operations that delegates to the
 Includes caching layer for improved performance and advanced security features.
 """
 
-import asyncio
-import base64
 import hashlib
 import hmac
 import ipaddress
@@ -13,12 +11,11 @@ import json
 import re
 import secrets
 import time
-import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Union
-from urllib.parse import parse_qs, urlencode
+from typing import Any, Dict, List, Optional, Set, Tuple, Union
+from urllib.parse import urlencode
 
 from plexichat.core.database.manager import database_manager
 
@@ -27,12 +24,8 @@ from plexichat.core.logging import get_logger
 
 # Import the SecuritySystem and related components
 from plexichat.core.security.security_manager import (
-    AuthenticationMethod,
     SecurityContext,
-    SecurityLevel,
-    SecurityPolicy,
     SecuritySystem,
-    SecurityToken,
     UserCredentials,
     get_security_system,
 )

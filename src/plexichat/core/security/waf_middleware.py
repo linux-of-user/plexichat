@@ -10,7 +10,6 @@ This module implements a comprehensive WAF middleware that provides:
 - Pattern matching for common attack vectors
 """
 
-import asyncio
 import hashlib
 import ipaddress
 import json
@@ -18,11 +17,11 @@ import re
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Optional, Set, Tuple
 from urllib.parse import unquote
 
 import httpx
-from fastapi import HTTPException, Request, Response
+from fastapi import Request, Response
 from fastapi.responses import JSONResponse
 
 

@@ -12,7 +12,6 @@ Provides complete plugin lifecycle management via web browser.
 
 import json
 import logging
-import urllib.request
 from pathlib import Path
 from typing import Dict, Any, List, Optional
 

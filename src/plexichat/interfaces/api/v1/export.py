@@ -5,10 +5,9 @@ Provides endpoints for exporting chat messages in various formats.
 """
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from fastapi.responses import StreamingResponse, PlainTextResponse
+from fastapi.responses import StreamingResponse
 from datetime import datetime, timezone
 from typing import Optional
-import io
 
 from plexichat.core.services.chat_export_service import get_chat_export_service, ExportOptions
 
@@ -216,7 +215,6 @@ async def preview_channel_export(
 
 if __name__ == '__main__':
     # Example of how to run this API with uvicorn
-    import uvicorn
     from fastapi import FastAPI
 
     app = FastAPI()

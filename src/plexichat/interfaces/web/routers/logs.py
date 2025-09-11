@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Query, Request
 from fastapi.responses import PlainTextResponse, JSONResponse, HTMLResponse
 from fastapi.templating import Jinja2Templates
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 import re
 
 router = APIRouter(prefix="/admin/logs", tags=["admin-logs"])

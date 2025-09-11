@@ -6,14 +6,13 @@ Consolidates config/, config.py, and unified_config.py into one clean system.
 """
 
 import logging
-from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
 # Try to import the unified config system
 try:
-    from plexichat.core.config_manager import (
+    from src.plexichat.core.config_manager import (
         AIConfig,
         BackupConfig,
         CachingConfig,

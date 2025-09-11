@@ -6,9 +6,8 @@
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Tuple
 import logging
-import time
 
-from sqlmodel import Session, select
+from sqlmodel import Session
 from fastapi import HTTPException, status
 
 # Placeholder imports for dependencies

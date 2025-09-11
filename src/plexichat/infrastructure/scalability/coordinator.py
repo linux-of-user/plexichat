@@ -10,7 +10,7 @@ import asyncio
 import logging
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 # Placeholder imports for dependencies
 service_mesh_manager = None

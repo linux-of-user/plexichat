@@ -10,7 +10,6 @@ from typing import Any, Dict, List, Optional, Set, Tuple
 from plexichat.core.authentication import (
     AuthProvider,
     AuthResult,
-    DeviceInfo,
     MFAChallenge,
     MFAMethod,
     Role,

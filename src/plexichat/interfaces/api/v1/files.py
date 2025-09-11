@@ -2,7 +2,7 @@ import io
 import logging
 import mimetypes
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, status
 from fastapi.responses import StreamingResponse
@@ -356,7 +356,6 @@ async def delete_file(file_id: str, current_user: dict = Depends(get_current_use
 
 if __name__ == '__main__':
     # Example of how to run this API with uvicorn
-    import uvicorn
     from fastapi import FastAPI
     from uuid import uuid4  # used by fallback
 

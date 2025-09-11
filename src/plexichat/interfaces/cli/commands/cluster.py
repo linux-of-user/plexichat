@@ -1,7 +1,7 @@
 import argparse
 import asyncio
 import logging
-from typing import List, Optional, Set
+from typing import List, Set
 
 # Integrate with the real cluster manager implementation
 from plexichat.core.clustering.cluster_manager import (

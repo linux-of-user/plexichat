@@ -10,19 +10,15 @@ Comprehensive debugging system for PlexiChat with advanced logging, profiling,
 error tracking, and debugging tools.
 """
 
-import asyncio
 import functools
-import inspect
-import json
 import logging
-import sys
 import time
 import traceback
 import threading
 from contextlib import contextmanager
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Callable, Union
+from typing import Any, Dict, List, Optional
 from dataclasses import dataclass, field
 from enum import Enum
 import cProfile

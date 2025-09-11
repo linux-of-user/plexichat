@@ -8,8 +8,8 @@ import hmac
 import logging
 import secrets
 import time
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from datetime import datetime
+from typing import Any, Dict, Optional
 import base64
 import html
 import re

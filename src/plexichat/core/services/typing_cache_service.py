@@ -5,7 +5,6 @@ Caching layer for frequently accessed typing data to improve performance.
 """
 
 import logging
-from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
 from plexichat.core.caching.unified_cache_integration import (

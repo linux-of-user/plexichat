@@ -6,7 +6,6 @@ Supports multiple AI providers, custom training, and progressive learning.
 import hashlib
 import json
 import logging
-import re
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone

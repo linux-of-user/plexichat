@@ -4,7 +4,6 @@ Provides comprehensive dashboard with advanced options and features
 """
 
 import logging
-from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any, Optional
 

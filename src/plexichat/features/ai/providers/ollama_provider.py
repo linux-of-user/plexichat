@@ -5,11 +5,9 @@ Ollama Provider for PlexiChat
 Provides integration with Ollama for local AI models.
 """
 
-import asyncio
-import json
 import logging
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import List, Optional
 import aiohttp
 
 from plexichat.features.ai.core.ai_abstraction_layer import (

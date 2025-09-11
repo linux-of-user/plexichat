@@ -6,7 +6,6 @@
 import time
 
 from plexichat.core.logging.logger import get_logger
-from typing import Optional
 
 logger = get_logger(__name__)
 

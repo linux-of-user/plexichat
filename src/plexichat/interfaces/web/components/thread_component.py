@@ -4,7 +4,6 @@ Thread Component for PlexiChat
 Provides frontend components for thread management and navigation.
 """
 
-import json
 from typing import Dict, List, Optional
 from datetime import datetime
 

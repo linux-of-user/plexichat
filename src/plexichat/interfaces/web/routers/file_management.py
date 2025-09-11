@@ -3,9 +3,9 @@ File Management Router - Enhanced file operations and management.
 """
 
 import logging
-from typing import List, Optional, Dict, Any
+from typing import List
 from pathlib import Path
-from fastapi import APIRouter, HTTPException, UploadFile, File, Depends, Query, status
+from fastapi import APIRouter, HTTPException, Query, status
 from fastapi.responses import JSONResponse, FileResponse
 from pydantic import BaseModel, Field
 

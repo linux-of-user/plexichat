@@ -6,8 +6,8 @@ Provides a comprehensive web interface for managing all PlexiChat configuration
 settings through the unified configuration system.
 """
 
-from typing import Dict, Any, List, Optional
-from fastapi import APIRouter, HTTPException, Request, Depends, Form
+from typing import Any
+from fastapi import APIRouter, HTTPException, Request, Depends
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from pathlib import Path
@@ -21,7 +21,7 @@ except ImportError:
     CONFIG_AVAILABLE = False
 
 # Unified authentication imports (FastAPI adapter)
-from plexichat.core.auth.fastapi_adapter import get_current_user, require_admin
+from plexichat.core.auth.fastapi_adapter import require_admin
 
 # Unified logging
 from plexichat.core.logging import get_logger

@@ -11,7 +11,6 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List, Callable, Optional, Set
 from concurrent.futures import ThreadPoolExecutor
 import importlib
-from colorama import Fore, Style
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Request, status
 from pydantic import BaseModel, Field
@@ -49,7 +48,7 @@ except Exception:
     pass
 
 # Authentication and Security imports - use unified FastAPI adapter and security manager
-from plexichat.core.auth.fastapi_adapter import get_current_user_with_permissions, get_current_user
+from plexichat.core.auth.fastapi_adapter import get_current_user_with_permissions
 from plexichat.core.security.security_manager import get_security_system, ThreatLevel
 
 # Model imports - Updated for Pydantic v2 compatibility
@@ -103,8 +102,7 @@ optimization_engine = PerformanceOptimizationEngine() if PerformanceOptimization
 
 # Import security decorators from unified security system
 from plexichat.core.security.security_decorators import (
-    secure_endpoint, require_auth, rate_limit, audit_access, validate_input,
-    SecurityLevel, RequiredPermission
+    secure_endpoint, SecurityLevel, RequiredPermission
 )
 
 executor = ThreadPoolExecutor(max_workers=8)

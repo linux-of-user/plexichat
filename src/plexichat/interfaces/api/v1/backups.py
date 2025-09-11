@@ -10,14 +10,13 @@ This module provides RESTful API endpoints for backup operations with:
 """
 
 import logging
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Dict, List, Optional, Any
 from fastapi import APIRouter, Depends, HTTPException, Request, BackgroundTasks
-from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, validator
 import re
 
-from plexichat.core.auth.fastapi_adapter import get_current_user, require_admin, rate_limit
+from plexichat.core.auth.fastapi_adapter import get_current_user, rate_limit
 from plexichat.core.logging.pii_redaction import redact_pii
 from plexichat.features.backup.backup_engine import BackupEngine, BackupType, SecurityLevel
 from plexichat.features.backup.encryption_service import EncryptionService

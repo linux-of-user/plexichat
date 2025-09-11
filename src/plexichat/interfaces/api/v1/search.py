@@ -1,4 +1,3 @@
-import time
 from typing import Dict, List, Optional, Any
 from fastapi import APIRouter, Depends, Query, HTTPException
 from pydantic import BaseModel, Field
@@ -6,10 +5,7 @@ from datetime import datetime
 
 from plexichat.core.search_service import (
     get_search_service,
-    SearchFilter,
-    SearchResult as CoreSearchResult,
-    SearchSuggestion,
-    SearchHistory
+    SearchFilter
 )
 
 # Mock user dependency - replace with actual auth

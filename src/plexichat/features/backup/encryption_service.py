@@ -4,11 +4,8 @@ Enhanced Encryption Service - Military-grade encryption with advanced key manage
 
 import base64
 import hashlib
-import hmac
 import logging
-import os
 import secrets
-import struct
 import time
 from datetime import datetime, timezone, timedelta
 from typing import Any, Dict, List, Optional, Tuple

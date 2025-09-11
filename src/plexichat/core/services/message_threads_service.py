@@ -3,7 +3,6 @@ Message Threads Service
 Handles database operations and business logic for message threads.
 """
 
-import asyncio
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -11,7 +10,7 @@ from typing import Any, Dict, List, Optional, Set, Tuple
 from uuid import uuid4
 
 from plexichat.core.database.manager import database_manager
-from plexichat.core.services.core_services import BaseService, ServiceStatus
+from plexichat.core.services.core_services import BaseService
 
 logger = logging.getLogger(__name__)
 

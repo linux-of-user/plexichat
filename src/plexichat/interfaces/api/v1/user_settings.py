@@ -1,7 +1,6 @@
 import logging
-from datetime import datetime
-from typing import Dict, List, Optional
-from fastapi import APIRouter, Depends, HTTPException
+from typing import Dict, Optional
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
 # Mock user dependency
@@ -48,7 +47,6 @@ async def update_user_settings(
 
 if __name__ == '__main__':
     # Example of how to run this API with uvicorn
-    import uvicorn
     from fastapi import FastAPI
 
     app = FastAPI()

@@ -5,7 +5,6 @@ Simplified AI Coordinator for PlexiChat
 A simplified version that works without syntax errors.
 """
 
-import time
 import asyncio
 import logging
 from datetime import datetime

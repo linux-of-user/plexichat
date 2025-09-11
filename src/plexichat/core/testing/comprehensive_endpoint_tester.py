@@ -13,18 +13,15 @@ Provides systematic testing of all API endpoints with:
 - Real-time monitoring and reporting
 """
 
-import asyncio
-import json
 
 # Logging imports with fallbacks
 import logging
-import re
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple
-from urllib.parse import urljoin, urlparse
+from typing import Any, Dict, List, Optional
+from urllib.parse import urljoin
 
 import aiohttp
 

@@ -8,17 +8,15 @@ and cluster-wide configuration synchronization.
 
 import asyncio
 import hashlib
-import json
 import logging
 import secrets
 import socket
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set, Tuple, Union
+from typing import Any, Dict, List, Optional, Set
 
-import aiohttp
 import psutil
 
 logger = logging.getLogger(__name__)

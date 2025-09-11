@@ -35,7 +35,7 @@ except ImportError:
     timer = None
 
 # Authentication imports - use unified FastAPI auth adapter
-from plexichat.core.auth.fastapi_adapter import get_current_user, get_optional_user
+from plexichat.core.auth.fastapi_adapter import get_current_user
 
 # Use Unified Auth Manager for authentication operations
 from plexichat.core.authentication import get_auth_manager, AuthResult
@@ -51,7 +51,6 @@ except ImportError:
     settings = MockSettings()
 
 # Model imports
-from plexichat.core.user import User
 
 # Unified logging
 from plexichat.core.logging import get_logger

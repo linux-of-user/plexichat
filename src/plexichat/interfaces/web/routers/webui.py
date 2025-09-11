@@ -5,12 +5,10 @@ PlexiChat WebUI Router
 Provides web-based user interface endpoints for PlexiChat.
 """
 
-import logging
 from fastapi import APIRouter, Request, Depends, HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from pathlib import Path
-from typing import Optional
 
 try:
     from plexichat.core.config_manager import get_app_version

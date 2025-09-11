@@ -9,7 +9,6 @@ import logging
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, List, Optional, Set
-import time
 
 try:
     import geoip2.database

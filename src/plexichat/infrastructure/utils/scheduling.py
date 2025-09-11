@@ -6,8 +6,7 @@
 import logging
 import traceback
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, Optional, Callable
-import time
+from typing import Any, Dict, Callable
 
 try:
     from apscheduler.schedulers.background import BackgroundScheduler

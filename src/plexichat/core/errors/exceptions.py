@@ -8,10 +8,6 @@ from typing import Any, Dict, Optional
 
 from .base import (
     PlexiChatException,
-    ErrorCategory,
-    ErrorSeverity,
-    create_error_response,
-    handle_exception,
     PlexiChatErrorCode,
     AuthenticationError as BaseAuthenticationError,
     AuthorizationError as BaseAuthorizationError,

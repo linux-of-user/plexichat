@@ -8,7 +8,6 @@ Debug WebUI Routes
 
 Web interface for debugging and monitoring PlexiChat components.
 """
-import time
 
 # import asyncio  # Unused import
 import json

@@ -4,11 +4,9 @@
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
 import logging
-import signal
 import sys
 import time
 from pathlib import Path
-from typing import Dict, List, Optional
 import argparse
 
 try:

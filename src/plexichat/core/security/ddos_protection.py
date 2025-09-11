@@ -5,9 +5,7 @@ Provides intelligent traffic analysis, automatic IP blocking, and real-time atta
 """
 
 import asyncio
-import hashlib
 import ipaddress
-import json
 import logging
 import re
 import statistics
@@ -15,7 +13,6 @@ import threading
 import time
 from collections import defaultdict, deque
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 

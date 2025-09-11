@@ -7,7 +7,6 @@ and compliance with security.txt requirements.
 import asyncio
 import hashlib
 import logging
-import sys
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum

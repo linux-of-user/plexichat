@@ -12,7 +12,6 @@ System information and health checks:
 import psutil
 import platform
 from datetime import datetime
-from typing import Dict, Any
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel

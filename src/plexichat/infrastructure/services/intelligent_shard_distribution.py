@@ -7,7 +7,7 @@
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
 from dataclasses import dataclass
-from typing import List, Optional, Dict, Any, Tuple
+from typing import List, Optional
 import logging
 
 from sqlmodel import Session, select

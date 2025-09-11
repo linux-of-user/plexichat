@@ -10,11 +10,10 @@ Enhanced web interface with comprehensive functionality and performance optimiza
 Uses EXISTING database abstraction and optimization systems.
 """
 
-from pathlib import Path
 from typing import Any, Dict
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi import APIRouter, Depends, Request
+from fastapi.responses import HTMLResponse
 from colorama import Fore, Style
 
 # Use EXISTING database abstraction layer
@@ -41,7 +40,6 @@ except ImportError:
 from plexichat.core.auth.fastapi_adapter import get_current_user, require_admin
 
 # Model imports
-from plexichat.core.user import User
 
 from plexichat.core.logging import get_logger
 logger = get_logger(__name__)

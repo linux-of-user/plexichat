@@ -1,6 +1,5 @@
 import logging
-from datetime import timedelta
-from typing import Dict, Optional, Any
+from typing import Optional
 
 from fastapi import APIRouter, HTTPException, Depends, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -299,7 +298,6 @@ async def verify_mfa_challenge(verify_data: MFAVerifyRequest):
 
 if __name__ == '__main__':
     # Example of how to run this API with uvicorn
-    import uvicorn
     from fastapi import FastAPI
 
     app = FastAPI()

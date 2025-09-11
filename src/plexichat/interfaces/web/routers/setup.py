@@ -33,9 +33,9 @@ MessageUpdate = None
 from fastapi import APIRouter, Request, Form, HTTPException, Depends, Body, Query
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.security import HTTPBearer
 from starlette.middleware.base import BaseHTTPMiddleware
-from plexichat.core.security.security_manager import get_security_system, SecurityPolicy, AuthenticationMethod
+from plexichat.core.security.security_manager import get_security_system, SecurityPolicy
 from plexichat.core.security.security_context import security_context
 
 import re

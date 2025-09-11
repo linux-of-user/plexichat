@@ -12,14 +12,11 @@ Enhanced WebSocket handling with comprehensive validation, security, and perform
 Uses EXISTING database abstraction and optimization systems.
 """
 
-import asyncio
 import json
-import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect, status
-from pydantic import BaseModel
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, status
 
 # Use EXISTING database abstraction layer
 try:
@@ -42,7 +39,7 @@ except ImportError:
     timer = None
 
 # Authentication imports - use unified FastAPI auth adapter
-from plexichat.core.auth.fastapi_adapter import get_current_user, get_auth_adapter
+from plexichat.core.auth.fastapi_adapter import get_auth_adapter
 
 # Security imports
 try:
@@ -72,7 +69,6 @@ except ImportError:
     psutil = None
 
 # Model imports
-from plexichat.core.user import User
 
 # Unified logging
 from plexichat.core.logging import get_logger

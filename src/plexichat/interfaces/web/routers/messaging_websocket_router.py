@@ -12,8 +12,6 @@ from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisco
 from fastapi.responses import JSONResponse
 
 from plexichat.features.users.user import User
-import socket
-import time
 
 from plexichat.core.auth.fastapi_adapter import get_auth_adapter
 from plexichat.websockets.messaging_websocket import messaging_websocket_manager

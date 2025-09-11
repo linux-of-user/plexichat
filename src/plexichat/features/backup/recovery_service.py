@@ -2,7 +2,6 @@
 Recovery Service - Flexible restoration from distributed shards
 """
 
-import asyncio
 import json
 import logging
 from datetime import datetime, timezone

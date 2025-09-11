@@ -3,20 +3,12 @@
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
-import hashlib
-import io
-import os
-import secrets
-import time
-from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple, Set
 
-import bcrypt
 try:
     from PIL import Image  # type: ignore
 except ImportError:
     Image = None
-from sqlmodel import Session, select
 from fastapi import HTTPException, status
 
 # Use the centralized logging compatibility shim which re-exports the unified logger.

@@ -3,7 +3,6 @@ Audit Service
 Provides comprehensive audit logging for authentication events.
 """
 
-import asyncio
 import json
 from dataclasses import dataclass, field
 from datetime import datetime, timezone, timedelta

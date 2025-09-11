@@ -8,12 +8,11 @@ Provides comprehensive keyboard shortcuts management including:
 - Platform-specific key mappings
 """
 
-import asyncio
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
-from plexichat.core.database import execute_query, execute_transaction
+from plexichat.core.database import execute_query
 from plexichat.core.logging import get_logger
 
 logger = get_logger(__name__)

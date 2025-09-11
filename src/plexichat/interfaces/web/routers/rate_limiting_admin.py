@@ -3,10 +3,9 @@
 Rate Limiting Administration WebUI Router
 """
 
-from fastapi import APIRouter, Request, HTTPException, Form, Depends
+from fastapi import APIRouter, Request, HTTPException, Form
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
-from typing import Dict, Any, Optional
 import logging
 
 try:

@@ -25,8 +25,7 @@ from plexichat.core.logging import get_logger
 # Unified FastAPI auth adapter
 from plexichat.core.auth.fastapi_adapter import (
     get_current_user,
-    require_admin,
-    get_optional_user
+    require_admin
 )
 
 # Unified auth manager for service integration
@@ -72,7 +71,7 @@ try:
         SecurityLevel, RequiredPermission
     )
     from plexichat.core.logging import (
-        get_logging_system, LogCategory, LogLevel, PerformanceTracker
+        get_logging_system, LogCategory, PerformanceTracker
     )
     ENHANCED_SECURITY_AVAILABLE = True
 

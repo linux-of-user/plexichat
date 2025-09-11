@@ -3,9 +3,8 @@ Token Service
 Manages JWT tokens with advanced security features.
 """
 
-import hashlib
 import secrets
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Optional, Tuple
 

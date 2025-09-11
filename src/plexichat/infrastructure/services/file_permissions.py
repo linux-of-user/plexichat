@@ -6,9 +6,8 @@
 import hashlib
 import secrets
 from datetime import datetime
-from typing import Any, Dict, Optional, Tuple, List
+from typing import Any, Dict, Optional, Tuple
 import logging
-import time
 
 from sqlmodel import Session, select
 from fastapi import HTTPException, status

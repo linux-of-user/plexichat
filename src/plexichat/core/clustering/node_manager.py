@@ -5,23 +5,17 @@ Provides secure node registration, heartbeat monitoring, and graceful shutdown p
 """
 
 import asyncio
-import json
 import logging
-import secrets
-import socket
 import time
-import uuid
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from enum import Enum
-from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 
 import aiohttp
 import psutil
 
 from plexichat.core.security.security_manager import (
-    AuthenticationMethod,
     SecurityContext,
     SecurityLevel,
     get_security_system,

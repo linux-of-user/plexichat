@@ -4,9 +4,7 @@ PlexiChat Middleware Manager
 Middleware management with threading and performance optimization.
 """
 
-import asyncio
 import logging
-import threading
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass

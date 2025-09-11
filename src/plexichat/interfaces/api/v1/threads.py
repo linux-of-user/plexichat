@@ -1,12 +1,10 @@
-import json
 from datetime import datetime
-from typing import Dict, List, Optional
-from uuid import uuid4
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from plexichat.core.messaging.unified_messaging_system import get_messaging_system, MessageType
+from plexichat.core.messaging.unified_messaging_system import get_messaging_system
 from plexichat.core.services.message_threads_service import get_message_threads_service
 from plexichat.core.authentication import get_auth_manager
 from fastapi import HTTPException, status
@@ -229,7 +227,6 @@ async def resolve_thread(thread_id: str, current_user: dict = Depends(get_curren
 
 if __name__ == '__main__':
     # Example of how to run this API with uvicorn
-    import uvicorn
     from fastapi import FastAPI
 
     app = FastAPI()

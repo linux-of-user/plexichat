@@ -16,12 +16,11 @@ abstraction and optimization systems.
 
 import asyncio
 import hashlib
-import logging
 import mimetypes
 import re
 import time
 from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, Request, UploadFile, status
@@ -45,7 +44,7 @@ except ImportError:
     timer = None
 
 # Authentication imports (use unified FastAPI adapter)
-from plexichat.core.auth.fastapi_adapter import get_current_user, rate_limit
+from plexichat.core.auth.fastapi_adapter import get_current_user
 
 # Security system integration
 try:
@@ -56,13 +55,8 @@ except ImportError:
 # Use unified security decorators and enums
 from plexichat.core.security.security_decorators import (
     secure_endpoint,
-    require_auth,
     RequiredPermission,
-    SecurityLevel,
-    audit_access,
-    sanitize_input,
-    validate_csrf,
-    rate_limit as security_rate_limit  # if needed from security decorators
+    SecurityLevel  # if needed from security decorators
 )
 
 # Logging - use unified logger

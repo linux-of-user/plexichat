@@ -10,7 +10,7 @@ import time
 from collections import defaultdict, deque
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Any, Deque, Dict, List, Optional, Set
+from typing import Any, Deque, Dict, List, Set
 
 from plexichat.core.config import get_setting
 from plexichat.core.websocket.websocket_manager import websocket_manager

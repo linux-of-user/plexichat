@@ -16,7 +16,6 @@ from plexichat.core.logging import get_logger
 from plexichat.core.auth.fastapi_adapter import get_auth_adapter
 from fastapi.security import HTTPAuthorizationCredentials
 
-import logging
 
 """
 PlexiChat AI-Powered Features Admin Routes

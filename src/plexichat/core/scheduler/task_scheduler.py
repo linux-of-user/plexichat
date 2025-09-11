@@ -6,7 +6,6 @@ Task scheduling with threading and performance optimization.
 
 import asyncio
 import logging
-import threading
 import time
 from dataclasses import dataclass
 from datetime import datetime, timedelta

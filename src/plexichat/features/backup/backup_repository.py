@@ -2,18 +2,11 @@
 Enhanced Backup Repository - Advanced metadata management with indexing and analytics
 """
 
-import asyncio
-import hashlib
 import json
 import logging
-import sqlite3
-import threading
-import time
-from datetime import datetime, timezone, timedelta
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Tuple
+from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional
 from dataclasses import asdict
-from contextlib import asynccontextmanager
 
 # Import backup types
 try:

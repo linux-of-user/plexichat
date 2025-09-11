@@ -4,8 +4,8 @@ Demonstrates how to use the new security decorators and logging system.
 """
 
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
-from fastapi import APIRouter, Request, HTTPException, status, Depends
+from typing import Any, Dict, Optional
+from fastapi import APIRouter, Request, HTTPException, status
 from pydantic import BaseModel
 
 try:

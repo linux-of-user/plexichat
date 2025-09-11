@@ -10,8 +10,7 @@ Simple admin functionality with:
 """
 
 from datetime import datetime
-from typing import Dict, List, Optional
-from uuid import uuid4
+from typing import Optional
 
 from fastapi import APIRouter, HTTPException, Depends, Query
 from pydantic import BaseModel

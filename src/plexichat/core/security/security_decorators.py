@@ -7,7 +7,7 @@ Decorators for authentication, authorization, rate limiting, and security enforc
 import functools
 import logging
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Union
 
 from fastapi import HTTPException, Request, status
 from itsdangerous import BadSignature, SignatureExpired

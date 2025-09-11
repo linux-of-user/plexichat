@@ -14,19 +14,14 @@ Provides a single, unified interface for all messaging operations with:
 - Comprehensive security integration
 """
 
-import asyncio
-import json
 import logging
-import time
-from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 from uuid import uuid4
 
 from plexichat.core.messaging.message_formatter import message_formatter
-from plexichat.core.security import security_manager
 from plexichat.core.services.message_threads_service import get_message_threads_service
 
 # Notification integration

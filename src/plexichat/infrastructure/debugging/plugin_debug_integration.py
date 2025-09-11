@@ -11,11 +11,9 @@ Integration layer for debugging plugin operations and performance.
 
 import asyncio
 import functools
-import inspect
 import logging
 import time
-from typing import Any, Dict, List, Optional, Callable
-from pathlib import Path
+from typing import Any, Dict, Optional
 
 # These are placeholder imports for a real implementation
 class DebugLevel:

@@ -10,12 +10,10 @@ Features:
 - Access control enforcement
 """
 
-import asyncio
 import hashlib
-import hmac
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from plexichat.core.logging import get_logger
 
@@ -376,7 +374,6 @@ class DatabaseSecurityLayer:
             return encrypted_data
 
         try:
-            import os
 
             from cryptography.hazmat.backends import default_backend
             from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes

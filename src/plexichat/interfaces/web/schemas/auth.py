@@ -4,7 +4,6 @@ Authentication schemas for PlexiChat API.
 Enhanced with comprehensive validation and security.
 """
 
-import time
 from datetime import datetime
 from typing import Optional
 from pydantic import BaseModel, Field, validator

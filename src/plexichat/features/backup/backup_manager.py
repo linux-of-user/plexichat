@@ -6,24 +6,19 @@ import asyncio
 import hashlib
 import json
 import logging
-import os
 import secrets
 import time
-import zlib
 from datetime import datetime, timezone, timedelta
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union, Callable, Set
-from dataclasses import dataclass, field, asdict
+from typing import Any, Dict, List, Optional, Tuple, Union, Set
+from dataclasses import dataclass, field
 from enum import Enum
 import uuid
-import threading
 from concurrent.futures import ThreadPoolExecutor
-import weakref
 
 # Import existing components
 from plexichat.features.backup.backup_engine import (
     BackupEngine, BackupType, SecurityLevel, BackupStatus, 
-    BackupMetadata, BackupProgress
+    BackupMetadata
 )
 from plexichat.core.security.key_vault import DistributedKeyManager, KeyVault
 
@@ -288,7 +283,6 @@ class QuantumEncryptionManager:
         # In real implementation, use actual PQC libraries like liboqs
         # For simulation, use AES-256-GCM with algorithm-specific modifications
         from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-        from cryptography.hazmat.primitives import hashes
         from cryptography.hazmat.backends import default_backend
         
         # Simulate algorithm-specific behavior

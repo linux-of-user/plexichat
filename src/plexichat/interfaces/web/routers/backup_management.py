@@ -56,7 +56,7 @@ except Exception:
         return []
 
 # Import authentication (use unified FastAPI adapter)
-from plexichat.core.auth.fastapi_adapter import get_current_user, require_admin
+from plexichat.core.auth.fastapi_adapter import require_admin
 
 # Unified logging
 from plexichat.core.logging import get_logger

@@ -1,13 +1,10 @@
 #!/usr/bin/env python3
 import sys
-import os
 import click
 import logging
 import json
-from typing import Dict, List, Any, Optional, Callable
-from pathlib import Path
+from typing import Dict, List, Any, Callable
 from datetime import datetime
-import time
 
 # pyright: reportArgumentType=false
 # pyright: reportCallIssue=false

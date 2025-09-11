@@ -6,7 +6,7 @@ REST API endpoints for typing indicators.
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
-from typing import List, Dict, Any
+from typing import List
 
 from plexichat.core.services.typing_service import typing_service
 from plexichat.core.config import get_config, get_config_manager

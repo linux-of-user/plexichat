@@ -12,7 +12,6 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 
-from plexichat.core.database.manager import database_manager
 from plexichat.features.ai.ai_coordinator import ai_coordinator
 from plexichat.core.security.security_manager import unified_security_manager
 from plexichat.infrastructure.scalability.coordinator import scalability_coordinator

@@ -20,7 +20,6 @@ except ImportError:
     ModerationCategory = str
     ModerationSeverity = str
 
-from plexichat.features.ai.moderation.training_data_service import ModerationTrainingSystem, TrainingDataSource
 
 logger = logging.getLogger(__name__)
 

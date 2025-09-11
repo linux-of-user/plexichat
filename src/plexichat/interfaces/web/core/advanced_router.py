@@ -13,7 +13,6 @@
 import logging
 from datetime import datetime
 from typing import Any, Dict, FastAPI, HTTPException, List, Optional, Request, status
-import time
 
 
 from plexichat.interfaces.web.core.config_manager import get_webui_config

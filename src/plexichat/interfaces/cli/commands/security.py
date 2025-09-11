@@ -5,10 +5,8 @@
 # pyright: reportReturnType=false
 from datetime import datetime, timezone
 import logging
-from typing import List, Optional, Any, Dict
-import time
+from typing import List, Optional, Any
 import json
-import os
 
 # Use the unified authentication manager and Role enum
 from plexichat.core.authentication import get_auth_manager, Role

@@ -7,10 +7,8 @@ for HTTP traffic and integrates with the existing key vault system.
 """
 
 import asyncio
-import hashlib
 import json
 import logging
-import os
 import secrets
 import time
 from dataclasses import dataclass, field
@@ -18,7 +16,7 @@ from datetime import datetime, timedelta
 from enum import Enum
 from pathlib import Path
 from threading import Lock
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple
 
 # Standard cryptography library
 from cryptography.fernet import Fernet, MultiFernet
@@ -27,7 +25,6 @@ from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding, rsa
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
 # Post-quantum cryptography (required for quantum-resistant security)
 try:

@@ -115,7 +115,6 @@ async def get_group_members(group_id: str):
 
 if __name__ == '__main__':
     # Example of how to run this API with uvicorn
-    import uvicorn
     from fastapi import FastAPI
 
     app = FastAPI()

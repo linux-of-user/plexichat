@@ -10,15 +10,14 @@ attack monitoring, and system security status.
 import asyncio
 import logging
 import time
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Union
-from dataclasses import asdict
+from datetime import datetime
+from typing import Dict, Optional, Any
 import json
 
-from fastapi import APIRouter, HTTPException, Depends, Query, Body, BackgroundTasks
-from fastapi.responses import JSONResponse, StreamingResponse
-from pydantic import BaseModel, Field, validator
-from starlette.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_403_FORBIDDEN, HTTP_404_NOT_FOUND
+from fastapi import APIRouter, HTTPException, Depends, Query
+from fastapi.responses import StreamingResponse
+from pydantic import BaseModel, Field
+from starlette.status import HTTP_400_BAD_REQUEST, HTTP_403_FORBIDDEN, HTTP_404_NOT_FOUND
 
 # Import security systems
 try:

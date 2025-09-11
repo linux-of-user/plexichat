@@ -13,7 +13,7 @@ import asyncio
 import inspect
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Awaitable, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 from plexichat.core.logging import get_logger
 

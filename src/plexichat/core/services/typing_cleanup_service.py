@@ -14,7 +14,6 @@ from plexichat.core.services.typing_service import typing_service
 from plexichat.infrastructure.services.background_tasks import (
     TaskPriority,
     submit_scheduled_task,
-    submit_task,
 )
 
 logger = logging.getLogger(__name__)

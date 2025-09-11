@@ -6,7 +6,6 @@ Abstract base class for all AI providers in PlexiChat.
 Provides common interface and functionality.
 """
 
-import asyncio
 import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
@@ -16,10 +15,8 @@ from typing import Any, Dict, List, Optional
 
 from plexichat.features.ai.core.ai_abstraction_layer import (
     AIModel,
-    AIProvider,
     AIRequest,
     AIResponse,
-    ModelCapability,
     ModelStatus,
 )
 

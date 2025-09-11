@@ -13,7 +13,6 @@ from typing import Any, Dict, List, Optional
 
 from plexichat.infrastructure.services.advanced_ddos_service import enhanced_ddos_service
 from plexichat.core.security.comprehensive_security_manager import ComprehensiveSecurityManager
-from plexichat.core.middleware.rate_limiting import get_rate_limiter
 from plugins.advanced_antivirus.core.message_scanner import MessageAntivirusScanner
 
 """

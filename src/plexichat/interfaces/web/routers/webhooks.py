@@ -41,7 +41,7 @@ except ImportError:
 from plexichat.core.auth.fastapi_adapter import get_current_user, require_admin
 
 # Security decorators and permission enums from unified security system
-from plexichat.core.security.security_decorators import secure_endpoint, admin_required, RequiredPermission
+from plexichat.core.security.security_decorators import secure_endpoint, RequiredPermission
 
 # Input sanitizer (best-effort import; fallback minimal implementation)
 try:

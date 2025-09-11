@@ -3,9 +3,8 @@ User Service Implementation
 Handles user management operations with repository pattern.
 """
 
-import asyncio
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import List, Optional, Set, Tuple
 
 from plexichat.core.authentication import Role
 from plexichat.core.logging import get_logger

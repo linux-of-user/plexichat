@@ -13,7 +13,7 @@ from pydantic import BaseModel
 from colorama import Fore, Style
 
 from plexichat.core.logging import get_logger
-from plexichat.core.auth.fastapi_adapter import require_admin, get_current_user
+from plexichat.core.auth.fastapi_adapter import require_admin
 
 # Use EXISTING database abstraction layer
 try:

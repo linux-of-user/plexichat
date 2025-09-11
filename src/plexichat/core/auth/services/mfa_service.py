@@ -3,7 +3,6 @@ MFA Service
 Manages multi-factor authentication with TOTP and SMS support.
 """
 
-import asyncio
 import hashlib
 import secrets
 from dataclasses import dataclass, field

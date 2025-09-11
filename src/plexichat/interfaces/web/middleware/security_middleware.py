@@ -5,7 +5,6 @@
 # pyright: reportReturnType=false
 import ipaddress
 import re
-import time
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional, Awaitable, Callable
 from concurrent.futures import ThreadPoolExecutor

@@ -10,11 +10,9 @@ Features:
 - Authentication event monitoring
 """
 
-import asyncio
-import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, Optional, Set
 
 from plexichat.core.logging import get_logger
 

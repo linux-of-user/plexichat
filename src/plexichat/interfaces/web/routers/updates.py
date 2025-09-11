@@ -10,10 +10,7 @@ Enhanced update management with comprehensive version control and performance op
 Uses EXISTING database abstraction and optimization systems.
 """
 
-import logging
-import subprocess
 from datetime import datetime
-from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, status

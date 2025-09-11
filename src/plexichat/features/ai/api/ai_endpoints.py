@@ -25,13 +25,7 @@ except ImportError:
     HTTPException = None
 
 from plexichat.features.ai.core.ai_abstraction_layer import (
-    AIAbstractionLayer,
-    AIModel,
-    AIProvider,
     AIRequest,
-    AIResponse,
-    ModelCapability,
-    ModelStatus,
 )
 from plexichat.features.ai.ai_coordinator import AICoordinator
 

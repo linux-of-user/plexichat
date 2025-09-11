@@ -431,7 +431,6 @@ if app:
             raise HTTPException(status_code=500, detail="Error retrieving metrics")
 
 # Authentication dependency
-from plexichat.interfaces.api.auth_utils import get_current_user
 
 # Include v1 router
 if app:

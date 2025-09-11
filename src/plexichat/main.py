@@ -15,8 +15,7 @@ import logging
 import asyncio
 from contextlib import asynccontextmanager
 # datetime import removed - not used in main.py
-from pathlib import Path
-from typing import Optional, Dict, Any
+from typing import Dict, Any
 from dataclasses import asdict
 
 # Prevent standalone execution
@@ -48,7 +47,7 @@ UnifiedAuthManager = None
 
 # Try to import core modules with fallbacks
 try:
-    from plexichat.core.database.manager import database_manager
+    from src.plexichat.core.database.manager import database_manager
     _basic_logger.info("Database manager imported successfully")
 except ImportError as e:
     _basic_logger.warning(f"Database manager not available: {e}")
@@ -56,7 +55,7 @@ except ImportError as e:
 
 # Try to import authentication class for type/reference (not initializing yet)
 try:
-    from plexichat.core.authentication import UnifiedAuthManager  # type: ignore
+    from src.plexichat.core.authentication import UnifiedAuthManager  # type: ignore
     _basic_logger.info("Auth manager class imported successfully")
 except Exception as e:
     # Not fatal here; we'll initialize the auth manager during startup
@@ -64,24 +63,24 @@ except Exception as e:
     UnifiedAuthManager = None
 
 # Import unified logging system
-from plexichat.core.logging import get_logger, get_logging_manager
+from src.plexichat.core.logging import get_logger, get_logging_manager
 
 # Use unified logger for the module
 logger = get_logger('plexichat.main')
 logger.info("Unified logging system initialized (pre-config)")
 
 # Load configuration system (required)
-from plexichat.core.config import get_config
-from plexichat.core.config import settings
-from plexichat.core.app_setup import setup_routers, setup_static_files
-from plexichat.core.plugins.manager import unified_plugin_manager
+from src.plexichat.core.config import get_config
+from src.plexichat.core.config import settings
+from src.plexichat.core.app_setup import setup_routers, setup_static_files
+from src.plexichat.core.plugins.manager import unified_plugin_manager
 
 # Initialize config
 config = get_config()
 
 # Apply unified logging configuration now that config is available
 try:
-    from plexichat.core.logging import setup_module_logging
+    from src.plexichat.core.logging import setup_module_logging
     
     # Ensure logging manager is referenced to trigger any internal initialization
     _lm = get_logging_manager()
@@ -133,7 +132,7 @@ async def lifespan(app: FastAPI):
 
         # Initialize configuration system
         try:
-            from plexichat.core.config import get_config
+            from src.plexichat.core.config import get_config
             config = get_config()
             logger.info(f"[CONFIG] Configuration system initialized for environment: {getattr(getattr(config, 'system', None), 'environment', 'unknown')}")
         except Exception as e:
@@ -142,7 +141,7 @@ async def lifespan(app: FastAPI):
 
         # Ensure plugin SDK (plugins_internal.py) is generated before other plugin work
         try:
-            from plexichat.core.plugins.sdk_generator import (
+            from src.plexichat.core.plugins.sdk_generator import (
                 regenerate_plugins_internal_if_needed, 
                 validate_plugins_internal,
                 get_plugins_internal_stats
@@ -181,7 +180,7 @@ async def lifespan(app: FastAPI):
 
         # Initialize cache system using unified config
         try:
-            from plexichat.core.caching.unified_cache_integration import UnifiedCacheIntegration
+            from src.plexichat.core.caching.unified_cache_integration import UnifiedCacheIntegration
 
             cache_start = time.perf_counter()
 
@@ -239,7 +238,7 @@ async def lifespan(app: FastAPI):
 
         # Validate security system components early during startup
         try:
-            from plexichat.core.security.security_manager import get_security_system
+            from src.plexichat.core.security.security_manager import get_security_system
             ss = get_security_system()
             # Basic validation of security system capabilities
             required_methods = [
@@ -265,7 +264,7 @@ async def lifespan(app: FastAPI):
 
         # Initialize UnifiedAuthManager (ensure authentication initialized and attached to app state)
         try:
-            from plexichat.core.authentication import initialize_auth_manager, get_auth_manager
+            from src.plexichat.core.authentication import initialize_auth_manager, get_auth_manager
             auth_start = time.perf_counter()
             
             # Try to initialize the auth manager with proper error handling
@@ -317,7 +316,7 @@ async def lifespan(app: FastAPI):
 
         # Initialize authentication cache system to speed up token verification
         try:
-            from plexichat.core.performance.auth_cache import initialize_auth_cache
+            from src.plexichat.core.performance.auth_cache import initialize_auth_cache
             auth_cache_start = time.perf_counter()
             await initialize_auth_cache()
             auth_cache_end = time.perf_counter()
@@ -330,7 +329,7 @@ async def lifespan(app: FastAPI):
                 if getattr(app.state, "auth_manager", None) and getattr(app.state.auth_manager, "auth_cache", None) is None:
                     try:
                         # Try to attach cache to the auth manager if available via accessor
-                        from plexichat.core.performance.auth_cache import get_auth_cache
+                        from src.plexichat.core.performance.auth_cache import get_auth_cache
                         ac = get_auth_cache()
                         if ac:
                             app.state.auth_manager.auth_cache = ac  # type: ignore
@@ -345,7 +344,7 @@ async def lifespan(app: FastAPI):
             app.state.auth_cache_initialized = False
         # Initialize email service for notifications
         try:
-            from plexichat.core.notifications.email_service import EmailConfig, initialize_email_service
+            from src.plexichat.core.notifications.email_service import EmailConfig, initialize_email_service
             email_start = time.perf_counter()
 
             # Get email configuration from unified config
@@ -381,13 +380,13 @@ async def lifespan(app: FastAPI):
             
             # Ensure plugins_internal.py is available before initializing plugins
             try:
-                import plexichat.plugins_internal
+                import src.plexichat.plugins_internal
                 logger.debug("[PLUGINS] plugins_internal module is available")
             except ImportError as import_e:
                 logger.warning(f"[PLUGINS] plugins_internal not available: {import_e}")
                 # Try to regenerate it one more time
                 try:
-                    from plexichat.core.plugins.sdk_generator import generate_plugins_internal
+                    from src.plexichat.core.plugins.sdk_generator import generate_plugins_internal
                     if generate_plugins_internal():
                         logger.info("[PLUGINS] Successfully regenerated plugins_internal.py")
                     else:
@@ -410,7 +409,7 @@ async def lifespan(app: FastAPI):
 
         # Initialize microsecond optimizer
         try:
-            from plexichat.core.performance.microsecond_optimizer import start_microsecond_optimization
+            from src.plexichat.core.performance.microsecond_optimizer import start_microsecond_optimization
             perf_start = time.perf_counter()
             await start_microsecond_optimization()
             perf_end = time.perf_counter()
@@ -427,7 +426,7 @@ async def lifespan(app: FastAPI):
         try:
             async def module_supervisor():
                 try:
-                    from plexichat.core.config_manager import get_config
+                    from src.plexichat.core.config_manager import get_config
                     sup_cfg = get_config("supervisor", None)
                     if sup_cfg is not None and not bool(getattr(sup_cfg, "enabled", True)):
                         logger.info("[SUPERVISOR] Disabled by configuration")
@@ -435,7 +434,7 @@ async def lifespan(app: FastAPI):
                 except Exception:
                     pass
                 try:
-                    from plexichat.core.config_manager import get_config
+                    from src.plexichat.core.config_manager import get_config
                     sup_cfg = get_config("supervisor", None)
                     initial_backoff = float(getattr(sup_cfg, "backoff_initial_seconds", 5.0))
                     max_backoff = float(getattr(sup_cfg, "backoff_max_seconds", 300.0))
@@ -471,7 +470,7 @@ async def lifespan(app: FastAPI):
                         metrics = {"modules": {}}
                         # Rate limiter health
                         try:
-                            from plexichat.core.middleware.rate_limiting import get_rate_limiter
+                            from src.plexichat.core.middleware.rate_limiting import get_rate_limiter
                             rl = get_rate_limiter()
                             stats = rl.get_stats()
                             # Basic sanity: keys exist
@@ -487,7 +486,7 @@ async def lifespan(app: FastAPI):
                                 try:
                                     # Reconfigure with current config summary
                                     cfg = rl.get_config_summary() if 'rl' in locals() else {}
-                                    from plexichat.core.middleware.rate_limiting import configure_rate_limiter, RateLimitConfig, RateLimitAlgorithm
+                                    from src.plexichat.core.middleware.rate_limiting import configure_rate_limiter, RateLimitConfig
                                     rlc = RateLimitConfig()
                                     # Map known fields
                                     if 'enabled' in cfg: rlc.enabled = bool(cfg['enabled'])
@@ -501,7 +500,7 @@ async def lifespan(app: FastAPI):
 
                         # WebSocket manager health
                         try:
-                            from plexichat.core.websocket.websocket_manager import websocket_manager as ws_mgr
+                            from src.plexichat.core.websocket.websocket_manager import websocket_manager as ws_mgr
                             hc_ok = False
                             conn_count = None
                             try:
@@ -530,7 +529,7 @@ async def lifespan(app: FastAPI):
                                 _register_failure('websocket')
                                 try:
                                     # Attempt restart of optimized websocket service
-                                    from plexichat.core.services.optimized_websocket_service import stop_optimized_websocket_service, start_optimized_websocket_service
+                                    from src.plexichat.core.services.optimized_websocket_service import stop_optimized_websocket_service, start_optimized_websocket_service
                                     try:
                                         await stop_optimized_websocket_service()
                                     except Exception:
@@ -542,7 +541,7 @@ async def lifespan(app: FastAPI):
 
                         # Plugin manager health
                         try:
-                            from plexichat.core.plugins.manager import unified_plugin_manager as pm
+                            from src.plexichat.core.plugins.manager import unified_plugin_manager as pm
                             
                             # More robust health check from the now-deleted check_plugin_health function
                             if not hasattr(pm, 'loaded_plugins') or len(pm.loaded_plugins) == 0:
@@ -578,7 +577,7 @@ async def lifespan(app: FastAPI):
                     except Exception as e:
                         logger.warning(f"[SUPERVISOR] Supervisor loop error: {e}")
                     try:
-                        from plexichat.core.config_manager import get_config
+                        from src.plexichat.core.config_manager import get_config
                         interval = int(get_config("supervisor.interval_seconds", 30))
                     except Exception:
                         interval = 30
@@ -590,7 +589,7 @@ async def lifespan(app: FastAPI):
 
         # Initialize optimized WebSocket service
         try:
-            from plexichat.core.services.optimized_websocket_service import start_optimized_websocket_service
+            from src.plexichat.core.services.optimized_websocket_service import start_optimized_websocket_service
             ws_start = time.perf_counter()
             await start_optimized_websocket_service()
             ws_end = time.perf_counter()
@@ -604,7 +603,7 @@ async def lifespan(app: FastAPI):
 
         # Start WebSocket cleanup task
         try:
-            from plexichat.core.websocket.websocket_manager import websocket_manager
+            from src.plexichat.core.websocket.websocket_manager import websocket_manager
             await websocket_manager.start_cleanup_task()
             logger.info("[WEBSOCKET] WebSocket cleanup task started")
         except Exception as e:
@@ -633,7 +632,7 @@ async def lifespan(app: FastAPI):
     try:
         # Shutdown cache system
         try:
-            from plexichat.core.performance.multi_tier_cache_manager import get_cache_manager
+            from src.plexichat.core.performance.multi_tier_cache_manager import get_cache_manager
             cache_manager = get_cache_manager()
             if hasattr(cache_manager, 'shutdown'):
                 await cache_manager.shutdown()
@@ -643,7 +642,7 @@ async def lifespan(app: FastAPI):
 
         # Shutdown authentication cache
         try:
-            from plexichat.core.performance.auth_cache import shutdown_auth_cache
+            from src.plexichat.core.performance.auth_cache import shutdown_auth_cache
             if app.state.auth_cache_initialized:
                 await shutdown_auth_cache()
                 logger.info("[AUTH_CACHE] Authentication cache shut down")
@@ -652,7 +651,7 @@ async def lifespan(app: FastAPI):
 
         # Stop optimized WebSocket service
         try:
-            from plexichat.core.services.optimized_websocket_service import stop_optimized_websocket_service
+            from src.plexichat.core.services.optimized_websocket_service import stop_optimized_websocket_service
             await stop_optimized_websocket_service()
             logger.info("[WEBSOCKET] Optimized WebSocket service stopped")
         except ImportError:
@@ -662,7 +661,7 @@ async def lifespan(app: FastAPI):
 
         # Stop WebSocket cleanup task
         try:
-            from plexichat.core.websocket.websocket_manager import websocket_manager
+            from src.plexichat.core.websocket.websocket_manager import websocket_manager
             await websocket_manager.stop_cleanup_task()
             logger.info("[WEBSOCKET] WebSocket cleanup task stopped")
         except Exception as e:
@@ -670,7 +669,7 @@ async def lifespan(app: FastAPI):
 
         # Shutdown UnifiedAuthManager properly
         try:
-            from plexichat.core.authentication import shutdown_auth_manager
+            from src.plexichat.core.authentication import shutdown_auth_manager
             # Attempt to shut down global auth manager instance if present
             if app.state.auth_manager:
                 try:
@@ -702,7 +701,7 @@ async def lifespan(app: FastAPI):
         # Shutdown other services
         # Stop microsecond optimizer
         try:
-            from plexichat.core.performance.microsecond_optimizer import stop_microsecond_optimization
+            from src.plexichat.core.performance.microsecond_optimizer import stop_microsecond_optimization
             await stop_microsecond_optimization()
             logger.info("[SHUTDOWN] Microsecond optimization stopped")
         except ImportError:
@@ -767,7 +766,7 @@ setup_static_files(app)
 
 # Import the SecurityMiddleware and ensure proper integration
 try:
-    from plexichat.interfaces.web.middleware.security_middleware import SecurityMiddleware
+    from src.plexichat.interfaces.web.middleware.security_middleware import SecurityMiddleware
 
     app.add_middleware(SecurityMiddleware)
     logger.info("[CHECK] Security middleware (CSRF, etc.) added.")
@@ -785,7 +784,7 @@ async def security_middleware(request, call_next):
     # Helper to produce error responses using centralized error codes when available
     def _make_error_response(default_status: int, default_content: Dict[str, Any]):
         try:
-            from plexichat.core.errors.base import make_error_response, ErrorCode
+            from src.plexichat.core.errors.base import make_error_response
             # map generic scenarios to ErrorCode when possible
             # For our two common cases below use pre-defined enums if present
             return make_error_response(default_status, default_content)
@@ -814,7 +813,7 @@ async def security_middleware(request, call_next):
 
     # Enforce additional security checks via security system if validated
     try:
-        from plexichat.core.security.security_manager import get_security_system
+        from src.plexichat.core.security.security_manager import get_security_system
         ss = get_security_system()
         if ss and hasattr(ss, "inspect_request"):
             # allow security manager to short-circuit requests (e.g., block malicious payloads)
@@ -859,7 +858,7 @@ async def security_middleware(request, call_next):
 
 # Add integrated protection system (DDoS + Rate Limiting + Dynamic Scaling)
 try:
-    from plexichat.core.middleware.integrated_protection_system import IntegratedProtectionMiddleware
+    from src.plexichat.core.middleware.integrated_protection_system import IntegratedProtectionMiddleware
 
     # Initialize integrated protection middleware using unified config
     rate_limit_config = {
@@ -884,7 +883,7 @@ except Exception as e:
 
     # Fallback to basic rate limiting using unified config
     try:
-        from plexichat.core.middleware.rate_limiting import RateLimitMiddleware
+        from src.plexichat.core.middleware.rate_limiting import RateLimitMiddleware
 
         # Use unified config for rate limiting
         fallback_rate_config = {
@@ -938,7 +937,7 @@ except Exception as e:
 
 # Attempt to add IntegratedProtectionMiddleware via add_middleware only if not already registered
 try:
-    from plexichat.core.middleware.integrated_protection_system import IntegratedProtectionMiddleware as _IPS
+    from src.plexichat.core.middleware.integrated_protection_system import IntegratedProtectionMiddleware as _IPS
     if not getattr(app.state, "protection_middleware_registered", False):
         try:
             app.add_middleware(_IPS, rate_limit_config=asdict(config.network.rate_limiting) if hasattr(config.network, "rate_limiting") else {})
@@ -981,12 +980,12 @@ app.add_middleware(
 # API endpoints are handled by existing routers in interfaces/api/
 # No custom endpoints defined in main.py - only system integration
 
-from plexichat.core.app_setup import setup_routers, setup_static_files
+from src.plexichat.core.app_setup import setup_routers, setup_static_files
 
 setup_routers(app)
 templates = setup_static_files(app)
 
-from plexichat.core.errors.handlers import not_found_handler, internal_error_handler
+from src.plexichat.core.errors.handlers import not_found_handler, internal_error_handler
 
 app.add_exception_handler(404, not_found_handler)
 app.add_exception_handler(500, internal_error_handler)

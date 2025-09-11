@@ -1,4 +1,3 @@
-import threading
 
 """
 PlexiChat File Manager
@@ -7,13 +6,10 @@ File management with threading and performance optimization.
 """
 
 
-import asyncio
 import hashlib
 import json
 import logging
 import mimetypes
-import os
-import shutil
 import time
 from dataclasses import dataclass, field
 from datetime import datetime

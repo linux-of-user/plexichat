@@ -1,7 +1,5 @@
 import sys
 import os
-import asyncio
-from pathlib import Path
 from typing import List, Optional
 
 # Add project root to path to allow absolute imports

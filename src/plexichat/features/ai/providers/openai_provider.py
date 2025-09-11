@@ -5,10 +5,9 @@ OpenAI Provider for PlexiChat
 Provides integration with OpenAI's GPT models.
 """
 
-import asyncio
 import logging
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any, List, Optional
 
 try:
     import openai  # type: ignore

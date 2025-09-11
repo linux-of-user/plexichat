@@ -7,8 +7,7 @@ import asyncio
 import logging
 from collections import defaultdict, deque
 from datetime import datetime, timezone
-from typing import Any, Callable, Dict, List, Optional
-import time
+from typing import Any, Callable, Dict, List
 
 try:
     import psutil

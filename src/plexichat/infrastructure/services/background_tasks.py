@@ -6,13 +6,11 @@ Background task management and execution system.
 
 import asyncio
 import logging
-from abc import ABC, abstractmethod
-from typing import Dict, Any, Optional, List, Callable, Union
+from typing import Dict, Any, Optional, List, Callable
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
 import uuid
-import json
 
 try:
     from plexichat.core.logging import get_logger

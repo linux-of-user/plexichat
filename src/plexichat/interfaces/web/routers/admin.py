@@ -4,7 +4,7 @@ PlexiChat Web Admin Router
 Web interface for administrative operations.
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Optional, Dict, Any, List, Set
 from types import SimpleNamespace
 from dataclasses import dataclass
@@ -23,7 +23,6 @@ from plexichat.core.plugins.manager import unified_plugin_manager
 from plexichat.core.logging import get_logger
 import re
 import json
-import os
 from pathlib import Path
 from starlette.middleware.base import BaseHTTPMiddleware
 

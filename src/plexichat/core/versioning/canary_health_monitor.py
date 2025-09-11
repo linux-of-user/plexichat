@@ -1,8 +1,6 @@
 import asyncio
-import http.client
 import logging
 import statistics
-import time
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from enum import Enum

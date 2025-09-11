@@ -1,11 +1,9 @@
-import os
-import queue
 import threading
 import time
 from collections import deque
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Any, Dict, Optional, List
+from typing import Any, Dict, Optional
 
 try:
     import keyboard

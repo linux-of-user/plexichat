@@ -18,9 +18,8 @@ Comprehensive setup wizard supporting all database types with:
 import asyncio
 import logging
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 from enum import Enum
-import json
 
 from plexichat.core.database import DatabaseType
 from plexichat.core.database.manager import DatabaseCategory
