@@ -13,12 +13,13 @@ Enhanced PlexiChat package with comprehensive functionality and performance opti
 Uses EXISTING database abstraction and optimization systems.
 """
 
-import sys
-from typing import Any, Dict
 import importlib
+import sys
+from typing import Any
 
 # Version information
 from plexichat.version import __version__
+
 __author__ = "PlexiChat Team"
 __description__ = "Enhanced chat application with comprehensive features"
 
@@ -29,17 +30,19 @@ except ImportError:
     get_performance_logger = None
 
 from plexichat.core.logging import get_logger
+
 logger = get_logger(__name__)
 
 # Initialize EXISTING performance systems
 performance_logger = get_performance_logger() if get_performance_logger else None
+
 
 class PlexiChatManager:
     """Enhanced PlexiChat manager using EXISTING systems."""
 
     def __init__(self):
         self.performance_logger = performance_logger
-        self.modules: Dict[str, bool] = {}
+        self.modules: dict[str, bool] = {}
         self.initialized = False
 
     def register_module(self, name: str, status: bool = True):
@@ -122,6 +125,7 @@ class PlexiChatManager:
             if self.is_available("core"):
                 try:
                     from plexichat.core.database import initialize_database_system
+
                     await initialize_database_system()
                     logger.info("Database system initialized")
                 except ImportError:
@@ -140,7 +144,7 @@ class PlexiChatManager:
         except Exception as e:
             logger.error(f"Error initializing core systems: {e}")
 
-    def get_status(self) -> Dict[str, Any]:
+    def get_status(self) -> dict[str, Any]:
         """Get system status."""
         return {
             "version": __version__,
@@ -148,11 +152,13 @@ class PlexiChatManager:
             "modules": self.modules.copy(),
             "total_modules": len(self.modules),
             "active_modules": sum(1 for status in self.modules.values() if status),
-            "performance_monitoring": self.performance_logger is not None
+            "performance_monitoring": self.performance_logger is not None,
         }
+
 
 # Global PlexiChat manager (lazy initialization)
 _plexichat_manager = None
+
 
 def get_plexichat_manager():
     """Get the global PlexiChat manager (lazy initialization)."""
@@ -161,30 +167,37 @@ def get_plexichat_manager():
         _plexichat_manager = PlexiChatManager()
     return _plexichat_manager
 
+
 # For backward compatibility - create a module-level attribute
 class LazyManagerModule(sys.modules[__name__].__class__):
     @property
     def plexichat_manager(self):
         return get_plexichat_manager()
 
+
 sys.modules[__name__].__class__ = LazyManagerModule
+
 
 # Module availability checks
 def core_available() -> bool:
     """Check if core module is available."""
     return get_plexichat_manager().is_available("core")
 
+
 def infrastructure_available() -> bool:
     """Check if infrastructure module is available."""
     return get_plexichat_manager().is_available("infrastructure")
+
 
 def features_available() -> bool:
     """Check if features module is available."""
     return get_plexichat_manager().is_available("features")
 
+
 def interfaces_available() -> bool:
     """Check if interfaces module is available."""
     return get_plexichat_manager().is_available("interfaces")
+
 
 # Safe imports with error handling
 def import_plexichat_modules():
@@ -225,6 +238,7 @@ def import_plexichat_modules():
     except Exception as e:
         logger.error(f"Error importing PlexiChat modules: {e}")
 
+
 # Initialize PlexiChat
 async def initialize_plexichat():
     """Initialize PlexiChat system."""
@@ -234,11 +248,13 @@ async def initialize_plexichat():
     except Exception as e:
         logger.error(f"Error during PlexiChat initialization: {e}")
 
+
 # Auto-initialize on import (sync version)
 def sync_initialize_plexichat():
     """Synchronous initialization wrapper."""
     try:
         import asyncio
+
         # Try to get existing event loop
         try:
             loop = asyncio.get_event_loop()
@@ -256,17 +272,18 @@ def sync_initialize_plexichat():
         # Continue without async initialization
         import_plexichat_modules()
 
+
 # Auto-initialization removed - call initialize_plexichat() manually when needed
 
 # Export commonly used items
 __all__ = [
-    "__version__",
     "__author__",
     "__description__",
-    "get_plexichat_manager",
+    "__version__",
     "core_available",
-    "infrastructure_available",
     "features_available",
-    "interfaces_available",
+    "get_plexichat_manager",
+    "infrastructure_available",
     "initialize_plexichat",
+    "interfaces_available",
 ]
