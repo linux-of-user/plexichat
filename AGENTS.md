@@ -1,25 +1,42 @@
-# PlexiChat - Agent Development Guide
+# PlexiChat Agent Guide
 
 ## Setup Commands
-- **Virtual environment**: `python -m venv venv` (virtual environment stored in `venv/`)
-- **Install dependencies**: `python run.py setup --level developer`
-- **Activate environment**: `source venv/bin/activate` (Unix) / `venv\Scripts\activate` (Windows)
+```bash
+# Create and activate virtual environment
+python -m venv venv
+# Windows: venv\Scripts\activate
+# Linux/Mac: source venv/bin/activate
 
-## Development Commands
-- **Build**: `make docs` (documentation build)
-- **Lint**: `ruff check src/ && black --check src/ && mypy src/`
-- **Tests**: `pytest` (with coverage reporting)
-- **Dev server**: `python run.py serve`
+# Install dependencies
+pip install -r requirements.txt
+pip install -e ".[dev]"  # For development dependencies
+```
+
+## Build & Development
+```bash
+python -m build           # Build package
+make docs                 # Build documentation
+python run.py             # Run application (API server, WebUI, CLI)
+python run.py --nowebui   # API server only
+```
+
+## Quality Checks
+```bash
+ruff check src/           # Lint code
+black src/                # Format code
+mypy src/                 # Type checking
+pytest                    # Run tests
+pytest -m "not slow"      # Run tests excluding slow ones
+```
 
 ## Tech Stack
-- **Backend**: FastAPI with SQLAlchemy ORM, Redis, PostgreSQL
-- **Architecture**: Plugin-based system with core/features/infrastructure layers
-- **Authentication**: JWT with bcrypt hashing
-- **Testing**: pytest with asyncio support
+- **Backend**: FastAPI + Pydantic + SQLAlchemy + Redis
+- **Architecture**: Plugin-based modular system with core/features/infrastructure layers
+- **Database**: PostgreSQL with async support (asyncpg)
+- **Security**: Distributed key management, JWT auth, passlib for hashing
 
 ## Code Style
-- **Formatting**: Black (88 char line length)
-- **Import sorting**: isort with Black profile
-- **Type checking**: MyPy in strict mode
-- **Linting**: Ruff with extensive rule set (E, W, F, I, B, C4, UP, ARG, SIM, TCH, PTH, ERA, PL, RUF)
-- **Coverage**: 100% required for test coverage
+- Line length: 88 characters (Black)
+- Type hints required (`mypy --strict`)
+- Imports organized with isort
+- Follow existing patterns in `src/plexichat/` structure

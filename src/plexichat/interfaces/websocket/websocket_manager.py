@@ -5,11 +5,22 @@ Interface layer for WebSocket management with typing indicators integration.
 """
 
 import logging
-from typing import Dict, List, Optional, Any
-from datetime import datetime
+from typing import Any
 
-from plexichat.core.websocket.websocket_manager import websocket_manager as core_websocket_manager
-from plexichat.core.services.typing_service import typing_service
+try:
+    from fastapi import WebSocket
+    from fastapi.websockets import WebSocketDisconnect
+except ImportError:
+    # Fallback types for testing or environments without FastAPI
+    from typing import Any
+
+    WebSocket = Any
+    WebSocketDisconnect = Exception
+
+from src.plexichat.core.services.typing_service import typing_service
+from src.plexichat.core.websocket.websocket_manager import (
+    websocket_manager as core_websocket_manager,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -17,21 +28,21 @@ logger = logging.getLogger(__name__)
 class WebSocketManagerInterface:
     """Interface layer for WebSocket management with typing integration."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.core_manager = core_websocket_manager
         self.typing_service = typing_service
 
-    async def connect(self, websocket, connection_id: str, user_id: Optional[int] = None) -> bool:
+    async def connect(
+        self, websocket: WebSocket, connection_id: str, user_id: int | None = None
+    ) -> bool:
         """Connect new WebSocket."""
         return await self.core_manager.connect(websocket, connection_id, user_id)
 
-    async def disconnect(self, connection_id: str):
+    async def disconnect(self, connection_id: str) -> None:
         """Disconnect WebSocket."""
         # Stop any typing indicators for this connection
         connection = self.core_manager.connections.get(connection_id)
         if connection and connection.user_id:
-            # Get all channels this user is typing in
-            user_id = str(connection.user_id)
             # Note: In a real implementation, we'd track which channels each connection is typing in
             # For now, we'll clean up when disconnecting
             pass
@@ -52,11 +63,11 @@ class WebSocketManagerInterface:
 
         return await self.core_manager.leave_channel(connection_id, channel)
 
-    async def send_to_channel(self, channel: str, message: Dict[str, Any]):
+    async def send_to_channel(self, channel: str, message: dict[str, Any]) -> None:
         """Send message to channel."""
         return await self.core_manager.send_to_channel(channel, message)
 
-    async def broadcast_to_all(self, message: Dict[str, Any]):
+    async def broadcast_to_all(self, message: dict[str, Any]) -> None:
         """Broadcast message to all connections."""
         return await self.core_manager.broadcast_to_all(message)
 
@@ -65,7 +76,9 @@ class WebSocketManagerInterface:
         try:
             connection = self.core_manager.connections.get(connection_id)
             if not connection or not connection.user_id:
-                logger.warning(f"Invalid connection or user for typing start: {connection_id}")
+                logger.warning(
+                    f"Invalid connection or user for typing start: {connection_id}"
+                )
                 return False
 
             user_id = str(connection.user_id)
@@ -80,7 +93,9 @@ class WebSocketManagerInterface:
         try:
             connection = self.core_manager.connections.get(connection_id)
             if not connection or not connection.user_id:
-                logger.warning(f"Invalid connection or user for typing stop: {connection_id}")
+                logger.warning(
+                    f"Invalid connection or user for typing stop: {connection_id}"
+                )
                 return False
 
             user_id = str(connection.user_id)
@@ -90,16 +105,18 @@ class WebSocketManagerInterface:
             logger.error(f"Error stopping typing for connection {connection_id}: {e}")
             return False
 
-    def get_typing_users(self, channel_id: str) -> List[str]:
+    def get_typing_users(self, channel_id: str) -> list[str]:
         """Get list of users currently typing in channel."""
         # Use typing service for persistence
         # Note: This is a sync call, but typing_service.get_typing_users is async
         # In a real implementation, this would need to be handled differently
         # For now, return empty list as fallback
-        logger.warning("get_typing_users called on interface - should use typing service directly")
+        logger.warning(
+            "get_typing_users called on interface - should use typing service directly"
+        )
         return []
 
-    async def get_typing_users_async(self, channel_id: str) -> List[str]:
+    async def get_typing_users_async(self, channel_id: str) -> list[str]:
         """Get list of users currently typing in channel (async version)."""
         return await self.typing_service.get_typing_users(channel_id)
 
@@ -111,7 +128,7 @@ class WebSocketManagerInterface:
         """Get connection count for channel."""
         return self.core_manager.get_channel_connection_count(channel)
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get WebSocket statistics."""
         stats = self.core_manager.get_stats()
         # Add typing service stats if available
@@ -123,41 +140,52 @@ class WebSocketManagerInterface:
 
 
 # Global interface instance
-websocket_manager = WebSocketManagerInterface()
+websocket_manager: WebSocketManagerInterface = WebSocketManagerInterface()
+
 
 # Convenience functions that delegate to the interface
-async def connect_websocket(websocket, connection_id: str, user_id: Optional[int] = None) -> bool:
+async def connect_websocket(
+    websocket: WebSocket, connection_id: str, user_id: int | None = None
+) -> bool:
     """Connect WebSocket via interface."""
     return await websocket_manager.connect(websocket, connection_id, user_id)
 
-async def disconnect_websocket(connection_id: str):
+
+async def disconnect_websocket(connection_id: str) -> None:
     """Disconnect WebSocket via interface."""
     await websocket_manager.disconnect(connection_id)
+
 
 async def join_channel(connection_id: str, channel: str) -> bool:
     """Join channel via interface."""
     return await websocket_manager.join_channel(connection_id, channel)
 
+
 async def leave_channel(connection_id: str, channel: str) -> bool:
     """Leave channel via interface."""
     return await websocket_manager.leave_channel(connection_id, channel)
 
-async def send_to_channel(channel: str, message: Dict[str, Any]):
+
+async def send_to_channel(channel: str, message: dict[str, Any]) -> None:
     """Send to channel via interface."""
     await websocket_manager.send_to_channel(channel, message)
 
-async def broadcast_message(message: Dict[str, Any]):
+
+async def broadcast_message(message: dict[str, Any]) -> None:
     """Broadcast message via interface."""
     await websocket_manager.broadcast_to_all(message)
+
 
 async def start_typing(connection_id: str, channel_id: str) -> bool:
     """Start typing via interface."""
     return await websocket_manager.start_typing(connection_id, channel_id)
 
+
 async def stop_typing(connection_id: str, channel_id: str) -> bool:
     """Stop typing via interface."""
     return await websocket_manager.stop_typing(connection_id, channel_id)
 
-async def get_typing_users_async(channel_id: str) -> List[str]:
+
+async def get_typing_users_async(channel_id: str) -> list[str]:
     """Get typing users via interface."""
     return await websocket_manager.get_typing_users_async(channel_id)

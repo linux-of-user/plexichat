@@ -5,94 +5,104 @@ WebSocket management with threading and performance optimization.
 """
 
 import asyncio
+from collections.abc import Awaitable, Callable
+from dataclasses import dataclass, field
+from datetime import datetime
 import json
 import logging
-import socket
-import threading
 import time
-from dataclasses import dataclass
-from datetime import datetime
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set
+from typing import Any, Protocol
 
-if TYPE_CHECKING:
-    from fastapi import WebSocket, WebSocketDisconnect
-else:
-    try:
-        from fastapi import WebSocket, WebSocketDisconnect
-    except ImportError:
-        WebSocket = Any
-        WebSocketDisconnect = Exception
+try:
+    from fastapi import WebSocket
+    from fastapi.websockets import WebSocketDisconnect
+except ImportError:
+    # Fallback types for testing or environments without FastAPI
+    from typing import Any
+
+    WebSocket = Any
+    WebSocketDisconnect = Exception
 
 
-class DatabaseManager:
-    async def execute_query(self, *args, **kwargs):
+class DatabaseManager(Protocol):
+    async def execute_query(self, query: str, params: dict[str, Any]) -> Any: ...
+
+
+class PerformanceLogger(Protocol):
+    def log_performance(
+        self, operation: str, duration: float, metadata: dict[str, Any] | None = None
+    ) -> None: ...
+
+    def record_metric(self, name: str, value: int | float, unit: str) -> None: ...
+
+    def increment_counter(self, name: str, value: int = 1) -> None: ...
+
+
+class AsyncThreadManager(Protocol):
+    def submit_task(
+        self, func: Callable[..., Any], *args: Any, **kwargs: Any
+    ) -> Any: ...
+
+    async def run_in_thread(
+        self, func: Callable[..., Any], *args: Any, **kwargs: Any
+    ) -> Any: ...
+
+
+class CacheManager(Protocol):
+    def get(self, key: str) -> Any | None: ...
+
+    def set(self, key: str, value: Any, ttl: int | None = None) -> None: ...
+
+    def delete(self, key: str) -> None: ...
+
+
+# Mock implementations for fallback
+class _MockDatabaseManager:
+    async def execute_query(self, query: str, params: dict[str, Any]) -> Any:
         pass
 
 
-database_manager = DatabaseManager()
-
-
-class PerformanceLogger:
-    def log_performance(self, *args, **kwargs):
+class _MockPerformanceLogger:
+    def log_performance(
+        self, operation: str, duration: float, metadata: dict[str, Any] | None = None
+    ) -> None:
         pass
 
-    def record_metric(self, *args, **kwargs):
+    def record_metric(self, name: str, value: int | float, unit: str) -> None:
         pass
 
-
-performance_logger = PerformanceLogger()
-
-
-class AsyncThreadManager:
-    def submit_task(self, *args, **kwargs):
-        pass
-
-    async def run_in_thread(self, *args, **kwargs):
+    def increment_counter(self, name: str, value: int = 1) -> None:
         pass
 
 
-async_thread_manager = AsyncThreadManager()
+class _MockAsyncThreadManager:
+    def submit_task(self, func: Callable[..., Any], *args: Any, **kwargs: Any) -> Any:
+        pass
+
+    async def run_in_thread(
+        self, func: Callable[..., Any], *args: Any, **kwargs: Any
+    ) -> Any:
+        pass
 
 
-class CacheManager:
-    def get(self, *args, **kwargs):
+class _MockCacheManager:
+    def get(self, key: str) -> Any | None:
         return None
 
-    def set(self, *args, **kwargs):
+    def set(self, key: str, value: Any, ttl: int | None = None) -> None:
         pass
 
-    def delete(self, *args, **kwargs):
+    def delete(self, key: str) -> None:
         pass
 
 
-cache_manager = CacheManager()
+# Global instances
+database_manager: DatabaseManager = _MockDatabaseManager()
+performance_logger: PerformanceLogger = _MockPerformanceLogger()
+async_thread_manager: AsyncThreadManager = _MockAsyncThreadManager()
+cache_manager: CacheManager = _MockCacheManager()
 
 logger = logging.getLogger(__name__)
-
-
-def cache_get(*args, **kwargs):
-    return None
-
-
-def cache_set(*args, **kwargs):
-    pass
-
-
-def cache_delete(*args, **kwargs):
-    pass
-
-
-class CacheKeyBuilder:
-    def build(self, *args, **kwargs):
-        return "cache_key"
-
-
-def get_performance_logger():
-    return PerformanceLogger()
-
-
-logger = logging.getLogger(__name__)
-performance_logger = get_performance_logger()
 
 
 @dataclass
@@ -100,54 +110,61 @@ class WebSocketConnection:
     """WebSocket connection data."""
 
     websocket: WebSocket
-    user_id: Optional[int]
+    user_id: int | None
     connection_id: str
     connected_at: datetime
     last_ping: datetime
-    channels: Set[str]
-    metadata: Dict[str, Any]
+    channels: set[str] = field(default_factory=set)
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+
+MessageContent = dict[str, Any]
+MessageCallback = Callable[[MessageContent], Awaitable[None]]
+EventCallback = Callable[[str, str, dict[str, Any]], Awaitable[None]]
 
 
 class WebSocketManager:
     """WebSocket manager with threading support."""
 
-    def __init__(self):
-        self.connections: Dict[str, WebSocketConnection] = {}
-        self.user_connections: Dict[int, Set[str]] = {}
-        self.channel_connections: Dict[str, Set[str]] = {}
-        self.db_manager = database_manager
+    def __init__(self) -> None:
+        self.connections: dict[str, WebSocketConnection] = {}
+        self.user_connections: dict[int, set[str]] = {}
+        self.channel_connections: dict[str, set[str]] = {}
+        self.db_manager: DatabaseManager = database_manager
         self.performance_logger: PerformanceLogger = performance_logger
-        self.async_thread_manager = async_thread_manager
-        self.cache_manager = cache_manager
+        self.async_thread_manager: AsyncThreadManager = async_thread_manager
+        self.cache_manager: CacheManager = cache_manager
 
         # Message queue for broadcasting
-        self.message_queue = asyncio.Queue()
-        self.broadcasting = False
+        self.message_queue: asyncio.Queue[dict[str, Any]] = asyncio.Queue()
+        self.broadcasting: bool = False
 
         # Statistics
-        self.total_connections = 0
-        self.total_messages = 0
-        self.total_disconnections = 0
+        self.total_connections: int = 0
+        self.total_messages: int = 0
+        self.total_disconnections: int = 0
+
         # Thread events
-        self.thread_subscribers: Dict[str, Set[str]] = (
+        self.thread_subscribers: dict[str, set[str]] = (
             {}
         )  # thread_id -> set of connection_ids
+
         # Typing indicators
-        self.typing_states: Dict[str, Dict[str, datetime]] = (
+        self.typing_states: dict[str, dict[str, datetime]] = (
             {}
         )  # channel_id -> {user_id: last_typing_time}
-        self.typing_timeout = 3.0  # seconds
+        self.typing_timeout: float = 3.0  # seconds
 
-        # Start typing cleanup task (will be started during app startup)
-        self._cleanup_task = None
+        # Cleanup task
+        self._cleanup_task: asyncio.Task[None] | None = None
 
-    async def start_cleanup_task(self):
+    async def start_cleanup_task(self) -> None:
         """Start the typing cleanup task."""
         if self._cleanup_task is None or self._cleanup_task.done():
             self._cleanup_task = asyncio.create_task(self._cleanup_typing_states())
             logger.info("WebSocket typing cleanup task started")
 
-    async def stop_cleanup_task(self):
+    async def stop_cleanup_task(self) -> None:
         """Stop the typing cleanup task."""
         if self._cleanup_task and not self._cleanup_task.done():
             self._cleanup_task.cancel()
@@ -157,7 +174,7 @@ class WebSocketManager:
                 pass
             logger.info("WebSocket typing cleanup task stopped")
 
-    async def start_broadcasting(self):
+    async def start_broadcasting(self) -> None:
         """Start message broadcasting loop."""
         if self.broadcasting:
             return
@@ -166,12 +183,12 @@ class WebSocketManager:
         asyncio.create_task(self._broadcast_loop())
         logger.info("WebSocket broadcasting started")
 
-    async def stop_broadcasting(self):
+    async def stop_broadcasting(self) -> None:
         """Stop message broadcasting."""
         self.broadcasting = False
         logger.info("WebSocket broadcasting stopped")
 
-    async def _broadcast_loop(self):
+    async def _broadcast_loop(self) -> None:
         """Main broadcasting loop."""
         while self.broadcasting:
             try:
@@ -188,19 +205,19 @@ class WebSocketManager:
 
                 self.message_queue.task_done()
 
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 continue
             except Exception as e:
                 logger.error(f"Broadcasting error: {e}")
 
-    def _broadcast_message_sync(self, message: Dict[str, Any]):
+    def _broadcast_message_sync(self, message: dict[str, Any]) -> None:
         """Synchronous message broadcasting for threading."""
         try:
             asyncio.create_task(self._broadcast_message(message))
         except Exception as e:
             logger.error(f"Error in sync broadcast: {e}")
 
-    async def _broadcast_message(self, message: Dict[str, Any]):
+    async def _broadcast_message(self, message: dict[str, Any]) -> None:
         """Broadcast message to connections."""
         try:
             start_time = time.time()
@@ -209,7 +226,7 @@ class WebSocketManager:
             target_id = message.get("target_id")
             content = message.get("content", {})
 
-            connections_to_send = []
+            connections_to_send: list[WebSocketConnection] = []
 
             if target_type == "user" and target_id:
                 # Send to specific user
@@ -264,8 +281,8 @@ class WebSocketManager:
             logger.error(f"Error broadcasting message: {e}")
 
     async def _send_to_connection(
-        self, connection: WebSocketConnection, message: Dict[str, Any]
-    ):
+        self, connection: WebSocketConnection, message: dict[str, Any]
+    ) -> None:
         """Send message to specific connection."""
         try:
             await connection.websocket.send_text(json.dumps(message))
@@ -275,7 +292,7 @@ class WebSocketManager:
             await self.disconnect(connection.connection_id)
 
     async def connect(
-        self, websocket: WebSocket, connection_id: str, user_id: Optional[int] = None
+        self, websocket: WebSocket, connection_id: str, user_id: int | None = None
     ) -> bool:
         """Connect new WebSocket."""
         try:
@@ -316,7 +333,7 @@ class WebSocketManager:
             logger.error(f"Error connecting WebSocket {connection_id}: {e}")
             return False
 
-    async def disconnect(self, connection_id: str):
+    async def disconnect(self, connection_id: str) -> None:
         """Disconnect WebSocket."""
         try:
             connection = self.connections.get(connection_id)
@@ -443,15 +460,15 @@ class WebSocketManager:
             logger.error(f"Error leaving thread {thread_id}: {e}")
             return False
 
-    async def send_to_thread(self, thread_id: str, message: Dict[str, Any]):
+    async def send_to_thread(self, thread_id: str, message: dict[str, Any]) -> None:
         """Send message to all connections subscribed to a thread."""
         await self.message_queue.put(
             {"target_type": "thread", "target_id": thread_id, "content": message}
         )
 
     async def broadcast_thread_event(
-        self, thread_id: str, event_type: str, event_data: Dict[str, Any]
-    ):
+        self, thread_id: str, event_type: str, event_data: dict[str, Any]
+    ) -> None:
         """Broadcast a thread event to all subscribers."""
         event_message = {
             "type": f"thread_{event_type}",
@@ -461,19 +478,19 @@ class WebSocketManager:
         }
         await self.send_to_thread(thread_id, event_message)
 
-    async def send_to_user(self, user_id: int, message: Dict[str, Any]):
+    async def send_to_user(self, user_id: int, message: dict[str, Any]) -> None:
         """Send message to specific user."""
         await self.message_queue.put(
             {"target_type": "user", "target_id": user_id, "content": message}
         )
 
-    async def send_to_channel(self, channel: str, message: Dict[str, Any]):
+    async def send_to_channel(self, channel: str, message: dict[str, Any]) -> None:
         """Send message to channel."""
         await self.message_queue.put(
             {"target_type": "channel", "target_id": channel, "content": message}
         )
 
-    async def broadcast_to_all(self, message: Dict[str, Any]):
+    async def broadcast_to_all(self, message: dict[str, Any]) -> None:
         """Broadcast message to all connections."""
         await self.message_queue.put({"target_type": "all", "content": message})
 
@@ -497,8 +514,8 @@ class WebSocketManager:
             return False
 
     async def _log_connection_event(
-        self, event_type: str, connection_id: str, user_id: Optional[int]
-    ):
+        self, event_type: str, connection_id: str, user_id: int | None
+    ) -> None:
         """Log connection event to database."""
         try:
             if self.db_manager:
@@ -528,7 +545,7 @@ class WebSocketManager:
         """Get connection count for channel."""
         return len(self.channel_connections.get(channel, set()))
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get WebSocket statistics."""
         return {
             "active_connections": len(self.connections),
@@ -541,7 +558,7 @@ class WebSocketManager:
             "broadcasting": self.broadcasting,
         }
 
-    async def _cleanup_typing_states(self):
+    async def _cleanup_typing_states(self) -> None:
         """Periodically clean up expired typing states."""
         try:
             while True:
@@ -634,7 +651,7 @@ class WebSocketManager:
             logger.error(f"Error stopping typing for {connection_id}: {e}")
             return False
 
-    def get_typing_users(self, channel_id: str) -> List[str]:
+    def get_typing_users(self, channel_id: str) -> list[str]:
         """Get list of users currently typing in channel."""
         if channel_id not in self.typing_states:
             return []
@@ -653,22 +670,22 @@ class WebSocketManager:
 websocket_manager = WebSocketManager()
 
 
-# Convenience functions
+# Convenience functions with proper type annotations
 async def connect_websocket(
-    websocket: WebSocket, connection_id: str, user_id: Optional[int] = None
+    websocket: WebSocket, connection_id: str, user_id: int | None = None
 ) -> bool:
     """Connect WebSocket to global manager."""
     return await websocket_manager.connect(websocket, connection_id, user_id)
 
 
-async def send_to_thread(thread_id: str, message: Dict[str, Any]):
+async def send_to_thread(thread_id: str, message: dict[str, Any]) -> None:
     """Send message to thread via global manager."""
     await websocket_manager.send_to_thread(thread_id, message)
 
 
 async def broadcast_thread_event(
-    thread_id: str, event_type: str, event_data: Dict[str, Any]
-):
+    thread_id: str, event_type: str, event_data: dict[str, Any]
+) -> None:
     """Broadcast thread event via global manager."""
     await websocket_manager.broadcast_thread_event(thread_id, event_type, event_data)
 
@@ -683,22 +700,22 @@ async def leave_thread(connection_id: str, thread_id: str) -> bool:
     return await websocket_manager.leave_thread(connection_id, thread_id)
 
 
-async def disconnect_websocket(connection_id: str):
+async def disconnect_websocket(connection_id: str) -> None:
     """Disconnect WebSocket from global manager."""
     await websocket_manager.disconnect(connection_id)
 
 
-async def send_to_user(user_id: int, message: Dict[str, Any]):
+async def send_to_user(user_id: int, message: dict[str, Any]) -> None:
     """Send message to user via global manager."""
     await websocket_manager.send_to_user(user_id, message)
 
 
-async def send_to_channel(channel: str, message: Dict[str, Any]):
+async def send_to_channel(channel: str, message: dict[str, Any]) -> None:
     """Send message to channel via global manager."""
     await websocket_manager.send_to_channel(channel, message)
 
 
-async def broadcast_message(message: Dict[str, Any]):
+async def broadcast_message(message: dict[str, Any]) -> None:
     """Broadcast message via global manager."""
     await websocket_manager.broadcast_to_all(message)
 
@@ -713,6 +730,6 @@ async def stop_typing(connection_id: str, channel_id: str) -> bool:
     return await websocket_manager.stop_typing(connection_id, channel_id)
 
 
-def get_typing_users(channel_id: str) -> List[str]:
+def get_typing_users(channel_id: str) -> list[str]:
     """Get typing users via global manager."""
     return websocket_manager.get_typing_users(channel_id)
