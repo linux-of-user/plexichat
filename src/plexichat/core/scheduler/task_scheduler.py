@@ -7,10 +7,11 @@ Task scheduling with threading and performance optimization.
 import asyncio
 import logging
 import time
-from dataclasses import dataclass
+from collections.abc import Callable
+from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, ParamSpec, TypeVar
 from uuid import uuid4
 
 try:
@@ -19,6 +20,9 @@ except ImportError:
     croniter = None
 
 from plexichat.core.services.core_services import DatabaseService
+
+P = ParamSpec("P")
+T = TypeVar("T")
 
 database_manager = DatabaseService()
 
@@ -34,13 +38,17 @@ except ImportError:
 try:
     from plexichat.core.logging import get_logger as _get_logger
 
-    async def track_event(event_name: str, properties: Dict[str, Any] | None = None) -> None:  # type: ignore
+    async def track_event(
+        event_name: str, properties: dict[str, Any] | None = None
+    ) -> None:
         logger = _get_logger(__name__)
         logger.debug(f"analytics event: {event_name} - {properties}")
 
 except Exception:
 
-    async def track_event(event_name: str, properties: Dict[str, Any] | None = None) -> None:  # type: ignore
+    async def track_event(
+        event_name: str, properties: dict[str, Any] | None = None
+    ) -> None:
         return None
 
 
@@ -86,46 +94,50 @@ class ScheduledTask:
     task_id: str
     name: str
     function: Callable[..., Any]
-    args: tuple
-    kwargs: dict
-    task_type: TaskType
-    status: TaskStatus
-    created_at: datetime
-    scheduled_at: datetime
-    next_run: Optional[datetime]
-    last_run: Optional[datetime]
-    run_count: int
-    max_runs: Optional[int]
-    cron_expression: Optional[str]
-    interval_seconds: Optional[int]
-    timeout_seconds: int
-    retry_count: int
-    max_retries: int
-    metadata: Dict[str, Any]
+    args: tuple[Any, ...] = field(default_factory=tuple)
+    kwargs: dict[str, Any] = field(default_factory=dict)
+    task_type: TaskType = TaskType.ONCE
+    status: TaskStatus = TaskStatus.PENDING
+    created_at: datetime | None = None
+    scheduled_at: datetime | None = None
+    next_run: datetime | None = None
+    last_run: datetime | None = None
+    run_count: int = 0
+    max_runs: int | None = None
+    cron_expression: str | None = None
+    interval_seconds: int | None = None
+    timeout_seconds: int = 300
+    retry_count: int = 0
+    max_retries: int = 3
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        if self.created_at is None:
+            self.created_at = datetime.now()
 
 
 class TaskScheduler:
     """Task scheduler with threading support."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.db_manager = database_manager
         self.performance_logger = performance_logger
         self.async_thread_manager = async_thread_manager
 
         # Task storage
-        self.tasks: Dict[str, ScheduledTask] = {}
-        self.running_tasks: Dict[str, asyncio.Task] = {}
+        self.tasks: dict[str, ScheduledTask] = {}
+        self.running_tasks: dict[str, asyncio.Task[None]] = {}
 
         # Scheduler state
         self.running = False
-        self.scheduler_task = None
+        self.scheduler_task: asyncio.Task[None] | None = None
 
         # Statistics
         self.tasks_executed = 0
         self.tasks_failed = 0
         self.total_execution_time = 0.0
 
-    async def start(self):
+    async def start(self) -> None:
         """Start the task scheduler."""
         if self.running:
             return
@@ -138,7 +150,7 @@ class TaskScheduler:
 
         logger.info("Task scheduler started")
 
-    async def stop(self):
+    async def stop(self) -> None:
         """Stop the task scheduler."""
         if not self.running:
             return
@@ -163,14 +175,14 @@ class TaskScheduler:
 
         logger.info("Task scheduler stopped")
 
-    async def _scheduler_loop(self):
+    async def _scheduler_loop(self) -> None:
         """Main scheduler loop."""
         while self.running:
             try:
                 current_time = datetime.now()
 
                 # Check for tasks to run
-                tasks_to_run = []
+                tasks_to_run: list[ScheduledTask] = []
                 for task in self.tasks.values():
                     if self._should_run_task(task, current_time):
                         tasks_to_run.append(task)
@@ -215,7 +227,7 @@ class TaskScheduler:
             logger.error(f"Error checking if task should run: {e}")
             return False
 
-    async def _execute_task(self, task: ScheduledTask):
+    async def _execute_task(self, task: ScheduledTask) -> None:
         """Execute a scheduled task."""
         try:
             task.status = TaskStatus.RUNNING
@@ -232,21 +244,21 @@ class TaskScheduler:
             logger.error(f"Error executing task {task.task_id}: {e}")
             task.status = TaskStatus.FAILED
 
-    async def _run_task_with_timeout(self, task: ScheduledTask):
+    async def _run_task_with_timeout(self, task: ScheduledTask) -> None:
         """Run task with timeout and error handling."""
         start_time = time.time()
 
         try:
             # Run task with timeout
             if self.async_thread_manager:
-                result = await asyncio.wait_for(
+                _ = await asyncio.wait_for(
                     self.async_thread_manager.run_in_thread(
                         task.function, *task.args, **task.kwargs
                     ),
                     timeout=task.timeout_seconds,
                 )
             else:
-                result = await asyncio.wait_for(
+                _ = await asyncio.wait_for(
                     self._run_task_async(task), timeout=task.timeout_seconds
                 )
 
@@ -277,19 +289,19 @@ class TaskScheduler:
 
             # Track analytics
             if track_event:
-                props: Dict[str, Any] = {
+                props: dict[str, Any] = {
                     "task_name": task.name,
                     "task_type": task.task_type.value,
                     "execution_time": execution_time,
                     "run_count": task.run_count,
                 }
-                await track_event("scheduled_task_completed", properties=props)  # type: ignore[arg-type]
+                await track_event("scheduled_task_completed", properties=props)
 
             logger.info(
                 f"Task completed: {task.name} ({task.task_id}) in {execution_time:.2f}s"
             )
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             logger.error(f"Task timeout: {task.name} ({task.task_id})")
             await self._handle_task_failure(task, "Task timeout")
 
@@ -305,14 +317,16 @@ class TaskScheduler:
             # Update task in database
             await self._update_task_in_db(task)
 
-    async def _run_task_async(self, task: ScheduledTask):
+    async def _run_task_async(self, task: ScheduledTask) -> Any:
         """Run task asynchronously."""
         if asyncio.iscoroutinefunction(task.function):
             return await task.function(*task.args, **task.kwargs)
         else:
             return task.function(*task.args, **task.kwargs)
 
-    async def _handle_task_failure(self, task: ScheduledTask, error_message: str):
+    async def _handle_task_failure(
+        self, task: ScheduledTask, error_message: str
+    ) -> None:
         """Handle task failure with retry logic."""
         try:
             task.retry_count += 1
@@ -343,7 +357,7 @@ class TaskScheduler:
         except Exception as e:
             logger.error(f"Error handling task failure: {e}")
 
-    def _calculate_next_run(self, task: ScheduledTask) -> Optional[datetime]:
+    def _calculate_next_run(self, task: ScheduledTask) -> datetime | None:
         """Calculate next run time for recurring tasks."""
         try:
             current_time = datetime.now()
@@ -365,7 +379,7 @@ class TaskScheduler:
             logger.error(f"Error calculating next run time: {e}")
             return None
 
-    async def _cleanup_completed_tasks(self):
+    async def _cleanup_completed_tasks(self) -> None:
         """Clean up completed one-time tasks."""
         try:
             completed_tasks = [
@@ -382,9 +396,9 @@ class TaskScheduler:
                 del self.tasks[task_id]
 
                 # Remove from database
-                if self.db_manager:
+                if self.db_manager and hasattr(self.db_manager, "execute_query"):
                     query = "DELETE FROM scheduled_tasks WHERE task_id = ?"
-                    await self.db_manager.execute_query(query, {"task_id": task_id})
+                    await self.db_manager.execute_query(query, {"task_id": task_id})  # type: ignore
 
             if completed_tasks:
                 logger.info(f"Cleaned up {len(completed_tasks)} completed tasks")
@@ -397,11 +411,11 @@ class TaskScheduler:
         name: str,
         function: Callable[..., Any],
         scheduled_at: datetime,
-        args: tuple = (),
-        kwargs: Optional[Dict[str, Any]] = None,
+        args: tuple[Any, ...] = (),
+        kwargs: dict[str, Any] | None = None,
         timeout_seconds: int = 300,
         max_retries: int = 3,
-        metadata: Optional[Dict[str, Any]] = None,
+        metadata: dict[str, Any] | None = None,
     ) -> str:
         """Schedule a one-time task."""
         try:
@@ -444,12 +458,12 @@ class TaskScheduler:
         name: str,
         function: Callable[..., Any],
         interval_seconds: int,
-        args: tuple = (),
-        kwargs: Optional[Dict[str, Any]] = None,
+        args: tuple[Any, ...] = (),
+        kwargs: dict[str, Any] | None = None,
         timeout_seconds: int = 300,
-        max_runs: Optional[int] = None,
+        max_runs: int | None = None,
         max_retries: int = 3,
-        metadata: Optional[Dict[str, Any]] = None,
+        metadata: dict[str, Any] | None = None,
     ) -> str:
         """Schedule a recurring task."""
         try:
@@ -495,12 +509,12 @@ class TaskScheduler:
         name: str,
         function: Callable[..., Any],
         cron_expression: str,
-        args: tuple = (),
-        kwargs: Optional[Dict[str, Any]] = None,
+        args: tuple[Any, ...] = (),
+        kwargs: dict[str, Any] | None = None,
         timeout_seconds: int = 300,
-        max_runs: Optional[int] = None,
+        max_runs: int | None = None,
         max_retries: int = 3,
-        metadata: Optional[Dict[str, Any]] = None,
+        metadata: dict[str, Any] | None = None,
     ) -> str:
         """Schedule a cron-based task."""
         try:
@@ -569,10 +583,10 @@ class TaskScheduler:
             logger.error(f"Error cancelling task: {e}")
             return False
 
-    async def _save_task_to_db(self, task: ScheduledTask):
+    async def _save_task_to_db(self, task: ScheduledTask) -> None:
         """Save task to database."""
         try:
-            if self.db_manager:
+            if self.db_manager and hasattr(self.db_manager, "execute_query"):
                 query = (
                     "INSERT INTO scheduled_tasks ("
                     "task_id, name, task_type, status, created_at, scheduled_at, "
@@ -580,7 +594,7 @@ class TaskScheduler:
                     "interval_seconds, timeout_seconds, retry_count, max_retries, metadata"
                     ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
                 )
-                params = {
+                params: dict[str, Any] = {
                     "task_id": task.task_id,
                     "name": task.name,
                     "task_type": task.task_type.value,
@@ -598,78 +612,55 @@ class TaskScheduler:
                     "max_retries": task.max_retries,
                     "metadata": str(task.metadata),
                 }
-                await self.db_manager.execute_query(query, params)  # type: ignore[reportUnknownMemberType]
+                await self.db_manager.execute_query(query, params)  # type: ignore
         except Exception as e:
             logger.error(f"Error saving task to database: {e}")
 
-    async def _update_task_in_db(self, task: ScheduledTask):
+    async def _update_task_in_db(self, task: ScheduledTask) -> None:
         """Update task in database."""
         try:
-            if self.db_manager:
-                query = (
-                    "UPDATE scheduled_tasks SET "
-                    "status = ?, next_run = ?, last_run = ?, run_count = ?, retry_count = ? "
-                    "WHERE task_id = ?"
-                )
-                params = {
+            if self.db_manager and hasattr(self.db_manager, "execute_query"):
+                query = """
+                    UPDATE scheduled_tasks SET
+                        status = ?, next_run = ?, last_run = ?, run_count = ?,
+                        retry_count = ?, metadata = ?
+                    WHERE task_id = ?
+                """
+                params: dict[str, Any] = {
                     "status": task.status.value,
                     "next_run": task.next_run,
                     "last_run": task.last_run,
                     "run_count": task.run_count,
                     "retry_count": task.retry_count,
+                    "metadata": str(task.metadata),
                     "task_id": task.task_id,
                 }
-                await self.db_manager.execute_query(query, params)  # type: ignore[reportUnknownMemberType]
+                await self.db_manager.execute_query(query, params)  # type: ignore
         except Exception as e:
             logger.error(f"Error updating task in database: {e}")
 
-    async def _load_tasks(self):
+    async def _load_tasks(self) -> None:
         """Load tasks from database."""
         try:
-            if self.db_manager:
+            if self.db_manager and hasattr(self.db_manager, "execute_query"):
                 query = "SELECT * FROM scheduled_tasks WHERE status NOT IN ('completed', 'cancelled')"
-                result = await self.db_manager.execute_query(query)
+                result = await self.db_manager.execute_query(query, {})  # type: ignore
 
-                for row in result:
-                    # Reconstruct task (simplified)
-                    task_id = row[0]
-                    # Would need to reconstruct function reference
-                    logger.info(f"Loaded task from database: {task_id}")
+                for row in result:  # type: ignore
+                    task_id = row["task_id"]  # type: ignore
+
+                    # Note: We cannot restore the actual function from the database
+                    # This is a limitation of the current implementation
+                    # In a real system, we would need a function registry
+                    logger.warning(
+                        f"Cannot restore function for task {task_id} from database"
+                    )
 
         except Exception as e:
             logger.error(f"Error loading tasks from database: {e}")
 
-    def get_tasks(self) -> List[Dict[str, Any]]:
-        """Get all tasks."""
-        try:
-            return [
-                {
-                    "task_id": task.task_id,
-                    "name": task.name,
-                    "task_type": task.task_type.value,
-                    "status": task.status.value,
-                    "created_at": task.created_at.isoformat(),
-                    "next_run": task.next_run.isoformat() if task.next_run else None,
-                    "last_run": task.last_run.isoformat() if task.last_run else None,
-                    "run_count": task.run_count,
-                    "max_runs": task.max_runs,
-                    "retry_count": task.retry_count,
-                    "max_retries": task.max_retries,
-                }
-                for task in self.tasks.values()
-            ]
-        except Exception as e:
-            logger.error(f"Error getting tasks: {e}")
-            return []
-
-    def get_stats(self) -> Dict[str, Any]:
-        """Get scheduler statistics."""
-        avg_execution_time = (
-            self.total_execution_time / self.tasks_executed
-            if self.tasks_executed > 0
-            else 0
-        )
-
+    def get_status(self) -> dict[str, Any]:
+        """Get scheduler status."""
         return {
             "running": self.running,
             "total_tasks": len(self.tasks),
@@ -677,49 +668,81 @@ class TaskScheduler:
             "tasks_executed": self.tasks_executed,
             "tasks_failed": self.tasks_failed,
             "total_execution_time": self.total_execution_time,
-            "average_execution_time": avg_execution_time,
-            "task_status_counts": {
-                status.value: sum(
-                    1 for task in self.tasks.values() if task.status == status
-                )
-                for status in TaskStatus
-            },
         }
 
+    def get_tasks(self) -> list[dict[str, Any]]:
+        """Get all scheduled tasks."""
+        return [
+            {
+                "task_id": task.task_id,
+                "name": task.name,
+                "task_type": task.task_type.value,
+                "status": task.status.value,
+                "created_at": task.created_at,
+                "scheduled_at": task.scheduled_at,
+                "next_run": task.next_run,
+                "last_run": task.last_run,
+                "run_count": task.run_count,
+                "max_runs": task.max_runs,
+                "cron_expression": task.cron_expression,
+                "interval_seconds": task.interval_seconds,
+                "timeout_seconds": task.timeout_seconds,
+                "retry_count": task.retry_count,
+                "max_retries": task.max_retries,
+                "metadata": task.metadata,
+            }
+            for task in self.tasks.values()
+        ]
 
-# Global task scheduler
+
+# Global instance and convenience functions
 task_scheduler = TaskScheduler()
 
 
-# Convenience functions
 async def schedule_once(
-    name: str, function: Callable, scheduled_at: datetime, **kwargs
+    name: str,
+    function: Callable[..., Any],
+    scheduled_at: datetime,
+    *args: Any,
+    **kwargs: Any,
 ) -> str:
-    """Schedule one-time task."""
-    return await task_scheduler.schedule_once(name, function, scheduled_at, **kwargs)
+    """Schedule a one-time task using the global scheduler."""
+    return await task_scheduler.schedule_once(
+        name, function, scheduled_at, args, kwargs
+    )
 
 
 async def schedule_recurring(
-    name: str, function: Callable, interval_seconds: int, **kwargs
+    name: str,
+    function: Callable[..., Any],
+    interval_seconds: int,
+    *args: Any,
+    **kwargs: Any,
 ) -> str:
-    """Schedule recurring task."""
+    """Schedule a recurring task using the global scheduler."""
     return await task_scheduler.schedule_recurring(
-        name, function, interval_seconds, **kwargs
+        name, function, interval_seconds, args, kwargs
     )
 
 
 async def schedule_cron(
-    name: str, function: Callable, cron_expression: str, **kwargs
+    name: str,
+    function: Callable[..., Any],
+    cron_expression: str,
+    *args: Any,
+    **kwargs: Any,
 ) -> str:
-    """Schedule cron task."""
-    return await task_scheduler.schedule_cron(name, function, cron_expression, **kwargs)
+    """Schedule a cron-based task using the global scheduler."""
+    return await task_scheduler.schedule_cron(
+        name, function, cron_expression, args, kwargs
+    )
 
 
 async def cancel_task(task_id: str) -> bool:
-    """Cancel task."""
+    """Cancel a scheduled task using the global scheduler."""
     return await task_scheduler.cancel_task(task_id)
 
 
-def get_scheduled_tasks() -> List[Dict[str, Any]]:
-    """Get all scheduled tasks."""
+def get_scheduled_tasks() -> list[dict[str, Any]]:
+    """Get all scheduled tasks from the global scheduler."""
     return task_scheduler.get_tasks()

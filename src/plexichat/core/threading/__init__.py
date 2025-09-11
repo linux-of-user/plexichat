@@ -1,7 +1,14 @@
 """PlexiChat Threading"""
 
 import logging
-from typing import Any, Callable, Optional
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from plexichat.core.threading.thread_manager import (
+        AsyncThreadManager,
+        ThreadManager,
+        ThreadTask,
+    )
 
 try:
     from plexichat.core.threading.thread_manager import (
@@ -24,16 +31,16 @@ except ImportError as e:
     logger.warning(f"Could not import threading modules: {e}")
 
 __all__ = [
-    "ThreadManager",
     "AsyncThreadManager",
+    "ThreadManager",
     "ThreadTask",
-    "thread_manager",
     "async_thread_manager",
-    "submit_task",
-    "run_in_thread",
-    "get_task_result",
-    "threaded",
     "async_threaded",
+    "get_task_result",
+    "run_in_thread",
+    "submit_task",
+    "thread_manager",
+    "threaded",
 ]
 
 from plexichat.core.utils.fallbacks import get_module_version
