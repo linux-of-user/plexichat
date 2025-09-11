@@ -1,8 +1,21 @@
-# Python
+# =============================================================================
+# PlexiChat .gitignore
+# =============================================================================
+
+# =============================================================================
+# Python Core Patterns
+# =============================================================================
+
+# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
+*.pyc
+*.pyo
+*.pyd
+
+# Distribution / packaging
 .Python
 build/
 develop-eggs/
@@ -21,8 +34,20 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
+*.whl
+*.tar.gz
 
-# Virtual Environments
+# PyInstaller
+#  Usually these files are written by a python script from a template
+#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+*.manifest
+*.spec
+
+# =============================================================================
+# Virtual Environments & Environment Variables
+# =============================================================================
+
+# Virtual environments
 .env
 .venv
 env/
@@ -31,93 +56,12 @@ ENV/
 env.bak/
 venv.bak/
 
-# IDE & Editor Files
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-.DS_Store
-Thumbs.db
-
-# PlexiChat Runtime Directories
-/data/
-/logs/
-/runtime/
-/backups/
-/backup_data/
-/databases/
-/temp/
-/.cache/
-
-# PlexiChat Testing
-/tmp/plexichat-test/
-plexichat-test/
-test-install/
-
-# PlexiChat Logs and Reports
-pentest_log.txt
-pentest_report.json
-coverage.xml
-htmlcov/
-.coverage
-
-# PlexiChat Build Artifacts
-changelog.json
-version_backup.json
-/temp_clone/
-/cache/
-
-# Configuration Files (keep examples)
-/config/
-!/config/*.example
-!/config/*.template
-
-# SSL Certificates
-*.pem
-*.key
-*.crt
-*.p12
-*.pfx
-
-# Database Files
-*.db
-*.sqlite
-*.sqlite3
-
-# Log Files
-*.log
-*.log.*
-
-# Temporary Files
-*.tmp
-*.temp
-.tmp/
-.temp/
-
-# OS Generated Files
-.DS_Store
-Thumbs.db
-
-# Testing
-.coverage
-.pytest_cache/
-.tox/
-.nox/
-htmlcov/
-.coverage.*
-coverage.xml
-*.cover
-*.py,cover
-.hypothesis/
-
-# MyPy
-.mypy_cache/
-.dmypy.json
-dmypy.json
-
-# Jupyter Notebook
-.ipynb_checkpoints
+# Environment files
+.env.*
+.env.local
+.env.development
+.env.test
+.env.production
 
 # pyenv
 .python-version
@@ -128,190 +72,186 @@ Pipfile.lock
 # Poetry
 poetry.lock
 
-# Celery
-celerybeat-schedule
-celerybeat.pid
+# =============================================================================
+# Testing & Coverage
+# =============================================================================
 
-# SageMath parsed files
-*.sage.py
-
-# Environments
-.env.local
-.env.development
-.env.test
-.env.production
-
-# Spyder project settings
-.spyderproject
-.spyproject
-
-# Rope project settings
-.ropeproject
-
-# mkdocs documentation
-/site
-
-# Augment
-/.augment
-.augment
-.augment/rules
-
-# VSCode Counter
-/.VSCodeCounter
-
-# Node.js (for any frontend components)
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Docker
-.dockerignore
-docker-compose.override.yml
-
-# Kubernetes
-*.kubeconfig
-
-# Cloud provider configs
-.aws/
-.azure/
-.gcp/
-
-# Backup files
-*.bak
-*.backup
-*.old
-
-# Archive files
-*.zip
-*.tar.gz
-*.rar
-*.7z
-
-# PlexiChat specific
-/plugins/installed/
-/plugins/cache/
-/plugins/*.py
-/monitoring/
-/metrics/
-/exports/
-/temp/
-/uploads/
-/updates/
-/backups/temp*/
-/certs/
-/data/admin/
-default_creds.txt
-
-# Junk directories and files
-temp/
-uploads/
-updates/
-backups/temp*/
-certs/
-data/admin/
-logs/crashes/
-logs/performance/
-logs/audit/
-logs/security/
-logs/plugin/
-logs/plugins/
-
-# Random scripts and markdown files
-*_SUMMARY.md
-*_IMPROVEMENTS_SUMMARY.md
-*_SYSTEM_SUMMARY.md
-comprehensive_*.json
-test_report_*.json
-
-# Plugin sandboxing - each plugin gets its own log directory
-/logs/plugin/*/
-/logs/plugins/*/
-/plugins/logs/*/
-/plugins/*/logs/
-/plugins/*/data/
-/plugins/*/cache/
-/plugins/*/temp/
-
-# API test reports and temporary files
-api_test_report_*.json
-test_report_*.json
-*_test_report.json
-
-# Development and testing artifacts
-*_test.py
-*_standalone_test.py
-comprehensive_test*
-debug_cli.py
-debug_config.json
-fix_*.py
-format_and_lint.py
-remove_dead_code.py
-replace_prints.py
-test_*.py
-!src/plexichat/tests/test_*.py
-pyright_*.txt
-
-# Development backups and reports
-dev/backups/
-dev/*_report.json
-dev/codebase_analysis_report.json
-dev/code_cleanup_report.json
-dev/import_test_report.json
-
-# Build and distribution
-*.whl
-*.tar.gz
-build/
-dist/
-*.egg-info/
-
-# Runtime and cache directories
-__pycache__/
+# pytest
 .pytest_cache/
-.mypy_cache/
-.coverage
-htmlcov/
+.tox/
+.nox/
 
-# Editor and IDE files
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+*.py,cover
+
+# Hypothesis
+.hypothesis/
+
+# =============================================================================
+# Linting & Type Checking
+# =============================================================================
+
+# MyPy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyright
+pyrightconfig.json
+pyright.txt
+*.pyright.txt
+
+# Ruff cache
+.ruff_cache/
+
+# =============================================================================
+# IDEs & Editors
+# =============================================================================
+
+# Visual Studio Code
+.vscode/
+!.vscode/settings.json.example
+!.vscode/launch.json.example
+
+# PyCharm / IntelliJ
+.idea/
+
+# Vim
 *.swp
 *.swo
 *~
-.vscode/settings.json
-.vscode/launch.json
 
-# OS specific
+# Emacs
+.#*
+#*#
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Spyder
+.spyderproject
+.spyproject
+
+# Rope
+.ropeproject
+
+# =============================================================================
+# Jupyter Notebooks
+# =============================================================================
+
+.ipynb_checkpoints
+
+# =============================================================================
+# Documentation
+# =============================================================================
+
+# MkDocs
+/site
+
+# Sphinx documentation
+docs/_build/
+
+# =============================================================================
+# Operating System Files
+# =============================================================================
+
+# macOS
 .DS_Store
-Thumbs.db
-desktop.ini
+.AppleDouble
+.LSOverride
 
-# Temporary and junk files
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Linux
+*~
+
+# =============================================================================
+# Temporary Files
+# =============================================================================
+
 *.tmp
 *.temp
 *.bak
 *.old
-*~
-.#*
-#*#
+.tmp/
+.temp/
 
-# Prevent autogenerated files in src directory
-src/plugins/
-src/temp/
-src/uploads/
-src/backups/
-src/certs/
-src/data/
-src/logs/
-src/config/
-src/**/plugins_internal.py
-src/**/__pycache__/
-src/plexichat/core/plugins/generated_sdk.py
+# =============================================================================
+# PlexiChat Application Specific
+# =============================================================================
 
-# Explicit auto-generated plugin SDK files (auto-generated by PluginSDKGenerator)
-src/plexichat/plugins_internal.py
-src/plexichat/plugins_internal.pyi
+# Runtime directories
+/data/
+/logs/
+/runtime/
+/backups/
+/backup_data/
+/databases/
+/temp/
+/.cache/
+/cache/
+/uploads/
+/updates/
+/monitoring/
+/metrics/
+/exports/
 
-# Performance profiling outputs
+# Configuration files (keep examples/templates)
+/config/
+!/config/*.example
+!/config/*.template
+
+# Plugin directories
+/plugins/installed/
+/plugins/cache/
+/plugins/*.py
+
+# Testing directories
+/tmp/plexichat-test/
+plexichat-test/
+test-install/
+
+# Build artifacts
+changelog.json
+version_backup.json
+/temp_clone/
+
+# SSL Certificates & Security
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+vaults/*
+config/secrets/*
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Log files
+*.log
+*.log.*
+
+# Authentication
+default_creds.txt
+src/plexichat/core/auth/default_credentials.py
+
+# =============================================================================
+# Performance & Profiling
+# =============================================================================
+
+# Profiling outputs
 *.prof
 *.prof.*
 prof/
@@ -330,54 +270,148 @@ chrome_trace.*
 perf.data
 perf-*.data
 
-# Runtime directories (should be created outside src)
-logs/
-temp/
-uploads/
-backups/
-data/
-config/security/
-certs/
+# =============================================================================
+# Testing & Reports
+# =============================================================================
 
-# Security-sensitive files and secrets
-vaults/*
-config/secrets/*
-*.key
-*.pem
-
-# Pyright output files
-pyrightconfig.json
-pyright.txt
-*.pyright.txt
-
-# Test result files
+# Test reports
+*_test_report.json
 *_test_results.json
 integration_test_results.json
 security_test_results.json
 unit_test_results.json
 test_report_*.json
 *_report.json
+comprehensive_*.json
 
-# Coverage files
-.coverage.*
-coverage-*.xml
-htmlcov/
-coverage-reports/
+# Testing artifacts
+*_test.py
+*_standalone_test.py
+comprehensive_test*
+!src/plexichat/tests/test_*.py
 
-# Generic runtime files and sockets
+# =============================================================================
+# Development Tools & Artifacts
+# =============================================================================
+
+# Development scripts
+debug_cli.py
+debug_config.json
+fix_*.py
+format_and_lint.py
+remove_dead_code.py
+replace_prints.py
+
+# Development backups and reports
+dev/backups/
+dev/*_report.json
+
+# Cleanup and analysis
+*_SUMMARY.md
+*_IMPROVEMENTS_SUMMARY.md
+*_SYSTEM_SUMMARY.md
+
+# =============================================================================
+# Task Runners & Build Systems
+# =============================================================================
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# =============================================================================
+# Containers & Cloud
+# =============================================================================
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+
+# Kubernetes
+*.kubeconfig
+
+# Cloud provider configs
+.aws/
+.azure/
+.gcp/
+
+# =============================================================================
+# Frontend Dependencies (if any)
+# =============================================================================
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# =============================================================================
+# Archive & Backup Files
+# =============================================================================
+
+*.zip
+*.rar
+*.7z
+
+# =============================================================================
+# Runtime Files & Process IDs
+# =============================================================================
+
 *.pid
 *.sock
-logs/*
 
-# Removed/cleaned directories
-plexichat_testing/
-src/plexichat/app/
-src/config/
+# =============================================================================
+# Source Control Artifacts
+# =============================================================================
 
+# PlexiChat specific lock files
 plexichat.lock
 test-install-config.json
 version.json
-src/plexichat/core/auth/default_credentials.py
 
-# Cleanup temp storage
+# =============================================================================
+# Plugin System Generated Files
+# =============================================================================
+
+# Auto-generated plugin SDK files
+src/plexichat/plugins_internal.py
+src/plexichat/plugins_internal.pyi
+src/plexichat/core/plugins/generated_sdk.py
+
+# Plugin directories in source
+src/plugins/
+src/temp/
+src/uploads/
+src/backups/
+src/certs/
+src/data/
+src/logs/
+src/config/
+src/**/plugins_internal.py
+
+# Plugin logging directories
+/logs/plugin/*/
+/logs/plugins/*/
+/plugins/logs/*/
+/plugins/*/logs/
+/plugins/*/data/
+/plugins/*/cache/
+/plugins/*/temp/
+
+# =============================================================================
+# Augment & Code Analysis Tools
+# =============================================================================
+
+/.augment
+.augment
+.augment/rules
+/.VSCodeCounter
+
+# =============================================================================
+# Cleanup Storage & Legacy
+# =============================================================================
+
 backup_storage/
+plexichat_testing/
+src/plexichat/app/
+src/config/

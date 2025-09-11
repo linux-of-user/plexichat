@@ -1,37 +1,25 @@
-# PlexiChat Agent Guide
+# PlexiChat - Agent Development Guide
 
 ## Setup Commands
-```bash
-# Create virtual environment
-python -m venv venv
-# Windows: venv\Scripts\activate
-source venv/bin/activate  # Linux/macOS
-python run.py setup --level minimal  # or full/developer
-```
+- **Virtual environment**: `python -m venv venv` (virtual environment stored in `venv/`)
+- **Install dependencies**: `python run.py setup --level developer`
+- **Activate environment**: `source venv/bin/activate` (Unix) / `venv\Scripts\activate` (Windows)
 
 ## Development Commands
-- **Build**: `python -m build` or `make docs`
+- **Build**: `make docs` (documentation build)
 - **Lint**: `ruff check src/ && black --check src/ && mypy src/`
-- **Test**: `pytest tests/`
-- **Dev Server**: `python run.py serve`
+- **Tests**: `pytest` (with coverage reporting)
+- **Dev server**: `python run.py serve`
 
 ## Tech Stack
-- **Backend**: FastAPI + SQLAlchemy + PostgreSQL/SQLite
-- **Async**: Uvicorn, asyncio, aiofiles
-- **Auth**: Passlib, Python-JOSE, bcrypt
-- **Monitoring**: Prometheus, structlog
-- **Testing**: pytest, pytest-asyncio, pytest-cov
-
-## Architecture
-- `src/plexichat/core/` - Core business logic
-- `src/plexichat/interfaces/` - API endpoints
-- `src/plexichat/infrastructure/` - Database, auth, monitoring
-- `src/plexichat/plugins/` - Plugin system
-- `tests/` - Test suite
+- **Backend**: FastAPI with SQLAlchemy ORM, Redis, PostgreSQL
+- **Architecture**: Plugin-based system with core/features/infrastructure layers
+- **Authentication**: JWT with bcrypt hashing
+- **Testing**: pytest with asyncio support
 
 ## Code Style
-- **Formatter**: Black (88 chars)
-- **Linter**: Ruff + Pyright/MyPy
-- **Import Order**: isort (black profile)
-- **Type Hints**: Required for all functions
-- **Async/Await**: Preferred over sync patterns
+- **Formatting**: Black (88 char line length)
+- **Import sorting**: isort with Black profile
+- **Type checking**: MyPy in strict mode
+- **Linting**: Ruff with extensive rule set (E, W, F, I, B, C4, UP, ARG, SIM, TCH, PTH, ERA, PL, RUF)
+- **Coverage**: 100% required for test coverage
