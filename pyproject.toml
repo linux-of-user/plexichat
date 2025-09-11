@@ -181,36 +181,8 @@ reportUnusedExpression = "information"
 [tool.ruff]
 target-version = "py311"
 line-length = 88
-select = [
-    "E",   # pycodestyle errors
-    "W",   # pycodestyle warnings
-    "F",   # pyflakes
-    "I",   # isort
-    "B",   # flake8-bugbear
-    "C4",  # flake8-comprehensions
-    "UP",  # pyupgrade
-    "ARG", # flake8-unused-arguments
-    "SIM", # flake8-simplify
-    "TCH", # flake8-type-checking
-    "PTH", # flake8-use-pathlib
-    "ERA", # eradicate
-    "PL",  # pylint
-    "RUF", # ruff-specific rules
-]
-ignore = [
-    "E501",   # line too long, handled by black
-    "B008",   # do not perform function calls in argument defaults
-    "C901",   # too complex
-    "PLR0913", # too many arguments
-    "PLR0915", # too many statements
-    "PLR2004", # magic value used in comparison
-    "SIM108",  # use ternary operator
-    "ARG002",  # unused method argument
-    "ARG001",  # unused function argument
-    "TCH001",  # move application import into type-checking block
-    "TCH002",  # move third-party import into type-checking block
-    "TCH003",  # move standard library import into type-checking block
-]
+select = ["E", "F", "I", "ASYNC", "C4", "N"]
+ignore = ["E501"]
 exclude = [
     ".bzr",
     ".direnv",
@@ -245,6 +217,7 @@ exclude = [
 "__init__.py" = ["F401", "F403"]
 "tests/**/*.py" = ["S101", "ARG", "FBT"]
 "src/plexichat/plugins/**/*.py" = ["PLR0913", "PLR0915"]
+"*.pyx" = ["C4"]
 
 [tool.ruff.isort]
 known-first-party = ["plexichat"]
@@ -346,6 +319,14 @@ skip_glob = [
 
 # MyPy Configuration
 [tool.mypy]
+plugins = [
+    "sqlalchemy.ext.mypy.plugin",
+    "fastapi-mypy's plugin",
+    "cython"
+]
+strict = true
+mypy_path = "./mypy-stubs"
+ignore_missing_imports = True
 python_version = "3.11"
 warn_return_any = true
 warn_unused_configs = true
