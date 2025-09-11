@@ -1,6 +1,6 @@
-# PlexiChat Agent Development Guide
+# PlexiChat Development Guide
 
-## Setup Commands
+## Setup
 ```bash
 # Create and activate virtual environment (.venv preferred based on .gitignore)
 python -m venv .venv
@@ -12,46 +12,30 @@ pip install -e ".[dev]"            # Install with dev dependencies
 # Alternative: python run.py setup --level developer
 ```
 
-## Development Commands
-```bash
-# Build
-python run.py build                    # Build the application
+## Commands
+- **Setup**: `python run.py setup --level developer`
+- **Build**: `python run.py build` or `python -m build`
+- **Lint**: `ruff check src/` and `black --check src/`
+- **Test**: `pytest tests/` or `python -m pytest`
+- **Dev server**: `python -m uvicorn src.plexichat.main:app --reload`
+- **Documentation**: `make docs-serve`
 
-# Build documentation
-make docs
+## Tech Stack
+- **Backend**: FastAPI + Pydantic + SQLAlchemy + AsyncIO
+- **Database**: PostgreSQL (production), SQLite (development)
+- **Cache**: Redis
+- **Frontend**: Plugin-based architecture
+- **Auth**: JWT + bcrypt + 2FA support
 
-# Linting
-ruff check src tests               # Fast Python linter
-black --check src tests           # Code formatting check
-isort --check-only src tests      # Import sorting check
-
-# Type checking
-pyright                           # Static type analysis
-mypy src/                         # Type checking
-
-# Test  
-python -m pytest                      # Run all tests
-python -m pytest tests/unit/          # Run unit tests only
-python -m pytest --cov=src/plexichat  # Run with coverage
-
-# Dev Server
-python run.py                    # Start all services (API, WebUI, CLI)
-python run.py --nowebui --nocli  # API server only
-uvicorn plexichat.main:app --reload  # Alternative FastAPI dev server
-```
-
-## Tech Stack & Architecture
-- **Backend**: FastAPI + SQLAlchemy + Alembic + Redis + AsyncPG
-- **Structure**: Clean architecture with core/features/infrastructure/plugins
-- **Security**: Distributed key management, JWT auth, bcrypt passwords
-- **Database**: PostgreSQL with async support
-- **Monitoring**: Prometheus metrics, structured logging (structlog)
+## Architecture
+- `src/plexichat/core/` - Core business logic
+- `src/plexichat/infrastructure/` - Database, external services
+- `src/plexichat/interfaces/` - HTTP/WebSocket APIs
+- `src/plexichat/plugins/` - Plugin system
+- `tests/` - Test suite
 
 ## Code Style
-- **Format**: Black (88 chars), isort for imports
-- **Quality**: Ruff linter, Pyright type checker  
-- **Standards**: Python 3.11+, async/await patterns, Pydantic models
 - Line length: 88 characters
-- Use type hints for all functions
-- Follow async/await patterns for I/O operations
-- Plugin system for extensibility
+- Imports: isort with black profile
+- Type hints required
+- Async/await for I/O operations

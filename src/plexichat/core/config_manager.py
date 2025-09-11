@@ -413,7 +413,7 @@ class UnifiedConfig:
 class UnifiedConfigManager:
     """Unified configuration manager with Key Vault integration."""
 
-    def __init__(self, config_file: Optional[str] = None):
+    def __init__(self, config_file: Optional[str] = None) -> None:
         self.config_file = Path(config_file or "data/config/plexichat.yaml")
         self._config = UnifiedConfig()
         self._lock = threading.RLock()
@@ -589,9 +589,9 @@ class UnifiedConfigManager:
     def to_dict(self, sanitize: bool = True) -> Dict[str, Any]:
         """Return configuration as a nested dict. If sanitize=True, mask sensitive values."""
 
-        def dataclass_to_dict(obj):
+        def dataclass_to_dict(obj: Any) -> Any:
             if is_dataclass(obj):
-                result = {}
+                result: Dict[str, Any] = {}
                 for field_name, value in asdict(obj).items():
                     # asdict returns nested dicts already
                     result[field_name] = value
@@ -802,7 +802,7 @@ class UnifiedConfigManager:
     def _validate_config(self) -> None:
         """Validate the entire configuration for basic consistency and types."""
         # Basic sanity checks and ranges for critical numeric values
-        errors = []
+        errors: List[str] = []
 
         # Validate network
         try:
@@ -876,12 +876,12 @@ class UnifiedConfigManager:
     # ----------------------
     # Hot reload support
     # ----------------------
-    def _start_hot_reload(self):
+    def _start_hot_reload(self) -> None:
         """Start background thread that monitors the config file for changes and applies non-critical updates."""
         if self._hot_reload_thread and self._hot_reload_thread.is_alive():
             return
 
-        def hot_reload_loop():
+        def hot_reload_loop() -> None:
             logger.info("Starting config hot-reload thread")
             while not self._stop_hot_reload.is_set():
                 try:
@@ -936,7 +936,7 @@ class UnifiedConfigManager:
         )
         self._hot_reload_thread.start()
 
-    def stop_hot_reload(self):
+    def stop_hot_reload(self) -> None:
         """Stop the hot-reload thread gracefully."""
         self._stop_hot_reload.set()
         if self._hot_reload_thread:
@@ -982,7 +982,7 @@ class UnifiedConfigManager:
     # ----------------------
     # Clean up
     # ----------------------
-    def __del__(self):
+    def __del__(self) -> None:
         try:
             self.stop_hot_reload()
         except Exception:

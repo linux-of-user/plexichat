@@ -190,7 +190,7 @@ pgcli>=4.0.1
 mycli>=1.27.0
 
 # API documentation
-# flasgger>=0.9.7.1
+flasgger>=0.9.7.1
 swagger-ui-bundle>=0.0.9
 
 # Environment management
@@ -207,7 +207,7 @@ ipykernel>=6.27.1
 
 # Security auditing & scanning (development)
 # talisman>=0.2.1           # security headers for local testing
-# trivy>=0.16.0             # optional vulnerability scanner wrapper (for CI)
+# trivy>=0.16.0             # optional vulnerability scanner wrapper (for CI) - not available on PyPI
 
 # === OS-SPECIFIC FALLBACKS ===
 # System packages to install when pip packages fail
