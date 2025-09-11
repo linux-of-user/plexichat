@@ -52,6 +52,8 @@ dev = [
     "bandit>=1.7.0",
     "semgrep>=1.50.0",
     "pip-audit>=2.7.0",
+    "cython>=3.0.0",
+    "numba>=0.58.0",
 ]
 test = [
     "pytest>=7.4.0",
