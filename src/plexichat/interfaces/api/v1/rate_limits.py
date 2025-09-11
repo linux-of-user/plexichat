@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
+
 # Mock dependencies for standalone execution
 def require_admin():
     def admin_dependency():
@@ -17,6 +18,8 @@ class MockConfigManager:
 
 from plexichat.core.middleware.rate_limiting import get_rate_limiter
 from plexichat.core.middleware.rate_limiting import get_rate_limiter as get_rl
+
+
 class RealRateLimitConfigManager:
     def __init__(self):
         self.limiter = get_rl()

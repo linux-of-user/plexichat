@@ -3,6 +3,7 @@ Authentication utilities for PlexiChat API
 """
 
 import logging
+
 from fastapi import HTTPException, status
 
 try:
@@ -11,7 +12,9 @@ except ImportError:
     database_manager = None
 
 try:
-    from plexichat.core.security.comprehensive_security_manager import get_security_manager
+    from plexichat.core.security.comprehensive_security_manager import (
+        get_security_manager,
+    )
     security_manager = get_security_manager()
 except ImportError:
     security_manager = None

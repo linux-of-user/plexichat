@@ -1,15 +1,16 @@
 import asyncio
-import logging
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Callable, Dict, List, Optional, Any
+import logging
+from typing import Any
 
 try:
-    import typer
     from rich.console import Console
     from rich.panel import Panel
     from rich.table import Table
     from rich.tree import Tree
+    import typer
 except ImportError:
     # This will be handled by the main CLI entry point
     pass
@@ -34,17 +35,17 @@ class UltimateCommand:
     description: str
     category: CommandCategory
     handler: Callable
-    aliases: List[str] = field(default_factory=list)
-    examples: List[str] = field(default_factory=list)
+    aliases: list[str] = field(default_factory=list)
+    examples: list[str] = field(default_factory=list)
     admin_only: bool = False
 
 class UltimateCLICoordinator:
     """Coordinates all commands for the Ultimate CLI."""
 
     def __init__(self):
-        self.commands: Dict[str, UltimateCommand] = {}
-        self.categories: Dict[CommandCategory, List[str]] = {cat: [] for cat in CommandCategory}
-        self.aliases: Dict[str, str] = {}
+        self.commands: dict[str, UltimateCommand] = {}
+        self.categories: dict[CommandCategory, list[str]] = {cat: [] for cat in CommandCategory}
+        self.aliases: dict[str, str] = {}
         self.stats = {"total_commands": 0, "commands_by_category": {}}
 
     def register_command(self, command: UltimateCommand):
@@ -55,13 +56,13 @@ class UltimateCLICoordinator:
             self.aliases[alias] = command.name
         self._update_stats()
 
-    def get_command(self, name: str) -> Optional[UltimateCommand]:
+    def get_command(self, name: str) -> UltimateCommand | None:
         """Get command by name or alias."""
         if name in self.commands:
             return self.commands[name]
         return self.commands.get(self.aliases.get(name))
 
-    def list_commands(self, category_filter: Optional[str] = None):
+    def list_commands(self, category_filter: str | None = None):
         """Prints a list of commands, optionally filtered by category."""
         table = Table(title="PlexiChat Ultimate Commands")
         table.add_column("Command", style="cyan")

@@ -10,14 +10,13 @@ Simple admin functionality with:
 """
 
 from datetime import datetime
-from typing import Optional
-
-from fastapi import APIRouter, HTTPException, Depends, Query
-from pydantic import BaseModel
 import logging
 
-from plexichat.interfaces.api.v1.auth import get_current_user
+from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel
+
 from plexichat.core.authentication import get_auth_manager
+from plexichat.interfaces.api.v1.auth import get_current_user
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/admin", tags=["Admin"])
@@ -41,7 +40,7 @@ class UserAdmin(BaseModel):
     display_name: str
     created_at: datetime
     is_active: bool
-    last_login: Optional[datetime] = None
+    last_login: datetime | None = None
 
 # Utility functions
 async def require_admin(current_user: dict = Depends(get_current_user)) -> dict:
@@ -82,7 +81,7 @@ async def get_system_stats(admin_user: dict = Depends(require_admin)):
 async def list_all_users(
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
-    search: Optional[str] = None,
+    search: str | None = None,
     admin_user: dict = Depends(require_admin)
 ):
     """List all users with admin details."""

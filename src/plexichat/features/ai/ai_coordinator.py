@@ -6,9 +6,9 @@ A simplified version that works without syntax errors.
 """
 
 import asyncio
-import logging
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+import logging
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -83,7 +83,7 @@ class AICoordinator:
         except Exception as e:
             logger.error(f"AI provider testing failed: {e}")
 
-    async def analyze_text_comprehensive(self, text: str, analysis_types: Optional[List[str]] = None) -> Dict[str, Any]:
+    async def analyze_text_comprehensive(self, text: str, analysis_types: list[str] | None = None) -> dict[str, Any]:
         """Comprehensive text analysis using multiple AI capabilities."""
         if analysis_types is None:
             analysis_types = ["sentiment", "entities", "keywords", "language", "classification"]
@@ -121,7 +121,7 @@ class AICoordinator:
             logger.error(f"Comprehensive text analysis failed: {e}")
             return {"success": False, "error": str(e)}
 
-    async def smart_content_moderation(self, content: str, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    async def smart_content_moderation(self, content: str, context: dict[str, Any] | None = None) -> dict[str, Any]:
         """Enhanced content moderation with context awareness."""
         try:
             # Simplified moderation for now
@@ -180,15 +180,15 @@ class AICoordinator:
                 logger.error(f"Model health monitoring failed: {e}")
                 await asyncio.sleep(10)
 
-    def get_usage_analytics(self) -> Dict[str, Any]:
+    def get_usage_analytics(self) -> dict[str, Any]:
         """Get current usage analytics."""
         return self.usage_analytics.copy()
 
-    def get_performance_metrics(self) -> Dict[str, Any]:
+    def get_performance_metrics(self) -> dict[str, Any]:
         """Get current performance metrics."""
         return self.performance_metrics.copy()
 
-    def get_adaptive_settings(self) -> Dict[str, Any]:
+    def get_adaptive_settings(self) -> dict[str, Any]:
         """Get current adaptive settings."""
         return self.adaptive_settings.copy()
 
@@ -216,17 +216,17 @@ class AICoordinator:
                 "error": str(e)
             }
 
-    def get_available_models(self) -> List[Any]:
+    def get_available_models(self) -> list[Any]:
         """Get list of available models."""
         # Return mock models for now
         return []
 
-    def get_model_info(self, model_id: str) -> Optional[Any]:
+    def get_model_info(self, model_id: str) -> Any | None:
         """Get model information."""
         # Return None for now (model not found)
         return None
 
-    def get_health_status(self) -> Dict[str, Any]:
+    def get_health_status(self) -> dict[str, Any]:
         """Get health status."""
         return {
             "status": "healthy",
@@ -242,6 +242,6 @@ class AICoordinator:
             "timestamp": datetime.now().isoformat()
         }
 
-    async def health_check(self) -> Dict[str, Any]:
+    async def health_check(self) -> dict[str, Any]:
         """Perform health check."""
         return self.get_health_status()

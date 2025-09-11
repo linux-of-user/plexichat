@@ -4,10 +4,11 @@
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
 import asyncio
-import logging
 from collections import defaultdict, deque
-from datetime import datetime, timezone
-from typing import Any, Callable, Dict, List
+from collections.abc import Callable
+from datetime import UTC, datetime
+import logging
+from typing import Any
 
 try:
     import psutil
@@ -134,7 +135,7 @@ class MetricsService:
 
     async def _collect_all_metrics(self):
         """Collect all metrics."""
-        timestamp = datetime.now(timezone.utc)
+        timestamp = datetime.now(UTC)
 
         for category, collector in self.metric_categories.items():
             try:
@@ -150,12 +151,12 @@ class MetricsService:
             except Exception as e:
                 self.logger.warning(f"Failed to collect {category} metrics: {e}")
 
-    async def _collect_system_metrics(self) -> Dict[str, float]:
+    async def _collect_system_metrics(self) -> dict[str, float]:
         """Collect general system metrics."""
         try:
             if not psutil: return {}
-            boot_time = datetime.fromtimestamp(psutil.boot_time(), timezone.utc)
-            uptime = (datetime.now(timezone.utc) - boot_time).total_seconds()
+            boot_time = datetime.fromtimestamp(psutil.boot_time(), UTC)
+            uptime = (datetime.now(UTC) - boot_time).total_seconds()
 
             return {
                 "uptime_seconds": uptime,
@@ -166,7 +167,7 @@ class MetricsService:
             self.logger.warning(f"Failed to collect system metrics: {e}")
             return {}
 
-    async def _collect_cpu_metrics(self) -> Dict[str, float]:
+    async def _collect_cpu_metrics(self) -> dict[str, float]:
         """Collect CPU metrics."""
         try:
             if not psutil: return {}
@@ -196,7 +197,7 @@ class MetricsService:
             self.logger.warning(f"Failed to collect CPU metrics: {e}")
             return {}
 
-    async def _collect_memory_metrics(self) -> Dict[str, float]:
+    async def _collect_memory_metrics(self) -> dict[str, float]:
         """Collect memory metrics."""
         try:
             if not psutil: return {}
@@ -217,7 +218,7 @@ class MetricsService:
             self.logger.warning(f"Failed to collect memory metrics: {e}")
             return {}
 
-    async def _collect_disk_metrics(self) -> Dict[str, float]:
+    async def _collect_disk_metrics(self) -> dict[str, float]:
         """Collect disk metrics."""
         try:
             if not psutil: return {}
@@ -248,7 +249,7 @@ class MetricsService:
             self.logger.warning(f"Failed to collect disk metrics: {e}")
             return {}
 
-    async def _collect_network_metrics(self) -> Dict[str, float]:
+    async def _collect_network_metrics(self) -> dict[str, float]:
         """Collect network metrics."""
         try:
             if not psutil: return {}
@@ -272,7 +273,7 @@ class MetricsService:
             self.logger.warning(f"Failed to collect network metrics: {e}")
             return {}
 
-    async def _collect_process_metrics(self) -> Dict[str, float]:
+    async def _collect_process_metrics(self) -> dict[str, float]:
         """Collect process-specific metrics."""
         try:
             if not psutil: return {}
@@ -333,11 +334,11 @@ class MetricsService:
                     "threshold": thresholds["disk_percent"]
                 })
 
-    async def _trigger_alert(self, alert_type: str, data: Dict[str, Any]):
+    async def _trigger_alert(self, alert_type: str, data: dict[str, Any]):
         """Trigger an alert."""
         alert = {
             "type": alert_type,
-            "timestamp": datetime.now(timezone.utc),
+            "timestamp": datetime.now(UTC),
             "data": data
         }
 
@@ -356,7 +357,7 @@ class MetricsService:
     async def _cleanup_old_metrics(self):
         """Clean up old metrics data."""
         retention_hours = self.config.get("retention_hours", 24)
-        cutoff_time = datetime.now(timezone.utc) - timedelta(hours=retention_hours)
+        cutoff_time = datetime.now(UTC) - timedelta(hours=retention_hours)
 
         for metric_key, data_points in self.metrics_data.items():
             while data_points and data_points[0]["timestamp"] < cutoff_time:
@@ -371,19 +372,19 @@ class MetricsService:
         if callback in self.alert_callbacks:
             self.alert_callbacks.remove(callback)
 
-    def get_metric(self, metric_name: str, hours: int = 1) -> List[Dict[str, Any]]:
+    def get_metric(self, metric_name: str, hours: int = 1) -> list[dict[str, Any]]:
         """Get metric data for the specified time period."""
         if metric_name not in self.metrics_data:
             return []
 
-        cutoff_time = datetime.now(timezone.utc) - timedelta(hours=hours)
+        cutoff_time = datetime.now(UTC) - timedelta(hours=hours)
 
         return [
             point for point in self.metrics_data[metric_name]
             if point["timestamp"] >= cutoff_time
         ]
 
-    def get_latest_metrics(self) -> Dict[str, Any]:
+    def get_latest_metrics(self) -> dict[str, Any]:
         """Get the latest values for all metrics."""
         latest = {}
 
@@ -393,7 +394,7 @@ class MetricsService:
 
         return latest
 
-    def get_metric_summary(self, metric_name: str, hours: int = 1) -> Dict[str, float]:
+    def get_metric_summary(self, metric_name: str, hours: int = 1) -> dict[str, float]:
         """Get summary statistics for a metric."""
         data = self.get_metric(metric_name, hours)
 
@@ -410,7 +411,7 @@ class MetricsService:
             "latest": values[-1]
         }
 
-    async def health_check(self) -> Dict[str, Any]:
+    async def health_check(self) -> dict[str, Any]:
         """Perform health check."""
         try:
             collection_running = self.running and self.collection_task and not self.collection_task.done()

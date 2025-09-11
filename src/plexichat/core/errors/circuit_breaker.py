@@ -1,9 +1,10 @@
 import asyncio
-import logging
-import time
+from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Type
+import logging
+import time
+from typing import Any
 
 """
 PlexiChat Circuit Breaker
@@ -30,7 +31,7 @@ class CircuitBreakerConfig:
     failure_threshold: int = 5  # Number of failures before opening
     timeout_seconds: int = 60  # Time to wait before trying again
     recovery_timeout: int = 30  # Time to wait in half-open state
-    expected_exceptions: Optional[List[Type[Exception]]] = None
+    expected_exceptions: list[type[Exception]] | None = None
     success_threshold: int = 3  # Successes needed to close from half-open
 
     def __post_init__(self):
@@ -46,8 +47,8 @@ class CircuitBreakerStats:
         self.successful_calls = 0
         self.failed_calls = 0
         self.circuit_open_count = 0
-        self.last_failure_time: Optional[float] = None
-        self.last_success_time: Optional[float] = None
+        self.last_failure_time: float | None = None
+        self.last_success_time: float | None = None
         self.consecutive_failures = 0
         self.consecutive_successes = 0
 
@@ -63,12 +64,12 @@ class CircuitBreakerError(Exception):
 class CircuitBreaker:
     """Advanced circuit breaker implementation."""
 
-    def __init__(self, name: str, config: Optional[CircuitBreakerConfig] = None):
+    def __init__(self, name: str, config: CircuitBreakerConfig | None = None):
         self.name = name
         self.config = config or CircuitBreakerConfig()
         self.state = CircuitState.CLOSED
         self.stats = CircuitBreakerStats()
-        self.last_failure_time: Optional[float] = None
+        self.last_failure_time: float | None = None
         self.state_change_time = time.time()
         self._lock = asyncio.Lock()
 
@@ -180,7 +181,7 @@ class CircuitBreaker:
         expected_exceptions = self.config.expected_exceptions or []
         return any(isinstance(exception, exc_type) for exc_type in expected_exceptions)
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get circuit breaker statistics."""
         return {
             "name": self.name,
@@ -219,7 +220,7 @@ class CircuitBreaker:
 
 
 # Circuit breaker decorator
-def circuit_breaker(name: str, config: Optional[CircuitBreakerConfig] = None):
+def circuit_breaker(name: str, config: CircuitBreakerConfig | None = None):
     """Decorator to apply circuit breaker to a function."""
     breaker = CircuitBreaker(name, config)
 

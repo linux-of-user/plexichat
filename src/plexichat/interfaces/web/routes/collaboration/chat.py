@@ -3,10 +3,10 @@
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
+import logging
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from typing import Optional
-import logging
 
 from plexichat.core.messaging.unified_messaging_system import get_messaging_system
 
@@ -22,7 +22,7 @@ class MessageRequest(BaseModel):
     user_id: str
     channel_id: str
     content: str
-    message_type: Optional[str] = "text"
+    message_type: str | None = "text"
 
 @router.get("/messages")
 def get_messages(channel_id: str = None):

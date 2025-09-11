@@ -7,15 +7,16 @@
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
 import asyncio
-import hashlib
-import json
-import uuid
 from collections import defaultdict, deque
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set, Tuple
+import hashlib
+import json
 import logging
+from typing import Any
+import uuid
+
 
 # Placeholder imports for dependencies
 class BaseService:
@@ -65,11 +66,11 @@ class CollaborationUser:
     user_id: str
     username: str
     role: UserRole
-    cursor_position: Optional[int] = None
-    selection_start: Optional[int] = None
-    selection_end: Optional[int] = None
+    cursor_position: int | None = None
+    selection_start: int | None = None
+    selection_end: int | None = None
     color: str = "#007bff"
-    last_seen: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    last_seen: datetime = field(default_factory=lambda: datetime.now(UTC))
     is_active: bool = True
 
 @dataclass
@@ -81,8 +82,8 @@ class Operation:
     position: int
     content: str = ""
     length: int = 0
-    attributes: Dict[str, Any] = field(default_factory=dict)
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    attributes: dict[str, Any] = field(default_factory=dict)
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
     parent_version: int = 0
 
 @dataclass
@@ -96,16 +97,16 @@ class CollaborationSession:
     last_modified: datetime
     content: str = ""
     version: int = 0
-    users: Dict[str, CollaborationUser] = field(default_factory=dict)
-    operations: List[Operation] = field(default_factory=list)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    users: dict[str, CollaborationUser] = field(default_factory=dict)
+    operations: list[Operation] = field(default_factory=list)
+    metadata: dict[str, Any] = field(default_factory=dict)
     is_active: bool = True
     max_users: int = 50
 
 class OperationalTransform:
     """Operational Transform algorithm for conflict resolution."""
     @staticmethod
-    def transform_operation(op1: Operation, op2: Operation) -> Tuple[Operation, Operation]:
+    def transform_operation(op1: Operation, op2: Operation) -> tuple[Operation, Operation]:
         """Transform two concurrent operations."""
         if op1.operation_type == OperationType.INSERT and op2.operation_type == OperationType.INSERT:
             return OperationalTransform._transform_insert_insert(op1, op2)
@@ -121,7 +122,7 @@ class OperationalTransform:
             return op1, op2
 
     @staticmethod
-    def _transform_insert_insert(op1: Operation, op2: Operation) -> Tuple[Operation, Operation]:
+    def _transform_insert_insert(op1: Operation, op2: Operation) -> tuple[Operation, Operation]:
         """Transform two concurrent insert operations."""
         if op1.position <= op2.position:
             # op1 comes before op2, adjust op2's position
@@ -151,7 +152,7 @@ class OperationalTransform:
             return op1_prime, op2
 
     @staticmethod
-    def _transform_insert_delete(insert_op: Operation, delete_op: Operation) -> Tuple[Operation, Operation]:
+    def _transform_insert_delete(insert_op: Operation, delete_op: Operation) -> tuple[Operation, Operation]:
         """Transform insert and delete operations."""
         if insert_op.position <= delete_op.position:
             # Insert comes before delete, adjust delete position
@@ -194,7 +195,7 @@ class OperationalTransform:
             return insert_prime, delete_op
 
     @staticmethod
-    def _transform_delete_delete(op1: Operation, op2: Operation) -> Tuple[Operation, Operation]:
+    def _transform_delete_delete(op1: Operation, op2: Operation) -> tuple[Operation, Operation]:
         """Transform two concurrent delete operations."""
         # Handle overlapping deletes
         if op1.position + op1.length <= op2.position:
@@ -223,39 +224,38 @@ class OperationalTransform:
                 parent_version=op1.parent_version
             )
             return op1_prime, op2
+        # Overlapping deletes - complex case
+        # For simplicity, keep the earlier operation
+        elif op1.timestamp <= op2.timestamp:
+            # Adjust op2 to account for op1
+            new_position = max(op1.position, op2.position - op1.length)
+            new_length = max(0, op2.length - max(0, op1.position + op1.length - op2.position))
+            op2_prime = Operation(
+                op_id=op2.op_id,
+                user_id=op2.user_id,
+                operation_type=op2.operation_type,
+                position=new_position,
+                length=new_length,
+                attributes=op2.attributes,
+                timestamp=op2.timestamp,
+                parent_version=op2.parent_version
+            )
+            return op1, op2_prime
         else:
-            # Overlapping deletes - complex case
-            # For simplicity, keep the earlier operation
-            if op1.timestamp <= op2.timestamp:
-                # Adjust op2 to account for op1
-                new_position = max(op1.position, op2.position - op1.length)
-                new_length = max(0, op2.length - max(0, op1.position + op1.length - op2.position))
-                op2_prime = Operation(
-                    op_id=op2.op_id,
-                    user_id=op2.user_id,
-                    operation_type=op2.operation_type,
-                    position=new_position,
-                    length=new_length,
-                    attributes=op2.attributes,
-                    timestamp=op2.timestamp,
-                    parent_version=op2.parent_version
-                )
-                return op1, op2_prime
-            else:
-                # Adjust op1 to account for op2
-                new_position = max(op2.position, op1.position - op2.length)
-                new_length = max(0, op1.length - max(0, op2.position + op2.length - op1.position))
-                op1_prime = Operation(
-                    op_id=op1.op_id,
-                    user_id=op1.user_id,
-                    operation_type=op1.operation_type,
-                    position=new_position,
-                    length=new_length,
-                    attributes=op1.attributes,
-                    timestamp=op1.timestamp,
-                    parent_version=op1.parent_version
-                )
-                return op1_prime, op2
+            # Adjust op1 to account for op2
+            new_position = max(op2.position, op1.position - op2.length)
+            new_length = max(0, op1.length - max(0, op2.position + op2.length - op1.position))
+            op1_prime = Operation(
+                op_id=op1.op_id,
+                user_id=op1.user_id,
+                operation_type=op1.operation_type,
+                position=new_position,
+                length=new_length,
+                attributes=op1.attributes,
+                timestamp=op1.timestamp,
+                parent_version=op1.parent_version
+            )
+            return op1_prime, op2
 
 class CollaborationService(BaseService):
     """Real-time collaboration service."""
@@ -264,15 +264,15 @@ class CollaborationService(BaseService):
         self.config = get_config()
 
         # Session management
-        self.sessions: Dict[str, CollaborationSession] = {}
-        self.user_sessions: Dict[str, Set[str]] = defaultdict(set)  # user_id -> session_ids
+        self.sessions: dict[str, CollaborationSession] = {}
+        self.user_sessions: dict[str, set[str]] = defaultdict(set)  # user_id -> session_ids
 
         # WebSocket connections
-        self.session_connections: Dict[str, Set[Any]] = defaultdict(set)  # session_id -> websockets
-        self.user_connections: Dict[str, Set[Any]] = defaultdict(set)  # user_id -> websockets
+        self.session_connections: dict[str, set[Any]] = defaultdict(set)  # session_id -> websockets
+        self.user_connections: dict[str, set[Any]] = defaultdict(set)  # user_id -> websockets
 
         # Operation queues for processing
-        self.operation_queues: Dict[str, deque] = defaultdict(deque)  # session_id -> operations
+        self.operation_queues: dict[str, deque] = defaultdict(deque)  # session_id -> operations
 
         # Operational transform engine
         self.ot_engine = OperationalTransform()
@@ -283,8 +283,8 @@ class CollaborationService(BaseService):
         self.operation_history_limit = self.config.get("collaboration.operation_history_limit", 1000)
 
         # Background tasks
-        self.cleanup_task: Optional[asyncio.Task] = None
-        self.sync_task: Optional[asyncio.Task] = None
+        self.cleanup_task: asyncio.Task | None = None
+        self.sync_task: asyncio.Task | None = None
 
     async def _initialize(self):
         """Initialize the collaboration service."""
@@ -316,7 +316,7 @@ class CollaborationService(BaseService):
 
         self.logger.info("Collaboration service cleaned up")
 
-    async def _perform_health_check(self) -> Dict[str, Any]:
+    async def _perform_health_check(self) -> dict[str, Any]:
         """Perform collaboration service health check."""
         try:
             checks = {
@@ -328,9 +328,7 @@ class CollaborationService(BaseService):
 
             # Determine health status
             status = ServiceHealth.HEALTHY
-            if checks["total_connections"] > 1000:
-                status = ServiceHealth.DEGRADED
-            elif any(len(queue) > 100 for queue in self.operation_queues.values()):
+            if checks["total_connections"] > 1000 or any(len(queue) > 100 for queue in self.operation_queues.values()):
                 status = ServiceHealth.DEGRADED
 
             return {
@@ -359,8 +357,8 @@ class CollaborationService(BaseService):
             title=title,
             collaboration_type=collaboration_type,
             owner_id=owner_id,
-            created_at=datetime.now(timezone.utc),
-            last_modified=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            last_modified=datetime.now(UTC),
             content=initial_content
         )
 
@@ -493,7 +491,7 @@ class CollaborationService(BaseService):
             # Apply operation to content
             session.content = self._apply_operation_to_content(session.content, transformed_op)
             session.version += 1
-            session.last_modified = datetime.now(timezone.utc)
+            session.last_modified = datetime.now(UTC)
 
             # Add to operation history
             session.operations.append(transformed_op)
@@ -535,7 +533,7 @@ class CollaborationService(BaseService):
             "type": "user_joined",
             "session_id": session_id,
             "user": asdict(user),
-            "timestamp": datetime.now(timezone.utc).isoformat()
+            "timestamp": datetime.now(UTC).isoformat()
         }
         await self._broadcast_to_session(session_id, message)
 
@@ -545,7 +543,7 @@ class CollaborationService(BaseService):
             "type": "user_left",
             "session_id": session_id,
             "user": asdict(user),
-            "timestamp": datetime.now(timezone.utc).isoformat()
+            "timestamp": datetime.now(UTC).isoformat()
         }
         await self._broadcast_to_session(session_id, message)
 
@@ -555,7 +553,7 @@ class CollaborationService(BaseService):
             "type": "ownership_transferred",
             "session_id": session_id,
             "new_owner_id": new_owner_id,
-            "timestamp": datetime.now(timezone.utc).isoformat()
+            "timestamp": datetime.now(UTC).isoformat()
         }
         await self._broadcast_to_session(session_id, message)
 
@@ -565,11 +563,11 @@ class CollaborationService(BaseService):
             "type": "operation",
             "session_id": session_id,
             "operation": asdict(operation),
-            "timestamp": datetime.now(timezone.utc).isoformat()
+            "timestamp": datetime.now(UTC).isoformat()
         }
         await self._broadcast_to_session(session_id, message, exclude_user=operation.user_id)
 
-    async def _broadcast_to_session(self, session_id: str, message: Dict[str, Any], exclude_user: Optional[str] = None):
+    async def _broadcast_to_session(self, session_id: str, message: dict[str, Any], exclude_user: str | None = None):
         """Broadcast message to all users in a session."""
         if session_id not in self.session_connections:
             return
@@ -618,7 +616,7 @@ class CollaborationService(BaseService):
 
     async def _cleanup_inactive_sessions(self):
         """Clean up inactive sessions."""
-        cutoff_time = datetime.now(timezone.utc) - timedelta(hours=self.session_timeout_hours)
+        cutoff_time = datetime.now(UTC) - timedelta(hours=self.session_timeout_hours)
 
         inactive_sessions = []
         for session_id, session in self.sessions.items():
@@ -641,16 +639,16 @@ class CollaborationService(BaseService):
         pass
 
     # Public API methods
-    def get_session(self, session_id: str) -> Optional[CollaborationSession]:
+    def get_session(self, session_id: str) -> CollaborationSession | None:
         """Get a collaboration session."""
         return self.sessions.get(session_id)
 
-    def get_user_sessions(self, user_id: str) -> List[CollaborationSession]:
+    def get_user_sessions(self, user_id: str) -> list[CollaborationSession]:
         """Get all sessions for a user."""
         session_ids = self.user_sessions.get(user_id, set())
         return [self.sessions[sid] for sid in session_ids if sid in self.sessions]
 
-    def get_session_stats(self) -> Dict[str, Any]:
+    def get_session_stats(self) -> dict[str, Any]:
         """Get collaboration statistics."""
         return {
             "total_sessions": len(self.sessions),
@@ -677,7 +675,13 @@ async def get_collaboration_service() -> CollaborationService:
 
 # Export main components
 __all__ = [
-    "CollaborationService", "CollaborationType", "OperationType", "UserRole",
-    "CollaborationUser", "Operation", "CollaborationSession", "OperationalTransform",
+    "CollaborationService",
+    "CollaborationSession",
+    "CollaborationType",
+    "CollaborationUser",
+    "Operation",
+    "OperationType",
+    "OperationalTransform",
+    "UserRole",
     "get_collaboration_service"
 ]

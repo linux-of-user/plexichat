@@ -3,15 +3,15 @@ Advanced AI Moderation Engine
 Supports multiple AI providers, custom training, and progressive learning.
 """
 
+from dataclasses import dataclass, field
+from datetime import UTC, datetime
+from enum import Enum
 import hashlib
 import json
 import logging
-import time
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+import time
+from typing import Any
 
 try:
     import aiohttp
@@ -65,15 +65,15 @@ class ModerationResult:
     confidence_score: float  # 0.0 to 1.0
     recommended_action: ModerationAction
     severity: ModerationSeverity
-    categories: List[ModerationCategory]
+    categories: list[ModerationCategory]
     reasoning: str
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
     processing_time_ms: float = 0.0
     model_used: str = "default"
     requires_human_review: bool = False
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
             "content_id": self.content_id,
@@ -102,8 +102,8 @@ class ModerationConfig:
     human_review_threshold: float = 0.7
     timeout_seconds: int = 30
     max_retries: int = 3
-    custom_prompts: Dict[str, str] = field(default_factory=dict)
-    enabled_categories: Optional[List[ModerationCategory]] = None
+    custom_prompts: dict[str, str] = field(default_factory=dict)
+    enabled_categories: list[ModerationCategory] | None = None
 
     def __post_init__(self):
         if self.enabled_categories is None:
@@ -112,12 +112,12 @@ class ModerationConfig:
 
 class ModerationEngine:
     """Advanced AI moderation engine with multiple provider support."""
-    
+
     def __init__(self, config_path: str = "config/moderation_config.json"):
         """Initialize the moderation engine."""
         self.config_path = Path(config_path)
-        self.configs: Dict[str, ModerationConfig] = {}
-        self.session: Optional[Any] = None  # aiohttp.ClientSession
+        self.configs: dict[str, ModerationConfig] = {}
+        self.session: Any | None = None  # aiohttp.ClientSession
         self.db_path = Path("data/moderation.db")
         self.data_service = None
         self.load_config()
@@ -127,7 +127,7 @@ class ModerationEngine:
         """Load moderation configuration."""
         if self.config_path and self.config_path.exists():
             try:
-                with open(self.config_path, 'r') as f:
+                with open(self.config_path) as f:
                     data = json.load(f)
                     for name, config_data in data.get("providers", {}).items():
                         self.configs[name] = ModerationConfig(**config_data)
@@ -151,7 +151,9 @@ class ModerationEngine:
     def _init_database(self):
         """Initialize the database connection."""
         try:
-            from plexichat.features.ai.moderation.moderation_data_service import ModerationDataService
+            from plexichat.features.ai.moderation.moderation_data_service import (
+                ModerationDataService,
+            )
             self.data_service = ModerationDataService()
         except ImportError:
             logger.warning("ModerationDataService not available")
@@ -162,11 +164,11 @@ class ModerationEngine:
         content: str,
         content_id: str,
         provider: str = "default",
-        user_id: Optional[str] = None
+        user_id: str | None = None
     ) -> ModerationResult:
         """Moderate content using specified provider."""
         start_time = time.time()
-        
+
         try:
             # Check cache first
             content_hash = hashlib.sha256(content.encode()).hexdigest()
@@ -183,14 +185,14 @@ class ModerationEngine:
 
             # Perform moderation
             result = await self._moderate_with_provider(content, content_id, config)
-            
+
             # Calculate processing time
             result.processing_time_ms = (time.time() - start_time) * 1000
-            
+
             # Cache result
             if self.data_service:
                 await self._cache_result(content_hash, result)
-            
+
             return result
 
         except Exception as e:
@@ -202,7 +204,7 @@ class ModerationEngine:
                 recommended_action=ModerationAction.FLAG,
                 severity=ModerationSeverity.MEDIUM,
                 categories=[ModerationCategory.CLEAN],
-                reasoning=f"Moderation failed: {str(e)}",
+                reasoning=f"Moderation failed: {e!s}",
                 processing_time_ms=(time.time() - start_time) * 1000,
                 requires_human_review=True
             )
@@ -235,7 +237,7 @@ class ModerationEngine:
             "Authorization": f"Bearer {config.api_key}",
             "Content-Type": "application/json"
         }
-        
+
         payload = {
             "input": content
         }
@@ -253,7 +255,7 @@ class ModerationEngine:
             ) as response:
                 response.raise_for_status()
                 data = await response.json()
-                
+
                 return self._parse_openai_response(data, content_id, config.model_name)
 
         except Exception as e:
@@ -281,7 +283,7 @@ class ModerationEngine:
 
     def _parse_openai_response(
         self,
-        data: Dict[str, Any],
+        data: dict[str, Any],
         content_id: str,
         model_name: str
     ) -> ModerationResult:
@@ -291,10 +293,10 @@ class ModerationEngine:
             flagged = results.get("flagged", False)
             categories = results.get("categories", {})
             category_scores = results.get("category_scores", {})
-            
+
             # Determine action based on flagged status
             action = ModerationAction.BLOCK if flagged else ModerationAction.ALLOW
-            
+
             # Determine severity based on highest score
             max_score = max(category_scores.values()) if category_scores else 0.0
             if max_score > 0.8:
@@ -305,7 +307,7 @@ class ModerationEngine:
                 severity = ModerationSeverity.MEDIUM
             else:
                 severity = ModerationSeverity.LOW
-            
+
             # Map categories
             detected_categories = []
             for category, detected in categories.items():
@@ -321,10 +323,10 @@ class ModerationEngine:
                         detected_categories.append(ModerationCategory.SEXUAL_CONTENT)
                     elif category == "self-harm":
                         detected_categories.append(ModerationCategory.SELF_HARM)
-            
+
             if not detected_categories:
                 detected_categories = [ModerationCategory.CLEAN]
-            
+
             return ModerationResult(
                 content_id=content_id,
                 confidence_score=max_score,
@@ -335,16 +337,16 @@ class ModerationEngine:
                 model_used=model_name,
                 requires_human_review=flagged and max_score < 0.9
             )
-            
+
         except Exception as e:
             logger.error(f"Failed to parse OpenAI response: {e}")
             raise
 
-    async def _get_cached_result(self, content_hash: str) -> Optional[ModerationResult]:
+    async def _get_cached_result(self, content_hash: str) -> ModerationResult | None:
         """Get cached moderation result."""
         if not self.data_service:
             return None
-        
+
         try:
             return await self.data_service.get_latest_moderation_result_by_hash(content_hash)  # type: ignore
         except Exception as e:
@@ -355,7 +357,7 @@ class ModerationEngine:
         """Cache moderation result."""
         if not self.data_service:
             return
-        
+
         try:
             await self.data_service.add_moderation_result(content_hash, result)  # type: ignore
         except Exception as e:

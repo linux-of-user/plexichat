@@ -40,14 +40,14 @@ send_to_channel = None
 broadcast_message = None
 
 __all__ = [
-    "WebSocketManager",
     "WebSocketConnection",
-    "websocket_manager",
+    "WebSocketManager",
+    "broadcast_message",
     "connect_websocket",
     "disconnect_websocket",
-    "send_to_user",
     "send_to_channel",
-    "broadcast_message",
+    "send_to_user",
+    "websocket_manager",
 ]
 
 from plexichat.core.config_manager import get_config

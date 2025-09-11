@@ -1,11 +1,12 @@
 import asyncio
-import click
-import sys
+from datetime import UTC, datetime, timedelta
 import json
 import logging
 from pathlib import Path
-from typing import Optional, List, Dict, Any
-from datetime import datetime, timezone, timedelta
+import sys
+from typing import Any
+
+import click
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -14,8 +15,14 @@ logging.basicConfig(level=logging.INFO)
 try:
     from plexichat.features.backup.backup_manager import (
         BackupManager as RealBackupManager,
+    )
+    from plexichat.features.backup.backup_manager import (
         BackupStrategy as RealBackupStrategy,
+    )
+    from plexichat.features.backup.backup_manager import (
         BackupType as RealBackupType,
+    )
+    from plexichat.features.backup.backup_manager import (
         RecoveryMode as RealRecoveryMode,
     )
 except Exception:
@@ -42,13 +49,13 @@ class SimpleFileBackupManager:
     async def create_backup(self,
                             data: Any,
                             backup_type: str = "full",
-                            user_id: Optional[str] = None,
-                            data_source: Optional[str] = None,
-                            tags: Optional[List[str]] = None,
-                            retention_days: Optional[int] = 90,
-                            metadata: Optional[Dict[str, Any]] = None,
-                            output_dir: Optional[Path] = None) -> Dict[str, Any]:
-        ts = int(datetime.now(timezone.utc).timestamp() * 1000)
+                            user_id: str | None = None,
+                            data_source: str | None = None,
+                            tags: list[str] | None = None,
+                            retention_days: int | None = 90,
+                            metadata: dict[str, Any] | None = None,
+                            output_dir: Path | None = None) -> dict[str, Any]:
+        ts = int(datetime.now(UTC).timestamp() * 1000)
         backup_id = f"backup_{ts}"
         output_dir = Path(output_dir) if output_dir else self.storage_dir
         output_dir.mkdir(parents=True, exist_ok=True)
@@ -68,7 +75,7 @@ class SimpleFileBackupManager:
         meta = {
             "backup_id": backup_id,
             "name": backup_filename.name,
-            "created_at": datetime.now(timezone.utc).isoformat(),
+            "created_at": datetime.now(UTC).isoformat(),
             "backup_type": backup_type,
             "user_id": user_id,
             "data_source": data_source,
@@ -85,7 +92,7 @@ class SimpleFileBackupManager:
         # For the simple manager, incremental behaves like a full backup.
         return await self.create_backup(*args, **kwargs)
 
-    async def list_backups(self, limit: int = 100, offset: int = 0) -> List[Dict[str, Any]]:
+    async def list_backups(self, limit: int = 100, offset: int = 0) -> list[dict[str, Any]]:
         metas = []
         for p in sorted(self.metadata_dir.glob("backup_*.json"), reverse=True):
             try:
@@ -94,7 +101,7 @@ class SimpleFileBackupManager:
                 continue
         return metas[offset: offset + limit]
 
-    async def delete_backup(self, backup_id: str) -> Dict[str, Any]:
+    async def delete_backup(self, backup_id: str) -> dict[str, Any]:
         meta_path = self.metadata_dir / f"{backup_id}.json"
         data_path = self.storage_dir / f"{backup_id}.bin"
         deleted = False
@@ -106,21 +113,21 @@ class SimpleFileBackupManager:
             deleted = True
         return {"success": deleted}
 
-    async def restore_backup(self, backup_id: str, target_dir: Optional[Path] = None, dry_run: bool = False) -> Dict[str, Any]:
+    async def restore_backup(self, backup_id: str, target_dir: Path | None = None, dry_run: bool = False) -> dict[str, Any]:
         meta_path = self.metadata_dir / f"{backup_id}.json"
         data_path = self.storage_dir / f"{backup_id}.bin"
         if not meta_path.exists() or not data_path.exists():
             return {"success": False, "error": "backup_not_found"}
         if dry_run:
             return {"success": True, "restored_bytes": 0, "dry_run": True}
-        target_dir = Path(target_dir) if target_dir else Path(".")
+        target_dir = Path(target_dir) if target_dir else Path()
         target_dir.mkdir(parents=True, exist_ok=True)
         # Write the data out as-is
         out_path = target_dir / f"restored_{backup_id}.bin"
         out_path.write_bytes(data_path.read_bytes())
         return {"success": True, "restored_path": str(out_path)}
 
-    async def verify_backup(self, backup_id: str, deep_verify: bool = False) -> Dict[str, Any]:
+    async def verify_backup(self, backup_id: str, deep_verify: bool = False) -> dict[str, Any]:
         meta_path = self.metadata_dir / f"{backup_id}.json"
         data_path = self.storage_dir / f"{backup_id}.bin"
         if not meta_path.exists() or not data_path.exists():
@@ -134,7 +141,7 @@ class SimpleFileBackupManager:
         # Scheduling is not supported in the simple manager.
         raise NotImplementedError("scheduling not supported in fallback manager")
 
-    async def get_backup_statistics(self) -> Dict[str, Any]:
+    async def get_backup_statistics(self) -> dict[str, Any]:
         backups = await self.list_backups(limit=1000)
         total = len(backups)
         total_size = sum(b.get("size", 0) for b in backups)
@@ -172,7 +179,7 @@ def run_async(coro):
             loop.close()
 
 
-def format_backup(meta: Dict[str, Any]) -> str:
+def format_backup(meta: dict[str, Any]) -> str:
     created = meta.get("created_at", "")
     btype = meta.get("backup_type", "unknown")
     size = meta.get("size", 0)
@@ -196,7 +203,7 @@ def backup():
 @click.option('--tags', '-g', multiple=True, help='Tags to attach to backup.')
 @click.option('--retention-days', '-r', default=90, type=int, help='Retention period in days.')
 @click.option('--metadata', '-m', default=None, help='Additional JSON metadata.')
-def create(output_dir: str, backup_type: str, data_source: Optional[str], user_id: Optional[str], tags: List[str], retention_days: int, metadata: Optional[str]):
+def create(output_dir: str, backup_type: str, data_source: str | None, user_id: str | None, tags: list[str], retention_days: int, metadata: str | None):
     """Create a backup (full / incremental / differential)."""
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
@@ -221,7 +228,7 @@ def create(output_dir: str, backup_type: str, data_source: Optional[str], user_i
         try:
             result = run_async(
                 backup_manager.create_backup(
-                    data={"generated_by": "cli", "timestamp": datetime.now(timezone.utc).isoformat()},
+                    data={"generated_by": "cli", "timestamp": datetime.now(UTC).isoformat()},
                     backup_strategy=(RealBackupStrategy.SCHEDULED if RealBackupStrategy else None),
                     backup_type=btype_enum,
                     security_level=None,
@@ -241,7 +248,7 @@ def create(output_dir: str, backup_type: str, data_source: Optional[str], user_i
         try:
             result = run_async(
                 backup_manager.create_backup(
-                    data={"generated_by": "cli", "timestamp": datetime.now(timezone.utc).isoformat()},
+                    data={"generated_by": "cli", "timestamp": datetime.now(UTC).isoformat()},
                     backup_type=backup_type,
                     user_id=user_id,
                     data_source=data_source,
@@ -263,7 +270,7 @@ def create(output_dir: str, backup_type: str, data_source: Optional[str], user_i
 @click.argument('backup_id', required=False)
 @click.option('--target-dir', '-t', default='.', help='Directory to restore backup into.')
 @click.option('--dry-run', is_flag=True, default=False, help='Simulate the restore without writing data.')
-def restore(backup_id: Optional[str], target_dir: str, dry_run: bool):
+def restore(backup_id: str | None, target_dir: str, dry_run: bool):
     """Restore a backup. If BACKUP_ID is omitted and manager supports recovery plans, a recovery plan will be used."""
     try:
         if USING_REAL_MANAGER:
@@ -331,7 +338,7 @@ def restore(backup_id: Optional[str], target_dir: str, dry_run: bool):
 @click.option('--limit', '-l', default=100, help='Maximum number of backups to list.')
 @click.option('--offset', default=0, help='Offset into result set.')
 @click.option('--data-source', '-s', default=None, help='Filter by data source.')
-def list_backups(limit: int, offset: int, data_source: Optional[str]):
+def list_backups(limit: int, offset: int, data_source: str | None):
     """List available backups."""
     try:
         results = run_async(backup_manager.list_backups(limit=limit, offset=offset))
@@ -381,7 +388,7 @@ def verify(backup_id: str):
 @click.option('--data-sources', '-s', multiple=True, required=True, help='One or more data source identifiers to back up.')
 @click.option('--backup-type', '-t', type=click.Choice(['full', 'incremental', 'differential']), default='incremental', help='Type of backups to create for schedule.')
 @click.option('--retention-days', '-r', default=90, help='Retention period for scheduled backups.')
-def schedule(name: str, cron: str, data_sources: List[str], backup_type: str, retention_days: int):
+def schedule(name: str, cron: str, data_sources: list[str], backup_type: str, retention_days: int):
     """Create an automated backup schedule."""
     if not USING_REAL_MANAGER:
         click.echo("Automated scheduling is only available when the full backup subsystem is present.", err=True)
@@ -422,7 +429,7 @@ def schedule(name: str, cron: str, data_sources: List[str], backup_type: str, re
 def prune(days: int, dry_run: bool):
     """Delete backups older than X days (retention enforcement)."""
     try:
-        threshold = datetime.now(timezone.utc) - timedelta(days=days)
+        threshold = datetime.now(UTC) - timedelta(days=days)
         backups = run_async(backup_manager.list_backups(limit=10000))
         to_delete = []
         for b in backups:

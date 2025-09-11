@@ -3,10 +3,10 @@ Token Service
 Manages JWT tokens with advanced security features.
 """
 
-import secrets
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, Optional, Tuple
+from datetime import UTC, datetime, timedelta
+import secrets
+from typing import Any
 
 import jwt
 
@@ -25,16 +25,16 @@ class TokenMetadata:
     token_type: str
     issued_at: datetime
     expires_at: datetime
-    device_id: Optional[str] = None
-    ip_address: Optional[str] = None
+    device_id: str | None = None
+    ip_address: str | None = None
     is_revoked: bool = False
-    revocation_reason: Optional[str] = None
+    revocation_reason: str | None = None
 
 
 class TokenService(ITokenService):
     """Advanced JWT token management service."""
 
-    def __init__(self, secret_key: Optional[str] = None):
+    def __init__(self, secret_key: str | None = None):
         super().__init__()
         self.secret_key = secret_key or secrets.token_hex(32)
         self.algorithm = "HS256"
@@ -44,19 +44,19 @@ class TokenService(ITokenService):
         self.audience = "plexichat-users"
 
         # Token storage (in production, use Redis/database)
-        self.active_tokens: Dict[str, TokenMetadata] = {}
-        self.revoked_tokens: Dict[str, TokenMetadata] = {}
+        self.active_tokens: dict[str, TokenMetadata] = {}
+        self.revoked_tokens: dict[str, TokenMetadata] = {}
 
     async def create_access_token(
         self,
         user_id: str,
         permissions: list,
-        device_id: Optional[str] = None,
-        ip_address: Optional[str] = None,
+        device_id: str | None = None,
+        ip_address: str | None = None,
     ) -> str:
         """Create a new access token."""
         token_id = self._generate_token_id()
-        issued_at = datetime.now(timezone.utc)
+        issued_at = datetime.now(UTC)
         expires_at = issued_at + timedelta(seconds=self.access_token_expiry)
 
         payload = {
@@ -92,12 +92,12 @@ class TokenService(ITokenService):
     async def create_refresh_token(
         self,
         user_id: str,
-        device_id: Optional[str] = None,
-        ip_address: Optional[str] = None,
+        device_id: str | None = None,
+        ip_address: str | None = None,
     ) -> str:
         """Create a new refresh token."""
         token_id = self._generate_token_id()
-        issued_at = datetime.now(timezone.utc)
+        issued_at = datetime.now(UTC)
         expires_at = issued_at + timedelta(seconds=self.refresh_token_expiry)
 
         payload = {
@@ -129,7 +129,7 @@ class TokenService(ITokenService):
         logger.info(f"Created refresh token {token_id} for user {user_id}")
         return token
 
-    async def verify_token(self, token: str) -> Tuple[bool, Optional[Dict[str, Any]]]:
+    async def verify_token(self, token: str) -> tuple[bool, dict[str, Any] | None]:
         """Verify and decode a token."""
         try:
             # Decode without verification first to get token_id
@@ -153,7 +153,7 @@ class TokenService(ITokenService):
             )
 
             # Update last activity
-            metadata.last_activity = datetime.now(timezone.utc)
+            metadata.last_activity = datetime.now(UTC)
 
             return True, payload
 
@@ -167,7 +167,7 @@ class TokenService(ITokenService):
             logger.error(f"Token verification error: {e}")
             return False, None
 
-    async def revoke_token(self, token: str, reason: Optional[str] = None) -> bool:
+    async def revoke_token(self, token: str, reason: str | None = None) -> bool:
         """Revoke a token."""
         try:
             decoded = jwt.decode(token, options={"verify_signature": False})
@@ -190,7 +190,7 @@ class TokenService(ITokenService):
             return False
 
     async def revoke_user_tokens(
-        self, user_id: str, reason: Optional[str] = None
+        self, user_id: str, reason: str | None = None
     ) -> int:
         """Revoke all tokens for a user."""
         revoked_count = 0
@@ -213,7 +213,7 @@ class TokenService(ITokenService):
 
         return revoked_count
 
-    async def refresh_access_token(self, refresh_token: str) -> Optional[str]:
+    async def refresh_access_token(self, refresh_token: str) -> str | None:
         """Create new access token using refresh token."""
         valid, payload = await self.verify_token(refresh_token)
 
@@ -239,7 +239,7 @@ class TokenService(ITokenService):
     async def cleanup_expired_tokens(self) -> int:
         """Clean up expired tokens."""
         expired_tokens = []
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         for token_id, metadata in self.active_tokens.items():
             if now > metadata.expires_at:

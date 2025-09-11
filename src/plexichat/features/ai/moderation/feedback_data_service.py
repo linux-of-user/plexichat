@@ -1,4 +1,5 @@
-from typing import Any, Dict, List, Optional
+from typing import Any
+
 
 class FeedbackDataService:
     def __init__(self):
@@ -8,16 +9,16 @@ class FeedbackDataService:
         except ImportError:
             self.db_manager = None
 
-    async def add_feedback_data(self, feedback: Dict[str, Any]):
+    async def add_feedback_data(self, feedback: dict[str, Any]):
         if self.db_manager:
             await self.db_manager.add_feedback_data(feedback)
 
-    async def get_feedback_data(self, filters: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
+    async def get_feedback_data(self, filters: dict[str, Any] | None = None) -> list[dict[str, Any]]:
         if self.db_manager:
             return await self.db_manager.get_feedback_data(filters)
         return []
 
-    async def update_feedback_data(self, feedback_id: int, updates: Dict[str, Any]):
+    async def update_feedback_data(self, feedback_id: int, updates: dict[str, Any]):
         if self.db_manager:
             await self.db_manager.update_feedback_data(feedback_id, updates)
 
@@ -35,13 +36,13 @@ class FeedbackDataService:
         if self.db_manager:
             await self.db_manager.mark_feedback_processed(content_id, user_id)  # type: ignore
 
-    async def get_feedback_stats(self, days: int) -> Dict[str, Any]:
+    async def get_feedback_stats(self, days: int) -> dict[str, Any]:
         """Get feedback statistics."""
         if self.db_manager:
             return await self.db_manager.get_feedback_stats(days)  # type: ignore
         return {"total": 0, "processed": 0, "pending": 0}
 
-    async def get_user_feedback_history(self, user_id: str, limit: int) -> List[Dict[str, Any]]:
+    async def get_user_feedback_history(self, user_id: str, limit: int) -> list[dict[str, Any]]:
         """Get user feedback history."""
         if self.db_manager:
             return await self.db_manager.get_user_feedback_history(user_id, limit)  # type: ignore

@@ -10,10 +10,11 @@ Features:
 """
 
 import asyncio
-import inspect
+from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional
+import inspect
+from typing import Any
 
 from plexichat.core.logging import get_logger
 
@@ -39,8 +40,8 @@ class SecurityPlugin:
 
     name: str
     version: str
-    hooks: Dict[SecurityHookType, Callable]
-    metadata: Dict[str, Any]
+    hooks: dict[SecurityHookType, Callable]
+    metadata: dict[str, Any]
     enabled: bool = True
 
 
@@ -49,9 +50,9 @@ class HookContext:
     """Context passed to security hooks."""
 
     hook_type: SecurityHookType
-    data: Dict[str, Any]
-    security_context: Optional[Any] = None
-    plugin_context: Dict[str, Any] = None
+    data: dict[str, Any]
+    security_context: Any | None = None
+    plugin_context: dict[str, Any] = None
 
 
 class SecurityPluginManager:
@@ -65,7 +66,7 @@ class SecurityPluginManager:
     - Event-driven security extensions
     """
 
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self, config: dict[str, Any]):
         self.config = config
         self.enabled = config.get("enabled", True)
 
@@ -74,8 +75,8 @@ class SecurityPluginManager:
             return
 
         # Plugin storage
-        self.plugins: Dict[str, SecurityPlugin] = {}
-        self.hook_subscriptions: Dict[SecurityHookType, List[str]] = {}
+        self.plugins: dict[str, SecurityPlugin] = {}
+        self.hook_subscriptions: dict[SecurityHookType, list[str]] = {}
 
         # Plugin security settings
         self.security_extensions_enabled = config.get("security_extensions", True)
@@ -91,7 +92,7 @@ class SecurityPluginManager:
 
         logger.info("Security plugin manager initialized")
 
-    def register_plugin(self, plugin_info: Dict[str, Any]) -> bool:
+    def register_plugin(self, plugin_info: dict[str, Any]) -> bool:
         """
         Register a security plugin.
 
@@ -170,7 +171,7 @@ class SecurityPluginManager:
         logger.info(f"Security plugin {plugin_name} unregistered")
         return True
 
-    def _validate_plugin_structure(self, plugin_info: Dict[str, Any]) -> bool:
+    def _validate_plugin_structure(self, plugin_info: dict[str, Any]) -> bool:
         """Validate plugin structure and requirements."""
         required_fields = ["name", "hooks"]
         for field in required_fields:
@@ -198,7 +199,7 @@ class SecurityPluginManager:
 
     async def execute_hook(
         self, hook_type: SecurityHookType, context: HookContext
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Execute all plugins subscribed to a hook type.
 
@@ -260,7 +261,7 @@ class SecurityPluginManager:
 
     async def run_security_checks(
         self, request_data: Any, security_context: Any
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Run security checks through registered plugins.
 
@@ -311,11 +312,11 @@ class SecurityPluginManager:
 
         except Exception as e:
             logger.error(f"Error running plugin security checks: {e}")
-            return {"allowed": True, "message": f"Plugin check error: {str(e)}"}
+            return {"allowed": True, "message": f"Plugin check error: {e!s}"}
 
     async def validate_file_upload(
         self, filename: str, content_type: str, file_size: int, context: Any
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Validate file upload through plugins.
 
@@ -373,11 +374,11 @@ class SecurityPluginManager:
 
         except Exception as e:
             logger.error(f"Error in plugin file validation: {e}")
-            return {"allowed": True, "message": f"Plugin validation error: {str(e)}"}
+            return {"allowed": True, "message": f"Plugin validation error: {e!s}"}
 
     async def validate_message_content(
         self, content: str, context: Any
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Validate message content through plugins.
 
@@ -429,7 +430,7 @@ class SecurityPluginManager:
 
         except Exception as e:
             logger.error(f"Error in plugin content validation: {e}")
-            return {"allowed": True, "message": f"Plugin validation error: {str(e)}"}
+            return {"allowed": True, "message": f"Plugin validation error: {e!s}"}
 
     async def notify_security_event(self, event: Any):
         """
@@ -451,7 +452,7 @@ class SecurityPluginManager:
         except Exception as e:
             logger.error(f"Error notifying plugins of security event: {e}")
 
-    def get_plugin_status(self) -> Dict[str, Any]:
+    def get_plugin_status(self) -> dict[str, Any]:
         """Get status of all registered plugins."""
         if not self.enabled:
             return {"enabled": False}
@@ -492,7 +493,7 @@ class SecurityPluginManager:
             return True
         return False
 
-    def update_plugin_config(self, plugin_name: str, config: Dict[str, Any]) -> bool:
+    def update_plugin_config(self, plugin_name: str, config: dict[str, Any]) -> bool:
         """Update configuration for a specific plugin."""
         if plugin_name in self.plugins:
             self.plugins[plugin_name].metadata.update(config)
@@ -500,11 +501,11 @@ class SecurityPluginManager:
             return True
         return False
 
-    def get_available_hooks(self) -> List[str]:
+    def get_available_hooks(self) -> list[str]:
         """Get list of available hook types."""
         return [hook.value for hook in SecurityHookType]
 
-    def update_config(self, new_config: Dict[str, Any]):
+    def update_config(self, new_config: dict[str, Any]):
         """Update plugin manager configuration."""
         if not self.enabled:
             return
@@ -536,4 +537,4 @@ class SecurityPluginManager:
         logger.info("Security plugin manager shut down")
 
 
-__all__ = ["SecurityPluginManager", "SecurityPlugin", "SecurityHookType", "HookContext"]
+__all__ = ["HookContext", "SecurityHookType", "SecurityPlugin", "SecurityPluginManager"]

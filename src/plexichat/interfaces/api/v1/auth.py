@@ -1,14 +1,12 @@
 import logging
-from typing import Optional
 
-from fastapi import APIRouter, HTTPException, Depends, status, Request
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, EmailStr, Field
 
-from plexichat.core.authentication import get_auth_manager, MFAMethod
 # from plexichat.core.authentication import get_auth_manager  # Duplicate import removed
-from plexichat.core.authentication import get_auth_manager
-from plexichat.core.auth.fastapi_adapter import rate_limit, get_current_user
+from plexichat.core.auth.fastapi_adapter import get_current_user, rate_limit
+from plexichat.core.authentication import MFAMethod, get_auth_manager
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 security = HTTPBearer()
@@ -66,7 +64,7 @@ class MFAVerifyResponse(BaseModel):
     """Response model for MFA verification."""
     success: bool
     message: str
-    access_token: Optional[str] = None
+    access_token: str | None = None
 
 
 

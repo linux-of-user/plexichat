@@ -1,5 +1,5 @@
 import logging
-from typing import List, Optional
+
 
 # Mock for standalone execution
 class MockLogicEngine:
@@ -16,10 +16,10 @@ logger = logging.getLogger(__name__)
 
 class AutomationCLI:
     """CLI interface for automation and logic engine."""
-    def __init__(self, logic_engine: Optional[MockLogicEngine] = None):
+    def __init__(self, logic_engine: MockLogicEngine | None = None):
         self.logic_engine = logic_engine or MockLogicEngine()
 
-    async def cmd_automation(self, args: List[str]):
+    async def cmd_automation(self, args: list[str]):
         """Main automation command handler."""
         if not args:
             self.show_automation_help()
@@ -42,7 +42,7 @@ class AutomationCLI:
         """Shows help for automation commands."""
         logger.info("Available automation commands: list, show, run")
 
-    async def cmd_automation_list(self, args: List[str]):
+    async def cmd_automation_list(self, args: list[str]):
         """Lists all automation rules."""
         rules = self.logic_engine.list_rules()
         if not rules:
@@ -51,7 +51,7 @@ class AutomationCLI:
         for rule in rules:
             logger.info(f"- {rule.get('name')} ({'enabled' if rule.get('enabled') else 'disabled'})")
 
-    async def cmd_automation_show(self, args: List[str]):
+    async def cmd_automation_show(self, args: list[str]):
         """Shows detailed information for a rule."""
         if not args:
             logger.error("Usage: automation show <rule_id>")
@@ -63,7 +63,7 @@ class AutomationCLI:
         else:
             logger.info(f"Details for rule {rule_id}: {status}")
 
-    async def cmd_automation_run(self, args: List[str]):
+    async def cmd_automation_run(self, args: list[str]):
         """Manually executes an automation rule."""
         if not args:
             logger.error("Usage: automation run <rule_id>")
@@ -75,7 +75,7 @@ class AutomationCLI:
         else:
             logger.error(f"Rule '{rule_id}' failed: {result.error}")
 
-async def handle_automation_command(args: List[str]):
+async def handle_automation_command(args: list[str]):
     """Handle automation CLI commands."""
     cli = AutomationCLI()
     await cli.cmd_automation(args)

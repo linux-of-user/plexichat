@@ -5,24 +5,24 @@ AI Command Line Interface for PlexiChat
 Command-line interface for AI management and operations.
 """
 
-import logging
 import asyncio
+import logging
 
 logger = logging.getLogger(__name__)
 
 
 class AICommandLineInterface:
     """Command-line interface for AI operations."""
-    
+
     def __init__(self):
         """Initialize the AI CLI."""
         self.logger = logger
-        
+
     async def start_interactive_mode(self):
         """Start interactive CLI mode."""
         print("AI CLI Interactive Mode")
         print("Type 'help' for available commands or 'exit' to quit.")
-        
+
         while True:
             try:
                 command = input("ai> ").strip()
@@ -37,7 +37,7 @@ class AICommandLineInterface:
                 break
             except Exception as e:
                 print(f"Error: {e}")
-    
+
     def _show_help(self):
         """Show available commands."""
         help_text = """
@@ -49,12 +49,12 @@ Available Commands:
   exit/quit     - Exit the CLI
         """
         print(help_text)
-    
+
     async def _process_command(self, command: str):
         """Process a CLI command."""
         parts = command.split()
         cmd = parts[0].lower()
-        
+
         if cmd == 'status':
             await self._show_status()
         elif cmd == 'models':
@@ -65,7 +65,7 @@ Available Commands:
         else:
             print(f"Unknown command: {cmd}")
             print("Type 'help' for available commands.")
-    
+
     async def _show_status(self):
         """Show AI system status."""
         try:
@@ -75,7 +75,7 @@ Available Commands:
             print("Active models: 3")
         except Exception as e:
             print(f"Failed to get status: {e}")
-    
+
     async def _list_models(self):
         """List available AI models."""
         try:
@@ -90,7 +90,7 @@ Available Commands:
                 print(f"  - {model}")
         except Exception as e:
             print(f"Failed to list models: {e}")
-    
+
     async def _test_ai(self, text: str):
         """Test AI with sample text."""
         try:

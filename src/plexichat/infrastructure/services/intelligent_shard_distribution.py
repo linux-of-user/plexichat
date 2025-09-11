@@ -7,10 +7,10 @@
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
 from dataclasses import dataclass
-from typing import List, Optional
 import logging
 
 from sqlmodel import Session, select
+
 
 # Placeholder imports for dependencies
 class DeviceCapabilityReport: pass
@@ -39,14 +39,14 @@ class DeviceScore:
     geographic_score: float
     load_score: float
     network_score: float
-    reasons: List[str]
+    reasons: list[str]
 
 
 @dataclass
 class ShardPlacementPlan:
     """Plan for placing a shard across multiple devices."""
     shard_id: int
-    target_devices: List[DeviceScore]
+    target_devices: list[DeviceScore]
     redundancy_achieved: int
     geographic_distribution: bool
     user_preference_satisfied: bool
@@ -73,7 +73,7 @@ class IntelligentShardDistribution:
         self,
         shard: EnhancedBackupShard,
         backup: EnhancedBackup,
-        strategy_name: Optional[str] = None
+        strategy_name: str | None = None
     ) -> ShardPlacementPlan:
         """Intelligently distribute a shard to optimal devices."""
         try:
@@ -113,7 +113,7 @@ class IntelligentShardDistribution:
             logger.error(f"Failed to distribute shard {shard.id}: {e}")
             raise
 
-    async def _get_available_devices(self, strategy: ShardDistributionStrategy) -> List[StorageDevice]:
+    async def _get_available_devices(self, strategy: ShardDistributionStrategy) -> list[StorageDevice]:
         """Get devices available for shard storage based on strategy criteria."""
         statement = select(StorageDevice).where(
             (StorageDevice.status == DeviceStatus.ONLINE) &
@@ -180,9 +180,9 @@ class IntelligentShardDistribution:
         self,
         shard: EnhancedBackupShard,
         backup: EnhancedBackup,
-        devices: List[StorageDevice],
+        devices: list[StorageDevice],
         strategy: ShardDistributionStrategy
-    ) -> List[DeviceScore]:
+    ) -> list[DeviceScore]:
         """Score devices for optimal shard placement."""
         device_scores = []
 
@@ -208,8 +208,8 @@ class IntelligentShardDistribution:
         device: StorageDevice,
         shard: EnhancedBackupShard,
         backup: EnhancedBackup,
-        backup_owner: Optional[EnhancedUser],
-        shard_messages: List[Message],
+        backup_owner: EnhancedUser | None,
+        shard_messages: list[Message],
         strategy: ShardDistributionStrategy
     ) -> DeviceScore:
         """Calculate comprehensive score for device suitability."""
@@ -309,10 +309,10 @@ class IntelligentShardDistribution:
 
     async def _select_optimal_devices(
         self,
-        device_scores: List[DeviceScore],
+        device_scores: list[DeviceScore],
         target_redundancy: int,
         strategy: ShardDistributionStrategy
-    ) -> List[DeviceScore]:
+    ) -> list[DeviceScore]:
         """Select optimal devices ensuring diversity and redundancy."""
         selected_devices = []
         used_device_ids = set()
@@ -378,13 +378,13 @@ class IntelligentShardDistribution:
         self,
         shard: EnhancedBackupShard,
         backup: EnhancedBackup
-    ) -> List[Message]:
+    ) -> list[Message]:
         """Get messages that are contained in this shard (simplified)."""
         # This is a simplified implementation
         # In practice, you'd need to track which messages are in which shards
         return []
 
-    async def _check_geographic_distribution(self, devices: List[DeviceScore]) -> bool:
+    async def _check_geographic_distribution(self, devices: list[DeviceScore]) -> bool:
         """Check if devices provide good geographic distribution."""
         # Simplified implementation
         return len(devices) >= 3
@@ -393,13 +393,13 @@ class IntelligentShardDistribution:
         self,
         shard: EnhancedBackupShard,
         backup: EnhancedBackup,
-        devices: List[DeviceScore]
+        devices: list[DeviceScore]
     ) -> bool:
         """Check if user preferences are satisfied."""
         # Simplified implementation
         return True
 
-    async def _calculate_placement_reliability(self, devices: List[DeviceScore]) -> float:
+    async def _calculate_placement_reliability(self, devices: list[DeviceScore]) -> float:
         """Calculate overall reliability of the placement."""
         if not devices:
             return 0.0
@@ -430,7 +430,7 @@ class IntelligentShardDistribution:
             created_by=1  # System user
         )
 
-    async def _get_strategy(self, strategy_name: Optional[str]) -> ShardDistributionStrategy:
+    async def _get_strategy(self, strategy_name: str | None) -> ShardDistributionStrategy:
         """Get distribution strategy by name or return default."""
         if strategy_name:
             strategy = self.session.exec(

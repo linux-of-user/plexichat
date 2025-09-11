@@ -5,13 +5,13 @@ Thread management with performance optimization and database integration.
 """
 
 import asyncio
-import logging
-import threading
-import time
 from collections.abc import Awaitable, Callable
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
+import logging
 from queue import Empty, Queue
+import threading
+import time
 from typing import Any, ParamSpec, TypeVar
 
 try:

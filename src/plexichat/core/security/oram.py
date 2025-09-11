@@ -1,6 +1,6 @@
 import math
 import random
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 class Block:
@@ -17,13 +17,13 @@ class Bucket:
 
     def __init__(self, capacity: int):
         self.capacity = capacity
-        self.blocks: List[Block] = []
+        self.blocks: list[Block] = []
 
     def add_block(self, block: Block):
         if len(self.blocks) < self.capacity:
             self.blocks.append(block)
 
-    def get_blocks(self) -> List[Block]:
+    def get_blocks(self) -> list[Block]:
         return self.blocks
 
     def clear(self):
@@ -41,13 +41,13 @@ class PathORAM:
         self.num_nodes = 2 ** (self.height + 1) - 1
 
         # Tree: list of buckets, indexed by node id (0 = root)
-        self.tree: List[Bucket] = [Bucket(bucket_size) for _ in range(self.num_nodes)]
+        self.tree: list[Bucket] = [Bucket(bucket_size) for _ in range(self.num_nodes)]
 
         # Position map: logical id -> leaf position
-        self.position_map: Dict[int, int] = {}
+        self.position_map: dict[int, int] = {}
 
         # Stash for temporary blocks
-        self.stash: List[Block] = []
+        self.stash: list[Block] = []
 
         # Initialize with dummy blocks
         self._initialize_dummies()
@@ -59,7 +59,7 @@ class PathORAM:
                 dummy = Block(-1, None, is_dummy=True)
                 self.tree[node].add_block(dummy)
 
-    def _get_path(self, leaf: int) -> List[int]:
+    def _get_path(self, leaf: int) -> list[int]:
         """Get the path from root to leaf."""
         path = []
         current = leaf
@@ -68,7 +68,7 @@ class PathORAM:
             current = (current - 1) // 2
         return path[::-1]  # root to leaf
 
-    def _read_path(self, leaf: int) -> List[Block]:
+    def _read_path(self, leaf: int) -> list[Block]:
         """Read all blocks on the path to leaf."""
         path = self._get_path(leaf)
         blocks = []
@@ -76,7 +76,7 @@ class PathORAM:
             blocks.extend(self.tree[node].get_blocks())
         return blocks
 
-    def _write_path(self, leaf: int, blocks: List[Block]):
+    def _write_path(self, leaf: int, blocks: list[Block]):
         """Write blocks back to the path, distributing evenly."""
         path = self._get_path(leaf)
         # Clear existing blocks on path
@@ -94,7 +94,7 @@ class PathORAM:
         # Remaining blocks go to stash
         self.stash.extend(blocks[block_idx:])
 
-    def access(self, op: str, block_id: int, data: Any = None) -> Optional[Any]:
+    def access(self, op: str, block_id: int, data: Any = None) -> Any | None:
         """
         Access a block: 'read' or 'write'.
         For write, provide data.

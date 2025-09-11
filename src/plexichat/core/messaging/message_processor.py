@@ -7,11 +7,11 @@ Message processing with threading and performance optimization.
 
 
 import asyncio
-import logging
-import time
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+import logging
+import time
+from typing import Any
 
 try:
     from plexichat.core.database.manager import database_manager, execute_query
@@ -29,8 +29,10 @@ except ImportError:
     submit_task = None
 
 try:
-    from plexichat.core.logging import MetricType  # type: ignore
-    from plexichat.core.logging import get_performance_logger
+    from plexichat.core.logging import (
+        MetricType,  # type: ignore
+        get_performance_logger,
+    )
     from plexichat.core.performance.optimization_engine import (
         PerformanceOptimizationEngine,
     )
@@ -49,12 +51,12 @@ class MessageData:
 
     message_id: str
     sender_id: int
-    recipient_id: Optional[int]
-    channel_id: Optional[int]
+    recipient_id: int | None
+    channel_id: int | None
     content: str
     message_type: str
     timestamp: datetime
-    metadata: Dict[str, Any]
+    metadata: dict[str, Any]
 
 
 class MessageProcessor:
@@ -104,7 +106,7 @@ class MessageProcessor:
 
                 self.message_queue.task_done()
 
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 continue
             except Exception as e:
                 logger.error(f"Message processing error: {e}")
@@ -165,7 +167,7 @@ class MessageProcessor:
                 )
             raise
 
-    def _process_text_message(self, message: MessageData) -> Dict[str, Any]:
+    def _process_text_message(self, message: MessageData) -> dict[str, Any]:
         """Process text message."""
         try:
             # Extract mentions
@@ -194,7 +196,7 @@ class MessageProcessor:
             logger.error(f"Error processing text message: {e}")
             return {"error": str(e)}
 
-    def _process_image_message(self, message: MessageData) -> Dict[str, Any]:
+    def _process_image_message(self, message: MessageData) -> dict[str, Any]:
         """Process image message."""
         try:
             # Extract image metadata from message
@@ -211,7 +213,7 @@ class MessageProcessor:
             logger.error(f"Error processing image message: {e}")
             return {"error": str(e)}
 
-    def _process_file_message(self, message: MessageData) -> Dict[str, Any]:
+    def _process_file_message(self, message: MessageData) -> dict[str, Any]:
         """Process file message."""
         try:
             # Extract file metadata
@@ -229,7 +231,7 @@ class MessageProcessor:
             logger.error(f"Error processing file message: {e}")
             return {"error": str(e)}
 
-    def _process_system_message(self, message: MessageData) -> Dict[str, Any]:
+    def _process_system_message(self, message: MessageData) -> dict[str, Any]:
         """Process system message."""
         try:
             return {
@@ -241,7 +243,7 @@ class MessageProcessor:
             logger.error(f"Error processing system message: {e}")
             return {"error": str(e)}
 
-    def _process_default_message(self, message: MessageData) -> Dict[str, Any]:
+    def _process_default_message(self, message: MessageData) -> dict[str, Any]:
         """Default message processing."""
         return {
             "message_type": message.message_type,
@@ -249,21 +251,21 @@ class MessageProcessor:
             "content_length": len(message.content),
         }
 
-    def _extract_mentions(self, content: str) -> List[str]:
+    def _extract_mentions(self, content: str) -> list[str]:
         """Extract @mentions from content."""
         import re
 
         mentions = re.findall(r"@(\w+)", content)
         return list(set(mentions))
 
-    def _extract_hashtags(self, content: str) -> List[str]:
+    def _extract_hashtags(self, content: str) -> list[str]:
         """Extract #hashtags from content."""
         import re
 
         hashtags = re.findall(r"#(\w+)", content)
         return list(set(hashtags))
 
-    def _extract_urls(self, content: str) -> List[str]:
+    def _extract_urls(self, content: str) -> list[str]:
         """Extract URLs from content."""
 
         url_pattern = r"https?://[^\s<>]+"

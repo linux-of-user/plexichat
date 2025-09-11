@@ -5,11 +5,11 @@ Handles rich text formatting for messages with markdown-like syntax.
 Provides parsing, rendering, and sanitization for secure message display.
 """
 
-import html
-import re
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional
+import html
+import re
+from typing import Any
 
 
 class FormatType(Enum):
@@ -30,7 +30,7 @@ class FormatElement:
 
     type: FormatType
     content: str
-    metadata: Optional[Dict[str, Any]] = None
+    metadata: dict[str, Any] | None = None
 
 
 class MessageFormatter:
@@ -63,7 +63,7 @@ class MessageFormatter:
         self.allowed_tags = {"strong", "em", "code", "pre", "a", "span"}
         self.allowed_attributes = {"a": ["href", "title"], "span": ["class"]}
 
-    def parse_message(self, content: str) -> List[FormatElement]:
+    def parse_message(self, content: str) -> list[FormatElement]:
         """
         Parse message content into formatted elements.
 
@@ -124,7 +124,7 @@ class MessageFormatter:
 
         return elements
 
-    def render_html(self, elements: List[FormatElement]) -> str:
+    def render_html(self, elements: list[FormatElement]) -> str:
         """
         Render formatted elements as sanitized HTML.
 
@@ -178,49 +178,49 @@ class MessageFormatter:
         elements = self.parse_message(content)
         return self.render_html(elements)
 
-    def _process_bold(self, match) -> Optional[FormatElement]:
+    def _process_bold(self, match) -> FormatElement | None:
         """Process bold formatting."""
         content = match.group(1)
         if content:
             return FormatElement(type=FormatType.BOLD, content=content)
         return None
 
-    def _process_bold_alt(self, match) -> Optional[FormatElement]:
+    def _process_bold_alt(self, match) -> FormatElement | None:
         """Process alternative bold formatting."""
         content = match.group(1)
         if content:
             return FormatElement(type=FormatType.BOLD, content=content)
         return None
 
-    def _process_italic(self, match) -> Optional[FormatElement]:
+    def _process_italic(self, match) -> FormatElement | None:
         """Process italic formatting."""
         content = match.group(1)
         if content:
             return FormatElement(type=FormatType.ITALIC, content=content)
         return None
 
-    def _process_italic_alt(self, match) -> Optional[FormatElement]:
+    def _process_italic_alt(self, match) -> FormatElement | None:
         """Process alternative italic formatting."""
         content = match.group(1)
         if content:
             return FormatElement(type=FormatType.ITALIC, content=content)
         return None
 
-    def _process_code(self, match) -> Optional[FormatElement]:
+    def _process_code(self, match) -> FormatElement | None:
         """Process inline code formatting."""
         content = match.group(1)
         if content:
             return FormatElement(type=FormatType.CODE, content=content)
         return None
 
-    def _process_code_block(self, match) -> Optional[FormatElement]:
+    def _process_code_block(self, match) -> FormatElement | None:
         """Process code block formatting."""
         content = match.group(1)
         if content:
             return FormatElement(type=FormatType.CODE_BLOCK, content=content)
         return None
 
-    def _process_link(self, match) -> Optional[FormatElement]:
+    def _process_link(self, match) -> FormatElement | None:
         """Process link formatting."""
         text = match.group(1)
         url = match.group(2)
@@ -230,7 +230,7 @@ class MessageFormatter:
             )
         return None
 
-    def _process_mention(self, match) -> Optional[FormatElement]:
+    def _process_mention(self, match) -> FormatElement | None:
         """Process mention formatting."""
         username = match.group(1)
         if username:
@@ -289,6 +289,6 @@ def format_message_content(content: str) -> str:
     return message_formatter.format_message(content)
 
 
-def parse_message_elements(content: str) -> List[FormatElement]:
+def parse_message_elements(content: str) -> list[FormatElement]:
     """Convenience function to parse message elements."""
     return message_formatter.parse_message(content)

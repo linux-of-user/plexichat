@@ -1,9 +1,10 @@
-from typing import Dict, List, Optional
 from datetime import datetime
-from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File
-from pydantic import BaseModel, EmailStr, Field
 import os
 import uuid
+
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
+from pydantic import BaseModel, EmailStr, Field
+
 
 # Mock user dependency
 def get_current_user():
@@ -12,30 +13,30 @@ def get_current_user():
 router = APIRouter(prefix="/users", tags=["Users"])
 
 # In-memory storage for demonstration
-users_db: Dict[str, Dict] = {}
+users_db: dict[str, dict] = {}
 
 class UserProfile(BaseModel):
     id: str
     username: str
     email: EmailStr
-    display_name: Optional[str] = None
-    bio: Optional[str] = None
-    avatar_url: Optional[str] = None
-    status: Optional[str] = None
-    timezone: Optional[str] = None
-    language: Optional[str] = None
-    theme: Optional[str] = None
+    display_name: str | None = None
+    bio: str | None = None
+    avatar_url: str | None = None
+    status: str | None = None
+    timezone: str | None = None
+    language: str | None = None
+    theme: str | None = None
     created_at: datetime
 
 class UserUpdate(BaseModel):
-    display_name: Optional[str] = None
-    email: Optional[EmailStr] = None
-    bio: Optional[str] = Field(None, max_length=500)
-    avatar_url: Optional[str] = None
-    status: Optional[str] = None
-    timezone: Optional[str] = None
-    language: Optional[str] = None
-    theme: Optional[str] = None
+    display_name: str | None = None
+    email: EmailStr | None = None
+    bio: str | None = Field(None, max_length=500)
+    avatar_url: str | None = None
+    status: str | None = None
+    timezone: str | None = None
+    language: str | None = None
+    theme: str | None = None
 
 @router.get("/me", response_model=UserProfile)
 async def get_my_profile(current_user: dict = Depends(get_current_user)):
@@ -81,7 +82,7 @@ async def get_user_profile(user_id: str):
         raise HTTPException(status_code=404, detail="User not found")
     return UserProfile(**users_db[user_id])
 
-@router.get("/", response_model=List[UserProfile])
+@router.get("/", response_model=list[UserProfile])
 async def list_users(limit: int = Query(20, ge=1, le=100), offset: int = Query(0, ge=0)):
     """List all users (paginated)."""
     all_users = [UserProfile(**u) for u in users_db.values()]

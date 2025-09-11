@@ -4,14 +4,15 @@ PlexiChat Main API
 Main API application with threading and performance optimization.
 """
 
+from collections.abc import Awaitable, Callable
+from contextlib import asynccontextmanager
 import json
 import logging
 import time
 import uuid
-from contextlib import asynccontextmanager
-from typing import Callable, Awaitable
+
 try:
-    from fastapi import FastAPI, Request, HTTPException
+    from fastapi import FastAPI, HTTPException, Request
     from fastapi.middleware.cors import CORSMiddleware
     from fastapi.middleware.gzip import GZipMiddleware
     from fastapi.responses import JSONResponse
@@ -34,7 +35,10 @@ except ImportError:
     database_manager = None
 
 try:
-    from plexichat.core.threading.thread_manager import thread_manager, async_thread_manager
+    from plexichat.core.threading.thread_manager import (
+        async_thread_manager,
+        thread_manager,
+    )
 except ImportError:
     thread_manager = None
     async_thread_manager = None

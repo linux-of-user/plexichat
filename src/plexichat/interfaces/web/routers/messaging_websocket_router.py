@@ -4,16 +4,21 @@
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
 
-import json
 from datetime import datetime
-from typing import Optional
+import json
 
-from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect, status
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    WebSocket,
+    WebSocketDisconnect,
+    status,
+)
 from fastapi.responses import JSONResponse
 
-from plexichat.features.users.user import User
-
 from plexichat.core.auth.fastapi_adapter import get_auth_adapter
+from plexichat.features.users.user import User
 from plexichat.websockets.messaging_websocket import messaging_websocket_manager
 
 """
@@ -30,7 +35,7 @@ logger = get_logger(__name__)
 router = APIRouter(prefix="/ws", tags=["WebSocket Messaging"])
 
 
-async def get_websocket_user(websocket: WebSocket, token: Optional[str] = None) -> Optional[User]:
+async def get_websocket_user(websocket: WebSocket, token: str | None = None) -> User | None:
     """Get user from WebSocket connection token."""
     try:
         if not token:
@@ -270,8 +275,8 @@ async def get_messaging_stats(current_user: User = Depends(get_auth_adapter().ge
 @router.post("/messaging/broadcast")
 async def broadcast_admin_message(
     message: str,
-    channel_id: Optional[int] = None,
-    guild_id: Optional[int] = None,
+    channel_id: int | None = None,
+    guild_id: int | None = None,
     current_user: User = Depends(get_auth_adapter().get_current_user)
 ):
     """

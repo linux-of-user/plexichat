@@ -1,8 +1,9 @@
 import asyncio
-import click
 import json
 import sys
-from typing import Optional
+
+import click
+
 
 # Mock objects for standalone execution
 class MockSystemMonitor:
@@ -29,7 +30,7 @@ def status():
 
 @system.command()
 @click.option('--service', '-s', help='Specific service to restart')
-def restart(service: Optional[str]):
+def restart(service: str | None):
     """Restart system services."""
     if service:
         click.echo(f"Restarting service: {service}...")
@@ -51,7 +52,7 @@ def health():
 
 @system.command()
 @click.option('--output', '-o', help='Output file for system info')
-def info(output: Optional[str]):
+def info(output: str | None):
     """Get detailed system information."""
     system_info = {
         "version": settings.get('version', 'N/A'),

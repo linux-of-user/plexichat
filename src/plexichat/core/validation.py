@@ -3,12 +3,11 @@ PlexiChat Core Validation
 Essential validation functions for the entire application.
 """
 
+from dataclasses import dataclass
 import json
 import logging
 import re
-from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
-
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -18,9 +17,9 @@ class ValidationResult:
     """Validation result."""
 
     valid: bool
-    errors: List[str]
-    warnings: List[str]
-    cleaned_data: Dict[str, Any]
+    errors: list[str]
+    warnings: list[str]
+    cleaned_data: dict[str, Any]
 
 
 class Validator:
@@ -31,7 +30,7 @@ class Validator:
         value: Any,
         min_length: int = 0,
         max_length: int = 1000,
-        pattern: Optional[str] = None,
+        pattern: str | None = None,
         required: bool = True,
     ) -> ValidationResult:
         """Validate string value."""
@@ -86,8 +85,8 @@ class Validator:
     @staticmethod
     def validate_integer(
         value: Any,
-        min_value: Optional[int] = None,
-        max_value: Optional[int] = None,
+        min_value: int | None = None,
+        max_value: int | None = None,
         required: bool = True,
     ) -> ValidationResult:
         """Validate integer value."""
@@ -191,14 +190,14 @@ class Validator:
             parsed_data = json.loads(data)
             cleaned_data["value"] = parsed_data
         except json.JSONDecodeError as e:
-            errors.append(f"Invalid JSON: {str(e)}")
+            errors.append(f"Invalid JSON: {e!s}")
 
         return ValidationResult(len(errors) == 0, errors, warnings, cleaned_data)
 
 
 # Convenience functions
 def validate_required_fields(
-    data: Dict[str, Any], required_fields: List[str]
+    data: dict[str, Any], required_fields: list[str]
 ) -> ValidationResult:
     """Validate that all required fields are present."""
     errors = []
@@ -245,8 +244,8 @@ validator = Validator()
 __all__ = [
     "ValidationResult",
     "Validator",
-    "validator",
-    "validate_required_fields",
-    "sanitize_input",
     "is_safe_path",
+    "sanitize_input",
+    "validate_required_fields",
+    "validator",
 ]

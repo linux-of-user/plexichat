@@ -1,14 +1,12 @@
 from datetime import datetime
-from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, Field
 
+from plexichat.core.authentication import get_auth_manager
 from plexichat.core.messaging.unified_messaging_system import get_messaging_system
 from plexichat.core.services.message_threads_service import get_message_threads_service
-from plexichat.core.authentication import get_auth_manager
-from fastapi import HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 security = HTTPBearer()
 
@@ -37,26 +35,26 @@ router = APIRouter(prefix="/threads", tags=["Threads"])
 
 class ThreadCreate(BaseModel):
     title: str = Field(..., max_length=200, description="Thread title")
-    parent_message_id: Optional[str] = Field(None, description="Parent message ID if replying to a message")
+    parent_message_id: str | None = Field(None, description="Parent message ID if replying to a message")
 
 class ThreadResponse(BaseModel):
     thread_id: str
     title: str
-    channel_id: Optional[str]
+    channel_id: str | None
     creator_id: str
-    parent_message_id: Optional[str]
+    parent_message_id: str | None
     is_resolved: bool
     participant_count: int
     message_count: int
-    last_message_at: Optional[datetime]
+    last_message_at: datetime | None
     created_at: datetime
     updated_at: datetime
-    participants: List[str]
+    participants: list[str]
 
 class ThreadMessageCreate(BaseModel):
     content: str = Field(..., max_length=10000, description="Message content")
     message_type: str = Field("text", description="Message type")
-    reply_to: Optional[str] = Field(None, description="Reply to message ID")
+    reply_to: str | None = Field(None, description="Reply to message ID")
 
 class ThreadUpdate(BaseModel):
     title: str = Field(..., max_length=200, description="New thread title")
@@ -120,7 +118,7 @@ async def get_thread(thread_id: str, current_user: dict = Depends(get_current_us
         "replies": replies
     }
 
-@router.get("/", response_model=List[ThreadResponse])
+@router.get("/", response_model=list[ThreadResponse])
 async def get_threads(
     channel_id: str = Query(..., description="Channel ID to filter threads"),
     limit: int = Query(50, ge=1, le=100),

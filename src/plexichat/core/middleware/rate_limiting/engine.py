@@ -15,12 +15,12 @@ from this package, while we keep backward-compatible wrappers for old modules.
 from __future__ import annotations
 
 import asyncio
-import hashlib
-import time
 from collections import defaultdict, deque
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Deque, Dict, Optional, Tuple
+import hashlib
+import time
+from typing import Any
 
 try:
     from fastapi import Request, Response, status
@@ -95,8 +95,8 @@ class RateLimitConfig:
     delete_requests_per_minute: int = 20
     patch_requests_per_minute: int = 40
     # Overrides and multipliers
-    endpoint_overrides: Dict[str, Dict[str, int]] = field(default_factory=dict)
-    user_tier_multipliers: Dict[str, float] = field(
+    endpoint_overrides: dict[str, dict[str, int]] = field(default_factory=dict)
+    user_tier_multipliers: dict[str, float] = field(
         default_factory=lambda: {
             "guest": 0.5,
             "user": 1.0,
@@ -132,7 +132,7 @@ class TokenBucket:
                 return True
             return False
 
-    def info(self) -> Dict[str, float]:
+    def info(self) -> dict[str, float]:
         return {
             "capacity": self.capacity,
             "tokens": self.tokens,
@@ -144,7 +144,7 @@ class SlidingWindow:
     def __init__(self, window_seconds: int, max_requests: int):
         self.window_seconds = window_seconds
         self.max_requests = max_requests
-        self.requests: Deque[float] = deque()
+        self.requests: deque[float] = deque()
         self.lock = asyncio.Lock()
 
     async def add(self) -> bool:
@@ -210,7 +210,7 @@ class RateLimitViolation:
 
 
 class UnifiedRateLimiter:
-    def __init__(self, config: Optional[RateLimitConfig] = None):
+    def __init__(self, config: RateLimitConfig | None = None):
         # Coerce config from dict if needed
         if isinstance(config, dict):
             cfg = RateLimitConfig()
@@ -277,16 +277,16 @@ class UnifiedRateLimiter:
         except Exception:
             pass
         # State
-        self.token_buckets: Dict[str, TokenBucket] = {}
-        self.sliding_windows: Dict[str, SlidingWindow] = {}
-        self.fixed_windows: Dict[str, FixedWindow] = {}
-        self.blocked: Dict[str, float] = {}
+        self.token_buckets: dict[str, TokenBucket] = {}
+        self.sliding_windows: dict[str, SlidingWindow] = {}
+        self.fixed_windows: dict[str, FixedWindow] = {}
+        self.blocked: dict[str, float] = {}
         self.stats = defaultdict(int)
         # Concurrency and bandwidth tracking
-        self.concurrent: Dict[str, int] = defaultdict(int)
+        self.concurrent: dict[str, int] = defaultdict(int)
         from collections import deque
 
-        self.bandwidth: Dict[str, Deque[Tuple[float, int]]] = defaultdict(
+        self.bandwidth: dict[str, deque[tuple[float, int]]] = defaultdict(
             lambda: deque(maxlen=1000)
         )
 
@@ -324,7 +324,7 @@ class UnifiedRateLimiter:
             return "global"
         return "unknown"
 
-    def _limits(self, strategy: RateLimitStrategy, request: Request) -> Tuple[int, int]:
+    def _limits(self, strategy: RateLimitStrategy, request: Request) -> tuple[int, int]:
         # Endpoint override
         endpoint = request.url.path if hasattr(request, "url") else ""
         if self.config.endpoint_overrides.get(endpoint):
@@ -373,7 +373,7 @@ class UnifiedRateLimiter:
             self.sliding_windows[key] = SlidingWindow(window, max_req)
         return await self.sliding_windows[key].add()
 
-    async def check(self, request: Request) -> Optional[RateLimitViolation]:
+    async def check(self, request: Request) -> RateLimitViolation | None:
         if not self.config.enabled:
             return None
         now = time.time()
@@ -427,17 +427,17 @@ class UnifiedRateLimiter:
             return 60
         return 300
 
-    def stats_summary(self) -> Dict[str, Any]:
+    def stats_summary(self) -> dict[str, Any]:
         return {
             "total_requests": self.stats.get("total_requests", 0),
             "blocked_requests": self.stats.get("blocked_requests", 0),
         }
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Public accessor for statistics."""
         return self.stats_summary()
 
-    def get_config_summary(self) -> Dict[str, Any]:
+    def get_config_summary(self) -> dict[str, Any]:
         """Return a summary of current rate limiting configuration."""
         return {
             "enabled": getattr(self.config, "enabled", True),
@@ -463,7 +463,7 @@ class UnifiedRateLimiter:
         """Enable or disable rate limiting."""
         self.config.enabled = bool(enabled)
 
-    def add_endpoint_override(self, path: str, limits: Dict[str, int]) -> None:
+    def add_endpoint_override(self, path: str, limits: dict[str, int]) -> None:
         """Add or update per-endpoint rate limits."""
         self.config.endpoint_overrides[path] = limits
 
@@ -484,7 +484,7 @@ class UnifiedRateLimiter:
 
     async def check_user_action(
         self, user_id: str, endpoint: str
-    ) -> Tuple[bool, Dict[str, Any]]:
+    ) -> tuple[bool, dict[str, Any]]:
         """Check rate limiting for a given user and endpoint without a Request object."""
         # Enforce per-user and per-route strategies using default algorithm and 60s window
         # Build keys as used internally
@@ -549,7 +549,7 @@ class UnifiedRateLimiter:
 
     async def check_ip_action(
         self, ip_address: str, endpoint: str = "/"
-    ) -> Tuple[bool, Dict[str, Any]]:
+    ) -> tuple[bool, dict[str, Any]]:
         """Check rate limiting for a given IP and endpoint without a Request object."""
         # Keys consistent with internal strategies
         ip_key = f"ip:{ip_address}"
@@ -594,7 +594,7 @@ class UnifiedRateLimiter:
 
 
 class RateLimitMiddleware(BaseHTTPMiddleware):
-    def __init__(self, app, config: Optional[RateLimitConfig] = None):
+    def __init__(self, app, config: RateLimitConfig | None = None):
         super().__init__(app)
         self.limiter = UnifiedRateLimiter(config)
 
@@ -689,7 +689,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
 
 # Convenience accessors
-_global: Optional[UnifiedRateLimiter] = None
+_global: UnifiedRateLimiter | None = None
 
 
 def get_rate_limiter() -> UnifiedRateLimiter:

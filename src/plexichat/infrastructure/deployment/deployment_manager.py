@@ -6,15 +6,16 @@ monitoring setup, disaster recovery, and production deployment.
 """
 
 import asyncio
+from dataclasses import dataclass, field
+from datetime import datetime
 import logging
 import os
 import subprocess
 import tempfile
 import time
+from typing import Any
+
 import yaml
-from dataclasses import dataclass, field
-from datetime import datetime
-from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -26,8 +27,8 @@ class DeploymentConfig:
     version: str
     docker_image: str
     replicas: int = 3
-    resources: Dict[str, Any] = field(default_factory=dict)
-    environment_variables: Dict[str, str] = field(default_factory=dict)
+    resources: dict[str, Any] = field(default_factory=dict)
+    environment_variables: dict[str, str] = field(default_factory=dict)
     health_check_path: str = "/health"
     readiness_probe_path: str = "/ready"
     monitoring_enabled: bool = True
@@ -42,10 +43,10 @@ class DeploymentResult:
     version: str
     status: str  # success, failed, rollback
     start_time: datetime
-    end_time: Optional[datetime] = None
+    end_time: datetime | None = None
     duration: float = 0.0
-    error_message: Optional[str] = None
-    rollback_version: Optional[str] = None
+    error_message: str | None = None
+    rollback_version: str | None = None
     health_checks_passed: bool = False
     monitoring_setup: bool = False
 
@@ -185,7 +186,7 @@ class ContainerManager:
         try:
             result = subprocess.run(
                 ["docker", "--version"],
-                capture_output=True,
+                check=False, capture_output=True,
                 text=True,
                 timeout=10
             )
@@ -261,7 +262,7 @@ class KubernetesDeployer:
         try:
             result = subprocess.run(
                 ["kubectl", "version", "--client"],
-                capture_output=True,
+                check=False, capture_output=True,
                 text=True,
                 timeout=10
             )
@@ -311,7 +312,7 @@ class KubernetesDeployer:
 
         return result
 
-    def _create_deployment_manifest(self, config: DeploymentConfig) -> Dict[str, Any]:
+    def _create_deployment_manifest(self, config: DeploymentConfig) -> dict[str, Any]:
         """Create Kubernetes deployment manifest."""
         return {
             "apiVersion": "apps/v1",
@@ -371,7 +372,7 @@ class KubernetesDeployer:
             }
         }
 
-    async def _apply_manifest(self, manifest: Dict[str, Any]) -> bool:
+    async def _apply_manifest(self, manifest: dict[str, Any]) -> bool:
         """Apply Kubernetes manifest."""
         try:
             # Write manifest to temporary file
@@ -405,7 +406,7 @@ class DeploymentManager:
         self.documentation_generator = DocumentationGenerator()
         self.container_manager = ContainerManager()
         self.kubernetes_deployer = KubernetesDeployer()
-        self.deployment_history: List[DeploymentResult] = []
+        self.deployment_history: list[DeploymentResult] = []
 
     async def deploy(self, config: DeploymentConfig) -> DeploymentResult:
         """Execute full deployment pipeline."""
@@ -450,7 +451,7 @@ class DeploymentManager:
 
         return result
 
-    def get_deployment_history(self, limit: int = 10) -> List[DeploymentResult]:
+    def get_deployment_history(self, limit: int = 10) -> list[DeploymentResult]:
         """Get deployment history."""
         return sorted(
             self.deployment_history,
@@ -463,11 +464,11 @@ class DeploymentManager:
 deployment_manager = DeploymentManager()
 
 __all__ = [
+    "ContainerManager",
     "DeploymentConfig",
+    "DeploymentManager",
     "DeploymentResult",
     "DocumentationGenerator",
-    "ContainerManager",
     "KubernetesDeployer",
-    "DeploymentManager",
     "deployment_manager"
 ]

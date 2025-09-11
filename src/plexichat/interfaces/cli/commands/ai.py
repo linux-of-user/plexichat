@@ -1,7 +1,7 @@
 import argparse
 import asyncio
 import logging
-from typing import Optional
+
 
 # Mock objects for standalone execution
 class MockAIAbstractionLayer:
@@ -32,7 +32,7 @@ class AICommandLineInterface:
     def __init__(self):
         self.ai_layer = MockAIAbstractionLayer()
 
-    async def list_models(self, provider: Optional[str] = None):
+    async def list_models(self, provider: str | None = None):
         """List AI models."""
         logger.info("Listing models...")
 

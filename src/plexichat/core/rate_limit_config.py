@@ -1,8 +1,8 @@
+from dataclasses import dataclass, field
 import json
 import logging
-from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 try:
     from plexichat.core.middleware.rate_limiting import (  # type: ignore
@@ -30,8 +30,8 @@ except ImportError:
         patch_requests_per_minute: int = 40
         global_requests_per_minute: int = 10000
         global_burst_limit: int = 500
-        endpoint_overrides: Dict[str, Any] = field(default_factory=dict)
-        user_tier_multipliers: Dict[str, float] = field(
+        endpoint_overrides: dict[str, Any] = field(default_factory=dict)
+        user_tier_multipliers: dict[str, float] = field(
             default_factory=lambda: {
                 "guest": 0.5,
                 "user": 1.0,
@@ -76,12 +76,12 @@ class EndpointRateLimit:
     """Rate limit configuration for a specific endpoint."""
 
     path: str
-    user: Optional[str] = None
-    per_ip_requests_per_minute: Optional[int] = None
-    per_user_requests_per_minute: Optional[int] = None
-    per_route_requests_per_minute: Optional[int] = None
-    burst_limit: Optional[int] = None
-    algorithm: Optional[str] = None
+    user: str | None = None
+    per_ip_requests_per_minute: int | None = None
+    per_user_requests_per_minute: int | None = None
+    per_route_requests_per_minute: int | None = None
+    burst_limit: int | None = None
+    algorithm: str | None = None
     enabled: bool = True
 
 
@@ -175,7 +175,7 @@ class RateLimitConfigManager:
         """Load configuration from file."""
         try:
             if self.config_file.exists():
-                with open(self.config_file, "r") as f:
+                with open(self.config_file) as f:
                     data = json.load(f)
 
                 # Update config with loaded data
@@ -248,7 +248,7 @@ class RateLimitConfigManager:
         self.save_config()
         logger.info(f"Updated user tier multiplier: {tier} = {multiplier}")
 
-    def get_effective_limits_for_user(self, user_tier: str = "guest") -> Dict[str, int]:
+    def get_effective_limits_for_user(self, user_tier: str = "guest") -> dict[str, int]:
         """Get effective rate limits for a user tier."""
         multiplier = self._config.user_tier_multipliers.get(user_tier, 1.0)
 
@@ -281,7 +281,7 @@ class RateLimitConfigManager:
 
 
 # Global configuration manager
-_config_manager: Optional[RateLimitConfigManager] = None
+_config_manager: RateLimitConfigManager | None = None
 
 
 def get_rate_limit_config_manager() -> RateLimitConfigManager:
@@ -297,10 +297,10 @@ def get_rate_limit_config() -> RateLimitConfig:
     return get_rate_limit_config_manager().get_config()
 
 __all__ = [
-    "RateLimitConfig",
     "EndpointRateLimit",
-    "RateLimitConfigManager",
-    "get_rate_limit_config_manager",
-    "get_rate_limit_config",
     "IPBlacklistConfig",
+    "RateLimitConfig",
+    "RateLimitConfigManager",
+    "get_rate_limit_config",
+    "get_rate_limit_config_manager",
 ]

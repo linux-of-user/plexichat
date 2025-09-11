@@ -14,22 +14,19 @@ Uses EXISTING database abstraction and optimization systems.
 """
 
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Set
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from pydantic import BaseModel, Field
 
-# Unified logging
-from plexichat.core.logging import get_logger
-
 # Unified FastAPI auth adapter
-from plexichat.core.auth.fastapi_adapter import (
-    get_current_user,
-    require_admin
-)
+from plexichat.core.auth.fastapi_adapter import get_current_user, require_admin
 
 # Unified auth manager for service integration
 from plexichat.core.authentication import get_auth_manager
+
+# Unified logging
+from plexichat.core.logging import get_logger
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/users", tags=["users"])
@@ -42,9 +39,11 @@ except ImportError:
 
 # Use EXISTING performance optimization engine
 try:
-    from plexichat.core.performance.optimization_engine import PerformanceOptimizationEngine
-    from plexichat.infrastructure.utils.performance import async_track_performance
     from plexichat.core.logging import get_performance_logger, timer
+    from plexichat.core.performance.optimization_engine import (
+        PerformanceOptimizationEngine,
+    )
+    from plexichat.infrastructure.utils.performance import async_track_performance
 except ImportError:
     PerformanceOptimizationEngine = None
     async_track_performance = None
@@ -66,12 +65,19 @@ optimization_engine = PerformanceOptimizationEngine() if PerformanceOptimization
 
 # Import enhanced security decorators
 try:
-    from plexichat.core.security.security_decorators import (
-        secure_endpoint, admin_endpoint, require_auth, rate_limit, audit_access,
-        SecurityLevel, RequiredPermission
-    )
     from plexichat.core.logging import (
-        get_logging_system, LogCategory, PerformanceTracker
+        LogCategory,
+        PerformanceTracker,
+        get_logging_system,
+    )
+    from plexichat.core.security.security_decorators import (
+        RequiredPermission,
+        SecurityLevel,
+        admin_endpoint,
+        audit_access,
+        rate_limit,
+        require_auth,
+        secure_endpoint,
     )
     ENHANCED_SECURITY_AVAILABLE = True
 
@@ -138,10 +144,10 @@ class UserCreate(BaseModel):
     is_admin: bool = False
 
 class UserUpdate(BaseModel):
-    username: Optional[str] = Field(None, min_length=3, max_length=50)
-    email: Optional[str] = Field(None, pattern=r'^[^@]+@[^@]+\.[^@]+$')
-    is_active: Optional[bool] = None
-    is_admin: Optional[bool] = None
+    username: str | None = Field(None, min_length=3, max_length=50)
+    email: str | None = Field(None, pattern=r'^[^@]+@[^@]+\.[^@]+$')
+    is_active: bool | None = None
+    is_admin: bool | None = None
 
 class UserResponse(BaseModel):
     id: int
@@ -150,10 +156,10 @@ class UserResponse(BaseModel):
     is_active: bool
     is_admin: bool
     created_at: datetime
-    last_login: Optional[datetime] = None
+    last_login: datetime | None = None
 
 class UserListResponse(BaseModel):
-    users: List[UserResponse]
+    users: list[UserResponse]
     total_count: int
     page: int
     per_page: int
@@ -244,7 +250,7 @@ class UserService:
         )
 
     @async_track_performance("user_list") if async_track_performance else lambda f: f
-    async def list_users(self, limit: int = 50, offset: int = 0, search: Optional[str] = None) -> UserListResponse:
+    async def list_users(self, limit: int = 50, offset: int = 0, search: str | None = None) -> UserListResponse:
         """List users using EXISTING database abstraction layer."""
         if self.db_manager:
             try:
@@ -390,7 +396,7 @@ user_service = UserService()
 async def create_user(
     request: Request,
     user_data: UserCreate,
-    current_user: Dict[str, Any] = Depends(require_admin)
+    current_user: dict[str, Any] = Depends(require_admin)
 ):
     """Create a new user with enhanced security and auditing (admin only)."""
     client_ip = request.client.host if request.client else "unknown"
@@ -434,7 +440,7 @@ async def create_user(
             # Register user with unified auth manager to keep systems in sync
             try:
                 auth_manager = get_auth_manager()
-                permissions: Set[str] = set()
+                permissions: set[str] = set()
                 if user_data.is_admin:
                     permissions.add("admin")
                 # register_user is synchronous in the UnifiedAuthManager
@@ -470,7 +476,7 @@ async def create_user(
         # Register user with unified auth manager to keep systems in sync
         try:
             auth_manager = get_auth_manager()
-            permissions: Set[str] = set()
+            permissions: set[str] = set()
             if user_data.is_admin:
                 permissions.add("admin")
             registered = auth_manager.register_user(user_data.username, user_data.password, permissions)
@@ -490,8 +496,8 @@ async def list_users(
     request: Request,
     limit: int = Query(50, ge=1, le=100, description="Number of users to retrieve"),
     offset: int = Query(0, ge=0, description="Number of users to skip"),
-    search: Optional[str] = Query(None, description="Search term for username or email"),
-    current_user: Dict[str, Any] = Depends(require_admin)
+    search: str | None = Query(None, description="Search term for username or email"),
+    current_user: dict[str, Any] = Depends(require_admin)
 ):
     """List users with pagination and search (admin only)."""
     client_ip = request.client.host if request.client else "unknown"
@@ -511,7 +517,7 @@ async def list_users(
 async def get_user(
     request: Request,
     user_id: int,
-    current_user: Dict[str, Any] = Depends(get_current_user)
+    current_user: dict[str, Any] = Depends(get_current_user)
 ):
     """Get user by ID (users can view their own profile, admins can view any)."""
     client_ip = request.client.host if request.client else "unknown"

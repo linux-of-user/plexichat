@@ -6,16 +6,17 @@
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
-import logging
-import re
-from typing import Any, Dict, Callable
-import os
+from collections.abc import Callable
 import html
 import json
+import logging
+import os
+import re
+from typing import Any
 
 # Pydantic imports
 try:
-    from pydantic import BaseModel, validator, ValidationError
+    from pydantic import BaseModel, ValidationError, validator
 except ImportError:
     BaseModel = object
     validator = lambda *args, **kwargs: lambda f: f
@@ -23,9 +24,11 @@ except ImportError:
 
 # Use EXISTING performance optimization engine
 try:
-    from plexichat.core.performance.optimization_engine import PerformanceOptimizationEngine
-    from plexichat.infrastructure.utils.performance import async_track_performance
     from plexichat.core.logging import get_performance_logger
+    from plexichat.core.performance.optimization_engine import (
+        PerformanceOptimizationEngine,
+    )
+    from plexichat.infrastructure.utils.performance import async_track_performance
 except ImportError:
     PerformanceOptimizationEngine = None
     async_track_performance = None
@@ -41,7 +44,7 @@ class ValidationUtilities:
     def __init__(self):
         self.performance_logger = performance_logger
 
-    def validate_email(self, email: str) -> Dict[str, Any]:
+    def validate_email(self, email: str) -> dict[str, Any]:
         """Validate email address."""
         try:
             result = {"valid": True, "errors": []}
@@ -78,7 +81,7 @@ class ValidationUtilities:
             logger.error(f"Email validation error: {e}")
             return {"valid": False, "errors": ["Validation error"]}
 
-    def validate_username(self, username: str) -> Dict[str, Any]:
+    def validate_username(self, username: str) -> dict[str, Any]:
         """Validate username."""
         try:
             result = {"valid": True, "errors": []}
@@ -115,7 +118,7 @@ class ValidationUtilities:
             logger.error(f"Username validation error: {e}")
             return {"valid": False, "errors": ["Validation error"]}
 
-    def validate_password(self, password: str) -> Dict[str, Any]:
+    def validate_password(self, password: str) -> dict[str, Any]:
         """Validate password strength."""
         try:
             result = {"valid": True, "errors": [], "score": 0, "strength": "weak"}
@@ -181,7 +184,7 @@ class ValidationUtilities:
             logger.error(f"Password validation error: {e}")
             return {"valid": False, "errors": ["Validation error"], "score": 0, "strength": "unknown"}
 
-    def validate_file_upload(self, filename: str, content_type: str, file_size: int) -> Dict[str, Any]:
+    def validate_file_upload(self, filename: str, content_type: str, file_size: int) -> dict[str, Any]:
         """Validate file upload."""
         try:
             result = {"valid": True, "errors": [], "warnings": []}
@@ -243,7 +246,7 @@ class ValidationUtilities:
             logger.error(f"File validation error: {e}")
             return {"valid": False, "errors": ["Validation error"], "warnings": []}
 
-    def validate_url(self, url: str) -> Dict[str, Any]:
+    def validate_url(self, url: str) -> dict[str, Any]:
         """Validate URL."""
         try:
             result = {"valid": True, "errors": []}
@@ -314,7 +317,7 @@ class ValidationUtilities:
             logger.error(f"Input sanitization error: {e}")
             return str(input_data)[:max_length] if input_data else ""
 
-    def validate_json(self, json_data: str) -> Dict[str, Any]:
+    def validate_json(self, json_data: str) -> dict[str, Any]:
         """Validate JSON data."""
         try:
             result = {"valid": True, "errors": [], "data": None}
@@ -329,7 +332,7 @@ class ValidationUtilities:
                 result["data"] = parsed_data
             except json.JSONDecodeError as e:
                 result["valid"] = False
-                result["errors"].append(f"Invalid JSON: {str(e)}")
+                result["errors"].append(f"Invalid JSON: {e!s}")
 
             return result
         except Exception as e:
@@ -340,23 +343,23 @@ class ValidationUtilities:
 validation_utils = ValidationUtilities()
 
 # Convenience functions
-def validate_email(email: str) -> Dict[str, Any]:
+def validate_email(email: str) -> dict[str, Any]:
     """Validate email address."""
     return validation_utils.validate_email(email)
 
-def validate_username(username: str) -> Dict[str, Any]:
+def validate_username(username: str) -> dict[str, Any]:
     """Validate username."""
     return validation_utils.validate_username(username)
 
-def validate_password(password: str) -> Dict[str, Any]:
+def validate_password(password: str) -> dict[str, Any]:
     """Validate password."""
     return validation_utils.validate_password(password)
 
-def validate_file_upload(filename: str, content_type: str, file_size: int) -> Dict[str, Any]:
+def validate_file_upload(filename: str, content_type: str, file_size: int) -> dict[str, Any]:
     """Validate file upload."""
     return validation_utils.validate_file_upload(filename, content_type, file_size)
 
-def validate_url(url: str) -> Dict[str, Any]:
+def validate_url(url: str) -> dict[str, Any]:
     """Validate URL."""
     return validation_utils.validate_url(url)
 
@@ -364,7 +367,7 @@ def sanitize_input(input_data: str, max_length: int = 1000) -> str:
     """Sanitize user input."""
     return validation_utils.sanitize_input(input_data, max_length)
 
-def validate_json(json_data: str) -> Dict[str, Any]:
+def validate_json(json_data: str) -> dict[str, Any]:
     """Validate JSON data."""
     return validation_utils.validate_json(json_data)
 

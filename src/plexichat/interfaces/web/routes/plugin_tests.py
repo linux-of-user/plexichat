@@ -9,11 +9,10 @@ Plugin Tests WebUI Routes
 Web interface for plugin testing with scheduling and management features.
 """
 
-import logging
 from datetime import datetime
-from typing import List, Optional
+import logging
 
-from fastapi import APIRouter, Request, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
@@ -30,7 +29,7 @@ templates = Jinja2Templates(directory="src/plexichat/interfaces/web/templates")
 class TestRunRequest(BaseModel):
     """Test run request model."""
     plugin_name: str
-    test_name: Optional[str] = None
+    test_name: str | None = None
     timeout: int = 300
 
 
@@ -179,7 +178,7 @@ async def schedule_test(_request: TestScheduleRequest):
         return JSONResponse(content={
             "success": True,
             "schedule_id": "dummy_schedule_id", # Placeholder, actual scheduling logic needs to be implemented
-            "message": f"Test scheduled successfully"
+            "message": "Test scheduled successfully"
         })
 
     except Exception as e:
@@ -218,9 +217,9 @@ async def unschedule_test(_schedule_id: str):
 
 @router.get("/results")
 async def get_test_results(
-    _plugin_name: Optional[str] = Query(None),
+    _plugin_name: str | None = Query(None),
     _limit: int = Query(50, ge=1, le=1000),
-    _status: Optional[str] = Query(None)
+    _status: str | None = Query(None)
 ):
     """Get test results with optional filtering."""
     try:
@@ -261,7 +260,7 @@ async def get_test_results(
 
 
 @router.get("/statistics")
-async def get_test_statistics(plugin_name: Optional[str] = Query(None)):
+async def get_test_statistics(plugin_name: str | None = Query(None)):
     """Get test statistics."""
     try:
         # test_manager = get_test_manager() # This line is removed
@@ -310,7 +309,7 @@ async def get_scheduled_tests():
 
 
 @router.post("/discover")
-async def discover_tests(plugin_name: Optional[str] = None):
+async def discover_tests(plugin_name: str | None = None):
     """Discover tests for plugins."""
     try:
         # test_manager = get_test_manager() # This line is removed
@@ -369,7 +368,7 @@ async def live_test_updates():
 
 
 @router.post("/bulk-run")
-async def bulk_run_tests(plugin_names: List[str]):
+async def bulk_run_tests(plugin_names: list[str]):
     """Run tests for multiple plugins."""
     try:
         # test_manager = get_test_manager() # This line is removed

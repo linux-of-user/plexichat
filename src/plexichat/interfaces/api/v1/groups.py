@@ -1,8 +1,9 @@
 import time
-from typing import Dict, List, Optional
 from uuid import uuid4
+
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
+
 
 # Mock user dependency
 def get_current_user():
@@ -11,17 +12,17 @@ def get_current_user():
 router = APIRouter(prefix="/groups", tags=["Groups & Channels"])
 
 # In-memory storage for demonstration
-groups_db: Dict[str, Dict] = {}
-group_members_db: Dict[str, List[str]] = {}
+groups_db: dict[str, dict] = {}
+group_members_db: dict[str, list[str]] = {}
 
 class GroupCreate(BaseModel):
     name: str
-    description: Optional[str] = None
+    description: str | None = None
     is_public: bool = True
 
 class GroupUpdate(BaseModel):
-    name: Optional[str] = None
-    description: Optional[str] = None
+    name: str | None = None
+    description: str | None = None
 
 @router.post("/create")
 async def create_group(group_data: GroupCreate, current_user: dict = Depends(get_current_user)):
@@ -51,7 +52,7 @@ async def get_group(group_id: str, current_user: dict = Depends(get_current_user
     group = groups_db.get(group_id)
     if not group:
         raise HTTPException(status_code=404, detail="Group not found")
-    
+
     is_member = current_user["user_id"] in group_members_db.get(group_id, [])
     if not group["is_public"] and not is_member:
         raise HTTPException(status_code=403, detail="Access denied")
@@ -66,7 +67,7 @@ async def update_group(group_id: str, group_data: GroupUpdate, current_user: dic
         raise HTTPException(status_code=404, detail="Group not found")
     if group["owner_id"] != current_user["user_id"]:
         raise HTTPException(status_code=403, detail="Only the owner can update the group")
-    
+
     update_data = group_data.dict(exclude_unset=True)
     group.update(update_data)
     return {"status": "Group updated", "group": group}
@@ -81,8 +82,7 @@ async def delete_group(group_id: str, current_user: dict = Depends(get_current_u
         raise HTTPException(status_code=403, detail="Only the owner can delete the group")
 
     del groups_db[group_id]
-    if group_id in group_members_db:
-        del group_members_db[group_id]
+    group_members_db.pop(group_id, None)
 
     return {"status": "Group deleted"}
 
@@ -92,10 +92,10 @@ async def join_group(group_id: str, current_user: dict = Depends(get_current_use
     group = groups_db.get(group_id)
     if not group or not group["is_public"]:
         raise HTTPException(status_code=404, detail="Public group not found")
-    
+
     if current_user["user_id"] not in group_members_db.get(group_id, []):
         group_members_db.setdefault(group_id, []).append(current_user["user_id"])
-    
+
     return {"status": "Joined group"}
 
 @router.post("/{group_id}/leave")

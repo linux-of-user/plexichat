@@ -5,16 +5,17 @@ Background task management and execution system.
 """
 
 import asyncio
-import logging
-from typing import Dict, Any, Optional, List, Callable
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
+import logging
+from typing import Any
 import uuid
 
 try:
-    from plexichat.core.logging import get_logger
     from plexichat.core.config import get_config
+    from plexichat.core.logging import get_logger
     settings = get_config()
 except ImportError:
     get_logger = lambda name: logging.getLogger(name)
@@ -41,9 +42,9 @@ class TaskResult:
     """Task execution result."""
     success: bool
     result: Any = None
-    error: Optional[str] = None
+    error: str | None = None
     execution_time: float = 0.0
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 @dataclass
 class BackgroundTask:
@@ -52,24 +53,24 @@ class BackgroundTask:
     name: str
     func: Callable
     args: tuple = field(default_factory=tuple)
-    kwargs: Dict[str, Any] = field(default_factory=dict)
+    kwargs: dict[str, Any] = field(default_factory=dict)
     priority: TaskPriority = TaskPriority.NORMAL
     max_retries: int = 3
     retry_delay: float = 1.0
-    timeout: Optional[float] = None
-    scheduled_at: Optional[datetime] = None
+    timeout: float | None = None
+    scheduled_at: datetime | None = None
     created_at: datetime = field(default_factory=datetime.now)
     status: TaskStatus = TaskStatus.PENDING
     retries: int = 0
-    result: Optional[TaskResult] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    result: TaskResult | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 class TaskQueue:
     """Priority-based task queue."""
     def __init__(self):
-        self.tasks: Dict[str, BackgroundTask] = {}
-        self.pending_tasks: List[str] = []
-        self.running_tasks: Dict[str, asyncio.Task] = {}
+        self.tasks: dict[str, BackgroundTask] = {}
+        self.pending_tasks: list[str] = []
+        self.running_tasks: dict[str, asyncio.Task] = {}
         self._lock = asyncio.Lock()
 
     async def add_task(self, task: BackgroundTask) -> None:
@@ -91,7 +92,7 @@ class TaskQueue:
 
             logger.debug(f"Added task {task.id} to queue (priority: {task.priority.name})")
 
-    async def get_next_task(self) -> Optional[BackgroundTask]:
+    async def get_next_task(self) -> BackgroundTask | None:
         """Get next task from queue."""
         async with self._lock:
             while self.pending_tasks:
@@ -170,7 +171,7 @@ class TaskQueue:
 
             return False
 
-    async def get_task_status(self, task_id: str) -> Optional[Dict[str, Any]]:
+    async def get_task_status(self, task_id: str) -> dict[str, Any] | None:
         """Get task status."""
         if task_id in self.tasks:
             task = self.tasks[task_id]
@@ -192,7 +193,7 @@ class TaskQueue:
 
         return None
 
-    async def get_queue_stats(self) -> Dict[str, Any]:
+    async def get_queue_stats(self) -> dict[str, Any]:
         """Get queue statistics."""
         async with self._lock:
             stats = {
@@ -214,7 +215,7 @@ class BackgroundTaskManager:
     def __init__(self, max_workers: int = 5):
         self.max_workers = max_workers
         self.queue = TaskQueue()
-        self.workers: List[asyncio.Task] = []
+        self.workers: list[asyncio.Task] = []
         self.running = False
         self.shutdown_event = asyncio.Event()
 
@@ -310,7 +311,7 @@ class BackgroundTaskManager:
                 execution_time=execution_time
             )
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             execution_time = (datetime.now() - start_time).total_seconds()
             return TaskResult(
                 success=False,
@@ -330,12 +331,12 @@ class BackgroundTaskManager:
         self,
         func: Callable,
         *args,
-        name: Optional[str] = None,
+        name: str | None = None,
         priority: TaskPriority = TaskPriority.NORMAL,
         max_retries: int = 3,
         retry_delay: float = 1.0,
-        timeout: Optional[float] = None,
-        scheduled_at: Optional[datetime] = None,
+        timeout: float | None = None,
+        scheduled_at: datetime | None = None,
         **kwargs
     ) -> str:
         """Submit a task for background execution."""
@@ -361,7 +362,7 @@ class BackgroundTaskManager:
         logger.info(f"Submitted task {task_id}: {task_name}")
         return task_id
 
-    async def get_task_status(self, task_id: str) -> Optional[Dict[str, Any]]:
+    async def get_task_status(self, task_id: str) -> dict[str, Any] | None:
         """Get task status."""
         return await self.queue.get_task_status(task_id)
 
@@ -369,7 +370,7 @@ class BackgroundTaskManager:
         """Cancel a task."""
         return await self.queue.cancel_task(task_id)
 
-    async def get_stats(self) -> Dict[str, Any]:
+    async def get_stats(self) -> dict[str, Any]:
         """Get manager statistics."""
         queue_stats = await self.queue.get_queue_stats()
 
@@ -422,7 +423,14 @@ async def send_notification(user_id: str, message: str):
     return {"notification_sent": True}
 
 __all__ = [
-    'TaskStatus', 'TaskPriority', 'TaskResult', 'BackgroundTask',
-    'TaskQueue', 'BackgroundTaskManager', 'task_manager',
-    'submit_task', 'submit_scheduled_task', 'submit_high_priority_task'
+    'BackgroundTask',
+    'BackgroundTaskManager',
+    'TaskPriority',
+    'TaskQueue',
+    'TaskResult',
+    'TaskStatus',
+    'submit_high_priority_task',
+    'submit_scheduled_task',
+    'submit_task',
+    'task_manager'
 ]

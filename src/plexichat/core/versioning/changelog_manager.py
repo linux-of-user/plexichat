@@ -1,12 +1,12 @@
+from dataclasses import dataclass, field
+from datetime import UTC, datetime
+from enum import Enum
 import json
 import logging
+from pathlib import Path
 import re
 import shutil
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from enum import Enum
-from pathlib import Path
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any
 
 """
 PlexiChat Changelog Management System
@@ -65,10 +65,10 @@ class ChangeEntry:
 
     type: ChangeType
     description: str
-    component: Optional[str] = None
-    issue_id: Optional[str] = None
-    author: Optional[str] = None
-    commit_hash: Optional[str] = None
+    component: str | None = None
+    issue_id: str | None = None
+    author: str | None = None
+    commit_hash: str | None = None
 
     def to_markdown(self) -> str:
         """Convert to markdown format."""
@@ -76,7 +76,7 @@ class ChangeEntry:
         suffix = f" (#{self.issue_id})" if self.issue_id else ""
         return f"- {prefix}{self.description}{suffix}"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
             "type": self.type.value,
@@ -88,7 +88,7 @@ class ChangeEntry:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "ChangeEntry":
+    def from_dict(cls, data: dict[str, Any]) -> "ChangeEntry":
         """Create from dictionary."""
         return cls(
             type=ChangeType(data["type"]),
@@ -106,9 +106,9 @@ class VersionChangelog:
 
     version: Version
     release_date: datetime
-    changes: Dict[ChangeType, List[ChangeEntry]] = field(default_factory=dict)
-    summary: Optional[str] = None
-    migration_notes: List[str] = field(default_factory=list)
+    changes: dict[ChangeType, list[ChangeEntry]] = field(default_factory=dict)
+    summary: str | None = None
+    migration_notes: list[str] = field(default_factory=list)
 
     def add_change(self, change: ChangeEntry):
         """Add a change entry."""
@@ -116,7 +116,7 @@ class VersionChangelog:
             self.changes[change.type] = []
         self.changes[change.type].append(change)
 
-    def get_changes_by_type(self, change_type: ChangeType) -> List[ChangeEntry]:
+    def get_changes_by_type(self, change_type: ChangeType) -> list[ChangeEntry]:
         """Get changes by type."""
         return self.changes.get(change_type, [])
 
@@ -144,7 +144,7 @@ class VersionChangelog:
 
         # Changes by type
         for change_type in ChangeType:
-            if change_type in self.changes and self.changes[change_type]:
+            if self.changes.get(change_type):
                 lines.append(f"### {change_type.value}")
                 for change in self.changes[change_type]:
                     lines.append(change.to_markdown())
@@ -159,7 +159,7 @@ class VersionChangelog:
 
         return "\n".join(lines)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
             "version": str(self.version),
@@ -173,7 +173,7 @@ class VersionChangelog:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "VersionChangelog":
+    def from_dict(cls, data: dict[str, Any]) -> "VersionChangelog":
         """Create from dictionary."""
         changelog = cls(
             version=Version.parse(data["version"]),
@@ -193,11 +193,11 @@ class VersionChangelog:
 class ChangelogManager:
     """Manages changelog generation and parsing."""
 
-    def __init__(self, changelog_file: Optional[Path] = None):
+    def __init__(self, changelog_file: Path | None = None):
         """Initialize changelog manager."""
         self.changelog_file = changelog_file or Path("CHANGELOG.md")
         self.changelog_data_file = Path("changelog.json")
-        self.version_changelogs: Dict[str, VersionChangelog] = {}
+        self.version_changelogs: dict[str, VersionChangelog] = {}
         # Load existing changelog
         self._load_changelog()
 
@@ -206,7 +206,7 @@ class ChangelogManager:
         try:
             # Load from JSON data file if exists
             if self.changelog_data_file and self.changelog_data_file.exists():
-                with open(self.changelog_data_file, "r", encoding="utf-8") as f:
+                with open(self.changelog_data_file, encoding="utf-8") as f:
                     data = json.load(f)
 
                     # Validate data structure
@@ -258,7 +258,7 @@ class ChangelogManager:
     def _parse_markdown_changelog(self):
         """Parse existing markdown changelog."""
         try:
-            with open(self.changelog_file, "r", encoding="utf-8", errors="ignore") as f:
+            with open(self.changelog_file, encoding="utf-8", errors="ignore") as f:
                 content = f.read()
 
             # Simple parsing - extract version headers and changes
@@ -269,7 +269,7 @@ class ChangelogManager:
                 try:
                     version = Version.parse(version_str)
                     release_date = datetime.strptime(date_str, "%Y-%m-%d").replace(
-                        tzinfo=timezone.utc
+                        tzinfo=UTC
                     )
 
                     changelog = VersionChangelog(
@@ -321,16 +321,16 @@ class ChangelogManager:
         self._save_changelog()
         logger.info(f"Added changelog for version {version_str}")
 
-    def get_version_changelog(self, version: Version) -> Optional[VersionChangelog]:
+    def get_version_changelog(self, version: Version) -> VersionChangelog | None:
         """Get changelog for specific version."""
         return self.version_changelogs.get(str(version))
 
     def create_version_changelog(
-        self, version: Version, summary: Optional[str] = None
+        self, version: Version, summary: str | None = None
     ) -> VersionChangelog:
         """Create new version changelog."""
         changelog = VersionChangelog(
-            version=version, release_date=datetime.now(timezone.utc), summary=summary
+            version=version, release_date=datetime.now(UTC), summary=summary
         )
         return changelog
 
@@ -347,7 +347,7 @@ class ChangelogManager:
 
     def get_changes_since_version(
         self, since_version: Version
-    ) -> List[VersionChangelog]:
+    ) -> list[VersionChangelog]:
         """Get all changes since a specific version."""
         changes = []
         for changelog in self.version_changelogs.values():
@@ -358,7 +358,7 @@ class ChangelogManager:
 
     def get_breaking_changes_since_version(
         self, since_version: Version
-    ) -> List[ChangeEntry]:
+    ) -> list[ChangeEntry]:
         """Get breaking changes since a specific version."""
         breaking_changes = []
         for changelog in self.version_changelogs.values():
@@ -418,7 +418,7 @@ class ChangelogManager:
         return "\n".join(lines)
 
     def auto_generate_changelog_from_commits(
-        self, version: Version, commits: List[Dict[str, Any]]
+        self, version: Version, commits: list[dict[str, Any]]
     ) -> VersionChangelog:
         """Auto-generate changelog from commit messages."""
         changelog = self.create_version_changelog(version)
@@ -439,9 +439,9 @@ class ChangelogManager:
     def _parse_commit_message(
         self,
         message: str,
-        author: Optional[str] = None,
-        commit_hash: Optional[str] = None,
-    ) -> Optional[ChangeEntry]:
+        author: str | None = None,
+        commit_hash: str | None = None,
+    ) -> ChangeEntry | None:
         """Parse commit message for changelog entry."""
         # Conventional commit pattern: type(scope): description
         pattern = r"^(feat|fix|docs|style|refactor|test|chore|security|breaking)(?:\(([^)]+)\))?: (.+)$"

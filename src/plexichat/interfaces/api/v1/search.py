@@ -1,12 +1,11 @@
-from typing import Dict, List, Optional, Any
-from fastapi import APIRouter, Depends, Query, HTTPException
-from pydantic import BaseModel, Field
 from datetime import datetime
+from typing import Any
 
-from plexichat.core.search_service import (
-    get_search_service,
-    SearchFilter
-)
+from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel, Field
+
+from plexichat.core.search_service import SearchFilter, get_search_service
+
 
 # Mock user dependency - replace with actual auth
 def get_current_user():
@@ -18,12 +17,12 @@ router = APIRouter(prefix="/search", tags=["Search & Analytics"])
 class AdvancedSearchQuery(BaseModel):
     """Advanced search query with filters."""
     query: str = Field(..., min_length=1, max_length=200, description="Search query")
-    user_id: Optional[str] = Field(None, description="Filter by specific user")
-    channel_id: Optional[str] = Field(None, description="Filter by specific channel")
-    date_from: Optional[datetime] = Field(None, description="Filter messages from this date")
-    date_to: Optional[datetime] = Field(None, description="Filter messages until this date")
-    message_type: Optional[str] = Field(None, description="Filter by message type")
-    has_attachments: Optional[bool] = Field(None, description="Filter messages with/without attachments")
+    user_id: str | None = Field(None, description="Filter by specific user")
+    channel_id: str | None = Field(None, description="Filter by specific channel")
+    date_from: datetime | None = Field(None, description="Filter messages from this date")
+    date_to: datetime | None = Field(None, description="Filter messages until this date")
+    message_type: str | None = Field(None, description="Filter by message type")
+    has_attachments: bool | None = Field(None, description="Filter messages with/without attachments")
     limit: int = Field(50, ge=1, le=100, description="Number of results to return")
     offset: int = Field(0, ge=0, description="Number of results to skip")
 
@@ -36,8 +35,8 @@ class SearchResult(BaseModel):
     channel_id: str
     created_at: datetime
     score: float
-    highlights: List[str] = []
-    metadata: Dict[str, Any] = {}
+    highlights: list[str] = []
+    metadata: dict[str, Any] = {}
 
 
 class SuggestionResponse(BaseModel):
@@ -45,7 +44,7 @@ class SuggestionResponse(BaseModel):
     text: str
     type: str
     frequency: int = 0
-    last_used: Optional[datetime] = None
+    last_used: datetime | None = None
 
 
 class HistoryResponse(BaseModel):
@@ -53,13 +52,13 @@ class HistoryResponse(BaseModel):
     id: str
     user_id: str
     query: str
-    filters: Dict[str, Any]
+    filters: dict[str, Any]
     result_count: int
     timestamp: datetime
     duration_ms: int
 
 
-@router.post("/", response_model=Dict[str, Any])
+@router.post("/", response_model=dict[str, Any])
 async def advanced_search(query: AdvancedSearchQuery, current_user: dict = Depends(get_current_user)):
     """Perform advanced message search with filters."""
     try:
@@ -111,10 +110,10 @@ async def advanced_search(query: AdvancedSearchQuery, current_user: dict = Depen
         }
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Search failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Search failed: {e!s}")
 
 
-@router.get("/suggestions", response_model=List[SuggestionResponse])
+@router.get("/suggestions", response_model=list[SuggestionResponse])
 async def get_search_suggestions(
     q: str = Query(..., min_length=1, max_length=50, description="Search prefix"),
     limit: int = Query(10, ge=1, le=20, description="Number of suggestions to return")
@@ -138,10 +137,10 @@ async def get_search_suggestions(
         return response_suggestions
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get suggestions: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get suggestions: {e!s}")
 
 
-@router.get("/history", response_model=List[HistoryResponse])
+@router.get("/history", response_model=list[HistoryResponse])
 async def get_search_history(
     limit: int = Query(20, ge=1, le=100, description="Number of history items to return"),
     current_user: dict = Depends(get_current_user)
@@ -168,10 +167,10 @@ async def get_search_history(
         return response_history
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get search history: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get search history: {e!s}")
 
 
-@router.get("/status", response_model=Dict[str, Any])
+@router.get("/status", response_model=dict[str, Any])
 async def search_status():
     """Get search system status and statistics."""
     try:
@@ -206,7 +205,7 @@ async def delete_search_history_entry(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to delete history entry: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to delete history entry: {e!s}")
 
 
 @router.delete("/history")
@@ -220,4 +219,4 @@ async def clear_search_history(current_user: dict = Depends(get_current_user)):
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to clear history: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to clear history: {e!s}")

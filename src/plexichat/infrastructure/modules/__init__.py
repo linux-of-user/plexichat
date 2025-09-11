@@ -7,13 +7,15 @@
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
 import asyncio
+from collections.abc import Callable
+from dataclasses import dataclass, field
+from datetime import UTC, datetime, timezone
+from enum import Enum
 import logging
 import sys
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from enum import Enum
-from typing import Any, Callable, Dict, List, Optional
 import time
+from typing import Any, Dict, List, Optional
+
 
 # Placeholder imports for dependencies
 class SecurityTier:
@@ -83,14 +85,14 @@ class ModuleMetadata:
     author: str
     module_type: ModuleType
     access_level: ModuleAccessLevel
-    dependencies: List[str] = field(default_factory=list)
-    permissions: List[str] = field(default_factory=list)
-    endpoints: List[str] = field(default_factory=list)
-    configuration: Dict[str, Any] = field(default_factory=dict)
+    dependencies: list[str] = field(default_factory=list)
+    permissions: list[str] = field(default_factory=list)
+    endpoints: list[str] = field(default_factory=list)
+    configuration: dict[str, Any] = field(default_factory=dict)
     security_level: str = "STANDARD"
-    resource_requirements: Dict[str, Any] = field(default_factory=dict)
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    checksum: Optional[str] = None
+    resource_requirements: dict[str, Any] = field(default_factory=dict)
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    checksum: str | None = None
 
 
 @dataclass
@@ -102,9 +104,9 @@ class ModuleHealth:
     memory_usage: int = 0
     error_count: int = 0
     warning_count: int = 0
-    last_error: Optional[str] = None
+    last_error: str | None = None
     performance_score: float = 100.0
-    last_updated: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    last_updated: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 class SecureModule:
@@ -125,19 +127,19 @@ class SecureModule:
         self.health = ModuleHealth(module_id=metadata.module_id, status=ModuleStatus.UNLOADED)
 
         # Module state
-        self.load_time: Optional[datetime] = None
-        self.module_instance: Optional[Any] = None
-        self.service_instance: Optional[Any] = None  # SecureService if available
+        self.load_time: datetime | None = None
+        self.module_instance: Any | None = None
+        self.service_instance: Any | None = None  # SecureService if available
 
         # Security integration
         self.encryption_context = None
         self.module_key = None
 
         # Performance tracking
-        self.performance_metrics: List[Dict[str, Any]] = []
+        self.performance_metrics: list[dict[str, Any]] = []
 
         # Event handlers
-        self.event_handlers: Dict[str, List[Callable]] = {}
+        self.event_handlers: dict[str, list[Callable]] = {}
 
     async def load(self) -> bool:
         """Load the module."""
@@ -146,7 +148,7 @@ class SecureModule:
 
         self.status = ModuleStatus.LOADING
         self.health.status = ModuleStatus.LOADING
-        load_start = datetime.now(timezone.utc)
+        load_start = datetime.now(UTC)
 
         try:
             # Setup module security
@@ -174,7 +176,7 @@ class SecureModule:
 
             self.status = ModuleStatus.LOADED
             self.health.status = ModuleStatus.LOADED
-            self.load_time = datetime.now(timezone.utc)
+            self.load_time = datetime.now(UTC)
             self.health.load_time = (self.load_time - load_start).total_seconds()
 
             logger.info(f" Module loaded: {self.metadata.name}")
@@ -350,7 +352,7 @@ class SecureModule:
         # load the module from a file, package, or remote source
         self.module_instance = type('ModuleInstance', (), {'name': self.metadata.name, 'version': self.metadata.version})()
 
-    async def _create_service_metadata(self) -> Optional[Any]:
+    async def _create_service_metadata(self) -> Any | None:
         """Create service metadata for module service."""
         if ServiceMetadata is None or ServiceType is None or ServicePriority is None:
             return None
@@ -386,7 +388,7 @@ class SecureModule:
             self.health.error_count += 1
             raise
 
-    async def _emit_event(self, event_name: str, data: Optional[Dict[str, Any]] = None):
+    async def _emit_event(self, event_name: str, data: dict[str, Any] | None = None):
         """Emit module event to registered handlers."""
         if event_name in self.event_handlers:
             for handler in self.event_handlers[event_name]:
@@ -404,7 +406,7 @@ class SecureModule:
             self.event_handlers[event_name] = []
         self.event_handlers[event_name].append(handler)
 
-    def get_status(self) -> Dict[str, Any]:
+    def get_status(self) -> dict[str, Any]:
         """Get module status information."""
         return {
             "module_id": self.metadata.module_id,
@@ -431,10 +433,10 @@ class SecureModule:
 
 
 __all__ = [
-    'SecureModule',
-    'ModuleMetadata',
+    'ModuleAccessLevel',
     'ModuleHealth',
-    'ModuleType',
+    'ModuleMetadata',
     'ModuleStatus',
-    'ModuleAccessLevel'
+    'ModuleType',
+    'SecureModule'
 ]

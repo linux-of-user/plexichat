@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from typing import List, Optional
+
 
 # Mock objects for standalone execution
 class MockAntivirusManager:
@@ -37,7 +37,7 @@ logger = logging.getLogger(__name__)
 class AntivirusCLI:
     """CLI for enhanced antivirus management."""
     def __init__(self):
-        self.manager: Optional[MockAntivirusManager] = None
+        self.manager: MockAntivirusManager | None = None
 
     async def _ensure_manager(self) -> MockAntivirusManager:
         """Ensure antivirus manager is initialized."""
@@ -58,7 +58,7 @@ class AntivirusCLI:
         logger.info(f"Scanning file: {file_path}")
         await manager.scan_file(file_path)
 
-async def handle_antivirus_command(args: List[str]):
+async def handle_antivirus_command(args: list[str]):
     """Handle antivirus management commands."""
     if not args:
         logger.info("Usage: antivirus <command> [args...]")

@@ -3,14 +3,15 @@
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
-import time
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set, Tuple
 import logging
+import time
+from typing import Any
 
-from sqlmodel import Session, select
 from fastapi import HTTPException, status
+from sqlmodel import Session, select
+
 
 # Placeholder imports for dependencies
 class EnhancedUser: pass
@@ -88,7 +89,7 @@ class ModerationService:
         self.role_permissions = self._initialize_role_permissions()
         self.user_roles_cache = {}
 
-    def _initialize_role_permissions(self) -> Dict[UserRole, Set[Permission]]:
+    def _initialize_role_permissions(self) -> dict[UserRole, set[Permission]]:
         """Initialize default permissions for each role."""
         return {
             UserRole.OWNER: {
@@ -126,7 +127,7 @@ class ModerationService:
             UserRole.BANNED: set()
         }
 
-    def get_user_role(self, user_id: int, guild_id: Optional[int] = None) -> UserRole:
+    def get_user_role(self, user_id: int, guild_id: int | None = None) -> UserRole:
         """Get the current role of a user."""
         try:
             # Check cache first
@@ -181,7 +182,7 @@ class ModerationService:
             logger.error(f"Failed to get user role: {e}")
             return UserRole.MEMBER
 
-    def has_permission(self, user_id: int, permission: Permission, guild_id: Optional[int] = None) -> bool:
+    def has_permission(self, user_id: int, permission: Permission, guild_id: int | None = None) -> bool:
         """Check if a user has a specific permission."""
         try:
             user_role = self.get_user_role(user_id, guild_id)
@@ -190,7 +191,7 @@ class ModerationService:
             logger.error(f"Failed to check permission: {e}")
             return False
 
-    def can_moderate_user(self, moderator_id: int, target_user_id: int, guild_id: Optional[int] = None) -> bool:
+    def can_moderate_user(self, moderator_id: int, target_user_id: int, guild_id: int | None = None) -> bool:
         """Check if a moderator can moderate a target user."""
         try:
             moderator_role = self.get_user_role(moderator_id, guild_id)
@@ -216,9 +217,9 @@ class ModerationService:
         user_id: int,
         role: UserRole,
         assigned_by: int,
-        guild_id: Optional[int] = None,
-        reason: Optional[str] = None,
-        duration: Optional[int] = None
+        guild_id: int | None = None,
+        reason: str | None = None,
+        duration: int | None = None
     ) -> bool:
         """Assign a role to a user."""
         try:
@@ -228,7 +229,7 @@ class ModerationService:
 
             expires_at = None
             if duration:
-                expires_at = datetime.now(timezone.utc) + timedelta(seconds=duration)
+                expires_at = datetime.now(UTC) + timedelta(seconds=duration)
 
             if role in [UserRole.BANNED, UserRole.MUTED, UserRole.RESTRICTED]:
                 existing_status = self.session.exec(
@@ -294,11 +295,11 @@ class ModerationService:
         target_user_id: int,
         action: ModerationAction,
         reason: str,
-        guild_id: Optional[int] = None,
-        channel_id: Optional[int] = None,
-        duration: Optional[int] = None,
-        evidence: Optional[Dict[str, Any]] = None
-    ) -> Optional[int]:
+        guild_id: int | None = None,
+        channel_id: int | None = None,
+        duration: int | None = None,
+        evidence: dict[str, Any] | None = None
+    ) -> int | None:
         """Execute an enhanced moderation action with role-based permissions."""
         try:
             if not self.can_moderate_user(moderator_id, target_user_id, guild_id):
@@ -350,7 +351,7 @@ class ModerationService:
         user_id: int,
         moderation_log_id: int,
         appeal_reason: str,
-        guild_id: Optional[int] = None
+        guild_id: int | None = None
     ) -> bool:
         """Create an appeal for a moderation action."""
         try:
@@ -363,7 +364,7 @@ class ModerationService:
 
             log_entry.appeal_reason = appeal_reason
             log_entry.appeal_status = "pending"
-            log_entry.appeal_submitted_at = datetime.now(timezone.utc)
+            log_entry.appeal_submitted_at = datetime.now(UTC)
 
             self.session.add(log_entry)
             self.session.commit()
@@ -381,7 +382,7 @@ class ModerationService:
         moderation_log_id: int,
         decision: str,
         review_reason: str,
-        guild_id: Optional[int] = None
+        guild_id: int | None = None
     ) -> bool:
         """Review a moderation appeal."""
         try:
@@ -397,7 +398,7 @@ class ModerationService:
 
             log_entry.appeal_status = decision
             log_entry.appeal_reviewed_by = moderator_id
-            log_entry.appeal_reviewed_at = datetime.now(timezone.utc)
+            log_entry.appeal_reviewed_at = datetime.now(UTC)
             log_entry.appeal_review_reason = review_reason
 
             if decision == "approved":
@@ -432,7 +433,7 @@ class ModerationService:
             self.session.rollback()
             return False
 
-    def get_user_moderation_summary(self, user_id: int, guild_id: Optional[int] = None) -> Dict[str, Any]:
+    def get_user_moderation_summary(self, user_id: int, guild_id: int | None = None) -> dict[str, Any]:
         """Get comprehensive moderation summary for a user."""
         try:
             current_role = self.get_user_role(user_id, guild_id)
@@ -488,10 +489,10 @@ class ModerationService:
     async def check_moderator_permissions(
         self,
         user_id: int,
-        guild_id: Optional[int] = None,
-        channel_id: Optional[int] = None,
-        required_action: Optional[ModerationAction] = None
-    ) -> Tuple[bool, Optional[ModeratorRole]]:
+        guild_id: int | None = None,
+        channel_id: int | None = None,
+        required_action: ModerationAction | None = None
+    ) -> tuple[bool, ModeratorRole | None]:
         """Check if user has moderator permissions for the specified context."""
         try:
             statement = select(ModeratorRole).where(
@@ -511,7 +512,7 @@ class ModerationService:
             if not moderator_role:
                 return False, None
 
-            if moderator_role.expires_at and moderator_role.expires_at < datetime.now(timezone.utc):
+            if moderator_role.expires_at and moderator_role.expires_at < datetime.now(UTC):
                 return False, None
 
             if required_action:
@@ -536,9 +537,9 @@ class ModerationService:
         target_user_id: int,
         action: ModerationAction,
         reason: str,
-        duration_minutes: Optional[int] = None,
-        guild_id: Optional[int] = None,
-        channel_id: Optional[int] = None,
+        duration_minutes: int | None = None,
+        guild_id: int | None = None,
+        channel_id: int | None = None,
         severity: ModerationSeverity = ModerationSeverity.MEDIUM
     ) -> bool:
         """Apply moderation action to a user."""
@@ -568,7 +569,7 @@ class ModerationService:
 
             expires_at = None
             if duration_minutes:
-                expires_at = datetime.now(timezone.utc) + timedelta(minutes=duration_minutes)
+                expires_at = datetime.now(UTC) + timedelta(minutes=duration_minutes)
 
             if action == ModerationAction.MUTE:
                 user_status.is_muted = True
@@ -584,9 +585,9 @@ class ModerationService:
                 user_status.timeout_reason = reason
             elif action == ModerationAction.WARN:
                 user_status.warning_count += 1
-                user_status.last_warning_at = datetime.now(timezone.utc)
+                user_status.last_warning_at = datetime.now(UTC)
 
-            user_status.updated_at = datetime.now(timezone.utc)
+            user_status.updated_at = datetime.now(UTC)
 
             log_entry = ModerationLog(
                 action=action, severity=severity, moderator_id=moderator_id,
@@ -613,9 +614,9 @@ class ModerationService:
         message_id: int,
         action: ModerationAction,
         reason: str,
-        new_content: Optional[str] = None,
-        guild_id: Optional[int] = None,
-        channel_id: Optional[int] = None
+        new_content: str | None = None,
+        guild_id: int | None = None,
+        channel_id: int | None = None
     ) -> bool:
         """Apply moderation action to a message."""
         try:
@@ -670,7 +671,7 @@ class ModerationService:
     async def check_user_restrictions(
         self,
         user_id: int
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Check current moderation restrictions for a user."""
         try:
             user_status = self.session.exec(
@@ -682,7 +683,7 @@ class ModerationService:
                     "is_muted": False, "is_banned": False, "is_timed_out": False, "warning_count": 0
                 }
 
-            now = datetime.now(timezone.utc)
+            now = datetime.now(UTC)
 
             if user_status.is_muted and user_status.mute_expires_at and user_status.mute_expires_at < now:
                 user_status.is_muted = False
@@ -716,11 +717,11 @@ class ModerationService:
         self,
         granter_id: int,
         user_id: int,
-        guild_id: Optional[int] = None,
-        channel_id: Optional[int] = None,
+        guild_id: int | None = None,
+        channel_id: int | None = None,
         role_name: str = "Moderator",
-        permissions: Optional[Dict[str, bool]] = None,
-        expires_at: Optional[datetime] = None
+        permissions: dict[str, bool] | None = None,
+        expires_at: datetime | None = None
     ) -> bool:
         """Grant moderator role to a user."""
         try:
@@ -791,7 +792,7 @@ class ModerationService:
                 )
 
             moderator_role.is_active = False
-            moderator_role.revoked_at = datetime.now(timezone.utc)
+            moderator_role.revoked_at = datetime.now(UTC)
             moderator_role.revoked_by = revoker_id
 
             self.session.commit()
@@ -827,7 +828,7 @@ class ModerationService:
                 raise HTTPException(status_code=400, detail="Appeal already submitted")
 
             moderation_log.appeal_reason = appeal_reason
-            moderation_log.appeal_submitted_at = datetime.now(timezone.utc)
+            moderation_log.appeal_submitted_at = datetime.now(UTC)
             moderation_log.status = ModerationStatus.APPEALED
 
             self.session.commit()
@@ -869,7 +870,7 @@ class ModerationService:
             moderation_log.appeal_reviewed_by = reviewer_id
             moderation_log.appeal_decision = decision
             moderation_log.appeal_decision_reason = decision_reason
-            moderation_log.resolved_at = datetime.now(timezone.utc)
+            moderation_log.resolved_at = datetime.now(UTC)
 
             if decision == "approved":
                 moderation_log.status = ModerationStatus.REVOKED
@@ -894,7 +895,7 @@ class ModerationService:
                             user_status.timeout_expires_at = None
                             user_status.timeout_reason = None
 
-                        user_status.updated_at = datetime.now(timezone.utc)
+                        user_status.updated_at = datetime.now(UTC)
 
             self.session.commit()
             logger.info(f"Appeal {decision} for moderation log {moderation_log_id} by reviewer {reviewer_id}")
@@ -909,12 +910,12 @@ class ModerationService:
 
     async def get_moderation_logs(
         self,
-        guild_id: Optional[int] = None,
-        target_user_id: Optional[int] = None,
-        moderator_id: Optional[int] = None,
+        guild_id: int | None = None,
+        target_user_id: int | None = None,
+        moderator_id: int | None = None,
         limit: int = 50,
         offset: int = 0
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Get moderation logs with filtering."""
         try:
             statement = select(ModerationLog)

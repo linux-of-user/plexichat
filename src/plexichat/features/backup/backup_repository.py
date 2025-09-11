@@ -2,15 +2,20 @@
 Enhanced Backup Repository - Advanced metadata management with indexing and analytics
 """
 
+from dataclasses import asdict
+from datetime import UTC, datetime
 import json
 import logging
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
-from dataclasses import asdict
+from typing import Any
 
 # Import backup types
 try:
-    from plexichat.features.backup.backup_engine import BackupMetadata, BackupStatus, BackupType, SecurityLevel
+    from plexichat.features.backup.backup_engine import (
+        BackupMetadata,
+        BackupStatus,
+        BackupType,
+        SecurityLevel,
+    )
 except ImportError:
     # Fallback for circular import issues
     BackupMetadata = Any
@@ -27,7 +32,7 @@ class BackupRepository:
     integrated with the unified database and caching systems.
     """
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, config: dict[str, Any] | None = None):
         self.config = config or {}
         self.logger = logger
 
@@ -40,7 +45,11 @@ class BackupRepository:
 
         # Caching - using unified cache now
         try:
-            from plexichat.core.caching.unified_cache_integration import cache_get, cache_set, cache_delete
+            from plexichat.core.caching.unified_cache_integration import (
+                cache_delete,
+                cache_get,
+                cache_set,
+            )
             self.cache_get = cache_get
             self.cache_set = cache_set
             self.cache_delete = cache_delete
@@ -187,7 +196,7 @@ class BackupRepository:
                 'storage_locations': json.dumps(metadata_dict.get('storage_locations', [])),
                 'recovery_info': json.dumps(metadata_dict.get('recovery_info', {})),
                 'version': metadata_dict.get('version', 1),
-                'last_modified': datetime.now(timezone.utc).isoformat()
+                'last_modified': datetime.now(UTC).isoformat()
             }
 
             async with self.db_manager.get_session() as session:
@@ -214,11 +223,11 @@ class BackupRepository:
             return True
 
         except Exception as e:
-            self.logger.error(f"Failed to store backup metadata: {str(e)}", exc_info=True)
+            self.logger.error(f"Failed to store backup metadata: {e!s}", exc_info=True)
             self.repository_stats["failed_operations"] += 1
             return False
 
-    async def get_backup_metadata_async(self, backup_id: str) -> Optional[Dict[str, Any]]:
+    async def get_backup_metadata_async(self, backup_id: str) -> dict[str, Any] | None:
         """Get backup metadata with unified caching and DB manager."""
         try:
             self.repository_stats["total_queries"] += 1
@@ -251,12 +260,12 @@ class BackupRepository:
 
                 return None
         except Exception as e:
-            self.logger.error(f"Failed to get backup metadata for {backup_id}: {str(e)}", exc_info=True)
+            self.logger.error(f"Failed to get backup metadata for {backup_id}: {e!s}", exc_info=True)
             self.repository_stats["failed_operations"] += 1
             return None
 
-    async def list_backups_async(self, filters: Optional[Dict[str, Any]] = None,
-                               limit: int = 100, offset: int = 0) -> List[Dict[str, Any]]:
+    async def list_backups_async(self, filters: dict[str, Any] | None = None,
+                               limit: int = 100, offset: int = 0) -> list[dict[str, Any]]:
         """List backups with advanced filtering using the unified DB manager."""
         try:
             await self._initialize_database()
@@ -295,7 +304,7 @@ class BackupRepository:
                 return backups
 
         except Exception as e:
-            self.logger.error(f"Failed to list backups: {str(e)}", exc_info=True)
+            self.logger.error(f"Failed to list backups: {e!s}", exc_info=True)
             self.repository_stats["failed_operations"] += 1
             return []
 
@@ -314,11 +323,11 @@ class BackupRepository:
             return True
 
         except Exception as e:
-            self.logger.error(f"Failed to delete backup metadata for {backup_id}: {str(e)}", exc_info=True)
+            self.logger.error(f"Failed to delete backup metadata for {backup_id}: {e!s}", exc_info=True)
             self.repository_stats["failed_operations"] += 1
             return False
 
-    async def find_backup_by_hash_async(self, content_hash: str) -> Optional[Dict[str, Any]]:
+    async def find_backup_by_hash_async(self, content_hash: str) -> dict[str, Any] | None:
         """Find backup by content hash using the unified DB manager."""
         try:
             await self._initialize_database()
@@ -338,7 +347,7 @@ class BackupRepository:
 
                 return None
         except Exception as e:
-            self.logger.error(f"Failed to find backup by hash: {str(e)}", exc_info=True)
+            self.logger.error(f"Failed to find backup by hash: {e!s}", exc_info=True)
             return None
 
     async def verify_metadata_async(self, backup_id: str) -> bool:
@@ -361,10 +370,10 @@ class BackupRepository:
             return True
 
         except Exception as e:
-            self.logger.error(f"Failed to verify metadata for {backup_id}: {str(e)}")
+            self.logger.error(f"Failed to verify metadata for {backup_id}: {e!s}")
             return False
 
-    def _safe_datetime_to_string(self, dt: Any) -> Optional[str]:
+    def _safe_datetime_to_string(self, dt: Any) -> str | None:
         """Safely convert datetime to string."""
         if dt is None:
             return None

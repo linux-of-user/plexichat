@@ -6,14 +6,15 @@
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
+from abc import ABC, abstractmethod
 import asyncio
+from datetime import UTC, datetime
+from enum import Enum
 import logging
 import signal
 import sys
-from abc import ABC, abstractmethod
-from datetime import datetime, timezone
-from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
+
 
 # Placeholder imports for dependencies
 def get_config(): return {}
@@ -67,22 +68,22 @@ class BaseService(ABC):
         # Service state
         self.state = ServiceState.STOPPED
         self.health = ServiceHealth.UNKNOWN
-        self.start_time: Optional[datetime] = None
-        self.last_health_check: Optional[datetime] = None
+        self.start_time: datetime | None = None
+        self.last_health_check: datetime | None = None
 
         # Service metadata
         self.version = "1.0.0"
         self.description = f"PlexiChat {service_name} service"
-        self.dependencies: List[str] = []
+        self.dependencies: list[str] = []
 
         # Health monitoring
         self.health_check_interval = 60  # seconds
-        self.health_check_task: Optional[asyncio.Task] = None
+        self.health_check_task: asyncio.Task | None = None
 
         # Error tracking
         self.error_count = 0
-        self.last_error: Optional[Exception] = None
-        self.last_error_time: Optional[datetime] = None
+        self.last_error: Exception | None = None
+        self.last_error_time: datetime | None = None
 
         # Performance metrics
         self.metrics = {
@@ -139,7 +140,7 @@ class BaseService(ABC):
             # Mark as running
             self.state = ServiceState.RUNNING
             self.health = ServiceHealth.HEALTHY
-            self.start_time = datetime.now(timezone.utc)
+            self.start_time = datetime.now(UTC)
 
             self.logger.info(f"Service {self.service_name} started successfully")
 
@@ -147,7 +148,7 @@ class BaseService(ABC):
             self.state = ServiceState.ERROR
             self.health = ServiceHealth.UNHEALTHY
             self.last_error = e
-            self.last_error_time = datetime.now(timezone.utc)
+            self.last_error_time = datetime.now(UTC)
             self.error_count += 1
 
             self.logger.error(f"Failed to start service {self.service_name}: {e}")
@@ -184,7 +185,7 @@ class BaseService(ABC):
             self.state = ServiceState.ERROR
             self.health = ServiceHealth.UNHEALTHY
             self.last_error = e
-            self.last_error_time = datetime.now(timezone.utc)
+            self.last_error_time = datetime.now(UTC)
             self.error_count += 1
 
             self.logger.error(f"Error stopping service {self.service_name}: {e}")
@@ -199,12 +200,12 @@ class BaseService(ABC):
         if self and hasattr(self, "start"):
             await self.start()
 
-    async def health_check(self) -> Dict[str, Any]:
+    async def health_check(self) -> dict[str, Any]:
         """Perform health check and return status."""
         try:
             # Update uptime
             if self.start_time:
-                uptime = (datetime.now(timezone.utc) - self.start_time).total_seconds()
+                uptime = (datetime.now(UTC) - self.start_time).total_seconds()
                 self.metrics["uptime_seconds"] = uptime
 
             # Perform service-specific health check
@@ -220,7 +221,7 @@ class BaseService(ABC):
 
             # Update health status
             self.health = health_data.get("status", ServiceHealth.UNKNOWN)
-            self.last_health_check = datetime.now(timezone.utc)
+            self.last_health_check = datetime.now(UTC)
 
             return {
                 "service_name": self.service_name,
@@ -244,7 +245,7 @@ class BaseService(ABC):
         except Exception as e:
             self.health = ServiceHealth.UNHEALTHY
             self.last_error = e
-            self.last_error_time = datetime.now(timezone.utc)
+            self.last_error_time = datetime.now(UTC)
             self.error_count += 1
 
             self.logger.error(f"Health check failed for {self.service_name}: {e}")
@@ -254,10 +255,10 @@ class BaseService(ABC):
                 "state": self.state.value,
                 "health": ServiceHealth.UNHEALTHY.value,
                 "error": str(e),
-                "error_time": datetime.now(timezone.utc).isoformat(),
+                "error_time": datetime.now(UTC).isoformat(),
             }
 
-    def get_info(self) -> Dict[str, Any]:
+    def get_info(self) -> dict[str, Any]:
         """Get service information."""
         return {
             "name": self.service_name,
@@ -313,7 +314,7 @@ class BaseService(ABC):
         """Cleanup the service. Must be implemented by subclasses."""
         pass
 
-    async def _perform_health_check(self) -> Dict[str, Any]:
+    async def _perform_health_check(self) -> dict[str, Any]:
         """Perform service-specific health check. Can be overridden by subclasses."""
         return {"status": ServiceHealth.HEALTHY, "checks": {"basic": "ok"}}
 
@@ -321,7 +322,7 @@ class BaseService(ABC):
 class ServiceRegistry:
     """Registry for managing multiple services."""
     def __init__(self):
-        self.services: Dict[str, BaseService] = {}
+        self.services: dict[str, BaseService] = {}
         self.logger = get_logger("service.registry")
 
     def register(self, service: BaseService):
@@ -335,11 +336,11 @@ class ServiceRegistry:
             del self.services[service_name]
             self.logger.info(f"Unregistered service: {service_name}")
 
-    def get_service(self, service_name: str) -> Optional[BaseService]:
+    def get_service(self, service_name: str) -> BaseService | None:
         """Get a service by name."""
         return self.services.get(service_name)
 
-    def list_services(self) -> List[str]:
+    def list_services(self) -> list[str]:
         """List all registered services."""
         return list(self.services.keys())
 
@@ -365,7 +366,7 @@ class ServiceRegistry:
             except Exception as e:
                 self.logger.error(f"Failed to stop service {service.service_name}: {e}")
 
-    async def get_all_health(self) -> Dict[str, Any]:
+    async def get_all_health(self) -> dict[str, Any]:
         """Get health status of all services."""
         health_data = {}
         for service_name, service in self.services.items():
@@ -385,8 +386,8 @@ def get_service_registry() -> ServiceRegistry:
 # Export main components
 __all__ = [
     "BaseService",
-    "ServiceState",
     "ServiceHealth",
     "ServiceRegistry",
+    "ServiceState",
     "get_service_registry",
 ]

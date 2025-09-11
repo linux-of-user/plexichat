@@ -7,15 +7,19 @@
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
 import asyncio
-from typing import Optional, Callable, Any, Dict
+from collections.abc import Callable
 from functools import wraps
+from typing import Any
+
+from fastapi.security import HTTPAuthorizationCredentials
 from flask import Blueprint, flash, jsonify, render_template, request
 from werkzeug.exceptions import BadRequest
-from plexichat.features.ai.features.ai_powered_features_service import AIPoweredFeaturesService
-from plexichat.core.logging import get_logger
-from plexichat.core.auth.fastapi_adapter import get_auth_adapter
-from fastapi.security import HTTPAuthorizationCredentials
 
+from plexichat.core.auth.fastapi_adapter import get_auth_adapter
+from plexichat.core.logging import get_logger
+from plexichat.features.ai.features.ai_powered_features_service import (
+    AIPoweredFeaturesService,
+)
 
 """
 PlexiChat AI-Powered Features Admin Routes
@@ -32,7 +36,7 @@ logger = get_logger(__name__)
 ai_features_bp = Blueprint('ai_features_admin', __name__, url_prefix='/admin/ai-features')
 
 # Global service instance
-_ai_features_service: Optional[AIPoweredFeaturesService] = None
+_ai_features_service: AIPoweredFeaturesService | None = None
 
 def get_ai_features_service() -> AIPoweredFeaturesService:
     """Get or create AI features service instance."""
@@ -140,7 +144,7 @@ def require_admin(func: Callable[..., Any]) -> Callable[..., Any]:
 
 @route_wrapper(ai_features_bp, '/')
 @require_admin
-def dashboard(current_user: Optional[Dict[str, Any]] = None):
+def dashboard(current_user: dict[str, Any] | None = None):
     """AI features management dashboard."""
     try:
         service = get_ai_features_service()
@@ -154,13 +158,13 @@ def dashboard(current_user: Optional[Dict[str, Any]] = None):
         )
     except Exception as e:
         logger.error(f"Failed to load AI features dashboard: {e}")
-        flash(f"Error loading dashboard: {str(e)}", 'error')
+        flash(f"Error loading dashboard: {e!s}", 'error')
         return render_template('admin/ai_features_management.html', stats={}, health={}, config={})
 
 
 @route_wrapper(ai_features_bp, '/api/summarize', methods=['POST'])
 @require_admin
-def api_summarize(current_user: Optional[Dict[str, Any]] = None):
+def api_summarize(current_user: dict[str, Any] | None = None):
     """API endpoint for text summarization."""
     try:
         data = request.get_json() or {}
@@ -202,7 +206,7 @@ def api_summarize(current_user: Optional[Dict[str, Any]] = None):
 
 @route_wrapper(ai_features_bp, '/api/suggest-content', methods=['POST'])
 @require_admin
-def api_suggest_content(current_user: Optional[Dict[str, Any]] = None):
+def api_suggest_content(current_user: dict[str, Any] | None = None):
     """API endpoint for content suggestions."""
     try:
         data = request.get_json() or {}
@@ -243,7 +247,7 @@ def api_suggest_content(current_user: Optional[Dict[str, Any]] = None):
 
 @route_wrapper(ai_features_bp, '/api/analyze-sentiment', methods=['POST'])
 @require_admin
-def api_analyze_sentiment(current_user: Optional[Dict[str, Any]] = None):
+def api_analyze_sentiment(current_user: dict[str, Any] | None = None):
     """API endpoint for sentiment analysis."""
     try:
         data = request.get_json() or {}
@@ -280,7 +284,7 @@ def api_analyze_sentiment(current_user: Optional[Dict[str, Any]] = None):
 
 @route_wrapper(ai_features_bp, '/api/semantic-search', methods=['POST'])
 @require_admin
-def api_semantic_search(current_user: Optional[Dict[str, Any]] = None):
+def api_semantic_search(current_user: dict[str, Any] | None = None):
     """API endpoint for semantic search."""
     try:
         data = request.get_json() or {}
@@ -321,7 +325,7 @@ def api_semantic_search(current_user: Optional[Dict[str, Any]] = None):
 
 @route_wrapper(ai_features_bp, '/api/moderate-content', methods=['POST'])
 @require_admin
-def api_moderate_content(current_user: Optional[Dict[str, Any]] = None):
+def api_moderate_content(current_user: dict[str, Any] | None = None):
     """API endpoint for content moderation."""
     try:
         data = request.get_json() or {}
@@ -361,7 +365,7 @@ def api_moderate_content(current_user: Optional[Dict[str, Any]] = None):
 
 @route_wrapper(ai_features_bp, '/api/add-to-index', methods=['POST'])
 @require_admin
-def api_add_to_index(current_user: Optional[Dict[str, Any]] = None):
+def api_add_to_index(current_user: dict[str, Any] | None = None):
     """API endpoint to add content to semantic search index."""
     try:
         data = request.get_json() or {}
@@ -390,7 +394,7 @@ def api_add_to_index(current_user: Optional[Dict[str, Any]] = None):
 
 @route_wrapper(ai_features_bp, '/api/statistics')
 @require_admin
-def api_statistics(current_user: Optional[Dict[str, Any]] = None):
+def api_statistics(current_user: dict[str, Any] | None = None):
     """API endpoint to get feature statistics."""
     try:
         service = get_ai_features_service()
@@ -403,7 +407,7 @@ def api_statistics(current_user: Optional[Dict[str, Any]] = None):
 
 @route_wrapper(ai_features_bp, '/api/health')
 @require_admin
-def api_health(current_user: Optional[Dict[str, Any]] = None):
+def api_health(current_user: dict[str, Any] | None = None):
     """API endpoint for health check."""
     try:
         service = get_ai_features_service()
@@ -416,7 +420,7 @@ def api_health(current_user: Optional[Dict[str, Any]] = None):
 
 @route_wrapper(ai_features_bp, '/api/clear-cache', methods=['POST'])
 @require_admin
-def api_clear_cache(current_user: Optional[Dict[str, Any]] = None):
+def api_clear_cache(current_user: dict[str, Any] | None = None):
     """API endpoint to clear feature caches."""
     try:
         data = request.get_json() or {}
@@ -431,7 +435,7 @@ def api_clear_cache(current_user: Optional[Dict[str, Any]] = None):
 
 @route_wrapper(ai_features_bp, '/config', methods=['GET', 'POST'])
 @require_admin
-def config_management(current_user: Optional[Dict[str, Any]] = None):
+def config_management(current_user: dict[str, Any] | None = None):
     """AI features configuration management."""
     service = get_ai_features_service()
     if request.method == 'POST':
@@ -445,7 +449,7 @@ def config_management(current_user: Optional[Dict[str, Any]] = None):
                 flash('Invalid configuration data', 'error')
         except Exception as e:
             logger.error(f"Failed to update AI features configuration: {e}")
-            flash(f'Error updating configuration: {str(e)}', 'error')
+            flash(f'Error updating configuration: {e!s}', 'error')
     return jsonify({'success': True, 'config': service.config})
 
 

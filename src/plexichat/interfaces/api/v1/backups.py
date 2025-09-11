@@ -9,16 +9,21 @@ This module provides RESTful API endpoints for backup operations with:
 - AEAD encryption for all operations
 """
 
-import logging
 from datetime import datetime
-from typing import Dict, List, Optional, Any
-from fastapi import APIRouter, Depends, HTTPException, Request, BackgroundTasks
-from pydantic import BaseModel, Field, validator
+import logging
 import re
+from typing import Any
+
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
+from pydantic import BaseModel, Field, validator
 
 from plexichat.core.auth.fastapi_adapter import get_current_user, rate_limit
 from plexichat.core.logging.pii_redaction import redact_pii
-from plexichat.features.backup.backup_engine import BackupEngine, BackupType, SecurityLevel
+from plexichat.features.backup.backup_engine import (
+    BackupEngine,
+    BackupType,
+    SecurityLevel,
+)
 from plexichat.features.backup.encryption_service import EncryptionService
 
 # Initialize router
@@ -37,8 +42,8 @@ class BackupCreateRequest(BaseModel):
     data: str = Field(..., min_length=1, max_length=1000000, description="Data to backup")
     backup_type: str = Field("full", description="Type of backup")
     security_level: str = Field("standard", description="Security level")
-    tags: Optional[List[str]] = Field(None, description="Backup tags")
-    retention_days: Optional[int] = Field(90, ge=1, le=3650, description="Retention period")
+    tags: list[str] | None = Field(None, description="Backup tags")
+    retention_days: int | None = Field(90, ge=1, le=3650, description="Retention period")
 
     @validator('data')
     def validate_data(cls, v):
@@ -92,10 +97,10 @@ class BackupResponse(BaseModel):
     created_at: datetime
     size_bytes: int
     security_level: str
-    tags: List[str]
+    tags: list[str]
 
 
-def sanitize_log_data(data: Dict[str, Any]) -> Dict[str, Any]:
+def sanitize_log_data(data: dict[str, Any]) -> dict[str, Any]:
     """Sanitize sensitive data for logging."""
     sanitized = data.copy()
 

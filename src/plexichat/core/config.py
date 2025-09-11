@@ -218,21 +218,21 @@ __all__ = [
 try:
     __all__.extend(
         [
-            "SystemConfig",
-            "NetworkConfig",
-            "DatabaseConfig",
-            "SecurityConfig",
-            "CachingConfig",
             "AIConfig",
-            "LoggingConfig",
-            "ClusterConfig",
-            "SecurityEnhancedConfig",
-            "DDoSProtectionConfig",
-            "PluginSecurityConfig",
             "BackupConfig",
+            "CachingConfig",
             "CallingServiceConfig",
-            "TypingConfig",
+            "ClusterConfig",
+            "DDoSProtectionConfig",
+            "DatabaseConfig",
             "KeyboardShortcutsConfig",
+            "LoggingConfig",
+            "NetworkConfig",
+            "PluginSecurityConfig",
+            "SecurityConfig",
+            "SecurityEnhancedConfig",
+            "SystemConfig",
+            "TypingConfig",
         ]
     )
 except NameError:

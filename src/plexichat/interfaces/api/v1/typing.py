@@ -4,15 +4,18 @@ Typing API Endpoints
 REST API endpoints for typing indicators.
 """
 
+
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
-from typing import List
 
-from plexichat.core.services.typing_service import typing_service
 from plexichat.core.config import get_config, get_config_manager
-from plexichat.core.services.typing_cleanup_service import typing_cleanup_service
-from plexichat.core.services.optimized_websocket_service import optimized_websocket_service
+from plexichat.core.services.optimized_websocket_service import (
+    optimized_websocket_service,
+)
 from plexichat.core.services.typing_cache_service import typing_cache_service
+from plexichat.core.services.typing_cleanup_service import typing_cleanup_service
+from plexichat.core.services.typing_service import typing_service
+
 
 # Mock user dependency
 def get_current_user():
@@ -31,7 +34,7 @@ class TypingStopRequest(BaseModel):
 class TypingStatusResponse(BaseModel):
     """Response model for typing status."""
     channel_id: str
-    typing_users: List[str]
+    typing_users: list[str]
     count: int
 
 @router.post("/start")
@@ -47,7 +50,7 @@ async def start_typing(request: TypingStartRequest, current_user: dict = Depends
         return {"message": "Typing started", "user_id": user_id, "channel_id": request.channel_id}
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {e!s}")
 
 @router.post("/stop")
 async def stop_typing(request: TypingStopRequest, current_user: dict = Depends(get_current_user)):
@@ -62,7 +65,7 @@ async def stop_typing(request: TypingStopRequest, current_user: dict = Depends(g
         return {"message": "Typing stopped", "user_id": user_id, "channel_id": request.channel_id}
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {e!s}")
 
 @router.get("/status/{channel_id}")
 async def get_typing_status(channel_id: str, current_user: dict = Depends(get_current_user)):
@@ -80,7 +83,7 @@ async def get_typing_status(channel_id: str, current_user: dict = Depends(get_cu
         )
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {e!s}")
 
 @router.post("/cleanup")
 async def cleanup_expired_typing_states(current_user: dict = Depends(get_current_user)):
@@ -97,7 +100,7 @@ async def cleanup_expired_typing_states(current_user: dict = Depends(get_current
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {e!s}")
 
 
 # Admin Configuration Endpoints
@@ -162,7 +165,7 @@ async def get_typing_config(current_user: dict = Depends(get_current_user)):
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {e!s}")
 
 
 @router.put("/admin/config", response_model=TypingConfigResponse)
@@ -193,7 +196,7 @@ async def update_typing_config(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {e!s}")
 
 
 @router.get("/admin/metrics")
@@ -222,7 +225,7 @@ async def get_typing_metrics(current_user: dict = Depends(get_current_user)):
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {e!s}")
 
 
 @router.post("/admin/cache/invalidate")
@@ -243,7 +246,7 @@ async def invalidate_typing_cache(current_user: dict = Depends(get_current_user)
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {e!s}")
 
 
 @router.post("/admin/cleanup/force")
@@ -260,4 +263,4 @@ async def force_typing_cleanup(current_user: dict = Depends(get_current_user)):
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {e!s}")

@@ -7,11 +7,11 @@
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
 import asyncio
-import secrets
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from enum import Enum
-from typing import Any, Dict, List, Optional
+import secrets
+from typing import Any
 from uuid import uuid4
 
 from plexichat.core.config import get_config
@@ -105,20 +105,20 @@ class HSMKey:
     key_id: str
     key_type: KeyType
     key_size: int
-    usage: List[KeyUsage]
+    usage: list[KeyUsage]
     security_level: SecurityLevel
     created_at: datetime
     created_by: str
-    expires_at: Optional[datetime] = None
+    expires_at: datetime | None = None
     hsm_handle: str = ""
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
     access_count: int = 0
-    last_accessed: Optional[datetime] = None
+    last_accessed: datetime | None = None
 
     def is_expired(self) -> bool:
         """Check if key is expired."""
         if self.expires_at:
-            return datetime.now(timezone.utc) > self.expires_at
+            return datetime.now(UTC) > self.expires_at
         return False
 
     def is_quantum_safe(self) -> bool:
@@ -130,7 +130,7 @@ class HSMKey:
             KeyType.DILITHIUM,
         ]
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for serialization."""
         return {
             "key_id": self.key_id,
@@ -164,10 +164,10 @@ class HSMDevice:
     is_authenticated: bool = False
     is_available: bool = True
     is_quantum_ready: bool = False
-    capabilities: List[str] = field(default_factory=list)
-    performance_metrics: Dict[str, Any] = field(default_factory=dict)
+    capabilities: list[str] = field(default_factory=list)
+    performance_metrics: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
             "device_id": self.device_id,
@@ -191,7 +191,7 @@ class UnifiedHSMInterface:
     def __init__(self, device: HSMDevice):
         self.device = device
         self.session_active = False
-        self.keys: Dict[str, HSMKey] = {}
+        self.keys: dict[str, HSMKey] = {}
         self.audit_system = get_unified_audit_system()
 
         # Enhanced capabilities based on security level
@@ -215,7 +215,7 @@ class UnifiedHSMInterface:
         }
 
     async def authenticate(
-        self, pin: str, admin_pin: Optional[str] = None, user_id: str = "system"
+        self, pin: str, admin_pin: str | None = None, user_id: str = "system"
     ) -> bool:
         """Enhanced HSM authentication with comprehensive security and audit logging."""
         try:
@@ -275,7 +275,7 @@ class UnifiedHSMInterface:
                         getattr(self.device, "security_level", SecurityLevel.STANDARD)
                     ),
                     "admin_auth": admin_pin is not None,
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "timestamp": datetime.now(UTC).isoformat(),
                     "session_id": str(uuid4()),
                 },
             )
@@ -283,7 +283,7 @@ class UnifiedHSMInterface:
             if auth_success:
                 self.device.is_authenticated = True
                 self.session_active = True
-                self.last_activity = datetime.now(timezone.utc)
+                self.last_activity = datetime.now(UTC)
                 logger.info(
                     f"Enhanced HSM authentication successful for {self.device.device_id}"
                 )
@@ -299,7 +299,7 @@ class UnifiedHSMInterface:
             # Log authentication error
             self.audit_system.log_security_event(
                 SecurityEventType.SYSTEM_COMPROMISE,
-                f"HSM authentication system error: {str(e)}",
+                f"HSM authentication system error: {e!s}",
                 SecuritySeverity.ERROR,
                 ThreatLevel.HIGH,
                 user_id=user_id,
@@ -313,11 +313,11 @@ class UnifiedHSMInterface:
         self,
         key_type: KeyType,
         key_size: int,
-        usage: List[KeyUsage],
+        usage: list[KeyUsage],
         security_level: SecurityLevel = SecurityLevel.HIGH,
-        expires_days: Optional[int] = None,
+        expires_days: int | None = None,
         user_id: str = "system",
-    ) -> Optional[HSMKey]:
+    ) -> HSMKey | None:
         """Generate cryptographic key in HSM with enhanced security."""
         try:
             if not self.device.is_authenticated:
@@ -342,7 +342,7 @@ class UnifiedHSMInterface:
 
             expires_at = None
             if expires_days:
-                expires_at = datetime.now(timezone.utc) + timedelta(days=expires_days)
+                expires_at = datetime.now(UTC) + timedelta(days=expires_days)
 
             key = HSMKey(
                 key_id=key_id,
@@ -350,7 +350,7 @@ class UnifiedHSMInterface:
                 key_size=key_size,
                 usage=usage,
                 security_level=security_level,
-                created_at=datetime.now(timezone.utc),
+                created_at=datetime.now(UTC),
                 created_by=user_id,
                 expires_at=expires_at,
                 hsm_handle=hsm_handle,
@@ -396,7 +396,7 @@ class UnifiedHSMInterface:
             # Log key generation error
             self.audit_system.log_security_event(
                 SecurityEventType.SYSTEM_COMPROMISE,
-                f"HSM key generation failed: {str(e)}",
+                f"HSM key generation failed: {e!s}",
                 SecuritySeverity.ERROR,
                 ThreatLevel.HIGH,
                 user_id=user_id,
@@ -414,21 +414,21 @@ class UnifiedHSMManager:
     Manages all HSM operations with integration to unified security architecture.
     """
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, config: dict[str, Any] | None = None):
         raw_config: Any = config if isinstance(config, dict) else get_config().get("hsm", {})  # type: ignore[reportUnknownMemberType]
-        self.config: Dict[str, Any] = raw_config if isinstance(raw_config, dict) else {}
+        self.config: dict[str, Any] = raw_config if isinstance(raw_config, dict) else {}
         self.initialized = False
 
         # HSM devices and interfaces
-        self.devices: Dict[str, UnifiedHSMInterface] = {}
-        self.primary_hsm: Optional[str] = None
-        self.backup_hsms: List[str] = []
+        self.devices: dict[str, UnifiedHSMInterface] = {}
+        self.primary_hsm: str | None = None
+        self.backup_hsms: list[str] = []
 
         # Security components
         self.audit_system = get_unified_audit_system()
 
         # Performance and monitoring
-        self.operation_metrics: Dict[str, Any] = {
+        self.operation_metrics: dict[str, Any] = {
             "total_operations": 0,
             "key_generations": 0,
             "encryptions": 0,
@@ -439,8 +439,8 @@ class UnifiedHSMManager:
         }
 
         # Key management
-        self.master_keys: Dict[str, str] = {}  # Purpose -> Key ID mapping
-        self.key_rotation_schedule: Dict[str, datetime] = {}
+        self.master_keys: dict[str, str] = {}  # Purpose -> Key ID mapping
+        self.key_rotation_schedule: dict[str, datetime] = {}
 
         logger.info("Unified HSM Manager initialized")
 
@@ -590,7 +590,7 @@ class UnifiedHSMManager:
             # Log error
             self.audit_system.log_security_event(
                 SecurityEventType.SYSTEM_COMPROMISE,
-                f"Failed to add HSM device: {str(e)}",
+                f"Failed to add HSM device: {e!s}",
                 SecuritySeverity.ERROR,
                 ThreatLevel.MEDIUM,
                 user_id=user_id,
@@ -603,7 +603,7 @@ class UnifiedHSMManager:
         self,
         device_id: str,
         pin: str,
-        admin_pin: Optional[str] = None,
+        admin_pin: str | None = None,
         user_id: str = "system",
     ) -> bool:
         """Authenticate with specific HSM."""
@@ -619,7 +619,7 @@ class UnifiedHSMManager:
         key_type: KeyType = KeyType.QUANTUM_RESISTANT,
         key_size: int = 256,
         user_id: str = "system",
-    ) -> Optional[HSMKey]:
+    ) -> HSMKey | None:
         """Generate master encryption key for specific purpose."""
         if not self.primary_hsm:
             logger.error("No primary HSM available")
@@ -641,14 +641,14 @@ class UnifiedHSMManager:
 
             # Schedule key rotation
             self.key_rotation_schedule[key.key_id] = datetime.now(
-                timezone.utc
+                UTC
             ) + timedelta(days=300)
 
         return key
 
     async def generate_backup_encryption_key(
         self, user_id: str = "system"
-    ) -> Optional[HSMKey]:
+    ) -> HSMKey | None:
         """Generate quantum-safe key for backup encryption."""
         return await self.generate_master_key(
             purpose="backup_encryption",
@@ -662,7 +662,7 @@ class UnifiedHSMManager:
         key_type: KeyType = KeyType.DILITHIUM,
         key_size: int = 3,
         user_id: str = "system",
-    ) -> Optional[HSMKey]:
+    ) -> HSMKey | None:
         """Generate post-quantum digital signing key."""
         if not self.primary_hsm:
             logger.error("No primary HSM available")
@@ -683,12 +683,12 @@ class UnifiedHSMManager:
 
             # Schedule key rotation
             self.key_rotation_schedule[key.key_id] = datetime.now(
-                timezone.utc
+                UTC
             ) + timedelta(days=600)
 
         return key
 
-    async def get_hsm_status(self) -> Dict[str, Any]:
+    async def get_hsm_status(self) -> dict[str, Any]:
         """Get comprehensive HSM system status."""
         device_status = {}
         total_keys = 0
@@ -730,7 +730,7 @@ class UnifiedHSMManager:
             try:
                 await asyncio.sleep(3600)  # Check every hour
 
-                current_time = datetime.now(timezone.utc)
+                current_time = datetime.now(UTC)
                 keys_to_rotate = []
 
                 for key_id, rotation_time in self.key_rotation_schedule.items():
@@ -770,7 +770,7 @@ class UnifiedHSMManager:
 
                         # Schedule next rotation
                         self.key_rotation_schedule[new_key.key_id] = datetime.now(
-                            timezone.utc
+                            UTC
                         ) + timedelta(days=365)
 
                         # Remove old key from rotation schedule
@@ -810,15 +810,15 @@ class UnifiedHSMManager:
                 for device_id, hsm in self.devices.items():
                     hsm.device.performance_metrics = {
                         "uptime_hours": (
-                            datetime.now(timezone.utc)
-                            - datetime.now(timezone.utc).replace(
+                            datetime.now(UTC)
+                            - datetime.now(UTC).replace(
                                 hour=0, minute=0, second=0
                             )
                         ).total_seconds()
                         / 3600,
                         "key_count": len(hsm.keys),
                         "session_active": hsm.session_active,
-                        "last_updated": datetime.now(timezone.utc).isoformat(),
+                        "last_updated": datetime.now(UTC).isoformat(),
                     }
 
             except Exception as e:
@@ -826,7 +826,7 @@ class UnifiedHSMManager:
 
 
 # Global instance - SINGLE SOURCE OF TRUTH
-_unified_hsm_manager: Optional[UnifiedHSMManager] = None
+_unified_hsm_manager: UnifiedHSMManager | None = None
 
 
 def get_unified_hsm_manager() -> "UnifiedHSMManager":
@@ -839,13 +839,13 @@ def get_unified_hsm_manager() -> "UnifiedHSMManager":
 
 # Export main components
 __all__ = [
-    "UnifiedHSMManager",
-    "get_unified_hsm_manager",
+    "HSMDevice",
+    "HSMKey",
     "HSMType",
     "KeyType",
     "KeyUsage",
     "SecurityLevel",
-    "HSMKey",
-    "HSMDevice",
     "UnifiedHSMInterface",
+    "UnifiedHSMManager",
+    "get_unified_hsm_manager",
 ]

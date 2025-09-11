@@ -4,15 +4,17 @@
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
 import asyncio
-import logging
-import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Callable, Dict, Optional
+import logging
+import time
+from typing import Any
 
 import aiohttp
 import psutil
+
 
 # Placeholder for a real implementation
 class DatabaseManager:
@@ -39,9 +41,9 @@ class HealthCheck:
     interval: float = 30.0
     critical: bool = False
     description: str = ""
-    last_check: Optional[datetime] = None
+    last_check: datetime | None = None
     last_status: HealthStatus = HealthStatus.UNKNOWN
-    last_error: Optional[str] = None
+    last_error: str | None = None
     consecutive_failures: int = 0
 
 
@@ -53,7 +55,7 @@ class HealthResult:
     message: str
     duration_ms: float
     timestamp: datetime
-    details: Dict[str, Any] = field(default_factory=dict)
+    details: dict[str, Any] = field(default_factory=dict)
 
 
 class HealthCheckService:
@@ -61,8 +63,8 @@ class HealthCheckService:
     Comprehensive health monitoring service.
     """
     def __init__(self):
-        self.checks: Dict[str, HealthCheck] = {}
-        self.results: Dict[str, HealthResult] = {}
+        self.checks: dict[str, HealthCheck] = {}
+        self.results: dict[str, HealthResult] = {}
         self.running = False
         self.check_task = None
         self.failure_threshold = 3
@@ -116,7 +118,7 @@ class HealthCheckService:
             check.last_status = status
             check.last_error = None
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             duration_ms = check.timeout * 1000
             status = HealthStatus.UNHEALTHY
             message = f"Check timed out after {check.timeout}s"
@@ -127,7 +129,7 @@ class HealthCheckService:
         except Exception as e:
             duration_ms = (time.time() - start_time) * 1000
             status = HealthStatus.UNHEALTHY
-            message = f"Check failed: {str(e)}"
+            message = f"Check failed: {e!s}"
             details = {"error": str(e), "type": type(e).__name__}
             check.consecutive_failures += 1
             check.last_error = str(e)
@@ -144,7 +146,7 @@ class HealthCheckService:
             details=details
         )
 
-    async def run_all_checks(self) -> Dict[str, HealthResult]:
+    async def run_all_checks(self) -> dict[str, HealthResult]:
         """Run all registered health checks."""
         results = {}
 
@@ -172,7 +174,7 @@ class HealthCheckService:
 
         return results
 
-    async def get_system_status(self) -> Dict[str, Any]:
+    async def get_system_status(self) -> dict[str, Any]:
         """Get comprehensive system status."""
         # Run health checks
         check_results = await self.run_all_checks()
@@ -217,7 +219,7 @@ class HealthCheckService:
             }
         }
 
-    async def _get_system_metrics(self) -> Dict[str, Any]:
+    async def _get_system_metrics(self) -> dict[str, Any]:
         """Get system performance metrics."""
         try:
             # CPU usage
@@ -323,7 +325,7 @@ class HealthCheckService:
 
 
 # Built-in health checks
-async def database_health_check() -> Dict[str, Any]:
+async def database_health_check() -> dict[str, Any]:
     """Check database connectivity."""
     try:
         # Test database connection
@@ -348,7 +350,7 @@ async def database_health_check() -> Dict[str, Any]:
         }
 
 
-async def api_health_check() -> Dict[str, Any]:
+async def api_health_check() -> dict[str, Any]:
     """Check API server health."""
     try:
         # This would check if the API server is responding
@@ -393,7 +395,7 @@ health_service.register_check(HealthCheck(
 
 
 # Convenience functions
-async def get_health_status() -> Dict[str, Any]:
+async def get_health_status() -> dict[str, Any]:
     """Get current health status."""
     return await health_service.get_system_status()
 

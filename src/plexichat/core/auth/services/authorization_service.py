@@ -2,7 +2,7 @@
 Authorization service for PlexiChat.
 """
 
-from typing import Any, Dict, List, Set
+from typing import Any
 
 from plexichat.core.auth.models.permission import Permission
 from plexichat.core.auth.models.role import Role
@@ -28,8 +28,8 @@ class AuthorizationService:
         return True
 
     def get_effective_permissions(
-        self, user_id: str, roles: Set[Role]
-    ) -> Set[Permission]:
+        self, user_id: str, roles: set[Role]
+    ) -> set[Permission]:
         """Get effective permissions for user."""
         return {Permission.READ, Permission.WRITE}
 
@@ -41,11 +41,11 @@ class AuthorizationService:
         """Revoke permission from user."""
         return True
 
-    def grant_permissions(self, user_id: str, permissions: Set[Permission]) -> bool:
+    def grant_permissions(self, user_id: str, permissions: set[Permission]) -> bool:
         """Grant multiple permissions."""
         return True
 
-    def revoke_permissions(self, user_id: str, permissions: Set[Permission]) -> bool:
+    def revoke_permissions(self, user_id: str, permissions: set[Permission]) -> bool:
         """Revoke multiple permissions."""
         return True
 
@@ -58,16 +58,16 @@ class AuthorizationService:
         return True
 
     def check_context_permission(
-        self, user_id: str, permission: Permission, context: Dict[str, Any]
+        self, user_id: str, permission: Permission, context: dict[str, Any]
     ) -> bool:
         """Check permission with context."""
         return True
 
-    def get_cached_permissions(self, user_id: str) -> Set[Permission]:
+    def get_cached_permissions(self, user_id: str) -> set[Permission]:
         """Get cached permissions."""
         return {Permission.READ, Permission.WRITE}
 
-    def cache_permissions(self, user_id: str, permissions: Set[Permission]):
+    def cache_permissions(self, user_id: str, permissions: set[Permission]):
         """Cache permissions."""
         pass
 
@@ -84,8 +84,8 @@ class AuthorizationService:
         return True
 
     def resolve_permission_conflicts(
-        self, permissions: Set[Permission]
-    ) -> Set[Permission]:
+        self, permissions: set[Permission]
+    ) -> set[Permission]:
         """Resolve permission conflicts."""
         return permissions
 
@@ -100,13 +100,13 @@ class AuthorizationService:
         return 5
 
     def check_cross_resource_permission(
-        self, user_id: str, permission: Permission, resources: List[str]
+        self, user_id: str, permission: Permission, resources: list[str]
     ) -> bool:
         """Check cross-resource permission."""
         return True
 
     def expand_wildcard_permissions(
         self, user_id: str, wildcard: str
-    ) -> Set[Permission]:
+    ) -> set[Permission]:
         """Expand wildcard permissions."""
         return {Permission.READ, Permission.WRITE, Permission.DELETE}

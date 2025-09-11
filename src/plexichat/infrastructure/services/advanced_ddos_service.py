@@ -6,14 +6,15 @@
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
-import logging
-import time
-import re
 from collections import defaultdict, deque
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+import logging
+import re
+import time
+from typing import Any, Optional
+
 
 # Placeholder for a real implementation
 class BehavioralAssessment:
@@ -61,7 +62,7 @@ class DDoSMetrics:
     cpu_usage: float = 0.0
     active_blocks: int = 0
     threat_level: ThreatLevel = ThreatLevel.CLEAN
-    last_update: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    last_update: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 @dataclass
 class IPThreatProfile:
@@ -74,10 +75,10 @@ class IPThreatProfile:
     violation_count: int = 0
     threat_level: ThreatLevel = ThreatLevel.CLEAN
     block_type: BlockType = BlockType.NONE
-    block_expires: Optional[datetime] = None
-    user_agent_patterns: List[str] = field(default_factory=list)
-    request_patterns: List[str] = field(default_factory=list)
-    geographic_info: Dict[str, Any] = field(default_factory=dict)
+    block_expires: datetime | None = None
+    user_agent_patterns: list[str] = field(default_factory=list)
+    request_patterns: list[str] = field(default_factory=list)
+    geographic_info: dict[str, Any] = field(default_factory=dict)
 
 class EnhancedDDoSProtectionService:
     """
@@ -106,8 +107,8 @@ class EnhancedDDoSProtectionService:
         }
 
         # IP tracking and profiling
-        self.ip_profiles: Dict[str, IPThreatProfile] = {}
-        self.request_history: Dict[str, deque] = defaultdict(lambda: deque(maxlen=1000))
+        self.ip_profiles: dict[str, IPThreatProfile] = {}
+        self.request_history: dict[str, deque] = defaultdict(lambda: deque(maxlen=1000))
 
         # Progressive blocking configuration
         self.progressive_blocks = {
@@ -141,7 +142,7 @@ class EnhancedDDoSProtectionService:
         logger.info(" Enhanced DDoS Protection Service initialized")
 
     async def check_request(self, ip: str, user_agent: str = "",
-                        endpoint: str = "", method: str = "GET") -> Tuple[bool, str, Dict[str, Any]]:
+                        endpoint: str = "", method: str = "GET") -> tuple[bool, str, dict[str, Any]]:
         """
         Check if request should be allowed through DDoS protection.
 
@@ -157,7 +158,7 @@ class EnhancedDDoSProtectionService:
         if not self.enabled:
             return True, "ddos_protection_disabled", {}
 
-        current_time = datetime.now(timezone.utc)
+        current_time = datetime.now(UTC)
 
         # Update or create IP profile
         profile = self._update_ip_profile(ip, user_agent, endpoint, current_time)
@@ -415,9 +416,7 @@ class EnhancedDDoSProtectionService:
         # Update threat level with behavioral input
         final_threat_level = ThreatLevel.MODERATE
 
-        if behavioral_assessment and behavioral_assessment.risk_level > 8:
-            final_threat_level = ThreatLevel.CRITICAL
-        elif suspicion_score > 0.9 or (behavioral_assessment and behavioral_assessment.risk_level > 6):
+        if (behavioral_assessment and behavioral_assessment.risk_level > 8) or suspicion_score > 0.9 or (behavioral_assessment and behavioral_assessment.risk_level > 6):
             final_threat_level = ThreatLevel.CRITICAL
         elif suspicion_score > 0.7 or (behavioral_assessment and behavioral_assessment.risk_level > 4):
             final_threat_level = ThreatLevel.HIGH
@@ -449,7 +448,7 @@ class EnhancedDDoSProtectionService:
             if profile.threat_level.value > 0:
                 profile.threat_level = ThreatLevel(profile.threat_level.value - 1)
 
-    def _get_detected_patterns(self, user_agent: str, endpoint: str) -> List[str]:
+    def _get_detected_patterns(self, user_agent: str, endpoint: str) -> list[str]:
         """Get list of detected suspicious patterns."""
         patterns = []
 
@@ -500,7 +499,7 @@ class EnhancedDDoSProtectionService:
         else:
             self.metrics.threat_level = ThreatLevel.CLEAN
 
-        self.metrics.last_update = datetime.now(timezone.utc)
+        self.metrics.last_update = datetime.now(UTC)
         return self.metrics
 
 # Global enhanced DDoS protection service

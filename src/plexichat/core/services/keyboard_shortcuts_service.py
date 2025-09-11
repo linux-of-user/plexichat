@@ -9,8 +9,8 @@ Provides comprehensive keyboard shortcuts management including:
 """
 
 from dataclasses import dataclass
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 from plexichat.core.database import execute_query
 from plexichat.core.logging import get_logger
@@ -22,16 +22,16 @@ logger = get_logger(__name__)
 class KeyboardShortcut:
     """Represents a keyboard shortcut configuration."""
 
-    id: Optional[int] = None
+    id: int | None = None
     user_id: str = ""
     shortcut_key: str = ""
     action: str = ""
     description: str = ""
     is_custom: bool = False
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for API responses."""
         return {
             "id": self.id,
@@ -51,7 +51,7 @@ class KeyboardShortcutsService:
     def __init__(self):
         self._default_shortcuts = self._get_default_shortcuts()
 
-    def _get_default_shortcuts(self) -> Dict[str, Dict[str, str]]:
+    def _get_default_shortcuts(self) -> dict[str, dict[str, str]]:
         """Get default keyboard shortcuts configuration."""
         return {
             "send_message": {
@@ -164,7 +164,7 @@ class KeyboardShortcutsService:
             },
         }
 
-    async def get_shortcuts(self, user_id: str) -> List[KeyboardShortcut]:
+    async def get_shortcuts(self, user_id: str) -> list[KeyboardShortcut]:
         """Get all shortcuts for a user, including defaults."""
         # Use a single database session for all operations to ensure visibility
         from plexichat.core.database.manager import database_manager
@@ -220,8 +220,8 @@ class KeyboardShortcutsService:
                 return []
 
     async def add_shortcut(
-        self, user_id: str, shortcut_data: Dict[str, Any]
-    ) -> Optional[KeyboardShortcut]:
+        self, user_id: str, shortcut_data: dict[str, Any]
+    ) -> KeyboardShortcut | None:
         """Add a new shortcut for a user."""
         # Use a single database session for both INSERT and SELECT operations
         from plexichat.core.database.manager import database_manager
@@ -239,7 +239,7 @@ class KeyboardShortcutsService:
                     return None
 
                 # Insert new shortcut
-                now = datetime.now(timezone.utc)
+                now = datetime.now(UTC)
                 await session.execute(
                     """
                     INSERT INTO keyboard_shortcuts
@@ -281,7 +281,7 @@ class KeyboardShortcutsService:
                 return None
 
     async def update_shortcut(
-        self, user_id: str, shortcut_id: int, shortcut_data: Dict[str, Any]
+        self, user_id: str, shortcut_id: int, shortcut_data: dict[str, Any]
     ) -> bool:
         """Update an existing shortcut."""
         try:
@@ -299,7 +299,7 @@ class KeyboardShortcutsService:
                 return False
 
             # Update shortcut
-            now = datetime.now(timezone.utc)
+            now = datetime.now(UTC)
             await execute_query(
                 """
                 UPDATE keyboard_shortcuts
@@ -342,7 +342,7 @@ class KeyboardShortcutsService:
             )
             return False
 
-    async def get_default_shortcuts(self) -> Dict[str, Dict[str, str]]:
+    async def get_default_shortcuts(self) -> dict[str, dict[str, str]]:
         """Get default shortcuts configuration."""
         return self._default_shortcuts
 
@@ -350,9 +350,9 @@ class KeyboardShortcutsService:
         self,
         shortcut_key: str,
         user_id: str,
-        exclude_action: Optional[str] = None,
-        exclude_id: Optional[int] = None,
-    ) -> Optional[str]:
+        exclude_action: str | None = None,
+        exclude_id: int | None = None,
+    ) -> str | None:
         """Validate if a shortcut key conflicts with existing shortcuts."""
         # Use a single database session for all operations to ensure visibility
         from plexichat.core.database.manager import database_manager
@@ -388,11 +388,11 @@ class KeyboardShortcutsService:
 
             except Exception as e:
                 logger.error(f"Failed to validate shortcut conflicts: {e}")
-                return f"Validation error: {str(e)}"
+                return f"Validation error: {e!s}"
 
     async def get_shortcut_by_action(
         self, user_id: str, action: str
-    ) -> Optional[KeyboardShortcut]:
+    ) -> KeyboardShortcut | None:
         """Get a specific shortcut by action."""
         # Use a single database session for all operations to ensure visibility
         from plexichat.core.database.manager import database_manager

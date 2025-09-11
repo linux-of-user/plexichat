@@ -5,7 +5,7 @@ Defines contracts for data access operations in the authentication system.
 
 from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Set
+from typing import Any
 
 from plexichat.core.authentication import DeviceInfo, SessionInfo
 
@@ -14,22 +14,22 @@ class IUserRepository(ABC):
     """Interface for user data operations."""
 
     @abstractmethod
-    def get_user_credentials(self, user_id: str) -> Optional[Dict[str, Any]]:
+    def get_user_credentials(self, user_id: str) -> dict[str, Any] | None:
         """Get user credentials by user ID."""
         pass
 
     @abstractmethod
-    def save_user_credentials(self, user_id: str, credentials: Dict[str, Any]) -> bool:
+    def save_user_credentials(self, user_id: str, credentials: dict[str, Any]) -> bool:
         """Save user credentials."""
         pass
 
     @abstractmethod
-    def update_user_permissions(self, user_id: str, permissions: Set[str]) -> bool:
+    def update_user_permissions(self, user_id: str, permissions: set[str]) -> bool:
         """Update user permissions."""
         pass
 
     @abstractmethod
-    def get_user_permissions(self, user_id: str) -> Set[str]:
+    def get_user_permissions(self, user_id: str) -> set[str]:
         """Get user permissions."""
         pass
 
@@ -53,7 +53,7 @@ class ISessionRepository(ABC):
         pass
 
     @abstractmethod
-    def get_session(self, session_id: str) -> Optional[SessionInfo]:
+    def get_session(self, session_id: str) -> SessionInfo | None:
         """Get session by ID."""
         pass
 
@@ -68,7 +68,7 @@ class ISessionRepository(ABC):
         pass
 
     @abstractmethod
-    def get_user_sessions(self, user_id: str) -> List[SessionInfo]:
+    def get_user_sessions(self, user_id: str) -> list[SessionInfo]:
         """Get all sessions for a user."""
         pass
 
@@ -92,29 +92,29 @@ class IAuditRepository(ABC):
     """Interface for audit logging operations."""
 
     @abstractmethod
-    def log_event(self, event_data: Dict[str, Any]) -> bool:
+    def log_event(self, event_data: dict[str, Any]) -> bool:
         """Log an audit event."""
         pass
 
     @abstractmethod
     def get_events(
         self,
-        user_id: Optional[str] = None,
-        event_type: Optional[str] = None,
-        start_date: Optional[datetime] = None,
-        end_date: Optional[datetime] = None,
+        user_id: str | None = None,
+        event_type: str | None = None,
+        start_date: datetime | None = None,
+        end_date: datetime | None = None,
         limit: int = 100,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Get audit events with filtering."""
         pass
 
     @abstractmethod
     def get_security_events(
         self,
-        severity: Optional[str] = None,
-        start_date: Optional[datetime] = None,
-        end_date: Optional[datetime] = None,
-    ) -> List[Dict[str, Any]]:
+        severity: str | None = None,
+        start_date: datetime | None = None,
+        end_date: datetime | None = None,
+    ) -> list[dict[str, Any]]:
         """Get security-related audit events."""
         pass
 
@@ -133,7 +133,7 @@ class IDeviceRepository(ABC):
         pass
 
     @abstractmethod
-    def get_device(self, device_id: str) -> Optional[DeviceInfo]:
+    def get_device(self, device_id: str) -> DeviceInfo | None:
         """Get device by ID."""
         pass
 
@@ -148,12 +148,12 @@ class IDeviceRepository(ABC):
         pass
 
     @abstractmethod
-    def get_user_devices(self, user_id: str) -> List[DeviceInfo]:
+    def get_user_devices(self, user_id: str) -> list[DeviceInfo]:
         """Get all devices for a user."""
         pass
 
     @abstractmethod
-    def get_trusted_devices(self, user_id: str) -> List[DeviceInfo]:
+    def get_trusted_devices(self, user_id: str) -> list[DeviceInfo]:
         """Get trusted devices for a user."""
         pass
 
@@ -169,8 +169,8 @@ class IDeviceRepository(ABC):
 
 
 __all__ = [
-    "IUserRepository",
-    "ISessionRepository",
     "IAuditRepository",
     "IDeviceRepository",
+    "ISessionRepository",
+    "IUserRepository",
 ]

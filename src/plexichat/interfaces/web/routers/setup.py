@@ -5,22 +5,24 @@ Web interface for initial setup, database configuration, and admin account creat
 Provides a complete setup wizard accessible via web browser.
 """
 
-import sys, os
+import os
+import sys
+
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../.')))
 
+from datetime import datetime
+import hashlib
 import json
 import logging
-import hashlib
-from datetime import datetime
 from pathlib import Path
-from typing import Dict, Any, Optional, Union, List
+from typing import Any
 
 # Import database abstraction layer
 from plexichat.core.database.manager import database_manager
-from plexichat.features.users.models import User, UserRole, UserStatus
-from plexichat.features.users.user import UserService, UserCreate
-from plexichat.features.users.models import UserModelService
 from plexichat.features.users.message import MessageUpdate
+from plexichat.features.users.models import User, UserModelService, UserRole, UserStatus
+from plexichat.features.users.user import UserCreate, UserService
+
 database_manager = None
 User = None
 UserRole = None
@@ -30,20 +32,20 @@ UserCreate = None
 UserModelService = None
 MessageUpdate = None
 
-from fastapi import APIRouter, Request, Form, HTTPException, Depends, Body, Query
-from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
-from fastapi.templating import Jinja2Templates
-from fastapi.security import HTTPBearer
-from starlette.middleware.base import BaseHTTPMiddleware
-from plexichat.core.security.security_manager import get_security_system, SecurityPolicy
-from plexichat.core.security.security_context import security_context
-
-import re
-
 import base64
-import time
-from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+import re
 import subprocess
+import time
+
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+from fastapi import APIRouter, Body, Depends, Form, HTTPException, Query, Request
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+from fastapi.security import HTTPBearer
+from fastapi.templating import Jinja2Templates
+from starlette.middleware.base import BaseHTTPMiddleware
+
+from plexichat.core.security.security_context import security_context
+from plexichat.core.security.security_manager import SecurityPolicy, get_security_system
 
 # Security headers from security.txt
 SECURITY_HEADERS = {
@@ -137,7 +139,7 @@ def derive_time_key(shared_secret: bytes, interval: int = TIME_WINDOW) -> bytes:
     )
 
 # Encrypt payload with time-based key
-def encrypt_payload(data: bytes) -> Dict[str, Any]:
+def encrypt_payload(data: bytes) -> dict[str, Any]:
     key = derive_time_key(SHARED_SECRET)
     aesgcm = AESGCM(key)
     nonce = os.urandom(12)
@@ -145,7 +147,7 @@ def encrypt_payload(data: bytes) -> Dict[str, Any]:
     return {"nonce": base64.b64encode(nonce).decode(), "ciphertext": base64.b64encode(ct).decode(), "timestamp": int(time.time())}
 
 # Decrypt payload with time-based key
-def decrypt_payload(payload: Dict[str, Any]) -> bytes:
+def decrypt_payload(payload: dict[str, Any]) -> bytes:
     key = derive_time_key(SHARED_SECRET)
     nonce = base64.b64decode(payload["nonce"])
     ct = base64.b64decode(payload["ciphertext"])
@@ -208,11 +210,11 @@ async def setup_database_page(request: Request):
 async def setup_database(
     request: Request,
     db_type: str = Form(...),
-    db_host: Optional[str] = Form(None),
-    db_port: Optional[int] = Form(None),
-    db_name: Optional[str] = Form(None),
-    db_username: Optional[str] = Form(None),
-    db_password: Optional[str] = Form(None)
+    db_host: str | None = Form(None),
+    db_port: int | None = Form(None),
+    db_name: str | None = Form(None),
+    db_username: str | None = Form(None),
+    db_password: str | None = Form(None)
 ):
     try:
         config_path = get_config_path()
@@ -243,7 +245,7 @@ async def setup_database(
             "request": request,
             "title": "Database Setup",
             "step": "database",
-            "error": f"Database setup failed: {str(e)}"
+            "error": f"Database setup failed: {e!s}"
         })
 
 @router.get("/admin", response_class=HTMLResponse)
@@ -311,7 +313,7 @@ async def setup_admin(
             "request": request,
             "title": "Admin Account Setup",
             "step": "admin",
-            "error": f"Admin setup failed: {str(e)}"
+            "error": f"Admin setup failed: {e!s}"
         })
 
 @router.get("/complete", response_class=HTMLResponse)
@@ -334,7 +336,7 @@ async def setup_complete(request: Request):
 async def ssl_check_software():
     # Check if certbot or other required software is installed
     try:
-        result = subprocess.run(["certbot", "--version"], capture_output=True, text=True)
+        result = subprocess.run(["certbot", "--version"], check=False, capture_output=True, text=True)
         installed = result.returncode == 0
         return {"certbot_installed": installed, "output": result.stdout.strip()}
     except Exception as e:
@@ -361,7 +363,7 @@ async def ssl_lets_encrypt(domain: str = Form(...), email: str = Form(...)):
     try:
         result = subprocess.run([
             "certbot", "certonly", "--standalone", "-d", domain, "--agree-tos", "--email", email, "--non-interactive"
-        ], capture_output=True, text=True)
+        ], check=False, capture_output=True, text=True)
         success = result.returncode == 0
         return {"success": success, "output": result.stdout.strip(), "error": result.stderr.strip() if not success else None}
     except Exception as e:
@@ -400,7 +402,7 @@ async def ssl_renew_cert(domain: str = Form(...)):
     try:
         result = subprocess.run([
             "certbot", "renew", "--cert-name", domain
-        ], capture_output=True, text=True)
+        ], check=False, capture_output=True, text=True)
         success = result.returncode == 0
         return {"success": success, "output": result.stdout.strip(), "error": result.stderr.strip() if not success else None}
     except Exception as e:
@@ -451,7 +453,7 @@ MAX_CUSTOM_FIELDS = 32
 async def add_user_custom_field(
     user_id: int,
     field_name: str = Body(...),
-    field_value: Union[str, int, float, bool, List[Any], Dict[str, Any]] = Body(...),
+    field_value: str | int | float | bool | list[Any] | dict[str, Any] = Body(...),
     field_type: str = Body(...),
     _: None = Depends(enforce_global_rate_limit)
 ):
@@ -487,7 +489,7 @@ async def get_user_custom_fields(user_id: int, _: None = Depends(enforce_global_
 async def add_message_custom_field(
     message_id: int,
     field_name: str = Body(...),
-    field_value: Union[str, int, float, bool, List[Any], Dict[str, Any]] = Body(...),
+    field_value: str | int | float | bool | list[Any] | dict[str, Any] = Body(...),
     field_type: str = Body(...),
     _: None = Depends(enforce_global_rate_limit)
 ):
@@ -679,7 +681,7 @@ def is_setup_completed() -> bool:
     except Exception:
         return False
 
-def test_database_connection(db_config: Dict[str, Any]) -> bool:
+def test_database_connection(db_config: dict[str, Any]) -> bool:
     try:
         if db_config["type"] == "sqlite":
             db_path = db_config["path"]
@@ -703,7 +705,7 @@ def initialize_sqlite_database(db_path: Path):
     # This is a placeholder for actual migration/ORM logic
     pass
 
-def save_database_config(db_config: Dict[str, Any]):
+def save_database_config(db_config: dict[str, Any]):
     # Use the abstraction layer for saving config if needed, or keep as file if not DB-related
     config_path = get_config_path()
     config_path.mkdir(parents=True, exist_ok=True)

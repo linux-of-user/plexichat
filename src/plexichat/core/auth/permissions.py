@@ -1,5 +1,4 @@
 from enum import Enum
-from typing import Set
 
 
 class DBOperation(Enum):
@@ -31,7 +30,7 @@ class PermissionError(Exception):
     pass
 
 
-def check_permission(required_permission: str, user_permissions: Set[str]) -> None:
+def check_permission(required_permission: str, user_permissions: set[str]) -> None:
     """
     Checks if a user has the required permission.
     Raises PermissionError if the check fails.

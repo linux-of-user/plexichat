@@ -4,17 +4,16 @@ PlexiChat Shared Validators
 Basic validation functions for the PlexiChat application.
 """
 
-import json
-import re
-import uuid
+from collections.abc import Callable
 from datetime import datetime
+import json
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, cast
+import re
+from typing import Any, cast
 from urllib.parse import urlparse
+import uuid
 
 from plexichat.shared.exceptions import SecurityError, ValidationError
-
-
 
 # Validation constants
 MAX_USERNAME_LENGTH = 64
@@ -33,7 +32,7 @@ def validate_required(value: Any, field_name: str) -> None:
         raise ValidationError(f"{field_name} cannot be empty")
 
 
-def validate_string_length(value: str, field_name: str, min_length: int = 0, max_length: Optional[int] = None) -> None:
+def validate_string_length(value: str, field_name: str, min_length: int = 0, max_length: int | None = None) -> None:
     """Validate string length."""
     if not isinstance(value, str):
         raise ValidationError(f"{field_name} must be a string", details={"type": type(value).__name__})
@@ -110,7 +109,7 @@ def validate_uuid(value: str, field_name: str) -> None:
         raise ValidationError(f"Invalid {field_name} format", details={"value": value})
 
 
-def validate_url(url: str, field_name: str = "url", schemes: Optional[List[str]] = None) -> None:
+def validate_url(url: str, field_name: str = "url", schemes: list[str] | None = None) -> None:
     """Validate URL format."""
     if not isinstance(url, str):
         raise ValidationError(f"{field_name} must be a string", details={"value": url})
@@ -127,7 +126,7 @@ def validate_url(url: str, field_name: str = "url", schemes: Optional[List[str]]
         raise ValidationError(f"{field_name} scheme must be one of: {', '.join(schemes)}", details={"value": url})
 
 
-def validate_integer(value: Any, field_name: str, min_value: Optional[int] = None, max_value: Optional[int] = None) -> None:
+def validate_integer(value: Any, field_name: str, min_value: int | None = None, max_value: int | None = None) -> None:
     """Validate integer value."""
     if not isinstance(value, int):
         raise ValidationError(f"{field_name} must be an integer", details={"value": value})
@@ -139,7 +138,7 @@ def validate_integer(value: Any, field_name: str, min_value: Optional[int] = Non
         raise ValidationError(f"{field_name} must be at most {max_value}", details={"value": value})
 
 
-def validate_float(value: Any, field_name: str, min_value: Optional[float] = None, max_value: Optional[float] = None) -> None:
+def validate_float(value: Any, field_name: str, min_value: float | None = None, max_value: float | None = None) -> None:
     """Validate float value."""
     if not isinstance(value, (int, float)):
         raise ValidationError(f"{field_name} must be a number", details={"value": value})
@@ -153,17 +152,17 @@ def validate_float(value: Any, field_name: str, min_value: Optional[float] = Non
         raise ValidationError(f"{field_name} must be at most {max_value}", details={"value": value})
 
 
-def validate_choice(value: Any, field_name: str, choices: List[Any]) -> None:
+def validate_choice(value: Any, field_name: str, choices: list[Any]) -> None:
     """Validate that value is one of the allowed choices."""
     if value not in choices:
         raise ValidationError(f"{field_name} must be one of: {', '.join(map(str, choices))}", details={"value": value})
 
 
-def validate_list(value: Any, field_name: str, min_length: int = 0, max_length: Optional[int] = None, item_validator: Optional[Callable[[Any, str], None]] = None) -> None:
+def validate_list(value: Any, field_name: str, min_length: int = 0, max_length: int | None = None, item_validator: Callable[[Any, str], None] | None = None) -> None:
     """Validate list value."""
     if not isinstance(value, list):
         raise ValidationError(f"{field_name} must be a list", details={"value": value})
-    value = cast(List[Any], value)
+    value = cast('list[Any]', value)
     length = len(value)
 
     if length < min_length:
@@ -180,11 +179,11 @@ def validate_list(value: Any, field_name: str, min_length: int = 0, max_length: 
                 raise ValidationError(f"Invalid item at index {i}: {e.message}", details={"value": value})
 
 
-def validate_dict(value: Any, field_name: str, required_keys: Optional[List[str]] = None, allowed_keys: Optional[List[str]] = None) -> None:
+def validate_dict(value: Any, field_name: str, required_keys: list[str] | None = None, allowed_keys: list[str] | None = None) -> None:
     """Validate dictionary value."""
     if not isinstance(value, dict):
         raise ValidationError(f"{field_name} must be a dictionary", details={"value": value})
-    value = cast(Dict[str, Any], value)
+    value = cast('dict[str, Any]', value)
 
     if required_keys:
         missing_keys = set(required_keys) - set(value.keys())
@@ -210,7 +209,7 @@ def validate_datetime(value: Any, field_name: str) -> None:
         raise ValidationError(f"{field_name} must be a valid datetime", details={"value": value})
 
 
-def validate_file_extension(filename: str, field_name: str = "filename", allowed_types: Optional[List[str]] = None) -> None:
+def validate_file_extension(filename: str, field_name: str = "filename", allowed_types: list[str] | None = None) -> None:
     """Validate file extension."""
     if not isinstance(filename, str):
         raise ValidationError(f"{field_name} must be a string", details={"value": filename})
@@ -248,34 +247,34 @@ def validate_json(value: str, field_name: str) -> None:
     try:
         json.loads(value)
     except json.JSONDecodeError as e:
-        raise ValidationError(f"Invalid JSON in {field_name}: {str(e)}", details={"value": value})
+        raise ValidationError(f"Invalid JSON in {field_name}: {e!s}", details={"value": value})
 
 
 # Export all validators
 __all__ = [
-    'ValidationError',
-    'SecurityError',
-    'MAX_USERNAME_LENGTH',
+    'ALLOWED_DOCUMENT_TYPES',
+    'ALLOWED_IMAGE_TYPES',
     'MAX_EMAIL_LENGTH',
-    'PASSWORD_MIN_LENGTH',
     'MAX_FILE_SIZE',
     'MAX_UPLOAD_SIZE',
-    'ALLOWED_IMAGE_TYPES',
-    'ALLOWED_DOCUMENT_TYPES',
+    'MAX_USERNAME_LENGTH',
+    'PASSWORD_MIN_LENGTH',
+    'SecurityError',
+    'ValidationError',
+    'validate_choice',
+    'validate_datetime',
+    'validate_dict',
+    'validate_email',
+    'validate_file_extension',
+    'validate_float',
+    'validate_integer',
+    'validate_json',
+    'validate_list',
+    'validate_message_content',
+    'validate_password',
     'validate_required',
     'validate_string_length',
-    'validate_email',
-    'validate_username',
-    'validate_password',
-    'validate_uuid',
     'validate_url',
-    'validate_integer',
-    'validate_float',
-    'validate_choice',
-    'validate_list',
-    'validate_dict',
-    'validate_datetime',
-    'validate_file_extension',
-    'validate_message_content',
-    'validate_json'
+    'validate_username',
+    'validate_uuid'
 ]

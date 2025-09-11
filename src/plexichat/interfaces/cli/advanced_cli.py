@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-import sys
 import asyncio
-import time
-from pathlib import Path
-from typing import Dict, List, Optional, Any, Callable
+from collections.abc import Callable
 from dataclasses import dataclass, field
+from pathlib import Path
+import sys
+import time
+from typing import Any
 
 # Add src to path
 src_path = str(Path(__file__).parent.parent.parent.parent)
@@ -33,7 +34,7 @@ class CLIColors:
     RESET = '\033[0m'
     BOLD = '\033[1m'
     DIM = '\033[2m'
-    
+
     # Standard colors
     RED = '\033[31m'
     GREEN = '\033[32m'
@@ -42,7 +43,7 @@ class CLIColors:
     MAGENTA = '\033[35m'
     CYAN = '\033[36m'
     WHITE = '\033[37m'
-    
+
     # Bright colors
     BRIGHT_RED = '\033[91m'
     BRIGHT_GREEN = '\033[92m'
@@ -51,7 +52,7 @@ class CLIColors:
     BRIGHT_MAGENTA = '\033[95m'
     BRIGHT_CYAN = '\033[96m'
     BRIGHT_WHITE = '\033[97m'
-    
+
     # Semantic colors
     SUCCESS = BRIGHT_GREEN
     ERROR = BRIGHT_RED
@@ -70,10 +71,10 @@ class CLICommand:
     description: str
     category: str
     handler: Callable
-    aliases: List[str] = field(default_factory=list)
-    arguments: List[Dict[str, Any]] = field(default_factory=list)
-    options: List[Dict[str, Any]] = field(default_factory=list)
-    examples: List[str] = field(default_factory=list)
+    aliases: list[str] = field(default_factory=list)
+    arguments: list[dict[str, Any]] = field(default_factory=list)
+    options: list[dict[str, Any]] = field(default_factory=list)
+    examples: list[str] = field(default_factory=list)
     requires_auth: bool = False
     requires_admin: bool = False
     hidden: bool = False
@@ -83,12 +84,12 @@ class CLICommand:
 class EnhancedCLISystem:
     """Enhanced CLI system with comprehensive command management."""
     def __init__(self):
-        self.commands: Dict[str, CLICommand] = {}
-        self.categories: Dict[str, List[str]] = {}
-        self.aliases: Dict[str, str] = {}
-        self.command_history: List[str] = []
-        self.favorites: List[str] = []
-        
+        self.commands: dict[str, CLICommand] = {}
+        self.categories: dict[str, list[str]] = {}
+        self.aliases: dict[str, str] = {}
+        self.command_history: list[str] = []
+        self.favorites: list[str] = []
+
         self.config = {
             'show_colors': True,
             'show_examples': True,
@@ -97,16 +98,16 @@ class EnhancedCLISystem:
             'save_history': True,
             'max_history': 1000
         }
-        
+
         self.categories = {
             'system': [], 'database': [], 'security': [], 'plugins': [],
             'admin': [], 'monitoring': [], 'backup': [], 'network': [],
             'ai': [], 'testing': [], 'development': [], 'maintenance': [],
             'analytics': [], 'automation': [], 'integration': [], 'interface': []
         }
-        
+
         self._register_enhanced_commands()
-    
+
     def _register_enhanced_commands(self):
         """Register all enhanced CLI commands."""
         # This is a large method, so I'm calling sub-methods to keep it clean.
@@ -183,19 +184,19 @@ class EnhancedCLISystem:
     def _register_monitoring_commands(self): pass
     def _register_interface_commands(self): pass
 
-    async def execute_command(self, command_name: str, args: List[str] = None) -> bool:
+    async def execute_command(self, command_name: str, args: list[str] = None) -> bool:
         """Execute a CLI command."""
         args = args or []
-        
+
         if command_name == "help":
             self.show_help(args[0] if args else None)
             return True
-        
+
         command = self.get_command(command_name)
         if not command:
             print(f"{CLIColors.ERROR}Unknown command: {command_name}{CLIColors.RESET}")
             return False
-        
+
         self.command_history.append(f"{command_name} {' '.join(args)}")
         if len(self.command_history) > self.config['max_history']:
             self.command_history.pop(0)
@@ -211,7 +212,7 @@ class EnhancedCLISystem:
             print(f"{CLIColors.ERROR}Command failed: {e}{CLIColors.RESET}")
             return False
 
-    def get_command(self, name: str) -> Optional[CLICommand]:
+    def get_command(self, name: str) -> CLICommand | None:
         """Get command by name or alias."""
         if name in self.commands:
             return self.commands[name]
@@ -219,7 +220,7 @@ class EnhancedCLISystem:
             return self.commands[self.aliases[name]]
         return None
 
-    def show_help(self, command_name: Optional[str] = None):
+    def show_help(self, command_name: str | None = None):
         """Show help information."""
         if command_name:
             self._show_command_help(command_name)
@@ -245,18 +246,18 @@ class EnhancedCLISystem:
         if not command:
             print(f"{CLIColors.ERROR}Command '{command_name}' not found{CLIColors.RESET}")
             return
-        
+
         print(f"{CLIColors.HEADER}{command.name.upper()}{CLIColors.RESET}")
         print(f"{command.description}")
         # ... more detailed help printout ...
 
     # ... Placeholder handlers for all registered commands ...
-    async def _handle_status(self, args: List[str]) -> bool: return True
-    async def _handle_health(self, args: List[str]) -> bool: return True
-    async def _handle_system_config(self, args: List[str]) -> bool: return True
-    async def _handle_terminal(self, args: List[str]) -> bool: return True
-    async def _handle_user_management(self, args: List[str]) -> bool: return True
-    async def _handle_password_change(self, args: List[str]) -> bool: return True
+    async def _handle_status(self, args: list[str]) -> bool: return True
+    async def _handle_health(self, args: list[str]) -> bool: return True
+    async def _handle_system_config(self, args: list[str]) -> bool: return True
+    async def _handle_terminal(self, args: list[str]) -> bool: return True
+    async def _handle_user_management(self, args: list[str]) -> bool: return True
+    async def _handle_password_change(self, args: list[str]) -> bool: return True
     # ... and so on for all handlers
 
 async def main():
@@ -265,10 +266,10 @@ async def main():
     if len(sys.argv) < 2:
         cli.show_help()
         return
-    
+
     command = sys.argv[1]
     args = sys.argv[2:]
-    
+
     success = await cli.execute_command(command, args)
     sys.exit(0 if success else 1)
 

@@ -5,16 +5,17 @@ Provides intelligent traffic analysis, automatic IP blocking, and real-time atta
 """
 
 import asyncio
+from collections import defaultdict, deque
+from collections.abc import Callable
+from dataclasses import dataclass, field
+from enum import Enum
 import ipaddress
 import logging
 import re
 import statistics
 import threading
 import time
-from collections import defaultdict, deque
-from dataclasses import dataclass, field
-from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple
+from typing import Any
 
 from fastapi import HTTPException, Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -66,13 +67,13 @@ class IPMetrics:
     error_count: int = 0
     bytes_sent: int = 0
     bytes_received: int = 0
-    user_agents: Set[str] = field(default_factory=set)
-    endpoints: Dict[str, int] = field(default_factory=dict)
-    status_codes: Dict[int, int] = field(default_factory=dict)
+    user_agents: set[str] = field(default_factory=set)
+    endpoints: dict[str, int] = field(default_factory=dict)
+    status_codes: dict[int, int] = field(default_factory=dict)
     request_intervals: deque = field(default_factory=lambda: deque(maxlen=100))
-    blocked_until: Optional[float] = None
+    blocked_until: float | None = None
     threat_score: float = 0.0
-    detected_attacks: List[AttackType] = field(default_factory=list)
+    detected_attacks: list[AttackType] = field(default_factory=list)
 
 
 @dataclass
@@ -84,7 +85,7 @@ class AttackEvent:
     threat_level: ThreatLevel
     source_ip: str
     description: str
-    metrics: Dict[str, Any]
+    metrics: dict[str, Any]
     action_taken: str
 
 
@@ -97,7 +98,7 @@ class DDoSStats:
     blocked_ips: int = 0
     active_attacks: int = 0
     threat_level: ThreatLevel = ThreatLevel.LOW
-    last_attack: Optional[float] = None
+    last_attack: float | None = None
 
 
 class TrafficAnalyzer:
@@ -125,7 +126,7 @@ class TrafficAnalyzer:
 
     def analyze_ip_behavior(
         self, ip_metrics: IPMetrics
-    ) -> Tuple[float, List[AttackType]]:
+    ) -> tuple[float, list[AttackType]]:
         """Analyze IP behavior and return threat score and detected attacks."""
         threat_score = 0.0
         detected_attacks = []
@@ -210,7 +211,7 @@ class TrafficAnalyzer:
         except ValueError:
             return False
 
-    def detect_slowloris(self, active_connections: Dict[str, float]) -> List[str]:
+    def detect_slowloris(self, active_connections: dict[str, float]) -> list[str]:
         """Detect Slowloris attacks based on connection patterns."""
         current_time = time.time()
         slowloris_ips = []
@@ -237,9 +238,9 @@ class IPBlockManager:
 
     def __init__(self, config):
         self.config = config
-        self.blocked_ips: Dict[str, float] = {}  # IP -> unblock_time
-        self.whitelist: Set[str] = set()
-        self.permanent_blocks: Set[str] = set()
+        self.blocked_ips: dict[str, float] = {}  # IP -> unblock_time
+        self.whitelist: set[str] = set()
+        self.permanent_blocks: set[str] = set()
         self._lock = threading.RLock()
 
         # Load whitelist from config
@@ -330,7 +331,7 @@ class IPBlockManager:
                 self.permanent_blocks.remove(ip)
             logger.info(f"Unblocked IP {ip}")
 
-    def get_blocked_ips(self) -> Dict[str, Dict[str, Any]]:
+    def get_blocked_ips(self) -> dict[str, dict[str, Any]]:
         """Get list of currently blocked IPs with details."""
         current_time = time.time()
         blocked_info = {}
@@ -377,7 +378,7 @@ class AlertManager:
     def __init__(self, config):
         self.config = config
         self.alert_history: deque = deque(maxlen=1000)
-        self.alert_callbacks: List[Callable] = []
+        self.alert_callbacks: list[Callable] = []
         self.last_alert_time = 0
         self.alert_cooldown = 60  # 1 minute between similar alerts
 
@@ -409,7 +410,7 @@ class AlertManager:
             except Exception as e:
                 logger.error(f"Error in alert callback: {e}")
 
-    def get_recent_alerts(self, hours: int = 24) -> List[AttackEvent]:
+    def get_recent_alerts(self, hours: int = 24) -> list[AttackEvent]:
         """Get recent alerts within specified hours."""
         cutoff_time = time.time() - (hours * 3600)
         return [event for event in self.alert_history if event.timestamp > cutoff_time]
@@ -419,7 +420,7 @@ class DDoSProtectionSystem:
     """Main DDoS protection system."""
 
     def __init__(
-        self, dynamic_rate_limiter: Optional[DynamicRateLimitingMiddleware] = None
+        self, dynamic_rate_limiter: DynamicRateLimitingMiddleware | None = None
     ):
         # Load configuration
         if get_config_manager:
@@ -443,8 +444,8 @@ class DDoSProtectionSystem:
         self.dynamic_rate_limiter = dynamic_rate_limiter
 
         # Metrics storage
-        self.ip_metrics: Dict[str, IPMetrics] = {}
-        self.active_connections: Dict[str, float] = {}
+        self.ip_metrics: dict[str, IPMetrics] = {}
+        self.active_connections: dict[str, float] = {}
         self.stats = DDoSStats()
 
         # Monitoring
@@ -643,7 +644,7 @@ class DDoSProtectionSystem:
 
         return True
 
-    def _get_client_ip(self, request: Request) -> Optional[str]:
+    def _get_client_ip(self, request: Request) -> str | None:
         """Extract client IP from request."""
         # Check for forwarded headers
         forwarded_for = request.headers.get("X-Forwarded-For")
@@ -723,7 +724,7 @@ class DDoSProtectionSystem:
         """Get rate limit for user tier."""
         return self.config.user_tiers.get(user_tier, self.config.base_request_limit)
 
-    def get_protection_status(self) -> Dict[str, Any]:
+    def get_protection_status(self) -> dict[str, Any]:
         """Get current protection status and statistics."""
         if not self.enabled:
             return {"enabled": False}
@@ -774,7 +775,7 @@ class DDoSProtectionSystem:
 class DDoSProtectionMiddleware(BaseHTTPMiddleware):
     """FastAPI middleware for DDoS protection."""
 
-    def __init__(self, app, ddos_system: Optional[DDoSProtectionSystem] = None):
+    def __init__(self, app, ddos_system: DDoSProtectionSystem | None = None):
         super().__init__(app)
         self.ddos_system = ddos_system or DDoSProtectionSystem()
 
@@ -836,7 +837,7 @@ class DDoSProtectionMiddleware(BaseHTTPMiddleware):
 
 
 # Global DDoS protection instance
-_ddos_protection: Optional[DDoSProtectionSystem] = None
+_ddos_protection: DDoSProtectionSystem | None = None
 
 
 def get_ddos_protection() -> DDoSProtectionSystem:
@@ -848,7 +849,7 @@ def get_ddos_protection() -> DDoSProtectionSystem:
 
 
 def add_ddos_protection_middleware(
-    app, dynamic_rate_limiter: Optional[DynamicRateLimitingMiddleware] = None
+    app, dynamic_rate_limiter: DynamicRateLimitingMiddleware | None = None
 ):
     """Add DDoS protection middleware to FastAPI app."""
     ddos_system = DDoSProtectionSystem(dynamic_rate_limiter)

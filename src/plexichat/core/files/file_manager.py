@@ -6,15 +6,15 @@ File management with threading and performance optimization.
 """
 
 
+from dataclasses import dataclass, field
+from datetime import datetime
 import hashlib
 import json
 import logging
 import mimetypes
-import time
-from dataclasses import dataclass, field
-from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+import time
+from typing import Any
 from uuid import uuid4
 
 try:
@@ -55,8 +55,10 @@ except ImportError:
     security_manager = None
 
 try:
-    from plexichat.core.logging import MetricType  # type: ignore
-    from plexichat.core.logging import get_performance_logger
+    from plexichat.core.logging import (
+        MetricType,  # type: ignore
+        get_performance_logger,
+    )
     from plexichat.core.performance.optimization_engine import (
         PerformanceOptimizationEngine,
     )
@@ -92,10 +94,10 @@ class FileMetadata:
     uploaded_by: int
     uploaded_at: datetime
     is_public: bool
-    tags: List[str]
-    metadata: Dict[str, Any]
+    tags: list[str]
+    metadata: dict[str, Any]
     # Enhanced sharing fields
-    sharing_permissions: Dict[str, Any] = field(
+    sharing_permissions: dict[str, Any] = field(
         default_factory=lambda: {
             "public": False,
             "shared_with": [],
@@ -104,9 +106,9 @@ class FileMetadata:
         }
     )
     version: int = 1
-    parent_version_id: Optional[str] = None
-    preview_path: Optional[str] = None
-    thumbnail_path: Optional[str] = None
+    parent_version_id: str | None = None
+    preview_path: str | None = None
+    thumbnail_path: str | None = None
 
 
 class FileManager:
@@ -191,7 +193,7 @@ class FileManager:
 
     def _validate_file(
         self, filename: str, file_size: int, content_type: str
-    ) -> Tuple[bool, str]:
+    ) -> tuple[bool, str]:
         """Validate file upload."""
         try:
             # Check file size
@@ -220,7 +222,7 @@ class FileManager:
             logger.error(f"Error validating file: {e}")
             return False, "Validation error"
 
-    def _process_image(self, file_path: Path) -> Dict[str, Any]:
+    def _process_image(self, file_path: Path) -> dict[str, Any]:
         """Process image file and extract metadata."""
         try:
             if not Image:
@@ -240,8 +242,8 @@ class FileManager:
             return {}
 
     def _create_thumbnail(
-        self, file_path: Path, thumbnail_size: Tuple[int, int] = (200, 200)
-    ) -> Optional[Path]:
+        self, file_path: Path, thumbnail_size: tuple[int, int] = (200, 200)
+    ) -> Path | None:
         """Create thumbnail for image."""
         try:
             if not Image:
@@ -299,10 +301,10 @@ class FileManager:
         file_data: bytes,
         filename: str,
         uploaded_by: int,
-        content_type: Optional[str] = None,
+        content_type: str | None = None,
         is_public: bool = False,
-        tags: Optional[List[str]] = None,
-    ) -> Optional[FileMetadata]:
+        tags: list[str] | None = None,
+    ) -> FileMetadata | None:
         """Upload file with threading."""
         try:
             start_time = time.time()
@@ -469,7 +471,7 @@ class FileManager:
             logger.error(f"Error storing file metadata: {e}")
             raise
 
-    async def get_file_metadata(self, file_id: str) -> Optional[FileMetadata]:
+    async def get_file_metadata(self, file_id: str) -> FileMetadata | None:
         """Get file metadata."""
         try:
             # Check cache first
@@ -512,7 +514,7 @@ class FileManager:
             logger.error(f"Error getting file metadata for {file_id}: {e}")
             return None
 
-    async def get_file_data(self, file_id: str) -> Optional[bytes]:
+    async def get_file_data(self, file_id: str) -> bytes | None:
         """Get file data."""
         try:
             metadata = await self.get_file_metadata(file_id)
@@ -607,7 +609,7 @@ class FileManager:
             logger.error(f"Error deleting file: {e}")
             raise
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get file manager statistics."""
         try:
             total_size = 0
@@ -643,17 +645,17 @@ async def initialize_file_manager():
 
 async def upload_file(
     file_data: bytes, filename: str, uploaded_by: int, **kwargs
-) -> Optional[FileMetadata]:
+) -> FileMetadata | None:
     """Upload file using global file manager."""
     return await file_manager.upload_file(file_data, filename, uploaded_by, **kwargs)
 
 
-async def get_file_metadata(file_id: str) -> Optional[FileMetadata]:
+async def get_file_metadata(file_id: str) -> FileMetadata | None:
     """Get file metadata using global file manager."""
     return await file_manager.get_file_metadata(file_id)
 
 
-async def get_file_data(file_id: str) -> Optional[bytes]:
+async def get_file_data(file_id: str) -> bytes | None:
     """Get file data using global file manager."""
     return await file_manager.get_file_data(file_id)
 
@@ -665,7 +667,7 @@ async def delete_file(file_id: str, user_id: int) -> bool:
         self,
         file_id: str,
         user_id: int,
-        shared_with: List[int],
+        shared_with: list[int],
         can_download: bool = True,
         can_share: bool = True,
     ) -> bool:
@@ -718,7 +720,7 @@ async def delete_file(file_id: str, user_id: int) -> bool:
 
     async def create_file_version(
         self, file_id: str, user_id: int, new_file_data: bytes, filename: str
-    ) -> Optional[FileMetadata]:
+    ) -> FileMetadata | None:
         """Create a new version of an existing file."""
         try:
             # Get original file metadata
@@ -769,7 +771,7 @@ async def delete_file(file_id: str, user_id: int) -> bool:
             logger.error(f"Error creating file version: {e}")
             return None
 
-    async def get_file_versions(self, file_id: str) -> List[FileMetadata]:
+    async def get_file_versions(self, file_id: str) -> list[FileMetadata]:
         """Get all versions of a file."""
         try:
             if not self.db_manager:
@@ -828,15 +830,15 @@ async def delete_file(file_id: str, user_id: int) -> bool:
             return []
 
     async def batch_delete_files(
-        self, file_ids: List[str], user_id: int
-    ) -> Dict[str, bool]:
+        self, file_ids: list[str], user_id: int
+    ) -> dict[str, bool]:
         """Delete multiple files in batch."""
         results = {}
         for file_id in file_ids:
             results[file_id] = await self.delete_file(file_id, user_id)
         return results
 
-    async def check_file_access(self, file_id: str, user_id: int) -> Tuple[bool, str]:
+    async def check_file_access(self, file_id: str, user_id: int) -> tuple[bool, str]:
         """Check if user has access to a file."""
         try:
             metadata = await self.get_file_metadata(file_id)
@@ -862,7 +864,7 @@ async def delete_file(file_id: str, user_id: int) -> bool:
             logger.error(f"Error checking file access: {e}")
             return False, "Error checking access"
 
-    def _generate_preview(self, file_path: Path, content_type: str) -> Optional[Path]:
+    def _generate_preview(self, file_path: Path, content_type: str) -> Path | None:
         """Generate preview for documents and images."""
         try:
             if content_type.startswith("image/"):
@@ -897,7 +899,7 @@ async def delete_file(file_id: str, user_id: int) -> bool:
 
     async def get_user_files(
         self, user_id: int, include_shared: bool = True
-    ) -> List[FileMetadata]:
+    ) -> list[FileMetadata]:
         """Get all files for a user (owned and shared)."""
         try:
             if not self.db_manager:
@@ -956,7 +958,7 @@ async def delete_file(file_id: str, user_id: int) -> bool:
 
 # Update convenience functions
 async def share_file(
-    file_id: str, user_id: int, shared_with: List[int], **kwargs
+    file_id: str, user_id: int, shared_with: list[int], **kwargs
 ) -> bool:
     """Share file using global file manager."""
     return await file_manager.share_file(file_id, user_id, shared_with, **kwargs)
@@ -964,31 +966,31 @@ async def share_file(
 
 async def create_file_version(
     file_id: str, user_id: int, new_file_data: bytes, filename: str
-) -> Optional[FileMetadata]:
+) -> FileMetadata | None:
     """Create file version using global file manager."""
     return await file_manager.create_file_version(
         file_id, user_id, new_file_data, filename
     )
 
 
-async def get_file_versions(file_id: str) -> List[FileMetadata]:
+async def get_file_versions(file_id: str) -> list[FileMetadata]:
     """Get file versions using global file manager."""
     return await file_manager.get_file_versions(file_id)
 
 
-async def batch_delete_files(file_ids: List[str], user_id: int) -> Dict[str, bool]:
+async def batch_delete_files(file_ids: list[str], user_id: int) -> dict[str, bool]:
     """Batch delete files using global file manager."""
     return await file_manager.batch_delete_files(file_ids, user_id)
 
 
-async def check_file_access(file_id: str, user_id: int) -> Tuple[bool, str]:
+async def check_file_access(file_id: str, user_id: int) -> tuple[bool, str]:
     """Check file access using global file manager."""
     return await file_manager.check_file_access(file_id, user_id)
 
 
 async def get_user_files(
     user_id: int, include_shared: bool = True
-) -> List[FileMetadata]:
+) -> list[FileMetadata]:
     """Get user files using global file manager."""
     return await file_manager.get_user_files(user_id, include_shared)
     return await file_manager.delete_file(file_id, user_id)

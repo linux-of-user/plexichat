@@ -3,21 +3,21 @@ Enhanced Backup Engine - Advanced backup orchestration system with cloud support
 """
 
 import asyncio
+from dataclasses import dataclass, field
+from datetime import UTC, datetime, timedelta
+from enum import Enum
 import hashlib
 import json
 import logging
 import secrets
 import time
+from typing import Any
 import zlib
-from datetime import datetime, timezone, timedelta
-from typing import Any, Dict, List, Optional, Union
-from dataclasses import dataclass, field
-from enum import Enum
 
+from plexichat.features.backup.backup_repository import BackupRepository
 from plexichat.features.backup.encryption_service import EncryptionService
 from plexichat.features.backup.storage_manager import StorageManager
 from plexichat.features.backup.version_manager import VersionManager
-from plexichat.features.backup.backup_repository import BackupRepository
 
 logger = logging.getLogger(__name__)
 
@@ -65,20 +65,20 @@ class BackupMetadata:
     backup_type: BackupType
     security_level: SecurityLevel
     status: BackupStatus
-    user_id: Optional[str] = None
+    user_id: str | None = None
     original_size: int = 0
     compressed_size: int = 0
     encrypted_size: int = 0
     compression_ratio: float = 0.0
     shard_count: int = 0
     checksum: str = ""
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    completed_at: Optional[datetime] = None
-    expires_at: Optional[datetime] = None
-    tags: List[str] = field(default_factory=list)
-    metadata: Dict[str, Any] = field(default_factory=dict)
-    storage_locations: List[str] = field(default_factory=list)
-    recovery_info: Dict[str, Any] = field(default_factory=dict)
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    completed_at: datetime | None = None
+    expires_at: datetime | None = None
+    tags: list[str] = field(default_factory=list)
+    metadata: dict[str, Any] = field(default_factory=dict)
+    storage_locations: list[str] = field(default_factory=list)
+    recovery_info: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -90,8 +90,8 @@ class BackupProgress:
     current_operation: str = ""
     bytes_processed: int = 0
     total_bytes: int = 0
-    estimated_completion: Optional[datetime] = None
-    error_message: Optional[str] = None
+    estimated_completion: datetime | None = None
+    error_message: str | None = None
 
 
 class BackupEngine:
@@ -111,11 +111,11 @@ class BackupEngine:
     """
 
     def __init__(self,
-                 storage_manager: Optional[StorageManager] = None,
-                 encryption_service: Optional[EncryptionService] = None,
-                 version_manager: Optional[VersionManager] = None,
-                 backup_repository: Optional[BackupRepository] = None,
-                 config: Optional[Dict[str, Any]] = None):
+                 storage_manager: StorageManager | None = None,
+                 encryption_service: EncryptionService | None = None,
+                 version_manager: VersionManager | None = None,
+                 backup_repository: BackupRepository | None = None,
+                 config: dict[str, Any] | None = None):
 
         self.storage_manager = storage_manager or StorageManager()
         self.encryption_service = encryption_service or EncryptionService()
@@ -151,11 +151,11 @@ class BackupEngine:
         self.shard_size = configured_shard_size
 
         # Enhanced backup state
-        self.active_backups: Dict[str, BackupProgress] = {}
-        self.backup_queue: List[BackupMetadata] = []
-        self.scheduled_backups: Dict[str, Dict[str, Any]] = {}
+        self.active_backups: dict[str, BackupProgress] = {}
+        self.backup_queue: list[BackupMetadata] = []
+        self.scheduled_backups: dict[str, dict[str, Any]] = {}
         self.running = False
-        self.worker_tasks: List[asyncio.Task] = []
+        self.worker_tasks: list[asyncio.Task] = []
 
         # Enhanced statistics
         self.stats = {
@@ -191,19 +191,19 @@ class BackupEngine:
             "storage_health": "healthy",
             "encryption_health": "healthy",
             "network_health": "healthy",
-            "last_health_check": datetime.now(timezone.utc),
+            "last_health_check": datetime.now(UTC),
             "alerts": [],
         }
 
     async def create_backup(self,
-                          data: Union[Dict[str, Any], bytes, str],
+                          data: dict[str, Any] | bytes | str,
                           backup_type: BackupType = BackupType.FULL,
                           security_level: SecurityLevel = SecurityLevel.STANDARD,
-                          user_id: Optional[str] = None,
-                          tags: Optional[List[str]] = None,
-                          retention_days: Optional[int] = None,
+                          user_id: str | None = None,
+                          tags: list[str] | None = None,
+                          retention_days: int | None = None,
                           priority: int = 5,
-                          metadata: Optional[Dict[str, Any]] = None) -> BackupMetadata:
+                          metadata: dict[str, Any] | None = None) -> BackupMetadata:
         """
         Create an advanced backup with intelligent optimization.
 
@@ -241,7 +241,7 @@ class BackupEngine:
             user_id=user_id,
             tags=tags or [],
             metadata=metadata or {},
-            expires_at=datetime.now(timezone.utc) + timedelta(days=retention_days or self.default_retention_days)
+            expires_at=datetime.now(UTC) + timedelta(days=retention_days or self.default_retention_days)
         )
 
         # Create progress tracker
@@ -300,7 +300,7 @@ class BackupEngine:
             try:
                 backup_metadata.checksum = hashlib.sha256(compressed_data).hexdigest()
             except Exception as e:
-                self.logger.warning(f"Checksum generation failed: {str(e)}")
+                self.logger.warning(f"Checksum generation failed: {e!s}")
                 backup_metadata.checksum = ""
 
             # Create version entry
@@ -320,7 +320,7 @@ class BackupEngine:
                     }
                 )
             except Exception as e:
-                self.logger.warning(f"Version creation failed, continuing: {str(e)}")
+                self.logger.warning(f"Version creation failed, continuing: {e!s}")
                 version_info = None
 
             # Encryption
@@ -353,7 +353,7 @@ class BackupEngine:
             # Finalize backup
             progress.current_operation = "Finalizing backup"
             backup_metadata.status = BackupStatus.COMPLETED
-            backup_metadata.completed_at = datetime.now(timezone.utc)
+            backup_metadata.completed_at = datetime.now(UTC)
 
             # Update progress
             progress.status = BackupStatus.COMPLETED
@@ -365,7 +365,7 @@ class BackupEngine:
                 await self.backup_repository.store_backup_metadata_async(backup_metadata)
             except Exception as e:
                 # Do not fail the whole backup if metadata storage fails; mark and log
-                self.logger.error(f"Failed to store backup metadata for {backup_id}: {str(e)}")
+                self.logger.error(f"Failed to store backup metadata for {backup_id}: {e!s}")
 
             # Update statistics
             await self._update_backup_statistics(backup_metadata, time.time() - start_time)
@@ -386,7 +386,7 @@ class BackupEngine:
             raise
 
         except Exception as e:
-            self.logger.error(f"Backup failed for {backup_id}: {str(e)}")
+            self.logger.error(f"Backup failed for {backup_id}: {e!s}")
             backup_metadata.status = BackupStatus.FAILED
             progress.status = BackupStatus.FAILED
             progress.error_message = str(e)
@@ -395,7 +395,7 @@ class BackupEngine:
             try:
                 await self.backup_repository.store_backup_metadata_async(backup_metadata)
             except Exception as me:
-                self.logger.debug(f"Failed to store failed backup metadata: {str(me)}")
+                self.logger.debug(f"Failed to store failed backup metadata: {me!s}")
 
             # Update failure statistics
             self.stats["failed_backups"] += 1
@@ -406,7 +406,7 @@ class BackupEngine:
             if backup_id in self.active_backups:
                 del self.active_backups[backup_id]
 
-    async def _prepare_backup_data(self, data: Union[Dict[str, Any], bytes, str],
+    async def _prepare_backup_data(self, data: dict[str, Any] | bytes | str,
                                  progress: BackupProgress) -> bytes:
         """Prepare and validate data for backup."""
         try:
@@ -423,9 +423,9 @@ class BackupEngine:
                 serialized = json.dumps(data, default=str, ensure_ascii=False)
                 return serialized.encode('utf-8')
         except Exception as e:
-            raise ValueError(f"Unable to prepare data for backup: {str(e)}")
+            raise ValueError(f"Unable to prepare data for backup: {e!s}")
 
-    async def _check_deduplication(self, data: bytes) -> Optional[str]:
+    async def _check_deduplication(self, data: bytes) -> str | None:
         """Check if identical data already exists in backups."""
         if not self.enable_deduplication:
             return None
@@ -435,21 +435,21 @@ class BackupEngine:
             existing_backup = await self.backup_repository.find_backup_by_hash_async(data_hash)
             return existing_backup.get("backup_id") if existing_backup else None
         except Exception as e:
-            self.logger.warning(f"Deduplication check failed: {str(e)}")
+            self.logger.warning(f"Deduplication check failed: {e!s}")
             return None
 
     async def _create_dedup_reference(self, metadata: BackupMetadata,
                                     existing_backup_id: str) -> BackupMetadata:
         """Create a reference to existing backup for deduplication."""
         metadata.status = BackupStatus.COMPLETED
-        metadata.completed_at = datetime.now(timezone.utc)
+        metadata.completed_at = datetime.now(UTC)
         metadata.metadata["deduplication_reference"] = existing_backup_id
         metadata.metadata["is_deduplicated"] = True
 
         try:
             await self.backup_repository.store_backup_metadata_async(metadata)
         except Exception as e:
-            self.logger.warning(f"Failed to store dedup metadata: {str(e)}")
+            self.logger.warning(f"Failed to store dedup metadata: {e!s}")
 
         self.stats["deduplication_savings"] += metadata.original_size
 
@@ -480,7 +480,7 @@ class BackupEngine:
 
             return compressed
         except Exception as e:
-            self.logger.warning(f"Compression failed, using uncompressed data: {str(e)}")
+            self.logger.warning(f"Compression failed, using uncompressed data: {e!s}")
             return data
 
     def _determine_compression_level(self, data: bytes) -> int:
@@ -494,7 +494,7 @@ class BackupEngine:
             return 3  # Fast compression for small files
 
     async def _create_shards(self, data: bytes, metadata: BackupMetadata,
-                           progress: BackupProgress) -> List[Dict[str, Any]]:
+                           progress: BackupProgress) -> list[dict[str, Any]]:
         """Create distributed shards from encrypted data."""
         try:
             shards = []
@@ -510,7 +510,7 @@ class BackupEngine:
                     "data": b"",
                     "size": 0,
                     "checksum": hashlib.sha256(b"").hexdigest(),
-                    "created_at": datetime.now(timezone.utc)
+                    "created_at": datetime.now(UTC)
                 }
                 shards.append(shard)
                 progress.bytes_processed = 0
@@ -536,7 +536,7 @@ class BackupEngine:
                     "data": shard_data,
                     "size": len(shard_data),
                     "checksum": hashlib.sha256(shard_data).hexdigest(),
-                    "created_at": datetime.now(timezone.utc)
+                    "created_at": datetime.now(UTC)
                 }
                 shards.append(shard)
 
@@ -548,9 +548,9 @@ class BackupEngine:
         except asyncio.CancelledError:
             raise
         except Exception as e:
-            raise RuntimeError(f"Failed to create shards: {str(e)}")
+            raise RuntimeError(f"Failed to create shards: {e!s}")
 
-    async def _store_shards_with_retries(self, shards: List[Dict[str, Any]], backup_id: str, progress: BackupProgress):
+    async def _store_shards_with_retries(self, shards: list[dict[str, Any]], backup_id: str, progress: BackupProgress):
         """
         Store shards using storage_manager with retry logic.
 
@@ -591,7 +591,7 @@ class BackupEngine:
 
             except Exception as e:
                 last_exception = e
-                self.logger.warning(f"Attempt {attempt} to store shards failed for {backup_id}: {str(e)}")
+                self.logger.warning(f"Attempt {attempt} to store shards failed for {backup_id}: {e!s}")
                 # Exponential backoff
                 await asyncio.sleep(backoff_base * (2 ** (attempt - 1)))
 
@@ -610,7 +610,7 @@ class BackupEngine:
                 # Fallback: generate hash from key_id itself (not ideal but better than storing key)
                 return hashlib.sha256(key_id.encode()).hexdigest()
         except Exception as e:
-            self.logger.warning(f"Failed to get key hash for {key_id}: {str(e)}")
+            self.logger.warning(f"Failed to get key hash for {key_id}: {e!s}")
             # Return a safe fallback hash
             return hashlib.sha256(f"key_{key_id}".encode()).hexdigest()
 
@@ -640,7 +640,7 @@ class BackupEngine:
                 self.performance_metrics["backup_throughput_mbps"] = throughput_mbps
 
         except Exception as e:
-            self.logger.warning(f"Failed to update statistics: {str(e)}")
+            self.logger.warning(f"Failed to update statistics: {e!s}")
 
     async def schedule_backup(self,
                             data_source: str,
@@ -648,7 +648,7 @@ class BackupEngine:
                             backup_type: BackupType = BackupType.INCREMENTAL,
                             security_level: SecurityLevel = SecurityLevel.STANDARD,
                             retention_days: int = 30,
-                            tags: Optional[List[str]] = None) -> str:
+                            tags: list[str] | None = None) -> str:
         """Schedule automated backups."""
         schedule_id = f"schedule_{int(time.time())}_{secrets.token_hex(8)}"
 
@@ -661,7 +661,7 @@ class BackupEngine:
             "retention_days": retention_days,
             "tags": tags or [],
             "enabled": True,
-            "created_at": datetime.now(timezone.utc),
+            "created_at": datetime.now(UTC),
             "last_run": None,
             "next_run": None,
             "run_count": 0
@@ -672,7 +672,7 @@ class BackupEngine:
 
         return schedule_id
 
-    async def get_backup_progress(self, backup_id: str) -> Optional[BackupProgress]:
+    async def get_backup_progress(self, backup_id: str) -> BackupProgress | None:
         """Get real-time backup progress."""
         return self.active_backups.get(backup_id)
 
@@ -690,23 +690,23 @@ class BackupEngine:
             try:
                 await self.storage_manager.cleanup_partial_backup_async(backup_id)
             except Exception as e:
-                self.logger.debug(f"Partial cleanup failed for {backup_id}: {str(e)}")
+                self.logger.debug(f"Partial cleanup failed for {backup_id}: {e!s}")
 
             self.stats["cancelled_backups"] += 1
             self.logger.info(f"Backup cancelled: {backup_id}")
 
             return True
         except Exception as e:
-            self.logger.error(f"Failed to cancel backup {backup_id}: {str(e)}")
+            self.logger.error(f"Failed to cancel backup {backup_id}: {e!s}")
             return False
 
     async def list_backups(self,
-                         user_id: Optional[str] = None,
-                         backup_type: Optional[BackupType] = None,
-                         status: Optional[BackupStatus] = None,
-                         tags: Optional[List[str]] = None,
+                         user_id: str | None = None,
+                         backup_type: BackupType | None = None,
+                         status: BackupStatus | None = None,
+                         tags: list[str] | None = None,
                          limit: int = 100,
-                         offset: int = 0) -> List[Dict[str, Any]]:
+                         offset: int = 0) -> list[dict[str, Any]]:
         """List backups with filtering options."""
         try:
             filters = {}
@@ -723,15 +723,15 @@ class BackupEngine:
                 filters=filters, limit=limit, offset=offset
             )
         except Exception as e:
-            self.logger.error(f"Failed to list backups: {str(e)}")
+            self.logger.error(f"Failed to list backups: {e!s}")
             return []
 
-    async def get_backup_details(self, backup_id: str) -> Optional[Dict[str, Any]]:
+    async def get_backup_details(self, backup_id: str) -> dict[str, Any] | None:
         """Get detailed information about a specific backup."""
         try:
             return await self.backup_repository.get_backup_metadata_async(backup_id)
         except Exception as e:
-            self.logger.error(f"Failed to get backup details for {backup_id}: {str(e)}")
+            self.logger.error(f"Failed to get backup details for {backup_id}: {e!s}")
             return None
 
     async def delete_backup(self, backup_id: str, force: bool = False) -> bool:
@@ -750,7 +750,7 @@ class BackupEngine:
             try:
                 await self.storage_manager.delete_backup_shards_async(backup_id)
             except Exception as e:
-                self.logger.warning(f"Failed to delete shards for {backup_id}: {str(e)}")
+                self.logger.warning(f"Failed to delete shards for {backup_id}: {e!s}")
                 if not force:
                     raise
 
@@ -758,7 +758,7 @@ class BackupEngine:
             try:
                 await self.backup_repository.delete_backup_metadata_async(backup_id)
             except Exception as e:
-                self.logger.warning(f"Failed to delete metadata for {backup_id}: {str(e)}")
+                self.logger.warning(f"Failed to delete metadata for {backup_id}: {e!s}")
                 if not force:
                     raise
 
@@ -772,14 +772,14 @@ class BackupEngine:
             return True
 
         except Exception as e:
-            self.logger.error(f"Failed to delete backup {backup_id}: {str(e)}")
+            self.logger.error(f"Failed to delete backup {backup_id}: {e!s}")
             return False
 
     async def cleanup_expired_backups(self) -> int:
         """Clean up expired backups based on retention policies."""
         try:
             expired_count = 0
-            current_time = datetime.now(timezone.utc)
+            current_time = datetime.now(UTC)
 
             # Get all backups
             all_backups = await self.list_backups(limit=10000)
@@ -799,18 +799,18 @@ class BackupEngine:
             return expired_count
 
         except Exception as e:
-            self.logger.error(f"Failed to cleanup expired backups: {str(e)}")
+            self.logger.error(f"Failed to cleanup expired backups: {e!s}")
             return 0
 
-    async def get_storage_usage(self) -> Dict[str, Any]:
+    async def get_storage_usage(self) -> dict[str, Any]:
         """Get comprehensive storage usage statistics."""
         try:
             return await self.storage_manager.get_storage_usage_async()
         except Exception as e:
-            self.logger.error(f"Failed to get storage usage: {str(e)}")
+            self.logger.error(f"Failed to get storage usage: {e!s}")
             return {"error": str(e)}
 
-    async def verify_backup_integrity(self, backup_id: str) -> Dict[str, Any]:
+    async def verify_backup_integrity(self, backup_id: str) -> dict[str, Any]:
         """Verify the integrity of a backup."""
         try:
             metadata = await self.get_backup_details(backup_id)
@@ -830,14 +830,14 @@ class BackupEngine:
                 "backup_id": backup_id,
                 "shard_verification": verification_results,
                 "metadata_valid": metadata_valid,
-                "verified_at": datetime.now(timezone.utc)
+                "verified_at": datetime.now(UTC)
             }
 
         except Exception as e:
-            self.logger.error(f"Failed to verify backup {backup_id}: {str(e)}")
+            self.logger.error(f"Failed to verify backup {backup_id}: {e!s}")
             return {"status": "error", "message": str(e)}
 
-    async def rotate_backup_keys(self, backup_id: str) -> Dict[str, Any]:
+    async def rotate_backup_keys(self, backup_id: str) -> dict[str, Any]:
         """
         Rotate encryption keys for an existing backup.
 
@@ -877,7 +877,7 @@ class BackupEngine:
             return {
                 "backup_id": backup_id,
                 "keys_rotated": len(rotation_results.get("rotated_keys", [])),
-                "rotation_timestamp": datetime.now(timezone.utc).isoformat(),
+                "rotation_timestamp": datetime.now(UTC).isoformat(),
                 "old_key_hash": old_key_hash,
                 "new_key_hash": rotation_results.get("new_key_hash")
             }
@@ -886,7 +886,7 @@ class BackupEngine:
             self.logger.error(f"Failed to rotate keys for backup {backup_id}: {e}")
             raise
 
-    async def _perform_key_rotation(self, backup_id: str, metadata: Dict[str, Any]) -> Dict[str, Any]:
+    async def _perform_key_rotation(self, backup_id: str, metadata: dict[str, Any]) -> dict[str, Any]:
         """Perform the actual key rotation operation."""
         try:
             # This is a simplified implementation
@@ -921,7 +921,7 @@ class BackupEngine:
             self.logger.error(f"Key rotation operation failed: {e}")
             raise
 
-    async def _update_backup_key_metadata(self, backup_id: str, rotation_results: Dict[str, Any]):
+    async def _update_backup_key_metadata(self, backup_id: str, rotation_results: dict[str, Any]):
         """Update backup metadata with new key information."""
         try:
             # Get current metadata
@@ -933,7 +933,7 @@ class BackupEngine:
             recovery_info = metadata.get("recovery_info", {})
             if rotation_results.get("new_key_hash"):
                 recovery_info["key_hash"] = rotation_results["new_key_hash"]
-                recovery_info["key_rotated_at"] = datetime.now(timezone.utc).isoformat()
+                recovery_info["key_rotated_at"] = datetime.now(UTC).isoformat()
 
             # Store updated metadata
             await self.backup_repository.store_backup_metadata_async(metadata)
@@ -941,7 +941,7 @@ class BackupEngine:
         except Exception as e:
             self.logger.error(f"Failed to update backup key metadata: {e}")
 
-    def get_backup_statistics(self) -> Dict[str, Any]:
+    def get_backup_statistics(self) -> dict[str, Any]:
         """Get comprehensive backup statistics."""
         return {
             "statistics": self.stats.copy(),

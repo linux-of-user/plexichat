@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from fastapi import APIRouter, HTTPException, Request, status
 from fastapi.responses import JSONResponse
@@ -89,11 +89,11 @@ class APIVersionManager:
 
         logger.info("API Version Manager initialized")
 
-    def get_version_info(self, version_key: str) -> Optional[Dict[str, Any]]:
+    def get_version_info(self, version_key: str) -> dict[str, Any] | None:
         """Get information about a specific API version."""
         return self.versions.get(version_key)
 
-    def get_all_versions(self) -> Dict[str, Any]:
+    def get_all_versions(self) -> dict[str, Any]:
         """Get information about all API versions."""
         return {
             "versions": self.versions,
@@ -192,7 +192,7 @@ class APIVersionMiddleware:
         return response
 
 
-def create_version_compatibility_decorator(required_features: List[str]):
+def create_version_compatibility_decorator(required_features: list[str]):
     """Create decorator to check feature compatibility."""
 
     def decorator(func):

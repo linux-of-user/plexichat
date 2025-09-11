@@ -3,17 +3,17 @@
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
+import base64
+from datetime import datetime
 import hashlib
 import hmac
+import html
 import logging
+import os
+import re
 import secrets
 import time
-from datetime import datetime
-from typing import Any, Dict, Optional
-import base64
-import html
-import re
-import os
+from typing import Any
 
 # Cryptography imports
 try:
@@ -44,9 +44,11 @@ except ImportError:
 
 # Use EXISTING performance optimization engine
 try:
-    from plexichat.core.performance.optimization_engine import PerformanceOptimizationEngine
-    from plexichat.infrastructure.utils.performance import async_track_performance
     from plexichat.core.logging import get_performance_logger, timer
+    from plexichat.core.performance.optimization_engine import (
+        PerformanceOptimizationEngine,
+    )
+    from plexichat.infrastructure.utils.performance import async_track_performance
 except ImportError:
     PerformanceOptimizationEngine = None
     async_track_performance = None
@@ -135,7 +137,7 @@ class SecurityUtilities:
             logger.error(f"Error generating API key: {e}")
             return f"api_{user_id}_{secrets.token_hex(16)}"
 
-    def validate_api_key(self, api_key: str) -> Optional[int]:
+    def validate_api_key(self, api_key: str) -> int | None:
         """Validate API key and return user ID."""
         try:
             parts = api_key.split(':')
@@ -253,7 +255,7 @@ class SecurityUtilities:
             logger.error(f"Error sanitizing input: {e}")
             return input_data
 
-    def validate_file_upload(self, filename: str, content_type: str, file_size: int) -> Dict[str, Any]:
+    def validate_file_upload(self, filename: str, content_type: str, file_size: int) -> dict[str, Any]:
         """Validate file upload for security."""
         try:
             result = {
@@ -313,7 +315,7 @@ class SecurityUtilities:
             return {"valid": False, "errors": ["Validation error"], "warnings": []}
 
     @async_track_performance("security_audit") if async_track_performance else lambda f: f
-    async def log_security_event(self, event_type: str, user_id: Optional[int], details: Dict[str, Any]):
+    async def log_security_event(self, event_type: str, user_id: int | None, details: dict[str, Any]):
         """Log security event using EXISTING database abstraction."""
         try:
             if self.db_manager:
@@ -353,7 +355,7 @@ class SecurityUtilities:
         except Exception as e:
             logger.error(f"Error logging security event: {e}")
 
-    def check_password_strength(self, password: str) -> Dict[str, Any]:
+    def check_password_strength(self, password: str) -> dict[str, Any]:
         """Check password strength and return recommendations."""
         try:
             result = {

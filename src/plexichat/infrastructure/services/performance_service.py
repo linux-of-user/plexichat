@@ -4,12 +4,13 @@
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
 import asyncio
+from collections import defaultdict, deque
+from collections.abc import Callable
+from dataclasses import dataclass, field
+from datetime import UTC, datetime, timedelta
 import statistics
 import threading
-from collections import defaultdict, deque
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Optional
 
 from ..ai.core.analytics_engine import analytics_engine
 from ..app.performance.optimization import PerformanceOptimizer
@@ -17,7 +18,6 @@ from ..clustering.core.performance_monitor import PerformanceMonitor
 from ..core.config import get_config
 from ..core.logging.performance_logger import get_performance_logger
 from .base_service import BaseService
-
 
 """
 import logging
@@ -49,10 +49,10 @@ class SystemMetrics:
     cpu_usage: float
     memory_usage: float
     disk_usage: float
-    network_io: Dict[str, float]
+    network_io: dict[str, float]
     thread_count: int
     open_files: int
-    load_average: List[float] = field(default_factory=list)
+    load_average: list[float] = field(default_factory=list)
 
 
 @dataclass
@@ -105,7 +105,7 @@ class AIMetrics:
     token_usage: int
     cost_per_request: float
     error_rate: float
-    provider_availability: Dict[str, bool]
+    provider_availability: dict[str, bool]
 
 
 class PerformanceAggregator:
@@ -116,7 +116,7 @@ class PerformanceAggregator:
         self.db_metrics: deque = deque(maxlen=1000)
         self.cluster_metrics: deque = deque(maxlen=1000)
         self.ai_metrics: deque = deque(maxlen=1000)
-        self.custom_metrics: Dict[str, deque] = defaultdict(lambda: deque(maxlen=1000))
+        self.custom_metrics: dict[str, deque] = defaultdict(lambda: deque(maxlen=1000))
         self.lock = threading.RLock()
 
     def add_system_metrics(self, metrics: SystemMetrics):
@@ -145,16 +145,16 @@ class PerformanceAggregator:
             self.cluster_metrics.append(metrics)
 
     def add_custom_metric(
-        self, name: str, value: Any, timestamp: Optional[datetime] = None
+        self, name: str, value: Any, timestamp: datetime | None = None
     ):
         """Add custom metric."""
         if timestamp is None:
-            timestamp = datetime.now(timezone.utc)
+            timestamp = datetime.now(UTC)
 
         with self.lock:
             self.custom_metrics[name].append({"timestamp": timestamp, "value": value})
 
-    def get_latest_metrics(self) -> Dict[str, Any]:
+    def get_latest_metrics(self) -> dict[str, Any]:
         """Get latest metrics from all sources."""
         with self.lock:
             return {
@@ -169,9 +169,9 @@ class PerformanceAggregator:
                 }
             }
 
-    def get_historical_data(self, hours: int = 1) -> Dict[str, List[Dict[str, Any]]]:
+    def get_historical_data(self, hours: int = 1) -> dict[str, list[dict[str, Any]]]:
         """Get historical metrics data."""
-        cutoff_time = datetime.now(timezone.utc) - timedelta(hours=hours)
+        cutoff_time = datetime.now(UTC) - timedelta(hours=hours)
 
         with self.lock:
             return {
@@ -216,8 +216,8 @@ class PerformanceService(BaseService):
 
         # Monitoring state
         self.monitoring_active = False
-        self.monitoring_tasks: List[asyncio.Task] = []
-        self.alert_callbacks: List[Callable] = []
+        self.monitoring_tasks: list[asyncio.Task] = []
+        self.alert_callbacks: list[Callable] = []
 
         # Performance baselines for anomaly detection
         self.baselines = {
@@ -282,7 +282,7 @@ class PerformanceService(BaseService):
             try:
                 # Collect system metrics using the performance logger
                 system_metrics = SystemMetrics(
-                    timestamp=datetime.now(timezone.utc),
+                    timestamp=datetime.now(UTC),
                     cpu_usage=self.performance_logger.system_monitor.get_cpu_usage(),
                     memory_usage=self.performance_logger.system_monitor.get_memory_usage()["percent"],
                     disk_usage=0.0,  # Will be calculated from disk I/O
@@ -316,7 +316,7 @@ class PerformanceService(BaseService):
             try:
                 # Collect application metrics from various sources
                 app_metrics = ApplicationMetrics(
-                    timestamp=datetime.now(timezone.utc),
+                    timestamp=datetime.now(UTC),
                     active_connections=self._get_active_connections(),
                     request_rate=self._get_request_rate(),
                     response_time_avg=self._get_avg_response_time(),
@@ -355,7 +355,7 @@ class PerformanceService(BaseService):
             try:
                 # Collect database metrics
                 db_metrics = DatabaseMetrics(
-                    timestamp=datetime.now(timezone.utc),
+                    timestamp=datetime.now(UTC),
                     connection_pool_size=self._get_db_pool_size(),
                     active_connections=self._get_db_active_connections(),
                     query_rate=self._get_db_query_rate(),
@@ -398,7 +398,7 @@ class PerformanceService(BaseService):
                 cluster_data = await self.cluster_monitor.collect_cluster_metrics()
 
                 cluster_metrics = ClusterMetrics(
-                    timestamp=datetime.now(timezone.utc),
+                    timestamp=datetime.now(UTC),
                     total_nodes=cluster_data.get("total_nodes", 1),
                     active_nodes=cluster_data.get("active_nodes", 1),
                     cluster_cpu_avg=cluster_data.get("cluster_cpu_usage", 0.0),
@@ -448,13 +448,13 @@ class PerformanceService(BaseService):
 
                 if recent_metrics:
                     ai_metrics = AIMetrics(
-                        timestamp=datetime.now(timezone.utc),
+                        timestamp=datetime.now(UTC),
                         requests_per_minute=len(
                             [
                                 m
                                 for m in recent_metrics
                                 if m.timestamp
-                                >= datetime.now(timezone.utc) - timedelta(minutes=1)
+                                >= datetime.now(UTC) - timedelta(minutes=1)
                             ]
                         ),
                         avg_response_time=statistics.mean(
@@ -531,7 +531,7 @@ class PerformanceService(BaseService):
         alert_data = {
             "type": alert_type,
             "value": value,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "severity": (
                 "high"
                 if value
@@ -616,11 +616,11 @@ class PerformanceService(BaseService):
         return 0  # Placeholder
 
     # Public API methods
-    def get_current_metrics(self) -> Dict[str, Any]:
+    def get_current_metrics(self) -> dict[str, Any]:
         """Get current performance metrics."""
         return self.aggregator.get_latest_metrics()
 
-    def get_historical_metrics(self, hours: int = 1) -> Dict[str, Any]:
+    def get_historical_metrics(self, hours: int = 1) -> dict[str, Any]:
         """Get historical performance metrics."""
         return self.aggregator.get_historical_data(hours)
 
@@ -637,20 +637,20 @@ class PerformanceService(BaseService):
         """Add alert callback function."""
         self.alert_callbacks.append(callback)
 
-    def get_performance_summary(self) -> Dict[str, Any]:
+    def get_performance_summary(self) -> dict[str, Any]:
         """Get comprehensive performance summary."""
         latest = self.aggregator.get_latest_metrics()
         historical = self.aggregator.get_historical_data(24)  # Last 24 hours
 
         return {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "current": latest,
             "trends": self._calculate_trends(historical),
             "alerts": self._get_active_alerts(),
             "health_score": self._calculate_health_score(latest),
         }
 
-    def _calculate_trends(self, historical_data: Dict[str, Any]) -> Dict[str, str]:
+    def _calculate_trends(self, historical_data: dict[str, Any]) -> dict[str, str]:
         """Calculate performance trends."""
         # This would implement trend analysis
         return {
@@ -660,12 +660,12 @@ class PerformanceService(BaseService):
             "error_rate": "stable",
         }
 
-    def _get_active_alerts(self) -> List[Dict[str, Any]]:
+    def _get_active_alerts(self) -> list[dict[str, Any]]:
         """Get currently active alerts."""
         # This would return actual active alerts
         return []
 
-    def _calculate_health_score(self, metrics: Dict[str, Any]) -> float:
+    def _calculate_health_score(self, metrics: dict[str, Any]) -> float:
         """Calculate overall system health score (0-100)."""
         # This would implement a comprehensive health scoring algorithm
         return 85.0  # Placeholder
@@ -687,12 +687,12 @@ async def get_performance_service() -> PerformanceService:
 
 # Export main components
 __all__ = [
+    "AIMetrics",
+    "ApplicationMetrics",
+    "ClusterMetrics",
+    "DatabaseMetrics",
+    "PerformanceAggregator",
     "PerformanceService",
     "SystemMetrics",
-    "ApplicationMetrics",
-    "DatabaseMetrics",
-    "ClusterMetrics",
-    "AIMetrics",
-    "PerformanceAggregator",
     "get_performance_service",
 ]

@@ -5,17 +5,16 @@ Provides comprehensive IP blocking, geo-blocking, and automatic threat detection
 """
 
 import asyncio
-import ipaddress
-import json
-import logging
-import re
-import time
 from collections import defaultdict, deque
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
-from typing import Any, Callable, Dict, List, Optional, Set, Awaitable
+from datetime import datetime
+import ipaddress
+import logging
+import time
+from typing import Any
 
-from fastapi import HTTPException, Request, Response
+from fastapi import Request, Response
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
@@ -42,14 +41,14 @@ class IPThreatInfo:
 
     ip_address: str
     threat_level: str  # low, medium, high, critical
-    threat_types: List[str]  # brute_force, ddos, spam, malware, etc.
+    threat_types: list[str]  # brute_force, ddos, spam, malware, etc.
     first_seen: datetime
     last_seen: datetime
     request_count: int = 0
     blocked_count: int = 0
-    countries: Set[str] = field(default_factory=set)
-    user_agents: Set[str] = field(default_factory=set)
-    endpoints_accessed: Set[str] = field(default_factory=set)
+    countries: set[str] = field(default_factory=set)
+    user_agents: set[str] = field(default_factory=set)
+    endpoints_accessed: set[str] = field(default_factory=set)
 
 
 @dataclass
@@ -86,28 +85,28 @@ class IPBlacklistMiddleware(BaseHTTPMiddleware):
             return
 
         # Blacklist storage
-        self.permanent_blacklist: Set[str] = set(
+        self.permanent_blacklist: set[str] = set(
             self.blacklist_config.permanent_blacklist
         )
-        self.temporary_blacklist: Dict[str, int] = dict(
+        self.temporary_blacklist: dict[str, int] = dict(
             self.blacklist_config.temporary_blacklist
         )
-        self.whitelist: Set[str] = set(self.blacklist_config.whitelist)
+        self.whitelist: set[str] = set(self.blacklist_config.whitelist)
 
         # Threat detection
-        self.threat_info: Dict[str, IPThreatInfo] = {}
-        self.request_patterns: Dict[str, deque] = defaultdict(
+        self.threat_info: dict[str, IPThreatInfo] = {}
+        self.request_patterns: dict[str, deque] = defaultdict(
             lambda: deque(maxlen=1000)
         )
-        self.suspicious_patterns: Dict[str, int] = defaultdict(int)
+        self.suspicious_patterns: dict[str, int] = defaultdict(int)
 
         # Auto-blacklist tracking
-        self.request_counts: Dict[str, deque] = defaultdict(lambda: deque(maxlen=1000))
-        self.failed_attempts: Dict[str, deque] = defaultdict(lambda: deque(maxlen=100))
+        self.request_counts: dict[str, deque] = defaultdict(lambda: deque(maxlen=1000))
+        self.failed_attempts: dict[str, deque] = defaultdict(lambda: deque(maxlen=100))
 
         # Geo-blocking (simplified - in production use GeoIP database)
-        self.blocked_countries: Set[str] = set(self.blacklist_config.blocked_countries)
-        self.country_cache: Dict[str, str] = {}
+        self.blocked_countries: set[str] = set(self.blacklist_config.blocked_countries)
+        self.country_cache: dict[str, str] = {}
 
         # Cleanup task
         self._cleanup_task = None
@@ -273,7 +272,7 @@ class IPBlacklistMiddleware(BaseHTTPMiddleware):
 
         return False
 
-    def _check_blacklists(self, ip: str) -> Dict[str, Any]:
+    def _check_blacklists(self, ip: str) -> dict[str, Any]:
         """Check if IP is in any blacklist."""
         # Check permanent blacklist
         if ip in self.permanent_blacklist:
@@ -316,7 +315,7 @@ class IPBlacklistMiddleware(BaseHTTPMiddleware):
 
         return {"blocked": False, "reason": None, "type": None}
 
-    async def _check_geo_blocking(self, ip: str) -> Dict[str, Any]:
+    async def _check_geo_blocking(self, ip: str) -> dict[str, Any]:
         """Check geo-blocking rules."""
         if not self.blocked_countries:
             return {"blocked": False, "reason": None}
@@ -332,7 +331,7 @@ class IPBlacklistMiddleware(BaseHTTPMiddleware):
 
         return {"blocked": False, "reason": None}
 
-    async def _get_ip_country(self, ip: str) -> Optional[str]:
+    async def _get_ip_country(self, ip: str) -> str | None:
         """Get country for IP address (simplified implementation)."""
         # In production, this would use a GeoIP database like MaxMind
         # For now, return None (no geo-blocking)
@@ -570,7 +569,7 @@ class IPBlacklistMiddleware(BaseHTTPMiddleware):
             },
         )
 
-    def get_blacklist_status(self) -> Dict[str, Any]:
+    def get_blacklist_status(self) -> dict[str, Any]:
         """Get current blacklist status and statistics."""
         current_time = int(time.time())
 

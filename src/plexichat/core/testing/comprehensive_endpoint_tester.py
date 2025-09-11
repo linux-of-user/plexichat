@@ -15,12 +15,12 @@ Provides systematic testing of all API endpoints with:
 
 
 # Logging imports with fallbacks
-import logging
-import time
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional
+import logging
+import time
+from typing import Any
 from urllib.parse import urljoin
 
 import aiohttp
@@ -97,16 +97,16 @@ class EndpointInfo:
     path: str
     method: str
     description: str = ""
-    parameters: Dict[str, Any] = field(default_factory=dict)
-    request_schema: Optional[Dict] = None
-    response_schema: Optional[Dict] = None
+    parameters: dict[str, Any] = field(default_factory=dict)
+    request_schema: dict | None = None
+    response_schema: dict | None = None
     requires_auth: bool = False
-    required_permissions: List[str] = field(default_factory=list)
-    rate_limit: Optional[int] = None
+    required_permissions: list[str] = field(default_factory=list)
+    rate_limit: int | None = None
 
     # Discovered information
     discovered_at: datetime = field(default_factory=datetime.now)
-    last_tested: Optional[datetime] = None
+    last_tested: datetime | None = None
     test_count: int = 0
     success_count: int = 0
     failure_count: int = 0
@@ -123,23 +123,23 @@ class TestResult:
 
     # Timing information
     start_time: datetime
-    end_time: Optional[datetime] = None
-    duration_ms: Optional[float] = None
+    end_time: datetime | None = None
+    duration_ms: float | None = None
 
     # Request/Response details
-    request_data: Dict[str, Any] = field(default_factory=dict)
-    response_status: Optional[int] = None
-    response_data: Optional[Dict] = None
-    response_headers: Dict[str, str] = field(default_factory=dict)
+    request_data: dict[str, Any] = field(default_factory=dict)
+    response_status: int | None = None
+    response_data: dict | None = None
+    response_headers: dict[str, str] = field(default_factory=dict)
 
     # Test details
     test_description: str = ""
-    expected_result: Optional[Any] = None
-    actual_result: Optional[Any] = None
+    expected_result: Any | None = None
+    actual_result: Any | None = None
 
     # Error information
     error_message: str = ""
-    error_details: Dict[str, Any] = field(default_factory=dict)
+    error_details: dict[str, Any] = field(default_factory=dict)
 
     # Performance metrics
     response_time_ms: float = 0.0
@@ -148,8 +148,8 @@ class TestResult:
 
     # Validation results
     schema_valid: bool = True
-    security_issues: List[str] = field(default_factory=list)
-    performance_issues: List[str] = field(default_factory=list)
+    security_issues: list[str] = field(default_factory=list)
+    performance_issues: list[str] = field(default_factory=list)
 
     def finish(self, status: TestStatus, error_message: str = ""):
         """Mark test as finished."""
@@ -166,9 +166,9 @@ class EndpointDiscovery:
 
     def __init__(self, base_url: str):
         self.base_url = base_url.rstrip("/")
-        self.discovered_endpoints: Dict[str, EndpointInfo] = {}
+        self.discovered_endpoints: dict[str, EndpointInfo] = {}
 
-    async def discover_endpoints(self) -> List[EndpointInfo]:
+    async def discover_endpoints(self) -> list[EndpointInfo]:
         """Discover all available endpoints."""
         endpoints = []
 
@@ -196,7 +196,7 @@ class EndpointDiscovery:
 
         return list(unique_endpoints.values())
 
-    async def _discover_from_openapi(self) -> List[EndpointInfo]:
+    async def _discover_from_openapi(self) -> list[EndpointInfo]:
         """Discover endpoints from OpenAPI/Swagger documentation."""
         endpoints = []
 
@@ -226,7 +226,7 @@ class EndpointDiscovery:
 
         return endpoints
 
-    def _parse_openapi_spec(self, spec: Dict) -> List[EndpointInfo]:
+    def _parse_openapi_spec(self, spec: dict) -> list[EndpointInfo]:
         """Parse OpenAPI specification to extract endpoints."""
         endpoints = []
 
@@ -259,7 +259,7 @@ class EndpointDiscovery:
 
         return endpoints
 
-    async def _discover_from_patterns(self) -> List[EndpointInfo]:
+    async def _discover_from_patterns(self) -> list[EndpointInfo]:
         """Discover endpoints using common patterns."""
         endpoints = []
 
@@ -316,7 +316,7 @@ class EndpointDiscovery:
 
         return endpoints
 
-    async def _discover_from_routes(self) -> List[EndpointInfo]:
+    async def _discover_from_routes(self) -> list[EndpointInfo]:
         """Discover endpoints from application routes."""
         # This would integrate with the FastAPI app to get actual routes
         # For now, return empty list
@@ -344,13 +344,13 @@ class ComprehensiveEndpointTester:
     def __init__(self, base_url: str):
         self.base_url = base_url.rstrip("/")
         self.discovery = EndpointDiscovery(base_url)
-        self.test_results: List[TestResult] = []
-        self.test_session: Optional[aiohttp.ClientSession] = None
+        self.test_results: list[TestResult] = []
+        self.test_session: aiohttp.ClientSession | None = None
 
         # Test configuration
         self.test_timeout = 30
         self.max_concurrent_tests = 10
-        self.auth_token: Optional[str] = None
+        self.auth_token: str | None = None
         self.test_user_credentials = {
             "username": "test_user",
             "password": "test_password",
@@ -379,7 +379,7 @@ class ComprehensiveEndpointTester:
             },
         }
 
-    async def run_comprehensive_tests(self) -> Dict[str, Any]:
+    async def run_comprehensive_tests(self) -> dict[str, Any]:
         """Run comprehensive tests on all discovered endpoints."""
         correlation_id = correlation_tracker.start_correlation(
             correlation_type=CorrelationType.BACKGROUND_TASK,
@@ -465,8 +465,8 @@ class ComprehensiveEndpointTester:
             logger.warning(f"Authentication setup error: {e}")
 
     async def _run_functional_tests(
-        self, endpoints: List[EndpointInfo]
-    ) -> List[TestResult]:
+        self, endpoints: list[EndpointInfo]
+    ) -> list[TestResult]:
         """Run functional tests on endpoints."""
         results = []
 
@@ -565,7 +565,7 @@ class ComprehensiveEndpointTester:
 
         return test_result
 
-    def _get_test_data_for_endpoint(self, endpoint: EndpointInfo) -> Optional[Dict]:
+    def _get_test_data_for_endpoint(self, endpoint: EndpointInfo) -> dict | None:
         """Get appropriate test data for an endpoint."""
         if endpoint.method == "GET" or endpoint.method == "DELETE":
             return None
@@ -594,7 +594,7 @@ class ComprehensiveEndpointTester:
         # Default test data
         return {"test_field": "test_value", "timestamp": int(time.time())}
 
-    async def _safe_json_response(self, response) -> Optional[Dict]:
+    async def _safe_json_response(self, response) -> dict | None:
         """Safely get JSON response."""
         try:
             return await response.json()
@@ -602,8 +602,8 @@ class ComprehensiveEndpointTester:
             return None
 
     async def _run_security_tests(
-        self, endpoints: List[EndpointInfo]
-    ) -> List[TestResult]:
+        self, endpoints: list[EndpointInfo]
+    ) -> list[TestResult]:
         """Run security tests on endpoints."""
         results = []
 
@@ -761,8 +761,8 @@ class ComprehensiveEndpointTester:
         return test_result
 
     async def _run_performance_tests(
-        self, endpoints: List[EndpointInfo]
-    ) -> List[TestResult]:
+        self, endpoints: list[EndpointInfo]
+    ) -> list[TestResult]:
         """Run performance tests on endpoints."""
         results = []
 
@@ -849,8 +849,8 @@ class ComprehensiveEndpointTester:
         return test_result
 
     async def _run_validation_tests(
-        self, endpoints: List[EndpointInfo]
-    ) -> List[TestResult]:
+        self, endpoints: list[EndpointInfo]
+    ) -> list[TestResult]:
         """Run input validation tests on endpoints."""
         results = []
 
@@ -921,8 +921,8 @@ class ComprehensiveEndpointTester:
         return test_result
 
     def _generate_test_report(
-        self, test_results: List[TestResult], endpoints: List[EndpointInfo]
-    ) -> Dict[str, Any]:
+        self, test_results: list[TestResult], endpoints: list[EndpointInfo]
+    ) -> dict[str, Any]:
         """Generate comprehensive test report."""
         total_tests = len(test_results)
         passed_tests = sum(1 for r in test_results if r.status == TestStatus.PASSED)

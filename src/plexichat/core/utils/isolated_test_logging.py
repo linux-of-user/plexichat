@@ -2,14 +2,14 @@
 """Isolated logging test - direct imports from unified_logger."""
 import json
 import logging
-import re
+
 from plexichat.core.logging.unified_logger import (
-    redact_pii,
-    sanitize_for_logging,
-    DEFAULT_PII_PATTERNS,
     ColoredFormatter,
     StructuredFormatter,
+    redact_pii,
+    sanitize_for_logging,
 )
+
 
 def test_redact_pii():
     message = "User john.doe@example.com SSN 123-45-6789"

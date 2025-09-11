@@ -1,7 +1,8 @@
-import asyncio
-import logging
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Optional
+import asyncio
+from collections.abc import Callable
+import logging
+from typing import Any
 
 from plexichat.core.errors.base import PlexiError
 
@@ -17,7 +18,7 @@ class MessageBaseProcessor(ABC):
     the given message type.
     """
 
-    def __init__(self, queue: Optional[asyncio.Queue] = None):
+    def __init__(self, queue: asyncio.Queue | None = None):
         self.queue = queue or asyncio.Queue()
         self.metrics = {"processed": 0, "errors": 0}
 

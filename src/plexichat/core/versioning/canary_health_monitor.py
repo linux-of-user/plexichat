@@ -1,10 +1,11 @@
 import asyncio
+from collections.abc import Callable
+from dataclasses import dataclass, field
+from datetime import UTC, datetime, timedelta
+from enum import Enum
 import logging
 import statistics
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
-from enum import Enum
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any
 
 import aiohttp
 
@@ -92,10 +93,10 @@ class HealthAlert:
     metric_name: str
     current_value: float
     threshold: float
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
     acknowledged: bool = False
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert alert to dictionary."""
         return {
             "alert_id": self.alert_id,
@@ -115,14 +116,14 @@ class MetricHistory:
     """Historical metric data for trend analysis."""
 
     metric_name: str
-    values: List[float] = field(default_factory=list)
-    timestamps: List[datetime] = field(default_factory=list)
+    values: list[float] = field(default_factory=list)
+    timestamps: list[datetime] = field(default_factory=list)
     max_history_size: int = 100
 
-    def add_value(self, value: float, timestamp: Optional[datetime] = None):
+    def add_value(self, value: float, timestamp: datetime | None = None):
         """Add new metric value."""
         if timestamp is None:
-            timestamp = datetime.now(timezone.utc)
+            timestamp = datetime.now(UTC)
 
         self.values.append(value)
         self.timestamps.append(timestamp)
@@ -145,7 +146,7 @@ class MetricHistory:
 
         sum_x = sum(x_values)
         sum_y = sum(recent_values)
-        sum_xy = sum(x * y for x, y in zip(x_values, recent_values))
+        sum_xy = sum(x * y for x, y in zip(x_values, recent_values, strict=False))
         sum_x2 = sum(x * x for x in x_values)
 
         slope = (n * sum_xy - sum_x * sum_y) / (n * sum_x2 - sum_x * sum_x)
@@ -192,19 +193,19 @@ class CanaryHealthMonitor:
 
     def __init__(self):
         """Initialize the health monitor."""
-        self.monitoring_tasks: Dict[str, asyncio.Task] = {}
-        self.metric_history: Dict[str, Dict[str, MetricHistory]] = (
+        self.monitoring_tasks: dict[str, asyncio.Task] = {}
+        self.metric_history: dict[str, dict[str, MetricHistory]] = (
             {}
         )  # node_id -> metric_name -> history
-        self.active_alerts: Dict[str, HealthAlert] = {}
-        self.alert_callbacks: List[Callable[[HealthAlert], None]] = []
-        self.session: Optional[aiohttp.ClientSession] = None
+        self.active_alerts: dict[str, HealthAlert] = {}
+        self.alert_callbacks: list[Callable[[HealthAlert], None]] = []
+        self.session: aiohttp.ClientSession | None = None
 
         # Monitoring configuration
         self.check_interval_seconds = 30
         self.anomaly_sensitivity = 2.0
         self.alert_cooldown_minutes = 5
-        self.last_alert_times: Dict[str, datetime] = {}
+        self.last_alert_times: dict[str, datetime] = {}
 
     async def initialize(self):
         """Initialize health monitor."""
@@ -213,8 +214,8 @@ class CanaryHealthMonitor:
 
     async def start_monitoring(
         self,
-        nodes: List[Any],
-        health_checks: List["HealthCheck"],
+        nodes: list[Any],
+        health_checks: list["HealthCheck"],
         duration_minutes: int = 30,
     ) -> str:
         """Start monitoring canary nodes."""
@@ -249,15 +250,15 @@ class CanaryHealthMonitor:
     async def _monitor_nodes(
         self,
         monitoring_id: str,
-        nodes: List[Any],
-        health_checks: List["HealthCheck"],
+        nodes: list[Any],
+        health_checks: list["HealthCheck"],
         duration_minutes: int,
     ):
         """Monitor nodes for specified duration."""
-        end_time = datetime.now(timezone.utc) + timedelta(minutes=duration_minutes)
+        end_time = datetime.now(UTC) + timedelta(minutes=duration_minutes)
 
         try:
-            while datetime.now(timezone.utc) < end_time:
+            while datetime.now(UTC) < end_time:
                 # Check health of all nodes
                 for node in nodes:
                     await self._check_node_health(node, health_checks)
@@ -270,7 +271,7 @@ class CanaryHealthMonitor:
         except Exception as e:
             logger.error(f"Monitoring error: {e}")
 
-    async def _check_node_health(self, node: Any, health_checks: List["HealthCheck"]):
+    async def _check_node_health(self, node: Any, health_checks: list["HealthCheck"]):
         """Check health of a single node."""
         try:
             for check in health_checks:
@@ -303,7 +304,7 @@ class CanaryHealthMonitor:
 
     async def _execute_health_check(
         self, node: Any, check: "HealthCheck"
-    ) -> Optional[float]:
+    ) -> float | None:
         """Execute individual health check."""
         try:
             if check.check_type == HealthCheckType.HTTP_ENDPOINT:
@@ -326,7 +327,7 @@ class CanaryHealthMonitor:
 
     async def _check_http_endpoint(
         self, node: Any, check: "HealthCheck"
-    ) -> Optional[float]:
+    ) -> float | None:
         """Check HTTP endpoint health."""
         if not check.endpoint:
             return None
@@ -350,7 +351,7 @@ class CanaryHealthMonitor:
                 else:
                     return float(response.status)
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             return 0.0
         except Exception as e:
             logger.debug(f"HTTP check failed for {node.node_id}: {e}")
@@ -358,7 +359,7 @@ class CanaryHealthMonitor:
 
     async def _check_performance_metrics(
         self, node: Any, check: "HealthCheck"
-    ) -> Optional[float]:
+    ) -> float | None:
         """Check performance metrics."""
         # Placeholder for performance metrics collection
         # This would integrate with monitoring systems like Prometheus
@@ -366,21 +367,21 @@ class CanaryHealthMonitor:
 
     async def _check_error_rate(
         self, node: Any, check: "HealthCheck"
-    ) -> Optional[float]:
+    ) -> float | None:
         """Check error rate."""
         # Placeholder for error rate collection
         return 0.1  # Simulate low error rate
 
     async def _check_response_time(
         self, node: Any, check: "HealthCheck"
-    ) -> Optional[float]:
+    ) -> float | None:
         """Check response time."""
         # Placeholder for response time collection
         return 150.0  # Simulate good response time
 
     async def _check_resource_usage(
         self, node: Any, check: "HealthCheck"
-    ) -> Optional[float]:
+    ) -> float | None:
         """Check resource usage."""
         # Placeholder for resource usage collection
         return 0.3  # Simulate moderate resource usage
@@ -429,7 +430,7 @@ class CanaryHealthMonitor:
         )
 
         await self._emit_alert(alert)
-        self.last_alert_times[alert_key] = datetime.now(timezone.utc)
+        self.last_alert_times[alert_key] = datetime.now(UTC)
 
     async def _handle_anomaly(self, node: Any, check: "HealthCheck", value: float):
         """Handle anomalous value."""
@@ -452,7 +453,7 @@ class CanaryHealthMonitor:
         )
 
         await self._emit_alert(alert)
-        self.last_alert_times[alert_key] = datetime.now(timezone.utc)
+        self.last_alert_times[alert_key] = datetime.now(UTC)
 
     def _is_alert_in_cooldown(self, alert_key: str) -> bool:
         """Check if alert is in cooldown period."""
@@ -462,7 +463,7 @@ class CanaryHealthMonitor:
         last_alert = self.last_alert_times[alert_key]
         cooldown_end = last_alert + timedelta(minutes=self.alert_cooldown_minutes)
 
-        return datetime.now(timezone.utc) < cooldown_end
+        return datetime.now(UTC) < cooldown_end
 
     async def _emit_alert(self, alert: HealthAlert):
         """Emit alert to registered callbacks."""
@@ -481,7 +482,7 @@ class CanaryHealthMonitor:
         """Register alert callback."""
         self.alert_callbacks.append(callback)
 
-    def get_node_metrics(self, node_id: str) -> Dict[str, Any]:
+    def get_node_metrics(self, node_id: str) -> dict[str, Any]:
         """Get current metrics for node."""
         if node_id not in self.metric_history:
             return {}
@@ -497,7 +498,7 @@ class CanaryHealthMonitor:
 
         return metrics
 
-    def get_active_alerts(self, node_id: Optional[str] = None) -> List[HealthAlert]:
+    def get_active_alerts(self, node_id: str | None = None) -> list[HealthAlert]:
         """Get active alerts."""
         alerts = list(self.active_alerts.values())
 

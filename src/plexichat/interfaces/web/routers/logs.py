@@ -1,9 +1,9 @@
-from fastapi import APIRouter, HTTPException, Query, Request
-from fastapi.responses import PlainTextResponse, JSONResponse, HTMLResponse
-from fastapi.templating import Jinja2Templates
 from pathlib import Path
-from typing import Optional
 import re
+
+from fastapi import APIRouter, HTTPException, Query, Request
+from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
+from fastapi.templating import Jinja2Templates
 
 router = APIRouter(prefix="/admin/logs", tags=["admin-logs"])
 templates = Jinja2Templates(directory="src/plexichat/interfaces/web/templates")
@@ -38,7 +38,7 @@ async def list_log_files() -> dict:
 
 @router.get("/view", response_class=PlainTextResponse)
 async def view_log(file: str = Query(..., description="Relative log file name"),
-                   level: Optional[str] = Query(None, description="Filter by level (DEBUG..CRITICAL)"),
+                   level: str | None = Query(None, description="Filter by level (DEBUG..CRITICAL)"),
                    tail_kb: int = Query(64, ge=1, le=8192, description="Tail size in kilobytes")) -> str:
     try:
         if not re.match(r"^[a-zA-Z0-9_./-]+$", file):

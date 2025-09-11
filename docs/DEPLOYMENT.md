@@ -89,85 +89,192 @@ PlexiChat supports multiple deployment architectures:
 
 ## Docker Deployment
 
-### Single Node Docker Deployment
+PlexiChat uses a multi-stage Dockerfile with Cython/Numba compilation support for optimized performance. The deployment supports both development and production environments with consistent tooling.
 
-#### 1. Prepare Environment
+### Local Development Setup
 
-```bash
-# Create deployment directory
-mkdir plexichat-production
-cd plexichat-production
+#### Prerequisites
+- Docker Desktop 20.10+ (Windows/macOS/Linux)
+- Docker Compose 2.0+
+- Makefile (included in repository)
+- PostgreSQL 15+ (via docker-compose)
 
-# Download production configuration
-curl -O https://raw.githubusercontent.com/linux-of-user/plexichat/main/docker-compose.prod.yml
-curl -O https://raw.githubusercontent.com/linux-of-user/plexichat/main/.env.production
-```
-
-#### 2. Configure Environment
+#### 1. Clone and Setup
 
 ```bash
-# Edit environment variables
-cp .env.production .env
-nano .env
+# Clone the repository
+git clone https://github.com/your-org/plexichat.git
+cd plexichat
 
-# Required variables
-PLEXICHAT_ENV=production
-PLEXICHAT_SECRET_KEY=your-super-secret-key-here
-PLEXICHAT_DATABASE_URL=postgresql://plexichat:password@postgres:5432/plexichat
-PLEXICHAT_REDIS_URL=redis://redis:6379/0
-PLEXICHAT_ENCRYPTION_KEY=your-256-bit-encryption-key
-PLEXICHAT_JWT_SECRET=your-jwt-secret-key
+# Install development dependencies (host)
+pip install -e ".[dev]"
 
-# SSL Configuration
-PLEXICHAT_SSL_CERT_PATH=/certs/fullchain.pem
-PLEXICHAT_SSL_KEY_PATH=/certs/privkey.pem
-
-# Email Configuration
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USERNAME=your-email@gmail.com
-SMTP_PASSWORD=your-app-password
-
-# AI Configuration (optional)
-OPENAI_API_KEY=your-openai-key
-ANTHROPIC_API_KEY=your-anthropic-key
+# Build Cython extensions (host)
+make cythonize
 ```
 
-#### 3. Production Docker Compose
+#### 2. Environment Configuration
+
+Create `.env` file in project root:
+
+```bash
+# .env
+POSTGRES_URL=postgresql://postgres:password@localhost:5432/plexichat
+POSTGRES_DB=plexichat
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=password
+PLEXICHAT_SECRET_KEY=your-super-secret-key-change-in-production
+PLEXICHAT_ENCRYPTION_KEY=your-32-byte-encryption-key-base64-encoded
+JWT_SECRET=your-jwt-secret-key
+DEBUG=True
+```
+
+#### 3. Development with Docker Compose
+
+The `docker-compose.yml` provides a complete development stack:
+
+```yaml
+# docker-compose.yml (excerpt)
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: dev
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+      - /app/.venv
+      - /app/build
+    depends_on:
+      - postgres
+    environment:
+      - POSTGRES_URL=postgresql://postgres:password@postgres:5432/plexichat
+    command: uvicorn plexichat.main:app --reload --host 0.0.0.0 --port 8000
+
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: plexichat
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+```
+
+#### 4. Development Commands (Makefile)
+
+```bash
+# Build development Docker image (multi-platform)
+make docker-build
+
+# Run Cython compilation in container
+make docker-cythonize
+
+# Run tests in Docker with coverage
+make docker-test
+
+# Start development server in Docker
+make docker-serve
+
+# Interactive development shell
+make docker-dev
+
+# Full development workflow
+make docker-dev  # Starts bash in container with volumes mounted
+# Inside container: uvicorn plexichat.main:app --reload
+```
+
+### Production Deployment
+
+#### 1. Build Production Image
+
+The multi-stage Dockerfile creates an optimized production image:
+
+```dockerfile
+# Dockerfile (excerpt - production stage)
+FROM base as prod
+
+# Install minimal runtime dependencies
+COPY requirements-minimal.txt .
+RUN pip install --no-cache-dir -r requirements-minimal.txt
+
+# Copy application code and compiled extensions
+COPY src/ ./src/
+COPY --from=dev /app/build/ ./build/
+
+# Security: non-root user
+RUN useradd --uid 1000 --create-home app
+USER app
+
+EXPOSE 8000
+
+CMD ["uvicorn", "plexichat.main:app", "--host", "0.0.0.0", "--port", "8000"]
+```
+
+Build production image:
+
+```bash
+# Build for specific platform
+docker build --target prod -t plexichat-prod:latest .
+
+# Multi-platform build (for ARM/x86)
+docker buildx build --platform linux/amd64,linux/arm64 \
+  --target prod -t your-registry/plexichat:latest \
+  --push .
+```
+
+#### 2. Production Docker Compose
+
+For production, create `docker-compose.prod.yml`:
 
 ```yaml
 # docker-compose.prod.yml
 version: '3.8'
 
 services:
-  plexichat:
-    image: plexichat/plexichat:latest
+  app:
+    image: plexichat-prod:latest
     restart: unless-stopped
     ports:
-      - "80:8000"
-      - "443:8443"
+      - "8000:8000"
     environment:
       - PLEXICHAT_ENV=production
+      - POSTGRES_URL=postgresql://plexichat:${POSTGRES_PASSWORD}@postgres:5432/plexichat
     env_file:
-      - .env
+      - .env.prod
     volumes:
       - ./data:/app/data
       - ./logs:/app/logs
-      - ./certs:/certs:ro
-      - ./config:/app/config
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_healthy
     networks:
-      - plexichat-network
+      - plexichat-prod
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 40s
 
   postgres:
-    image: postgres:14-alpine
+    image: postgres:15-alpine
     restart: unless-stopped
     environment:
       POSTGRES_DB: plexichat
@@ -175,195 +282,230 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./backups:/backups
+      - ./init:/docker-entrypoint-initdb.d
     networks:
-      - plexichat-network
+      - plexichat-prod
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U plexichat"]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  redis:
-    image: redis:7-alpine
-    restart: unless-stopped
-    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
-    volumes:
-      - redis_data:/data
-    networks:
-      - plexichat-network
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  nginx:
-    image: nginx:alpine
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./certs:/etc/nginx/certs:ro
-      - ./logs/nginx:/var/log/nginx
-    depends_on:
-      - plexichat
-    networks:
-      - plexichat-network
-
 volumes:
   postgres_data:
-  redis_data:
 
 networks:
-  plexichat-network:
+  plexichat-prod:
     driver: bridge
 ```
 
-#### 4. Deploy
+#### 3. Deploy Production
 
 ```bash
-# Start services
+# Production environment
+cp .env.example .env.prod
+# Edit .env.prod with production values
+
+# Pull latest image or build locally
+docker pull your-registry/plexichat:latest
+# OR
+docker build --target prod -t plexichat-prod:latest .
+
+# Start production stack
 docker-compose -f docker-compose.prod.yml up -d
 
-# Check status
+# Verify deployment
 docker-compose -f docker-compose.prod.yml ps
+docker-compose -f docker-compose.prod.yml logs app
 
-# View logs
-docker-compose -f docker-compose.prod.yml logs -f plexichat
+# Run database migrations
+docker-compose -f docker-compose.prod.yml exec app python -m plexichat db upgrade
 
-# Initialize database
-docker-compose -f docker-compose.prod.yml exec plexichat python -m plexichat db init
-
-# Create admin user
-docker-compose -f docker-compose.prod.yml exec plexichat python -m plexichat user create admin \
-  --email admin@example.com --password admin123 --role admin
+# Health check
+curl http://localhost:8000/health
 ```
 
-### Multi-Node Docker Swarm
+### CI/CD Integration
 
-#### 1. Initialize Swarm
-
-```bash
-# On manager node
-docker swarm init --advertise-addr <MANAGER-IP>
-
-# On worker nodes
-docker swarm join --token <TOKEN> <MANAGER-IP>:2377
-```
-
-#### 2. Deploy Stack
+The `.github/workflows/docker.yml` provides automated Docker builds and tests:
 
 ```yaml
-# docker-stack.yml
-version: '3.8'
+# .github/workflows/docker.yml (excerpt)
+name: Docker Build and Test
 
-services:
-  plexichat:
-    image: plexichat/plexichat:latest
-    deploy:
-      replicas: 3
-      placement:
-        constraints:
-          - node.role == worker
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        max_attempts: 3
-      resources:
-        limits:
-          cpus: '2'
-          memory: 4G
-        reservations:
-          cpus: '1'
-          memory: 2G
-    environment:
-      - PLEXICHAT_ENV=production
-    env_file:
-      - .env
-    volumes:
-      - plexichat_data:/app/data
-      - plexichat_logs:/app/logs
-    networks:
-      - plexichat-overlay
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
 
-  postgres:
-    image: postgres:14-alpine
-    deploy:
-      replicas: 1
-      placement:
-        constraints:
-          - node.labels.postgres == true
-    environment:
-      POSTGRES_DB: plexichat
-      POSTGRES_USER: plexichat
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    networks:
-      - plexichat-overlay
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Build and push multi-platform image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ghcr.io/${{ github.repository }}:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-  redis:
-    image: redis:7-alpine
-    deploy:
-      replicas: 1
-      placement:
-        constraints:
-          - node.labels.redis == true
-    command: redis-server --appendonly yes
-    volumes:
-      - redis_data:/data
-    networks:
-      - plexichat-overlay
-
-  nginx:
-    image: nginx:alpine
-    deploy:
-      replicas: 2
-      placement:
-        constraints:
-          - node.role == manager
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-    networks:
-      - plexichat-overlay
-    depends_on:
-      - plexichat
-
-volumes:
-  plexichat_data:
-  plexichat_logs:
-  postgres_data:
-  redis_data:
-
-networks:
-  plexichat-overlay:
-    driver: overlay
-    attachable: true
+  test:
+    needs: build-and-push
+    steps:
+      - name: Run containerized tests
+        run: |
+          docker run --rm -v ${{ github.workspace }}:/app \
+            ghcr.io/${{ github.repository }}:latest make docker-test
 ```
+
+### Security and Best Practices
+
+#### Dockerfile Security
+- Multi-stage builds minimize attack surface
+- Non-root user (UID 1000) for production
+- No unnecessary system packages
+- Health checks for container monitoring
+- `.dockerignore` excludes sensitive files
+
+#### Volume Management
+```bash
+# Persistent volumes for production
+docker volume create plexichat_data
+docker volume create plexichat_logs
+docker volume create postgres_data
+
+# Backup strategy
+docker run --rm -v plexichat_data:/data -v backups:/backup \
+  alpine tar czf /backup/plexichat_data_$(date +%Y%m%d).tar.gz -C /data .
+```
+
+#### Performance Optimization
+- Cython/Numba compilation in build stage
+- Minimal production dependencies
+- Multi-platform builds for cloud flexibility
+- Layer caching for faster builds
+
+### Validation and Testing
+
+#### Local Validation
+```bash
+# Test build time (<5 minutes target)
+time make docker-build
+
+# Verify Cython compilation
+make docker-cythonize
+ls -la build/  # Should show .so/.pyd files
+
+# Run full test suite
+make docker-test  # Should show 80%+ coverage
+
+# Benchmark consistency
+pytest tests/test_compilation.py::TestCythonBenchmark \
+  --benchmark-compare=baseline --benchmark-save=host
+```
+
+#### Container vs Host Comparison
+```bash
+# Host benchmarks
+pytest tests/test_compilation.py --benchmark-save=host
+
+# Container benchmarks
+make docker-test  # Includes benchmark save to 'container'
+
+# Compare (add to CI)
+pytest-benchmark compare host container
+```
+
+### Troubleshooting
+
+#### Common Issues
+
+1. **Cython Build Fails**
+   ```bash
+   # Ensure build-essential in Dockerfile
+   docker build --no-cache --target dev .
+   
+   # Check for missing headers
+   docker run --rm plexichat-dev:latest gcc --version
+   ```
+
+2. **Database Connection Issues**
+   ```bash
+   # Verify network connectivity
+   docker-compose exec app ping postgres
+   
+   # Check PostgreSQL logs
+   docker-compose logs postgres
+   
+   # Test connection
+   docker-compose exec app psql $POSTGRES_URL -c "SELECT 1;"
+   ```
+
+3. **Port Conflicts**
+   ```bash
+   # Check running containers
+   docker ps
+   
+   # Stop conflicting services
+   docker-compose down
+   
+   # Use different ports
+   # Edit docker-compose.yml: "8001:8000"
+   ```
+
+4. **Volume Mount Issues (Windows)**
+   ```bash
+   # Use WSL2 backend for Docker Desktop
+   # Or use named volumes instead of bind mounts
+   
+   # Alternative: named volume for development
+   volumes:
+     - plexichat_dev:/app
+   ```
+
+#### Monitoring Deployment Health
+```bash
+# Container resource usage
+docker stats
+
+# Application logs
+docker-compose logs -f app
+
+# Database health
+docker-compose exec postgres pg_isready
+
+# Performance metrics
+docker-compose exec app python -c "
+from plexichat.core import metrics
+print(metrics.get_system_stats())
+"
+```
+
+### Multi-Platform Support
+
+The Dockerfile supports both AMD64 and ARM64 architectures:
 
 ```bash
-# Deploy stack
-docker stack deploy -c docker-stack.yml plexichat
+# Build for specific architecture
+docker buildx build --platform linux/amd64 --target prod -t plexichat-amd64 .
 
-# Check services
-docker service ls
-
-# Scale services
-docker service scale plexichat_plexichat=5
+# Build multi-platform
+docker buildx create --use
+docker buildx build --platform linux/amd64,linux/arm64 \
+  --target prod -t your-registry/plexichat:latest --push .
 ```
 
+This enables deployment on AWS Graviton, Apple M1/M2, and standard x86 servers.
+
 ## Kubernetes Deployment
+
+**Note**: For Kubernetes deployments, build the production Docker image first, then use standard Kubernetes manifests or Helm charts. The multi-stage Dockerfile ensures compatibility with container orchestrators.
 
 ### 1. Namespace and ConfigMap
 

@@ -10,12 +10,12 @@ Implements comprehensive zero-trust security including:
 - Incident response
 """
 
-import time
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set, Tuple
+import time
+from typing import Any
 
 from plexichat.core.logging import get_logger
 
@@ -60,13 +60,13 @@ class UserContext:
     ip_address: str
     user_agent: str
     device_fingerprint: str
-    location: Optional[Dict[str, str]] = None
-    session_id: Optional[str] = None
+    location: dict[str, str] | None = None
+    session_id: str | None = None
     last_activity: datetime = field(default_factory=datetime.now)
     trust_level: TrustLevel = TrustLevel.UNTRUSTED
     risk_score: float = 0.0
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
             "user_id": self.user_id,
@@ -88,13 +88,13 @@ class SecurityIncident:
     incident_id: str
     incident_type: str
     severity: IncidentSeverity
-    user_id: Optional[str]
-    ip_address: Optional[str]
+    user_id: str | None
+    ip_address: str | None
     description: str
-    evidence: Dict[str, Any]
+    evidence: dict[str, Any]
     timestamp: datetime = field(default_factory=datetime.now)
     resolved: bool = False
-    response_actions: List[str] = field(default_factory=list)
+    response_actions: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -103,10 +103,10 @@ class BehaviorPattern:
 
     user_id: str
     pattern_type: str
-    typical_hours: Set[int] = field(default_factory=set)
-    typical_locations: Set[str] = field(default_factory=set)
-    typical_devices: Set[str] = field(default_factory=set)
-    typical_actions: Dict[str, int] = field(default_factory=dict)
+    typical_hours: set[int] = field(default_factory=set)
+    typical_locations: set[str] = field(default_factory=set)
+    typical_devices: set[str] = field(default_factory=set)
+    typical_actions: dict[str, int] = field(default_factory=dict)
     last_updated: datetime = field(default_factory=datetime.now)
 
 
@@ -114,8 +114,8 @@ class BehavioralAnalyzer:
     """Analyzes user behavior patterns for anomaly detection."""
 
     def __init__(self):
-        self.user_patterns: Dict[str, BehaviorPattern] = {}
-        self.activity_history: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
+        self.user_patterns: dict[str, BehaviorPattern] = {}
+        self.activity_history: dict[str, list[dict[str, Any]]] = defaultdict(list)
         self.max_history_days = 30
 
     def record_activity(self, user_id: str, activity_type: str, context: UserContext):
@@ -142,7 +142,7 @@ class BehavioralAnalyzer:
 
     def analyze_behavior(
         self, user_id: str, context: UserContext
-    ) -> Tuple[bool, float, List[str]]:
+    ) -> tuple[bool, float, list[str]]:
         """Analyze current behavior against established patterns."""
         pattern = self.user_patterns.get(user_id)
         if not pattern:
@@ -223,10 +223,10 @@ class ZeroTrustEngine:
 
     def __init__(self):
         self.behavioral_analyzer = BehavioralAnalyzer()
-        self.user_contexts: Dict[str, UserContext] = {}
-        self.security_incidents: List[SecurityIncident] = []
-        self.trust_policies: Dict[str, Dict[str, Any]] = {}
-        self.active_sessions: Dict[str, UserContext] = {}
+        self.user_contexts: dict[str, UserContext] = {}
+        self.security_incidents: list[SecurityIncident] = []
+        self.trust_policies: dict[str, dict[str, Any]] = {}
+        self.active_sessions: dict[str, UserContext] = {}
 
         # Default trust policies
         self._initialize_default_policies()
@@ -254,7 +254,7 @@ class ZeroTrustEngine:
 
     async def evaluate_trust(
         self, user_id: str, context: UserContext, requested_action: str
-    ) -> Tuple[TrustLevel, float, List[str]]:
+    ) -> tuple[TrustLevel, float, list[str]]:
         """Evaluate trust level for a user context and action."""
         try:
             # Record activity for behavioral analysis
@@ -322,7 +322,7 @@ class ZeroTrustEngine:
 
     async def verify_access(
         self, user_id: str, resource: str, action: str, context: UserContext
-    ) -> Tuple[bool, str]:
+    ) -> tuple[bool, str]:
         """Verify access using zero-trust principles."""
         try:
             # Evaluate trust
@@ -417,10 +417,10 @@ class ZeroTrustEngine:
         self,
         incident_type: str,
         severity: IncidentSeverity,
-        user_id: Optional[str] = None,
-        ip_address: Optional[str] = None,
+        user_id: str | None = None,
+        ip_address: str | None = None,
         description: str = "",
-        evidence: Optional[Dict[str, Any]] = None,
+        evidence: dict[str, Any] | None = None,
     ) -> None:
         """Create a security incident."""
         incident = SecurityIncident(
@@ -511,7 +511,7 @@ class ZeroTrustEngine:
         known_devices = {activity["device_fingerprint"] for activity in user_activities}
         return device_fingerprint in known_devices
 
-    def get_security_dashboard(self) -> Dict[str, Any]:
+    def get_security_dashboard(self) -> dict[str, Any]:
         """Get security dashboard data."""
         recent_incidents = [
             incident

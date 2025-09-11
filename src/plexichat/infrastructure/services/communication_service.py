@@ -4,14 +4,16 @@
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
 import asyncio
-import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from enum import Enum
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Set
-import yaml
 import logging
+from pathlib import Path
+from typing import Any
+import uuid
+
+import yaml
+
 
 # Placeholder imports for dependencies
 def get_ai_manager(): return None
@@ -69,9 +71,9 @@ class VoiceMessage:
     chat_id: str
     file_path: str
     duration: float  # in seconds
-    transcript: Optional[str] = None
-    waveform_data: Optional[List[float]] = None
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    transcript: str | None = None
+    waveform_data: list[float] | None = None
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     is_transcribed: bool = False
 
 @dataclass
@@ -81,7 +83,7 @@ class MessageReaction:
     message_id: str
     user_id: str
     reaction_type: ReactionType
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 @dataclass
 class MessageThread:
@@ -89,13 +91,13 @@ class MessageThread:
     thread_id: str
     parent_message_id: str
     chat_id: str
-    title: Optional[str] = None
+    title: str | None = None
     status: ThreadStatus = ThreadStatus.ACTIVE
-    participants: Set[str] = field(default_factory=set)
+    participants: set[str] = field(default_factory=set)
     message_count: int = 0
-    last_activity: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    created_by: Optional[str] = None
+    last_activity: datetime = field(default_factory=lambda: datetime.now(UTC))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    created_by: str | None = None
 
 @dataclass
 class TranslationRequest:
@@ -106,10 +108,10 @@ class TranslationRequest:
     source_language: str
     target_language: str
     original_text: str
-    translated_text: Optional[str] = None
-    confidence_score: Optional[float] = None
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    completed_at: Optional[datetime] = None
+    translated_text: str | None = None
+    confidence_score: float | None = None
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    completed_at: datetime | None = None
 
 @dataclass
 class SmartNotification:
@@ -121,28 +123,28 @@ class SmartNotification:
     priority: NotificationPriority
     title: str
     content: str
-    ai_summary: Optional[str] = None
+    ai_summary: str | None = None
     action_required: bool = False
     read: bool = False
     delivered: bool = False
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    scheduled_for: Optional[datetime] = None
-    expires_at: Optional[datetime] = None
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    scheduled_for: datetime | None = None
+    expires_at: datetime | None = None
 
 class CommunicationService(BaseService):
     """Advanced communication service with enhanced features."""
-    def __init__(self, config_path: Optional[Path] = None):
+    def __init__(self, config_path: Path | None = None):
         super().__init__("communication")
 
         # Configuration management
         self.config_path = config_path or Path("config/communication.yaml")
 
         # Storage for communication data
-        self.voice_messages: Dict[str, VoiceMessage] = {}
-        self.message_reactions: Dict[str, List[MessageReaction]] = {}
-        self.message_threads: Dict[str, MessageThread] = {}
-        self.translations: Dict[str, TranslationRequest] = {}
-        self.notifications: Dict[str, List[SmartNotification]] = {}
+        self.voice_messages: dict[str, VoiceMessage] = {}
+        self.message_reactions: dict[str, list[MessageReaction]] = {}
+        self.message_threads: dict[str, MessageThread] = {}
+        self.translations: dict[str, TranslationRequest] = {}
+        self.notifications: dict[str, list[SmartNotification]] = {}
 
         # AI manager for smart features
         self.ai_manager = None
@@ -159,11 +161,11 @@ class CommunicationService(BaseService):
         self._cleanup_task = None
         self._notification_task = None
 
-    def _load_configuration(self) -> Dict[str, Any]:
+    def _load_configuration(self) -> dict[str, Any]:
         """Load configuration from YAML file or return defaults."""
         try:
             if self.config_path and self.config_path.exists():
-                with open(self.config_path, 'r', encoding='utf-8') as f:
+                with open(self.config_path, encoding='utf-8') as f:
                     loaded_config = yaml.safe_load(f)
                     if loaded_config:
                         # Merge with defaults to ensure all keys exist
@@ -179,7 +181,7 @@ class CommunicationService(BaseService):
             logger.info("Using default configuration")
             return self._get_default_configuration()
 
-    def _get_default_configuration(self) -> Dict[str, Any]:
+    def _get_default_configuration(self) -> dict[str, Any]:
         """Get default configuration."""
         return {
             "voice_messages": {
@@ -238,7 +240,7 @@ class CommunicationService(BaseService):
             }
         }
 
-    def _deep_merge_config(self, base: Dict[str, Any], update: Dict[str, Any]) -> Dict[str, Any]:
+    def _deep_merge_config(self, base: dict[str, Any], update: dict[str, Any]) -> dict[str, Any]:
         """Deep merge configuration dictionaries."""
         result = base.copy()
 
@@ -366,7 +368,7 @@ class CommunicationService(BaseService):
         except Exception as e:
             logger.error(f"Failed to transcribe voice message {message_id}: {e}")
 
-    async def get_voice_message(self, message_id: str) -> Optional[VoiceMessage]:
+    async def get_voice_message(self, message_id: str) -> VoiceMessage | None:
         """Get voice message by ID."""
         return self.voice_messages.get(message_id)
 
@@ -423,7 +425,7 @@ class CommunicationService(BaseService):
             logger.error(f"Failed to remove reaction: {e}")
             return False
 
-    async def get_message_reactions(self, message_id: str) -> List[MessageReaction]:
+    async def get_message_reactions(self, message_id: str) -> list[MessageReaction]:
         """Get all reactions for a message."""
         return self.message_reactions.get(message_id, [])
 
@@ -434,7 +436,7 @@ class CommunicationService(BaseService):
         parent_message_id: str,
         chat_id: str,
         user_id: str,
-        title: Optional[str] = None
+        title: str | None = None
     ) -> MessageThread:
         """Create a new message thread."""
         try:
@@ -466,7 +468,7 @@ class CommunicationService(BaseService):
                 return False
 
             thread.participants.add(user_id)
-            thread.last_activity = datetime.now(timezone.utc)
+            thread.last_activity = datetime.now(UTC)
 
             logger.info(f"Participant added to thread {thread_id}: {user_id}")
             return True
@@ -483,7 +485,7 @@ class CommunicationService(BaseService):
                 return False
 
             thread.status = status
-            thread.last_activity = datetime.now(timezone.utc)
+            thread.last_activity = datetime.now(UTC)
 
             logger.info(f"Thread status updated: {thread_id} -> {status.value}")
             return True
@@ -492,11 +494,11 @@ class CommunicationService(BaseService):
             logger.error(f"Failed to update thread status: {e}")
             return False
 
-    async def get_thread(self, thread_id: str) -> Optional[MessageThread]:
+    async def get_thread(self, thread_id: str) -> MessageThread | None:
         """Get thread by ID."""
         return self.message_threads.get(thread_id)
 
-    async def get_chat_threads(self, chat_id: str) -> List[MessageThread]:
+    async def get_chat_threads(self, chat_id: str) -> list[MessageThread]:
         """Get all threads for a chat."""
         return [
             thread for thread in self.message_threads.values()
@@ -558,14 +560,14 @@ class CommunicationService(BaseService):
             # Update translation request
             translation_request.translated_text = translated_text
             translation_request.confidence_score = confidence
-            translation_request.completed_at = datetime.now(timezone.utc)
+            translation_request.completed_at = datetime.now(UTC)
 
             logger.info(f"Translation completed: {request_id}")
 
         except Exception as e:
             logger.error(f"Failed to perform translation {request_id}: {e}")
 
-    async def get_translation(self, request_id: str) -> Optional[TranslationRequest]:
+    async def get_translation(self, request_id: str) -> TranslationRequest | None:
         """Get translation by request ID."""
         return self.translations.get(request_id)
 
@@ -651,7 +653,7 @@ class CommunicationService(BaseService):
         self,
         user_id: str,
         unread_only: bool = False
-    ) -> List[SmartNotification]:
+    ) -> list[SmartNotification]:
         """Get notifications for a user."""
         notifications = self.notifications.get(user_id, [])
 
@@ -707,7 +709,7 @@ class CommunicationService(BaseService):
     async def _cleanup_old_data(self):
         """Clean up old data."""
         try:
-            cutoff_date = datetime.now(timezone.utc) - timedelta(days=30)
+            cutoff_date = datetime.now(UTC) - timedelta(days=30)
 
             # Clean up old translations
             old_translations = [
@@ -747,7 +749,7 @@ class CommunicationService(BaseService):
     async def _process_scheduled_notifications(self):
         """Process scheduled notifications."""
         try:
-            now = datetime.now(timezone.utc)
+            now = datetime.now(UTC)
 
             for user_notifications in self.notifications.values():
                 for notification in user_notifications:
@@ -767,11 +769,11 @@ class CommunicationService(BaseService):
 
     # Configuration Management Methods
 
-    async def get_configuration(self) -> Dict[str, Any]:
+    async def get_configuration(self) -> dict[str, Any]:
         """Get current service configuration."""
         return self.config.copy()
 
-    async def update_configuration(self, config_updates: Dict[str, Any]) -> bool:
+    async def update_configuration(self, config_updates: dict[str, Any]) -> bool:
         """Update service configuration."""
         try:
             # Deep merge configuration updates
@@ -828,7 +830,7 @@ class CommunicationService(BaseService):
             logger.error(f"Failed to reset configuration section: {e}")
             return False
 
-    async def validate_configuration(self) -> Dict[str, List[str]]:
+    async def validate_configuration(self) -> dict[str, list[str]]:
         """Validate current configuration and return any issues."""
         issues = {}
 
@@ -875,9 +877,9 @@ class CommunicationService(BaseService):
 
         except Exception as e:
             logger.error(f"Configuration validation error: {e}")
-            return {"general": [f"Validation error: {str(e)}"]}
+            return {"general": [f"Validation error: {e!s}"]}
 
-    async def get_configuration_schema(self) -> Dict[str, Any]:
+    async def get_configuration_schema(self) -> dict[str, Any]:
         """Get configuration schema for UI generation."""
         return {
             "voice_messages": {
@@ -959,7 +961,7 @@ class CommunicationService(BaseService):
             }
         }
 
-    async def get_health_status(self) -> Dict[str, Any]:
+    async def get_health_status(self) -> dict[str, Any]:
         """Get service health status."""
         base_health = await super().get_health_status()
 
@@ -1010,14 +1012,14 @@ async def get_communication_service() -> CommunicationService:
 
 __all__ = [
     "CommunicationService",
-    "MessageType",
-    "ReactionType",
-    "NotificationPriority",
-    "ThreadStatus",
-    "VoiceMessage",
     "MessageReaction",
     "MessageThread",
-    "TranslationRequest",
+    "MessageType",
+    "NotificationPriority",
+    "ReactionType",
     "SmartNotification",
+    "ThreadStatus",
+    "TranslationRequest",
+    "VoiceMessage",
     "get_communication_service"
 ]

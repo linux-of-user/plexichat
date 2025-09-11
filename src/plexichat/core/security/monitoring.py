@@ -11,11 +11,12 @@ Features:
 """
 
 import asyncio
-import time
 from collections import defaultdict, deque
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Any, Callable, Dict, List, Optional
+from datetime import UTC, datetime
+import time
+from typing import Any
 
 from plexichat.core.logging import get_logger
 
@@ -32,7 +33,7 @@ class SecurityAlert:
     severity: str
     enabled: bool = True
     cooldown_minutes: int = 5
-    last_triggered: Optional[float] = None
+    last_triggered: float | None = None
 
 
 @dataclass
@@ -42,7 +43,7 @@ class SecurityMetrics:
     timestamp: float
     metric_name: str
     value: Any
-    tags: Dict[str, str] = field(default_factory=dict)
+    tags: dict[str, str] = field(default_factory=dict)
 
 
 class SecurityMonitoringSystem:
@@ -57,7 +58,7 @@ class SecurityMonitoringSystem:
     - Compliance reporting
     """
 
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self, config: dict[str, Any]):
         self.config = config
         self.enabled = config.get("metrics_enabled", True)
 
@@ -71,21 +72,21 @@ class SecurityMonitoringSystem:
 
         # Metrics storage
         self.metrics_buffer: deque = deque(maxlen=10000)
-        self.metrics_aggregation: Dict[str, Dict[str, Any]] = defaultdict(dict)
+        self.metrics_aggregation: dict[str, dict[str, Any]] = defaultdict(dict)
 
         # Alert configurations
         self.alerts = self._initialize_default_alerts()
 
         # Alert callbacks
-        self.alert_callbacks: List[Callable] = []
+        self.alert_callbacks: list[Callable] = []
 
         # Monitoring settings
         self.collection_interval = 60  # seconds
         self.aggregation_window = 300  # 5 minutes
 
         # Background tasks
-        self._monitoring_task: Optional[asyncio.Task] = None
-        self._cleanup_task: Optional[asyncio.Task] = None
+        self._monitoring_task: asyncio.Task | None = None
+        self._cleanup_task: asyncio.Task | None = None
 
         logger.info("Security monitoring system initialized")
 
@@ -94,7 +95,7 @@ class SecurityMonitoringSystem:
         if self.enabled and not self._monitoring_task:
             self._start_monitoring()
 
-    def _initialize_default_alerts(self) -> Dict[str, SecurityAlert]:
+    def _initialize_default_alerts(self) -> dict[str, SecurityAlert]:
         """Initialize default security alerts."""
         return {
             "high_rate_limit_hits": SecurityAlert(
@@ -240,7 +241,7 @@ class SecurityMonitoringSystem:
             logger.error(f"Error recording security event: {e}")
 
     async def record_metric(
-        self, name: str, value: Any, tags: Optional[Dict[str, str]] = None
+        self, name: str, value: Any, tags: dict[str, str] | None = None
     ):
         """
         Record a metric data point.
@@ -355,7 +356,7 @@ class SecurityMonitoringSystem:
                 "severity": alert.severity,
                 "condition": alert.condition,
                 "threshold": alert.threshold,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "current_metrics": self.get_current_metrics_summary(),
             }
 
@@ -444,7 +445,7 @@ class SecurityMonitoringSystem:
             del self.alerts[alert_name]
             logger.info(f"Removed alert: {alert_name}")
 
-    def get_current_metrics_summary(self) -> Dict[str, Any]:
+    def get_current_metrics_summary(self) -> dict[str, Any]:
         """Get current metrics summary."""
         if not self.enabled:
             return {"enabled": False}
@@ -465,7 +466,7 @@ class SecurityMonitoringSystem:
             ],
         }
 
-    def get_compliance_report(self) -> Dict[str, Any]:
+    def get_compliance_report(self) -> dict[str, Any]:
         """Generate compliance report."""
         if not self.compliance_reporting:
             return {"enabled": False}
@@ -473,7 +474,7 @@ class SecurityMonitoringSystem:
         try:
             # Calculate compliance metrics
             report = {
-                "report_generated": datetime.now(timezone.utc).isoformat(),
+                "report_generated": datetime.now(UTC).isoformat(),
                 "period_days": 30,
                 "metrics": {},
             }
@@ -527,7 +528,7 @@ class SecurityMonitoringSystem:
             logger.error(f"Error generating compliance report: {e}")
             return {"error": str(e)}
 
-    def update_config(self, new_config: Dict[str, Any]):
+    def update_config(self, new_config: dict[str, Any]):
         """Update monitoring configuration."""
         if not self.enabled:
             return
@@ -559,4 +560,4 @@ class SecurityMonitoringSystem:
         logger.info("Security monitoring system shut down")
 
 
-__all__ = ["SecurityMonitoringSystem", "SecurityAlert", "SecurityMetrics"]
+__all__ = ["SecurityAlert", "SecurityMetrics", "SecurityMonitoringSystem"]

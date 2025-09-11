@@ -4,13 +4,14 @@
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
 import asyncio
-import logging
-import traceback
-import weakref
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional
+import logging
+import traceback
+from typing import Any
+import weakref
 
 """
 PlexiChat Event Bus
@@ -35,12 +36,12 @@ class EventPriority(Enum):
 class Event:
     """Base event class."""
     type: str
-    data: Dict[str, Any] = field(default_factory=dict)
-    source: Optional[str] = None
+    data: dict[str, Any] = field(default_factory=dict)
+    source: str | None = None
     timestamp: datetime = field(default_factory=datetime.now)
     priority: EventPriority = EventPriority.NORMAL
-    correlation_id: Optional[str] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    correlation_id: str | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -50,7 +51,7 @@ class EventHandler:
     event_type: str
     priority: int = 0
     once: bool = False
-    condition: Optional[Callable[[Event], bool]] = None
+    condition: Callable[[Event], bool] | None = None
     weak_ref: bool = True
 
 
@@ -67,9 +68,9 @@ class EventBus:
     - Middleware support
     """
     def __init__(self, max_history: int = 1000):
-        self._handlers: Dict[str, List[EventHandler]] = {}
-        self._middleware: List[Callable] = []
-        self._event_history: List[Event] = []
+        self._handlers: dict[str, list[EventHandler]] = {}
+        self._middleware: list[Callable] = []
+        self._event_history: list[Event] = []
         self._max_history = max_history
         self._running = False
         self._event_queue = asyncio.Queue()
@@ -112,7 +113,7 @@ class EventBus:
         callback: Callable,
         priority: int = 0,
         once: bool = False,
-        condition: Optional[Callable[[Event], bool]] = None,
+        condition: Callable[[Event], bool] | None = None,
         weak_ref: bool = True,
     ) -> str:
         """
@@ -158,7 +159,7 @@ class EventBus:
         return handler_id
 
     def unsubscribe(
-        self, event_type: str, callback: Optional[Callable] = None, handler_id: Optional[str] = None
+        self, event_type: str, callback: Callable | None = None, handler_id: str | None = None
     ):
         """
         Unsubscribe from events.
@@ -192,10 +193,10 @@ class EventBus:
     def publish(
         self,
         event_type: str,
-        data: Dict[str, Any] = None,
-        source: Optional[str] = None,
+        data: dict[str, Any] = None,
+        source: str | None = None,
         priority: EventPriority = EventPriority.NORMAL,
-        correlation_id: Optional[str] = None,
+        correlation_id: str | None = None,
         **kwargs,
     ):
         """
@@ -239,10 +240,10 @@ class EventBus:
     async def publish_async(
         self,
         event_type: str,
-        data: Dict[str, Any] = None,
-        source: Optional[str] = None,
+        data: dict[str, Any] = None,
+        source: str | None = None,
         priority: EventPriority = EventPriority.NORMAL,
-        correlation_id: Optional[str] = None,
+        correlation_id: str | None = None,
         **kwargs,
     ):
         """
@@ -278,7 +279,7 @@ class EventBus:
                 await self._handle_event(event)
                 self._event_queue.task_done()
 
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 continue
             except asyncio.CancelledError:
                 break
@@ -375,8 +376,8 @@ class EventBus:
             logger.debug("Removed event middleware")
 
     def get_history(
-        self, event_type: Optional[str] = None, limit: Optional[int] = None, since: Optional[datetime] = None
-    ) -> List[Event]:
+        self, event_type: str | None = None, limit: int | None = None, since: datetime | None = None
+    ) -> list[Event]:
         """Get event history with optional filtering."""
         events = self._event_history
 
@@ -394,7 +395,7 @@ class EventBus:
 
         return events
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get event bus statistics."""
         return {
             **self._stats,
@@ -423,7 +424,7 @@ def subscribe(event_type: str, callback: Callable, **kwargs) -> str:
     return event_bus.subscribe(event_type, callback, **kwargs)
 
 
-def unsubscribe(event_type: str, callback: Optional[Callable] = None, handler_id: Optional[str] = None):
+def unsubscribe(event_type: str, callback: Callable | None = None, handler_id: str | None = None):
     """Unsubscribe from events."""
     event_bus.unsubscribe(event_type, callback, handler_id)
 

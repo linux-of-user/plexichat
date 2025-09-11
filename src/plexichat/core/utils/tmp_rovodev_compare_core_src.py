@@ -1,4 +1,4 @@
-import os, filecmp
+import filecmp
 from pathlib import Path
 
 core_dir = Path('core')
@@ -21,7 +21,7 @@ for rel in common:
             same.append(rel)
         else:
             diff.append(rel)
-    except Exception as e:
+    except Exception:
         diff.append(rel)
 
 print('ONLY_IN_CORE', len(only_core))

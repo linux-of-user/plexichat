@@ -1,5 +1,6 @@
 import click
 
+
 # Mock objects for standalone execution
 class MockAdminManager:
     def create_admin(self, *args, **kwargs): return True

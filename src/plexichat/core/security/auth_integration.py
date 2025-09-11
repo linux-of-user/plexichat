@@ -11,8 +11,8 @@ Features:
 """
 
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, Optional, Set
+from datetime import UTC, datetime, timedelta
+from typing import Any
 
 from plexichat.core.logging import get_logger
 
@@ -44,7 +44,7 @@ class AuthSecurityIntegration:
     - Integration with authentication services
     """
 
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self, config: dict[str, Any]):
         self.config = config
         self.enabled = config.get("brute_force_protection", True)
 
@@ -59,8 +59,8 @@ class AuthSecurityIntegration:
 
         # Device tracking
         self.device_tracking_enabled = config.get("device_tracking", True)
-        self.known_devices: Dict[str, Dict[str, Any]] = {}
-        self.trusted_devices: Set[str] = set()
+        self.known_devices: dict[str, dict[str, Any]] = {}
+        self.trusted_devices: set[str] = set()
 
         # Risk assessment
         self.risk_assessment_enabled = config.get("risk_assessment", True)
@@ -73,11 +73,11 @@ class AuthSecurityIntegration:
         self.metrics = AuthSecurityMetrics()
 
         # Brute force tracking
-        self.brute_force_tracking: Dict[str, Dict[str, Any]] = {}
+        self.brute_force_tracking: dict[str, dict[str, Any]] = {}
 
         logger.info("Authentication security integration initialized")
 
-    async def validate_auth_security(self, context: Any) -> Dict[str, Any]:
+    async def validate_auth_security(self, context: Any) -> dict[str, Any]:
         """
         Validate authentication security for a request.
 
@@ -136,15 +136,15 @@ class AuthSecurityIntegration:
 
         except Exception as e:
             logger.error(f"Error in auth security validation: {e}")
-            return {"valid": False, "message": f"Auth security error: {str(e)}"}
+            return {"valid": False, "message": f"Auth security error: {e!s}"}
 
-    def _check_brute_force_protection(self, ip_address: str) -> Dict[str, Any]:
+    def _check_brute_force_protection(self, ip_address: str) -> dict[str, Any]:
         """Check if IP is blocked due to brute force attempts."""
         if ip_address not in self.brute_force_tracking:
             return {"allowed": True}
 
         tracking = self.brute_force_tracking[ip_address]
-        current_time = datetime.now(timezone.utc)
+        current_time = datetime.now(UTC)
 
         # Check if still blocked
         if tracking.get("is_blocked", False):
@@ -165,7 +165,7 @@ class AuthSecurityIntegration:
 
     def _validate_device_trust(
         self, device_id: str, ip_address: str, user_id: str
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Validate device trust status."""
         if device_id in self.trusted_devices:
             return {"trusted": True, "message": "Device is trusted"}
@@ -174,8 +174,8 @@ class AuthSecurityIntegration:
             # New device
             self.known_devices[device_id] = {
                 "device_id": device_id,
-                "first_seen": datetime.now(timezone.utc),
-                "last_seen": datetime.now(timezone.utc),
+                "first_seen": datetime.now(UTC),
+                "last_seen": datetime.now(UTC),
                 "ip_addresses": {ip_address} if ip_address else set(),
                 "user_id": user_id,
                 "trust_score": 0,
@@ -190,7 +190,7 @@ class AuthSecurityIntegration:
 
         # Known but untrusted device
         device_info = self.known_devices[device_id]
-        device_info["last_seen"] = datetime.now(timezone.utc)
+        device_info["last_seen"] = datetime.now(UTC)
 
         if ip_address:
             device_info["ip_addresses"].add(ip_address)
@@ -213,13 +213,13 @@ class AuthSecurityIntegration:
         }
 
     def _calculate_device_trust_score(
-        self, device_info: Dict[str, Any], current_ip: str
+        self, device_info: dict[str, Any], current_ip: str
     ) -> int:
         """Calculate trust score for a device."""
         score = 0
 
         # Age-based trust (older devices are more trusted)
-        age_days = (datetime.now(timezone.utc) - device_info["first_seen"]).days
+        age_days = (datetime.now(UTC) - device_info["first_seen"]).days
         score += min(age_days * 2, 40)  # Max 40 points for age
 
         # IP consistency (devices using same IPs are more trusted)
@@ -228,7 +228,7 @@ class AuthSecurityIntegration:
 
         # Usage frequency (more frequent use increases trust)
         last_seen = device_info["last_seen"]
-        days_since_last_seen = (datetime.now(timezone.utc) - last_seen).days
+        days_since_last_seen = (datetime.now(UTC) - last_seen).days
         if days_since_last_seen <= 1:
             score += 20
         elif days_since_last_seen <= 7:
@@ -258,7 +258,7 @@ class AuthSecurityIntegration:
                 score += 20
 
             # Time-based risk
-            current_hour = datetime.now(timezone.utc).hour
+            current_hour = datetime.now(UTC).hour
             if current_hour < 6 or current_hour > 22:
                 score += 15
 
@@ -299,7 +299,7 @@ class AuthSecurityIntegration:
         return any(pattern in user_agent_lower for pattern in suspicious_patterns)
 
     def record_auth_attempt(
-        self, ip_address: str, success: bool, user_id: Optional[str] = None
+        self, ip_address: str, success: bool, user_id: str | None = None
     ):
         """Record an authentication attempt for brute force protection."""
         if not self.enabled:
@@ -317,7 +317,7 @@ class AuthSecurityIntegration:
         self.metrics.failed_auths += 1
 
         # Record failed attempt
-        current_time = datetime.now(timezone.utc)
+        current_time = datetime.now(UTC)
 
         if ip_address not in self.brute_force_tracking:
             self.brute_force_tracking[ip_address] = {
@@ -350,8 +350,8 @@ class AuthSecurityIntegration:
         if device_id not in self.known_devices:
             self.known_devices[device_id] = {
                 "device_id": device_id,
-                "first_seen": datetime.now(timezone.utc),
-                "last_seen": datetime.now(timezone.utc),
+                "first_seen": datetime.now(UTC),
+                "last_seen": datetime.now(UTC),
                 "ip_addresses": set(),
                 "user_id": user_id,
                 "trust_score": 100,
@@ -377,7 +377,7 @@ class AuthSecurityIntegration:
 
         logger.info(f"Device trust revoked for device {device_id}")
 
-    def get_auth_security_status(self) -> Dict[str, Any]:
+    def get_auth_security_status(self) -> dict[str, Any]:
         """Get authentication security status."""
         if not self.enabled:
             return {"enabled": False}
@@ -419,7 +419,7 @@ class AuthSecurityIntegration:
 
     def cleanup_expired_blocks(self):
         """Clean up expired brute force blocks."""
-        current_time = datetime.now(timezone.utc)
+        current_time = datetime.now(UTC)
         expired_ips = []
 
         for ip, tracking in self.brute_force_tracking.items():
@@ -432,7 +432,7 @@ class AuthSecurityIntegration:
                 tracking["block_until"] = None
                 logger.info(f"Brute force block expired for IP {ip}")
 
-    def update_config(self, new_config: Dict[str, Any]):
+    def update_config(self, new_config: dict[str, Any]):
         """Update authentication security configuration."""
         if not self.enabled:
             return

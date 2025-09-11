@@ -5,9 +5,9 @@ Ollama Provider for PlexiChat
 Provides integration with Ollama for local AI models.
 """
 
-import logging
 from dataclasses import dataclass
-from typing import List, Optional
+import logging
+
 import aiohttp
 
 from plexichat.features.ai.core.ai_abstraction_layer import (
@@ -18,7 +18,11 @@ from plexichat.features.ai.core.ai_abstraction_layer import (
     ModelCapability,
     ModelStatus,
 )
-from plexichat.features.ai.providers.base_provider import BaseAIProvider, ProviderConfig, ProviderStatus
+from plexichat.features.ai.providers.base_provider import (
+    BaseAIProvider,
+    ProviderConfig,
+    ProviderStatus,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -36,13 +40,13 @@ class OllamaConfig(ProviderConfig):
 
 class OllamaProvider(BaseAIProvider):
     """Ollama provider implementation."""
-    
+
     def __init__(self, config: OllamaConfig):
         """Initialize Ollama provider."""
         super().__init__(config)
         self.config: OllamaConfig = config
-        self.session: Optional[aiohttp.ClientSession] = None
-        
+        self.session: aiohttp.ClientSession | None = None
+
         # Initialize session
         self._initialize_session()
 
@@ -59,13 +63,13 @@ class OllamaProvider(BaseAIProvider):
         """Load available Ollama models."""
         if not self.session:
             return
-            
+
         try:
             async with self.session.get(f"{self.config.get_base_url()}/api/tags") as response:
                 if response.status == 200:
                     data = await response.json()
                     models_data = data.get("models", [])
-                    
+
                     for model_data in models_data:
                         model = AIModel(
                             id=model_data["name"],
@@ -78,7 +82,7 @@ class OllamaProvider(BaseAIProvider):
                             description=f"Ollama model: {model_data['name']}"
                         )
                         self.models[model.id] = model
-                        
+
         except Exception as e:
             logger.error(f"Failed to load Ollama models: {e}")
 
@@ -86,7 +90,7 @@ class OllamaProvider(BaseAIProvider):
         """Test Ollama connection."""
         if not self.session:
             return False
-            
+
         try:
             async with self.session.get(f"{self.config.get_base_url()}/api/tags") as response:
                 return response.status == 200
@@ -94,7 +98,7 @@ class OllamaProvider(BaseAIProvider):
             logger.error(f"Ollama connection test failed: {e}")
             return False
 
-    def get_available_models(self) -> List[AIModel]:
+    def get_available_models(self) -> list[AIModel]:
         """Get list of available Ollama models."""
         return list(self.models.values())
 
@@ -125,7 +129,7 @@ class OllamaProvider(BaseAIProvider):
                     "num_predict": request.parameters.get("max_tokens", 1000) if request.parameters else 1000
                 }
             }
-            
+
             if request.context:
                 payload["system"] = request.context
 
@@ -134,10 +138,10 @@ class OllamaProvider(BaseAIProvider):
                 f"{self.config.get_base_url()}/api/generate",
                 json=payload
             ) as response:
-                
+
                 if response.status == 200:
                     data = await response.json()
-                    
+
                     return AIResponse(
                         request_id=request.id,
                         content=data.get("response", ""),

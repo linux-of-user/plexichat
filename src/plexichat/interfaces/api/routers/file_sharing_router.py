@@ -9,19 +9,25 @@ Provides REST API endpoints for advanced file sharing features:
 - Batch operations
 """
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Query
-from fastapi.responses import StreamingResponse
-from typing import List, Optional, Dict, Any
-from pydantic import BaseModel, Field
 import json
 import logging
+from typing import Any
 
-from plexichat.core.files.enhanced_file_sharing import (
-    share_file, create_file_version, get_file_versions,
-    batch_delete_files, check_file_access, get_user_files
-)
-from plexichat.core.files import upload_file as core_upload_file, get_file_metadata, get_file_data
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
+from fastapi.responses import StreamingResponse
+from pydantic import BaseModel, Field
+
 from plexichat.core.auth.fastapi_adapter import get_current_user
+from plexichat.core.files import get_file_data, get_file_metadata
+from plexichat.core.files import upload_file as core_upload_file
+from plexichat.core.files.enhanced_file_sharing import (
+    batch_delete_files,
+    check_file_access,
+    create_file_version,
+    get_file_versions,
+    get_user_files,
+    share_file,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +37,7 @@ file_sharing_router = APIRouter(prefix="/files", tags=["File Sharing"])
 # Pydantic models
 class FileShareRequest(BaseModel):
     """Request model for sharing a file."""
-    shared_with: List[int] = Field(..., description="List of user IDs to share with")
+    shared_with: list[int] = Field(..., description="List of user IDs to share with")
     can_download: bool = Field(True, description="Whether shared users can download the file")
     can_share: bool = Field(True, description="Whether shared users can share the file further")
 
@@ -41,7 +47,7 @@ class FileVersionRequest(BaseModel):
 
 class BatchDeleteRequest(BaseModel):
     """Request model for batch file deletion."""
-    file_ids: List[str] = Field(..., description="List of file IDs to delete")
+    file_ids: list[str] = Field(..., description="List of file IDs to delete")
 
 class FileMetadataResponse(BaseModel):
     """Response model for file metadata."""
@@ -55,21 +61,21 @@ class FileMetadataResponse(BaseModel):
     uploaded_by: int
     uploaded_at: str
     is_public: bool
-    tags: List[str]
-    metadata: Dict[str, Any]
-    sharing_permissions: Dict[str, Any]
+    tags: list[str]
+    metadata: dict[str, Any]
+    sharing_permissions: dict[str, Any]
     version: int
-    parent_version_id: Optional[str]
-    preview_path: Optional[str]
-    thumbnail_path: Optional[str]
+    parent_version_id: str | None
+    preview_path: str | None
+    thumbnail_path: str | None
 
 # File sharing endpoints
 @file_sharing_router.post("/upload", response_model=FileMetadataResponse)
 async def upload_file_enhanced(
     file: UploadFile = File(...),
-    tags: Optional[str] = Form(None),
+    tags: str | None = Form(None),
     is_public: bool = Form(False),
-    current_user: Dict[str, Any] = Depends(get_current_user)
+    current_user: dict[str, Any] = Depends(get_current_user)
 ):
     """
     Upload a file with enhanced features.
@@ -129,13 +135,13 @@ async def upload_file_enhanced(
 
     except Exception as e:
         logger.error(f"Error uploading file: {e}")
-        raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Upload failed: {e!s}")
 
 @file_sharing_router.post("/{file_id}/share")
 async def share_file_endpoint(
     file_id: str,
     share_request: FileShareRequest,
-    current_user: Dict[str, Any] = Depends(get_current_user)
+    current_user: dict[str, Any] = Depends(get_current_user)
 ):
     """Share a file with specific users."""
     try:
@@ -160,14 +166,14 @@ async def share_file_endpoint(
 
     except Exception as e:
         logger.error(f"Error sharing file: {e}")
-        raise HTTPException(status_code=500, detail=f"Share failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Share failed: {e!s}")
 
 @file_sharing_router.post("/{file_id}/version", response_model=FileMetadataResponse)
 async def create_file_version_endpoint(
     file_id: str,
     file: UploadFile = File(...),
-    filename: Optional[str] = Form(None),
-    current_user: Dict[str, Any] = Depends(get_current_user)
+    filename: str | None = Form(None),
+    current_user: dict[str, Any] = Depends(get_current_user)
 ):
     """Create a new version of an existing file."""
     try:
@@ -214,12 +220,12 @@ async def create_file_version_endpoint(
 
     except Exception as e:
         logger.error(f"Error creating file version: {e}")
-        raise HTTPException(status_code=500, detail=f"Version creation failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Version creation failed: {e!s}")
 
-@file_sharing_router.get("/{file_id}/versions", response_model=List[FileMetadataResponse])
+@file_sharing_router.get("/{file_id}/versions", response_model=list[FileMetadataResponse])
 async def get_file_versions_endpoint(
     file_id: str,
-    current_user: Dict[str, Any] = Depends(get_current_user)
+    current_user: dict[str, Any] = Depends(get_current_user)
 ):
     """Get all versions of a file."""
     try:
@@ -253,12 +259,12 @@ async def get_file_versions_endpoint(
 
     except Exception as e:
         logger.error(f"Error getting file versions: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to get versions: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get versions: {e!s}")
 
 @file_sharing_router.get("/{file_id}/download")
 async def download_file(
     file_id: str,
-    current_user: Dict[str, Any] = Depends(get_current_user)
+    current_user: dict[str, Any] = Depends(get_current_user)
 ):
     """Download a file with access control."""
     try:
@@ -295,12 +301,12 @@ async def download_file(
         raise
     except Exception as e:
         logger.error(f"Error downloading file: {e}")
-        raise HTTPException(status_code=500, detail=f"Download failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Download failed: {e!s}")
 
 @file_sharing_router.get("/{file_id}/preview")
 async def get_file_preview(
     file_id: str,
-    current_user: Dict[str, Any] = Depends(get_current_user)
+    current_user: dict[str, Any] = Depends(get_current_user)
 ):
     """Get file preview (thumbnail or small version)."""
     try:
@@ -340,12 +346,12 @@ async def get_file_preview(
         raise
     except Exception as e:
         logger.error(f"Error getting file preview: {e}")
-        raise HTTPException(status_code=500, detail=f"Preview failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Preview failed: {e!s}")
 
 @file_sharing_router.delete("/batch")
 async def batch_delete_files_endpoint(
     delete_request: BatchDeleteRequest,
-    current_user: Dict[str, Any] = Depends(get_current_user)
+    current_user: dict[str, Any] = Depends(get_current_user)
 ):
     """Delete multiple files in batch."""
     try:
@@ -363,12 +369,12 @@ async def batch_delete_files_endpoint(
 
     except Exception as e:
         logger.error(f"Error in batch delete: {e}")
-        raise HTTPException(status_code=500, detail=f"Batch delete failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Batch delete failed: {e!s}")
 
-@file_sharing_router.get("/my-files", response_model=List[FileMetadataResponse])
+@file_sharing_router.get("/my-files", response_model=list[FileMetadataResponse])
 async def get_user_files_endpoint(
     include_shared: bool = Query(True),
-    current_user: Dict[str, Any] = Depends(get_current_user)
+    current_user: dict[str, Any] = Depends(get_current_user)
 ):
     """Get all files for the current user."""
     try:
@@ -404,7 +410,7 @@ async def get_user_files_endpoint(
 
     except Exception as e:
         logger.error(f"Error getting user files: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to get files: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get files: {e!s}")
 
 # Export router for compatibility
 router = file_sharing_router

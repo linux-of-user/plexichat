@@ -11,15 +11,15 @@ Uses EXISTING database abstraction and optimization systems.
 """
 
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, status
 from pydantic import BaseModel
 
 # Use EXISTING database abstraction layer
 try:
+    from plexichat.core.database import execute_query, get_session
     from plexichat.core.database.manager import database_manager
-    from plexichat.core.database import get_session, execute_query
 except ImportError:
     database_manager = None
     get_session = None
@@ -27,9 +27,11 @@ except ImportError:
 
 # Use EXISTING performance optimization engine
 try:
-    from plexichat.core.performance.optimization_engine import PerformanceOptimizationEngine
-    from plexichat.infrastructure.utils.performance import async_track_performance
     from plexichat.core.logging import get_performance_logger, timer
+    from plexichat.core.performance.optimization_engine import (
+        PerformanceOptimizationEngine,
+    )
+    from plexichat.infrastructure.utils.performance import async_track_performance
 except ImportError:
     PerformanceOptimizationEngine = None
     async_track_performance = None
@@ -55,6 +57,7 @@ except ImportError:
     httpx = None
 
 from plexichat.core.logging import get_logger
+
 logger = get_logger(__name__)
 router = APIRouter(prefix="/updates", tags=["updates"])
 
@@ -65,17 +68,17 @@ optimization_engine = PerformanceOptimizationEngine() if PerformanceOptimization
 # Pydantic models
 class VersionInfo(BaseModel):
     current_version: str
-    latest_version: Optional[str] = None
+    latest_version: str | None = None
     update_available: bool = False
-    release_notes: Optional[str] = None
-    download_url: Optional[str] = None
+    release_notes: str | None = None
+    download_url: str | None = None
 
 class UpdateStatus(BaseModel):
     status: str
     message: str
     progress: int = 0
-    started_at: Optional[datetime] = None
-    completed_at: Optional[datetime] = None
+    started_at: datetime | None = None
+    completed_at: datetime | None = None
 
 class UpdateHistory(BaseModel):
     id: int
@@ -83,8 +86,8 @@ class UpdateHistory(BaseModel):
     version_to: str
     status: str
     started_at: datetime
-    completed_at: Optional[datetime] = None
-    error_message: Optional[str] = None
+    completed_at: datetime | None = None
+    error_message: str | None = None
 
 class UpdateService:
     """Service class for update operations using EXISTING database abstraction layer."""
@@ -151,7 +154,7 @@ class UpdateService:
             )
 
     @async_track_performance("update_history") if async_track_performance else lambda f: f
-    async def get_update_history(self, limit: int = 50) -> List[UpdateHistory]:
+    async def get_update_history(self, limit: int = 50) -> list[UpdateHistory]:
         """Get update history using EXISTING database abstraction layer."""
         if self.db_manager:
             try:
@@ -191,7 +194,7 @@ class UpdateService:
         return []
 
     @async_track_performance("update_log") if async_track_performance else lambda f: f
-    async def log_update_attempt(self, version_from: str, version_to: str, status: str, error_message: Optional[str] = None) -> int:
+    async def log_update_attempt(self, version_from: str, version_to: str, status: str, error_message: str | None = None) -> int:
         """Log update attempt using EXISTING database abstraction layer."""
         if self.db_manager:
             try:
@@ -260,7 +263,7 @@ class UpdateService:
 
             return UpdateStatus(
                 status="failed",
-                message=f"Update failed: {str(e)}",
+                message=f"Update failed: {e!s}",
                 progress=0,
                 started_at=datetime.now(),
                 completed_at=datetime.now()
@@ -276,7 +279,7 @@ update_service = UpdateService()
 )
 async def get_version_info(
     request: Request,
-    current_user: Dict[str, Any] = Depends(get_current_user)
+    current_user: dict[str, Any] = Depends(get_current_user)
 ):
     """Get current version and check for updates."""
     client_ip = request.client.host if request.client else "unknown"
@@ -290,13 +293,13 @@ async def get_version_info(
 
 @router.get(
     "/history",
-    response_model=List[UpdateHistory],
+    response_model=list[UpdateHistory],
     summary="Get update history"
 )
 async def get_update_history(
     request: Request,
     limit: int = 50,
-    current_user: Dict[str, Any] = Depends(require_admin)
+    current_user: dict[str, Any] = Depends(require_admin)
 ):
     """Get update history (admin only)."""
     client_ip = request.client.host if request.client else "unknown"
@@ -315,7 +318,7 @@ async def get_update_history(
 )
 async def check_for_updates(
     request: Request,
-    current_user: Dict[str, Any] = Depends(require_admin)
+    current_user: dict[str, Any] = Depends(require_admin)
 ):
     """Force check for updates (admin only)."""
     client_ip = request.client.host if request.client else "unknown"
@@ -336,7 +339,7 @@ async def install_update(
     request: Request,
     version: str,
     background_tasks: BackgroundTasks,
-    current_user: Dict[str, Any] = Depends(require_admin)
+    current_user: dict[str, Any] = Depends(require_admin)
 ):
     """Install a specific version update (admin only)."""
     client_ip = request.client.host if request.client else "unknown"
@@ -363,7 +366,7 @@ async def install_update(
 )
 async def get_update_status(
     request: Request,
-    current_user: Dict[str, Any] = Depends(require_admin)
+    current_user: dict[str, Any] = Depends(require_admin)
 ):
     """Get current update status (admin only)."""
     client_ip = request.client.host if request.client else "unknown"
@@ -386,7 +389,7 @@ async def get_update_status(
 )
 async def create_backup(
     request: Request,
-    current_user: Dict[str, Any] = Depends(require_admin)
+    current_user: dict[str, Any] = Depends(require_admin)
 ):
     """Create a backup before performing updates (admin only)."""
     client_ip = request.client.host if request.client else "unknown"

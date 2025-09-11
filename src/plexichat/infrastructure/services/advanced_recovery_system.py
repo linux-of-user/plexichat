@@ -4,14 +4,15 @@
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
 import concurrent.futures
+from dataclasses import dataclass
+from datetime import UTC, datetime
 import gzip
 import hashlib
-from dataclasses import dataclass
-from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from sqlmodel import Session, func, select
+
 
 # Placeholder imports for dependencies
 class DeviceShardAssignment: pass
@@ -30,8 +31,8 @@ class RecoveryPlan:
     backup_name: str
     total_shards: int
     available_shards: int
-    missing_shards: List[int]
-    recovery_sources: Dict[int, List[int]]  # shard_id -> list of device_ids
+    missing_shards: list[int]
+    recovery_sources: dict[int, list[int]]  # shard_id -> list of device_ids
     estimated_success_probability: float
     estimated_recovery_time_minutes: int
     recovery_strategy: str
@@ -43,11 +44,11 @@ class ShardRecoveryStatus:
     """Status of individual shard recovery."""
     shard_id: int
     recovery_attempts: int
-    successful_sources: List[int]
-    failed_sources: List[int]
+    successful_sources: list[int]
+    failed_sources: list[int]
     data_integrity_verified: bool
     recovery_time_seconds: float
-    error_messages: List[str]
+    error_messages: list[str]
 
 
 @dataclass
@@ -56,11 +57,11 @@ class RedundancyAnalysis:
     backup_id: int
     current_redundancy_level: int
     target_redundancy_level: int
-    at_risk_shards: List[int]
-    critical_devices: List[int]
+    at_risk_shards: list[int]
+    critical_devices: list[int]
     geographic_distribution_score: float
-    failure_scenarios: List[Dict[str, Any]]
-    recommended_actions: List[str]
+    failure_scenarios: list[dict[str, Any]]
+    recommended_actions: list[str]
 
 
 class AdvancedRecoverySystem:
@@ -111,7 +112,7 @@ class AdvancedRecoverySystem:
                 online_assignments = []
                 for assignment, device in assignments:
                     if device.status == DeviceStatus.ONLINE and device.last_seen_at:
-                        time_diff = datetime.now(timezone.utc) - device.last_seen_at.replace(tzinfo=timezone.utc)
+                        time_diff = datetime.now(UTC) - device.last_seen_at.replace(tzinfo=UTC)
                         if time_diff.total_seconds() <= 300:  # Online within 5 minutes
                             online_assignments.append((assignment, device))
 
@@ -199,7 +200,7 @@ class AdvancedRecoverySystem:
                 online_sources = []
                 for assignment, device in assignments:
                     if device.status == DeviceStatus.ONLINE and device.last_seen_at:
-                        time_diff = datetime.now(timezone.utc) - device.last_seen_at.replace(tzinfo=timezone.utc)
+                        time_diff = datetime.now(UTC) - device.last_seen_at.replace(tzinfo=UTC)
                         if time_diff.total_seconds() <= 300:  # Online within 5 minutes
                             online_sources.append(device.id)
 
@@ -250,8 +251,8 @@ class AdvancedRecoverySystem:
     async def execute_fast_recovery(
         self,
         recovery_plan: RecoveryPlan,
-        output_path: Optional[Path] = None
-    ) -> Dict[str, Any]:
+        output_path: Path | None = None
+    ) -> dict[str, Any]:
         """Execute fast recovery using parallel downloads and intelligent algorithms."""
         try:
             logger.info(f" Starting fast recovery for backup {recovery_plan.backup_id}")
@@ -259,7 +260,7 @@ class AdvancedRecoverySystem:
             if not output_path:
                 output_path = self.recovery_workspace / f"recovered_backup_{recovery_plan.backup_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.db"
 
-            recovery_start_time = datetime.now(timezone.utc)
+            recovery_start_time = datetime.now(UTC)
             shard_recovery_statuses = {}
 
             # Phase 1: Parallel shard download
@@ -309,7 +310,7 @@ class AdvancedRecoverySystem:
             else:
                 reconstruction_success = False
 
-            recovery_end_time = datetime.now(timezone.utc)
+            recovery_end_time = datetime.now(UTC)
             total_recovery_time = (recovery_end_time - recovery_start_time).total_seconds()
 
             # Generate recovery report
@@ -349,8 +350,8 @@ class AdvancedRecoverySystem:
     def _download_shard_with_fallback(
         self,
         shard_id: int,
-        source_devices: List[int]
-    ) -> Tuple[bytes, ShardRecoveryStatus]:
+        source_devices: list[int]
+    ) -> tuple[bytes, ShardRecoveryStatus]:
         """Download shard with fallback to multiple sources."""
         recovery_status = ShardRecoveryStatus(
             shard_id=shard_id,
@@ -362,7 +363,7 @@ class AdvancedRecoverySystem:
             error_messages=[]
         )
 
-        start_time = datetime.now(timezone.utc)
+        start_time = datetime.now(UTC)
 
         # Try each source device
         for device_id in source_devices:
@@ -392,7 +393,7 @@ class AdvancedRecoverySystem:
                         recovery_status.data_integrity_verified = True
                         recovery_status.successful_sources.append(device_id)
 
-                        end_time = datetime.now(timezone.utc)
+                        end_time = datetime.now(UTC)
                         recovery_status.recovery_time_seconds = (end_time - start_time).total_seconds()
 
                         return shard_data, recovery_status
@@ -401,16 +402,16 @@ class AdvancedRecoverySystem:
                         recovery_status.error_messages.append(f"Integrity check failed for device {device_id}")
                 else:
                     recovery_status.successful_sources.append(device_id)
-                    end_time = datetime.now(timezone.utc)
+                    end_time = datetime.now(UTC)
                     recovery_status.recovery_time_seconds = (end_time - start_time).total_seconds()
                     return shard_data, recovery_status
 
             except Exception as e:
                 recovery_status.failed_sources.append(device_id)
-                recovery_status.error_messages.append(f"Download failed from device {device_id}: {str(e)}")
+                recovery_status.error_messages.append(f"Download failed from device {device_id}: {e!s}")
 
         # All sources failed
-        end_time = datetime.now(timezone.utc)
+        end_time = datetime.now(UTC)
         recovery_status.recovery_time_seconds = (end_time - start_time).total_seconds()
         raise Exception(f"Failed to download shard {shard_id} from all {len(source_devices)} sources")
 
@@ -440,7 +441,7 @@ class AdvancedRecoverySystem:
 
     async def _reconstruct_database(
         self,
-        downloaded_shards: Dict[int, bytes],
+        downloaded_shards: dict[int, bytes],
         output_path: Path,
         recovery_plan: RecoveryPlan
     ) -> bool:
@@ -500,8 +501,8 @@ class AdvancedRecoverySystem:
     async def _generate_failure_scenarios(
         self,
         backup_id: int,
-        shards: List[EnhancedBackupShard]
-    ) -> List[Dict[str, Any]]:
+        shards: list[EnhancedBackupShard]
+    ) -> list[dict[str, Any]]:
         """Generate potential failure scenarios."""
         scenarios = [
             {
@@ -527,8 +528,8 @@ class AdvancedRecoverySystem:
 
     async def _estimate_recovery_time(
         self,
-        recovery_sources: Dict[int, List[int]],
-        shards: List[EnhancedBackupShard]
+        recovery_sources: dict[int, list[int]],
+        shards: list[EnhancedBackupShard]
     ) -> int:
         """Estimate recovery time in minutes."""
         if not recovery_sources:

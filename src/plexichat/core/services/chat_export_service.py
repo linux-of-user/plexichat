@@ -6,11 +6,10 @@ with proper permission checks and date range filtering.
 """
 
 import csv
+from dataclasses import dataclass
+from datetime import UTC, datetime
 import io
 import json
-from dataclasses import dataclass
-from datetime import datetime, timezone
-from typing import List, Optional, Tuple
 
 from plexichat.core.messaging.unified_messaging_system import (
     Message,
@@ -23,8 +22,8 @@ class ExportOptions:
     """Options for chat export."""
 
     format: str  # 'json', 'csv', 'txt', 'html'
-    start_date: Optional[datetime] = None
-    end_date: Optional[datetime] = None
+    start_date: datetime | None = None
+    end_date: datetime | None = None
     include_attachments: bool = False
     include_reactions: bool = True
     include_threads: bool = False
@@ -55,7 +54,7 @@ class ChatExportService:
 
     def get_channel_messages(
         self, channel_id: str, options: ExportOptions
-    ) -> List[Message]:
+    ) -> list[Message]:
         """
         Get messages from channel with filtering options.
         """
@@ -76,14 +75,14 @@ class ChatExportService:
 
         return filtered_messages
 
-    def export_json(self, messages: List[Message], options: ExportOptions) -> str:
+    def export_json(self, messages: list[Message], options: ExportOptions) -> str:
         """
         Export messages to JSON format.
         """
         export_data = {
             "export_info": {
                 "format": "json",
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "message_count": len(messages),
                 "options": {
                     "include_attachments": options.include_attachments,
@@ -121,7 +120,7 @@ class ChatExportService:
 
         return json.dumps(export_data, indent=2, ensure_ascii=False)
 
-    def export_csv(self, messages: List[Message], options: ExportOptions) -> str:
+    def export_csv(self, messages: list[Message], options: ExportOptions) -> str:
         """
         Export messages to CSV format.
         """
@@ -172,14 +171,14 @@ class ChatExportService:
 
         return output.getvalue()
 
-    def export_txt(self, messages: List[Message], options: ExportOptions) -> str:
+    def export_txt(self, messages: list[Message], options: ExportOptions) -> str:
         """
         Export messages to plain text format.
         """
         lines = []
         lines.append("Chat Export")
         lines.append("=" * 50)
-        lines.append(f"Export Date: {datetime.now(timezone.utc).isoformat()}")
+        lines.append(f"Export Date: {datetime.now(UTC).isoformat()}")
         lines.append(f"Message Count: {len(messages)}")
         lines.append("")
 
@@ -202,7 +201,7 @@ class ChatExportService:
 
         return "\n".join(lines)
 
-    def export_html(self, messages: List[Message], options: ExportOptions) -> str:
+    def export_html(self, messages: list[Message], options: ExportOptions) -> str:
         """
         Export messages to HTML format.
         """
@@ -236,7 +235,7 @@ class ChatExportService:
         html_parts.append("    <div class='header'>")
         html_parts.append("        <h1>Chat Export</h1>")
         html_parts.append(
-            f"        <p>Export Date: {datetime.now(timezone.utc).isoformat()}</p>"
+            f"        <p>Export Date: {datetime.now(UTC).isoformat()}</p>"
         )
         html_parts.append(f"        <p>Message Count: {len(messages)}</p>")
         html_parts.append("    </div>")
@@ -272,7 +271,7 @@ class ChatExportService:
 
     def export_messages(
         self, channel_id: str, user_id: str, options: ExportOptions
-    ) -> Tuple[bool, str, Optional[str]]:
+    ) -> tuple[bool, str, str | None]:
         """
         Export messages from a channel.
 
@@ -309,7 +308,7 @@ class ChatExportService:
             return True, "", export_data
 
         except Exception as e:
-            return False, f"Export failed: {str(e)}", None
+            return False, f"Export failed: {e!s}", None
 
 
 # Global instance

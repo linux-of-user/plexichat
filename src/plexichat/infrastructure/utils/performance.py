@@ -4,17 +4,21 @@
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
 import asyncio
-import logging
-import time
+from collections.abc import Callable
 from datetime import datetime
 from functools import wraps
-from typing import Any, Callable, Dict, Optional
+import logging
+import time
+from typing import Any
+
 import psutil
 
 # Use EXISTING performance optimization engine
 try:
-    from plexichat.core.performance.optimization_engine import PerformanceOptimizationEngine
     from plexichat.core.logging import get_performance_logger, timer
+    from plexichat.core.performance.optimization_engine import (
+        PerformanceOptimizationEngine,
+    )
 except ImportError:
     PerformanceOptimizationEngine = None
     get_performance_logger = None
@@ -37,8 +41,8 @@ class PerformanceTracker:
     def __init__(self):
         self.performance_logger = performance_logger
         self.optimization_engine = optimization_engine
-        self.metrics: Dict[str, Any] = {}
-        self.start_times: Dict[str, float] = {}
+        self.metrics: dict[str, Any] = {}
+        self.start_times: dict[str, float] = {}
 
     def start_timer(self, operation: str):
         """Start timing an operation."""
@@ -65,7 +69,7 @@ class PerformanceTracker:
         # Store locally as well
         self.metrics[name] = {"value": value, "unit": unit, "timestamp": datetime.now()}
 
-    def get_metrics(self) -> Dict[str, Any]:
+    def get_metrics(self) -> dict[str, Any]:
         """Get current metrics."""
         return self.metrics.copy()
 
@@ -144,7 +148,7 @@ class PerformanceOptimizer:
         self.optimization_engine = optimization_engine
         self.performance_logger = performance_logger
 
-    async def optimize_query(self, query: str, params: Dict[str, Any]) -> str:
+    async def optimize_query(self, query: str, params: dict[str, Any]) -> str:
         """Optimize database query using EXISTING optimization engine."""
         try:
             if self.optimization_engine:
@@ -162,7 +166,7 @@ class PerformanceOptimizer:
         except Exception as e:
             logger.error(f"Cache set error: {e}")
 
-    async def get_cached_result(self, key: str) -> Optional[Any]:
+    async def get_cached_result(self, key: str) -> Any | None:
         """Get cached result using EXISTING optimization engine."""
         try:
             if self.optimization_engine:
@@ -188,12 +192,12 @@ def record_metric(name: str, value: Any, unit: str = "count"):
     """Record performance metric."""
     performance_tracker.record_metric(name, value, unit)
 
-def get_performance_metrics() -> Dict[str, Any]:
+def get_performance_metrics() -> dict[str, Any]:
     """Get current performance metrics."""
     return performance_tracker.get_metrics()
 
 # Cache decorator
-def cache_result(ttl: int = 300, key_func: Optional[Callable] = None):
+def cache_result(ttl: int = 300, key_func: Callable | None = None):
     """Decorator to cache function results."""
     def decorator(func: Callable) -> Callable:
         @wraps(func)
@@ -231,7 +235,7 @@ def cache_result(ttl: int = 300, key_func: Optional[Callable] = None):
 class RateLimiter:
     """Simple rate limiter."""
     def __init__(self):
-        self.requests: Dict[str, list] = {}
+        self.requests: dict[str, list] = {}
 
     def is_allowed(self, key: str, limit: int, window: int) -> bool:
         """Check if request is allowed."""
@@ -254,7 +258,7 @@ class RateLimiter:
 # Global rate limiter
 rate_limiter = RateLimiter()
 
-def rate_limit(limit: int, window: int = 60, key_func: Optional[Callable] = None):
+def rate_limit(limit: int, window: int = 60, key_func: Callable | None = None):
     """Rate limiting decorator."""
     def decorator(func: Callable) -> Callable:
         @wraps(func)
@@ -291,7 +295,7 @@ def rate_limit(limit: int, window: int = 60, key_func: Optional[Callable] = None
     return decorator
 
 # Memory monitoring
-def get_memory_usage() -> Dict[str, Any]:
+def get_memory_usage() -> dict[str, Any]:
     """Get current memory usage."""
     try:
         process = psutil.Process()
@@ -309,7 +313,7 @@ def get_memory_usage() -> Dict[str, Any]:
         return {"error": str(e)}
 
 # CPU monitoring
-def get_cpu_usage() -> Dict[str, Any]:
+def get_cpu_usage() -> dict[str, Any]:
     """Get current CPU usage."""
     try:
         return {
@@ -323,7 +327,7 @@ def get_cpu_usage() -> Dict[str, Any]:
         return {"error": str(e)}
 
 # System monitoring
-def get_system_stats() -> Dict[str, Any]:
+def get_system_stats() -> dict[str, Any]:
     """Get comprehensive system statistics."""
     return {
         "memory": get_memory_usage(),

@@ -5,8 +5,7 @@ Manages user sessions with advanced security features.
 
 import asyncio
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
-from typing import Dict, List, Optional, Set
+from datetime import UTC, datetime, timedelta
 
 from plexichat.core.auth.services.interfaces import ISessionService
 from plexichat.core.authentication import DeviceInfo, SessionInfo
@@ -19,14 +18,14 @@ logger = get_logger(__name__)
 class SessionStore:
     """In-memory session storage for development/testing."""
 
-    sessions: Dict[str, SessionInfo] = field(default_factory=dict)
-    expired_sessions: Set[str] = field(default_factory=set)
+    sessions: dict[str, SessionInfo] = field(default_factory=dict)
+    expired_sessions: set[str] = field(default_factory=set)
 
     def add_session(self, session: SessionInfo) -> None:
         """Add a session to storage."""
         self.sessions[session.session_id] = session
 
-    def get_session(self, session_id: str) -> Optional[SessionInfo]:
+    def get_session(self, session_id: str) -> SessionInfo | None:
         """Get a session by ID."""
         return self.sessions.get(session_id)
 
@@ -36,7 +35,7 @@ class SessionStore:
             del self.sessions[session_id]
             self.expired_sessions.add(session_id)
 
-    def get_active_sessions(self, user_id: str) -> List[SessionInfo]:
+    def get_active_sessions(self, user_id: str) -> list[SessionInfo]:
         """Get all active sessions for a user."""
         return [
             session
@@ -58,7 +57,7 @@ class SessionStore:
 
     def _is_expired(self, session: SessionInfo) -> bool:
         """Check if a session is expired."""
-        return datetime.now(timezone.utc) > session.expires_at
+        return datetime.now(UTC) > session.expires_at
 
 
 class SessionService(ISessionService):
@@ -69,14 +68,14 @@ class SessionService(ISessionService):
         self.session_store = SessionStore()
         self.cleanup_interval = 300  # 5 minutes
         self.max_concurrent_sessions = 5
-        self._cleanup_task: Optional[asyncio.Task] = None
+        self._cleanup_task: asyncio.Task | None = None
 
     async def create_session(
         self,
         user_id: str,
         device_info: DeviceInfo,
         ip_address: str,
-        permissions: Set[str],
+        permissions: set[str],
     ) -> SessionInfo:
         """Create a new session for the user."""
         session_id = self._generate_session_id()
@@ -97,8 +96,8 @@ class SessionService(ISessionService):
             device_info=device_info,
             ip_address=ip_address,
             permissions=permissions,
-            created_at=datetime.now(timezone.utc),
-            expires_at=datetime.now(timezone.utc) + timedelta(hours=24),  # 24 hours
+            created_at=datetime.now(UTC),
+            expires_at=datetime.now(UTC) + timedelta(hours=24),  # 24 hours
             is_active=True,
         )
 
@@ -107,7 +106,7 @@ class SessionService(ISessionService):
 
         return session
 
-    async def validate_session(self, session_id: str) -> Optional[SessionInfo]:
+    async def validate_session(self, session_id: str) -> SessionInfo | None:
         """Validate and return session if active."""
         session = self.session_store.get_session(session_id)
 
@@ -119,7 +118,7 @@ class SessionService(ISessionService):
             return None
 
         # Update last activity
-        session.last_activity = datetime.now(timezone.utc)
+        session.last_activity = datetime.now(UTC)
         return session
 
     async def invalidate_session(self, session_id: str) -> bool:
@@ -144,7 +143,7 @@ class SessionService(ISessionService):
         logger.info(f"Invalidated {invalidated_count} sessions for user {user_id}")
         return invalidated_count
 
-    async def get_user_sessions(self, user_id: str) -> List[SessionInfo]:
+    async def get_user_sessions(self, user_id: str) -> list[SessionInfo]:
         """Get all active sessions for a user."""
         return self.session_store.get_active_sessions(user_id)
 
@@ -152,7 +151,7 @@ class SessionService(ISessionService):
         """Extend session expiration time."""
         session = self.session_store.get_session(session_id)
         if session and session.is_active and not self._is_expired(session):
-            session.expires_at = datetime.now(timezone.utc) + timedelta(
+            session.expires_at = datetime.now(UTC) + timedelta(
                 hours=extension_hours
             )
             logger.info(f"Extended session {session_id} by {extension_hours} hours")
@@ -201,4 +200,4 @@ class SessionService(ISessionService):
 
     def _is_expired(self, session: SessionInfo) -> bool:
         """Check if a session is expired."""
-        return datetime.now(timezone.utc) > session.expires_at
+        return datetime.now(UTC) > session.expires_at

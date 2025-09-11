@@ -3,13 +3,13 @@ from datetime import datetime
 import logging
 
 try:
+    from rich.align import Align
     from rich.console import Console
-    from rich.table import Table
-    from rich.panel import Panel
     from rich.layout import Layout
     from rich.live import Live
+    from rich.panel import Panel
+    from rich.table import Table
     from rich.text import Text
-    from rich.align import Align
     from rich.tree import Tree
     RICH_AVAILABLE = True
 except ImportError:
@@ -33,7 +33,7 @@ class InteractiveDashboard:
     def __init__(self):
         if not RICH_AVAILABLE:
             raise ImportError("The 'rich' library is required for the interactive dashboard.")
-        
+
         self.console = Console()
         self.current_mode = DashboardMode.OVERVIEW
         self.running = False
@@ -78,7 +78,7 @@ class InteractiveDashboard:
         """Update dashboard content."""
         self.layout["header"].update(self._create_header())
         self.layout["side"].update(self._create_sidebar())
-        
+
         mode_map = {
             DashboardMode.OVERVIEW: self._update_overview,
             DashboardMode.PLUGINS: self._update_plugins,
@@ -108,7 +108,7 @@ class InteractiveDashboard:
 
     async def _update_overview(self):
         self.layout["body"].update(Panel("Overview content goes here.", title="Overview"))
-    
+
     async def _update_plugins(self):
         self.layout["body"].update(Panel("Plugin management content goes here.", title="Plugins"))
 

@@ -5,17 +5,16 @@ Unified database management system with support for multiple database types,
 connection pooling, transactions, and performance optimization.
 """
 
-import asyncio
-import inspect
-import logging
-import re
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, AsyncGenerator, Dict, List, Optional, Set, Union
+import inspect
+import re
+from typing import Any
 
 # Unified logging imports
-from plexichat.core.logging import LogCategory, get_logger
+from plexichat.core.logging import get_logger
 
 try:
     from plexichat.core.config_manager import get_config
@@ -36,9 +35,8 @@ try:
     )
 except ImportError:
     # Define dummy classes and functions for type hinting and to avoid runtime errors.
-    from typing import Set
 
-    def check_permission(required: str, user_permissions: Set[str]) -> None:
+    def check_permission(required: str, user_permissions: set[str]) -> None:
         """Fallback permission check - always allows."""
         pass
 
@@ -82,7 +80,7 @@ class ConnectionMetrics:
 class DatabaseSession:
     """Database session wrapper with permission checking."""
 
-    def __init__(self, connection: Any, user_permissions: Set[str]):
+    def __init__(self, connection: Any, user_permissions: set[str]):
         self.connection = connection
         self.user_permissions = user_permissions
 
@@ -94,11 +92,10 @@ class DatabaseSession:
         check_permission(required_permission, self.user_permissions)
 
     async def execute(
-        self, query: str, params: Optional[Union[Dict[str, Any], tuple, list]] = None
+        self, query: str, params: dict[str, Any] | tuple | list | None = None
     ) -> Any:
         """Execute a query with permission checking."""
         # Extract table/resource from query for permission check
-        import re
 
         # Simple heuristic to extract table name from query
         words = query.strip().split()
@@ -134,7 +131,7 @@ class DatabaseSession:
         if isinstance(params, (tuple, list)):
             params_dict = {}
             param_counter = 0
-            
+
             def replace_placeholder(match):
                 nonlocal param_counter
                 key = f"param_{param_counter}"
@@ -142,7 +139,7 @@ class DatabaseSession:
                     params_dict[key] = params[param_counter]
                 param_counter += 1
                 return f":{key}"
-            
+
             query = re.sub(r'\?', replace_placeholder, query)
             params = params_dict
 
@@ -153,44 +150,44 @@ class DatabaseSession:
             raise
 
     async def fetchall(
-        self, query: str, params: Optional[Union[Dict[str, Any], tuple, list]] = None
-    ) -> List[Dict[str, Any]]:
+        self, query: str, params: dict[str, Any] | tuple | list | None = None
+    ) -> list[dict[str, Any]]:
         """Fetch all results from a query. Requires raw execution permission."""
         result = await self.execute(query, params)
         return [dict(row) for row in await result.fetchall()]
 
     async def fetchone(
-        self, query: str, params: Optional[Union[Dict[str, Any], tuple, list]] = None
-    ) -> Optional[Dict[str, Any]]:
+        self, query: str, params: dict[str, Any] | tuple | list | None = None
+    ) -> dict[str, Any] | None:
         """Fetch one result from a query. Requires raw execution permission."""
         result = await self.execute(query, params)
         row = await result.fetchone()
         return dict(row) if row else None
 
-    async def insert(self, table: str, data: Dict[str, Any]) -> Any:
+    async def insert(self, table: str, data: dict[str, Any]) -> Any:
         """Insert data into a table after a permission check."""
         self._check_permission(DBOperation.WRITE, table)
         columns = ", ".join(data.keys())
-        placeholders = ", ".join([f":{key}" for key in data.keys()])
+        placeholders = ", ".join([f":{key}" for key in data])
         query = f"INSERT INTO {table} ({columns}) VALUES ({placeholders})"
         return await self.execute(query, data)
 
     async def update(
-        self, table: str, data: Dict[str, Any], where: Dict[str, Any]
+        self, table: str, data: dict[str, Any], where: dict[str, Any]
     ) -> Any:
         """Update data in a table after permission check."""
         self._check_permission(DBOperation.WRITE, table)
-        set_clause = ", ".join([f"{key} = :{key}" for key in data.keys()])
-        where_clause = " AND ".join([f"{key} = :where_{key}" for key in where.keys()])
+        set_clause = ", ".join([f"{key} = :{key}" for key in data])
+        where_clause = " AND ".join([f"{key} = :where_{key}" for key in where])
         where_params = {f"where_{key}": value for key, value in where.items()}
         all_params = {**data, **where_params}
         query = f"UPDATE {table} SET {set_clause} WHERE {where_clause}"
         return await self.execute(query, all_params)
 
-    async def delete(self, table: str, where: Dict[str, Any]) -> Any:
+    async def delete(self, table: str, where: dict[str, Any]) -> Any:
         """Delete data from a table after permission check."""
         self._check_permission(DBOperation.WRITE, table)
-        where_clause = " AND ".join([f"{key} = :{key}" for key in where.keys()])
+        where_clause = " AND ".join([f"{key} = :{key}" for key in where])
         query = f"DELETE FROM {table} WHERE {where_clause}"
         return await self.execute(query, where)
 
@@ -213,7 +210,7 @@ class DatabaseSession:
 class DatabaseManager:
     """Unified database manager with support for multiple database types."""
 
-    def __init__(self, config: Optional[DatabaseConfig] = None):
+    def __init__(self, config: DatabaseConfig | None = None):
         self.config = config or DatabaseConfig()
         self.pool = None
         self.metrics = ConnectionMetrics()
@@ -245,7 +242,7 @@ class DatabaseManager:
 
     @asynccontextmanager
     async def get_session(
-        self, user_permissions: Optional[Set[str]] = None
+        self, user_permissions: set[str] | None = None
     ) -> AsyncGenerator[DatabaseSession, None]:
         """Get a database session with optional permission checking."""
         if not self.is_connected:
@@ -267,8 +264,8 @@ class DatabaseManager:
             self.metrics.active_connections -= 1
 
     async def execute_transaction(
-        self, operations: List[callable], user_permissions: Optional[Set[str]] = None
-    ) -> List[Any]:
+        self, operations: list[callable], user_permissions: set[str] | None = None
+    ) -> list[Any]:
         """Execute multiple operations in a single transaction."""
         results = []
         async with self.get_session(user_permissions) as session:
@@ -309,7 +306,7 @@ database_manager = DatabaseManager()
 
 # Convenience functions
 async def get_database_session(
-    user_permissions: Optional[Set[str]] = None,
+    user_permissions: set[str] | None = None,
 ) -> AsyncGenerator[DatabaseSession, None]:
     """Get a database session from the global manager."""
     async with database_manager.get_session(user_permissions) as session:
@@ -318,8 +315,8 @@ async def get_database_session(
 
 async def execute_query(
     query: str,
-    params: Optional[Dict[str, Any]] = None,
-    user_permissions: Optional[Set[str]] = None,
+    params: dict[str, Any] | None = None,
+    user_permissions: set[str] | None = None,
 ) -> Any:
     """Execute a single query using the global database manager."""
     async with get_database_session(user_permissions) as session:
@@ -328,9 +325,9 @@ async def execute_query(
 
 async def fetch_all(
     query: str,
-    params: Optional[Dict[str, Any]] = None,
-    user_permissions: Optional[Set[str]] = None,
-) -> List[Dict[str, Any]]:
+    params: dict[str, Any] | None = None,
+    user_permissions: set[str] | None = None,
+) -> list[dict[str, Any]]:
     """Fetch all results from a query using the global database manager."""
     async with get_database_session(user_permissions) as session:
         return await session.fetchall(query, params)
@@ -338,9 +335,9 @@ async def fetch_all(
 
 async def fetch_one(
     query: str,
-    params: Optional[Dict[str, Any]] = None,
-    user_permissions: Optional[Set[str]] = None,
-) -> Optional[Dict[str, Any]]:
+    params: dict[str, Any] | None = None,
+    user_permissions: set[str] | None = None,
+) -> dict[str, Any] | None:
     """Fetch one result from a query using the global database manager."""
     async with get_database_session(user_permissions) as session:
         return await session.fetchone(query, params)

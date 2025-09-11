@@ -11,8 +11,8 @@ from .interfaces import (
 )
 
 __all__ = [
-    "IUserRepository",
-    "ISessionRepository",
     "IAuditRepository",
     "IDeviceRepository",
+    "ISessionRepository",
+    "IUserRepository",
 ]

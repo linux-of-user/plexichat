@@ -3,36 +3,29 @@ Core Authentication Service
 Implements the main authentication logic with comprehensive security features.
 """
 
-import asyncio
+from dataclasses import dataclass
+from datetime import UTC, datetime, timedelta
 import hashlib
-import hmac
 import json
 import secrets
 import time
-from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any
 
 from plexichat.core.authentication import (
-    AuthProvider,
     AuthResult,
     DeviceInfo,
-    DeviceType,
     MFAChallenge,
     MFAMethod,
-    Role,
-    SessionInfo,
 )
 from plexichat.core.database.manager import database_manager
 from plexichat.core.logging import get_logger
 from plexichat.core.security import get_security_system
 from plexichat.core.security.unified_security_module import (
     SecurityContext,
-    SecurityEvent,
 )
 
-from .interfaces import IAuthenticationService
 from .audit_service import AuditEventType, AuditService
+from .interfaces import IAuthenticationService
 
 logger = get_logger(__name__)
 
@@ -45,13 +38,13 @@ class UserCredentials:
     username: str
     password_hash: str
     salt: str
-    roles: List[str]
+    roles: list[str]
     is_active: bool = True
     is_locked: bool = False
     failed_attempts: int = 0
-    last_login: Optional[datetime] = None
-    created_at: datetime = datetime.now(timezone.utc)
-    password_changed_at: Optional[datetime] = None
+    last_login: datetime | None = None
+    created_at: datetime = datetime.now(UTC)
+    password_changed_at: datetime | None = None
 
 
 class AuthenticationService(IAuthenticationService):
@@ -62,7 +55,7 @@ class AuthenticationService(IAuthenticationService):
     def __init__(
         self,
         db_manager: Any = None,
-        audit_service: Optional[AuditService] = None,
+        audit_service: AuditService | None = None,
         max_failed_attempts: int = 5,
         lockout_duration: int = 900,  # 15 minutes
     ):
@@ -75,7 +68,7 @@ class AuthenticationService(IAuthenticationService):
 
     async def cleanup_expired_data(self) -> int:
         """Clean up expired sessions and MFA challenges."""
-        current_time = datetime.now(timezone.utc)
+        current_time = datetime.now(UTC)
         current_time_str = current_time.isoformat()
         expired_count = 0
 
@@ -134,8 +127,8 @@ class AuthenticationService(IAuthenticationService):
         return expired_count
 
     async def _rate_limit_check(
-        self, username: str, ip_address: Optional[str]
-    ) -> Tuple[bool, Optional[str]]:
+        self, username: str, ip_address: str | None
+    ) -> tuple[bool, str | None]:
         """Check rate limits for authentication attempts."""
         try:
             # Create security context
@@ -160,7 +153,7 @@ class AuthenticationService(IAuthenticationService):
             return True, None
 
     async def _record_failed_attempt(
-        self, username: str, ip_address: Optional[str], reason: str
+        self, username: str, ip_address: str | None, reason: str
     ) -> None:
         """Record a failed authentication attempt."""
         try:
@@ -189,9 +182,9 @@ class AuthenticationService(IAuthenticationService):
         self,
         username: str,
         password: str,
-        ip_address: Optional[str] = None,
-        user_agent: Optional[str] = None,
-        device_info: Optional[DeviceInfo] = None,
+        ip_address: str | None = None,
+        user_agent: str | None = None,
+        device_info: DeviceInfo | None = None,
     ) -> AuthResult:
         """
         Authenticate a user with comprehensive security checks.
@@ -246,7 +239,7 @@ class AuthenticationService(IAuthenticationService):
                 # Check if user is locked
                 if user_data["is_locked"]:
                     lockout_until = user_data.get("lockout_until")
-                    if lockout_until and datetime.fromisoformat(lockout_until) > datetime.now(timezone.utc):
+                    if lockout_until and datetime.fromisoformat(lockout_until) > datetime.now(UTC):
                         await self._record_failed_attempt(
                             username, ip_address, "account_locked"
                         )
@@ -267,7 +260,7 @@ class AuthenticationService(IAuthenticationService):
 
                     # Lock account if max attempts reached
                     if failed_attempts >= self.max_failed_attempts:
-                        lockout_until = datetime.now(timezone.utc) + timedelta(
+                        lockout_until = datetime.now(UTC) + timedelta(
                             seconds=self.lockout_duration
                         )
                         await session.execute(
@@ -297,7 +290,7 @@ class AuthenticationService(IAuthenticationService):
                 await session.execute(
                     "UPDATE user_credentials SET failed_attempts = 0, is_locked = 0, lockout_until = NULL, last_login = :login_time WHERE user_id = :user_id",
                     {
-                        "login_time": datetime.now(timezone.utc).isoformat(),
+                        "login_time": datetime.now(UTC).isoformat(),
                         "user_id": user_data["user_id"],
                     },
                 )
@@ -357,8 +350,8 @@ class AuthenticationService(IAuthenticationService):
         username: str,
         password: str,
         email: str,
-        roles: Optional[List[str]] = None,
-    ) -> Tuple[bool, str]:
+        roles: list[str] | None = None,
+    ) -> tuple[bool, str]:
         """Create a new user account."""
         try:
             # Validate input
@@ -394,8 +387,8 @@ class AuthenticationService(IAuthenticationService):
                         "password_hash": password_hash,
                         "salt": salt,
                         "roles": json.dumps(user_roles),
-                        "created_at": datetime.now(timezone.utc).isoformat(),
-                        "password_changed_at": datetime.now(timezone.utc).isoformat(),
+                        "created_at": datetime.now(UTC).isoformat(),
+                        "password_changed_at": datetime.now(UTC).isoformat(),
                     },
                 )
 
@@ -428,8 +421,8 @@ class AuthenticationService(IAuthenticationService):
         user_id: str,
         current_password: str,
         new_password: str,
-        ip_address: Optional[str] = None,
-    ) -> Tuple[bool, str]:
+        ip_address: str | None = None,
+    ) -> tuple[bool, str]:
         """Change user password with verification."""
         try:
             if not new_password or len(new_password) < 8:
@@ -472,7 +465,7 @@ class AuthenticationService(IAuthenticationService):
                     {
                         "password_hash": new_hash,
                         "salt": new_salt,
-                        "changed_at": datetime.now(timezone.utc).isoformat(),
+                        "changed_at": datetime.now(UTC).isoformat(),
                         "user_id": user_id,
                     },
                 )
@@ -497,12 +490,12 @@ class AuthenticationService(IAuthenticationService):
             return False, "Failed to change password"
 
     async def lock_user_account(
-        self, user_id: str, duration_seconds: Optional[int] = None
+        self, user_id: str, duration_seconds: int | None = None
     ) -> bool:
         """Lock a user account."""
         try:
             lockout_duration = duration_seconds or self.lockout_duration
-            lockout_until = datetime.now(timezone.utc) + timedelta(
+            lockout_until = datetime.now(UTC) + timedelta(
                 seconds=lockout_duration
             )
 
@@ -539,7 +532,7 @@ class AuthenticationService(IAuthenticationService):
             logger.error(f"Error unlocking user account {user_id}: {e}")
             return False
 
-    async def get_user_info(self, user_id: str) -> Optional[Dict[str, Any]]:
+    async def get_user_info(self, user_id: str) -> dict[str, Any] | None:
         """Get user information."""
         try:
             async with self.db_manager.get_session() as session:
@@ -580,7 +573,7 @@ class AuthenticationService(IAuthenticationService):
                 await session.execute(
                     "UPDATE user_credentials SET is_active = 0, deactivated_at = :deactivated_at, deactivated_by = :deactivated_by WHERE user_id = :user_id",
                     {
-                        "deactivated_at": datetime.now(timezone.utc).isoformat(),
+                        "deactivated_at": datetime.now(UTC).isoformat(),
                         "deactivated_by": deactivated_by,
                         "user_id": user_id,
                     },
@@ -589,7 +582,7 @@ class AuthenticationService(IAuthenticationService):
                 # Invalidate all active sessions
                 await session.execute(
                     "UPDATE sessions SET is_active = 0, updated_at = :updated_at WHERE user_id = :user_id AND is_active = 1",
-                    {"updated_at": datetime.now(timezone.utc).isoformat(), "user_id": user_id},
+                    {"updated_at": datetime.now(UTC).isoformat(), "user_id": user_id},
                 )
 
                 # Log deactivation
@@ -624,7 +617,7 @@ class AuthenticationService(IAuthenticationService):
                 await session.execute(
                     "UPDATE user_credentials SET is_active = 1, is_locked = 0, lockout_until = NULL, failed_attempts = 0, reactivated_at = :reactivated_at, reactivated_by = :reactivated_by WHERE user_id = :user_id",
                     {
-                        "reactivated_at": datetime.now(timezone.utc).isoformat(),
+                        "reactivated_at": datetime.now(UTC).isoformat(),
                         "reactivated_by": reactivated_by,
                         "user_id": user_id,
                     },
@@ -669,12 +662,12 @@ class AuthenticationService(IAuthenticationService):
         self,
         user_id: str,
         method: MFAMethod,
-        ip_address: Optional[str] = None,
-    ) -> Optional[MFAChallenge]:
+        ip_address: str | None = None,
+    ) -> MFAChallenge | None:
         """Create MFA challenge for user."""
         try:
             challenge_id = f"mfa_{secrets.token_hex(16)}"
-            expires_at = datetime.now(timezone.utc) + timedelta(minutes=5)
+            expires_at = datetime.now(UTC) + timedelta(minutes=5)
 
             if method == MFAMethod.TOTP:
                 # Generate TOTP challenge
@@ -697,7 +690,7 @@ class AuthenticationService(IAuthenticationService):
                         "method_type": method.value,
                         "challenge_data": json.dumps(challenge_data),
                         "expires_at": expires_at.isoformat(),
-                        "created_at": datetime.now(timezone.utc).isoformat(),
+                        "created_at": datetime.now(UTC).isoformat(),
                     },
                 )
 
@@ -716,7 +709,7 @@ class AuthenticationService(IAuthenticationService):
         self,
         challenge_id: str,
         response: str,
-        ip_address: Optional[str] = None,
+        ip_address: str | None = None,
     ) -> bool:
         """Verify MFA challenge response."""
         try:
@@ -735,7 +728,7 @@ class AuthenticationService(IAuthenticationService):
                 expires_at = datetime.fromisoformat(challenge_result["expires_at"])
 
                 # Check if challenge expired
-                if datetime.now(timezone.utc) > expires_at:
+                if datetime.now(UTC) > expires_at:
                     logger.warning(f"MFA challenge expired: {challenge_id}")
                     return False
 
@@ -781,8 +774,8 @@ class AuthenticationService(IAuthenticationService):
             return False
 
     async def get_login_attempts(
-        self, username: Optional[str] = None, ip_address: Optional[str] = None, hours: int = 24
-    ) -> List[Dict[str, Any]]:
+        self, username: str | None = None, ip_address: str | None = None, hours: int = 24
+    ) -> list[dict[str, Any]]:
         """Get recent login attempts for analysis."""
         try:
             # This would typically query a login_attempts table
@@ -801,7 +794,7 @@ class AuthenticationService(IAuthenticationService):
                     "reason": event.details.get("reason"),
                 }
                 for event in events
-                if event.timestamp > datetime.now(timezone.utc) - timedelta(hours=hours)
+                if event.timestamp > datetime.now(UTC) - timedelta(hours=hours)
             ]
 
         except Exception as e:

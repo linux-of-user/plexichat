@@ -3,18 +3,22 @@ AI Moderation Feedback Collector
 Collects and processes user feedback for improving moderation accuracy.
 """
 
+from dataclasses import dataclass, field
+from datetime import UTC, datetime
+from enum import Enum
 import hashlib
 import json
 import logging
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 # Import with fallbacks
 try:
-    from plexichat.features.ai.moderation.moderation_engine import ModerationAction, ModerationCategory, ModerationSeverity  # type: ignore
+    from plexichat.features.ai.moderation.moderation_engine import (  # type: ignore
+        ModerationAction,
+        ModerationCategory,
+        ModerationSeverity,
+    )
 except ImportError:
     ModerationAction = str
     ModerationCategory = str
@@ -48,13 +52,13 @@ class ModerationFeedback:
     suggested_action: str  # ModerationAction will be imported later
     confidence: float
     reasoning: str
-    categories: List[str]  # ModerationCategory will be imported later
+    categories: list[str]  # ModerationCategory will be imported later
     severity: str  # ModerationSeverity will be imported later
-    metadata: Dict[str, Any] = field(default_factory=dict)
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    metadata: dict[str, Any] = field(default_factory=dict)
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     processed: bool = False
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
             "content_id": self.content_id,
@@ -90,7 +94,9 @@ class FeedbackCollector:
         """Initialize feedback database."""
         try:
             # Use FeedbackDataService for all DB initialization and CRUD
-            from plexichat.features.ai.moderation.feedback_data_service import FeedbackDataService
+            from plexichat.features.ai.moderation.feedback_data_service import (
+                FeedbackDataService,
+            )
             self.feedback_service = FeedbackDataService()
         except ImportError:
             logger.warning("FeedbackDataService not available, using fallback")
@@ -105,9 +111,9 @@ class FeedbackCollector:
         suggested_action: str,  # ModerationAction
         confidence: float,
         reasoning: str,
-        categories: List[str],  # List[ModerationCategory]
+        categories: list[str],  # List[ModerationCategory]
         severity: str,  # ModerationSeverity
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: dict[str, Any] | None = None
     ) -> bool:
         """Submit moderation feedback."""
         try:
@@ -123,7 +129,7 @@ class FeedbackCollector:
                 categories=categories,
                 severity=severity,
                 metadata=metadata or {},
-                created_at=datetime.now(timezone.utc)
+                created_at=datetime.now(UTC)
             )
 
             if self.feedback_service:
@@ -182,7 +188,7 @@ class FeedbackCollector:
         except Exception as e:
             logger.error(f"Failed to process correction feedback: {e}")
 
-    async def _get_content(self, content_id: str) -> Optional[str]:
+    async def _get_content(self, content_id: str) -> str | None:
         """Get content by ID from cache."""
         try:
             # Assuming content_cache table is removed or replaced by a service
@@ -205,7 +211,7 @@ class FeedbackCollector:
         except Exception as e:
             logger.error(f"Failed to cache content {content_id}: {e}")
 
-    async def get_feedback_stats(self, days: int = 7) -> Dict[str, Any]:
+    async def get_feedback_stats(self, days: int = 7) -> dict[str, Any]:
         """Get feedback statistics."""
         try:
             if self.feedback_service:
@@ -217,7 +223,7 @@ class FeedbackCollector:
             logger.error(f"Failed to get feedback stats: {e}")
             return {"error": str(e)}
 
-    async def get_user_feedback_history(self, user_id: str, limit: int = 50) -> List[Dict[str, Any]]:
+    async def get_user_feedback_history(self, user_id: str, limit: int = 50) -> list[dict[str, Any]]:
         """Get feedback history for a user."""
         try:
             if self.feedback_service:

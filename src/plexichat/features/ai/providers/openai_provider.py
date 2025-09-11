@@ -5,9 +5,9 @@ OpenAI Provider for PlexiChat
 Provides integration with OpenAI's GPT models.
 """
 
-import logging
 from dataclasses import dataclass
-from typing import Any, List, Optional
+import logging
+from typing import Any
 
 try:
     import openai  # type: ignore
@@ -26,7 +26,11 @@ from plexichat.features.ai.core.ai_abstraction_layer import (
     ModelCapability,
     ModelStatus,
 )
-from plexichat.features.ai.providers.base_provider import BaseAIProvider, ProviderConfig, ProviderStatus
+from plexichat.features.ai.providers.base_provider import (
+    BaseAIProvider,
+    ProviderConfig,
+    ProviderStatus,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -34,24 +38,24 @@ logger = logging.getLogger(__name__)
 @dataclass
 class OpenAIConfig(ProviderConfig):
     """OpenAI-specific configuration."""
-    organization: Optional[str] = None
-    project: Optional[str] = None
+    organization: str | None = None
+    project: str | None = None
 
 
 class OpenAIProvider(BaseAIProvider):
     """OpenAI provider implementation."""
-    
+
     def __init__(self, config: OpenAIConfig):
         """Initialize OpenAI provider."""
         super().__init__(config)
         self.config: OpenAIConfig = config
-        self.client: Optional[Any] = None
-        
+        self.client: Any | None = None
+
         if not OPENAI_AVAILABLE:
             logger.error("OpenAI library not available")
             self.status = ProviderStatus.ERROR
             return
-            
+
         try:
             if OpenAI:
                 self.client = OpenAI(
@@ -94,7 +98,7 @@ class OpenAIProvider(BaseAIProvider):
                     "cost_per_token": 0.0000015
                 }
             ]
-            
+
             for model_data in models_data:
                 model = AIModel(
                     id=model_data["id"],
@@ -106,7 +110,7 @@ class OpenAIProvider(BaseAIProvider):
                     status=ModelStatus.AVAILABLE
                 )
                 self.models[model.id] = model
-                
+
         except Exception as e:
             logger.error(f"Failed to load OpenAI models: {e}")
 
@@ -114,7 +118,7 @@ class OpenAIProvider(BaseAIProvider):
         """Test OpenAI connection."""
         if not self.client:
             return False
-            
+
         try:
             # Try to list models as a connection test
             models = self.client.models.list()
@@ -123,7 +127,7 @@ class OpenAIProvider(BaseAIProvider):
             logger.error(f"OpenAI connection test failed: {e}")
             return False
 
-    def get_available_models(self) -> List[AIModel]:
+    def get_available_models(self) -> list[AIModel]:
         """Get list of available OpenAI models."""
         return list(self.models.values())
 
@@ -146,7 +150,7 @@ class OpenAIProvider(BaseAIProvider):
         try:
             # Prepare messages for chat completion
             messages = [{"role": "user", "content": request.prompt}]
-            
+
             if request.context:
                 messages.insert(0, {"role": "system", "content": request.context})
 
@@ -162,7 +166,7 @@ class OpenAIProvider(BaseAIProvider):
             content = response.choices[0].message.content if response.choices else ""
             if content is None:
                 content = ""
-            
+
             # Calculate usage
             usage = {
                 "prompt_tokens": response.usage.prompt_tokens if response.usage else 0,

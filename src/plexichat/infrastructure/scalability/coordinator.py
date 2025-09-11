@@ -7,10 +7,10 @@
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
 import asyncio
-import logging
 from dataclasses import dataclass
-from datetime import datetime, timezone
-from typing import Any, Dict, Optional
+from datetime import UTC, datetime
+import logging
+from typing import Any
 
 # Placeholder imports for dependencies
 service_mesh_manager = None
@@ -90,7 +90,7 @@ class ScalabilityCoordinator:
 
         # Metrics and monitoring
         self.metrics = ScalabilityMetrics()
-        self.start_time: Optional[datetime] = None
+        self.start_time: datetime | None = None
 
         # Configuration
         self.config = {
@@ -153,7 +153,7 @@ class ScalabilityCoordinator:
 
             self.initialized = True
             self.running = True
-            self.start_time = datetime.now(timezone.utc)
+            self.start_time = datetime.now(UTC)
 
             logger.info(" Scalability System initialization complete")
             return True
@@ -181,12 +181,12 @@ class ScalabilityCoordinator:
         try:
             # Collect metrics from various components
             # This would integrate with actual monitoring systems
-            
+
             # Update metrics timestamp
             self.metrics.requests_per_second = 0.0  # Placeholder
             self.metrics.average_response_time_ms = 0.0  # Placeholder
             self.metrics.cache_hit_rate_percent = 0.0  # Placeholder
-            
+
             logger.debug("Scalability metrics collected")
 
         except Exception as e:
@@ -201,13 +201,13 @@ class ScalabilityCoordinator:
             # Check CPU and memory thresholds
             if (self.metrics.cpu_utilization_percent > self.config["cpu_threshold"] or
                 self.metrics.memory_utilization_percent > self.config["memory_threshold"]):
-                
+
                 logger.info("High resource utilization detected, considering scale-up")
                 await self._scale_up()
-                
+
             elif (self.metrics.cpu_utilization_percent < 30 and
                 self.metrics.memory_utilization_percent < 40):
-                
+
                 logger.info("Low resource utilization detected, considering scale-down")
                 await self._scale_down()
 
@@ -219,7 +219,7 @@ class ScalabilityCoordinator:
         try:
             # Implement scale-up logic
             logger.info("Scaling up services")
-            
+
         except Exception as e:
             logger.error(f"Error scaling up: {e}")
 
@@ -228,13 +228,13 @@ class ScalabilityCoordinator:
         try:
             # Implement scale-down logic
             logger.info("Scaling down services")
-            
+
         except Exception as e:
             logger.error(f"Error scaling down: {e}")
 
     def _register_default_task_handlers(self):
         """Register default task handlers."""
-        async def email_notification_handler(payload: Dict[str, Any]):
+        async def email_notification_handler(payload: dict[str, Any]):
             """Handle email notification tasks."""
             logger.info(
                 f"Processing email notification: {payload.get('subject', 'No subject')}"
@@ -243,17 +243,17 @@ class ScalabilityCoordinator:
             await asyncio.sleep(1)
             return {
                 "status": "sent",
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
 
-        async def file_processing_handler(payload: Dict[str, Any]):
+        async def file_processing_handler(payload: dict[str, Any]):
             """Handle file processing tasks."""
             logger.info(f"Processing file: {payload.get('filename', 'unknown')}")
             # Simulate file processing
             await asyncio.sleep(2)
             return {"status": "processed", "size": payload.get("size", 0)}
 
-        async def ai_processing_handler(payload: Dict[str, Any]):
+        async def ai_processing_handler(payload: dict[str, Any]):
             """Handle AI processing tasks."""
             logger.info(f"Processing AI task: {payload.get('task_type', 'unknown')}")
             # Simulate AI processing
@@ -276,7 +276,7 @@ class ScalabilityCoordinator:
 
         logger.info("Default task handlers registered")
 
-    async def add_cache_node(self, node_config: Dict[str, Any]) -> bool:
+    async def add_cache_node(self, node_config: dict[str, Any]) -> bool:
         """Add a new cache node to the distributed cache."""
         try:
             if not self.config["enable_distributed_cache"]:
@@ -304,8 +304,8 @@ class ScalabilityCoordinator:
             return False
 
     async def submit_task(
-        self, task_type: str, payload: Dict[str, Any], priority: TaskPriority = TaskPriority.NORMAL
-    ) -> Optional[str]:
+        self, task_type: str, payload: dict[str, Any], priority: TaskPriority = TaskPriority.NORMAL
+    ) -> str | None:
         """Submit a task to the task queue."""
         try:
             if not self.config["enable_task_queues"] or not self.task_queue_manager:
@@ -319,14 +319,14 @@ class ScalabilityCoordinator:
             logger.error(f"Error submitting task: {e}")
             return None
 
-    def get_scalability_status(self) -> Dict[str, Any]:
+    def get_scalability_status(self) -> dict[str, Any]:
         """Get current scalability system status."""
         return {
             "initialized": self.initialized,
             "running": self.running,
             "start_time": self.start_time.isoformat() if self.start_time else None,
             "uptime_seconds": (
-                (datetime.now(timezone.utc) - self.start_time).total_seconds()
+                (datetime.now(UTC) - self.start_time).total_seconds()
                 if self.start_time
                 else 0
             ),
@@ -354,7 +354,7 @@ class ScalabilityCoordinator:
                 "cpu_threshold": self.config["cpu_threshold"],
                 "memory_threshold": self.config["memory_threshold"],
             },
-            "last_updated": datetime.now(timezone.utc).isoformat(),
+            "last_updated": datetime.now(UTC).isoformat(),
         }
 
     async def shutdown(self):

@@ -4,10 +4,10 @@ User Status Service
 Manages user status functionality including validation, persistence, and real-time updates.
 """
 
-import logging
 from dataclasses import dataclass
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from datetime import UTC, datetime
+import logging
+from typing import Any
 
 from plexichat.core.database.manager import database_manager
 from plexichat.core.websocket.websocket_manager import websocket_manager
@@ -23,12 +23,12 @@ class UserStatus:
 
     user_id: str
     status: str
-    custom_status: Optional[str] = None
+    custom_status: str | None = None
     status_updated_at: datetime = None
 
     def __post_init__(self):
         if self.status_updated_at is None:
-            self.status_updated_at = datetime.now(timezone.utc)
+            self.status_updated_at = datetime.now(UTC)
 
 
 class UserStatusService:
@@ -38,7 +38,7 @@ class UserStatusService:
         self.db_manager = database_manager
         self.websocket_manager = websocket_manager
 
-    async def get_user_status(self, user_id: str) -> Optional[UserStatus]:
+    async def get_user_status(self, user_id: str) -> UserStatus | None:
         """Get current status for a user."""
         try:
             if not self.db_manager:
@@ -68,7 +68,7 @@ class UserStatusService:
             return None
 
     async def update_user_status(
-        self, user_id: str, status: str, custom_status: Optional[str] = None
+        self, user_id: str, status: str, custom_status: str | None = None
     ) -> bool:
         """Update user status."""
         try:
@@ -82,7 +82,7 @@ class UserStatusService:
                 return False
 
             # Update database
-            update_time = datetime.now(timezone.utc)
+            update_time = datetime.now(UTC)
             query = """
                 UPDATE users
                 SET status = ?, custom_status = ?, status_updated_at = ?, updated_at = ?
@@ -114,7 +114,7 @@ class UserStatusService:
             logger.error(f"Error updating user status for {user_id}: {e}")
             return False
 
-    async def get_online_users(self) -> List[Dict[str, Any]]:
+    async def get_online_users(self) -> list[dict[str, Any]]:
         """Get list of online users."""
         try:
             if not self.db_manager:
@@ -171,7 +171,7 @@ class UserStatusService:
         self,
         user_id: str,
         status: str,
-        custom_status: Optional[str],
+        custom_status: str | None,
         update_time: datetime,
     ):
         """Broadcast status change to connected clients."""
@@ -197,7 +197,7 @@ class UserStatusService:
         """Validate status value."""
         return status in VALID_STATUSES
 
-    def get_valid_statuses(self) -> List[str]:
+    def get_valid_statuses(self) -> list[str]:
         """Get list of valid status values."""
         return VALID_STATUSES.copy()
 
@@ -207,18 +207,18 @@ user_status_service = UserStatusService()
 
 
 # Convenience functions
-async def get_user_status(user_id: str) -> Optional[UserStatus]:
+async def get_user_status(user_id: str) -> UserStatus | None:
     """Get user status via global service."""
     return await user_status_service.get_user_status(user_id)
 
 
 async def update_user_status(
-    user_id: str, status: str, custom_status: Optional[str] = None
+    user_id: str, status: str, custom_status: str | None = None
 ) -> bool:
     """Update user status via global service."""
     return await user_status_service.update_user_status(user_id, status, custom_status)
 
 
-async def get_online_users() -> List[Dict[str, Any]]:
+async def get_online_users() -> list[dict[str, Any]]:
     """Get online users via global service."""
     return await user_status_service.get_online_users()

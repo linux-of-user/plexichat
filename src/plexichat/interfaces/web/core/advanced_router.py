@@ -10,29 +10,27 @@
 # pyright: reportPossiblyUnboundVariable=false
 # pyright: reportIndexIssue=false
 # pyright: reportGeneralTypeIssues=false
-import logging
 from datetime import datetime
-from typing import Any, Dict, FastAPI, HTTPException, List, Optional, Request, status
+import logging
+from typing import Any, FastAPI, HTTPException, Request, status
 
-
-from plexichat.interfaces.web.core.config_manager import get_webui_config
-from plexichat.core.testing import get_self_test_manager
-
-# Use unified authentication system via FastAPI adapter
-from plexichat.core.auth.fastapi_adapter import (
-    get_current_user,
-    get_optional_user,
-    require_admin,
-    get_auth_adapter,
-    rate_limit
-)
-
-import uvicorn
 from fastapi import Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+import uvicorn
+
+# Use unified authentication system via FastAPI adapter
+from plexichat.core.auth.fastapi_adapter import (
+    get_auth_adapter,
+    get_current_user,
+    get_optional_user,
+    rate_limit,
+    require_admin,
+)
+from plexichat.core.testing import get_self_test_manager
+from plexichat.interfaces.web.core.config_manager import get_webui_config
 
 # Import the new CLI router
 from plexichat.interfaces.web.routers.cli import router as cli_router
@@ -182,7 +180,7 @@ class EnhancedWebUIRouter:
                 )
 
         @self.app.post("/auth/logout")
-        async def logout(current_user: Dict[str, Any] = Depends(get_current_user)):
+        async def logout(current_user: dict[str, Any] = Depends(get_current_user)):
             """Logout using unified authentication system."""
             try:
                 # Invalidate user sessions using unified auth system
@@ -203,7 +201,7 @@ class EnhancedWebUIRouter:
         """Setup dashboard routes."""
 
         @self.app.get("/", response_class=HTMLResponse)
-        async def dashboard(request: Request, current_user: Optional[Dict[str, Any]] = Depends(get_optional_user)):
+        async def dashboard(request: Request, current_user: dict[str, Any] | None = Depends(get_optional_user)):
             """Main dashboard."""
             if not self.config.is_feature_enabled("dashboard"):
                 raise HTTPException(status_code=404, detail="Dashboard disabled")
@@ -217,7 +215,7 @@ class EnhancedWebUIRouter:
 
         @self.app.get("/api/dashboard/status")
         @rate_limit("dashboard_status", 60, 60)  # 60 requests per minute
-        async def dashboard_status(current_user: Dict[str, Any] = Depends(get_current_user)):
+        async def dashboard_status(current_user: dict[str, Any] = Depends(get_current_user)):
             """Get dashboard status."""
             return JSONResponse(content={
                 "user": current_user.get("user_id"),
@@ -231,7 +229,7 @@ class EnhancedWebUIRouter:
         """Setup admin routes."""
 
         @self.app.get("/admin", response_class=HTMLResponse)
-        async def admin_panel(request: Request, admin_user: Dict[str, Any] = Depends(require_admin)):
+        async def admin_panel(request: Request, admin_user: dict[str, Any] = Depends(require_admin)):
             """Admin panel."""
             if not self.config.is_feature_enabled("admin_panel", "admin"):
                 raise HTTPException(status_code=403, detail="Admin panel disabled")
@@ -245,7 +243,7 @@ class EnhancedWebUIRouter:
 
         @self.app.get("/api/admin/config")
         @rate_limit("admin_config_get", 30, 60)  # 30 requests per minute
-        async def get_admin_config(admin_user: Dict[str, Any] = Depends(require_admin)):
+        async def get_admin_config(admin_user: dict[str, Any] = Depends(require_admin)):
             """Get admin configuration."""
             if not self.config.is_feature_enabled("system_configuration", "admin"):
                 raise HTTPException(status_code=403, detail="System configuration disabled")
@@ -254,7 +252,7 @@ class EnhancedWebUIRouter:
 
         @self.app.post("/api/admin/config")
         @rate_limit("admin_config_update", 10, 60)  # 10 requests per minute
-        async def update_admin_config(request: Request, admin_user: Dict[str, Any] = Depends(require_admin)):
+        async def update_admin_config(request: Request, admin_user: dict[str, Any] = Depends(require_admin)):
             """Update admin configuration."""
             if not self.config.is_feature_enabled("system_configuration", "admin"):
                 raise HTTPException(status_code=403, detail="System configuration disabled")
@@ -286,7 +284,7 @@ class EnhancedWebUIRouter:
         """Setup self-test routes."""
 
         @self.app.get("/admin/tests", response_class=HTMLResponse)
-        async def self_tests_page(request: Request, admin_user: Dict[str, Any] = Depends(require_admin)):
+        async def self_tests_page(request: Request, admin_user: dict[str, Any] = Depends(require_admin)):
             """Self-tests page."""
             if not self.config.is_feature_enabled("system_monitoring", "admin"):
                 raise HTTPException(status_code=403, detail="System monitoring disabled")
@@ -300,7 +298,7 @@ class EnhancedWebUIRouter:
 
         @self.app.post("/api/admin/tests/run")
         @rate_limit("admin_tests_run", 5, 300)  # 5 requests per 5 minutes
-        async def run_self_tests(request: Request, admin_user: Dict[str, Any] = Depends(require_admin)):
+        async def run_self_tests(request: Request, admin_user: dict[str, Any] = Depends(require_admin)):
             """Run self-tests."""
             if not self.config.is_feature_enabled("system_monitoring", "admin"):
                 raise HTTPException(status_code=403, detail="System monitoring disabled")
@@ -333,7 +331,7 @@ class EnhancedWebUIRouter:
                 )
 
         @self.app.get("/api/admin/tests/results/{suite_id}")
-        async def get_test_results(suite_id: str, admin_user: Dict[str, Any] = Depends(require_admin)):
+        async def get_test_results(suite_id: str, admin_user: dict[str, Any] = Depends(require_admin)):
             """Get test results."""
             results = self.self_test_manager.get_test_results(suite_id)
             if not results:
@@ -345,7 +343,7 @@ class EnhancedWebUIRouter:
         """Setup feature management routes."""
 
         @self.app.get("/api/admin/features")
-        async def get_features(admin_user: Dict[str, Any] = Depends(require_admin)):
+        async def get_features(admin_user: dict[str, Any] = Depends(require_admin)):
             """Get feature configuration."""
             return JSONResponse(content={
                 "enabled_features": self.config.feature_toggle_config.enabled_features,
@@ -356,7 +354,7 @@ class EnhancedWebUIRouter:
 
         @self.app.post("/api/admin/features/toggle")
         @rate_limit("admin_feature_toggle", 20, 60)  # 20 requests per minute
-        async def toggle_feature(request: Request, admin_user: Dict[str, Any] = Depends(require_admin)):
+        async def toggle_feature(request: Request, admin_user: dict[str, Any] = Depends(require_admin)):
             """Toggle a feature."""
             if not self.config.is_feature_enabled("system_configuration", "admin"):
                 raise HTTPException(status_code=403, detail="System configuration disabled")
@@ -382,25 +380,25 @@ class EnhancedWebUIRouter:
 
         @self.app.get("/api/proxy/{path:path}")
         @rate_limit("api_proxy", 100, 60)  # 100 requests per minute
-        async def api_proxy(path: str, request: Request, current_user: Dict[str, Any] = Depends(get_current_user)):
+        async def api_proxy(path: str, request: Request, current_user: dict[str, Any] = Depends(get_current_user)):
             """Proxy API requests."""
             # Proxy to internal API
             # This is a simplified implementation
             return JSONResponse(content={
-                "message": f"API proxy for {path}", 
+                "message": f"API proxy for {path}",
                 "user": current_user.get("user_id"),
                 "permissions": list(current_user.get("permissions", []))
             })
 
-    def _get_enabled_features(self) -> List[str]:
+    def _get_enabled_features(self) -> list[str]:
         """Get list of enabled features."""
         return self.config.feature_toggle_config.enabled_features
 
-    def _get_admin_features(self) -> List[str]:
+    def _get_admin_features(self) -> list[str]:
         """Get list of admin features."""
         return self.config.feature_toggle_config.admin_only_features
 
-    async def _get_system_status(self) -> Dict[str, Any]:
+    async def _get_system_status(self) -> dict[str, Any]:
         """Get system status."""
         return {
             "auth_system": "unified",
@@ -409,7 +407,7 @@ class EnhancedWebUIRouter:
             "timestamp": datetime.utcnow().isoformat()
         }
 
-    def _get_system_config(self) -> Dict[str, Any]:
+    def _get_system_config(self) -> dict[str, Any]:
         """Get system configuration."""
         return {
             "ports": {

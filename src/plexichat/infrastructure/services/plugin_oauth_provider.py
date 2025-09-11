@@ -5,14 +5,14 @@
 # pyright: reportReturnType=false
 import asyncio
 import base64
+from dataclasses import dataclass, field
+from datetime import UTC, datetime, timedelta
+from enum import Enum
 import hashlib
 import json
-import secrets
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
-from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+import secrets
+from typing import Any
 
 import aiofiles
 
@@ -54,11 +54,11 @@ class OAuthClient:
     client_id: str
     client_secret: str
     client_name: str
-    redirect_uris: List[str]
-    scopes: List[OAuthScope]
-    grant_types: List[GrantType]
+    redirect_uris: list[str]
+    scopes: list[OAuthScope]
+    grant_types: list[GrantType]
     developer_id: str
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     is_active: bool = True
     is_trusted: bool = False
 
@@ -69,11 +69,11 @@ class AuthorizationCode:
     code: str
     client_id: str
     user_id: str
-    scopes: List[OAuthScope]
+    scopes: list[OAuthScope]
     redirect_uri: str
     expires_at: datetime
-    code_challenge: Optional[str] = None
-    code_challenge_method: Optional[str] = None
+    code_challenge: str | None = None
+    code_challenge_method: str | None = None
 
 
 @dataclass
@@ -82,7 +82,7 @@ class AccessToken:
     token: str
     client_id: str
     user_id: str
-    scopes: List[OAuthScope]
+    scopes: list[OAuthScope]
     expires_at: datetime
     token_type: str = "Bearer"
 
@@ -93,13 +93,13 @@ class RefreshToken:
     token: str
     client_id: str
     user_id: str
-    scopes: List[OAuthScope]
+    scopes: list[OAuthScope]
     expires_at: datetime
 
 
 class PluginOAuthProvider:
     """OAuth 2.0 provider for plugin marketplace."""
-    def __init__(self, config: Dict[str, Any] = None):
+    def __init__(self, config: dict[str, Any] = None):
         self.config = config or self._load_default_config()
         self.data_dir = Path(self.config.get("data_dir", "data/oauth"))
 
@@ -107,10 +107,10 @@ class PluginOAuthProvider:
         self.data_dir.mkdir(parents=True, exist_ok=True)
 
         # Storage
-        self.clients: Dict[str, OAuthClient] = {}
-        self.authorization_codes: Dict[str, AuthorizationCode] = {}
-        self.access_tokens: Dict[str, AccessToken] = {}
-        self.refresh_tokens: Dict[str, RefreshToken] = {}
+        self.clients: dict[str, OAuthClient] = {}
+        self.authorization_codes: dict[str, AuthorizationCode] = {}
+        self.access_tokens: dict[str, AccessToken] = {}
+        self.refresh_tokens: dict[str, RefreshToken] = {}
 
         # JWT settings
         self.jwt_secret = self.config.get("jwt_secret", secrets.token_urlsafe(32))
@@ -118,7 +118,7 @@ class PluginOAuthProvider:
 
         logger.info("Plugin OAuth Provider initialized")
 
-    def _load_default_config(self) -> Dict[str, Any]:
+    def _load_default_config(self) -> dict[str, Any]:
         """Load default OAuth configuration."""
         return {
             "data_dir": "data/oauth",
@@ -153,9 +153,9 @@ class PluginOAuthProvider:
             logger.error(f"Failed to initialize OAuth Provider: {e}")
             return False
 
-    async def register_client(self, client_name: str, redirect_uris: List[str],
-                            scopes: List[str], developer_id: str,
-                            grant_types: Optional[List[str]] = None) -> Dict[str, Any]:
+    async def register_client(self, client_name: str, redirect_uris: list[str],
+                            scopes: list[str], developer_id: str,
+                            grant_types: list[str] | None = None) -> dict[str, Any]:
         """Register a new OAuth client."""
         try:
             # Validate scopes
@@ -206,9 +206,9 @@ class PluginOAuthProvider:
             logger.error(f"Failed to register OAuth client: {e}")
             return {"success": False, "error": str(e)}
 
-    async def authorize(self, client_id: str, redirect_uri: str, scopes: List[str],
-                    user_id: str, state: Optional[str] = None, code_challenge: Optional[str] = None,
-                    code_challenge_method: Optional[str] = None) -> Dict[str, Any]:
+    async def authorize(self, client_id: str, redirect_uri: str, scopes: list[str],
+                    user_id: str, state: str | None = None, code_challenge: str | None = None,
+                    code_challenge_method: str | None = None) -> dict[str, Any]:
         """Generate authorization code for OAuth flow."""
         try:
             # Validate client
@@ -241,7 +241,7 @@ class PluginOAuthProvider:
 
             # Generate authorization code
             auth_code = secrets.token_urlsafe(32)
-            expires_at = datetime.now(timezone.utc) + timedelta(seconds=self.config["authorization_code_ttl"])
+            expires_at = datetime.now(UTC) + timedelta(seconds=self.config["authorization_code_ttl"])
 
             authorization = AuthorizationCode(
                 code=auth_code,
@@ -277,7 +277,7 @@ class PluginOAuthProvider:
 
     async def exchange_code_for_token(self, client_id: str, client_secret: str,
                                     code: str, redirect_uri: str,
-                                    code_verifier: Optional[str] = None) -> Dict[str, Any]:
+                                    code_verifier: str | None = None) -> dict[str, Any]:
         """Exchange authorization code for access token."""
         try:
             # Validate client
@@ -301,7 +301,7 @@ class PluginOAuthProvider:
             if authorization.redirect_uri != redirect_uri:
                 return {"success": False, "error": "Redirect URI mismatch"}
 
-            if datetime.now(timezone.utc) > authorization.expires_at:
+            if datetime.now(UTC) > authorization.expires_at:
                 del self.authorization_codes[code]
                 return {"success": False, "error": "Authorization code expired"}
 
@@ -336,7 +336,7 @@ class PluginOAuthProvider:
                 "success": True,
                 "access_token": access_token.token,
                 "token_type": access_token.token_type,
-                "expires_in": int((access_token.expires_at - datetime.now(timezone.utc)).total_seconds()),
+                "expires_in": int((access_token.expires_at - datetime.now(UTC)).total_seconds()),
                 "refresh_token": refresh_token.token,
                 "scope": " ".join([scope.value for scope in authorization.scopes])
             }
@@ -346,7 +346,7 @@ class PluginOAuthProvider:
             return {"success": False, "error": str(e)}
 
     async def refresh_access_token(self, client_id: str, client_secret: str,
-                                refresh_token: str) -> Dict[str, Any]:
+                                refresh_token: str) -> dict[str, Any]:
         """Refresh an access token using refresh token."""
         try:
             # Validate client
@@ -367,7 +367,7 @@ class PluginOAuthProvider:
             if refresh_token_obj.client_id != client_id:
                 return {"success": False, "error": "Refresh token mismatch"}
 
-            if datetime.now(timezone.utc) > refresh_token_obj.expires_at:
+            if datetime.now(UTC) > refresh_token_obj.expires_at:
                 del self.refresh_tokens[refresh_token]
                 return {"success": False, "error": "Refresh token expired"}
 
@@ -380,7 +380,7 @@ class PluginOAuthProvider:
                 "success": True,
                 "access_token": access_token.token,
                 "token_type": access_token.token_type,
-                "expires_in": int((access_token.expires_at - datetime.now(timezone.utc)).total_seconds()),
+                "expires_in": int((access_token.expires_at - datetime.now(UTC)).total_seconds()),
                 "scope": " ".join([scope.value for scope in refresh_token_obj.scopes])
             }
 
@@ -388,7 +388,7 @@ class PluginOAuthProvider:
             logger.error(f"Token refresh failed: {e}")
             return {"success": False, "error": str(e)}
 
-    async def validate_token(self, token: str) -> Optional[Dict[str, Any]]:
+    async def validate_token(self, token: str) -> dict[str, Any] | None:
         """Validate an access token and return token info."""
         try:
             if token not in self.access_tokens:
@@ -396,7 +396,7 @@ class PluginOAuthProvider:
 
             access_token = self.access_tokens[token]
 
-            if datetime.now(timezone.utc) > access_token.expires_at:
+            if datetime.now(UTC) > access_token.expires_at:
                 del self.access_tokens[token]
                 return None
 
@@ -428,10 +428,10 @@ class PluginOAuthProvider:
             return False
 
     async def _generate_access_token(self, client_id: str, user_id: str,
-                                scopes: List[OAuthScope]) -> AccessToken:
+                                scopes: list[OAuthScope]) -> AccessToken:
         """Generate a new access token."""
         token = secrets.token_urlsafe(32)
-        expires_at = datetime.now(timezone.utc) + timedelta(seconds=self.config["access_token_ttl"])
+        expires_at = datetime.now(UTC) + timedelta(seconds=self.config["access_token_ttl"])
 
         access_token = AccessToken(
             token=token,
@@ -445,10 +445,10 @@ class PluginOAuthProvider:
         return access_token
 
     async def _generate_refresh_token(self, client_id: str, user_id: str,
-                                    scopes: List[OAuthScope]) -> RefreshToken:
+                                    scopes: list[OAuthScope]) -> RefreshToken:
         """Generate a new refresh token."""
         token = secrets.token_urlsafe(32)
-        expires_at = datetime.now(timezone.utc) + timedelta(seconds=self.config["refresh_token_ttl"])
+        expires_at = datetime.now(UTC) + timedelta(seconds=self.config["refresh_token_ttl"])
 
         refresh_token = RefreshToken(
             token=token,
@@ -481,7 +481,7 @@ class PluginOAuthProvider:
         """Periodically clean up expired tokens."""
         while True:
             try:
-                now = datetime.now(timezone.utc)
+                now = datetime.now(UTC)
 
                 # Clean up expired authorization codes
                 expired_codes = [
@@ -523,7 +523,7 @@ class PluginOAuthProvider:
             # Load clients
             clients_file = self.data_dir / "clients.json"
             if clients_file.exists():
-                async with aiofiles.open(clients_file, 'r') as f:
+                async with aiofiles.open(clients_file) as f:
                     clients_data = json.loads(await f.read())
 
                 for client_data in clients_data:
@@ -549,7 +549,7 @@ class PluginOAuthProvider:
         except Exception as e:
             logger.error(f"Failed to save OAuth data: {e}")
 
-    def _client_to_dict(self, client: OAuthClient) -> Dict[str, Any]:
+    def _client_to_dict(self, client: OAuthClient) -> dict[str, Any]:
         """Convert client to dictionary."""
         return {
             "client_id": client.client_id,
@@ -564,7 +564,7 @@ class PluginOAuthProvider:
             "is_trusted": client.is_trusted
         }
 
-    def _dict_to_client(self, data: Dict[str, Any]) -> OAuthClient:
+    def _dict_to_client(self, data: dict[str, Any]) -> OAuthClient:
         """Convert dictionary to client."""
         return OAuthClient(
             client_id=data["client_id"],
@@ -581,7 +581,7 @@ class PluginOAuthProvider:
 
 
 # Global service instance
-_oauth_provider: Optional[PluginOAuthProvider] = None
+_oauth_provider: PluginOAuthProvider | None = None
 
 
 def get_plugin_oauth_provider() -> PluginOAuthProvider:

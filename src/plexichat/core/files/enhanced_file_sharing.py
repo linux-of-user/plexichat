@@ -9,12 +9,11 @@ Provides advanced file sharing features including:
 - Batch operations
 """
 
-import json
-import logging
 from dataclasses import dataclass, field
 from datetime import datetime
+import json
+import logging
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
 
 try:
     from PIL import Image
@@ -40,7 +39,7 @@ class SharingPermissions:
     """File sharing permissions structure."""
 
     public: bool = False
-    shared_with: List[int] = field(default_factory=list)
+    shared_with: list[int] = field(default_factory=list)
     can_download: bool = True
     can_share: bool = True
 
@@ -55,7 +54,7 @@ class EnhancedFileSharing:
         self,
         file_id: str,
         user_id: int,
-        shared_with: List[int],
+        shared_with: list[int],
         can_download: bool = True,
         can_share: bool = True,
     ) -> bool:
@@ -120,7 +119,7 @@ class EnhancedFileSharing:
         file_id: str,
         metadata: FileMetadata,
         sharer_id: int,
-        shared_with: List[int],
+        shared_with: list[int],
     ):
         """Send notifications when files are shared."""
         try:
@@ -135,7 +134,7 @@ class EnhancedFileSharing:
                     await notification_manager.create_notification(
                         user_id=user_id,
                         notification_type=notification_manager.NotificationType.INFO,
-                        title=f"File shared with you",
+                        title="File shared with you",
                         message=f"{sharer_name} shared '{metadata.original_filename}' with you",
                         priority=notification_manager.NotificationPriority.NORMAL,
                         data={
@@ -157,7 +156,7 @@ class EnhancedFileSharing:
 
     async def create_file_version(
         self, file_id: str, user_id: int, new_file_data: bytes, filename: str
-    ) -> Optional[FileMetadata]:
+    ) -> FileMetadata | None:
         """Create a new version of an existing file."""
         try:
             # Get original file metadata
@@ -208,7 +207,7 @@ class EnhancedFileSharing:
             logger.error(f"Error creating file version: {e}")
             return None
 
-    async def get_file_versions(self, file_id: str) -> List[FileMetadata]:
+    async def get_file_versions(self, file_id: str) -> list[FileMetadata]:
         """Get all versions of a file."""
         try:
             if not self.file_manager.db_manager:
@@ -267,15 +266,15 @@ class EnhancedFileSharing:
             return []
 
     async def batch_delete_files(
-        self, file_ids: List[str], user_id: int
-    ) -> Dict[str, bool]:
+        self, file_ids: list[str], user_id: int
+    ) -> dict[str, bool]:
         """Delete multiple files in batch."""
         results = {}
         for file_id in file_ids:
             results[file_id] = await self.file_manager.delete_file(file_id, user_id)
         return results
 
-    async def check_file_access(self, file_id: str, user_id: int) -> Tuple[bool, str]:
+    async def check_file_access(self, file_id: str, user_id: int) -> tuple[bool, str]:
         """Check if user has access to a file."""
         try:
             metadata = await self.file_manager.get_file_metadata(file_id)
@@ -301,7 +300,7 @@ class EnhancedFileSharing:
             logger.error(f"Error checking file access: {e}")
             return False, "Error checking access"
 
-    def _generate_preview(self, file_path: Path, content_type: str) -> Optional[Path]:
+    def _generate_preview(self, file_path: Path, content_type: str) -> Path | None:
         """Generate preview for documents and images."""
         try:
             if content_type.startswith("image/"):
@@ -336,7 +335,7 @@ class EnhancedFileSharing:
 
     async def get_user_files(
         self, user_id: int, include_shared: bool = True
-    ) -> List[FileMetadata]:
+    ) -> list[FileMetadata]:
         """Get all files for a user (owned and shared)."""
         try:
             if not self.file_manager.db_manager:
@@ -399,7 +398,7 @@ enhanced_file_sharing = EnhancedFileSharing(file_manager)
 
 # Convenience functions
 async def share_file(
-    file_id: str, user_id: int, shared_with: List[int], **kwargs
+    file_id: str, user_id: int, shared_with: list[int], **kwargs
 ) -> bool:
     """Share file using enhanced file sharing."""
     return await enhanced_file_sharing.share_file(
@@ -409,30 +408,30 @@ async def share_file(
 
 async def create_file_version(
     file_id: str, user_id: int, new_file_data: bytes, filename: str
-) -> Optional[FileMetadata]:
+) -> FileMetadata | None:
     """Create file version using enhanced file sharing."""
     return await enhanced_file_sharing.create_file_version(
         file_id, user_id, new_file_data, filename
     )
 
 
-async def get_file_versions(file_id: str) -> List[FileMetadata]:
+async def get_file_versions(file_id: str) -> list[FileMetadata]:
     """Get file versions using enhanced file sharing."""
     return await enhanced_file_sharing.get_file_versions(file_id)
 
 
-async def batch_delete_files(file_ids: List[str], user_id: int) -> Dict[str, bool]:
+async def batch_delete_files(file_ids: list[str], user_id: int) -> dict[str, bool]:
     """Batch delete files using enhanced file sharing."""
     return await enhanced_file_sharing.batch_delete_files(file_ids, user_id)
 
 
-async def check_file_access(file_id: str, user_id: int) -> Tuple[bool, str]:
+async def check_file_access(file_id: str, user_id: int) -> tuple[bool, str]:
     """Check file access using enhanced file sharing."""
     return await enhanced_file_sharing.check_file_access(file_id, user_id)
 
 
 async def get_user_files(
     user_id: int, include_shared: bool = True
-) -> List[FileMetadata]:
+) -> list[FileMetadata]:
     """Get user files using enhanced file sharing."""
     return await enhanced_file_sharing.get_user_files(user_id, include_shared)

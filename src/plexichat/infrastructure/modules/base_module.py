@@ -16,24 +16,21 @@ to maintain backward compatibility with existing imports.
 
 # Re-export everything from interfaces to maintain compatibility
 from plexichat.infrastructure.modules.interfaces import (
-    # Enums and types
-    ModuleCapability,
-    ModulePriority,
-    ModuleState,
-
-    # Data classes
-    ModulePermissions,
-    ModuleMetrics,
-    ModuleConfiguration,
-
-    # Interfaces
-    IModuleLifecycle,
-    IModuleConfiguration,
-    IModuleAPI,
-    IModuleSecurity,
-
     # Base class
     BaseModule,
+    IModuleAPI,
+    IModuleConfiguration,
+    # Interfaces
+    IModuleLifecycle,
+    IModuleSecurity,
+    # Enums and types
+    ModuleCapability,
+    ModuleConfiguration,
+    ModuleMetrics,
+    # Data classes
+    ModulePermissions,
+    ModulePriority,
+    ModuleState,
 )
 
 # Export all the main classes and interfaces

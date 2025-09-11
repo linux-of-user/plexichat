@@ -5,13 +5,14 @@ Event management with threading and performance optimization.
 """
 
 import asyncio
-import json
-import logging
-import time
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional
+import json
+import logging
+import time
+from typing import Any
 from uuid import uuid4
 
 try:
@@ -67,8 +68,8 @@ class Event:
     source: str
     timestamp: datetime
     priority: EventPriority
-    data: Dict[str, Any]
-    metadata: Dict[str, Any]
+    data: dict[str, Any]
+    metadata: dict[str, Any]
     processed: bool = False
 
 
@@ -81,7 +82,7 @@ class EventHandler:
     handler_func: Callable
     priority: int
     async_handler: bool
-    filter_func: Optional[Callable] = None
+    filter_func: Callable | None = None
 
 
 class EventManager:
@@ -94,12 +95,12 @@ class EventManager:
 
         # Event storage
         self.event_queue = asyncio.PriorityQueue()
-        self.handlers: Dict[str, List[EventHandler]] = {}
-        self.global_handlers: List[EventHandler] = []
+        self.handlers: dict[str, list[EventHandler]] = {}
+        self.global_handlers: list[EventHandler] = []
 
         # Processing state
         self.processing = False
-        self.processor_tasks: List[asyncio.Task] = []
+        self.processor_tasks: list[asyncio.Task] = []
         self.max_processors = 5
 
         # Statistics
@@ -149,7 +150,7 @@ class EventManager:
                     priority, event = await asyncio.wait_for(
                         self.event_queue.get(), timeout=1.0
                     )
-                except asyncio.TimeoutError:
+                except TimeoutError:
                     continue
 
                 # Process event
@@ -265,9 +266,9 @@ class EventManager:
         self,
         event_type: str,
         source: str,
-        data: Dict[str, Any],
+        data: dict[str, Any],
         priority: EventPriority = EventPriority.NORMAL,
-        metadata: Optional[Dict[str, Any]] = None,
+        metadata: dict[str, Any] | None = None,
     ) -> str:
         """Emit an event."""
         try:
@@ -309,8 +310,8 @@ class EventManager:
         event_type: str,
         handler_func: Callable,
         priority: int = 100,
-        handler_id: Optional[str] = None,
-        filter_func: Optional[Callable] = None,
+        handler_id: str | None = None,
+        filter_func: Callable | None = None,
     ) -> str:
         """Register event handler."""
         try:
@@ -370,7 +371,7 @@ class EventManager:
             logger.error(f"Error unregistering handler: {e}")
             return False
 
-    async def _store_event(self, event: Event, results: List[Any]):
+    async def _store_event(self, event: Event, results: list[Any]):
         """Store event in database."""
         try:
             if self.db_manager:
@@ -400,10 +401,10 @@ class EventManager:
 
     async def get_events(
         self,
-        event_type: Optional[str] = None,
-        source: Optional[str] = None,
+        event_type: str | None = None,
+        source: str | None = None,
         limit: int = 100,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Get events from database."""
         try:
             if not self.db_manager or not execute_query:
@@ -448,7 +449,7 @@ class EventManager:
             logger.error(f"Error getting events: {e}")
             return []
 
-    def _format_timestamp(self, timestamp_value: Any) -> Optional[str]:
+    def _format_timestamp(self, timestamp_value: Any) -> str | None:
         """Format timestamp value safely."""
         if not timestamp_value:
             return None
@@ -458,7 +459,7 @@ class EventManager:
 
         return str(timestamp_value)
 
-    def get_handlers(self) -> Dict[str, List[Dict[str, Any]]]:
+    def get_handlers(self) -> dict[str, list[dict[str, Any]]]:
         """Get all registered handlers."""
         try:
             result = {}
@@ -497,7 +498,7 @@ class EventManager:
         """Get current queue size."""
         return self.event_queue.qsize()
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get event manager statistics."""
         avg_processing_time = (
             self.total_processing_time / self.events_processed
@@ -526,7 +527,7 @@ event_manager = EventManager()
 
 # Convenience functions
 async def emit_event(
-    event_type: str, source: str, data: Dict[str, Any], **kwargs
+    event_type: str, source: str, data: dict[str, Any], **kwargs
 ) -> str:
     """Emit event using global event manager."""
     return await event_manager.emit_event(event_type, source, data, **kwargs)
@@ -543,15 +544,15 @@ def unregister_event_handler(handler_id: str) -> bool:
 
 
 async def get_events(
-    event_type: Optional[str] = None, source: Optional[str] = None, limit: int = 100
-) -> List[Dict[str, Any]]:
+    event_type: str | None = None, source: str | None = None, limit: int = 100
+) -> list[dict[str, Any]]:
     """Get events using global event manager."""
     return await event_manager.get_events(event_type, source, limit)
 
 
 # Decorators
 def event_handler(
-    event_type: str, priority: int = 100, filter_func: Optional[Callable] = None
+    event_type: str, priority: int = 100, filter_func: Callable | None = None
 ):
     """Decorator to register event handler."""
 
@@ -565,7 +566,7 @@ def event_handler(
     return decorator
 
 
-def global_event_handler(priority: int = 100, filter_func: Optional[Callable] = None):
+def global_event_handler(priority: int = 100, filter_func: Callable | None = None):
     """Decorator to register global event handler."""
 
     def decorator(func):

@@ -4,6 +4,9 @@ Provides a unified interface for authentication operations that delegates to the
 Includes caching layer for improved performance and advanced security features.
 """
 
+from dataclasses import dataclass, field
+from datetime import UTC, datetime, timedelta
+from enum import Enum
 import hashlib
 import hmac
 import ipaddress
@@ -11,10 +14,7 @@ import json
 import re
 import secrets
 import time
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
-from enum import Enum
-from typing import Any, Dict, List, Optional, Set, Tuple, Union
+from typing import Any
 from urllib.parse import urlencode
 
 from plexichat.core.database.manager import database_manager
@@ -108,12 +108,12 @@ class DeviceInfo:
 
     device_id: str
     device_type: DeviceType
-    os: Optional[str] = None
-    browser: Optional[str] = None
-    version: Optional[str] = None
+    os: str | None = None
+    browser: str | None = None
+    version: str | None = None
     is_trusted: bool = False
-    first_seen: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    last_seen: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    first_seen: datetime = field(default_factory=lambda: datetime.now(UTC))
+    last_seen: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass
@@ -123,9 +123,9 @@ class MFAChallenge:
     challenge_id: str
     user_id: str
     method: MFAMethod
-    code: Optional[str] = None
+    code: str | None = None
     expires_at: datetime = field(
-        default_factory=lambda: datetime.now(timezone.utc) + timedelta(minutes=5)
+        default_factory=lambda: datetime.now(UTC) + timedelta(minutes=5)
     )
     attempts: int = 0
     max_attempts: int = 3
@@ -152,10 +152,10 @@ class BruteForceProtection:
 
     ip_address: str
     failed_attempts: int = 0
-    first_attempt: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    last_attempt: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    first_attempt: datetime = field(default_factory=lambda: datetime.now(UTC))
+    last_attempt: datetime = field(default_factory=lambda: datetime.now(UTC))
     is_blocked: bool = False
-    blocked_until: Optional[datetime] = None
+    blocked_until: datetime | None = None
 
 
 @dataclass
@@ -185,17 +185,17 @@ class SessionInfo:
     created_at: datetime
     last_accessed: datetime
     expires_at: datetime
-    permissions: Set[str] = field(default_factory=set)
-    roles: Set[Role] = field(default_factory=set)
-    ip_address: Optional[str] = None
-    user_agent: Optional[str] = None
-    device_info: Optional[DeviceInfo] = None
+    permissions: set[str] = field(default_factory=set)
+    roles: set[Role] = field(default_factory=set)
+    ip_address: str | None = None
+    user_agent: str | None = None
+    device_info: DeviceInfo | None = None
     auth_provider: AuthProvider = AuthProvider.LOCAL
     mfa_verified: bool = False
     is_active: bool = True
     is_elevated: bool = False
-    elevation_expires_at: Optional[datetime] = None
-    location: Optional[str] = None
+    elevation_expires_at: datetime | None = None
+    location: str | None = None
     risk_score: float = 0.0
 
 
@@ -204,19 +204,19 @@ class AuthResult:
     """Enhanced result of authentication operation."""
 
     success: bool
-    user_id: Optional[str] = None
-    session_id: Optional[str] = None
-    token: Optional[str] = None
-    refresh_token: Optional[str] = None
-    permissions: Set[str] = field(default_factory=set)
-    roles: Set[Role] = field(default_factory=set)
-    error_message: Optional[str] = None
-    error_code: Optional[str] = None
-    security_context: Optional[SecurityContext] = None
+    user_id: str | None = None
+    session_id: str | None = None
+    token: str | None = None
+    refresh_token: str | None = None
+    permissions: set[str] = field(default_factory=set)
+    roles: set[Role] = field(default_factory=set)
+    error_message: str | None = None
+    error_code: str | None = None
+    security_context: SecurityContext | None = None
     requires_mfa: bool = False
-    mfa_challenge: Optional[MFAChallenge] = None
+    mfa_challenge: MFAChallenge | None = None
     device_trusted: bool = False
-    risk_assessment: Dict[str, Any] = field(default_factory=dict)
+    risk_assessment: dict[str, Any] = field(default_factory=dict)
     auth_provider: AuthProvider = AuthProvider.LOCAL
 
 
@@ -235,7 +235,7 @@ class UnifiedAuthManager:
     - Risk-based authentication
     """
 
-    def __init__(self, security_system: Optional[SecuritySystem] = None):
+    def __init__(self, security_system: SecuritySystem | None = None):
         # Use provided security system or get global instance
         self.security_system = security_system or get_security_system()
 
@@ -274,10 +274,10 @@ class UnifiedAuthManager:
         self.elevated_session_timeout = timedelta(minutes=15)
 
         # OAuth2 providers
-        self.oauth2_providers: Dict[AuthProvider, OAuth2Config] = {}
+        self.oauth2_providers: dict[AuthProvider, OAuth2Config] = {}
 
         # Brute force protection - keep in memory for performance
-        self.brute_force_tracking: Dict[str, BruteForceProtection] = {}
+        self.brute_force_tracking: dict[str, BruteForceProtection] = {}
         self.max_failed_attempts = 5
         self.lockout_duration = timedelta(minutes=30)
 
@@ -285,7 +285,7 @@ class UnifiedAuthManager:
         self.password_policy = PasswordPolicy()
 
         # Role-based permissions mapping
-        self.role_permissions: Dict[Role, Set[str]] = {
+        self.role_permissions: dict[Role, set[str]] = {
             Role.GUEST: set(),
             Role.USER: {"read", "write_own"},
             Role.MODERATOR: {"read", "write_own", "moderate", "delete_others"},
@@ -355,7 +355,7 @@ class UnifiedAuthManager:
         )
 
     def _record_metric(
-        self, metric_name: str, value: Union[int, float] = 1, metric_type: str = "count"
+        self, metric_name: str, value: int | float = 1, metric_type: str = "count"
     ) -> None:
         """Record performance metric with enhanced error handling."""
         try:
@@ -381,7 +381,7 @@ class UnifiedAuthManager:
         device_string = f"{user_agent}:{ip_address}"
         return hashlib.sha256(device_string.encode()).hexdigest()[:16]
 
-    def _parse_user_agent(self, user_agent: Optional[str]) -> DeviceInfo:
+    def _parse_user_agent(self, user_agent: str | None) -> DeviceInfo:
         """Parse user agent to extract device information."""
         if not user_agent:
             return DeviceInfo(
@@ -416,17 +416,13 @@ class UnifiedAuthManager:
         elif any(
             desktop in user_agent_lower
             for desktop in ["windows", "macintosh", "linux", "ubuntu", "fedora"]
+        ) or any(
+            browser in user_agent_lower
+            for browser in ["chrome", "firefox", "safari", "edge", "opera"]
         ):
             device_type = DeviceType.DESKTOP
         else:
-            # Check for browser indicators as fallback
-            if any(
-                browser in user_agent_lower
-                for browser in ["chrome", "firefox", "safari", "edge", "opera"]
-            ):
-                device_type = DeviceType.DESKTOP
-            else:
-                device_type = DeviceType.UNKNOWN
+            device_type = DeviceType.UNKNOWN
 
         # Extract OS and browser info
         os_info = None
@@ -467,7 +463,7 @@ class UnifiedAuthManager:
 
     def _is_session_expired(self, session: SessionInfo) -> bool:
         """Check if a session has expired."""
-        current_time = datetime.now(timezone.utc)
+        current_time = datetime.now(UTC)
 
         # Check regular expiration
         if current_time > session.expires_at:
@@ -489,7 +485,7 @@ class UnifiedAuthManager:
 
     async def _cleanup_expired_sessions(self) -> None:
         """Remove expired sessions and MFA challenges from database."""
-        current_time = datetime.now(timezone.utc)
+        current_time = datetime.now(UTC)
         current_time_str = current_time.isoformat()
 
         try:
@@ -580,7 +576,7 @@ class UnifiedAuthManager:
                     risk_score += min(bf_protection.failed_attempts * 5, 25.0)
 
             # Time-based risk (unusual hours)
-            current_hour = datetime.now(timezone.utc).hour
+            current_hour = datetime.now(UTC).hour
             if current_hour < 6 or current_hour > 22:  # Late night/early morning
                 risk_score += 10.0
 
@@ -592,7 +588,7 @@ class UnifiedAuthManager:
 
         return min(risk_score, 100.0)
 
-    async def _get_user_known_ips(self, user_id: str) -> Set[str]:
+    async def _get_user_known_ips(self, user_id: str) -> set[str]:
         """Get known IP addresses for a user from database."""
         try:
             async with self.db_manager.get_session() as session:
@@ -647,13 +643,13 @@ class UnifiedAuthManager:
 
     def _check_brute_force_protection(
         self, ip_address: str
-    ) -> Tuple[bool, Optional[str]]:
+    ) -> tuple[bool, str | None]:
         """Check if IP is blocked due to brute force attempts."""
         if ip_address not in self.brute_force_tracking:
             return True, None
 
         protection = self.brute_force_tracking[ip_address]
-        current_time = datetime.now(timezone.utc)
+        current_time = datetime.now(UTC)
 
         # Check if still blocked
         if protection.is_blocked and protection.blocked_until:
@@ -679,7 +675,7 @@ class UnifiedAuthManager:
 
     def _record_failed_attempt(self, ip_address: str) -> None:
         """Record a failed authentication attempt for brute force protection."""
-        current_time = datetime.now(timezone.utc)
+        current_time = datetime.now(UTC)
 
         if ip_address not in self.brute_force_tracking:
             self.brute_force_tracking[ip_address] = BruteForceProtection(
@@ -712,7 +708,7 @@ class UnifiedAuthManager:
 
     def _validate_password_policy(
         self, password: str, user_id: str
-    ) -> Tuple[bool, List[str]]:
+    ) -> tuple[bool, list[str]]:
         """Validate password against policy."""
         issues = []
 
@@ -810,7 +806,7 @@ class UnifiedAuthManager:
 
         return max(0, min(score, 100))
 
-    def _get_user_roles(self, user_id: str) -> Set[Role]:
+    def _get_user_roles(self, user_id: str) -> set[Role]:
         """Get user roles from credentials."""
         try:
             credentials = self.security_system.user_credentials.get(user_id)
@@ -835,7 +831,7 @@ class UnifiedAuthManager:
             logger.error(f"Error getting user roles: {e}", user_id=user_id)
             return {Role.GUEST}
 
-    def _expand_role_permissions(self, roles: Set[Union[Role, str]]) -> Set[str]:
+    def _expand_role_permissions(self, roles: set[Role | str]) -> set[str]:
         """Expand roles to their permissions."""
         permissions = set()
 
@@ -860,7 +856,7 @@ class UnifiedAuthManager:
 
     async def create_mfa_challenge(
         self, user_id: str, method: MFAMethod
-    ) -> Optional[MFAChallenge]:
+    ) -> MFAChallenge | None:
         """Create a multi-factor authentication challenge."""
         try:
             if not self.mfa_store:
@@ -956,7 +952,7 @@ class UnifiedAuthManager:
                     return False
 
                 # Check if challenge expired
-                if datetime.now(timezone.utc) > datetime.fromisoformat(
+                if datetime.now(UTC) > datetime.fromisoformat(
                     challenge_result["expires_at"]
                 ):
                     await db_session.execute(
@@ -1077,8 +1073,8 @@ class UnifiedAuthManager:
             logger.error(f"Error configuring OAuth2 provider {provider.value}: {e}")
 
     def get_oauth2_authorization_url(
-        self, provider: AuthProvider, state: Optional[str] = None
-    ) -> Optional[str]:
+        self, provider: AuthProvider, state: str | None = None
+    ) -> str | None:
         """Get OAuth2 authorization URL."""
         try:
             config = self.oauth2_providers.get(provider)
@@ -1145,7 +1141,7 @@ class UnifiedAuthManager:
 
             # Create session in database
             session_id = self._generate_session_id()
-            now = datetime.now(timezone.utc)
+            now = datetime.now(UTC)
             now_str = now.isoformat()
             expires_at_str = (now + self.session_timeout).isoformat()
 
@@ -1222,7 +1218,7 @@ class UnifiedAuthManager:
             logger.error(f"OAuth2 authentication error: {e}")
             return AuthResult(
                 success=False,
-                error_message=f"OAuth2 authentication failed: {str(e)}",
+                error_message=f"OAuth2 authentication failed: {e!s}",
                 error_code="OAUTH2_ERROR",
             )
 
@@ -1230,9 +1226,9 @@ class UnifiedAuthManager:
         self,
         username: str,
         password: str,
-        ip_address: Optional[str] = None,
-        user_agent: Optional[str] = None,
-        mfa_code: Optional[str] = None,
+        ip_address: str | None = None,
+        user_agent: str | None = None,
+        mfa_code: str | None = None,
         device_trust: bool = False,
     ) -> AuthResult:
         """
@@ -1286,7 +1282,7 @@ class UnifiedAuthManager:
                     device_info.first_seen = datetime.fromisoformat(
                         stored_device_result["first_seen"]
                     )
-                    device_info.last_seen = datetime.now(timezone.utc)
+                    device_info.last_seen = datetime.now(UTC)
 
                     # Update last_seen in database
                     await db_session.execute(
@@ -1479,7 +1475,7 @@ class UnifiedAuthManager:
                 # Find active MFA challenge for user in database
                 try:
                     async with self.db_manager.get_session() as db_session:
-                        current_time_str = datetime.now(timezone.utc).isoformat()
+                        current_time_str = datetime.now(UTC).isoformat()
 
                         # Get active challenge for user
                         challenge_result = await db_session.fetchone(
@@ -1501,7 +1497,7 @@ class UnifiedAuthManager:
                         attempts = challenge_result["attempts"] + 1
 
                         # Check if challenge expired
-                        if datetime.now(timezone.utc) > datetime.fromisoformat(
+                        if datetime.now(UTC) > datetime.fromisoformat(
                             challenge_result["expires_at"]
                         ):
                             await db_session.execute(
@@ -1623,7 +1619,7 @@ class UnifiedAuthManager:
             # Update device information in database
             try:
                 async with self.db_manager.get_session() as db_session:
-                    current_time = datetime.now(timezone.utc)
+                    current_time = datetime.now(UTC)
                     current_time_str = current_time.isoformat()
 
                     # Check if device exists
@@ -1684,7 +1680,7 @@ class UnifiedAuthManager:
 
             # Create session in database
             session_id = self._generate_session_id()
-            now = datetime.now(timezone.utc)
+            now = datetime.now(UTC)
             now_str = now.isoformat()
             expires_at_str = (now + self.session_timeout).isoformat()
 
@@ -1854,11 +1850,11 @@ class UnifiedAuthManager:
 
             return AuthResult(
                 success=False,
-                error_message=f"Authentication failed: {str(e)}",
+                error_message=f"Authentication failed: {e!s}",
                 error_code="AUTHENTICATION_ERROR",
             )
 
-    async def validate_token(self, token: str) -> Tuple[bool, Optional[Dict[str, Any]]]:
+    async def validate_token(self, token: str) -> tuple[bool, dict[str, Any] | None]:
         """
         Validate JWT token using SecuritySystem with caching.
         """
@@ -1949,7 +1945,7 @@ class UnifiedAuthManager:
 
     async def validate_session(
         self, session_id: str
-    ) -> Tuple[bool, Optional[SessionInfo]]:
+    ) -> tuple[bool, SessionInfo | None]:
         """
         Validate session and update last accessed time using database.
         """
@@ -2028,7 +2024,7 @@ class UnifiedAuthManager:
                     # Mark session as inactive in database
                     await db_session.execute(
                         "UPDATE sessions SET is_active = 0, updated_at = ? WHERE id = ?",
-                        (datetime.now(timezone.utc).isoformat(), session_id),
+                        (datetime.now(UTC).isoformat(), session_id),
                     )
                     await db_session.commit()
 
@@ -2049,7 +2045,7 @@ class UnifiedAuthManager:
                     return False, None
 
                 # Update last accessed time in database
-                current_time = datetime.now(timezone.utc)
+                current_time = datetime.now(UTC)
                 current_time_str = current_time.isoformat()
 
                 await db_session.execute(
@@ -2072,7 +2068,7 @@ class UnifiedAuthManager:
             logger.error(f"Session validation error: {e}", session_id=session_id)
             return False, None
 
-    async def validate_api_key(self, api_key: str) -> Optional[Dict[str, Any]]:
+    async def validate_api_key(self, api_key: str) -> dict[str, Any] | None:
         """
         Validate API key using SecuritySystem.
         """
@@ -2189,8 +2185,8 @@ class UnifiedAuthManager:
     def create_access_token(
         self,
         user_id: str,
-        permissions: Set[str],
-        expires_delta: Optional[timedelta] = None,
+        permissions: set[str],
+        expires_delta: timedelta | None = None,
     ) -> str:
         """
         Create access token using SecuritySystem's token manager.
@@ -2310,7 +2306,7 @@ class UnifiedAuthManager:
                 # Mark session as inactive in database
                 await db_session.execute(
                     "UPDATE sessions SET is_active = 0, updated_at = ? WHERE id = ?",
-                    (datetime.now(timezone.utc).isoformat(), session_id),
+                    (datetime.now(UTC).isoformat(), session_id),
                 )
                 await db_session.commit()
 
@@ -2354,7 +2350,7 @@ class UnifiedAuthManager:
                 # Mark all user sessions as inactive
                 await db_session.execute(
                     "UPDATE sessions SET is_active = 0, updated_at = ? WHERE user_id = ? AND is_active = 1",
-                    (datetime.now(timezone.utc).isoformat(), user_id),
+                    (datetime.now(UTC).isoformat(), user_id),
                 )
                 await db_session.commit()
 
@@ -2386,9 +2382,9 @@ class UnifiedAuthManager:
         self,
         username: str,
         password: str,
-        permissions: Optional[Set[str]] = None,
-        roles: Optional[Set[Role]] = None,
-    ) -> Tuple[bool, List[str]]:
+        permissions: set[str] | None = None,
+        roles: set[Role] | None = None,
+    ) -> tuple[bool, list[str]]:
         """
         Register a new user with enhanced password policy validation.
         """
@@ -2467,7 +2463,7 @@ class UnifiedAuthManager:
 
         except Exception as e:
             logger.error(f"Error registering user {username}: {e}", user_id=username)
-            return False, [f"Registration failed: {str(e)}"]
+            return False, [f"Registration failed: {e!s}"]
 
     async def elevate_session(self, session_id: str, password: str) -> bool:
         """
@@ -2498,7 +2494,7 @@ class UnifiedAuthManager:
                     elevation_expires = datetime.fromisoformat(
                         session_result["elevation_expires_at"]
                     )
-                    if datetime.now(timezone.utc) < elevation_expires:
+                    if datetime.now(UTC) < elevation_expires:
                         logger.debug(
                             "Session already elevated and valid",
                             session_id=session_id,
@@ -2519,7 +2515,7 @@ class UnifiedAuthManager:
                     return False
 
                 # Elevate session in database
-                current_time = datetime.now(timezone.utc)
+                current_time = datetime.now(UTC)
                 elevation_expires_at = current_time + self.elevated_session_timeout
                 elevation_expires_str = elevation_expires_at.isoformat()
                 updated_at_str = current_time.isoformat()
@@ -2574,7 +2570,7 @@ class UnifiedAuthManager:
             if require_elevation:
                 # Query database for active elevated sessions for user
                 async with self.db_manager.get_session() as db_session:
-                    current_time_str = datetime.now(timezone.utc).isoformat()
+                    current_time_str = datetime.now(UTC).isoformat()
 
                     elevated_session_result = await db_session.fetchone(
                         "SELECT id FROM sessions WHERE user_id = ? AND is_active = 1 AND is_elevated = 1 AND elevation_expires_at > ?",
@@ -2673,7 +2669,7 @@ class UnifiedAuthManager:
 
     async def change_password(
         self, user_id: str, old_password: str, new_password: str
-    ) -> Tuple[bool, List[str]]:
+    ) -> tuple[bool, list[str]]:
         """
         Change user password with policy validation.
         """
@@ -2732,9 +2728,9 @@ class UnifiedAuthManager:
 
         except Exception as e:
             logger.error(f"Error changing password: {e}", user_id=user_id)
-            return False, [f"Password change failed: {str(e)}"]
+            return False, [f"Password change failed: {e!s}"]
 
-    def get_user_permissions(self, user_id: str) -> Set[str]:
+    def get_user_permissions(self, user_id: str) -> set[str]:
         """
         Get user permissions from SecuritySystem.
         """
@@ -2742,7 +2738,7 @@ class UnifiedAuthManager:
             credentials = self.security_system.user_credentials.get(user_id)
             permissions = credentials.permissions if credentials else set()
             logger.debug(
-                f"Retrieved permissions for user",
+                "Retrieved permissions for user",
                 user_id=user_id,
                 permission_count=len(permissions),
             )
@@ -2753,7 +2749,7 @@ class UnifiedAuthManager:
             )
             return set()
 
-    def update_user_permissions(self, user_id: str, permissions: Set[str]) -> bool:
+    def update_user_permissions(self, user_id: str, permissions: set[str]) -> bool:
         """
         Update user permissions in SecuritySystem.
         """
@@ -2787,7 +2783,7 @@ class UnifiedAuthManager:
             )
             return False
 
-    async def get_security_status(self) -> Dict[str, Any]:
+    async def get_security_status(self) -> dict[str, Any]:
         """
         Get comprehensive authentication system status with enhanced metrics using database operations.
         """
@@ -2853,7 +2849,7 @@ class UnifiedAuthManager:
                 # Get MFA challenge counts
                 active_mfa_challenges_result = await db_session.fetchone(
                     "SELECT COUNT(*) as count FROM mfa_challenges WHERE expires_at > ?",
-                    (datetime.now(timezone.utc).isoformat(),),
+                    (datetime.now(UTC).isoformat(),),
                 )
                 active_mfa_challenges = (
                     active_mfa_challenges_result["count"]
@@ -2920,7 +2916,7 @@ class UnifiedAuthManager:
         Enhanced cleanup with comprehensive resource management using database operations.
         """
         try:
-            current_time = datetime.now(timezone.utc)
+            current_time = datetime.now(UTC)
             current_time_str = current_time.isoformat()
             initial_brute_force = len(self.brute_force_tracking)
 
@@ -3026,7 +3022,7 @@ class UnifiedAuthManager:
 
 
 # Global auth manager instance
-_global_auth_manager: Optional[UnifiedAuthManager] = None
+_global_auth_manager: UnifiedAuthManager | None = None
 
 
 def get_auth_manager() -> UnifiedAuthManager:
@@ -3038,7 +3034,7 @@ def get_auth_manager() -> UnifiedAuthManager:
 
 
 async def initialize_auth_manager(
-    security_system: Optional[SecuritySystem] = None,
+    security_system: SecuritySystem | None = None,
 ) -> UnifiedAuthManager:
     """Initialize the global authentication manager."""
     global _global_auth_manager
@@ -3055,18 +3051,18 @@ async def shutdown_auth_manager() -> None:
 
 
 __all__ = [
-    "UnifiedAuthManager",
-    "SessionInfo",
-    "AuthResult",
-    "DeviceInfo",
-    "MFAChallenge",
-    "OAuth2Config",
-    "BruteForceProtection",
-    "PasswordPolicy",
-    "DeviceType",
     "AuthProvider",
-    "Role",
+    "AuthResult",
+    "BruteForceProtection",
+    "DeviceInfo",
+    "DeviceType",
+    "MFAChallenge",
     "MFAMethod",
+    "OAuth2Config",
+    "PasswordPolicy",
+    "Role",
+    "SessionInfo",
+    "UnifiedAuthManager",
     "get_auth_manager",
     "initialize_auth_manager",
     "shutdown_auth_manager",

@@ -5,7 +5,7 @@ Caching layer for frequently accessed typing data to improve performance.
 """
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from plexichat.core.caching.unified_cache_integration import (
     CacheKeyBuilder,
@@ -32,7 +32,7 @@ class TypingCacheService:
             "typing.cache_ttl_seconds", 5
         )  # For individual typing status
 
-    async def get_cached_typing_users(self, channel_id: str) -> Optional[List[str]]:
+    async def get_cached_typing_users(self, channel_id: str) -> list[str] | None:
         """Get cached typing users for a channel."""
         cache_key = CacheKeyBuilder.build("typing", "channel_users", channel_id)
 
@@ -46,7 +46,7 @@ class TypingCacheService:
 
         return None
 
-    async def set_cached_typing_users(self, channel_id: str, users: List[str]) -> bool:
+    async def set_cached_typing_users(self, channel_id: str, users: list[str]) -> bool:
         """Cache typing users for a channel."""
         cache_key = CacheKeyBuilder.build("typing", "channel_users", channel_id)
 
@@ -87,7 +87,7 @@ class TypingCacheService:
 
     async def get_cached_typing_status(
         self, user_id: str, channel_id: str
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """Get cached typing status for a user in a channel."""
         cache_key = CacheKeyBuilder.build("typing", "status", user_id, channel_id)
 
@@ -102,7 +102,7 @@ class TypingCacheService:
         return None
 
     async def set_cached_typing_status(
-        self, user_id: str, channel_id: str, status: Dict[str, Any]
+        self, user_id: str, channel_id: str, status: dict[str, Any]
     ) -> bool:
         """Cache typing status for a user in a channel."""
         cache_key = CacheKeyBuilder.build("typing", "status", user_id, channel_id)
@@ -122,7 +122,7 @@ class TypingCacheService:
             return False
 
     async def invalidate_user_cache(
-        self, user_id: str, channel_id: Optional[str] = None
+        self, user_id: str, channel_id: str | None = None
     ) -> bool:
         """Invalidate cache entries for a user."""
         try:
@@ -147,7 +147,7 @@ class TypingCacheService:
             logger.warning(f"Error invalidating user cache: {e}")
             return False
 
-    async def get_typing_users_with_cache(self, channel_id: str) -> List[str]:
+    async def get_typing_users_with_cache(self, channel_id: str) -> list[str]:
         """Get typing users with caching - checks cache first, then database."""
         # Try cache first
         cached_users = await self.get_cached_typing_users(channel_id)
@@ -192,7 +192,7 @@ class TypingCacheService:
             logger.warning(f"Error preloading channel cache: {e}")
             return False
 
-    def get_cache_stats(self) -> Dict[str, Any]:
+    def get_cache_stats(self) -> dict[str, Any]:
         """Get cache statistics."""
         # Note: This would need to be implemented in the cache manager
         # For now, return basic info
@@ -208,7 +208,7 @@ class TypingCacheService:
 typing_cache_service = TypingCacheService()
 
 
-async def get_cached_typing_users(channel_id: str) -> List[str]:
+async def get_cached_typing_users(channel_id: str) -> list[str]:
     """Get typing users with caching."""
     return await typing_cache_service.get_typing_users_with_cache(channel_id)
 

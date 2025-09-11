@@ -19,8 +19,8 @@ Provides a single, unified interface for all security operations.
 """
 
 import logging
-import warnings
 from typing import Any, Dict, List, Optional, Set, Tuple
+import warnings
 
 from plexichat.core.security.security_manager import (
     AuthenticationMethod,
@@ -49,9 +49,9 @@ SecurityManager = SecuritySystem
 # provide safe defaults so imports resolve and functionality degrades gracefully.
 
 import asyncio
-import time
 from dataclasses import dataclass, field
 from enum import Enum
+import time
 
 
 class KeyDomain(Enum):
@@ -87,7 +87,7 @@ class RateLimitRequest:
     action: str = ""
     limit: int = 0
     window_seconds: int = 60
-    user_id: Optional[str] = None
+    user_id: str | None = None
 
 
 class NetworkProtection:
@@ -106,13 +106,13 @@ class NetworkProtection:
 
     def __init__(self):
         # Keyed by (ip_address, action) -> list of timestamps (floats)
-        self._counters: Dict[Tuple[str, str], List[float]] = {}
+        self._counters: dict[tuple[str, str], list[float]] = {}
         # A simple lock to protect the in-memory structure across async calls
         self._lock = asyncio.Lock()
 
     async def check_request(
         self, rate_request: RateLimitRequest
-    ) -> Tuple[bool, Optional[Dict[str, Any]]]:
+    ) -> tuple[bool, dict[str, Any] | None]:
         """
         Check whether the given rate_request should be allowed.
 
@@ -170,7 +170,7 @@ class NetworkProtection:
 
 
 # Singleton instance and accessor
-_network_protection: Optional[NetworkProtection] = None
+_network_protection: NetworkProtection | None = None
 
 
 def get_network_protection() -> NetworkProtection:
@@ -206,7 +206,7 @@ class DistributedKeyManager:
         return f"domain_key_{domain.value}"
 
 
-_distributed_key_manager: Optional[DistributedKeyManager] = None
+_distributed_key_manager: DistributedKeyManager | None = None
 
 
 def get_distributed_key_manager() -> DistributedKeyManager:

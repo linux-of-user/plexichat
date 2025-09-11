@@ -4,7 +4,7 @@
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from sqlalchemy import desc
 from sqlmodel import Session, and_, or_, select
@@ -19,7 +19,10 @@ logger = get_logger(__name__)
 # Import unified cache integration
 try:
     from plexichat.core.caching.unified_cache_integration import (
-        cache_get, cache_set, cache_delete, CacheKeyBuilder
+        CacheKeyBuilder,
+        cache_delete,
+        cache_get,
+        cache_set,
     )
     CACHE_AVAILABLE = True
 except ImportError:
@@ -40,7 +43,7 @@ Comprehensive messaging service with emoji support, replies, reactions, and resi
 class ReactionService:
     """Service for handling message reactions."""
     @classmethod
-    async def add_reaction(cls, message_id: int, user_id: int, emoji: str, emoji_id: Optional[int] = None) -> bool:
+    async def add_reaction(cls, message_id: int, user_id: int, emoji: str, emoji_id: int | None = None) -> bool:
         """Add a reaction to a message."""
         try:
             with Session(engine) as session:
@@ -78,7 +81,7 @@ class ReactionService:
             return False
 
     @classmethod
-    async def remove_reaction(cls, message_id: int, user_id: int, emoji: str, emoji_id: Optional[int] = None) -> bool:
+    async def remove_reaction(cls, message_id: int, user_id: int, emoji: str, emoji_id: int | None = None) -> bool:
         """Remove a reaction from a message."""
         try:
             with Session(engine) as session:
@@ -106,7 +109,7 @@ class ReactionService:
             return False
 
     @classmethod
-    async def get_message_reactions(cls, message_id: int) -> List[Dict[str, Any]]:
+    async def get_message_reactions(cls, message_id: int) -> list[dict[str, Any]]:
         """Get all reactions for a message."""
         try:
             with Session(engine) as session:
@@ -139,7 +142,7 @@ class ReactionService:
 class ReplyService:
     """Service for handling message replies."""
     @classmethod
-    async def create_reply(cls, original_message_id: int, reply_content: str, sender_id: int, **kwargs) -> Optional[Message]:
+    async def create_reply(cls, original_message_id: int, reply_content: str, sender_id: int, **kwargs) -> Message | None:
         """Create a reply to a message."""
         try:
             with Session(engine) as session:
@@ -174,7 +177,7 @@ class ReplyService:
             return None
 
     @classmethod
-    async def get_message_replies(cls, message_id: int, limit: int = 50) -> List[Message]:
+    async def get_message_replies(cls, message_id: int, limit: int = 50) -> list[Message]:
         """Get replies to a message."""
         try:
             with Session(engine) as session:
@@ -199,7 +202,7 @@ class EnhancedMessagingService:
         self.message_cache = {}
         self.rate_limits = {}  # Rate limiting storage
 
-    async def send_message(self, sender_id: int, content: str, **kwargs) -> Optional[Message]:
+    async def send_message(self, sender_id: int, content: str, **kwargs) -> Message | None:
         """Send a message with emoji processing and resilience."""
         try:
             # Check rate limits
@@ -232,7 +235,7 @@ class EnhancedMessagingService:
             logger.error(f"Failed to send message: {e}")
             return None
 
-    async def send_reply(self, sender_id: int, original_message_id: int, content: str, **kwargs) -> Optional[Message]:
+    async def send_reply(self, sender_id: int, original_message_id: int, content: str, **kwargs) -> Message | None:
         """Send a reply to a message."""
         try:
             # Check rate limits
@@ -273,7 +276,7 @@ class EnhancedMessagingService:
         """Remove a reaction from a message."""
         return await self.reaction_service.remove_reaction(message_id, user_id, emoji)
 
-    async def get_messages(self, **filters) -> List[Message]:
+    async def get_messages(self, **filters) -> list[Message]:
         """Get messages with filters and caching."""
         try:
             with Session(engine) as session:
@@ -301,7 +304,7 @@ class EnhancedMessagingService:
             logger.error(f"Failed to get messages: {e}")
             return []
 
-    async def get_message_with_context(self, message_id: int) -> Dict[str, Any]:
+    async def get_message_with_context(self, message_id: int) -> dict[str, Any]:
         """Get a message with its reactions, replies, and context."""
         try:
             with Session(engine) as session:
@@ -366,11 +369,11 @@ class EnhancedMessagingService:
             return True  # Allow on error
 
 
-    async def search_messages(self, query: str, **filters) -> List[Message]:
+    async def search_messages(self, query: str, **filters) -> list[Message]:
         """Search messages using advanced search service."""
         try:
             # Import here to avoid circular imports
-            from plexichat.core.search_service import get_search_service, SearchFilter
+            from plexichat.core.search_service import SearchFilter, get_search_service
 
             search_service = await get_search_service()
 
@@ -405,7 +408,7 @@ class EnhancedMessagingService:
             # Fallback to basic search if advanced search fails
             return await self._basic_search_messages(query, **filters)
 
-    async def _basic_search_messages(self, query: str, **filters) -> List[Message]:
+    async def _basic_search_messages(self, query: str, **filters) -> list[Message]:
         """Fallback basic search implementation."""
         try:
             with Session(engine) as session:
@@ -471,7 +474,7 @@ class EnhancedMessagingService:
             logger.error(f"Failed to delete message: {e}")
             return False
 
-    async def edit_message(self, message_id: int, user_id: int, new_content: str) -> Optional[Message]:
+    async def edit_message(self, message_id: int, user_id: int, new_content: str) -> Message | None:
         """Edit a message."""
         try:
             with Session(engine) as session:

@@ -1,5 +1,5 @@
 import hashlib
-from typing import Any, Dict, List, Optional, Set
+from typing import Any
 
 # Use unified logging system
 try:
@@ -29,29 +29,29 @@ class MFAStore:
     """
 
     def __init__(self):
-        self.mfa_devices: Dict[str, List[str]] = (
+        self.mfa_devices: dict[str, list[str]] = (
             {}
         )  # user_id -> List[str] (encrypted device JSON)
-        self.mfa_sessions: Dict[str, Any] = (
+        self.mfa_sessions: dict[str, Any] = (
             {}
         )  # session_id -> MFASession (or dict representation)
         # Store backup codes list (legacy support for WebUI encrypted codes)
-        self.mfa_backup_codes: Dict[str, List[str]] = {}  # user_id -> List[str]
+        self.mfa_backup_codes: dict[str, list[str]] = {}  # user_id -> List[str]
         # Additionally, maintain hashed codes for backend verification
-        self.mfa_backup_codes_hashed: Dict[str, Set[str]] = {}  # user_id -> Set[str]
-        self.mfa_challenges: Dict[str, Any] = {}  # challenge_id -> dict(meta)
+        self.mfa_backup_codes_hashed: dict[str, set[str]] = {}  # user_id -> Set[str]
+        self.mfa_challenges: dict[str, Any] = {}  # challenge_id -> dict(meta)
         # Store TOTP secrets per user (consider encrypting at rest via config/key vault)
-        self.mfa_totp_secrets: Dict[str, str] = {}
+        self.mfa_totp_secrets: dict[str, str] = {}
         logger.info("MFAStore initialized")
 
     # Device/session management
-    def get_devices(self, user_id: str) -> List[str]:
+    def get_devices(self, user_id: str) -> list[str]:
         return self.mfa_devices.get(user_id, [])
 
-    def set_devices(self, user_id: str, devices: List[str]):
+    def set_devices(self, user_id: str, devices: list[str]):
         self.mfa_devices[user_id] = devices
 
-    def get_session(self, session_id: str) -> Optional[Any]:
+    def get_session(self, session_id: str) -> Any | None:
         return self.mfa_sessions.get(session_id)
 
     def set_session(self, session_id: str, session_data: Any):
@@ -66,15 +66,15 @@ class MFAStore:
         self.mfa_totp_secrets[user_id] = secret
         logger.info(f"Set TOTP secret for user {user_id}")
 
-    def get_totp_secret(self, user_id: str) -> Optional[str]:
+    def get_totp_secret(self, user_id: str) -> str | None:
         return self.mfa_totp_secrets.get(user_id)
 
     # Backup codes management
-    def get_backup_codes(self, user_id: str) -> List[str]:
+    def get_backup_codes(self, user_id: str) -> list[str]:
         # Return legacy list for WebUI (encrypted strings)
         return self.mfa_backup_codes.get(user_id, [])
 
-    def set_backup_codes(self, user_id: str, codes: List[str]):
+    def set_backup_codes(self, user_id: str, codes: list[str]):
         # Store legacy encrypted list (for WebUI)
         self.mfa_backup_codes[user_id] = codes
         logger.info(
@@ -82,7 +82,7 @@ class MFAStore:
         )
 
     # Additional secure hashed backup codes for backend verification
-    def set_backup_codes_hashed(self, user_id: str, codes: List[str]):
+    def set_backup_codes_hashed(self, user_id: str, codes: list[str]):
         # Store SHA256 hashes of normalized codes
         hashed = {self._hash_code(c) for c in codes if c and isinstance(c, str)}
         self.mfa_backup_codes_hashed[user_id] = hashed
@@ -93,7 +93,7 @@ class MFAStore:
     def _hash_code(self, code: str) -> str:
         return hashlib.sha256(code.strip().upper().encode("utf-8")).hexdigest()
 
-    def get_challenge(self, challenge_id: str) -> Optional[Any]:
+    def get_challenge(self, challenge_id: str) -> Any | None:
         return self.mfa_challenges.get(challenge_id)
 
     def set_challenge(self, challenge_id: str, challenge_data: Any):

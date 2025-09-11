@@ -13,7 +13,8 @@ import asyncio
 import functools
 import logging
 import time
-from typing import Any, Dict, Optional
+from typing import Any
+
 
 # These are placeholder imports for a real implementation
 class DebugLevel:
@@ -44,7 +45,7 @@ class PluginDebugger:
         self.error_count = 0
         self.performance_data = {}
 
-    def start_debug_session(self, metadata: Optional[Dict[str, Any]] = None):
+    def start_debug_session(self, metadata: dict[str, Any] | None = None):
         """Start a debug session for this plugin."""
         session_metadata = {
             "plugin_name": self.plugin_name,
@@ -267,7 +268,7 @@ class PluginDebugger:
             raise
 
     def log_plugin_event(self, level: DebugLevel, message: str,
-                        context: Optional[Dict[str, Any]] = None):
+                        context: dict[str, Any] | None = None):
         """Log a plugin-specific event."""
         plugin_context = {
             "plugin_name": self.plugin_name,
@@ -285,7 +286,7 @@ class PluginDebugger:
                 self.session_id
             )
 
-    def log_plugin_error(self, error: Exception, context: Optional[Dict[str, Any]] = None):
+    def log_plugin_error(self, error: Exception, context: dict[str, Any] | None = None):
         """Log a plugin-specific error."""
         plugin_context = {
             "plugin_name": self.plugin_name,
@@ -311,7 +312,7 @@ class PluginDebugger:
         if self.debug_manager:
             self.debug_manager.take_memory_snapshot(snapshot_label)
 
-    def get_performance_summary(self) -> Dict[str, Any]:
+    def get_performance_summary(self) -> dict[str, Any]:
         """Get performance summary for this plugin."""
         summary = {}
 
@@ -536,7 +537,7 @@ def debug_plugin_test(plugin_name: str, test_name: str):
 
 
 # Global plugin debuggers registry
-_plugin_debuggers: Dict[str, PluginDebugger] = {}
+_plugin_debuggers: dict[str, PluginDebugger] = {}
 
 
 def get_plugin_debugger(plugin_name: str) -> PluginDebugger:

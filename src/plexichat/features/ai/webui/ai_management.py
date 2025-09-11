@@ -6,10 +6,6 @@
 # pyright: reportReturnType=false
 import logging
 from pathlib import Path
-from typing import List
-
-
-from pathlib import Path
 
 from fastapi import APIRouter, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse
@@ -32,7 +28,6 @@ Web interface for managing AI providers, models, and monitoring.
 logger = logging.getLogger(__name__)
 
 # Initialize templates
-from pathlib import Path
 templates_dir = Path(__file__).parent / "templates"
 templates_dir.mkdir(exist_ok=True)
 templates = Jinja2Templates(directory=str(templates_dir))
@@ -104,7 +99,7 @@ async def add_model_form(
     model_id: str = Form(...),
     model_name: str = Form(...),
     provider: str = Form(...),
-    capabilities: List[str] = Form(...),
+    capabilities: list[str] = Form(...),
     max_tokens: int = Form(...),
     cost_per_1k_tokens: float = Form(...),
     context_window: int = Form(...),
@@ -246,7 +241,7 @@ async def add_permission_form(
     request: Request,
     user_id: str = Form(...),
     model_id: str = Form(...),
-    capabilities: List[str] = Form(...)
+    capabilities: list[str] = Form(...)
 ):
     """Add user permission via form."""
     try:

@@ -4,22 +4,44 @@ Essential exception classes for the entire application.
 """
 
 import logging
-from typing import Any, Dict, Optional
+from typing import Any
 
 from .base import (
-    PlexiChatException,
-    PlexiChatErrorCode,
     AuthenticationError as BaseAuthenticationError,
+)
+from .base import (
     AuthorizationError as BaseAuthorizationError,
-    ValidationError as BaseValidationError,
-    DatabaseError as BaseDatabaseError,
-    NetworkError as BaseNetworkError,
-    FileError as BaseFileError,
-    ExternalServiceError as BaseExternalServiceError,
-    RateLimitError as BaseRateLimitError,
+)
+from .base import (
     ConfigurationError as BaseConfigurationError,
+)
+from .base import (
+    DatabaseError as BaseDatabaseError,
+)
+from .base import (
+    ExternalServiceError as BaseExternalServiceError,
+)
+from .base import (
+    FileError as BaseFileError,
+)
+from .base import (
+    NetworkError as BaseNetworkError,
+)
+from .base import (
+    PlexiChatErrorCode,
+    PlexiChatException,
+)
+from .base import (
     ProcessLockError as BaseProcessLockError,
+)
+from .base import (
+    RateLimitError as BaseRateLimitError,
+)
+from .base import (
     StartupError as BaseStartupError,
+)
+from .base import (
+    ValidationError as BaseValidationError,
 )
 
 logger = logging.getLogger(__name__)
@@ -31,11 +53,11 @@ class BaseAPIException(PlexiChatException):
     def __init__(
         self,
         error_code: PlexiChatErrorCode = PlexiChatErrorCode.SYSTEM_INTERNAL_ERROR,
-        message: Optional[str] = None,
-        details: Optional[Dict[str, Any]] = None,
-        context: Optional[Dict[str, Any]] = None,
-        correlation_id: Optional[str] = None,
-        cause: Optional[Exception] = None,
+        message: str | None = None,
+        details: dict[str, Any] | None = None,
+        context: dict[str, Any] | None = None,
+        correlation_id: str | None = None,
+        cause: Exception | None = None,
     ):
         super().__init__(
             error_code=error_code,
@@ -46,7 +68,7 @@ class BaseAPIException(PlexiChatException):
             message=message,
         )
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert exception to dictionary using base ErrorResponse."""
         error_response = self.to_error_response()
         return error_response.to_dict(include_technical_details=True)
@@ -109,16 +131,16 @@ class StartupError(BaseStartupError):
 
 # Export all exception classes
 __all__ = [
-    "BaseAPIException",
     "AuthenticationError",
     "AuthorizationError",
-    "ValidationError",
-    "DatabaseError",
-    "NetworkError",
-    "FileError",
-    "ExternalServiceError",
-    "RateLimitError",
+    "BaseAPIException",
     "ConfigurationError",
+    "DatabaseError",
+    "ExternalServiceError",
+    "FileError",
+    "NetworkError",
     "ProcessLockError",
+    "RateLimitError",
     "StartupError",
+    "ValidationError",
 ]

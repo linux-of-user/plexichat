@@ -62,14 +62,14 @@ from plexichat.core.services.core_services import ServiceLoader, load_services
 
 __all__ = [
     "DatabaseService",
-    "get_database_service",
-    "ServiceManager",
-    "get_service_manager",
-    "register_service",
-    "get_service",
-    "list_services",
     "ServiceLoader",
+    "ServiceManager",
+    "get_database_service",
+    "get_service",
+    "get_service_manager",
+    "list_services",
     "load_services",
+    "register_service",
 ]
 
 from plexichat.core.utils.fallbacks import get_module_version

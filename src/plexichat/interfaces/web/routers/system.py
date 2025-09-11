@@ -11,13 +11,14 @@ Uses EXISTING database abstraction and optimization systems.
 """
 
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel
 
 # Unified logging system
 from plexichat.core.logging import get_logger
+
 logger = get_logger(__name__)
 
 # Use EXISTING database abstraction layer
@@ -28,9 +29,11 @@ except ImportError:
 
 # Use EXISTING performance optimization engine
 try:
-    from plexichat.core.performance.optimization_engine import PerformanceOptimizationEngine
-    from plexichat.infrastructure.utils.performance import async_track_performance
     from plexichat.core.logging import get_performance_logger
+    from plexichat.core.performance.optimization_engine import (
+        PerformanceOptimizationEngine,
+    )
+    from plexichat.infrastructure.utils.performance import async_track_performance
 except ImportError:
     PerformanceOptimizationEngine = None
     async_track_performance = None
@@ -38,7 +41,6 @@ except ImportError:
 
 # Authentication imports - use unified FastAPI adapter
 from plexichat.core.auth.fastapi_adapter import get_current_user, require_admin
-
 
 # Configuration imports
 try:
@@ -58,15 +60,13 @@ performance_logger = get_performance_logger() if get_performance_logger else Non
 
 # Import unified security decorators from core security
 from plexichat.core.security.security_decorators import (
-    secure_endpoint,
     RequiredPermission,
+    secure_endpoint,
 )
 
 # Try to initialize logging system if available (optional)
 try:
-    from plexichat.core.logging import (
-        get_logging_system
-    )
+    from plexichat.core.logging import get_logging_system
     logging_system = get_logging_system()
     if logging_system:
         enhanced_logger = logging_system.get_logger(__name__)
@@ -87,14 +87,14 @@ class SystemStatus(BaseModel):
     version: str
     debug_mode: bool
     database_status: str
-    performance_score: Optional[float] = None
+    performance_score: float | None = None
 
 class AnalyticsReport(BaseModel):
     total_users: int
     total_files: int
     total_messages: int
     system_uptime: str
-    performance_metrics: Dict[str, Any]
+    performance_metrics: dict[str, Any]
 
 class TestResults(BaseModel):
     total_tests: int
@@ -102,7 +102,7 @@ class TestResults(BaseModel):
     failed: int
     skipped: int
     execution_time: float
-    details: List[Dict[str, Any]]
+    details: list[dict[str, Any]]
 
 class SystemService:
     """Service class for system operations using EXISTING database abstraction layer."""
@@ -268,7 +268,7 @@ system_service = SystemService()
 )
 async def get_system_status(
     request: Request,
-    current_user: Dict[str, Any] = Depends(get_current_user)
+    current_user: dict[str, Any] = Depends(get_current_user)
 ):
     """Get comprehensive system status with performance optimization."""
     client_ip = request.client.host if request.client else "unknown"
@@ -297,7 +297,7 @@ async def get_system_status(
 )
 async def get_analytics_report(
     request: Request,
-    current_user: Dict[str, Any] = Depends(require_admin)
+    current_user: dict[str, Any] = Depends(require_admin)
 ):
     """Get comprehensive analytics report (admin only)."""
     client_ip = request.client.host if request.client else "unknown"
@@ -325,7 +325,7 @@ async def get_analytics_report(
 )
 async def run_system_tests(
     request: Request,
-    current_user: Dict[str, Any] = Depends(require_admin)
+    current_user: dict[str, Any] = Depends(require_admin)
 ):
     """Run comprehensive system tests (admin only)."""
     client_ip = request.client.host if request.client else "unknown"
@@ -352,7 +352,7 @@ async def run_system_tests(
 )
 async def get_performance_metrics(
     request: Request,
-    current_user: Dict[str, Any] = Depends(require_admin)
+    current_user: dict[str, Any] = Depends(require_admin)
 ):
     """Get detailed performance metrics (admin only)."""
     client_ip = request.client.host if request.client else "unknown"
@@ -393,7 +393,7 @@ async def get_performance_metrics(
 )
 async def trigger_optimization(
     request: Request,
-    current_user: Dict[str, Any] = Depends(require_admin)
+    current_user: dict[str, Any] = Depends(require_admin)
 ):
     """Trigger system optimization (admin only)."""
     client_ip = request.client.host if request.client else "unknown"
@@ -428,6 +428,7 @@ async def trigger_optimization(
         )
 
 from plexichat.core.resilience import get_system_resilience
+
 resilience_manager = get_system_resilience()
 
 @router.get("/resilience", summary="Get system resilience status")

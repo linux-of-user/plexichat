@@ -4,22 +4,22 @@ Performance Monitoring API Router
 Provides REST API endpoints for performance monitoring, metrics, alerts, and dashboards.
 """
 
-import logging
-from typing import Dict, List, Any, Optional
 from datetime import datetime, timedelta
+import logging
+from typing import Any, Optional
 
-from fastapi import APIRouter, HTTPException, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from plexichat.core.monitoring.unified_monitoring_system import (
-    unified_monitoring_system,
-    record_metric,
-    get_metrics,
-    get_latest_metric,
-    get_system_status
-)
-from plexichat.core.monitoring.metrics_collector import get_metrics_collector_status
 from plexichat.core.database.manager import database_manager
+from plexichat.core.monitoring.metrics_collector import get_metrics_collector_status
+from plexichat.core.monitoring.unified_monitoring_system import (
+    get_latest_metric,
+    get_metrics,
+    get_system_status,
+    record_metric,
+    unified_monitoring_system,
+)
 from plexichat.interfaces.api.auth_utils import get_current_user
 
 logger = logging.getLogger(__name__)
@@ -34,7 +34,7 @@ class MetricDataResponse(BaseModel):
     value: float
     unit: str
     timestamp: str
-    tags: Dict[str, str]
+    tags: dict[str, str]
 
 class AlertRuleRequest(BaseModel):
     """Request model for alert rule creation."""
@@ -89,7 +89,7 @@ class MetricsSummaryResponse(BaseModel):
 # API Endpoints
 
     @router.get("/status", response_model=SystemStatusResponse)
-    async def get_performance_status(user: Dict[str, Any] = Depends(get_current_user)):
+    async def get_performance_status(user: dict[str, Any] = Depends(get_current_user)):
         """Get overall performance monitoring system status."""
         try:
             status = get_system_status()
@@ -99,7 +99,7 @@ class MetricsSummaryResponse(BaseModel):
             raise HTTPException(status_code=500, detail="Failed to get performance status")
 
     @router.get("/collector/status")
-    async def get_collector_status(user: Dict[str, Any] = Depends(get_current_user)):
+    async def get_collector_status(user: dict[str, Any] = Depends(get_current_user)):
         """Get metrics collector status."""
         try:
             return get_metrics_collector_status()
@@ -107,11 +107,11 @@ class MetricsSummaryResponse(BaseModel):
             logger.error(f"Error getting collector status: {e}")
             raise HTTPException(status_code=500, detail="Failed to get collector status")
 
-    @router.get("/metrics/{metric_name}", response_model=List[MetricDataResponse])
+    @router.get("/metrics/{metric_name}", response_model=list[MetricDataResponse])
     async def get_metric_data(
         metric_name: str,
         hours_param: int = Query(24, ge=1, le=168, description="Hours of data to retrieve"),
-        user: Dict[str, Any] = Depends(get_current_user)
+        user: dict[str, Any] = Depends(get_current_user)
     ):
         """Get metric data for a specific metric."""
         try:
@@ -135,7 +135,7 @@ class MetricsSummaryResponse(BaseModel):
     @router.get("/metrics/{metric_name}/latest", response_model=Optional[MetricDataResponse])
     async def get_latest_metric_data(
         metric_name: str,
-        user: Dict[str, Any] = Depends(get_current_user)
+        user: dict[str, Any] = Depends(get_current_user)
     ):
         """Get the latest value for a specific metric."""
         try:
@@ -157,7 +157,7 @@ class MetricsSummaryResponse(BaseModel):
     @router.get("/metrics/summary")
     async def get_metrics_summary(
         hours_param: int = Query(1, ge=1, le=24, description="Hours to summarize"),
-        user: Dict[str, Any] = Depends(get_current_user)
+        user: dict[str, Any] = Depends(get_current_user)
     ):
         """Get summary of all metrics."""
         try:
@@ -195,8 +195,8 @@ class MetricsSummaryResponse(BaseModel):
         metric_name: str = Query(..., description="Metric name"),
         value: float = Query(..., description="Metric value"),
         unit: str = Query("", description="Metric unit"),
-        tags: Optional[str] = Query(None, description="JSON string of tags"),
-        user: Dict[str, Any] = Depends(get_current_user)
+        tags: str | None = Query(None, description="JSON string of tags"),
+        user: dict[str, Any] = Depends(get_current_user)
     ):
         """Record a custom metric."""
         try:
@@ -209,8 +209,8 @@ class MetricsSummaryResponse(BaseModel):
             logger.error(f"Error recording custom metric: {e}")
             raise HTTPException(status_code=500, detail="Failed to record custom metric")
 
-    @router.get("/alerts/rules", response_model=List[AlertRuleResponse])
-    async def get_alert_rules(user: Dict[str, Any] = Depends(get_current_user)):
+    @router.get("/alerts/rules", response_model=list[AlertRuleResponse])
+    async def get_alert_rules(user: dict[str, Any] = Depends(get_current_user)):
         """Get all alert rules."""
         try:
             rules = []
@@ -231,7 +231,7 @@ class MetricsSummaryResponse(BaseModel):
     @router.post("/alerts/rules", response_model=AlertRuleResponse)
     async def create_alert_rule(
         rule: AlertRuleRequest,
-        user: Dict[str, Any] = Depends(get_current_user)
+        user: dict[str, Any] = Depends(get_current_user)
     ):
         """Create a new alert rule."""
         try:
@@ -262,7 +262,7 @@ class MetricsSummaryResponse(BaseModel):
     @router.delete("/alerts/rules/{rule_name}")
     async def delete_alert_rule(
         rule_name: str,
-        user: Dict[str, Any] = Depends(get_current_user)
+        user: dict[str, Any] = Depends(get_current_user)
     ):
         """Delete an alert rule."""
         try:
@@ -272,11 +272,11 @@ class MetricsSummaryResponse(BaseModel):
             logger.error(f"Error deleting alert rule {rule_name}: {e}")
             raise HTTPException(status_code=500, detail=f"Failed to delete alert rule {rule_name}")
 
-    @router.get("/alerts", response_model=List[AlertResponse])
+    @router.get("/alerts", response_model=list[AlertResponse])
     async def get_alerts(
         hours_param: int = Query(24, ge=1, le=168, description="Hours of alerts to retrieve"),
-        status_filter: Optional[str] = Query(None, description="Filter by alert status"),
-        user: Dict[str, Any] = Depends(get_current_user)
+        status_filter: str | None = Query(None, description="Filter by alert status"),
+        user: dict[str, Any] = Depends(get_current_user)
     ):
         """Get alerts from the database."""
         try:
@@ -322,7 +322,7 @@ class MetricsSummaryResponse(BaseModel):
     @router.post("/alerts/{alert_id}/acknowledge")
     async def acknowledge_alert(
         alert_id: str,
-        user: Dict[str, Any] = Depends(get_current_user)
+        user: dict[str, Any] = Depends(get_current_user)
     ):
         """Acknowledge an alert."""
         try:
@@ -347,7 +347,7 @@ class MetricsSummaryResponse(BaseModel):
     @router.get("/dashboard")
     async def get_dashboard_data(
         hours_param: int = Query(24, ge=1, le=168, description="Hours of data for dashboard"),
-        user: Dict[str, Any] = Depends(get_current_user)
+        user: dict[str, Any] = Depends(get_current_user)
     ):
         """Get comprehensive dashboard data."""
         try:

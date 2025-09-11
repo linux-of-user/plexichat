@@ -78,7 +78,7 @@ def dashboard():
         )
     except Exception as e:
         logger.error(f"Failed to load zero-knowledge security dashboard: {e}")
-        flash(f"Error loading dashboard: {str(e)}", 'error')
+        flash(f"Error loading dashboard: {e!s}", 'error')
         return render_template('admin/zero_knowledge_security_management.html', stats={}, health={}, config={})
 
 @route_wrapper(zk_security_bp, '/api/enable', methods=['POST'])
@@ -151,7 +151,7 @@ def config_management():
                 flash('Invalid configuration data', 'error')
         except Exception as e:
             logger.error(f"Failed to update zero-knowledge security configuration: {e}")
-            flash(f'Error updating configuration: {str(e)}', 'error')
+            flash(f'Error updating configuration: {e!s}', 'error')
     return jsonify({'success': True, 'config': service.config})
 
 # Error handlers

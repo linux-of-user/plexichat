@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Request, HTTPException, Depends, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from pydantic import BaseModel
-from typing import Dict
 import logging
-import time
 import re
+import time
+
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from pydantic import BaseModel
+
 from plexichat.interfaces.cli.cli_manager import UnifiedCLI
 
 logger = logging.getLogger(__name__)
@@ -12,7 +13,7 @@ router = APIRouter(prefix="/api/v1/cli", tags=["cli"])
 security = HTTPBearer()
 
 # In-memory rate limiter: {user_or_ip: [timestamps]}
-RATE_LIMIT: Dict[str, list] = {}
+RATE_LIMIT: dict[str, list] = {}
 RATE_LIMIT_MAX = 5
 RATE_LIMIT_WINDOW = 60  # seconds
 
@@ -75,4 +76,4 @@ async def execute_cli_command(
         return CLIExecuteResponse(success=True, output=output, output_type="info")
     except Exception as e:
         logger.error(f"[CLI] Command execution error: {e}")
-        return CLIExecuteResponse(success=False, error=str(e), output_type="error") 
+        return CLIExecuteResponse(success=False, error=str(e), output_type="error")

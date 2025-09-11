@@ -5,11 +5,12 @@
 # pyright: reportReturnType=false
 import asyncio
 from dataclasses import dataclass
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from datetime import UTC, datetime
 import logging
+from typing import Any
 
 from sqlmodel import Session, func, select
+
 
 # Placeholder imports for dependencies
 class DeviceShardAssignment: pass
@@ -30,7 +31,7 @@ class DeviceAvailabilityStatus:
     user_id: int
     status: str
     is_online: bool
-    last_seen_minutes_ago: Optional[int]
+    last_seen_minutes_ago: int | None
     stored_shards: int
     verified_shards: int
     storage_utilization_percent: float
@@ -62,8 +63,8 @@ class BackupCoverageReport:
     available_shards: int
     online_devices: int
     total_devices: int
-    critical_issues: List[str]
-    warnings: List[str]
+    critical_issues: list[str]
+    warnings: list[str]
 
 
 class BackupStatusMonitor:
@@ -90,7 +91,7 @@ class BackupStatusMonitor:
             if (not force_refresh and
                 self.cached_status and
                 self.last_update and
-                (datetime.now(timezone.utc) - self.last_update).total_seconds() < self.cache_duration_seconds):
+                (datetime.now(UTC) - self.last_update).total_seconds() < self.cache_duration_seconds):
                 return self.cached_status
 
             logger.info(" Generating real-time backup status report...")
@@ -106,7 +107,7 @@ class BackupStatusMonitor:
 
             # Cache the result
             self.cached_status = coverage_report
-            self.last_update = datetime.now(timezone.utc)
+            self.last_update = datetime.now(UTC)
 
             logger.info(f" Backup status: {coverage_report.overall_availability_percentage:.1f}% available")
 
@@ -116,7 +117,7 @@ class BackupStatusMonitor:
             logger.error(f"Failed to get real-time backup status: {e}")
             raise
 
-    async def _get_device_availability_statuses(self) -> List[DeviceAvailabilityStatus]:
+    async def _get_device_availability_statuses(self) -> list[DeviceAvailabilityStatus]:
         """Get availability status for all devices."""
         devices = self.session.exec(select(StorageDevice)).all()
         device_statuses = []
@@ -125,7 +126,7 @@ class BackupStatusMonitor:
             # Calculate time since last seen
             last_seen_minutes = None
             if device.last_seen_at:
-                time_diff = datetime.now(timezone.utc) - device.last_seen_at.replace(tzinfo=timezone.utc)
+                time_diff = datetime.now(UTC) - device.last_seen_at.replace(tzinfo=UTC)
                 last_seen_minutes = int(time_diff.total_seconds() / 60)
 
             # Determine if device is considered online
@@ -172,7 +173,7 @@ class BackupStatusMonitor:
 
         return device_statuses
 
-    async def _get_shard_availability_statuses(self) -> List[ShardAvailabilityStatus]:
+    async def _get_shard_availability_statuses(self) -> list[ShardAvailabilityStatus]:
         """Get availability status for all shards."""
         # Get all shards with their assignments
         shards_query = self.session.exec(
@@ -199,7 +200,7 @@ class BackupStatusMonitor:
             for assignment, device in assignments:
                 # Check if device is online (last seen within 5 minutes)
                 if device.last_seen_at:
-                    time_diff = datetime.now(timezone.utc) - device.last_seen_at.replace(tzinfo=timezone.utc)
+                    time_diff = datetime.now(UTC) - device.last_seen_at.replace(tzinfo=UTC)
                     if time_diff.total_seconds() <= 300 and device.status == DeviceStatus.ONLINE:
                         online_assignments += 1
 
@@ -238,8 +239,8 @@ class BackupStatusMonitor:
 
     async def _calculate_backup_coverage(
         self,
-        device_statuses: List[DeviceAvailabilityStatus],
-        shard_statuses: List[ShardAvailabilityStatus]
+        device_statuses: list[DeviceAvailabilityStatus],
+        shard_statuses: list[ShardAvailabilityStatus]
     ) -> BackupCoverageReport:
         """Calculate overall backup coverage report."""
 
@@ -331,7 +332,7 @@ class BackupStatusMonitor:
             warnings=warnings
         )
 
-    async def get_device_network_status(self) -> Dict[str, Any]:
+    async def get_device_network_status(self) -> dict[str, Any]:
         """Get network status of all devices."""
         try:
             device_statuses = await self._get_device_availability_statuses()
@@ -376,14 +377,14 @@ class BackupStatusMonitor:
                     "maintenance_devices": len(status_groups["maintenance"]),
                     "network_health_percentage": (len(status_groups["online"]) / len(device_statuses) * 100) if device_statuses else 0
                 },
-                "timestamp": datetime.now(timezone.utc).isoformat()
+                "timestamp": datetime.now(UTC).isoformat()
             }
 
         except Exception as e:
             logger.error(f"Failed to get device network status: {e}")
             raise
 
-    async def get_shard_distribution_map(self) -> Dict[str, Any]:
+    async def get_shard_distribution_map(self) -> dict[str, Any]:
         """Get visual representation of shard distribution across devices."""
         try:
             shard_statuses = await self._get_shard_availability_statuses()

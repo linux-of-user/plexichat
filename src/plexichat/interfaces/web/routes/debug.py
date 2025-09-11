@@ -10,18 +10,23 @@ Web interface for debugging and monitoring PlexiChat components.
 """
 
 # import asyncio  # Unused import
+from datetime import datetime  # , timedelta  # Unused import
 import json
 import logging
-from datetime import datetime  # , timedelta  # Unused import
-from typing import Optional  # Dict, List  # Unused imports
 
-from fastapi import APIRouter, Request, HTTPException, Query, Form
-from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
+from fastapi import APIRouter, Form, HTTPException, Query, Request
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 
-from plexichat.infrastructure.debugging.debug_manager import get_debug_manager, DebugLevel
-from plexichat.infrastructure.debugging import create_debug_dump, analyze_performance_bottlenecks
+from plexichat.infrastructure.debugging import (
+    analyze_performance_bottlenecks,
+    create_debug_dump,
+)
+from plexichat.infrastructure.debugging.debug_manager import (
+    DebugLevel,
+    get_debug_manager,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -32,11 +37,11 @@ templates = Jinja2Templates(directory="src/plexichat/interfaces/web/templates")
 
 class DebugQuery(BaseModel):
     """Debug query parameters."""
-    level: Optional[str] = None
-    source: Optional[str] = None
+    level: str | None = None
+    source: str | None = None
     limit: int = 100
-    start_time: Optional[str] = None
-    end_time: Optional[str] = None
+    start_time: str | None = None
+    end_time: str | None = None
 
 
 @router.get("/", response_class=HTMLResponse)
@@ -82,8 +87,8 @@ async def debug_dashboard(request: Request):
 
 @router.get("/events")
 async def get_debug_events(
-    level: Optional[str] = Query(None),
-    source: Optional[str] = Query(None),
+    level: str | None = Query(None),
+    source: str | None = Query(None),
     limit: int = Query(100, ge=1, le=10000),
     format: str = Query("json")
 ):
@@ -344,7 +349,7 @@ async def take_memory_snapshot(label: str = Form("")):
 
 @router.post("/export")
 async def export_debug_data(
-    session_id: Optional[str] = Form(None),
+    session_id: str | None = Form(None),
     format: str = Form("json")
 ):
     """Export debug data."""
@@ -373,7 +378,7 @@ async def export_debug_data(
 
 
 @router.post("/clear")
-async def clear_debug_data(session_id: Optional[str] = Form(None)):
+async def clear_debug_data(session_id: str | None = Form(None)):
     """Clear debug data."""
     try:
         debug_manager = get_debug_manager()
@@ -430,8 +435,8 @@ async def get_live_events():
 @router.get("/search")
 async def search_debug_events(
     query: str = Query(...),
-    level: Optional[str] = Query(None),
-    source: Optional[str] = Query(None),
+    level: str | None = Query(None),
+    source: str | None = Query(None),
     limit: int = Query(100, ge=1, le=1000)
 ):
     """Search debug events by message content."""

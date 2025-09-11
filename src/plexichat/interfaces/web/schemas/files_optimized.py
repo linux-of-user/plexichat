@@ -12,9 +12,10 @@ Enhanced with comprehensive validation and security.
 """
 
 from datetime import datetime
-from typing import Optional, List, Dict, Any
-from pydantic import BaseModel, Field, field_validator  # type: ignore
 from enum import Enum
+from typing import Any
+
+from pydantic import BaseModel, Field, field_validator  # type: ignore
 
 
 class FileType(str, Enum):
@@ -56,9 +57,9 @@ class FileBase(BaseModel):
 class FileUpload(BaseModel):
     """File upload schema."""
     filename: str = Field(..., min_length=1, max_length=255, description="Original filename")
-    content_type: Optional[str] = Field(None, description="MIME content type")
-    description: Optional[str] = Field(None, max_length=500, description="File description")
-    tags: Optional[List[str]] = Field(None, description="File tags")
+    content_type: str | None = Field(None, description="MIME content type")
+    description: str | None = Field(None, max_length=500, description="File description")
+    tags: list[str] | None = Field(None, description="File tags")
     is_public: bool = Field(default=False, description="Public access flag")
 
     @field_validator('filename')
@@ -93,12 +94,12 @@ class FileResponse(FileBase):
     status: FileStatus = Field(..., description="File processing status")
     user_id: int = Field(..., description="Owner user ID")
     upload_date: datetime = Field(..., description="Upload timestamp")
-    last_accessed: Optional[datetime] = Field(None, description="Last access timestamp")
+    last_accessed: datetime | None = Field(None, description="Last access timestamp")
     download_count: int = Field(default=0, description="Download count")
     is_public: bool = Field(default=False, description="Public access flag")
-    description: Optional[str] = Field(None, description="File description")
-    tags: Optional[List[str]] = Field(None, description="File tags")
-    metadata: Optional[Dict[str, Any]] = Field(None, description="File metadata")
+    description: str | None = Field(None, description="File description")
+    tags: list[str] | None = Field(None, description="File tags")
+    metadata: dict[str, Any] | None = Field(None, description="File metadata")
 
     class Config:
         from_attributes = True
@@ -106,7 +107,7 @@ class FileResponse(FileBase):
 
 class FileListResponse(BaseModel):
     """File list response schema."""
-    files: List[FileResponse] = Field(..., description="List of files")
+    files: list[FileResponse] = Field(..., description="List of files")
     total_count: int = Field(..., description="Total number of files")
     total_size: int = Field(..., description="Total size in bytes")
     page: int = Field(..., description="Current page number")
@@ -117,10 +118,10 @@ class FileListResponse(BaseModel):
 
 class FileUpdate(BaseModel):
     """File update schema."""
-    filename: Optional[str] = Field(None, min_length=1, max_length=255, description="Updated filename")
-    description: Optional[str] = Field(None, max_length=500, description="Updated description")
-    tags: Optional[List[str]] = Field(None, description="Updated tags")
-    is_public: Optional[bool] = Field(None, description="Updated public access flag")
+    filename: str | None = Field(None, min_length=1, max_length=255, description="Updated filename")
+    description: str | None = Field(None, max_length=500, description="Updated description")
+    tags: list[str] | None = Field(None, description="Updated tags")
+    is_public: bool | None = Field(None, description="Updated public access flag")
 
     @field_validator('filename')
     @classmethod
@@ -148,15 +149,15 @@ class FileUpdate(BaseModel):
 
 class FileSearch(BaseModel):
     """File search schema."""
-    query: Optional[str] = Field(None, min_length=1, max_length=100, description="Search query")
-    file_type: Optional[FileType] = Field(None, description="Filter by file type")
-    content_type: Optional[str] = Field(None, description="Filter by content type")
-    tags: Optional[List[str]] = Field(None, description="Filter by tags")
-    min_size: Optional[int] = Field(None, ge=0, description="Minimum file size")
-    max_size: Optional[int] = Field(None, ge=0, description="Maximum file size")
-    start_date: Optional[datetime] = Field(None, description="Start date filter")
-    end_date: Optional[datetime] = Field(None, description="End date filter")
-    is_public: Optional[bool] = Field(None, description="Filter by public status")
+    query: str | None = Field(None, min_length=1, max_length=100, description="Search query")
+    file_type: FileType | None = Field(None, description="Filter by file type")
+    content_type: str | None = Field(None, description="Filter by content type")
+    tags: list[str] | None = Field(None, description="Filter by tags")
+    min_size: int | None = Field(None, ge=0, description="Minimum file size")
+    max_size: int | None = Field(None, ge=0, description="Maximum file size")
+    start_date: datetime | None = Field(None, description="Start date filter")
+    end_date: datetime | None = Field(None, description="End date filter")
+    is_public: bool | None = Field(None, description="Filter by public status")
 
     @field_validator('query')
     @classmethod
@@ -174,25 +175,25 @@ class FileStats(BaseModel):
     files_this_week: int = Field(default=0, description="Files uploaded this week")
     files_this_month: int = Field(default=0, description="Files uploaded this month")
     average_file_size: float = Field(default=0.0, description="Average file size")
-    file_types: Dict[str, int] = Field(default={}, description="File count by type")
+    file_types: dict[str, int] = Field(default={}, description="File count by type")
     storage_usage_mb: float = Field(default=0.0, description="Storage usage in MB")
 
 
 class FileShare(BaseModel):
     """File sharing schema."""
     file_id: int = Field(..., description="File ID to share")
-    share_with_users: Optional[List[int]] = Field(None, description="User IDs to share with")
+    share_with_users: list[int] | None = Field(None, description="User IDs to share with")
     share_publicly: bool = Field(default=False, description="Make publicly accessible")
-    expires_at: Optional[datetime] = Field(None, description="Share expiration time")
-    download_limit: Optional[int] = Field(None, ge=1, description="Maximum download count")
-    password: Optional[str] = Field(None, min_length=4, description="Access password")
+    expires_at: datetime | None = Field(None, description="Share expiration time")
+    download_limit: int | None = Field(None, ge=1, description="Maximum download count")
+    password: str | None = Field(None, min_length=4, description="Access password")
 
 
 class FileShareResponse(BaseModel):
     """File share response schema."""
     share_id: str = Field(..., description="Unique share ID")
     share_url: str = Field(..., description="Share URL")
-    expires_at: Optional[datetime] = Field(None, description="Expiration time")
+    expires_at: datetime | None = Field(None, description="Expiration time")
     download_count: int = Field(default=0, description="Current download count")
-    download_limit: Optional[int] = Field(None, description="Download limit")
+    download_limit: int | None = Field(None, description="Download limit")
     created_at: datetime = Field(..., description="Share creation time")

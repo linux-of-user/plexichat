@@ -7,15 +7,15 @@ Integrates with existing performance monitoring and caching systems.
 """
 
 import asyncio
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
+from enum import Enum
 import hashlib
 import json
 import logging
 import time
-import uuid
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta
-from enum import Enum
 from typing import Any, Dict, List, Optional, Set, Union
+import uuid
 
 logger = logging.getLogger(__name__)
 
@@ -77,13 +77,13 @@ class ClusterNode:
     node_type: NodeType
     status: NodeStatus = NodeStatus.INACTIVE
     weight: float = 1.0
-    capabilities: Set[str] = field(default_factory=set)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    capabilities: set[str] = field(default_factory=set)
+    metadata: dict[str, Any] = field(default_factory=dict)
     metrics: NodeMetrics = field(default_factory=NodeMetrics)
-    last_heartbeat: Optional[datetime] = None
+    last_heartbeat: datetime | None = None
     joined_at: datetime = field(default_factory=datetime.now)
     version: str = "1.0.0"
-    tags: Set[str] = field(default_factory=set)
+    tags: set[str] = field(default_factory=set)
 
     def __post_init__(self):
         """Initialize node with default capabilities based on type."""
@@ -118,7 +118,7 @@ class ClusterNode:
         if self.status == NodeStatus.STARTING:
             self.status = NodeStatus.ACTIVE
 
-    def update_metrics(self, metrics: Dict[str, Any]):
+    def update_metrics(self, metrics: dict[str, Any]):
         """Update node metrics."""
         for key, value in metrics.items():
             if hasattr(self.metrics, key):
@@ -156,20 +156,20 @@ class ClusterManager:
     """
 
     def __init__(
-        self, cluster_id: Optional[str] = None, config: Optional[Dict[str, Any]] = None
+        self, cluster_id: str | None = None, config: dict[str, Any] | None = None
     ):
         self.cluster_id = cluster_id or str(uuid.uuid4())
         self.config = config or {}
 
         # Node management
-        self.nodes: Dict[str, ClusterNode] = {}
-        self.healthy_nodes: Set[str] = set()
-        self.nodes_by_type: Dict[NodeType, Set[str]] = {
+        self.nodes: dict[str, ClusterNode] = {}
+        self.healthy_nodes: set[str] = set()
+        self.nodes_by_type: dict[NodeType, set[str]] = {
             node_type: set() for node_type in NodeType
         }
 
         # Load balancing
-        self.hash_ring: Dict[int, str] = {}
+        self.hash_ring: dict[int, str] = {}
         self.virtual_nodes = self.config.get("virtual_nodes", 150)
 
         # Configuration
@@ -179,9 +179,9 @@ class ClusterManager:
         self.failover_enabled = self.config.get("failover_enabled", True)
 
         # Background tasks
-        self._health_check_task: Optional[asyncio.Task] = None
-        self._metrics_task: Optional[asyncio.Task] = None
-        self._failover_task: Optional[asyncio.Task] = None
+        self._health_check_task: asyncio.Task | None = None
+        self._metrics_task: asyncio.Task | None = None
+        self._failover_task: asyncio.Task | None = None
         self._running = False
 
         # Performance monitoring integration
@@ -207,7 +207,7 @@ class ClusterManager:
             # Start monitoring tasks
             await self.start_monitoring()
 
-            logger.info(f"[CLUSTER] Cluster manager initialized successfully")
+            logger.info("[CLUSTER] Cluster manager initialized successfully")
             return True
 
         except Exception as e:
@@ -219,9 +219,9 @@ class ClusterManager:
         hostname: str,
         ip_address: str,
         port: int,
-        node_type: Union[NodeType, str],
-        capabilities: Optional[Set[str]] = None,
-        metadata: Optional[Dict[str, Any]] = None,
+        node_type: NodeType | str,
+        capabilities: set[str] | None = None,
+        metadata: dict[str, Any] | None = None,
         weight: float = 1.0,
     ) -> str:
         """Register a new node in the cluster."""
@@ -263,7 +263,7 @@ class ClusterManager:
                 return node_id
             else:
                 logger.error(
-                    f"[CLUSTER] Failed to register node - connectivity test failed"
+                    "[CLUSTER] Failed to register node - connectivity test failed"
                 )
                 raise Exception("Node connectivity test failed")
 
@@ -298,7 +298,7 @@ class ClusterManager:
             return False
 
     async def update_node_heartbeat(
-        self, node_id: str, metrics: Optional[Dict[str, Any]] = None
+        self, node_id: str, metrics: dict[str, Any] | None = None
     ) -> bool:
         """Update node heartbeat and metrics."""
         try:
@@ -326,8 +326,8 @@ class ClusterManager:
             return False
 
     def get_nodes_by_type(
-        self, node_type: Union[NodeType, str], healthy_only: bool = True
-    ) -> List[ClusterNode]:
+        self, node_type: NodeType | str, healthy_only: bool = True
+    ) -> list[ClusterNode]:
         """Get nodes of a specific type."""
         if isinstance(node_type, str):
             node_type = NodeType(node_type.lower())
@@ -340,8 +340,8 @@ class ClusterManager:
         return [self.nodes[node_id] for node_id in node_ids if node_id in self.nodes]
 
     def get_node_for_request(
-        self, request_key: str, node_type: Optional[NodeType] = None
-    ) -> Optional[ClusterNode]:
+        self, request_key: str, node_type: NodeType | None = None
+    ) -> ClusterNode | None:
         """Get the best node for handling a request using consistent hashing."""
         # Filter by node type if specified
         if node_type:
@@ -378,8 +378,8 @@ class ClusterManager:
         self,
         request_key: str,
         replica_count: int = 2,
-        node_type: Optional[NodeType] = None,
-    ) -> List[ClusterNode]:
+        node_type: NodeType | None = None,
+    ) -> list[ClusterNode]:
         """Get replica nodes for redundancy."""
         primary_node = self.get_node_for_request(request_key, node_type)
         if not primary_node:
@@ -475,7 +475,7 @@ class ClusterManager:
                 cluster_id=self.cluster_id, health=ClusterHealth.FAILED
             )
 
-    async def get_all_nodes(self) -> List[Dict[str, Any]]:
+    async def get_all_nodes(self) -> list[dict[str, Any]]:
         """Get all nodes information for API responses."""
         nodes_info = []
         for node in self.nodes.values():
@@ -499,7 +499,7 @@ class ClusterManager:
             )
         return nodes_info
 
-    async def scale_cluster(self, target_nodes: int) -> Dict[str, Any]:
+    async def scale_cluster(self, target_nodes: int) -> dict[str, Any]:
         """Scale cluster to target number of nodes."""
         current_nodes = len(self.nodes)
         operation_id = str(uuid.uuid4())
@@ -515,11 +515,11 @@ class ClusterManager:
             "estimated_time": f"{abs(target_nodes - current_nodes) * 30} seconds",
         }
 
-    async def rebalance_cluster(self) -> Dict[str, Any]:
+    async def rebalance_cluster(self) -> dict[str, Any]:
         """Rebalance cluster load distribution."""
         operation_id = str(uuid.uuid4())
 
-        logger.info(f"[CLUSTER] Rebalancing cluster load distribution")
+        logger.info("[CLUSTER] Rebalancing cluster load distribution")
 
         # Rebuild hash ring for better distribution
         self._rebuild_hash_ring()
@@ -668,7 +668,7 @@ class PerformanceMonitor:
     def __init__(self, cluster_manager: ClusterManager):
         self.cluster_manager = cluster_manager
 
-    async def get_cluster_metrics(self) -> Dict[str, Any]:
+    async def get_cluster_metrics(self) -> dict[str, Any]:
         """Get cluster performance metrics."""
         try:
             nodes = self.cluster_manager.nodes.values()
@@ -716,13 +716,13 @@ performance_monitor = PerformanceMonitor(cluster_manager)
 
 # Export main components
 __all__ = [
+    "ClusterHealth",
     "ClusterManager",
     "ClusterNode",
     "ClusterStatus",
     "NodeMetrics",
-    "NodeType",
     "NodeStatus",
-    "ClusterHealth",
+    "NodeType",
     "PerformanceMonitor",
     "cluster_manager",
     "performance_monitor",

@@ -1,8 +1,9 @@
-import click
-import logging
-import pkgutil
 import importlib
+import logging
 from pathlib import Path
+import pkgutil
+
+import click
 
 # The commands directory is relative to this file's location.
 COMMANDS_PATH = Path(__file__).parent / "commands"

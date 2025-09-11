@@ -3,27 +3,26 @@ Enhanced Security Middleware
 Integrates the enhanced security manager with FastAPI applications.
 """
 
-import asyncio
+from dataclasses import dataclass
+from datetime import UTC, datetime
 import json
 import time
-from datetime import datetime, timezone
-from typing import Any, Dict, Optional, Callable, Tuple, Awaitable
-from dataclasses import dataclass
-from fastapi import Request, HTTPException, status
+from typing import Any
+
+from fastapi import HTTPException, Request, status
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse, Response
-
-# Core imports
-from plexichat.core.security.comprehensive_security_manager import (
-    get_security_manager, SecurityContext, SecurityLevel
-)
 
 # Use the unified logging shim so existing imports continue to work while
 # centralizing logging behavior around the unified logger/manager.
 from plexichat.core.logging import (
     get_logger,
     get_logging_manager,
-    unified_logging_manager
+)
+
+# Core imports
+from plexichat.core.security.comprehensive_security_manager import (
+    get_security_manager,
 )
 
 # Authentication manager
@@ -42,7 +41,7 @@ class PerformanceMetrics:
 
 class EnhancedSecurityMiddleware(BaseHTTPMiddleware):
     """Enhanced security middleware with comprehensive protection."""
-    def __init__(self, app: Any, config: Optional[Dict[str, Any]] = None) -> None:
+    def __init__(self, app: Any, config: dict[str, Any] | None = None) -> None:
         super().__init__(app)
         self.config = config or {}
         self.enabled = self.config.get("enabled", True)
@@ -237,7 +236,7 @@ class EnhancedSecurityMiddleware(BaseHTTPMiddleware):
         path = str(request.url.path)
         return any(path.startswith(bypass) for bypass in self.bypass_endpoints)
 
-    async def _validate_request_security(self, request: Request) -> Dict[str, Any]:
+    async def _validate_request_security(self, request: Request) -> dict[str, Any]:
         """Validate request security using enhanced security manager."""
         if not self.security_manager:
             return {"allowed": True, "reason": "Security manager not available"}
@@ -296,7 +295,7 @@ class EnhancedSecurityMiddleware(BaseHTTPMiddleware):
             # Fail open in validation to avoid accidental denial due to manager errors
             return {"allowed": True, "reason": "Security validation failed"}
 
-    async def _check_authentication(self, request: Request) -> Dict[str, Any]:
+    async def _check_authentication(self, request: Request) -> dict[str, Any]:
         """Check request authentication."""
         # Get authorization header
         auth_header = request.headers.get("Authorization")
@@ -376,7 +375,7 @@ class EnhancedSecurityMiddleware(BaseHTTPMiddleware):
 
         return {"authenticated": False, "user": None}
 
-    async def _check_authorization(self, request: Request, user_data: Dict) -> Dict[str, Any]:
+    async def _check_authorization(self, request: Request, user_data: dict) -> dict[str, Any]:
         """Check request authorization."""
         if not self.security_manager:
             return {"authorized": True}
@@ -446,7 +445,7 @@ class EnhancedSecurityMiddleware(BaseHTTPMiddleware):
             except Exception:
                 pass
 
-    async def _log_request_error(self, request: Request, error: Optional[Exception], start_time: float):
+    async def _log_request_error(self, request: Request, error: Exception | None, start_time: float):
         """Log request error."""
         duration = (time.time() - start_time) * 1000  # milliseconds
 
@@ -476,7 +475,7 @@ class EnhancedSecurityMiddleware(BaseHTTPMiddleware):
             except Exception:
                 pass
 
-    async def _log_security_event(self, event_type: str, details: Dict[str, Any]):
+    async def _log_security_event(self, event_type: str, details: dict[str, Any]):
         """Log security event."""
         try:
             self.logger.security(f"Security event: {event_type}", event_type=event_type, **(details or {}))
@@ -489,19 +488,19 @@ class EnhancedSecurityMiddleware(BaseHTTPMiddleware):
         if event_type in ["request_blocked", "access_denied", "authentication_failed"]:
             self.threat_detections += 1
 
-    def _get_request_id(self) -> Optional[str]:
+    def _get_request_id(self) -> str | None:
         """Get the current request id from the logging context if available."""
         try:
             context = getattr(self.logger, "context", None)
             if context and hasattr(context, "request_id"):
-                return getattr(context, "request_id")
+                return context.request_id
             if isinstance(context, dict):
                 return context.get("request_id")
         except Exception:
             pass
         return None
 
-    def _create_security_response(self, validation_result: Dict[str, Any]) -> JSONResponse:
+    def _create_security_response(self, validation_result: dict[str, Any]) -> JSONResponse:
         """Create security error response."""
         error_details = validation_result.get("details", {})
 
@@ -517,7 +516,7 @@ class EnhancedSecurityMiddleware(BaseHTTPMiddleware):
             content={
                 "error": message,
                 "reason": validation_result.get("reason", "Security policy violation"),
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "request_id": self._get_request_id()
             }
         )
@@ -528,7 +527,7 @@ class EnhancedSecurityMiddleware(BaseHTTPMiddleware):
             status_code=status.HTTP_401_UNAUTHORIZED,
             content={
                 "error": message,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "request_id": self._get_request_id()
             }
         )
@@ -539,7 +538,7 @@ class EnhancedSecurityMiddleware(BaseHTTPMiddleware):
             status_code=status_code,
             content={
                 "error": message,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "request_id": self._get_request_id()
             }
         )
@@ -563,7 +562,7 @@ class EnhancedSecurityMiddleware(BaseHTTPMiddleware):
 
         return response
 
-    def get_metrics(self) -> Dict[str, Any]:
+    def get_metrics(self) -> dict[str, Any]:
         """Get security middleware metrics."""
         return {
             "total_requests": self.request_count,
@@ -605,7 +604,7 @@ class SecurityAuditMiddleware(BaseHTTPMiddleware):
         """Audit security-relevant events."""
         # Extract request information for auditing
         audit_info = {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "method": request.method,
             "path": str(request.url.path),
             "query_params": dict(request.query_params),
@@ -672,7 +671,7 @@ class SecurityAuditMiddleware(BaseHTTPMiddleware):
         return "unknown"
 
 
-def setup_security_middleware(app, config: Optional[Dict[str, Any]] = None):
+def setup_security_middleware(app, config: dict[str, Any] | None = None):
     """Setup security middleware for FastAPI app."""
     # Add enhanced security middleware
     app.add_middleware(EnhancedSecurityMiddleware, config=config)

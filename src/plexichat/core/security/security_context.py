@@ -4,9 +4,8 @@ Provides the canonical SecurityContext class and related enums.
 """
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
-from typing import Optional, Set
 
 
 class SecurityLevel(Enum):
@@ -24,17 +23,17 @@ class SecurityLevel(Enum):
 class SecurityContext:
     """Security context for requests."""
 
-    user_id: Optional[str] = None
-    session_id: Optional[str] = None
-    ip_address: Optional[str] = None
-    user_agent: Optional[str] = None
-    request_id: Optional[str] = None
-    endpoint: Optional[str] = None
+    user_id: str | None = None
+    session_id: str | None = None
+    ip_address: str | None = None
+    user_agent: str | None = None
+    request_id: str | None = None
+    endpoint: str | None = None
     security_level: SecurityLevel = SecurityLevel.PUBLIC
     authenticated: bool = False
-    permissions: Set[str] = field(default_factory=set)
+    permissions: set[str] = field(default_factory=set)
     threat_score: float = 0.0
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 __all__ = ["SecurityContext", "SecurityLevel"]

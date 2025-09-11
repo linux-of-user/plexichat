@@ -1,7 +1,8 @@
 import logging
-from typing import Dict, Optional
+
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
+
 
 # Mock user dependency
 def get_current_user():
@@ -11,15 +12,15 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/user-settings", tags=["User Settings"])
 
 # In-memory storage for demonstration
-user_settings_db: Dict[str, Dict] = {}
+user_settings_db: dict[str, dict] = {}
 
 class UserSettings(BaseModel):
     theme: str = "dark"
     notifications_enabled: bool = True
 
 class UserSettingsUpdate(BaseModel):
-    theme: Optional[str] = None
-    notifications_enabled: Optional[bool] = None
+    theme: str | None = None
+    notifications_enabled: bool | None = None
 
 @router.get("/", response_model=UserSettings)
 async def get_user_settings(current_user: dict = Depends(get_current_user)):
@@ -42,7 +43,7 @@ async def update_user_settings(
 
     update_data = settings_update.dict(exclude_unset=True)
     user_settings_db[user_id].update(update_data)
-    
+
     return UserSettings(**user_settings_db[user_id])
 
 if __name__ == '__main__':

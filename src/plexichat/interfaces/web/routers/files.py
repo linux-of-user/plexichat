@@ -15,15 +15,24 @@ abstraction and optimization systems.
 """
 
 import asyncio
+from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime
 import hashlib
 import mimetypes
 import re
 import time
-from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
-from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, Request, UploadFile, status
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    File,
+    HTTPException,
+    Request,
+    UploadFile,
+    status,
+)
 from pydantic import BaseModel
 
 # Use EXISTING database abstraction layer
@@ -34,9 +43,11 @@ except ImportError:
 
 # Use EXISTING performance optimization engine
 try:
-    from plexichat.core.performance.optimization_engine import PerformanceOptimizationEngine
-    from plexichat.infrastructure.utils.performance import async_track_performance
     from plexichat.core.logging import get_performance_logger, timer
+    from plexichat.core.performance.optimization_engine import (
+        PerformanceOptimizationEngine,
+    )
+    from plexichat.infrastructure.utils.performance import async_track_performance
 except ImportError:
     PerformanceOptimizationEngine = None
     async_track_performance = None
@@ -53,14 +64,13 @@ except ImportError:
     get_security_system = None
 
 # Use unified security decorators and enums
-from plexichat.core.security.security_decorators import (
-    secure_endpoint,
-    RequiredPermission,
-    SecurityLevel  # if needed from security decorators
-)
-
 # Logging - use unified logger
-from plexichat.core.logging import get_logger, LogCategory
+from plexichat.core.logging import LogCategory, get_logger
+from plexichat.core.security.security_decorators import (
+    RequiredPermission,
+    SecurityLevel,  # if needed from security decorators
+    secure_endpoint,
+)
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/files", tags=["files"])
@@ -111,10 +121,10 @@ ERROR_CODES = {
 class SimpleTTLCache:
     def __init__(self, ttl_seconds: int = 300):
         self._ttl = ttl_seconds
-        self._store: Dict[str, Dict[str, Any]] = {}
+        self._store: dict[str, dict[str, Any]] = {}
         self._lock = asyncio.Lock()
 
-    async def get(self, key: str) -> Optional[Dict[str, Any]]:
+    async def get(self, key: str) -> dict[str, Any] | None:
         async with self._lock:
             entry = self._store.get(key)
             if not entry:
@@ -125,7 +135,7 @@ class SimpleTTLCache:
                 return None
             return entry['value']
 
-    async def set(self, key: str, value: Dict[str, Any]) -> None:
+    async def set(self, key: str, value: dict[str, Any]) -> None:
         async with self._lock:
             self._store[key] = {
                 'value': value,
@@ -141,7 +151,7 @@ class SimpleTTLCache:
 metadata_cache = SimpleTTLCache(ttl_seconds=300)
 
 # Utility functions
-def sanitize_filename(filename: Optional[str]) -> str:
+def sanitize_filename(filename: str | None) -> str:
     """Sanitize filename for security"""
     if not filename:
         return ""
@@ -150,7 +160,7 @@ def sanitize_filename(filename: Optional[str]) -> str:
     filename = filename.strip('. ')
     return filename[:255]  # Limit length
 
-def validate_file_type(extension: str, allowed_extensions: Dict[str, str]) -> bool:
+def validate_file_type(extension: str, allowed_extensions: dict[str, str]) -> bool:
     """Validate file type against allowed extensions."""
     return extension.lower() in allowed_extensions
 
@@ -174,7 +184,7 @@ def scan_file_content(content: bytes, extension: str) -> bool:
 
     return True
 
-async def extract_metadata(content: bytes, filename: str) -> Dict[str, Any]:
+async def extract_metadata(content: bytes, filename: str) -> dict[str, Any]:
     """Extract file metadata with caching to improve performance."""
     # Use sha256 of content as cache key to uniquely identify identical files
     try:
@@ -188,7 +198,7 @@ async def extract_metadata(content: bytes, filename: str) -> Dict[str, Any]:
     if cached:
         return cached
 
-    metadata: Dict[str, Any] = {
+    metadata: dict[str, Any] = {
         'size': len(content),
         'filename': filename,
         'content_type': mimetypes.guess_type(filename)[0] or 'application/octet-stream'
@@ -221,7 +231,7 @@ class FileService:
         self.performance_logger = performance_logger
 
     @async_track_performance("file_upload") if async_track_performance else (lambda f: f)
-    async def upload_file(self, file: UploadFile, user_id: int, sanitized_filename: str = None, content: Optional[bytes] = None) -> FileRecord:
+    async def upload_file(self, file: UploadFile, user_id: int, sanitized_filename: str = None, content: bytes | None = None) -> FileRecord:
         """Upload file using EXISTING database abstraction layer.
 
         If content is provided, it will be used instead of re-reading the UploadFile.
@@ -296,7 +306,7 @@ class FileService:
             raise
 
     @async_track_performance("file_list") if async_track_performance else (lambda f: f)
-    async def list_files(self, user_id: int, limit: int = 50, offset: int = 0) -> List[FileRecord]:
+    async def list_files(self, user_id: int, limit: int = 50, offset: int = 0) -> list[FileRecord]:
         """List files using EXISTING database abstraction layer."""
         if self.db_manager:
             try:
@@ -345,7 +355,7 @@ class FileUploadResponse(BaseModel):
     message: str
 
 class FileListResponse(BaseModel):
-    files: List[Dict[str, Any]]
+    files: list[dict[str, Any]]
     total_count: int
     page: int
     per_page: int

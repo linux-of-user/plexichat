@@ -5,7 +5,7 @@ Defines contracts for authentication services with dependency injection support.
 
 from abc import ABC, abstractmethod
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any
 
 from plexichat.core.authentication import (
     AuthProvider,
@@ -25,9 +25,9 @@ class IAuthenticationService(ABC):
         self,
         username: str,
         password: str,
-        ip_address: Optional[str] = None,
-        user_agent: Optional[str] = None,
-        mfa_code: Optional[str] = None,
+        ip_address: str | None = None,
+        user_agent: str | None = None,
+        mfa_code: str | None = None,
         device_trust: bool = False,
     ) -> AuthResult:
         """Authenticate a user with credentials."""
@@ -42,18 +42,18 @@ class IAuthenticationService(ABC):
 
     @abstractmethod
     def get_oauth2_authorization_url(
-        self, provider: AuthProvider, state: Optional[str] = None
-    ) -> Optional[str]:
+        self, provider: AuthProvider, state: str | None = None
+    ) -> str | None:
         """Get OAuth2 authorization URL."""
         pass
 
     @abstractmethod
-    async def validate_token(self, token: str) -> Tuple[bool, Optional[Dict[str, Any]]]:
+    async def validate_token(self, token: str) -> tuple[bool, dict[str, Any] | None]:
         """Validate JWT token."""
         pass
 
     @abstractmethod
-    async def validate_api_key(self, api_key: str) -> Optional[Dict[str, Any]]:
+    async def validate_api_key(self, api_key: str) -> dict[str, Any] | None:
         """Validate API key."""
         pass
 
@@ -66,26 +66,26 @@ class IUserService(ABC):
         self,
         username: str,
         password: str,
-        permissions: Optional[Set[str]] = None,
-        roles: Optional[Set[Role]] = None,
-    ) -> Tuple[bool, List[str]]:
+        permissions: set[str] | None = None,
+        roles: set[Role] | None = None,
+    ) -> tuple[bool, list[str]]:
         """Register a new user."""
         pass
 
     @abstractmethod
     async def change_password(
         self, user_id: str, old_password: str, new_password: str
-    ) -> Tuple[bool, List[str]]:
+    ) -> tuple[bool, list[str]]:
         """Change user password."""
         pass
 
     @abstractmethod
-    def get_user_permissions(self, user_id: str) -> Set[str]:
+    def get_user_permissions(self, user_id: str) -> set[str]:
         """Get user permissions."""
         pass
 
     @abstractmethod
-    def update_user_permissions(self, user_id: str, permissions: Set[str]) -> bool:
+    def update_user_permissions(self, user_id: str, permissions: set[str]) -> bool:
         """Update user permissions."""
         pass
 
@@ -106,7 +106,7 @@ class ISessionService(ABC):
     @abstractmethod
     async def validate_session(
         self, session_id: str
-    ) -> Tuple[bool, Optional[SessionInfo]]:
+    ) -> tuple[bool, SessionInfo | None]:
         """Validate session."""
         pass
 
@@ -126,7 +126,7 @@ class ISessionService(ABC):
         pass
 
     @abstractmethod
-    def get_active_sessions(self, user_id: Optional[str] = None) -> List[SessionInfo]:
+    def get_active_sessions(self, user_id: str | None = None) -> list[SessionInfo]:
         """Get active sessions."""
         pass
 
@@ -143,8 +143,8 @@ class ITokenService(ABC):
     def create_access_token(
         self,
         user_id: str,
-        permissions: Set[str],
-        expires_delta: Optional[timedelta] = None,
+        permissions: set[str],
+        expires_delta: timedelta | None = None,
     ) -> str:
         """Create access token."""
         pass
@@ -160,12 +160,12 @@ class ITokenService(ABC):
         pass
 
     @abstractmethod
-    async def refresh_access_token(self, refresh_token: str) -> Optional[str]:
+    async def refresh_access_token(self, refresh_token: str) -> str | None:
         """Refresh access token."""
         pass
 
     @abstractmethod
-    def get_token_info(self, token: str) -> Optional[Dict[str, Any]]:
+    def get_token_info(self, token: str) -> dict[str, Any] | None:
         """Get token information."""
         pass
 
@@ -176,7 +176,7 @@ class IMFAProvider(ABC):
     @abstractmethod
     async def create_challenge(
         self, user_id: str, method: MFAMethod
-    ) -> Optional[MFAChallenge]:
+    ) -> MFAChallenge | None:
         """Create MFA challenge."""
         pass
 
@@ -196,7 +196,7 @@ class IMFAProvider(ABC):
         pass
 
     @abstractmethod
-    def get_available_methods(self, user_id: str) -> List[MFAMethod]:
+    def get_available_methods(self, user_id: str) -> list[MFAMethod]:
         """Get available MFA methods for user."""
         pass
 
@@ -213,11 +213,11 @@ class IAuditService(ABC):
     def log_authentication_event(
         self,
         event_type: str,
-        user_id: Optional[str],
-        ip_address: Optional[str],
-        user_agent: Optional[str],
+        user_id: str | None,
+        ip_address: str | None,
+        user_agent: str | None,
         success: bool,
-        details: Optional[Dict[str, Any]] = None,
+        details: dict[str, Any] | None = None,
     ):
         """Log authentication event."""
         pass
@@ -227,9 +227,9 @@ class IAuditService(ABC):
         self,
         event_type: str,
         severity: str,
-        user_id: Optional[str],
-        ip_address: Optional[str],
-        details: Optional[Dict[str, Any]] = None,
+        user_id: str | None,
+        ip_address: str | None,
+        details: dict[str, Any] | None = None,
     ):
         """Log security event."""
         pass
@@ -239,8 +239,8 @@ class IAuditService(ABC):
         self,
         action: str,
         admin_user_id: str,
-        target_user_id: Optional[str],
-        details: Optional[Dict[str, Any]] = None,
+        target_user_id: str | None,
+        details: dict[str, Any] | None = None,
     ):
         """Log admin action."""
         pass
@@ -248,21 +248,21 @@ class IAuditService(ABC):
     @abstractmethod
     def get_audit_logs(
         self,
-        user_id: Optional[str] = None,
-        event_type: Optional[str] = None,
-        start_date: Optional[datetime] = None,
-        end_date: Optional[datetime] = None,
+        user_id: str | None = None,
+        event_type: str | None = None,
+        start_date: datetime | None = None,
+        end_date: datetime | None = None,
         limit: int = 100,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Get audit logs."""
         pass
 
 
 __all__ = [
+    "IAuditService",
     "IAuthenticationService",
-    "IUserService",
+    "IMFAProvider",
     "ISessionService",
     "ITokenService",
-    "IMFAProvider",
-    "IAuditService",
+    "IUserService",
 ]

@@ -1,20 +1,24 @@
-import sys
 import os
-from typing import List, Optional
+import sys
 
 # Add project root to path to allow absolute imports
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../../')))
 
 try:
-    from typer import Typer, Argument, Option
     from rich.console import Console
     from rich.panel import Panel
     from rich.table import Table
+    from typer import Argument, Option, Typer
 except ImportError:
     print("Error: Typer and Rich libraries are required. Please run 'pip install typer rich'.")
     sys.exit(1)
 
-from plexichat.interfaces.cli.ultimate.cli_coordinator import CommandCategory, ultimate_cli
+import builtins
+
+from plexichat.interfaces.cli.ultimate.cli_coordinator import (
+    CommandCategory,
+    ultimate_cli,
+)
 
 # --- Basic Setup ---
 logger = logging.getLogger(__name__)
@@ -29,7 +33,7 @@ app = Typer(
 # --- Command Definitions ---
 
 @app.command()
-def help(command: Optional[str] = Argument(None, help="Show help for a specific command.")):
+def help(command: str | None = Argument(None, help="Show help for a specific command.")):
     """Shows help for a command or the main help screen."""
     if command:
         ultimate_cli.show_command_help(command)
@@ -37,12 +41,12 @@ def help(command: Optional[str] = Argument(None, help="Show help for a specific 
         show_main_help()
 
 @app.command()
-def list(category: Optional[str] = Option(None, "--category", "-c", help="Filter by category.")):
+def list(category: str | None = Option(None, "--category", "-c", help="Filter by category.")):
     """Lists all available commands, optionally filtered by category."""
     ultimate_cli.list_commands(category)
 
 @app.command()
-async def run(command: str, args: List[str] = Argument(None, help="Arguments for the command.")):
+async def run(command: str, args: builtins.list[str] = Argument(None, help="Arguments for the command.")):
     """Executes a plexichat command."""
     await ultimate_cli.execute_command(command, *args)
 

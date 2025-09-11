@@ -3,12 +3,11 @@ MFA Service
 Manages multi-factor authentication with TOTP and SMS support.
 """
 
+from dataclasses import dataclass, field
+from datetime import UTC, datetime, timedelta
+from enum import Enum
 import hashlib
 import secrets
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
-from enum import Enum
-from typing import Dict, List, Optional, Tuple
 
 import pyotp
 
@@ -48,8 +47,8 @@ class MFAEnrollment:
     user_id: str
     mfa_type: MFAType
     secret: str
-    backup_codes: List[str] = field(default_factory=list)
-    enrolled_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    backup_codes: list[str] = field(default_factory=list)
+    enrolled_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     is_active: bool = True
 
 
@@ -58,8 +57,8 @@ class MFAService(IMFAProvider):
 
     def __init__(self):
         super().__init__()
-        self.challenges: Dict[str, MFAChallenge] = {}
-        self.enrollments: Dict[str, MFAEnrollment] = {}
+        self.challenges: dict[str, MFAChallenge] = {}
+        self.enrollments: dict[str, MFAEnrollment] = {}
         self.challenge_timeout = 300  # 5 minutes
         self.max_attempts = 3
 
@@ -84,7 +83,7 @@ class MFAService(IMFAProvider):
             mfa_type=mfa_type,
             secret=secret,
             code=code,
-            expires_at=datetime.now(timezone.utc)
+            expires_at=datetime.now(UTC)
             + timedelta(seconds=self.challenge_timeout),
         )
 
@@ -104,7 +103,7 @@ class MFAService(IMFAProvider):
         if not challenge or challenge.user_id != user_id:
             return False
 
-        if challenge.is_used or datetime.now(timezone.utc) > challenge.expires_at:
+        if challenge.is_used or datetime.now(UTC) > challenge.expires_at:
             return False
 
         if challenge.attempts >= challenge.max_attempts:
@@ -132,7 +131,7 @@ class MFAService(IMFAProvider):
 
     async def enroll_mfa(
         self, user_id: str, mfa_type: MFAType = MFAType.TOTP
-    ) -> Tuple[bool, str]:
+    ) -> tuple[bool, str]:
         """Enroll a user for MFA."""
         if user_id in self.enrollments:
             return False, "User already enrolled in MFA"
@@ -178,7 +177,7 @@ class MFAService(IMFAProvider):
         enrollment = self.enrollments.get(user_id)
         return enrollment is not None and enrollment.is_active
 
-    async def get_mfa_status(self, user_id: str) -> Optional[Dict]:
+    async def get_mfa_status(self, user_id: str) -> dict | None:
         """Get MFA status for a user."""
         enrollment = self.enrollments.get(user_id)
         if not enrollment:
@@ -194,7 +193,7 @@ class MFAService(IMFAProvider):
     async def cleanup_expired_challenges(self) -> int:
         """Clean up expired MFA challenges."""
         expired_challenges = []
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         for challenge_id, challenge in self.challenges.items():
             if now > challenge.expires_at or challenge.is_used:

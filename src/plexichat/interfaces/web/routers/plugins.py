@@ -13,12 +13,12 @@ Provides complete plugin lifecycle management via web browser.
 import json
 import logging
 from pathlib import Path
-from typing import Dict, Any, List, Optional
+from typing import Any
 
-from fastapi import APIRouter, Request, Form, HTTPException, Depends
+from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.templating import Jinja2Templates
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 logger = logging.getLogger(__name__)
 
@@ -52,8 +52,10 @@ def verify_admin_session(token: str) -> bool:
 # Try to import plugin security manager and PermissionType; fall back to None if not present
 try:
     from plexichat.core.plugins.security_manager import (
+        PermissionType as CorePermissionType,
+    )
+    from plexichat.core.plugins.security_manager import (
         plugin_security_manager as core_plugin_security_manager,
-        PermissionType as CorePermissionType
     )
 except Exception:
     core_plugin_security_manager = None
@@ -69,11 +71,11 @@ class _FallbackSecurityManager:
     surface required by the router endpoints.
     """
     def __init__(self):
-        self._permission_requests: Dict[str, List[Dict[str, Any]]] = {}
-        self._approved_permissions: Dict[str, set] = {}
-        self._audit_events: List[Dict[str, Any]] = []
+        self._permission_requests: dict[str, list[dict[str, Any]]] = {}
+        self._approved_permissions: dict[str, set] = {}
+        self._audit_events: list[dict[str, Any]] = []
         self._quarantined: set = set()
-        self._policies: Dict[str, Dict[str, Any]] = {}
+        self._policies: dict[str, dict[str, Any]] = {}
 
     def request_permission(self, plugin_name: str, permission_type: str, justification: str):
         req = {
@@ -92,7 +94,7 @@ class _FallbackSecurityManager:
         })
         return req
 
-    def get_pending_permission_requests(self) -> List[Dict[str, Any]]:
+    def get_pending_permission_requests(self) -> list[dict[str, Any]]:
         out = []
         for plugin, requests in self._permission_requests.items():
             for r in requests:
@@ -100,7 +102,7 @@ class _FallbackSecurityManager:
                     out.append(r)
         return out
 
-    def approve_permission(self, plugin_name: str, permission_type: str, approved_by: str, expires_in_days: Optional[int] = None) -> bool:
+    def approve_permission(self, plugin_name: str, permission_type: str, approved_by: str, expires_in_days: int | None = None) -> bool:
         found = False
         for r in self._permission_requests.get(plugin_name, []):
             if r.get("permission_type") == permission_type and r.get("status") == "pending":
@@ -137,7 +139,7 @@ class _FallbackSecurityManager:
     def has_permission(self, plugin_name: str, permission_type: str) -> bool:
         return permission_type in self._approved_permissions.get(plugin_name, set())
 
-    def get_plugin_permissions(self, plugin_name: str) -> Dict[str, Any]:
+    def get_plugin_permissions(self, plugin_name: str) -> dict[str, Any]:
         pending = []
         for r in self._permission_requests.get(plugin_name, []):
             if r.get("status") == "pending":
@@ -152,10 +154,10 @@ class _FallbackSecurityManager:
             "is_quarantined": plugin_name in self._quarantined,
         }
 
-    def log_audit_event(self, event: Dict[str, Any]):
+    def log_audit_event(self, event: dict[str, Any]):
         self._audit_events.append(event)
 
-    def get_security_summary(self) -> Dict[str, Any]:
+    def get_security_summary(self) -> dict[str, Any]:
         return {
             "total_plugins_monitored": 0,
             "quarantined_plugins": len(self._quarantined),
@@ -163,11 +165,11 @@ class _FallbackSecurityManager:
             "recent_audit_events": len(self._audit_events),
         }
 
-    def get_audit_events(self, plugin_name: Optional[str] = None, limit: int = 100) -> List[Dict[str, Any]]:
+    def get_audit_events(self, plugin_name: str | None = None, limit: int = 100) -> list[dict[str, Any]]:
         events = [e for e in self._audit_events if (plugin_name is None or e.get("plugin_name") == plugin_name)]
         return events[-limit:]
 
-    def set_security_policy(self, plugin_name: str, policy: Dict[str, Any]):
+    def set_security_policy(self, plugin_name: str, policy: dict[str, Any]):
         self._policies[plugin_name] = policy
         self._audit_events.append({
             "event_type": "policy_updated",
@@ -218,25 +220,25 @@ if core_plugin_security_manager is not None:
         def get_security_summary(self):
             try:
                 return self._core.get_security_summary()
-            except Exception as e:
+            except Exception:
                 logger.exception("Error getting security summary from core manager")
                 return {}
 
         def get_plugin_permissions(self, plugin_name: str):
             try:
                 return self._core.get_plugin_permissions(plugin_name)
-            except Exception as e:
+            except Exception:
                 logger.exception("Error getting plugin permissions from core manager")
                 return {}
 
         def get_pending_permission_requests(self):
             try:
                 return self._core.get_pending_permission_requests()
-            except Exception as e:
+            except Exception:
                 logger.exception("Error getting pending requests from core manager")
                 return []
 
-        def approve_permission(self, plugin_name: str, permission: str, approved_by: str, expires_in_days: Optional[int] = None):
+        def approve_permission(self, plugin_name: str, permission: str, approved_by: str, expires_in_days: int | None = None):
             try:
                 # Map permission string to CorePermissionType if available
                 if CorePermissionType:
@@ -251,7 +253,7 @@ if core_plugin_security_manager is not None:
                 else:
                     p_enum = permission
                 return self._core.approve_permission(plugin_name, p_enum, approved_by, expires_in_days)
-            except Exception as e:
+            except Exception:
                 logger.exception("Error approving permission via core manager")
                 return False
 
@@ -268,11 +270,11 @@ if core_plugin_security_manager is not None:
                 else:
                     p_enum = permission
                 return self._core.deny_permission(plugin_name, p_enum, denied_by)
-            except Exception as e:
+            except Exception:
                 logger.exception("Error denying permission via core manager")
                 return False
 
-        def get_audit_events(self, plugin_name: Optional[str] = None, limit: int = 100):
+        def get_audit_events(self, plugin_name: str | None = None, limit: int = 100):
             try:
                 events = getattr(self._core, "_audit_events", None)
                 if events is not None:
@@ -291,7 +293,7 @@ if core_plugin_security_manager is not None:
                 logger.exception("Error fetching audit events from core manager")
                 return []
 
-        def set_security_policy(self, plugin_name: str, policy: Dict[str, Any]):
+        def set_security_policy(self, plugin_name: str, policy: dict[str, Any]):
             try:
                 # Try to set policy on core manager if method exists
                 if hasattr(self._core, "set_security_policy"):
@@ -427,7 +429,7 @@ async def api_approve_permission(
     request: Request,
     plugin_name: str = Form(...),
     permission_type: str = Form(...),
-    expires_in_days: Optional[int] = Form(None),
+    expires_in_days: int | None = Form(None),
     approved_by: str = Form("admin"),
     token: str = Depends(verify_admin_token)
 ):
@@ -472,7 +474,7 @@ async def api_security_status(token: str = Depends(verify_admin_token)):
         raise HTTPException(status_code=500, detail="Failed to get security status")
 
 @router.get("/api/audit", response_class=JSONResponse)
-async def api_audit_logs(plugin_name: Optional[str] = None, limit: int = 100, token: str = Depends(verify_admin_token)):
+async def api_audit_logs(plugin_name: str | None = None, limit: int = 100, token: str = Depends(verify_admin_token)):
     """Return audit logs for security events (optionally filtered by plugin)."""
     try:
         events = security_adapter.get_audit_events(plugin_name, limit) if hasattr(security_adapter, "get_audit_events") else []
@@ -510,7 +512,7 @@ async def api_quarantine_plugin(
     request: Request,
     plugin_name: str = Form(...),
     action: str = Form(...),  # "quarantine" or "release"
-    reason: Optional[str] = Form("admin action"),
+    reason: str | None = Form("admin action"),
     actor: str = Form("admin"),
     token: str = Depends(verify_admin_token)
 ):
@@ -556,7 +558,7 @@ async def api_create_sandbox(
 # Helper functions (existing ones retained; helper additions below)
 # -----------------------------------------------------------------------------
 
-def get_installed_plugins() -> List[Dict[str, Any]]:
+def get_installed_plugins() -> list[dict[str, Any]]:
     """Get list of installed plugins."""
     try:
         # Get plugins directory from project root
@@ -576,13 +578,13 @@ def get_installed_plugins() -> List[Dict[str, Any]]:
         logger.error(f"Failed to get installed plugins: {e}")
         return []
 
-def load_plugin_info(plugin_dir: Path) -> Optional[Dict[str, Any]]:
+def load_plugin_info(plugin_dir: Path) -> dict[str, Any] | None:
     """Load plugin information from plugin directory."""
     try:
         # Try to load plugin.json
         plugin_json = plugin_dir / "plugin.json"
         if plugin_json.exists():
-            with open(plugin_json, 'r') as f:
+            with open(plugin_json) as f:
                 info = json.load(f)
                 info['installed'] = True
                 info['path'] = str(plugin_dir)
@@ -601,7 +603,7 @@ def load_plugin_info(plugin_dir: Path) -> Optional[Dict[str, Any]]:
         logger.error(f"Failed to load plugin info for {plugin_dir}: {e}")
         return None
 
-async def get_available_plugins() -> List[Dict[str, Any]]:
+async def get_available_plugins() -> list[dict[str, Any]]:
     """Get list of available plugins from all repositories."""
     try:
         all_plugins = []
@@ -617,7 +619,7 @@ async def get_available_plugins() -> List[Dict[str, Any]]:
         logger.error(f"Failed to get available plugins: {e}")
         return []
 
-async def fetch_plugins_from_repo(repo_name: str) -> List[Dict[str, Any]]:
+async def fetch_plugins_from_repo(repo_name: str) -> list[dict[str, Any]]:
     """Fetch plugins from a specific repository."""
     try:
         repositories = get_plugin_repositories()
@@ -665,12 +667,12 @@ async def fetch_plugins_from_repo(repo_name: str) -> List[Dict[str, Any]]:
         logger.error(f"Failed to fetch plugins from {repo_name}: {e}")
         return []
 
-def get_plugin_repositories() -> List[Dict[str, Any]]:
+def get_plugin_repositories() -> list[dict[str, Any]]:
     """Get list of plugin repositories."""
     try:
         registry_file = Path("plugins/registry.json")
         if registry_file.exists():
-            with open(registry_file, 'r') as f:
+            with open(registry_file) as f:
                 registry = json.load(f)
                 return registry.get("repositories", [])
 
@@ -740,7 +742,7 @@ def add_plugin_repository(name: str, url: str) -> bool:
         registry = {"repositories": []}
 
         if registry_file.exists():
-            with open(registry_file, 'r') as f:
+            with open(registry_file) as f:
                 registry = json.load(f)
 
         # Add new repository

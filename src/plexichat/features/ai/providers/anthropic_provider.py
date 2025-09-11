@@ -5,9 +5,9 @@ Anthropic Provider for PlexiChat
 Provides integration with Anthropic's Claude models.
 """
 
-import logging
 from dataclasses import dataclass
-from typing import Any, List, Optional
+import logging
+from typing import Any
 
 try:
     import anthropic  # type: ignore
@@ -26,7 +26,11 @@ from plexichat.features.ai.core.ai_abstraction_layer import (
     ModelCapability,
     ModelStatus,
 )
-from plexichat.features.ai.providers.base_provider import BaseAIProvider, ProviderConfig, ProviderStatus
+from plexichat.features.ai.providers.base_provider import (
+    BaseAIProvider,
+    ProviderConfig,
+    ProviderStatus,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -39,18 +43,18 @@ class AnthropicConfig(ProviderConfig):
 
 class AnthropicProvider(BaseAIProvider):
     """Anthropic provider implementation."""
-    
+
     def __init__(self, config: AnthropicConfig):
         """Initialize Anthropic provider."""
         super().__init__(config)
         self.config: AnthropicConfig = config
-        self.client: Optional[Any] = None
-        
+        self.client: Any | None = None
+
         if not ANTHROPIC_AVAILABLE:
             logger.error("Anthropic library not available")
             self.status = ProviderStatus.ERROR
             return
-            
+
         try:
             if Anthropic:
                 self.client = Anthropic(
@@ -91,7 +95,7 @@ class AnthropicProvider(BaseAIProvider):
                     "cost_per_token": 0.00000025
                 }
             ]
-            
+
             for model_data in models_data:
                 model = AIModel(
                     id=model_data["id"],
@@ -103,7 +107,7 @@ class AnthropicProvider(BaseAIProvider):
                     status=ModelStatus.AVAILABLE
                 )
                 self.models[model.id] = model
-                
+
         except Exception as e:
             logger.error(f"Failed to load Anthropic models: {e}")
 
@@ -111,7 +115,7 @@ class AnthropicProvider(BaseAIProvider):
         """Test Anthropic connection."""
         if not self.client:
             return False
-            
+
         try:
             # Try a simple message as a connection test
             message = self.client.messages.create(
@@ -124,7 +128,7 @@ class AnthropicProvider(BaseAIProvider):
             logger.error(f"Anthropic connection test failed: {e}")
             return False
 
-    def get_available_models(self) -> List[AIModel]:
+    def get_available_models(self) -> list[AIModel]:
         """Get list of available Anthropic models."""
         return list(self.models.values())
 
@@ -159,7 +163,7 @@ class AnthropicProvider(BaseAIProvider):
 
             # Extract response content
             content = response.content[0].text if response.content else ""
-            
+
             # Calculate usage
             usage = {
                 "input_tokens": response.usage.input_tokens if response.usage else 0,

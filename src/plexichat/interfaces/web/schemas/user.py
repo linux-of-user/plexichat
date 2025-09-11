@@ -5,8 +5,8 @@ Enhanced with comprehensive validation and security.
 """
 
 from datetime import datetime
-from typing import Optional, List
-from pydantic import BaseModel, Field, field_validator, EmailStr
+
+from pydantic import BaseModel, EmailStr, Field, field_validator
 
 
 class UserBase(BaseModel):
@@ -42,17 +42,17 @@ class UserCreate(UserBase):
 
 class UserUpdate(BaseModel):
     """User update schema."""
-    username: Optional[str] = Field(None, min_length=3, max_length=50, description="Username")
-    email: Optional[EmailStr] = Field(None, description="Email address")
-    is_active: Optional[bool] = Field(None, description="Active status")
-    is_admin: Optional[bool] = Field(None, description="Admin status")
-    display_name: Optional[str] = Field(None, description="Display name")
-    bio: Optional[str] = Field(None, max_length=500, description="User biography")
-    avatar_url: Optional[str] = Field(None, description="Avatar image URL")
-    user_status: Optional[str] = Field(None, description="User status")
-    timezone: Optional[str] = Field(None, description="User timezone")
-    language: Optional[str] = Field(None, description="Preferred language")
-    theme: Optional[str] = Field(None, description="UI theme preference")
+    username: str | None = Field(None, min_length=3, max_length=50, description="Username")
+    email: EmailStr | None = Field(None, description="Email address")
+    is_active: bool | None = Field(None, description="Active status")
+    is_admin: bool | None = Field(None, description="Admin status")
+    display_name: str | None = Field(None, description="Display name")
+    bio: str | None = Field(None, max_length=500, description="User biography")
+    avatar_url: str | None = Field(None, description="Avatar image URL")
+    user_status: str | None = Field(None, description="User status")
+    timezone: str | None = Field(None, description="User timezone")
+    language: str | None = Field(None, description="Preferred language")
+    theme: str | None = Field(None, description="UI theme preference")
 
     @field_validator('username')
     @classmethod
@@ -73,14 +73,14 @@ class UserResponse(UserBase):
     is_active: bool = Field(..., description="Active status")
     is_admin: bool = Field(..., description="Admin status")
     created_at: datetime = Field(..., description="Creation timestamp")
-    last_login: Optional[datetime] = Field(None, description="Last login timestamp")
-    display_name: Optional[str] = Field(None, description="Display name")
-    bio: Optional[str] = Field(None, max_length=500, description="User biography")
-    avatar_url: Optional[str] = Field(None, description="Avatar image URL")
-    user_status: Optional[str] = Field(None, description="User status")
-    timezone: Optional[str] = Field(None, description="User timezone")
-    language: Optional[str] = Field(None, description="Preferred language")
-    theme: Optional[str] = Field(None, description="UI theme preference")
+    last_login: datetime | None = Field(None, description="Last login timestamp")
+    display_name: str | None = Field(None, description="Display name")
+    bio: str | None = Field(None, max_length=500, description="User biography")
+    avatar_url: str | None = Field(None, description="Avatar image URL")
+    user_status: str | None = Field(None, description="User status")
+    timezone: str | None = Field(None, description="User timezone")
+    language: str | None = Field(None, description="Preferred language")
+    theme: str | None = Field(None, description="UI theme preference")
 
     class Config:
         from_attributes = True
@@ -88,7 +88,7 @@ class UserResponse(UserBase):
 
 class UserListResponse(BaseModel):
     """User list response schema."""
-    users: List[UserResponse] = Field(..., description="List of users")
+    users: list[UserResponse] = Field(..., description="List of users")
     total_count: int = Field(..., description="Total number of users")
     page: int = Field(..., description="Current page number")
     per_page: int = Field(..., description="Items per page")
@@ -98,12 +98,12 @@ class UserListResponse(BaseModel):
 
 class UserProfile(UserResponse):
     """Extended user profile schema."""
-    bio: Optional[str] = Field(None, max_length=500, description="User biography")
-    avatar_url: Optional[str] = Field(None, description="Avatar image URL")
-    user_status: Optional[str] = Field(None, description="User status (online, away, busy, offline)")
-    timezone: Optional[str] = Field(None, description="User timezone")
-    language: Optional[str] = Field(None, description="Preferred language")
-    theme: Optional[str] = Field(None, description="UI theme preference")
+    bio: str | None = Field(None, max_length=500, description="User biography")
+    avatar_url: str | None = Field(None, description="Avatar image URL")
+    user_status: str | None = Field(None, description="User status (online, away, busy, offline)")
+    timezone: str | None = Field(None, description="User timezone")
+    language: str | None = Field(None, description="Preferred language")
+    theme: str | None = Field(None, description="UI theme preference")
 
 
 class UserStats(BaseModel):
@@ -112,5 +112,5 @@ class UserStats(BaseModel):
     message_count: int = Field(default=0, description="Total messages sent")
     file_count: int = Field(default=0, description="Total files uploaded")
     login_count: int = Field(default=0, description="Total login count")
-    last_activity: Optional[datetime] = Field(None, description="Last activity timestamp")
+    last_activity: datetime | None = Field(None, description="Last activity timestamp")
     account_age_days: int = Field(default=0, description="Account age in days")

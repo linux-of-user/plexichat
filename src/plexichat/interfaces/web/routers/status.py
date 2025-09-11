@@ -10,9 +10,9 @@ Simple health check and status endpoints for monitoring and load balancing.
 Optimized for performance using EXISTING systems.
 """
 
+from datetime import UTC, datetime
 import logging
-from datetime import datetime, timezone
-from typing import Dict, Any
+from typing import Any
 
 from fastapi import APIRouter, HTTPException, Request, status
 from pydantic import BaseModel
@@ -25,9 +25,11 @@ except ImportError:
 
 # Use EXISTING performance optimization engine
 try:
-    from plexichat.core.performance.optimization_engine import PerformanceOptimizationEngine
-    from plexichat.infrastructure.utils.performance import async_track_performance
     from plexichat.core.logging import get_performance_logger, timer
+    from plexichat.core.performance.optimization_engine import (
+        PerformanceOptimizationEngine,
+    )
+    from plexichat.infrastructure.utils.performance import async_track_performance
 except ImportError:
     PerformanceOptimizationEngine = None
     async_track_performance = None
@@ -50,7 +52,7 @@ performance_logger = get_performance_logger() if get_performance_logger else Non
 optimization_engine = PerformanceOptimizationEngine() if PerformanceOptimizationEngine else None
 
 # Track server start time
-server_start_time = datetime.now(timezone.utc)
+server_start_time = datetime.now(UTC)
 
 # Pydantic models
 class HealthResponse(BaseModel):
@@ -98,7 +100,7 @@ class StatusService:
         if self.performance_logger:
             self.performance_logger.increment_counter("uptime_requests", 1)
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         uptime_duration = now - server_start_time
 
         return UptimeResponse(
@@ -201,7 +203,7 @@ async def get_metrics(request: Request):
     logger.debug(f"Metrics endpoint called from {client_ip}")
     return await status_service.get_metrics()
 
-@router.get("/", response_model=Dict[str, Any], summary="Get comprehensive status")
+@router.get("/", response_model=dict[str, Any], summary="Get comprehensive status")
 async def get_comprehensive_status(request: Request):
     """Get comprehensive system status including health, uptime, and metrics."""
     client_ip = request.client.host if request.client else "unknown"

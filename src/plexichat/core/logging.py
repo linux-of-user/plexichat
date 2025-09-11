@@ -20,14 +20,14 @@ from src.plexichat.core.logging.unified_logger import (
 
 # Re-export all logging functions for compatibility
 __all__ = [
+    "flush_logs",
+    "get_directory_manager",
     "get_logger",
     "get_logging_manager",
-    "get_directory_manager",
-    "setup_module_logging",
+    "log_audit_event",
+    "log_error",
     "log_performance",
     "log_request",
-    "log_error",
-    "log_audit_event",
+    "setup_module_logging",
     "timer",
-    "flush_logs",
 ]

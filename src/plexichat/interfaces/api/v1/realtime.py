@@ -1,6 +1,6 @@
 import time
-from typing import Dict, Set
 from uuid import uuid4
+
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
 
@@ -9,9 +9,9 @@ router = APIRouter(prefix="/realtime", tags=["Real-time"])
 class ConnectionManager:
     """Manages WebSocket connections."""
     def __init__(self):
-        self.active_connections: Dict[str, WebSocket] = {}
-        self.user_connections: Dict[str, Set[str]] = {}
-        self.room_connections: Dict[str, Set[str]] = {}
+        self.active_connections: dict[str, WebSocket] = {}
+        self.user_connections: dict[str, set[str]] = {}
+        self.room_connections: dict[str, set[str]] = {}
 
     async def connect(self, websocket: WebSocket, user_id: str) -> str:
         """Accepts a new connection."""

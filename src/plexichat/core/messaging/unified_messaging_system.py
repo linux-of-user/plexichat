@@ -14,11 +14,12 @@ Provides a single, unified interface for all messaging operations with:
 - Comprehensive security integration
 """
 
-import logging
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple
+import logging
+from typing import Any
 from uuid import uuid4
 
 from plexichat.core.messaging.message_formatter import message_formatter
@@ -95,12 +96,12 @@ class MessageMetadata:
     message_id: str
     sender_id: str
     channel_id: str
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
     message_type: MessageType = MessageType.TEXT
     encryption_level: EncryptionLevel = EncryptionLevel.ENHANCED
     priority: int = 1
-    reply_to: Optional[str] = None
-    thread_id: Optional[str] = None
+    reply_to: str | None = None
+    thread_id: str | None = None
     edited: bool = False
     deleted: bool = False
 
@@ -111,9 +112,9 @@ class Message:
 
     metadata: MessageMetadata
     content: str
-    attachments: List[Dict[str, Any]] = field(default_factory=list)
-    reactions: Dict[str, List[str]] = field(default_factory=dict)
-    mentions: List[str] = field(default_factory=list)
+    attachments: list[dict[str, Any]] = field(default_factory=list)
+    reactions: dict[str, list[str]] = field(default_factory=dict)
+    mentions: list[str] = field(default_factory=list)
     status: MessageStatus = MessageStatus.PENDING
 
 
@@ -124,9 +125,9 @@ class Channel:
     channel_id: str
     name: str
     channel_type: ChannelType
-    members: Set[str] = field(default_factory=set)
-    admins: Set[str] = field(default_factory=set)
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    members: set[str] = field(default_factory=set)
+    admins: set[str] = field(default_factory=set)
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     description: str = ""
     is_active: bool = True
     max_members: int = 1000
@@ -141,14 +142,14 @@ class Thread:
     title: str
     channel_id: str
     creator_id: str
-    parent_message_id: Optional[str] = None
+    parent_message_id: str | None = None
     is_resolved: bool = False
     participant_count: int = 1
     message_count: int = 0
-    last_message_at: Optional[datetime] = None
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    participants: Set[str] = field(default_factory=set)
+    last_message_at: datetime | None = None
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    participants: set[str] = field(default_factory=set)
 
 
 class MessageValidator:
@@ -167,7 +168,7 @@ class MessageValidator:
             ".mp3",
         }
 
-    def validate_message(self, message: Message) -> Tuple[bool, List[str]]:
+    def validate_message(self, message: Message) -> tuple[bool, list[str]]:
         """Validate message content and metadata."""
         issues = []
 
@@ -205,7 +206,7 @@ class MessageEncryption:
     """Handles message encryption and decryption."""
 
     def __init__(self):
-        self.encryption_keys: Dict[str, str] = {}
+        self.encryption_keys: dict[str, str] = {}
 
     def encrypt_message(
         self, message: Message, encryption_level: EncryptionLevel
@@ -252,14 +253,14 @@ class MessageRouter:
     """Routes messages to appropriate channels and users."""
 
     def __init__(self):
-        self.routing_rules: Dict[str, Callable] = {}
-        self.delivery_handlers: Dict[str, Callable] = {}
+        self.routing_rules: dict[str, Callable] = {}
+        self.delivery_handlers: dict[str, Callable] = {}
 
     def add_routing_rule(self, rule_name: str, handler: Callable):
         """Add a message routing rule."""
         self.routing_rules[rule_name] = handler
 
-    def route_message(self, message: Message) -> List[str]:
+    def route_message(self, message: Message) -> list[str]:
         """Route message to appropriate destinations."""
         destinations = []
 
@@ -278,8 +279,8 @@ class ChannelManager:
     """Manages channels and their members."""
 
     def __init__(self):
-        self.channels: Dict[str, Channel] = {}
-        self.user_channels: Dict[str, Set[str]] = {}
+        self.channels: dict[str, Channel] = {}
+        self.user_channels: dict[str, set[str]] = {}
 
     def create_channel(
         self, name: str, channel_type: ChannelType, creator_id: str
@@ -330,7 +331,7 @@ class ChannelManager:
 
         return True
 
-    def get_user_channels(self, user_id: str) -> List[Channel]:
+    def get_user_channels(self, user_id: str) -> list[Channel]:
         """Get all channels for a user."""
         if user_id not in self.user_channels:
             return []
@@ -365,14 +366,14 @@ class UnifiedMessagingSystem:
         self.threads_service = get_message_threads_service()
 
         # Message storage
-        self.messages: Dict[str, Message] = {}
+        self.messages: dict[str, Message] = {}
         # Thread storage
-        self.threads: Dict[str, Thread] = {}
-        self.thread_messages: Dict[str, List[str]] = {}
-        self.message_history: Dict[str, List[str]] = {}
+        self.threads: dict[str, Thread] = {}
+        self.thread_messages: dict[str, list[str]] = {}
+        self.message_history: dict[str, list[str]] = {}
 
         # Real-time subscribers
-        self.subscribers: Dict[str, Set[Callable]] = {}
+        self.subscribers: dict[str, set[Callable]] = {}
 
         # Security integration
         if SECURITY_AVAILABLE:
@@ -406,10 +407,10 @@ class UnifiedMessagingSystem:
         channel_id: str,
         content: str,
         message_type: MessageType = MessageType.TEXT,
-        attachments: Optional[List[Dict[str, Any]]] = None,
-        reply_to: Optional[str] = None,
-        thread_id: Optional[str] = None,
-    ) -> Tuple[bool, str, Optional[Message]]:
+        attachments: list[dict[str, Any]] | None = None,
+        reply_to: str | None = None,
+        thread_id: str | None = None,
+    ) -> tuple[bool, str, Message | None]:
         """
         Send a message with comprehensive security validation.
 
@@ -478,7 +479,7 @@ class UnifiedMessagingSystem:
                 if thread_id in self.threads:
                     thread = self.threads[thread_id]
                     thread.message_count += 1
-                    thread.last_message_at = datetime.now(timezone.utc)
+                    thread.last_message_at = datetime.now(UTC)
                     thread.participants.add(sender_id)
                     thread.participant_count = len(thread.participants)
 
@@ -501,9 +502,9 @@ class UnifiedMessagingSystem:
         except Exception as e:
             logger.error(f"Error sending message: {e}")
             self.metrics["messages_failed"] += 1
-            return False, f"Internal error: {str(e)}", None
+            return False, f"Internal error: {e!s}", None
 
-    async def _deliver_message(self, message: Message, destinations: List[str]):
+    async def _deliver_message(self, message: Message, destinations: list[str]):
         """Deliver message to all destinations."""
         for destination in destinations:
             if destination in self.subscribers:
@@ -514,7 +515,7 @@ class UnifiedMessagingSystem:
                         logger.error(f"Error delivering message to {destination}: {e}")
 
     async def _trigger_message_notifications(
-        self, message: Message, destinations: List[str]
+        self, message: Message, destinations: list[str]
     ):
         """Trigger notifications for message events."""
         try:
@@ -582,7 +583,7 @@ class UnifiedMessagingSystem:
             logger.error(f"Error triggering message notifications: {e}")
 
     async def _trigger_thread_message_notifications(
-        self, message: Message, destinations: List[str]
+        self, message: Message, destinations: list[str]
     ):
         """Trigger notifications for thread message events."""
         try:
@@ -647,7 +648,7 @@ class UnifiedMessagingSystem:
         except Exception as e:
             logger.error(f"Error triggering thread message notifications: {e}")
 
-    def _parse_mentions(self, content: str) -> List[str]:
+    def _parse_mentions(self, content: str) -> list[str]:
         """Parse @mentions from message content."""
         try:
             import re
@@ -683,8 +684,8 @@ class UnifiedMessagingSystem:
             self.subscribers[channel_id].discard(callback)
 
     async def get_channel_messages(
-        self, channel_id: str, limit: int = 50, before_message_id: Optional[str] = None
-    ) -> List[Message]:
+        self, channel_id: str, limit: int = 50, before_message_id: str | None = None
+    ) -> list[Message]:
         """Get messages from a channel with pagination."""
         if channel_id not in self.message_history:
             return []
@@ -739,7 +740,7 @@ class UnifiedMessagingSystem:
 
         return messages
 
-    def get_system_status(self) -> Dict[str, Any]:
+    def get_system_status(self) -> dict[str, Any]:
         """Get comprehensive messaging system status."""
         return {
             "metrics": self.metrics.copy(),
@@ -755,8 +756,8 @@ class UnifiedMessagingSystem:
         title: str,
         channel_id: str,
         creator_id: str,
-        parent_message_id: Optional[str] = None,
-    ) -> Tuple[bool, str, Optional[Thread]]:
+        parent_message_id: str | None = None,
+    ) -> tuple[bool, str, Thread | None]:
         """Create a new thread using the threads service."""
         try:
             # Use the threads service for database operations
@@ -782,7 +783,7 @@ class UnifiedMessagingSystem:
 
         except Exception as e:
             logger.error(f"Error creating thread: {e}")
-            return False, f"Internal error: {str(e)}", None
+            return False, f"Internal error: {e!s}", None
 
     async def send_thread_message(
         self,
@@ -790,9 +791,9 @@ class UnifiedMessagingSystem:
         thread_id: str,
         content: str,
         message_type: MessageType = MessageType.TEXT,
-        attachments: Optional[List[Dict[str, Any]]] = None,
-        reply_to: Optional[str] = None,
-    ) -> Tuple[bool, str, Optional[Message]]:
+        attachments: list[dict[str, Any]] | None = None,
+        reply_to: str | None = None,
+    ) -> tuple[bool, str, Message | None]:
         """Send a message in a thread."""
         try:
             if thread_id not in self.threads:
@@ -839,7 +840,7 @@ class UnifiedMessagingSystem:
 
             # Update thread
             thread.message_count += 1
-            thread.last_message_at = datetime.now(timezone.utc)
+            thread.last_message_at = datetime.now(UTC)
             thread.participants.add(sender_id)
             thread.participant_count = len(thread.participants)
 
@@ -865,11 +866,11 @@ class UnifiedMessagingSystem:
         except Exception as e:
             logger.error(f"Error sending thread message: {e}")
             self.metrics["messages_failed"] += 1
-            return False, f"Internal error: {str(e)}", None
+            return False, f"Internal error: {e!s}", None
 
     async def get_thread_messages(
-        self, thread_id: str, limit: int = 50, before_message_id: Optional[str] = None
-    ) -> List[Message]:
+        self, thread_id: str, limit: int = 50, before_message_id: str | None = None
+    ) -> list[Message]:
         """Get messages from a thread with pagination."""
         # Try memory first
         if thread_id in self.thread_messages:
@@ -931,7 +932,7 @@ class UnifiedMessagingSystem:
 
         return messages
 
-    def get_channel_threads(self, channel_id: str) -> List[Thread]:
+    def get_channel_threads(self, channel_id: str) -> list[Thread]:
         """Get all threads in a channel."""
         # Get from memory
         memory_threads = [
@@ -955,7 +956,7 @@ class UnifiedMessagingSystem:
                 unique_threads.append(thread)
         return unique_threads
 
-    def get_thread(self, thread_id: str) -> Optional[Thread]:
+    def get_thread(self, thread_id: str) -> Thread | None:
         """Get a thread by ID."""
         # Check memory cache first
         if thread_id in self.threads:
@@ -971,7 +972,7 @@ class UnifiedMessagingSystem:
             # Also update memory
             if thread_id in self.threads:
                 self.threads[thread_id].is_resolved = True
-                self.threads[thread_id].updated_at = datetime.now(timezone.utc)
+                self.threads[thread_id].updated_at = datetime.now(UTC)
         return success
 
     async def shutdown(self) -> None:
@@ -980,7 +981,7 @@ class UnifiedMessagingSystem:
 
 
 # Global messaging system instance
-_global_messaging_system: Optional[UnifiedMessagingSystem] = None
+_global_messaging_system: UnifiedMessagingSystem | None = None
 
 
 def get_messaging_system() -> UnifiedMessagingSystem:
@@ -1007,19 +1008,19 @@ async def shutdown_messaging_system() -> None:
 
 
 __all__ = [
-    "UnifiedMessagingSystem",
-    "Message",
     "Channel",
-    "Thread",
-    "MessageMetadata",
-    "MessageType",
-    "MessageStatus",
+    "ChannelManager",
     "ChannelType",
     "EncryptionLevel",
-    "MessageValidator",
+    "Message",
     "MessageEncryption",
+    "MessageMetadata",
     "MessageRouter",
-    "ChannelManager",
+    "MessageStatus",
+    "MessageType",
+    "MessageValidator",
+    "Thread",
+    "UnifiedMessagingSystem",
     "get_messaging_system",
     "initialize_messaging_system",
     "shutdown_messaging_system",

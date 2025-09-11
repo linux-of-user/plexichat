@@ -4,14 +4,15 @@ Test script for threads functionality
 """
 
 import asyncio
-import sys
-import os
+
 
 async def test_threads():
     """Test thread functionality directly."""
     try:
-        from plexichat.core.messaging.unified_messaging_system import get_messaging_system
-        from plexichat.core.messaging.unified_messaging_system import MessageType
+        from plexichat.core.messaging.unified_messaging_system import (
+            MessageType,
+            get_messaging_system,
+        )
 
         print("Testing threads functionality...")
 

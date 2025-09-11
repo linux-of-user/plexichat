@@ -3,12 +3,11 @@
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
+from datetime import datetime, timedelta
 import ipaddress
 import json
 import logging
-from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Dict, List, Optional, Set
 
 try:
     import geoip2.database
@@ -20,25 +19,25 @@ logger = logging.getLogger(__name__)
 
 class IPSecurityManager:
     """Advanced IP security and geolocation management system."""
-    def __init__(self, config_file: Optional[str] = None):
+    def __init__(self, config_file: str | None = None):
         self.config_file = config_file or str(Path("logs") / "ip_security.json")
 
         # IP lists
-        self.whitelist: Set[str] = set()
-        self.blacklist: Set[str] = set()
-        self.temp_blacklist: Dict[str, datetime] = {}
+        self.whitelist: set[str] = set()
+        self.blacklist: set[str] = set()
+        self.temp_blacklist: dict[str, datetime] = {}
 
         # Network ranges
-        self.whitelist_networks: List[ipaddress.IPv4Network] = []
-        self.blacklist_networks: List[ipaddress.IPv4Network] = []
+        self.whitelist_networks: list[ipaddress.IPv4Network] = []
+        self.blacklist_networks: list[ipaddress.IPv4Network] = []
 
         # Country/region restrictions
-        self.allowed_countries: Set[str] = set()
-        self.blocked_countries: Set[str] = set()
+        self.allowed_countries: set[str] = set()
+        self.blocked_countries: set[str] = set()
 
         # Rate limiting and monitoring
-        self.failed_attempts: Dict[str, List[datetime]] = {}
-        self.suspicious_ips: Dict[str, Dict] = {}
+        self.failed_attempts: dict[str, list[datetime]] = {}
+        self.suspicious_ips: dict[str, dict] = {}
 
         # Configuration
         self.config = {
@@ -113,7 +112,7 @@ class IPSecurityManager:
         try:
             config_path = Path(self.config_file)
             if config_path.exists():
-                with open(config_path, 'r') as f:
+                with open(config_path) as f:
                     data = json.load(f)
 
                 # Load configuration
@@ -275,7 +274,7 @@ class IPSecurityManager:
             logger.error("Error checking IP %s: %s", ip, e)
             return False
 
-    def _get_ip_country(self, ip: str) -> Optional[str]:
+    def _get_ip_country(self, ip: str) -> str | None:
         """Get country code for IP address."""
         if not self.geoip_db:
             return None
@@ -366,7 +365,7 @@ class IPSecurityManager:
         self._save_config()
         logger.info("Removed IP %s from blacklist", ip)
 
-    def get_security_stats(self) -> Dict:
+    def get_security_stats(self) -> dict:
         """Get security statistics."""
         return {
             'whitelist_count': len(self.whitelist),

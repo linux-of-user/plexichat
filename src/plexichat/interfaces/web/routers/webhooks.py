@@ -11,19 +11,19 @@ Enhanced webhook management with comprehensive validation, security, and perform
 Uses EXISTING database abstraction and optimization systems.
 """
 
+from datetime import datetime
 import hashlib
 import hmac
 import json
-from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, status
 from pydantic import BaseModel, Field
 
 # Use EXISTING database abstraction layer
 try:
+    from plexichat.core.database import execute_query, get_session
     from plexichat.core.database.manager import database_manager
-    from plexichat.core.database import get_session, execute_query
 except ImportError:
     database_manager = None
     get_session = None
@@ -31,7 +31,9 @@ except ImportError:
 
 # Use EXISTING performance optimization engine
 try:
-    from plexichat.core.performance.optimization_engine import PerformanceOptimizationEngine
+    from plexichat.core.performance.optimization_engine import (
+        PerformanceOptimizationEngine,
+    )
     from plexichat.infrastructure.utils.performance import async_track_performance
 except ImportError:
     PerformanceOptimizationEngine = None
@@ -41,7 +43,10 @@ except ImportError:
 from plexichat.core.auth.fastapi_adapter import get_current_user, require_admin
 
 # Security decorators and permission enums from unified security system
-from plexichat.core.security.security_decorators import secure_endpoint, RequiredPermission
+from plexichat.core.security.security_decorators import (
+    RequiredPermission,
+    secure_endpoint,
+)
 
 # Input sanitizer (best-effort import; fallback minimal implementation)
 try:
@@ -59,7 +64,7 @@ except ImportError:
     httpx = None
 
 # Unified logging
-from plexichat.core.logging import get_logger, LogCategory
+from plexichat.core.logging import LogCategory, get_logger
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/webhooks", tags=["webhooks"])
@@ -71,29 +76,29 @@ optimization_engine = PerformanceOptimizationEngine() if PerformanceOptimization
 class WebhookCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=100)
     url: str = Field(..., pattern=r'^https?://.+')
-    secret: Optional[str] = Field(None, max_length=255)
-    events: List[str] = Field(..., min_items=1)
+    secret: str | None = Field(None, max_length=255)
+    events: list[str] = Field(..., min_items=1)
     is_active: bool = True
 
 class WebhookUpdate(BaseModel):
-    name: Optional[str] = Field(None, min_length=1, max_length=100)
-    url: Optional[str] = Field(None, pattern=r'^https?://.+')
-    secret: Optional[str] = Field(None, max_length=255)
-    events: Optional[List[str]] = Field(None, min_items=1)
-    is_active: Optional[bool] = None
+    name: str | None = Field(None, min_length=1, max_length=100)
+    url: str | None = Field(None, pattern=r'^https?://.+')
+    secret: str | None = Field(None, max_length=255)
+    events: list[str] | None = Field(None, min_items=1)
+    is_active: bool | None = None
 
 class WebhookResponse(BaseModel):
     id: int
     name: str
     url: str
-    events: List[str]
+    events: list[str]
     is_active: bool
     created_at: datetime
-    last_triggered: Optional[datetime] = None
+    last_triggered: datetime | None = None
 
 class WebhookEvent(BaseModel):
     event_type: str
-    data: Dict[str, Any]
+    data: dict[str, Any]
     timestamp: datetime
 
 class WebhookDelivery(BaseModel):
@@ -101,8 +106,8 @@ class WebhookDelivery(BaseModel):
     webhook_id: int
     event_type: str
     status: str
-    response_code: Optional[int] = None
-    response_body: Optional[str] = None
+    response_code: int | None = None
+    response_body: str | None = None
     created_at: datetime
 
 class WebhookService:
@@ -170,7 +175,7 @@ class WebhookService:
         )
 
     @async_track_performance("webhook_list") if async_track_performance else lambda f: f
-    async def list_webhooks(self, user_id: int, limit: int = 50, offset: int = 0) -> List[WebhookResponse]:
+    async def list_webhooks(self, user_id: int, limit: int = 50, offset: int = 0) -> list[WebhookResponse]:
         """List webhooks using EXISTING database abstraction layer."""
         if self.db_manager:
             try:
@@ -336,7 +341,7 @@ webhook_service = WebhookService()
 async def create_webhook(
     request: Request,
     webhook_data: WebhookCreate,
-    current_user: Dict[str, Any] = Depends(get_current_user)
+    current_user: dict[str, Any] = Depends(get_current_user)
 ):
     """Create a new webhook with enhanced security and performance optimization."""
     client_ip = request.client.host if request.client else "unknown"
@@ -397,7 +402,7 @@ async def create_webhook(
 
 @router.get(
     "/",
-    response_model=List[WebhookResponse],
+    response_model=list[WebhookResponse],
     summary="List webhooks"
 )
 @secure_endpoint(
@@ -409,7 +414,7 @@ async def list_webhooks(
     request: Request,
     limit: int = 50,
     offset: int = 0,
-    current_user: Dict[str, Any] = Depends(get_current_user)
+    current_user: dict[str, Any] = Depends(get_current_user)
 ):
     """List user's webhooks with enhanced performance monitoring."""
     client_ip = request.client.host if request.client else "unknown"
@@ -473,7 +478,7 @@ async def trigger_webhook(
     webhook_id: int,
     event: WebhookEvent,
     background_tasks: BackgroundTasks,
-    current_user: Dict[str, Any] = Depends(get_current_user)
+    current_user: dict[str, Any] = Depends(get_current_user)
 ):
     """Trigger a webhook manually with enhanced security and monitoring."""
     client_ip = request.client.host if request.client else "unknown"
@@ -538,7 +543,7 @@ async def broadcast_event(
     request: Request,
     event: WebhookEvent,
     background_tasks: BackgroundTasks,
-    current_user: Dict[str, Any] = Depends(require_admin)
+    current_user: dict[str, Any] = Depends(require_admin)
 ):
     """Broadcast an event to all active webhooks (admin only)."""
     client_ip = request.client.host if request.client else "unknown"

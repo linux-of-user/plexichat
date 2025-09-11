@@ -3,14 +3,15 @@ Enhanced Storage Manager - Multi-cloud storage with advanced features
 """
 
 import asyncio
-import hashlib
-import logging
-import shutil
-import time
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Callable
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import Enum
+import hashlib
+import logging
+from pathlib import Path
+import shutil
+import time
+from typing import Any
 
 # Cloud storage imports (optional)
 try:
@@ -23,8 +24,10 @@ except ImportError:
     AWS_AVAILABLE = False
 
 try:
+    from azure.core.exceptions import (
+        ResourceNotFoundError as AzureResourceNotFoundError,  # type: ignore
+    )
     from azure.storage.blob import BlobServiceClient  # type: ignore
-    from azure.core.exceptions import ResourceNotFoundError as AzureResourceNotFoundError  # type: ignore
     AZURE_AVAILABLE = True
 except ImportError:
     BlobServiceClient = None
@@ -32,8 +35,8 @@ except ImportError:
     AZURE_AVAILABLE = False
 
 try:
-    from google.cloud import storage as gcs  # type: ignore
     from google.api_core.exceptions import NotFound as GCPNotFoundError  # type: ignore
+    from google.cloud import storage as gcs  # type: ignore
     GCP_AVAILABLE = True
 except ImportError:
     gcs = None
@@ -67,13 +70,13 @@ class StorageLocation:
     provider: StorageProvider
     location_id: str
     endpoint: str
-    credentials: Dict[str, Any] = field(default_factory=dict)
+    credentials: dict[str, Any] = field(default_factory=dict)
     storage_class: StorageClass = StorageClass.HOT
     enabled: bool = True
     priority: int = 1
-    max_size_gb: Optional[int] = None
+    max_size_gb: int | None = None
     current_usage_gb: float = 0.0
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -86,8 +89,8 @@ class StorageResult:
     checksum: str
     storage_path: str
     upload_time_seconds: float = 0.0
-    error_message: Optional[str] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    error_message: str | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 class StorageManager:
@@ -105,7 +108,7 @@ class StorageManager:
     - Compliance with regulatory requirements (GDPR, HIPAA, SOX)
     """
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, config: dict[str, Any] | None = None):
         self.config = config or {}
         self.logger = logger
 
@@ -138,7 +141,7 @@ class StorageManager:
                 directory.mkdir(exist_ok=True)
 
         # Storage locations
-        self.storage_locations: Dict[str, StorageLocation] = {}
+        self.storage_locations: dict[str, StorageLocation] = {}
         self._initialize_storage_locations()
 
         # Storage statistics
@@ -157,7 +160,7 @@ class StorageManager:
         }
 
         # Cloud clients
-        self.cloud_clients: Dict[str, Any] = {}
+        self.cloud_clients: dict[str, Any] = {}
         self._initialize_cloud_clients()
 
     def _initialize_storage_locations(self):
@@ -263,7 +266,7 @@ class StorageManager:
                 self.logger.info("Google Cloud Storage client initialized")
 
         except Exception as e:
-            self.logger.warning(f"Failed to initialize some cloud clients: {str(e)}")
+            self.logger.warning(f"Failed to initialize some cloud clients: {e!s}")
 
     async def _retry_async(self, func: Callable, *args, retries: int = 3, initial_delay: float = 0.5, **kwargs):
         """
@@ -278,15 +281,15 @@ class StorageManager:
                 return result
             except Exception as e:
                 last_exc = e
-                self.logger.debug(f"Attempt {attempt} failed for {func.__name__}: {str(e)}")
+                self.logger.debug(f"Attempt {attempt} failed for {func.__name__}: {e!s}")
                 if attempt < retries:
                     await asyncio.sleep(delay)
                     delay *= 2
                 else:
-                    self.logger.error(f"All {retries} attempts failed for {func.__name__}: {str(e)}")
+                    self.logger.error(f"All {retries} attempts failed for {func.__name__}: {e!s}")
         raise last_exc
 
-    async def store_shards_async(self, shards: List[Dict[str, Any]], backup_id: str) -> List[StorageResult]:
+    async def store_shards_async(self, shards: list[dict[str, Any]], backup_id: str) -> list[StorageResult]:
         """Store shards across multiple storage locations with redundancy."""
         try:
             storage_results = []
@@ -313,7 +316,7 @@ class StorageManager:
                             self.storage_stats["failed_uploads"] += 1
 
                     except Exception as e:
-                        self.logger.error(f"Failed to store shard {shard.get('shard_id')} to {location.location_id}: {str(e)}")
+                        self.logger.error(f"Failed to store shard {shard.get('shard_id')} to {location.location_id}: {e!s}")
                         self.storage_stats["failed_uploads"] += 1
 
                 storage_results.extend(shard_results)
@@ -322,10 +325,10 @@ class StorageManager:
             return storage_results
 
         except Exception as e:
-            self.logger.error(f"Failed to store shards for backup {backup_id}: {str(e)}")
+            self.logger.error(f"Failed to store shards for backup {backup_id}: {e!s}")
             raise
 
-    def _select_storage_locations(self, shard_size: int, replication_factor: int) -> List[StorageLocation]:
+    def _select_storage_locations(self, shard_size: int, replication_factor: int) -> list[StorageLocation]:
         """Select optimal storage locations for a shard."""
         available_locations = [
             loc for loc in self.storage_locations.values()
@@ -346,7 +349,7 @@ class StorageManager:
         size_gb = size_bytes / (1024 * 1024 * 1024)
         return (location.current_usage_gb + size_gb) <= location.max_size_gb
 
-    async def _store_shard_to_location(self, shard: Dict[str, Any], backup_id: str,
+    async def _store_shard_to_location(self, shard: dict[str, Any], backup_id: str,
                                      location: StorageLocation) -> StorageResult:
         """Store a shard to a specific storage location."""
         start_time = time.time()
@@ -375,7 +378,7 @@ class StorageManager:
                 error_message=str(e)
             )
 
-    async def _store_shard_local(self, shard: Dict[str, Any], backup_id: str,
+    async def _store_shard_local(self, shard: dict[str, Any], backup_id: str,
                                location: StorageLocation) -> StorageResult:
         """Store shard to local filesystem."""
         try:
@@ -411,9 +414,9 @@ class StorageManager:
             )
 
         except Exception as e:
-            raise RuntimeError(f"Local storage failed: {str(e)}")
+            raise RuntimeError(f"Local storage failed: {e!s}")
 
-    async def _store_shard_s3(self, shard: Dict[str, Any], backup_id: str,
+    async def _store_shard_s3(self, shard: dict[str, Any], backup_id: str,
                             location: StorageLocation) -> StorageResult:
         """Store shard to AWS S3 with retries."""
         if not AWS_AVAILABLE or "aws_s3" not in self.cloud_clients:
@@ -458,10 +461,10 @@ class StorageManager:
             )
 
         except Exception as e:
-            self.logger.error(f"S3 upload failed for {key}: {str(e)}")
-            raise RuntimeError(f"S3 storage failed: {str(e)}")
+            self.logger.error(f"S3 upload failed for {key}: {e!s}")
+            raise RuntimeError(f"S3 storage failed: {e!s}")
 
-    async def _store_shard_azure(self, shard: Dict[str, Any], backup_id: str,
+    async def _store_shard_azure(self, shard: dict[str, Any], backup_id: str,
                                location: StorageLocation) -> StorageResult:
         """Store shard to Azure Blob Storage with retries."""
         if not AZURE_AVAILABLE or "azure_blob" not in self.cloud_clients:
@@ -504,10 +507,10 @@ class StorageManager:
             )
 
         except Exception as e:
-            self.logger.error(f"Azure Blob upload failed for {blob_name}: {str(e)}")
-            raise RuntimeError(f"Azure Blob storage failed: {str(e)}")
+            self.logger.error(f"Azure Blob upload failed for {blob_name}: {e!s}")
+            raise RuntimeError(f"Azure Blob storage failed: {e!s}")
 
-    async def _store_shard_gcs(self, shard: Dict[str, Any], backup_id: str,
+    async def _store_shard_gcs(self, shard: dict[str, Any], backup_id: str,
                              location: StorageLocation) -> StorageResult:
         """Store shard to Google Cloud Storage with retries."""
         if not GCP_AVAILABLE or "google_cloud" not in self.cloud_clients:
@@ -550,8 +553,8 @@ class StorageManager:
             )
 
         except Exception as e:
-            self.logger.error(f"GCS upload failed for {blob_name}: {str(e)}")
-            raise RuntimeError(f"Google Cloud Storage failed: {str(e)}")
+            self.logger.error(f"GCS upload failed for {blob_name}: {e!s}")
+            raise RuntimeError(f"Google Cloud Storage failed: {e!s}")
 
     def _map_storage_class_to_s3(self, storage_class: StorageClass) -> str:
         """Map internal storage class to S3 storage class."""
@@ -573,7 +576,7 @@ class StorageManager:
                     shutil.rmtree(backup_dir)
                     self.logger.info(f"Cleaned up local partial backup: {backup_id}")
             except Exception as e:
-                self.logger.error(f"Failed to cleanup local partial backup {backup_id}: {str(e)}")
+                self.logger.error(f"Failed to cleanup local partial backup {backup_id}: {e!s}")
 
             # Cloud cleanup - remove any partial objects for this backup
             tasks = []
@@ -591,10 +594,10 @@ class StorageManager:
                 results = await asyncio.gather(*tasks, return_exceptions=True)
                 for res in results:
                     if isinstance(res, Exception):
-                        self.logger.warning(f"Partial cleanup task failed: {str(res)}")
+                        self.logger.warning(f"Partial cleanup task failed: {res!s}")
 
         except Exception as e:
-            self.logger.error(f"Failed to cleanup partial backup {backup_id}: {str(e)}")
+            self.logger.error(f"Failed to cleanup partial backup {backup_id}: {e!s}")
 
     async def delete_backup_shards_async(self, backup_id: str):
         """Delete all shards for a backup across all providers."""
@@ -611,14 +614,14 @@ class StorageManager:
                             shard_file.unlink()
                             deleted_count += 1
                         except Exception as e:
-                            self.logger.error(f"Failed to delete local shard file {shard_file}: {str(e)}")
+                            self.logger.error(f"Failed to delete local shard file {shard_file}: {e!s}")
                     try:
                         if not any(backup_dir.iterdir()):
                             backup_dir.rmdir()
                     except Exception:
                         pass
             except Exception as e:
-                self.logger.error(f"Failed to delete local shards for backup {backup_id}: {str(e)}")
+                self.logger.error(f"Failed to delete local shards for backup {backup_id}: {e!s}")
 
             # Cloud deletions
             tasks = []
@@ -636,16 +639,16 @@ class StorageManager:
                 results = await asyncio.gather(*tasks, return_exceptions=True)
                 for res in results:
                     if isinstance(res, Exception):
-                        self.logger.error(f"Failed cloud deletion task: {str(res)}")
+                        self.logger.error(f"Failed cloud deletion task: {res!s}")
                     elif isinstance(res, dict) and "deleted_count" in res:
                         deleted_count += res.get("deleted_count", 0)
 
             self.logger.info(f"Deleted {deleted_count} shards for backup {backup_id}")
 
         except Exception as e:
-            self.logger.error(f"Failed to delete shards for backup {backup_id}: {str(e)}")
+            self.logger.error(f"Failed to delete shards for backup {backup_id}: {e!s}")
 
-    async def verify_backup_shards_async(self, backup_id: str) -> Dict[str, Any]:
+    async def verify_backup_shards_async(self, backup_id: str) -> dict[str, Any]:
         """Verify integrity of all shards for a backup."""
         try:
             verification_results = {
@@ -691,7 +694,7 @@ class StorageManager:
 
                     except Exception as e:
                         verification_results["invalid_shards"] += 1
-                        self.logger.error(f"Failed to verify shard {shard_file}: {str(e)}")
+                        self.logger.error(f"Failed to verify shard {shard_file}: {e!s}")
 
             verification_results["all_shards_valid"] = (
                 verification_results["invalid_shards"] == 0 and
@@ -701,10 +704,10 @@ class StorageManager:
             return verification_results
 
         except Exception as e:
-            self.logger.error(f"Failed to verify backup shards for {backup_id}: {str(e)}")
+            self.logger.error(f"Failed to verify backup shards for {backup_id}: {e!s}")
             return {"backup_id": backup_id, "error": str(e)}
 
-    async def get_storage_usage_async(self) -> Dict[str, Any]:
+    async def get_storage_usage_async(self) -> dict[str, Any]:
         """Get comprehensive storage usage statistics."""
         try:
             usage_stats = {
@@ -747,7 +750,7 @@ class StorageManager:
             return usage_stats
 
         except Exception as e:
-            self.logger.error(f"Failed to get storage usage: {str(e)}")
+            self.logger.error(f"Failed to get storage usage: {e!s}")
             return {"error": str(e)}
 
     async def optimize_storage_locations(self):
@@ -765,7 +768,7 @@ class StorageManager:
                         self.logger.info(f"Re-enabled storage location {location.location_id}, usage: {usage_percentage:.1f}%")
 
         except Exception as e:
-            self.logger.error(f"Failed to optimize storage locations: {str(e)}")
+            self.logger.error(f"Failed to optimize storage locations: {e!s}")
 
     def add_storage_location(self, location: StorageLocation):
         """Add a new storage location."""
@@ -778,7 +781,7 @@ class StorageManager:
             del self.storage_locations[location_id]
             self.logger.info(f"Removed storage location: {location_id}")
 
-    def get_storage_health(self) -> Dict[str, Any]:
+    def get_storage_health(self) -> dict[str, Any]:
         """Get storage system health status."""
         try:
             health_status = {
@@ -822,7 +825,7 @@ class StorageManager:
             return health_status
 
         except Exception as e:
-            self.logger.error(f"Failed to get storage health: {str(e)}")
+            self.logger.error(f"Failed to get storage health: {e!s}")
             return {"overall_health": "error", "error": str(e)}
 
     async def delete_backup(self, backup_id: str) -> bool:
@@ -845,16 +848,16 @@ class StorageManager:
                         shard_file.unlink()
                         deleted_count += 1
                     except Exception as e:
-                        self.logger.error(f"Failed to delete shard file {shard_file}: {str(e)}")
+                        self.logger.error(f"Failed to delete shard file {shard_file}: {e!s}")
 
                 for metadata_file in self.metadata_storage.glob(f"{backup_id}_shard_*_metadata.json"):
                     try:
                         metadata_file.unlink()
                         deleted_count += 1
                     except Exception as e:
-                        self.logger.error(f"Failed to delete metadata file {metadata_file}: {str(e)}")
+                        self.logger.error(f"Failed to delete metadata file {metadata_file}: {e!s}")
             except Exception as e:
-                self.logger.error(f"Error during local deletion for backup {backup_id}: {str(e)}")
+                self.logger.error(f"Error during local deletion for backup {backup_id}: {e!s}")
 
             # Delete cloud objects related to backup
             tasks = []
@@ -869,13 +872,13 @@ class StorageManager:
                     elif location.provider == StorageProvider.GOOGLE_CLOUD:
                         tasks.append(self._delete_backup_from_gcs(location.endpoint, backup_id, safe=False))
                 except Exception as e:
-                    self.logger.error(f"Failed to schedule deletion for {location.location_id}: {str(e)}")
+                    self.logger.error(f"Failed to schedule deletion for {location.location_id}: {e!s}")
 
             if tasks:
                 results = await asyncio.gather(*tasks, return_exceptions=True)
                 for res in results:
                     if isinstance(res, Exception):
-                        self.logger.error(f"Cloud deletion task failed: {str(res)}")
+                        self.logger.error(f"Cloud deletion task failed: {res!s}")
                     elif isinstance(res, dict) and "deleted_count" in res:
                         deleted_count += res.get("deleted_count", 0)
 
@@ -888,7 +891,7 @@ class StorageManager:
 
     # Cloud deletion helpers
 
-    async def _delete_backup_from_s3(self, bucket_name: str, backup_id: str, safe: bool = False) -> Dict[str, Any]:
+    async def _delete_backup_from_s3(self, bucket_name: str, backup_id: str, safe: bool = False) -> dict[str, Any]:
         """Delete all objects under backups/{backup_id}/ in S3 bucket."""
         if not AWS_AVAILABLE or "aws_s3" not in self.cloud_clients:
             msg = "AWS S3 not available for deletion"
@@ -927,12 +930,12 @@ class StorageManager:
             return {"deleted_count": deleted}
 
         except Exception as e:
-            self.logger.error(f"Failed to delete S3 backup objects for {backup_id} in {bucket_name}: {str(e)}")
+            self.logger.error(f"Failed to delete S3 backup objects for {backup_id} in {bucket_name}: {e!s}")
             if safe:
                 return {"deleted_count": 0}
             raise
 
-    async def _delete_backup_from_azure(self, container_name: str, backup_id: str, safe: bool = False) -> Dict[str, Any]:
+    async def _delete_backup_from_azure(self, container_name: str, backup_id: str, safe: bool = False) -> dict[str, Any]:
         """Delete all blobs under backups/{backup_id}/ in Azure container."""
         if not AZURE_AVAILABLE or "azure_blob" not in self.cloud_clients:
             msg = "Azure Blob Storage not available for deletion"
@@ -959,12 +962,12 @@ class StorageManager:
             return {"deleted_count": deleted}
 
         except Exception as e:
-            self.logger.error(f"Failed to delete Azure blobs for {backup_id} in {container_name}: {str(e)}")
+            self.logger.error(f"Failed to delete Azure blobs for {backup_id} in {container_name}: {e!s}")
             if safe:
                 return {"deleted_count": 0}
             raise
 
-    async def _delete_backup_from_gcs(self, bucket_name: str, backup_id: str, safe: bool = False) -> Dict[str, Any]:
+    async def _delete_backup_from_gcs(self, bucket_name: str, backup_id: str, safe: bool = False) -> dict[str, Any]:
         """Delete all objects under backups/{backup_id}/ in GCS bucket."""
         if not GCP_AVAILABLE or "google_cloud" not in self.cloud_clients:
             msg = "Google Cloud Storage not available for deletion"
@@ -991,12 +994,12 @@ class StorageManager:
             return {"deleted_count": deleted}
 
         except Exception as e:
-            self.logger.error(f"Failed to delete GCS objects for {backup_id} in {bucket_name}: {str(e)}")
+            self.logger.error(f"Failed to delete GCS objects for {backup_id} in {bucket_name}: {e!s}")
             if safe:
                 return {"deleted_count": 0}
             raise
 
-    def get_storage_stats(self) -> Dict[str, Any]:
+    def get_storage_stats(self) -> dict[str, Any]:
         """
         Get storage statistics.
 

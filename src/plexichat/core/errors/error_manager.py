@@ -1,15 +1,24 @@
 import asyncio
+from collections import defaultdict, deque
+from collections.abc import Callable
+from dataclasses import dataclass, field
+from datetime import UTC, datetime
 import logging
 import threading
 import traceback
+from typing import Any
 import uuid
-from collections import defaultdict, deque
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Any, Callable, Dict, List, Optional, Type
 
 from plexichat.core.errors.circuit_breaker import CircuitBreaker
-from .base import ErrorCategory, ErrorSeverity, PlexiChatException, handle_exception, create_error_response, log_error
+
+from .base import (
+    ErrorCategory,
+    ErrorSeverity,
+    PlexiChatException,
+    create_error_response,
+    handle_exception,
+    log_error,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -19,14 +28,14 @@ class ErrorMetrics:
     """Error metrics and statistics."""
 
     total_errors: int = 0
-    errors_by_severity: Dict[str, int] = field(default_factory=lambda: defaultdict(int))
-    errors_by_category: Dict[str, int] = field(default_factory=lambda: defaultdict(int))
-    errors_by_type: Dict[str, int] = field(default_factory=lambda: defaultdict(int))
+    errors_by_severity: dict[str, int] = field(default_factory=lambda: defaultdict(int))
+    errors_by_category: dict[str, int] = field(default_factory=lambda: defaultdict(int))
+    errors_by_type: dict[str, int] = field(default_factory=lambda: defaultdict(int))
     error_rate_per_minute: float = 0.0
     average_resolution_time: float = 0.0
     circuit_breaker_trips: int = 0
     recovery_success_rate: float = 0.0
-    last_updated: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    last_updated: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass
@@ -38,9 +47,9 @@ class ErrorPattern:
     frequency: int
     first_occurrence: datetime
     last_occurrence: datetime
-    affected_components: List[str]
+    affected_components: list[str]
     severity_trend: str
-    suggested_actions: List[str]
+    suggested_actions: list[str]
 
 
 @dataclass
@@ -48,39 +57,39 @@ class ErrorContext:
     """Error context information."""
 
     error_id: str = ""
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    exception: Optional[Exception] = None
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
+    exception: Exception | None = None
     severity: ErrorSeverity = ErrorSeverity.MEDIUM
     category: ErrorCategory = ErrorCategory.SYSTEM
     component: str = "unknown"
     user_id: str = "anonymous"
     request_id: str = "no-request"
-    context: Dict[str, Any] = field(default_factory=dict)
+    context: dict[str, Any] = field(default_factory=dict)
     stack_trace: str = ""
 
 
 class ErrorManager:
     """Simplified error management system."""
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, config: dict[str, Any] | None = None):
         self.config = config or {}
         self.error_history: deque = deque(
             maxlen=self.config.get("max_history_size", 10000)
         )
         self.error_metrics = ErrorMetrics()
-        self.error_patterns: Dict[str, ErrorPattern] = {}
-        self.circuit_breakers: Dict[str, CircuitBreaker] = {}
-        self.recovery_strategies: Dict[Type[Exception], Callable] = {}
-        self.recovery_attempts: Dict[str, int] = defaultdict(int)
-        self.error_callbacks: List[Callable] = []
-        self.severity_handlers: Dict[str, List[Callable]] = defaultdict(list)
+        self.error_patterns: dict[str, ErrorPattern] = {}
+        self.circuit_breakers: dict[str, CircuitBreaker] = {}
+        self.recovery_strategies: dict[type[Exception], Callable] = {}
+        self.recovery_attempts: dict[str, int] = defaultdict(int)
+        self.error_callbacks: list[Callable] = []
+        self.severity_handlers: dict[str, list[Callable]] = defaultdict(list)
         self.alert_thresholds = self.config.get("alert_thresholds", {})
         self.monitoring_enabled = self.config.get("monitoring_enabled", True)
         self.lock = threading.RLock()
-        self.background_tasks: List[asyncio.Task] = []
+        self.background_tasks: list[asyncio.Task] = []
         self.initialized = False
 
-    async def initialize(self, config: Optional[Dict[str, Any]] = None):
+    async def initialize(self, config: dict[str, Any] | None = None):
         """Initialize the error manager."""
         if self.initialized:
             return
@@ -112,18 +121,18 @@ class ErrorManager:
     def handle_error(
         self,
         exception: Exception,
-        context: Optional[Dict[str, Any]] = None,
+        context: dict[str, Any] | None = None,
         severity: ErrorSeverity = ErrorSeverity.MEDIUM,
         category: ErrorCategory = ErrorCategory.SYSTEM,
-        component: Optional[str] = None,
-        user_id: Optional[str] = None,
-        request_id: Optional[str] = None,
+        component: str | None = None,
+        user_id: str | None = None,
+        request_id: str | None = None,
         attempt_recovery: bool = True,
     ) -> ErrorContext:
         """Handle an error with comprehensive processing."""
 
         error_id = str(uuid.uuid4())
-        timestamp = datetime.now(timezone.utc)
+        timestamp = datetime.now(UTC)
 
         error_context = ErrorContext(
             error_id=error_id,
@@ -220,7 +229,7 @@ class ErrorManager:
             self.error_metrics.errors_by_type[
                 type(error_context.exception).__name__
             ] += 1
-        self.error_metrics.last_updated = datetime.now(timezone.utc)
+        self.error_metrics.last_updated = datetime.now(UTC)
 
     def _execute_error_callbacks(self, error_context: ErrorContext):
         """Execute registered error callbacks."""
@@ -272,7 +281,7 @@ class ErrorManager:
         """Get current error metrics."""
         return self.error_metrics
 
-    def get_error_history(self, limit: int = 100) -> List[ErrorContext]:
+    def get_error_history(self, limit: int = 100) -> list[ErrorContext]:
         """Get recent error history."""
         with self.lock:
             return list(self.error_history)[-limit:]
@@ -287,7 +296,7 @@ class ErrorManager:
 
 
 # Global error manager instance
-_error_manager: Optional[ErrorManager] = None
+_error_manager: ErrorManager | None = None
 
 
 def get_error_manager() -> ErrorManager:
@@ -298,7 +307,7 @@ def get_error_manager() -> ErrorManager:
     return _error_manager
 
 
-def handle_exception(exception: Exception, **kwargs) -> Dict[str, Any]:
+def handle_exception(exception: Exception, **kwargs) -> dict[str, Any]:
     """Handle an exception using the global error manager."""
     error_context = get_error_manager().handle_error(exception, **kwargs)
     # Convert ErrorContext to dict for compatibility with base handle_exception return type
@@ -315,7 +324,7 @@ def handle_exception(exception: Exception, **kwargs) -> Dict[str, Any]:
     }
 
 
-def create_error_response(error_context: ErrorContext) -> Dict[str, Any]:
+def create_error_response(error_context: ErrorContext) -> dict[str, Any]:
     """Create a standardized error response using base function."""
     # Use base create_error_response with appropriate error code
     error_code = PlexiChatErrorCode.SYSTEM_INTERNAL_ERROR

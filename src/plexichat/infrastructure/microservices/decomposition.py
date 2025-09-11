@@ -3,12 +3,13 @@
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
-import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional
+import logging
+from typing import Any
+
 
 # These are placeholder imports for a real implementation
 class ServiceType:
@@ -63,13 +64,13 @@ class MicroserviceConfig:
     service_type: ServiceType
     port: int
     deployment_mode: DeploymentMode = DeploymentMode.CONTAINERIZED
-    resource_requirements: Dict[str, Any] = field(default_factory=dict)
-    environment_variables: Dict[str, str] = field(default_factory=dict)
-    dependencies: List[str] = field(default_factory=list)
+    resource_requirements: dict[str, Any] = field(default_factory=dict)
+    environment_variables: dict[str, str] = field(default_factory=dict)
+    dependencies: list[str] = field(default_factory=list)
     health_check_path: str = "/health"
     metrics_path: str = "/metrics"
-    scaling_config: Dict[str, Any] = field(default_factory=dict)
-    security_config: Dict[str, Any] = field(default_factory=dict)
+    scaling_config: dict[str, Any] = field(default_factory=dict)
+    security_config: dict[str, Any] = field(default_factory=dict)
 
 
 class BaseMicroservice(ABC):
@@ -79,13 +80,13 @@ class BaseMicroservice(ABC):
         self.registry = registry
         self.service_id = f"{config.service_name}-{id(self)}"
         self.running = False
-        self.endpoint: Optional[ServiceEndpoint] = None
+        self.endpoint: ServiceEndpoint | None = None
 
         # Service state
-        self.start_time: Optional[datetime] = None
+        self.start_time: datetime | None = None
         self.request_count = 0
         self.error_count = 0
-        self.last_error: Optional[str] = None
+        self.last_error: str | None = None
 
     @abstractmethod
     async def initialize(self):
@@ -103,7 +104,7 @@ class BaseMicroservice(ABC):
         pass
 
     @abstractmethod
-    async def health_check(self) -> Dict[str, Any]:
+    async def health_check(self) -> dict[str, Any]:
         """Perform health check."""
         pass
 
@@ -153,7 +154,7 @@ class AuthenticationMicroservice(BaseMicroservice):
         await self.register_with_registry()
 
         self.running = True
-        self.start_time = datetime.now(timezone.utc)
+        self.start_time = datetime.now(UTC)
         logger.info(f" Authentication microservice started on port {self.config.port}")
 
     async def stop(self):
@@ -165,7 +166,7 @@ class AuthenticationMicroservice(BaseMicroservice):
         self.running = False
         logger.info(" Authentication microservice stopped")
 
-    async def health_check(self) -> Dict[str, Any]:
+    async def health_check(self) -> dict[str, Any]:
         """Authentication service health check."""
         try:
             # Check auth manager status
@@ -179,20 +180,20 @@ class AuthenticationMicroservice(BaseMicroservice):
                 "status": "healthy" if self.running else "unhealthy",
                 "service": "authentication",
                 "uptime_seconds": (
-                    (datetime.now(timezone.utc) - self.start_time).total_seconds()
+                    (datetime.now(UTC) - self.start_time).total_seconds()
                     if self.start_time
                     else 0
                 ),
                 "request_count": self.request_count,
                 "error_count": self.error_count,
                 "auth_manager_status": auth_status,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
         except Exception as e:
             return {
                 "status": "unhealthy",
                 "error": str(e),
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
 
 
@@ -214,7 +215,7 @@ class MessagingMicroservice(BaseMicroservice):
         await self.register_with_registry()
 
         self.running = True
-        self.start_time = datetime.now(timezone.utc)
+        self.start_time = datetime.now(UTC)
         logger.info(f" Messaging microservice started on port {self.config.port}")
 
     async def stop(self):
@@ -226,26 +227,26 @@ class MessagingMicroservice(BaseMicroservice):
         self.running = False
         logger.info(" Messaging microservice stopped")
 
-    async def health_check(self) -> Dict[str, Any]:
+    async def health_check(self) -> dict[str, Any]:
         """Messaging service health check."""
         try:
             return {
                 "status": "healthy" if self.running else "unhealthy",
                 "service": "messaging",
                 "uptime_seconds": (
-                    (datetime.now(timezone.utc) - self.start_time).total_seconds()
+                    (datetime.now(UTC) - self.start_time).total_seconds()
                     if self.start_time
                     else 0
                 ),
                 "request_count": self.request_count,
                 "error_count": self.error_count,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
         except Exception as e:
             return {
                 "status": "unhealthy",
                 "error": str(e),
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
 
 
@@ -267,7 +268,7 @@ class FileStorageMicroservice(BaseMicroservice):
         await self.register_with_registry()
 
         self.running = True
-        self.start_time = datetime.now(timezone.utc)
+        self.start_time = datetime.now(UTC)
         logger.info(f" File Storage microservice started on port {self.config.port}")
 
     async def stop(self):
@@ -279,26 +280,26 @@ class FileStorageMicroservice(BaseMicroservice):
         self.running = False
         logger.info(" File Storage microservice stopped")
 
-    async def health_check(self) -> Dict[str, Any]:
+    async def health_check(self) -> dict[str, Any]:
         """File storage service health check."""
         try:
             return {
                 "status": "healthy" if self.running else "unhealthy",
                 "service": "file_storage",
                 "uptime_seconds": (
-                    (datetime.now(timezone.utc) - self.start_time).total_seconds()
+                    (datetime.now(UTC) - self.start_time).total_seconds()
                     if self.start_time
                     else 0
                 ),
                 "request_count": self.request_count,
                 "error_count": self.error_count,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
         except Exception as e:
             return {
                 "status": "unhealthy",
                 "error": str(e),
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
 
 
@@ -320,7 +321,7 @@ class AIServicesMicroservice(BaseMicroservice):
         await self.register_with_registry()
 
         self.running = True
-        self.start_time = datetime.now(timezone.utc)
+        self.start_time = datetime.now(UTC)
         logger.info(f" AI Services microservice started on port {self.config.port}")
 
     async def stop(self):
@@ -332,26 +333,26 @@ class AIServicesMicroservice(BaseMicroservice):
         self.running = False
         logger.info(" AI Services microservice stopped")
 
-    async def health_check(self) -> Dict[str, Any]:
+    async def health_check(self) -> dict[str, Any]:
         """AI services health check."""
         try:
             return {
                 "status": "healthy" if self.running else "unhealthy",
                 "service": "ai_services",
                 "uptime_seconds": (
-                    (datetime.now(timezone.utc) - self.start_time).total_seconds()
+                    (datetime.now(UTC) - self.start_time).total_seconds()
                     if self.start_time
                     else 0
                 ),
                 "request_count": self.request_count,
                 "error_count": self.error_count,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
         except Exception as e:
             return {
                 "status": "unhealthy",
                 "error": str(e),
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
 
 
@@ -363,8 +364,8 @@ class MicroservicesOrchestrator:
     """
     def __init__(self, registry: ServiceRegistry):
         self.registry = registry
-        self.services: Dict[str, BaseMicroservice] = {}
-        self.service_configs: Dict[str, MicroserviceConfig] = {}
+        self.services: dict[str, BaseMicroservice] = {}
+        self.service_configs: dict[str, MicroserviceConfig] = {}
         self.running = False
 
         self._initialize_default_configs()
@@ -462,7 +463,7 @@ class MicroservicesOrchestrator:
         self.running = False
         logger.info(" Microservices orchestrator stopped")
 
-    def get_orchestrator_status(self) -> Dict[str, Any]:
+    def get_orchestrator_status(self) -> dict[str, Any]:
         """Get orchestrator status."""
         service_statuses = {}
         for service_name, service in self.services.items():

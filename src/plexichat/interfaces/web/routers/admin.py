@@ -4,27 +4,32 @@ PlexiChat Web Admin Router
 Web interface for administrative operations.
 """
 
-from datetime import datetime
-from typing import Optional, Dict, Any, List, Set
-from types import SimpleNamespace
 from dataclasses import dataclass
-
-from fastapi import APIRouter, Request, Depends, HTTPException, Form, status, Body
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, PlainTextResponse
-from fastapi.templating import Jinja2Templates
-from pydantic import BaseModel
-
-# Use unified authentication manager and FastAPI adapter
-from plexichat.core.authentication import get_auth_manager, Role
-from plexichat.core.auth.fastapi_adapter import get_auth_adapter
-
-from plexichat.core.config import settings
-from plexichat.core.plugins.manager import unified_plugin_manager
-from plexichat.core.logging import get_logger
-import re
+from datetime import datetime
 import json
 from pathlib import Path
+import re
+from types import SimpleNamespace
+from typing import Any
+
+from fastapi import APIRouter, Body, Depends, Form, HTTPException, Request, status
+from fastapi.responses import (
+    HTMLResponse,
+    JSONResponse,
+    PlainTextResponse,
+    RedirectResponse,
+)
+from fastapi.templating import Jinja2Templates
+from pydantic import BaseModel
 from starlette.middleware.base import BaseHTTPMiddleware
+
+from plexichat.core.auth.fastapi_adapter import get_auth_adapter
+
+# Use unified authentication manager and FastAPI adapter
+from plexichat.core.authentication import Role, get_auth_manager
+from plexichat.core.config import settings
+from plexichat.core.logging import get_logger
+from plexichat.core.plugins.manager import unified_plugin_manager
 
 # Security headers from security.txt
 SECURITY_HEADERS = {
@@ -78,12 +83,23 @@ templates = Jinja2Templates(directory="src/plexichat/interfaces/web/templates")
 
 # Import enhanced security decorators
 try:
-    from plexichat.core.security.security_decorators import (
-        secure_endpoint, require_auth, rate_limit, audit_access, validate_input,
-        SecurityLevel, RequiredPermission, admin_endpoint, protect_from_replay
-    )
     from plexichat.core.logging import (
-        get_enhanced_logging_system, LogCategory, LogLevel, PerformanceTracker, SecurityMetrics
+        LogCategory,
+        LogLevel,
+        PerformanceTracker,
+        SecurityMetrics,
+        get_enhanced_logging_system,
+    )
+    from plexichat.core.security.security_decorators import (
+        RequiredPermission,
+        SecurityLevel,
+        admin_endpoint,
+        audit_access,
+        protect_from_replay,
+        rate_limit,
+        require_auth,
+        secure_endpoint,
+        validate_input,
     )
     ENHANCED_SECURITY_AVAILABLE = True
 
@@ -142,12 +158,12 @@ class AdminCreateRequest(BaseModel):
 @dataclass
 class AdminUser:
     username: str
-    email: Optional[str] = None
+    email: str | None = None
     role: str = "admin"
-    permissions: Set[str] = None
+    permissions: set[str] = None
     is_active: bool = True
-    created_at: Optional[datetime] = None
-    last_login: Optional[datetime] = None
+    created_at: datetime | None = None
+    last_login: datetime | None = None
 
 class AdminManagerWrapper:
     """
@@ -164,7 +180,7 @@ class AdminManagerWrapper:
 
     # Properties expected by templates and handlers
     @property
-    def admins(self) -> List[AdminUser]:
+    def admins(self) -> list[AdminUser]:
         """Return list of admin-like user representations."""
         try:
             creds_map = getattr(self.auth_manager.security_system, "user_credentials", {})
@@ -188,14 +204,14 @@ class AdminManagerWrapper:
             return []
 
     @property
-    def sessions(self) -> Dict[str, Any]:
+    def sessions(self) -> dict[str, Any]:
         """Expose active sessions mapping from unified auth manager."""
         try:
             return getattr(self.auth_manager, "active_sessions", {})
         except Exception:
             return {}
 
-    async def authenticate(self, username: str, password: str, ip_address: Optional[str] = None, user_agent: Optional[str] = None) -> Optional[str]:
+    async def authenticate(self, username: str, password: str, ip_address: str | None = None, user_agent: str | None = None) -> str | None:
         """
         Authenticate an admin user and return an access token (string) on success.
         """
@@ -209,7 +225,7 @@ class AdminManagerWrapper:
             logger.error(f"AdminManagerWrapper.authenticate error: {e}")
             return None
 
-    async def validate_session(self, token: str) -> Optional[SimpleNamespace]:
+    async def validate_session(self, token: str) -> SimpleNamespace | None:
         """
         Validate a token (access token) and return a simple admin-like object if valid.
         """
@@ -247,7 +263,7 @@ class AdminManagerWrapper:
             logger.error(f"AdminManagerWrapper.logout error: {e}")
             return False
 
-    def list_admins(self) -> List[AdminUser]:
+    def list_admins(self) -> list[AdminUser]:
         """Return admin user list for management pages."""
         return self.admins
 
@@ -278,7 +294,7 @@ class AdminManagerWrapper:
                         creds.email = email
                     else:
                         # attach attribute for template/readback usage
-                        setattr(creds, "email", email)
+                        creds.email = email
             except Exception:
                 pass
 
@@ -300,7 +316,7 @@ class AdminManagerWrapper:
             logger.error(f"AdminManagerWrapper.create_admin error: {e}")
             return False
 
-    def reset_password(self, username: str, new_password: str, by_admin: Optional[str] = None, current_password: Optional[str] = None) -> bool:
+    def reset_password(self, username: str, new_password: str, by_admin: str | None = None, current_password: str | None = None) -> bool:
         """
         Reset an admin's password. If by_admin provided, allow unconditional reset.
         If current_password provided, perform best-effort reset (legacy behavior).
@@ -355,7 +371,7 @@ class AdminManagerWrapper:
 # Instantiate wrapper for this module
 admin_manager = AdminManagerWrapper()
 
-async def get_current_admin(request: Request) -> Optional[Dict[str, Any]]:
+async def get_current_admin(request: Request) -> dict[str, Any] | None:
     """Get current authenticated admin from session."""
     if not admin_manager:
         return None
@@ -382,7 +398,7 @@ async def get_current_admin(request: Request) -> Optional[Dict[str, Any]]:
         logger.error(f"Error getting current admin: {e}")
         return None
 
-async def require_admin(request: Request) -> Dict[str, Any]:
+async def require_admin(request: Request) -> dict[str, Any]:
     """Require admin authentication."""
     admin = await get_current_admin(request)
     if not admin:
@@ -400,7 +416,7 @@ def get_client_ip(request: Request) -> str:
 # Audit log storage (simple file-backed; other systems may replace this)
 _AUDIT_LOG_FILE = Path("data/audit_logs.json")
 _AUDIT_LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
-_audit_log_cache: List[Dict[str, Any]] = []
+_audit_log_cache: list[dict[str, Any]] = []
 # Load existing logs if present
 try:
     if _AUDIT_LOG_FILE.exists():
@@ -408,7 +424,7 @@ try:
 except Exception:
     _audit_log_cache = []
 
-def _append_audit_log(action: str, admin: Dict[str, Any], details: Dict[str, Any] = None):
+def _append_audit_log(action: str, admin: dict[str, Any], details: dict[str, Any] = None):
     entry = {
         "timestamp": datetime.utcnow().isoformat(),
         "admin": admin.get("username") if admin else None,
@@ -697,7 +713,7 @@ async def create_admin_user(
 class PasswordResetRequest(BaseModel):
     username: str
     new_password: str
-    current_password: Optional[str] = None  # Only for self-service
+    current_password: str | None = None  # Only for self-service
 
 @router.post("/users/reset-password")
 @rate_limit(requests_per_minute=10, key_func=lambda request: f"admin_reset_password:{get_client_ip(request)}")
@@ -1055,7 +1071,7 @@ async def config_page(request: Request):
 class ConfigUpdate(BaseModel):
     key: str
     value: Any
-    comment: Optional[str] = None
+    comment: str | None = None
 
 @router.get("/api/config")
 async def api_get_config(_admin: dict = Depends(require_admin)):
@@ -1109,7 +1125,7 @@ async def logs_page(request: Request):
         raise HTTPException(status_code=500, detail="Failed to load logs")
 
 @router.get("/api/logs")
-async def api_get_logs(since: Optional[str] = None, until: Optional[str] = None, action: Optional[str] = None, _admin: dict = Depends(require_admin)):
+async def api_get_logs(since: str | None = None, until: str | None = None, action: str | None = None, _admin: dict = Depends(require_admin)):
     try:
         entries = _audit_log_cache.copy()
         if since:
@@ -1150,11 +1166,11 @@ async def export_logs(_admin: dict = Depends(require_admin)):
 
 class HttpsWizardRequest(BaseModel):
     domain: str
-    email: Optional[str] = None
+    email: str | None = None
     method: str  # 'selfsigned' or 'letsencrypt' or 'upload'
-    csr: Optional[str] = None  # only for upload
-    cert_pem: Optional[str] = None
-    key_pem: Optional[str] = None
+    csr: str | None = None  # only for upload
+    cert_pem: str | None = None
+    key_pem: str | None = None
 
 @router.get("/https/setup", response_class=HTMLResponse)
 async def https_setup_page(request: Request):
@@ -1192,18 +1208,19 @@ async def https_setup(req: HttpsWizardRequest = Body(...), admin: dict = Depends
             crt_file = ssl_dir / f"{domain}.crt"
             key_file = ssl_dir / f"{domain}.key"
             # Generate actual self-signed certificate
+            import datetime
+
             from cryptography import x509
-            from cryptography.x509.oid import NameOID
             from cryptography.hazmat.primitives import hashes, serialization
             from cryptography.hazmat.primitives.asymmetric import rsa
-            import datetime
-            
+            from cryptography.x509.oid import NameOID
+
             # Generate private key
             private_key = rsa.generate_private_key(
                 public_exponent=65537,
                 key_size=2048,
             )
-            
+
             # Create certificate
             subject = issuer = x509.Name([
                 x509.NameAttribute(NameOID.COUNTRY_NAME, "US"),
@@ -1212,7 +1229,7 @@ async def https_setup(req: HttpsWizardRequest = Body(...), admin: dict = Depends
                 x509.NameAttribute(NameOID.ORGANIZATION_NAME, "PlexiChat"),
                 x509.NameAttribute(NameOID.COMMON_NAME, domain),
             ])
-            
+
             cert = x509.CertificateBuilder().subject_name(
                 subject
             ).issuer_name(
@@ -1231,7 +1248,7 @@ async def https_setup(req: HttpsWizardRequest = Body(...), admin: dict = Depends
                 ]),
                 critical=False,
             ).sign(private_key, hashes.SHA256())
-            
+
             # Write certificate and key
             cert_pem = cert.public_bytes(serialization.Encoding.PEM).decode('utf-8')
             key_pem = private_key.private_bytes(
@@ -1239,7 +1256,7 @@ async def https_setup(req: HttpsWizardRequest = Body(...), admin: dict = Depends
                 format=serialization.PrivateFormat.PKCS8,
                 encryption_algorithm=serialization.NoEncryption()
             ).decode('utf-8')
-            
+
             crt_file.write_text(cert_pem)
             key_file.write_text(key_pem)
             _append_audit_log("https_selfsigned", admin, {"domain": domain, "crt": str(crt_file), "key": str(key_file)})

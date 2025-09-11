@@ -5,21 +5,27 @@ Backup Management WebUI Router
 Provides a web interface for managing backups through the unified backup system.
 """
 
-import inspect
 import asyncio
-from typing import Dict, Any, List, Optional
-from fastapi import APIRouter, HTTPException, Request, Depends, BackgroundTasks
-from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
-from fastapi.templating import Jinja2Templates
+import inspect
 from pathlib import Path
+from typing import Any
+
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
+from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 
 # Import backup system
 try:
     from plexichat.features.backup import (
-        get_backup_manager, BackupType, BackupStatus,
-        create_database_backup, create_files_backup, create_full_backup,
-        restore_backup, list_backups
+        BackupStatus,
+        BackupType,
+        create_database_backup,
+        create_files_backup,
+        create_full_backup,
+        get_backup_manager,
+        list_backups,
+        restore_backup,
     )
     BACKUP_AVAILABLE = True
 except Exception:
@@ -60,6 +66,7 @@ from plexichat.core.auth.fastapi_adapter import require_admin
 
 # Unified logging
 from plexichat.core.logging import get_logger
+
 logger = get_logger(__name__)
 
 # Create router
@@ -76,43 +83,43 @@ if templates_path.exists():
 class BackupCreateRequest(BaseModel):
     """Backup creation request model."""
     backup_type: str
-    name: Optional[str] = None
-    include_paths: Optional[List[str]] = None
-    tags: Optional[List[str]] = None
-    retention_days: Optional[int] = None
+    name: str | None = None
+    include_paths: list[str] | None = None
+    tags: list[str] | None = None
+    retention_days: int | None = None
 
 
 class RestoreRequest(BaseModel):
     """Restore request model."""
     backup_id: str
-    restore_path: Optional[str] = None
-    dry_run: Optional[bool] = False
+    restore_path: str | None = None
+    dry_run: bool | None = False
 
 
 class ScheduleCreateRequest(BaseModel):
     name: str
     cron_expression: str
-    data_sources: List[str]
-    backup_strategy: Optional[str] = "scheduled"
-    backup_type: Optional[str] = "incremental"
-    security_level: Optional[str] = "standard"
-    retention_days: Optional[int] = None
-    target_nodes: Optional[List[str]] = None
-    tags: Optional[List[str]] = None
-    metadata: Optional[Dict[str, Any]] = None
+    data_sources: list[str]
+    backup_strategy: str | None = "scheduled"
+    backup_type: str | None = "incremental"
+    security_level: str | None = "standard"
+    retention_days: int | None = None
+    target_nodes: list[str] | None = None
+    tags: list[str] | None = None
+    metadata: dict[str, Any] | None = None
 
 
 class RetentionUpdateRequest(BaseModel):
-    backup_id: Optional[str] = None
-    schedule_id: Optional[str] = None
+    backup_id: str | None = None
+    schedule_id: str | None = None
     retention_days: int
 
 
 class RecoveryRequest(BaseModel):
     plan_id: str
-    backup_id: Optional[str] = None
-    target_time: Optional[str] = None  # ISO timestamp
-    dry_run: Optional[bool] = False
+    backup_id: str | None = None
+    target_time: str | None = None  # ISO timestamp
+    dry_run: bool | None = False
 
 
 # Helper utilities to work with possibly-async manager implementations
@@ -135,7 +142,7 @@ def _bg_schedule_coroutine(coro):
         loop.create_task(coro)
 
 
-def _get_manager_method(manager, candidates: List[str]):
+def _get_manager_method(manager, candidates: list[str]):
     """Return the first-found method on manager matching one of the candidate names."""
     for name in candidates:
         if hasattr(manager, name):
@@ -301,14 +308,14 @@ async def backup_dashboard(request: Request, current_user: dict = Depends(requir
         """
         return HTMLResponse(content=html_content)
 
-    except Exception as e:
+    except Exception:
         logger.exception("Failed to render backup dashboard")
         raise HTTPException(status_code=500, detail="Failed to load backup dashboard")
 
 
 @router.get("/api/list")
 async def list_all_backups(
-    backup_type: Optional[str] = None,
+    backup_type: str | None = None,
     current_user: dict = Depends(require_admin)
 ):
     """List all backups."""
@@ -359,7 +366,7 @@ async def list_all_backups(
 
         return JSONResponse(content={"backups": backup_list})
 
-    except Exception as e:
+    except Exception:
         logger.exception("List backups error")
         raise HTTPException(status_code=500, detail="Failed to list backups")
 
@@ -416,7 +423,7 @@ async def create_backup_endpoint(
 
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
         logger.exception("Create backup error")
         raise HTTPException(status_code=500, detail="Failed to create backup")
 
@@ -450,7 +457,7 @@ async def restore_backup_endpoint(
             "message": "Backup restore started successfully"
         })
 
-    except Exception as e:
+    except Exception:
         logger.exception("Restore backup error")
         raise HTTPException(status_code=500, detail="Failed to restore backup")
 
@@ -484,7 +491,7 @@ async def delete_backup_endpoint(
 
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
         logger.exception("Delete backup error")
         raise HTTPException(status_code=500, detail="Failed to delete backup")
 
@@ -520,7 +527,7 @@ async def get_backup_stats(current_user: dict = Depends(require_admin)):
         stats = await _maybe_await(stats)
         return JSONResponse(content=stats)
 
-    except Exception as e:
+    except Exception:
         logger.exception("Get backup stats error")
         raise HTTPException(status_code=500, detail="Failed to get backup statistics")
 
@@ -547,7 +554,7 @@ async def cleanup_old_backups(current_user: dict = Depends(require_admin)):
             "message": f"Cleaned up {deleted_count} old backups"
         })
 
-    except Exception as e:
+    except Exception:
         logger.exception("Cleanup backups error")
         raise HTTPException(status_code=500, detail="Failed to cleanup backups")
 
@@ -565,7 +572,7 @@ async def list_schedules(current_user: dict = Depends(require_admin)):
         schedules = {}
         # Manager may expose 'schedules' attribute or method
         if hasattr(backup_manager, "schedules"):
-            schedules = getattr(backup_manager, "schedules")
+            schedules = backup_manager.schedules
             schedules = await _maybe_await(schedules) if inspect.isawaitable(schedules) else schedules
         else:
             list_method = _get_manager_method(backup_manager, ["list_schedules", "get_schedules"])
@@ -597,7 +604,7 @@ async def list_schedules(current_user: dict = Depends(require_admin)):
 
         return JSONResponse(content={"schedules": serialized})
 
-    except Exception as e:
+    except Exception:
         logger.exception("List schedules error")
         raise HTTPException(status_code=500, detail="Failed to list schedules")
 
@@ -629,7 +636,7 @@ async def create_schedule_endpoint(schedule: ScheduleCreateRequest, current_user
         result = await _maybe_await(coro)
         return JSONResponse(content={"success": True, "schedule_id": result})
 
-    except Exception as e:
+    except Exception:
         logger.exception("Create schedule error")
         raise HTTPException(status_code=500, detail="Failed to create schedule")
 
@@ -647,7 +654,7 @@ async def delete_schedule(schedule_id: str, current_user: dict = Depends(require
         result = delete_method(schedule_id)
         result = await _maybe_await(result)
         return JSONResponse(content={"success": bool(result)})
-    except Exception as e:
+    except Exception:
         logger.exception("Delete schedule error")
         raise HTTPException(status_code=500, detail="Failed to delete schedule")
 
@@ -666,7 +673,7 @@ async def run_schedule_now(schedule_id: str, background_tasks: BackgroundTasks, 
             return JSONResponse(content={"success": True, "message": "Schedule triggered"})
         # Fallback: fetch schedule and create backups for each data source
         if hasattr(backup_manager, "schedules"):
-            schedules = getattr(backup_manager, "schedules")
+            schedules = backup_manager.schedules
             schedule = schedules.get(schedule_id)
             if not schedule:
                 raise HTTPException(status_code=404, detail="Schedule not found")
@@ -684,7 +691,7 @@ async def run_schedule_now(schedule_id: str, background_tasks: BackgroundTasks, 
         raise HTTPException(status_code=500, detail="Unable to execute schedule")
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
         logger.exception("Run schedule error")
         raise HTTPException(status_code=500, detail="Failed to run schedule")
 
@@ -718,7 +725,7 @@ async def get_backup_details(backup_id: str, current_user: dict = Depends(requir
             return JSONResponse(content={"backup": str(details)})
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
         logger.exception("Get backup details error")
         raise HTTPException(status_code=500, detail="Failed to get backup details")
 
@@ -745,7 +752,7 @@ async def verify_backup_endpoint(backup_id: str, deep: bool = False, background_
             return JSONResponse(content={"success": True, "result": result})
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
         logger.exception("Verify backup error")
         raise HTTPException(status_code=500, detail="Failed to verify backup")
 
@@ -759,7 +766,7 @@ async def get_verification_result(verification_id: str, current_user: dict = Dep
         backup_manager = get_backup_manager()
         # Manager may expose verification_results dict
         if hasattr(backup_manager, "verification_results"):
-            results = getattr(backup_manager, "verification_results")
+            results = backup_manager.verification_results
             res = results.get(verification_id)
             if not res:
                 raise HTTPException(status_code=404, detail="Verification result not found")
@@ -777,7 +784,7 @@ async def get_verification_result(verification_id: str, current_user: dict = Dep
             raise HTTPException(status_code=500, detail="Verification results not supported")
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
         logger.exception("Get verification result error")
         raise HTTPException(status_code=500, detail="Failed to get verification result")
 
@@ -811,7 +818,7 @@ async def download_backup(backup_id: str, current_user: dict = Depends(require_a
             raise HTTPException(status_code=404, detail="Backup file not found")
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
         logger.exception("Download backup error")
         raise HTTPException(status_code=500, detail="Failed to download backup")
 
@@ -852,7 +859,7 @@ async def update_retention_policy(payload: RetentionUpdateRequest, current_user:
         return JSONResponse(content={"success": bool(result)})
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
         logger.exception("Update retention error")
         raise HTTPException(status_code=500, detail="Failed to update retention policy")
 
@@ -889,7 +896,7 @@ async def execute_recovery_endpoint(payload: RecoveryRequest, background_tasks: 
         return JSONResponse(content={"success": True, "message": "Recovery started"})
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
         logger.exception("Execute recovery error")
         raise HTTPException(status_code=500, detail="Failed to execute recovery")
 

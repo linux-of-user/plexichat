@@ -3,15 +3,15 @@
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
-import logging
 import asyncio
 import base64
+from dataclasses import asdict, dataclass
+from datetime import UTC, datetime
 import hashlib
 import json
+import logging
 import secrets
-from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from cryptography.fernet import Fernet
 
@@ -27,17 +27,17 @@ class P2PMessage:
     timestamp: datetime
     message_type: str = "text"
     encrypted: bool = True
-    signature: Optional[str] = None
-    metadata: Optional[Dict[str, Any]] = None
+    signature: str | None = None
+    metadata: dict[str, Any] | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for JSON serialization."""
         data = asdict(self)
         data["timestamp"] = self.timestamp.isoformat()
         return data
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "P2PMessage":
+    def from_dict(cls, data: dict[str, Any]) -> "P2PMessage":
         """Create from dictionary."""
         data["timestamp"] = datetime.fromisoformat(data["timestamp"])
         return cls(**data)
@@ -51,7 +51,7 @@ class PeerConnection:
     websocket: Any
     last_seen: datetime
     is_online: bool = True
-    message_queue: Optional[List[P2PMessage]] = None
+    message_queue: list[P2PMessage] | None = None
 
     def __post_init__(self):
         if self.message_queue is None:
@@ -61,7 +61,7 @@ class PeerConnection:
 class MessageCache:
     """Secure message cache for offline storage."""
     def __init__(self):
-        self.cache: Dict[str, P2PMessage] = {}
+        self.cache: dict[str, P2PMessage] = {}
         self.encryption_key = Fernet.generate_key()
         self.cipher = Fernet(self.encryption_key)
         self.max_cache_size = 10000
@@ -83,7 +83,7 @@ class MessageCache:
             logger.error(f"Failed to cache message: {e}")
             return False
 
-    def get_messages_for_user(self, user_id: int) -> List[P2PMessage]:
+    def get_messages_for_user(self, user_id: int) -> list[P2PMessage]:
         """Get cached messages for a user."""
         return [
             msg
@@ -99,11 +99,11 @@ class MessageCache:
             return True
         return False
 
-    def get_pending_database_sync(self) -> List[P2PMessage]:
+    def get_pending_database_sync(self) -> list[P2PMessage]:
         """Get messages pending database synchronization."""
         return list(self.cache.values())
 
-    def clear_synced_messages(self, message_ids: List[str]):
+    def clear_synced_messages(self, message_ids: list[str]):
         """Clear messages that have been synced to database."""
         for msg_id in message_ids:
             self.cache.pop(msg_id, None)
@@ -157,7 +157,7 @@ class MessageCache:
 class P2PMessagingService:
     """Peer-to-peer messaging service with database fallback."""
     def __init__(self):
-        self.peers: Dict[int, PeerConnection] = {}
+        self.peers: dict[int, PeerConnection] = {}
         self.message_cache = MessageCache()
         self.database_available = True
         self.sync_interval = 30  # seconds
@@ -180,7 +180,7 @@ class P2PMessagingService:
                 peer_id=user_id,
                 connection_id=connection_id,
                 websocket=websocket,
-                last_seen=datetime.now(timezone.utc),
+                last_seen=datetime.now(UTC),
             )
 
             self.peers[user_id] = peer_connection
@@ -208,7 +208,7 @@ class P2PMessagingService:
         recipient_id: int,
         content: str,
         message_type: str = "text",
-        metadata: Optional[Dict[str, Any]] = None,
+        metadata: dict[str, Any] | None = None,
     ) -> P2PMessage:
         """Send a peer-to-peer message."""
         try:
@@ -218,7 +218,7 @@ class P2PMessagingService:
                 sender_id=sender_id,
                 recipient_id=recipient_id,
                 content=content,
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
                 message_type=message_type,
                 metadata=metadata or {},
             )
@@ -260,8 +260,8 @@ class P2PMessagingService:
             raise
 
     async def get_messages(
-        self, user_id: int, other_user_id: Optional[int] = None, limit: int = 50
-    ) -> List[P2PMessage]:
+        self, user_id: int, other_user_id: int | None = None, limit: int = 50
+    ) -> list[P2PMessage]:
         """Get messages for a user (from cache and database)."""
         try:
             messages = []
@@ -365,7 +365,7 @@ class P2PMessagingService:
             try:
                 await asyncio.sleep(60)  # Check every minute
 
-                current_time = datetime.now(timezone.utc)
+                current_time = datetime.now(UTC)
                 offline_peers = []
 
                 for user_id, peer in self.peers.items():
@@ -438,8 +438,8 @@ class P2PMessagingService:
             return False
 
     async def _get_from_database(
-        self, user_id: int, other_user_id: Optional[int], limit: int
-    ) -> List[P2PMessage]:
+        self, user_id: int, other_user_id: int | None, limit: int
+    ) -> list[P2PMessage]:
         """Get messages from database (placeholder)."""
         try:
             # In production, this would query actual database
@@ -457,7 +457,7 @@ class P2PMessagingService:
         else:
             logger.warning(" Database unavailable, using P2P mode")
 
-    def get_network_status(self) -> Dict[str, Any]:
+    def get_network_status(self) -> dict[str, Any]:
         """Get P2P network status."""
         return {
             "connected_peers": len(self.peers),

@@ -5,15 +5,15 @@ Comprehensive help system with interactive tutorials, searchable documentation,
 keyboard shortcuts reference, FAQ section, and contextual help.
 """
 
-from typing import Any, Dict, Optional
 from pathlib import Path
+from typing import Any
 
-from fastapi import APIRouter, Request, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 
-from plexichat.core.logging import get_logger
 from plexichat.core.auth.fastapi_adapter import get_current_user
+from plexichat.core.logging import get_logger
 
 logger = get_logger(__name__)
 router = APIRouter(tags=["help"])
@@ -227,7 +227,7 @@ TUTORIALS = [
 @router.get("/", response_class=HTMLResponse)
 async def help_center(
     request: Request,
-    current_user: Optional[Dict[str, Any]] = Depends(get_current_user)
+    current_user: dict[str, Any] | None = Depends(get_current_user)
 ):
     """Main help center page with comprehensive help system."""
     if not templates:
@@ -253,8 +253,8 @@ async def help_center(
 @router.get("/api/search", response_class=JSONResponse)
 async def search_help(
     q: str,
-    category: Optional[str] = None,
-    current_user: Optional[Dict[str, Any]] = Depends(get_current_user)
+    category: str | None = None,
+    current_user: dict[str, Any] | None = Depends(get_current_user)
 ):
     """Search help content."""
     try:
@@ -296,7 +296,7 @@ async def search_help(
 @router.get("/api/content/{content_id}", response_class=JSONResponse)
 async def get_help_content(
     content_id: str,
-    current_user: Optional[Dict[str, Any]] = Depends(get_current_user)
+    current_user: dict[str, Any] | None = Depends(get_current_user)
 ):
     """Get specific help content."""
     try:
@@ -315,7 +315,7 @@ async def get_help_content(
 
 @router.get("/api/tutorials", response_class=JSONResponse)
 async def get_tutorials(
-    current_user: Optional[Dict[str, Any]] = Depends(get_current_user)
+    current_user: dict[str, Any] | None = Depends(get_current_user)
 ):
     """Get available tutorials."""
     return {"tutorials": TUTORIALS}
@@ -323,7 +323,7 @@ async def get_tutorials(
 @router.get("/api/tutorial/{tutorial_id}", response_class=JSONResponse)
 async def get_tutorial(
     tutorial_id: str,
-    current_user: Optional[Dict[str, Any]] = Depends(get_current_user)
+    current_user: dict[str, Any] | None = Depends(get_current_user)
 ):
     """Get specific tutorial."""
     try:
@@ -339,7 +339,7 @@ async def get_tutorial(
 
 @router.get("/api/keyboard-shortcuts", response_class=JSONResponse)
 async def get_keyboard_shortcuts(
-    current_user: Optional[Dict[str, Any]] = Depends(get_current_user)
+    current_user: dict[str, Any] | None = Depends(get_current_user)
 ):
     """Get keyboard shortcuts reference."""
     return {"shortcuts": KEYBOARD_SHORTCUTS}

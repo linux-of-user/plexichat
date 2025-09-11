@@ -11,14 +11,14 @@ Uses EXISTING database abstraction and optimization systems.
 """
 
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
+from colorama import Fore, Style
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel, Field
-from colorama import Fore, Style
 
-from plexichat.core.logging import get_logger
 from plexichat.core.auth.fastapi_adapter import require_admin
+from plexichat.core.logging import get_logger
 
 # Use EXISTING database abstraction layer
 try:
@@ -28,9 +28,11 @@ except ImportError:
 
 # Use EXISTING performance optimization engine
 try:
-    from plexichat.core.performance.optimization_engine import PerformanceOptimizationEngine
-    from plexichat.infrastructure.utils.performance import async_track_performance
     from plexichat.core.logging import get_performance_logger, timer
+    from plexichat.core.performance.optimization_engine import (
+        PerformanceOptimizationEngine,
+    )
+    from plexichat.infrastructure.utils.performance import async_track_performance
 except ImportError:
     PerformanceOptimizationEngine = None
     async_track_performance = None
@@ -43,7 +45,10 @@ _cluster_mgr = None
 _ClusterNodeClass = None
 try:
     # Try importing the explicit cluster manager module and helper
-    from plexichat.core.clustering.cluster_manager import get_cluster_manager, ClusterNode
+    from plexichat.core.clustering.cluster_manager import (
+        ClusterNode,
+        get_cluster_manager,
+    )
     try:
         _cluster_mgr = get_cluster_manager()
     except Exception:
@@ -74,7 +79,9 @@ except Exception:
 
 # Try to import a performance monitor from clustering package (optional)
 try:
-    from plexichat.core.clustering import performance_monitor as clustering_performance_monitor
+    from plexichat.core.clustering import (
+        performance_monitor as clustering_performance_monitor,
+    )
     performance_monitor = clustering_performance_monitor
 except Exception:
     performance_monitor = None
@@ -99,13 +106,13 @@ class NodeInfo(BaseModel):
     disk_usage: float = 0.0
     last_heartbeat: datetime = Field(default_factory=datetime.utcnow)
     uptime_seconds: int = 0
-    node_type: Optional[str] = None
-    region: Optional[str] = None
-    zone: Optional[str] = None
-    weight: Optional[float] = 1.0
-    capabilities: Optional[List[str]] = Field(default_factory=list)
-    metadata: Optional[Dict[str, Any]] = Field(default_factory=dict)
-    version: Optional[str] = None
+    node_type: str | None = None
+    region: str | None = None
+    zone: str | None = None
+    weight: float | None = 1.0
+    capabilities: list[str] | None = Field(default_factory=list)
+    metadata: dict[str, Any] | None = Field(default_factory=dict)
+    version: str | None = None
 
 class ClusterStatus(BaseModel):
     """Cluster status information."""
@@ -130,30 +137,30 @@ class ClusterMetrics(BaseModel):
 
 class RegisterNodeRequest(BaseModel):
     """Request model for registering a node."""
-    node_id: Optional[str] = None
+    node_id: str | None = None
     hostname: str = "unknown"
     ip_address: str = "127.0.0.1"
     port: int = 8000
-    node_type: Optional[str] = "general"
-    region: Optional[str] = "default"
-    zone: Optional[str] = "default"
-    weight: Optional[float] = 1.0
-    capabilities: Optional[List[str]] = Field(default_factory=list)
-    metadata: Optional[Dict[str, Any]] = Field(default_factory=dict)
-    version: Optional[str] = "1.0.0"
+    node_type: str | None = "general"
+    region: str | None = "default"
+    zone: str | None = "default"
+    weight: float | None = 1.0
+    capabilities: list[str] | None = Field(default_factory=list)
+    metadata: dict[str, Any] | None = Field(default_factory=dict)
+    version: str | None = "1.0.0"
 
 class UpdateConfigRequest(BaseModel):
     """Request model for updating cluster configuration."""
-    min_nodes: Optional[int] = None
-    max_nodes: Optional[int] = None
-    replication_factor: Optional[int] = None
-    health_check_interval: Optional[int] = None
-    heartbeat_timeout: Optional[int] = None
-    auto_scaling_enabled: Optional[bool] = None
-    load_balancing_strategy: Optional[str] = None
-    failover_enabled: Optional[bool] = None
-    backup_enabled: Optional[bool] = None
-    encryption_enabled: Optional[bool] = None
+    min_nodes: int | None = None
+    max_nodes: int | None = None
+    replication_factor: int | None = None
+    health_check_interval: int | None = None
+    heartbeat_timeout: int | None = None
+    auto_scaling_enabled: bool | None = None
+    load_balancing_strategy: str | None = None
+    failover_enabled: bool | None = None
+    backup_enabled: bool | None = None
+    encryption_enabled: bool | None = None
 
 class WeightUpdateRequest(BaseModel):
     """Request to update node weight (influence load balancing)."""
@@ -167,7 +174,7 @@ class ManualMetricsUpdate(BaseModel):
     network_latency: float = 0.0
     request_rate: float = 0.0
     error_rate: float = 0.0
-    uptime_seconds: Optional[int] = None
+    uptime_seconds: int | None = None
 
 class ClusterService:
     """Service class for cluster operations using EXISTING systems."""
@@ -179,10 +186,10 @@ class ClusterService:
         self.performance_logger = performance_logger
 
         # Local in-memory metrics history and audit logs for lightweight realtime UI
-        self.metrics_history: List[Dict[str, Any]] = []
-        self.audit_logs: List[Dict[str, Any]] = []
+        self.metrics_history: list[dict[str, Any]] = []
+        self.audit_logs: list[dict[str, Any]] = []
 
-    def _log_audit(self, event: str, details: Optional[Dict[str, Any]] = None):
+    def _log_audit(self, event: str, details: dict[str, Any] | None = None):
         entry = {
             "timestamp": datetime.utcnow().isoformat(),
             "event": event,
@@ -306,7 +313,7 @@ class ClusterService:
             )
 
     @async_track_performance("cluster_nodes") if async_track_performance else lambda f: f
-    async def get_cluster_nodes(self) -> List[NodeInfo]:
+    async def get_cluster_nodes(self) -> list[NodeInfo]:
         """Get cluster nodes using EXISTING cluster management."""
         try:
             if self.cluster_manager:
@@ -399,7 +406,7 @@ class ClusterService:
                 error_rate=0.0
             )
 
-    async def get_node(self, node_id: str) -> Optional[NodeInfo]:
+    async def get_node(self, node_id: str) -> NodeInfo | None:
         """Get detailed info for a single node."""
         try:
             if self.cluster_manager:
@@ -429,7 +436,7 @@ class ClusterService:
             self._log_audit("get_node_error", {"node_id": node_id, "error": str(e)})
             return None
 
-    async def register_node(self, payload: RegisterNodeRequest) -> Dict[str, Any]:
+    async def register_node(self, payload: RegisterNodeRequest) -> dict[str, Any]:
         """Register a node into the cluster."""
         try:
             if not self.cluster_manager:
@@ -468,7 +475,7 @@ class ClusterService:
             self._log_audit("register_node_error", {"error": str(e)})
             return {"success": False, "error": str(e)}
 
-    async def unregister_node(self, node_id: str) -> Dict[str, Any]:
+    async def unregister_node(self, node_id: str) -> dict[str, Any]:
         """Unregister a node from the cluster."""
         try:
             if not self.cluster_manager:
@@ -483,7 +490,7 @@ class ClusterService:
             self._log_audit("unregister_node_error", {"node_id": node_id, "error": str(e)})
             return {"success": False, "error": str(e)}
 
-    async def perform_health_check(self) -> Dict[str, Any]:
+    async def perform_health_check(self) -> dict[str, Any]:
         """Trigger an on-demand health check across the cluster."""
         try:
             if not self.cluster_manager:
@@ -509,7 +516,7 @@ class ClusterService:
             self._log_audit("perform_health_check_error", {"error": str(e)})
             return {"success": False, "error": str(e)}
 
-    async def trigger_failover(self, node_id: str) -> Dict[str, Any]:
+    async def trigger_failover(self, node_id: str) -> dict[str, Any]:
         """Trigger failover procedures for a node."""
         try:
             if not self.cluster_manager:
@@ -532,7 +539,7 @@ class ClusterService:
             self._log_audit("trigger_failover_error", {"node_id": node_id, "error": str(e)})
             return {"success": False, "error": str(e)}
 
-    async def get_config(self) -> Dict[str, Any]:
+    async def get_config(self) -> dict[str, Any]:
         """Get current cluster configuration."""
         try:
             if not self.cluster_manager:
@@ -560,7 +567,7 @@ class ClusterService:
             self._log_audit("get_config_error", {"error": str(e)})
             return {}
 
-    async def update_config(self, payload: UpdateConfigRequest) -> Dict[str, Any]:
+    async def update_config(self, payload: UpdateConfigRequest) -> dict[str, Any]:
         """Update cluster configuration in-place."""
         try:
             if not self.cluster_manager:
@@ -584,7 +591,7 @@ class ClusterService:
             # bump updated_at if present
             if hasattr(cfg, "updated_at"):
                 try:
-                    setattr(cfg, "updated_at", datetime.utcnow())
+                    cfg.updated_at = datetime.utcnow()
                 except Exception:
                     pass
 
@@ -600,7 +607,7 @@ class ClusterService:
             self._log_audit("update_config_error", {"error": str(e)})
             return {"success": False, "error": str(e)}
 
-    async def get_metrics_history(self, limit: int = 100) -> List[Dict[str, Any]]:
+    async def get_metrics_history(self, limit: int = 100) -> list[dict[str, Any]]:
         """Return recent metrics history."""
         try:
             hist = list(self.metrics_history)[-limit:]
@@ -611,7 +618,7 @@ class ClusterService:
             self._log_audit("get_metrics_history_error", {"error": str(e)})
             return []
 
-    async def update_node_metrics(self, node_id: str, metrics: ManualMetricsUpdate) -> Dict[str, Any]:
+    async def update_node_metrics(self, node_id: str, metrics: ManualMetricsUpdate) -> dict[str, Any]:
         """Allow manual / external metrics updates for a node (e.g., from external monitor)."""
         try:
             if not self.cluster_manager:
@@ -622,7 +629,9 @@ class ClusterService:
             nm = None
             try:
                 # Try to use NodeMetrics class if exposed by cluster manager package
-                from plexichat.core.clustering.cluster_manager import NodeMetrics as _NodeMetrics
+                from plexichat.core.clustering.cluster_manager import (
+                    NodeMetrics as _NodeMetrics,
+                )
                 nm = _NodeMetrics(
                     cpu_usage=metrics.cpu_usage,
                     memory_usage=metrics.memory_usage,
@@ -651,7 +660,7 @@ class ClusterService:
             self._log_audit("update_node_metrics_error", {"node_id": node_id, "error": str(e)})
             return {"success": False, "error": str(e)}
 
-    async def get_audit_logs(self, limit: int = 200) -> List[Dict[str, Any]]:
+    async def get_audit_logs(self, limit: int = 200) -> list[dict[str, Any]]:
         """Return recent audit logs for cluster admin UI."""
         try:
             logs = list(self.audit_logs)[-limit:]
@@ -664,7 +673,7 @@ class ClusterService:
 cluster_service = ClusterService()
 
 @router.get("/status", response_model=ClusterStatus, summary="Get cluster status")
-async def get_cluster_status(request: Request, current_user: Dict[str, Any] = Depends(require_admin)):
+async def get_cluster_status(request: Request, current_user: dict[str, Any] = Depends(require_admin)):
     """Get comprehensive cluster status (admin only)."""
     client_ip = request.client.host if request.client else "unknown"
     logger.info(Fore.CYAN + f"[CLUSTER] Status requested by admin {current_user.get('username')} from {client_ip}" + Style.RESET_ALL)
@@ -679,8 +688,8 @@ async def get_cluster_status(request: Request, current_user: Dict[str, Any] = De
 
     return await cluster_service.get_cluster_status()
 
-@router.get("/nodes", response_model=List[NodeInfo], summary="Get cluster nodes")
-async def get_cluster_nodes(request: Request, current_user: Dict[str, Any] = Depends(require_admin)):
+@router.get("/nodes", response_model=list[NodeInfo], summary="Get cluster nodes")
+async def get_cluster_nodes(request: Request, current_user: dict[str, Any] = Depends(require_admin)):
     """Get all cluster nodes information (admin only)."""
     client_ip = request.client.host if request.client else "unknown"
     logger.info(Fore.CYAN + f"[CLUSTER] Nodes requested by admin {current_user.get('username')} from {client_ip}" + Style.RESET_ALL)
@@ -696,7 +705,7 @@ async def get_cluster_nodes(request: Request, current_user: Dict[str, Any] = Dep
     return await cluster_service.get_cluster_nodes()
 
 @router.get("/nodes/{node_id}", response_model=NodeInfo, summary="Get node details")
-async def get_node_details(node_id: str, request: Request, current_user: Dict[str, Any] = Depends(require_admin)):
+async def get_node_details(node_id: str, request: Request, current_user: dict[str, Any] = Depends(require_admin)):
     """Get detailed information for a single node (admin only)."""
     client_ip = request.client.host if request.client else "unknown"
     logger.info(Fore.CYAN + f"[CLUSTER] Node {node_id} details requested by admin {current_user.get('username')} from {client_ip}" + Style.RESET_ALL)
@@ -706,7 +715,7 @@ async def get_node_details(node_id: str, request: Request, current_user: Dict[st
     return node
 
 @router.post("/nodes/register", summary="Register a new node")
-async def register_node(payload: RegisterNodeRequest, request: Request, current_user: Dict[str, Any] = Depends(require_admin)):
+async def register_node(payload: RegisterNodeRequest, request: Request, current_user: dict[str, Any] = Depends(require_admin)):
     """Register a new node into the cluster (admin only)."""
     client_ip = request.client.host if request.client else "unknown"
     logger.info(Fore.CYAN + f"[CLUSTER] Register node requested by admin {current_user.get('username')} from {client_ip}: {payload.dict()}" + Style.RESET_ALL)
@@ -716,7 +725,7 @@ async def register_node(payload: RegisterNodeRequest, request: Request, current_
     return result
 
 @router.delete("/nodes/{node_id}", summary="Unregister a node")
-async def unregister_node(node_id: str, request: Request, current_user: Dict[str, Any] = Depends(require_admin)):
+async def unregister_node(node_id: str, request: Request, current_user: dict[str, Any] = Depends(require_admin)):
     """Unregister a node from the cluster (admin only)."""
     client_ip = request.client.host if request.client else "unknown"
     logger.info(Fore.CYAN + f"[CLUSTER] Unregister node {node_id} requested by admin {current_user.get('username')} from {client_ip}" + Style.RESET_ALL)
@@ -726,7 +735,7 @@ async def unregister_node(node_id: str, request: Request, current_user: Dict[str
     return result
 
 @router.post("/nodes/{node_id}/metrics", summary="Update node metrics (manual/external)")
-async def update_node_metrics(node_id: str, payload: ManualMetricsUpdate, request: Request, current_user: Dict[str, Any] = Depends(require_admin)):
+async def update_node_metrics(node_id: str, payload: ManualMetricsUpdate, request: Request, current_user: dict[str, Any] = Depends(require_admin)):
     """Update node metrics from external monitors (admin or trusted systems)."""
     client_ip = request.client.host if request.client else "unknown"
     logger.info(Fore.CYAN + f"[CLUSTER] Update metrics for node {node_id} by {current_user.get('username')} from {client_ip}: {payload.dict()}" + Style.RESET_ALL)
@@ -736,7 +745,7 @@ async def update_node_metrics(node_id: str, payload: ManualMetricsUpdate, reques
     return result
 
 @router.post("/nodes/{node_id}/failover", summary="Trigger failover for a node")
-async def failover_node(node_id: str, request: Request, current_user: Dict[str, Any] = Depends(require_admin)):
+async def failover_node(node_id: str, request: Request, current_user: dict[str, Any] = Depends(require_admin)):
     """Trigger failover procedures for a specific node (admin only)."""
     client_ip = request.client.host if request.client else "unknown"
     logger.warning(Fore.YELLOW + f"[CLUSTER] Failover requested for node {node_id} by admin {current_user.get('username')} from {client_ip}" + Style.RESET_ALL)
@@ -746,7 +755,7 @@ async def failover_node(node_id: str, request: Request, current_user: Dict[str, 
     return result
 
 @router.post("/health_check", summary="Run on-demand cluster health checks")
-async def run_health_check(request: Request, current_user: Dict[str, Any] = Depends(require_admin)):
+async def run_health_check(request: Request, current_user: dict[str, Any] = Depends(require_admin)):
     """Trigger an on-demand cluster health check (admin only)."""
     client_ip = request.client.host if request.client else "unknown"
     logger.info(Fore.CYAN + f"[CLUSTER] Health check requested by admin {current_user.get('username')} from {client_ip}" + Style.RESET_ALL)
@@ -756,7 +765,7 @@ async def run_health_check(request: Request, current_user: Dict[str, Any] = Depe
     return result
 
 @router.get("/metrics", response_model=ClusterMetrics, summary="Get cluster metrics")
-async def get_cluster_metrics(request: Request, current_user: Dict[str, Any] = Depends(require_admin)):
+async def get_cluster_metrics(request: Request, current_user: dict[str, Any] = Depends(require_admin)):
     """Get cluster performance metrics (admin only)."""
     client_ip = request.client.host if request.client else "unknown"
     logger.info(Fore.CYAN + f"[CLUSTER] Metrics requested by admin {current_user.get('username')} from {client_ip}" + Style.RESET_ALL)
@@ -772,7 +781,7 @@ async def get_cluster_metrics(request: Request, current_user: Dict[str, Any] = D
     return await cluster_service.get_cluster_metrics()
 
 @router.get("/metrics/history", summary="Get recent cluster metrics history")
-async def get_metrics_history(limit: int = 100, request: Request = None, current_user: Dict[str, Any] = Depends(require_admin)):
+async def get_metrics_history(limit: int = 100, request: Request = None, current_user: dict[str, Any] = Depends(require_admin)):
     """Return recent metrics history for realtime dashboards (admin only)."""
     client_ip = request.client.host if request and request.client else "unknown"
     logger.info(Fore.CYAN + f"[CLUSTER] Metrics history requested by admin {current_user.get('username')} from {client_ip} limit={limit}" + Style.RESET_ALL)
@@ -780,7 +789,7 @@ async def get_metrics_history(limit: int = 100, request: Request = None, current
     return {"count": len(hist), "history": hist}
 
 @router.get("/config", summary="Get cluster configuration")
-async def get_config(request: Request, current_user: Dict[str, Any] = Depends(require_admin)):
+async def get_config(request: Request, current_user: dict[str, Any] = Depends(require_admin)):
     """Get cluster configuration (admin only)."""
     client_ip = request.client.host if request.client else "unknown"
     logger.info(Fore.CYAN + f"[CLUSTER] Config requested by admin {current_user.get('username')} from {client_ip}" + Style.RESET_ALL)
@@ -788,7 +797,7 @@ async def get_config(request: Request, current_user: Dict[str, Any] = Depends(re
     return cfg
 
 @router.put("/config", summary="Update cluster configuration")
-async def update_config(payload: UpdateConfigRequest, request: Request, current_user: Dict[str, Any] = Depends(require_admin)):
+async def update_config(payload: UpdateConfigRequest, request: Request, current_user: dict[str, Any] = Depends(require_admin)):
     """Update cluster configuration (admin only)."""
     client_ip = request.client.host if request.client else "unknown"
     logger.info(Fore.CYAN + f"[CLUSTER] Config update requested by admin {current_user.get('username')} from {client_ip}: {payload.dict(exclude_unset=True)}" + Style.RESET_ALL)
@@ -798,7 +807,7 @@ async def update_config(payload: UpdateConfigRequest, request: Request, current_
     return result
 
 @router.post("/scale", summary="Scale cluster")
-async def scale_cluster(request: Request, target_nodes: int, current_user: Dict[str, Any] = Depends(require_admin)):
+async def scale_cluster(request: Request, target_nodes: int, current_user: dict[str, Any] = Depends(require_admin)):
     """Scale cluster to target number of nodes (admin only)."""
     client_ip = request.client.host if request.client else "unknown"
     logger.info(Fore.CYAN + f"[CLUSTER] Scaling to {target_nodes} nodes requested by admin {current_user.get('username')} from {client_ip}" + Style.RESET_ALL)
@@ -833,7 +842,7 @@ async def scale_cluster(request: Request, target_nodes: int, current_user: Dict[
         )
 
 @router.post("/rebalance", summary="Rebalance cluster")
-async def rebalance_cluster(request: Request, current_user: Dict[str, Any] = Depends(require_admin)):
+async def rebalance_cluster(request: Request, current_user: dict[str, Any] = Depends(require_admin)):
     """Rebalance cluster load (admin only)."""
     client_ip = request.client.host if request.client else "unknown"
     logger.info(Fore.CYAN + f"[CLUSTER] Rebalancing requested by admin {current_user.get('username')} from {client_ip}" + Style.RESET_ALL)
@@ -866,7 +875,7 @@ async def rebalance_cluster(request: Request, current_user: Dict[str, Any] = Dep
         )
 
 @router.post("/nodes/{node_id}/weight", summary="Update node weight for load balancing")
-async def update_node_weight(node_id: str, payload: WeightUpdateRequest, request: Request, current_user: Dict[str, Any] = Depends(require_admin)):
+async def update_node_weight(node_id: str, payload: WeightUpdateRequest, request: Request, current_user: dict[str, Any] = Depends(require_admin)):
     """Update a node's weight used by load balancing algorithms (admin only)."""
     client_ip = request.client.host if request.client else "unknown"
     logger.info(Fore.CYAN + f"[CLUSTER] Update weight for node {node_id} to {payload.weight} requested by admin {current_user.get('username')} from {client_ip}" + Style.RESET_ALL)
@@ -895,7 +904,7 @@ async def update_node_weight(node_id: str, payload: WeightUpdateRequest, request
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 @router.get("/audit", summary="Get cluster audit logs")
-async def get_audit_logs(limit: int = 200, request: Request = None, current_user: Dict[str, Any] = Depends(require_admin)):
+async def get_audit_logs(limit: int = 200, request: Request = None, current_user: dict[str, Any] = Depends(require_admin)):
     """Retrieve recent audit logs for cluster operations (admin only)."""
     client_ip = request.client.host if request and request.client else "unknown"
     logger.info(Fore.CYAN + f"[CLUSTER] Audit logs requested by admin {current_user.get('username')} from {client_ip} limit={limit}" + Style.RESET_ALL)

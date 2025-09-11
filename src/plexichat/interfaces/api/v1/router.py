@@ -5,13 +5,13 @@ This is the main router that combines all v1 API endpoints.
 It provides a single entry point for all v1 functionality.
 """
 
-from fastapi import APIRouter, Depends
 from datetime import datetime
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
-from plexichat.core.logging import get_logger
+from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+
 from plexichat.core.authentication import get_auth_manager
-from fastapi import HTTPException, status
+from plexichat.core.logging import get_logger
 
 security = HTTPBearer()
 
@@ -55,25 +55,27 @@ async def get_optional_user(token: str = None):
 logger = get_logger(__name__)
 
 # Import all endpoint routers
-from plexichat.interfaces.api.v1.auth import router as auth_router
-from plexichat.interfaces.api.v1.users import router as users_router
-from plexichat.interfaces.api.v1.messages import router as messages_router
-from plexichat.interfaces.api.v1.files import router as files_router
 from plexichat.interfaces.api.v1.admin import router as admin_router
-from plexichat.interfaces.api.v1.system import router as system_router
-from plexichat.interfaces.api.v1.realtime import router as realtime_router
-from plexichat.interfaces.api.v1.groups import router as groups_router
-from plexichat.interfaces.api.v1.search import router as search_router
-from plexichat.interfaces.api.v1.notifications import router as notifications_router
+from plexichat.interfaces.api.v1.auth import router as auth_router
 from plexichat.interfaces.api.v1.backups import router as backups_router
-from plexichat.interfaces.api.v1.shards import router as shards_router
-from plexichat.interfaces.api.v1.threads import router as threads_router
 from plexichat.interfaces.api.v1.export import router as export_router
+from plexichat.interfaces.api.v1.files import router as files_router
+from plexichat.interfaces.api.v1.groups import router as groups_router
 from plexichat.interfaces.api.v1.keyboard import router as keyboard_router
+from plexichat.interfaces.api.v1.messages import router as messages_router
+from plexichat.interfaces.api.v1.notifications import router as notifications_router
+from plexichat.interfaces.api.v1.realtime import router as realtime_router
+from plexichat.interfaces.api.v1.search import router as search_router
+from plexichat.interfaces.api.v1.shards import router as shards_router
+from plexichat.interfaces.api.v1.system import router as system_router
+from plexichat.interfaces.api.v1.threads import router as threads_router
+from plexichat.interfaces.api.v1.users import router as users_router
 
 # Try to import enhanced file sharing router with fallback
 try:
-    from plexichat.interfaces.api.routers.file_sharing_router import router as file_sharing_router
+    from plexichat.interfaces.api.routers.file_sharing_router import (
+        router as file_sharing_router,
+    )
     file_sharing_available = True
 except ImportError as e:
     logger.warning(f"Enhanced file sharing router not available: {e}")
@@ -92,7 +94,9 @@ except ImportError as e:
 
 # Try to import client_settings router with fallback
 try:
-    from plexichat.interfaces.api.v1.client_settings import router as client_settings_router
+    from plexichat.interfaces.api.v1.client_settings import (
+        router as client_settings_router,
+    )
 
     client_settings_available = True
 except ImportError as e:

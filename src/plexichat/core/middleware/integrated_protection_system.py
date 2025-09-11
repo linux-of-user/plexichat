@@ -7,11 +7,11 @@ Provides fair and comprehensive protection with account type support.
 """
 
 import asyncio
-import time
 from collections import defaultdict, deque
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, Optional, Tuple
+import time
+from typing import Any
 
 # FastAPI availability check
 FASTAPI_AVAILABLE = False
@@ -126,7 +126,7 @@ class IntegratedProtectionSystem:
     and dynamic scaling based on system load and account types.
     """
 
-    def __init__(self, rate_limit_config: Optional[RateLimitConfig] = None):
+    def __init__(self, rate_limit_config: RateLimitConfig | None = None):
         self.rate_limit_config = rate_limit_config or RateLimitConfig()
         self.ddos_service = None  # Will be initialized if available
 
@@ -135,13 +135,13 @@ class IntegratedProtectionSystem:
         self.metrics_history: deque = deque(maxlen=100)
 
         # Rate limiting storage
-        self.ip_requests: Dict[str, deque] = defaultdict(lambda: deque(maxlen=1000))
-        self.user_requests: Dict[str, deque] = defaultdict(lambda: deque(maxlen=1000))
-        self.ip_violations: Dict[str, int] = defaultdict(int)
-        self.banned_ips: Dict[str, float] = {}
+        self.ip_requests: dict[str, deque] = defaultdict(lambda: deque(maxlen=1000))
+        self.user_requests: dict[str, deque] = defaultdict(lambda: deque(maxlen=1000))
+        self.ip_violations: dict[str, int] = defaultdict(int)
+        self.banned_ips: dict[str, float] = {}
 
         # Account type limits
-        self.account_limits: Dict[AccountType, AccountTypeRateLimit] = {
+        self.account_limits: dict[AccountType, AccountTypeRateLimit] = {
             AccountType.FREE: AccountTypeRateLimit(30, 5, 5, 0.5),
             AccountType.BASIC: AccountTypeRateLimit(60, 10, 10, 1.0),
             AccountType.PREMIUM: AccountTypeRateLimit(120, 20, 20, 1.5),
@@ -150,7 +150,7 @@ class IntegratedProtectionSystem:
         }
 
         # Dynamic scaling
-        self.load_multipliers: Dict[SystemLoadLevel, float] = {
+        self.load_multipliers: dict[SystemLoadLevel, float] = {
             SystemLoadLevel.LOW: 1.2,
             SystemLoadLevel.NORMAL: 1.0,
             SystemLoadLevel.HIGH: 0.7,
@@ -158,7 +158,7 @@ class IntegratedProtectionSystem:
         }
 
         # Fairness weights
-        self.fairness_weights: Dict[AccountType, float] = {
+        self.fairness_weights: dict[AccountType, float] = {
             AccountType.FREE: 0.5,
             AccountType.BASIC: 1.0,
             AccountType.PREMIUM: 1.5,
@@ -167,7 +167,7 @@ class IntegratedProtectionSystem:
         }
 
         # Background monitoring
-        self.monitoring_task: Optional[asyncio.Task] = None
+        self.monitoring_task: asyncio.Task | None = None
         self.is_running = False
 
         logger.info("Integrated Protection System initialized")
@@ -259,7 +259,7 @@ class IntegratedProtectionSystem:
                 self.ip_violations[ip] = 0
                 logger.info(f"IP {ip} unbanned.")
 
-    def _get_account_type(self, request: Any) -> Tuple[AccountType, Optional[str]]:
+    def _get_account_type(self, request: Any) -> tuple[AccountType, str | None]:
         """Determine account type and user ID from request."""
         try:
             if hasattr(request, "state") and hasattr(request.state, "user"):
@@ -290,7 +290,7 @@ class IntegratedProtectionSystem:
             fairness_factor=self.fairness_weights[account_type],
         )
 
-    async def check_rate_limit(self, request: Any) -> Tuple[bool, str, Dict[str, Any]]:
+    async def check_rate_limit(self, request: Any) -> tuple[bool, str, dict[str, Any]]:
         """
         Check if request should be rate limited.
 
@@ -349,7 +349,7 @@ class IntegratedProtectionSystem:
 
         return True, "allowed", {}
 
-    async def process_request(self, request: Any) -> Tuple[bool, Optional[Any]]:
+    async def process_request(self, request: Any) -> tuple[bool, Any | None]:
         """
         Process incoming request through protection system.
 
@@ -391,7 +391,7 @@ class IntegratedProtectionSystem:
             # On error, allow request to proceed
             return True, None
 
-    def get_system_status(self) -> Dict[str, Any]:
+    def get_system_status(self) -> dict[str, Any]:
         """Get comprehensive protection system status."""
         return {
             "system_metrics": {
@@ -419,7 +419,7 @@ class IntegratedProtectionSystem:
 
 
 # Global protection system instance
-_global_protection_system: Optional[IntegratedProtectionSystem] = None
+_global_protection_system: IntegratedProtectionSystem | None = None
 
 
 def get_protection_system() -> IntegratedProtectionSystem:
@@ -431,7 +431,7 @@ def get_protection_system() -> IntegratedProtectionSystem:
 
 
 async def initialize_protection_system(
-    config: Optional[RateLimitConfig] = None,
+    config: RateLimitConfig | None = None,
 ) -> IntegratedProtectionSystem:
     """Initialize and start the protection system."""
     global _global_protection_system
@@ -449,14 +449,14 @@ async def shutdown_protection_system() -> None:
 
 
 __all__ = [
-    "IntegratedProtectionSystem",
-    "SystemLoadLevel",
     "AccountType",
-    "RateLimitStrategy",
-    "SystemMetrics",
-    "DynamicLimits",
     "AccountTypeRateLimit",
+    "DynamicLimits",
+    "IntegratedProtectionSystem",
     "RateLimitConfig",
+    "RateLimitStrategy",
+    "SystemLoadLevel",
+    "SystemMetrics",
     "get_protection_system",
     "initialize_protection_system",
     "shutdown_protection_system",

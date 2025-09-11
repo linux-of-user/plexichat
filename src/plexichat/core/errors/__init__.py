@@ -5,8 +5,8 @@ Single source of truth for all error handling functionality.
 Consolidates error_handling/, error_handlers.py, and exceptions.py into one clean system.
 """
 
-import logging
 from enum import Enum, unique
+import logging
 from typing import Any, Dict, List, Optional, Type, Union
 
 # Use shared fallback implementations
@@ -69,7 +69,7 @@ else:
             self,
             message: str = "",
             status_code: int = 500,
-            details: Optional[Dict[str, Any]] = None,
+            details: dict[str, Any] | None = None,
         ):
             super().__init__(message)
             self.message = message
@@ -143,7 +143,7 @@ else:
             super().__init__(message, status_code=403, **kwargs)
 
     # Utility functions
-    def handle_exception(exc: Exception) -> Dict[str, Any]:
+    def handle_exception(exc: Exception) -> dict[str, Any]:
         """Handle exception and return error info."""
         return {
             "type": type(exc).__name__,
@@ -151,7 +151,7 @@ else:
             "details": getattr(exc, "details", {}),
         }
 
-    def create_error_response(exc: Exception, status_code: int = 500) -> Dict[str, Any]:
+    def create_error_response(exc: Exception, status_code: int = 500) -> dict[str, Any]:
         """Create error response."""
         return {
             "success": False,
@@ -252,9 +252,9 @@ else:
         """Fallback error manager."""
 
         def __init__(self):
-            self.errors: List[Dict[str, Any]] = []
+            self.errors: list[dict[str, Any]] = []
 
-        def log_error(self, error: Union[Exception, Dict[str, Any], str]) -> None:
+        def log_error(self, error: Exception | dict[str, Any] | str) -> None:
             entry = {
                 "error": str(error) if not isinstance(error, dict) else error,
                 "type": type(error).__name__ if not isinstance(error, dict) else "dict",
@@ -431,9 +431,9 @@ else:
             return self._severity
 
     # Build a map for quick lookups
-    ERROR_CODE_MAP: Dict[str, ErrorCode] = {ec.code: ec for ec in ErrorCode}
+    ERROR_CODE_MAP: dict[str, ErrorCode] = {ec.code: ec for ec in ErrorCode}
 
-    def get_error_code(identifier: Union[str, ErrorCode]) -> Optional[ErrorCode]:
+    def get_error_code(identifier: str | ErrorCode) -> ErrorCode | None:
         """
         Resolve an ErrorCode by string identifier or return the ErrorCode if provided.
 
@@ -448,8 +448,8 @@ else:
         return ERROR_CODE_MAP.get(identifier)
 
     def error_to_response(
-        error_code: Union[str, ErrorCode], details: Optional[Dict[str, Any]] = None
-    ) -> Dict[str, Any]:
+        error_code: str | ErrorCode, details: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         """
         Create a standardized error response dictionary from an ErrorCode.
 
@@ -497,7 +497,7 @@ else:
         }
 
     def raise_for_code(
-        error_code: Union[str, ErrorCode], details: Optional[Dict[str, Any]] = None
+        error_code: str | ErrorCode, details: dict[str, Any] | None = None
     ) -> None:
         """
         Raise a BaseAPIException constructed from the provided ErrorCode.
@@ -512,7 +512,7 @@ else:
             )
         raise BaseAPIException(ec.message, status_code=ec.status, details=details or {})
 
-    def list_error_codes() -> List[Dict[str, Any]]:
+    def list_error_codes() -> list[dict[str, Any]]:
         """Return a list of all standardized error codes with metadata."""
         codes = []
         for ec in ErrorCode:

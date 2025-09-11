@@ -3,19 +3,20 @@
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
+from collections.abc import Callable
+from dataclasses import dataclass
+from datetime import UTC, datetime
+from functools import wraps
 import hashlib
 import json
 import logging
+from pathlib import Path
 import re
 import secrets
 import threading
 import time
+from typing import Any, Generic, TypeVar
 import warnings
-from dataclasses import dataclass
-from datetime import datetime, timezone
-from functools import wraps
-from pathlib import Path
-from typing import Any, Callable, Dict, Generic, List, Optional, TypeVar, Union
 
 T = TypeVar('T')
 
@@ -23,18 +24,18 @@ T = TypeVar('T')
 class Result(Generic[T]):
     """Generic result wrapper for operations."""
     success: bool
-    data: Optional[T] = None
-    error: Optional[str] = None
-    error_code: Optional[str] = None
-    metadata: Optional[Dict[str, Any]] = None
+    data: T | None = None
+    error: str | None = None
+    error_code: str | None = None
+    metadata: dict[str, Any] | None = None
 
     @classmethod
-    def success_result(cls, data: T, metadata: Optional[Dict[str, Any]] = None) -> 'Result[T]':
+    def success_result(cls, data: T, metadata: dict[str, Any] | None = None) -> 'Result[T]':
         """Create a successful result."""
         return cls(success=True, data=data, metadata=metadata)
 
     @classmethod
-    def error_result(cls, error: str, error_code: Optional[str] = None, metadata: Optional[Dict[str, Any]] = None) -> 'Result[T]':
+    def error_result(cls, error: str, error_code: str | None = None, metadata: dict[str, Any] | None = None) -> 'Result[T]':
         """Create an error result."""
         return cls(success=False, error=error, error_code=error_code, metadata=metadata)
 
@@ -53,7 +54,7 @@ class ConfigManager:
         """Load configuration from file."""
         try:
             if self.config_file.exists():
-                with open(self.config_file, 'r') as f:
+                with open(self.config_file) as f:
                     self.config = json.load(f)
                 self.logger.info(f"Configuration loaded from {self.config_file}")
             else:
@@ -134,7 +135,7 @@ class ConfigManager:
         }
         self.save_config()
 
-    def get(self, key: str, default: Optional[Any] = None) -> Any:
+    def get(self, key: str, default: Any | None = None) -> Any:
         """Get configuration value using dot notation."""
         with self.lock:
             keys = key.split('.')
@@ -175,7 +176,7 @@ class ConfigManager:
             self.logger.error(f"Failed to save config: {e}")
             return False
 
-    def get_all(self) -> Dict[str, Any]:
+    def get_all(self) -> dict[str, Any]:
         """Get all configuration."""
         with self.lock:
             return self.config.copy()
@@ -183,7 +184,7 @@ class ConfigManager:
 class FileManager:
     """Common file operations."""
     @staticmethod
-    def ensure_directory(path: Union[str, Path]) -> bool:
+    def ensure_directory(path: str | Path) -> bool:
         """Ensure directory exists."""
         try:
             Path(path).mkdir(parents=True, exist_ok=True)
@@ -192,7 +193,7 @@ class FileManager:
             return False
 
     @staticmethod
-    def safe_write_file(filepath: Union[str, Path], content: Union[str, bytes], backup: bool = True) -> Result[str]:
+    def safe_write_file(filepath: str | Path, content: str | bytes, backup: bool = True) -> Result[str]:
         """Safely write file with optional backup."""
         try:
             filepath = Path(filepath)
@@ -216,7 +217,7 @@ class FileManager:
             return Result.error_result(f"Failed to write file: {e}")
 
     @staticmethod
-    def safe_read_file(filepath: Union[str, Path], binary: bool = False) -> Result[Union[str, bytes]]:
+    def safe_read_file(filepath: str | Path, binary: bool = False) -> Result[str | bytes]:
         """Safely read file."""
         try:
             filepath = Path(filepath)
@@ -234,7 +235,7 @@ class FileManager:
             return Result.error_result(f"Failed to read file: {e}")
 
     @staticmethod
-    def get_file_info(filepath: Union[str, Path]) -> Optional[Dict[str, Any]]:
+    def get_file_info(filepath: str | Path) -> dict[str, Any] | None:
         """Get file information."""
         try:
             filepath = Path(filepath)
@@ -263,7 +264,7 @@ class DateTimeUtils:
     @staticmethod
     def utc_now() -> datetime:
         """Get current UTC datetime."""
-        return datetime.now(timezone.utc)
+        return datetime.now(UTC)
 
     @staticmethod
     def format_datetime(dt: datetime, format_str: str = "%Y-%m-%d %H:%M:%S") -> str:
@@ -271,7 +272,7 @@ class DateTimeUtils:
         return dt.strftime(format_str)
 
     @staticmethod
-    def parse_datetime(dt_str: str, format_str: str = "%Y-%m-%d %H:%M:%S") -> Optional[datetime]:
+    def parse_datetime(dt_str: str, format_str: str = "%Y-%m-%d %H:%M:%S") -> datetime | None:
         """Parse datetime from string."""
         try:
             return datetime.strptime(dt_str, format_str)
@@ -371,7 +372,7 @@ class ValidationUtils:
             return False
 
     @staticmethod
-    def validate_required_fields(data: Dict[str, Any], required_fields: List[str]) -> Result[Dict[str, Any]]:
+    def validate_required_fields(data: dict[str, Any], required_fields: list[str]) -> Result[dict[str, Any]]:
         """Validate required fields in data."""
         missing_fields = [field for field in required_fields if field not in data or data[field] is None]
 
@@ -423,7 +424,7 @@ def singleton(cls):
 
     return get_instance
 
-def log_execution(logger: Optional[logging.Logger] = None):
+def log_execution(logger: logging.Logger | None = None):
     """Decorator to log function execution."""
     def decorator(func):
         nonlocal logger

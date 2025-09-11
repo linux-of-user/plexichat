@@ -1,12 +1,12 @@
-import hashlib
 from datetime import datetime
-from typing import Dict, List, Optional
+import hashlib
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from plexichat.core.messaging.unified_messaging_system import get_messaging_system
+
 
 # Mock user dependency
 def get_current_user():
@@ -15,13 +15,13 @@ def get_current_user():
 router = APIRouter(prefix="/messages", tags=["Messages"])
 
 # In-memory storage for demonstration
-messages_db: Dict[str, Dict] = {}
+messages_db: dict[str, dict] = {}
 
 class MessageCreate(BaseModel):
     recipient_id: str
     content: str = Field(..., max_length=10000)
-    thread_id: Optional[str] = None
-    reply_to: Optional[str] = None
+    thread_id: str | None = None
+    reply_to: str | None = None
 class MessageCreate(BaseModel):
     recipient_id: str
     content: str = Field(..., max_length=10000)
@@ -32,14 +32,14 @@ class MessageResponse(BaseModel):
     recipient_id: str
     content: str
     timestamp: datetime
-    reactions: Optional[Dict[str, List[str]]] = None
+    reactions: dict[str, list[str]] | None = None
 
 class ReactionCreate(BaseModel):
     emoji: str = Field(..., max_length=10, description="Emoji to react with")
 
 class ReactionResponse(BaseModel):
     emoji: str
-    users: List[str]
+    users: list[str]
     count: int
 @router.post("/send", response_model=MessageResponse)
 async def send_message(message_data: MessageCreate, current_user: dict = Depends(get_current_user)):
@@ -104,7 +104,7 @@ async def send_message(message_data: MessageCreate, current_user: dict = Depends
 
     return MessageResponse(**message_record)
 
-@router.get("/conversation/{other_user_id}", response_model=List[MessageResponse])
+@router.get("/conversation/{other_user_id}", response_model=list[MessageResponse])
 async def get_conversation(
     other_user_id: str,
     limit: int = Query(50, ge=1, le=100),
@@ -219,7 +219,7 @@ async def remove_reaction(message_id: str, emoji: str, current_user: dict = Depe
 
     return {"message": "Reaction removed"}
 
-@router.get("/{message_id}/reactions", response_model=List[ReactionResponse])
+@router.get("/{message_id}/reactions", response_model=list[ReactionResponse])
 async def get_reactions(message_id: str, current_user: dict = Depends(get_current_user)):
     """Get all reactions for a message."""
     messaging_system = get_messaging_system()

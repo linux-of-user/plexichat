@@ -2,14 +2,14 @@
 Enhanced Version Manager - Advanced backup versioning with intelligent differential storage
 """
 
+from dataclasses import dataclass, field
+from datetime import UTC, datetime
+from enum import Enum
 import json
 import logging
-import time
-from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set
-from dataclasses import dataclass, field
-from enum import Enum
+import time
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -39,26 +39,26 @@ class VersionInfo:
     backup_id: str
     version_type: VersionType
     status: VersionStatus = VersionStatus.ACTIVE
-    parent_version_id: Optional[str] = None
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    parent_version_id: str | None = None
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     size_bytes: int = 0
     compressed_size_bytes: int = 0
     change_count: int = 0
     checksum: str = ""
-    metadata: Dict[str, Any] = field(default_factory=dict)
-    dependencies: List[str] = field(default_factory=list)
-    tags: List[str] = field(default_factory=list)
-    retention_until: Optional[datetime] = None
+    metadata: dict[str, Any] = field(default_factory=dict)
+    dependencies: list[str] = field(default_factory=list)
+    tags: list[str] = field(default_factory=list)
+    retention_until: datetime | None = None
 
 
 @dataclass
 class DifferentialData:
     """Differential backup data structure."""
-    added_files: Dict[str, Any] = field(default_factory=dict)
-    modified_files: Dict[str, Any] = field(default_factory=dict)
-    deleted_files: Set[str] = field(default_factory=set)
-    moved_files: Dict[str, str] = field(default_factory=dict)
-    metadata_changes: Dict[str, Any] = field(default_factory=dict)
+    added_files: dict[str, Any] = field(default_factory=dict)
+    modified_files: dict[str, Any] = field(default_factory=dict)
+    deleted_files: set[str] = field(default_factory=set)
+    moved_files: dict[str, str] = field(default_factory=dict)
+    metadata_changes: dict[str, Any] = field(default_factory=dict)
 
 
 class VersionManager:
@@ -75,7 +75,7 @@ class VersionManager:
     - Cross-platform compatibility and migration support
     """
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, config: dict[str, Any] | None = None):
         self.config = config or {}
         self.logger = logger
 
@@ -108,9 +108,9 @@ class VersionManager:
                 directory.mkdir(exist_ok=True)
 
         # Version tracking
-        self.versions: Dict[str, VersionInfo] = {}
-        self.version_tree: Dict[str, List[str]] = {}  # parent -> children
-        self.version_index: Dict[str, Set[str]] = {}  # content_hash -> version_ids
+        self.versions: dict[str, VersionInfo] = {}
+        self.version_tree: dict[str, list[str]] = {}  # parent -> children
+        self.version_index: dict[str, set[str]] = {}  # content_hash -> version_ids
 
         # Configuration
         self.max_versions_per_backup = self.config.get("max_versions_per_backup", 50)
@@ -140,7 +140,7 @@ class VersionManager:
             version_files = list(self.versions_storage.glob("*.json"))
             for version_file in version_files:
                 try:
-                    with open(version_file, 'r') as f:
+                    with open(version_file) as f:
                         version_data = json.load(f)
 
                     version_info = VersionInfo(
@@ -163,12 +163,12 @@ class VersionManager:
                     self._update_version_tree(version_info)
 
                 except Exception as e:
-                    self.logger.warning(f"Failed to load version from {version_file}: {str(e)}")
+                    self.logger.warning(f"Failed to load version from {version_file}: {e!s}")
 
             self.logger.info(f"Loaded {len(self.versions)} existing versions")
 
         except Exception as e:
-            self.logger.error(f"Failed to load existing versions: {str(e)}")
+            self.logger.error(f"Failed to load existing versions: {e!s}")
 
     def _update_version_tree(self, version_info: VersionInfo):
         """Update the version tree structure."""
@@ -177,7 +177,7 @@ class VersionManager:
                 self.version_tree[version_info.parent_version_id] = []
             self.version_tree[version_info.parent_version_id].append(version_info.version_id)
 
-    async def create_version_async(self, backup_id: str, version_data: Dict[str, Any]) -> VersionInfo:
+    async def create_version_async(self, backup_id: str, version_data: dict[str, Any]) -> VersionInfo:
         """Create a new backup version with intelligent type selection."""
         try:
             # Determine version type
@@ -226,10 +226,10 @@ class VersionManager:
             return version_info
 
         except Exception as e:
-            self.logger.error(f"Failed to create version for backup {backup_id}: {str(e)}")
+            self.logger.error(f"Failed to create version for backup {backup_id}: {e!s}")
             raise
 
-    def _determine_version_type(self, backup_id: str, version_data: Dict[str, Any]) -> VersionType:
+    def _determine_version_type(self, backup_id: str, version_data: dict[str, Any]) -> VersionType:
         """Intelligently determine the best version type."""
         # Check if this is the first version
         existing_versions = self._get_backup_versions(backup_id)
@@ -262,7 +262,7 @@ class VersionManager:
 
         return VersionType.INCREMENTAL
 
-    def _find_latest_version(self, backup_id: str) -> Optional[str]:
+    def _find_latest_version(self, backup_id: str) -> str | None:
         """Find the latest version for a backup."""
         backup_versions = self._get_backup_versions(backup_id)
         if not backup_versions:
@@ -272,12 +272,12 @@ class VersionManager:
         backup_versions.sort(key=lambda v: self.versions[v].created_at, reverse=True)
         return backup_versions[0]
 
-    def _get_backup_versions(self, backup_id: str) -> List[str]:
+    def _get_backup_versions(self, backup_id: str) -> list[str]:
         """Get all versions for a specific backup."""
         return [vid for vid, vinfo in self.versions.items() if vinfo.backup_id == backup_id]
 
     async def _calculate_differential_data(self, version_info: VersionInfo,
-                                         parent_version_id: Optional[str]) -> DifferentialData:
+                                         parent_version_id: str | None) -> DifferentialData:
         """Calculate differential data between versions."""
         # For demo purposes, return empty differential data
         # In production, this would analyze the actual data differences
@@ -308,7 +308,7 @@ class VersionManager:
                 json.dump(version_data, f, indent=2)
 
         except Exception as e:
-            raise RuntimeError(f"Failed to store version {version_info.version_id}: {str(e)}")
+            raise RuntimeError(f"Failed to store version {version_info.version_id}: {e!s}")
 
     def _update_version_statistics(self, version_info: VersionInfo):
         """Update version statistics."""
@@ -337,7 +337,7 @@ class VersionManager:
                 await self._consolidate_versions(backup_id)
 
         except Exception as e:
-            self.logger.error(f"Failed to check consolidation for backup {backup_id}: {str(e)}")
+            self.logger.error(f"Failed to check consolidation for backup {backup_id}: {e!s}")
 
     async def _consolidate_versions(self, backup_id: str):
         """Consolidate old versions to save space."""
@@ -360,15 +360,15 @@ class VersionManager:
                 self.logger.info(f"Consolidated {len(versions_to_consolidate)} versions for backup {backup_id}")
 
         except Exception as e:
-            self.logger.error(f"Failed to consolidate versions for backup {backup_id}: {str(e)}")
+            self.logger.error(f"Failed to consolidate versions for backup {backup_id}: {e!s}")
 
-    async def get_version_info_async(self, version_id: str) -> Optional[VersionInfo]:
+    async def get_version_info_async(self, version_id: str) -> VersionInfo | None:
         """Get version information."""
         return self.versions.get(version_id)
 
-    async def list_versions_async(self, backup_id: Optional[str] = None,
-                                status: Optional[VersionStatus] = None,
-                                limit: int = 100) -> List[VersionInfo]:
+    async def list_versions_async(self, backup_id: str | None = None,
+                                status: VersionStatus | None = None,
+                                limit: int = 100) -> list[VersionInfo]:
         """List versions with filtering."""
         try:
             versions = list(self.versions.values())
@@ -386,10 +386,10 @@ class VersionManager:
             return versions[:limit]
 
         except Exception as e:
-            self.logger.error(f"Failed to list versions: {str(e)}")
+            self.logger.error(f"Failed to list versions: {e!s}")
             return []
 
-    def get_version_statistics(self) -> Dict[str, Any]:
+    def get_version_statistics(self) -> dict[str, Any]:
         """Get comprehensive version statistics."""
         return {
             "statistics": self.version_stats.copy(),
@@ -418,7 +418,7 @@ class VersionManager:
 
         return 1 + self._calculate_version_depth(version_info.parent_version_id)
 
-    def create_version(self, backup_id: str, version_data: Dict[str, Any]) -> Dict[str, Any]:
+    def create_version(self, backup_id: str, version_data: dict[str, Any]) -> dict[str, Any]:
         """
         Create a new backup version.
 
@@ -435,7 +435,7 @@ class VersionManager:
             version_info = {
                 "version_id": version_id,
                 "backup_id": backup_id,
-                "created_at": datetime.now(timezone.utc).isoformat(),
+                "created_at": datetime.now(UTC).isoformat(),
                 "metadata": version_data
             }
 
@@ -450,7 +450,7 @@ class VersionManager:
             self.logger.error(f"Failed to create version: {e}")
             raise
 
-    def get_versions(self, backup_id: str) -> List[Dict[str, Any]]:
+    def get_versions(self, backup_id: str) -> list[dict[str, Any]]:
         """
         Get all versions for a backup.
 
@@ -464,7 +464,7 @@ class VersionManager:
             versions = []
 
             for version_file in self.versions_storage.glob(f"{backup_id}_v*.json"):
-                with open(version_file, 'r') as f:
+                with open(version_file) as f:
                     version_info = json.load(f)
                 versions.append(version_info)
 

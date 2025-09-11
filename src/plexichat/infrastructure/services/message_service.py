@@ -4,11 +4,12 @@
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Tuple
 import logging
+from typing import Any
 
-from sqlmodel import Session
 from fastapi import HTTPException, status
+from sqlmodel import Session
+
 
 # Placeholder imports for dependencies
 class FileAccessLevel:
@@ -40,17 +41,17 @@ class FilePermissionService:
     async def check_file_access(
         self,
         file_id: int,
-        user_id: Optional[int],
+        user_id: int | None,
         permission_type: FilePermissionType,
-        ip_address: Optional[str] = None,
-        user_agent: Optional[str] = None
-    ) -> Tuple[bool, Optional[str], Optional[Dict[str, Any]]]:
+        ip_address: str | None = None,
+        user_agent: str | None = None
+    ) -> tuple[bool, str | None, dict[str, Any] | None]:
         return True, None, {}
 
-    async def _get_user_permission(self, file_id: int, user_id: int) -> Optional[FilePermission]:
+    async def _get_user_permission(self, file_id: int, user_id: int) -> FilePermission | None:
         return None
 
-    async def _get_user_share(self, file_id: int, user_id: int) -> Optional[FileShare]:
+    async def _get_user_share(self, file_id: int, user_id: int) -> FileShare | None:
         return None
 
     async def _log_access(self, *args, **kwargs):
@@ -66,16 +67,16 @@ class MessageService:
     async def create_message_with_files(
         self,
         sender_id: int,
-        recipient_id: Optional[int] = None,
-        channel_id: Optional[int] = None,
-        guild_id: Optional[int] = None,
-        content: Optional[str] = None,
-        file_ids: Optional[List[int]] = None,
+        recipient_id: int | None = None,
+        channel_id: int | None = None,
+        guild_id: int | None = None,
+        content: str | None = None,
+        file_ids: list[int] | None = None,
         message_type: MessageType = MessageType.DEFAULT,
-        reply_to_id: Optional[int] = None,
-        expires_after_seconds: Optional[int] = None,
-        ip_address: Optional[str] = None,
-        user_agent: Optional[str] = None
+        reply_to_id: int | None = None,
+        expires_after_seconds: int | None = None,
+        ip_address: str | None = None,
+        user_agent: str | None = None
     ) -> Message:
         """
         Create a message with file attachments, validating file permissions.
@@ -177,9 +178,9 @@ class MessageService:
         self,
         message_id: int,
         user_id: int,
-        ip_address: Optional[str] = None,
-        user_agent: Optional[str] = None
-    ) -> Dict[str, Any]:
+        ip_address: str | None = None,
+        user_agent: str | None = None
+    ) -> dict[str, Any]:
         """
         Validate user's access to all files in a message.
         Returns access status for each file.
@@ -240,11 +241,11 @@ class MessageService:
         self,
         message_id: int,
         user_id: int,
-        content: Optional[str] = None,
-        add_file_ids: Optional[List[int]] = None,
-        remove_file_ids: Optional[List[int]] = None,
-        ip_address: Optional[str] = None,
-        user_agent: Optional[str] = None
+        content: str | None = None,
+        add_file_ids: list[int] | None = None,
+        remove_file_ids: list[int] | None = None,
+        ip_address: str | None = None,
+        user_agent: str | None = None
     ) -> Message:
         """
         Update a message, including file attachments.

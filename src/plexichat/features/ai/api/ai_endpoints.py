@@ -5,9 +5,9 @@ AI API Endpoints for PlexiChat
 RESTful API endpoints for AI functionality.
 """
 
-import logging
 from datetime import datetime
-from typing import Any, Dict, List, Optional, TYPE_CHECKING
+import logging
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from fastapi import APIRouter, HTTPException
@@ -24,10 +24,10 @@ except ImportError:
     APIRouter = None
     HTTPException = None
 
+from plexichat.features.ai.ai_coordinator import AICoordinator
 from plexichat.features.ai.core.ai_abstraction_layer import (
     AIRequest,
 )
-from plexichat.features.ai.ai_coordinator import AICoordinator
 
 logger = logging.getLogger(__name__)
 
@@ -41,12 +41,12 @@ if FASTAPI_AVAILABLE:
         user_id: str
         model_id: str
         prompt: str
-        max_tokens: Optional[int] = None
+        max_tokens: int | None = None
         temperature: float = Field(default=0.7, ge=0.0, le=2.0)  # type: ignore
         stream: bool = False
-        system_prompt: Optional[str] = None
-        context: Optional[str] = None
-        metadata: Optional[Dict[str, Any]] = None
+        system_prompt: str | None = None
+        context: str | None = None
+        metadata: dict[str, Any] | None = None
         priority: int = Field(default=1, ge=1, le=10)  # type: ignore
         timeout_seconds: int = Field(default=30, ge=5, le=300)  # type: ignore
 
@@ -55,27 +55,27 @@ if FASTAPI_AVAILABLE:
         request_id: str
         model_id: str
         content: str
-        usage: Dict[str, int]
+        usage: dict[str, int]
         cost: float
         latency_ms: int
         provider: str
         timestamp: datetime
         success: bool
-        error: Optional[str] = None
+        error: str | None = None
         cached: bool = False
         fallback_used: bool = False
-        fallback_model: Optional[str] = None
+        fallback_model: str | None = None
 
     class ModelInfoModel(BaseModel):  # type: ignore
         """API model for model information."""
         id: str
         name: str
         provider: str
-        capabilities: List[str]
+        capabilities: list[str]
         max_tokens: int
         cost_per_token: float
         status: str
-        description: Optional[str] = None
+        description: str | None = None
 
     # Create API router
     router = APIRouter(prefix="/ai", tags=["AI"])  # type: ignore
@@ -118,7 +118,7 @@ if FASTAPI_AVAILABLE:
             logger.error(f"Chat completion failed: {e}")
             raise HTTPException(status_code=500, detail=str(e))  # type: ignore
 
-    @router.get("/models", response_model=List[ModelInfoModel])
+    @router.get("/models", response_model=list[ModelInfoModel])
     async def list_models():
         """Get list of available AI models."""
         try:

@@ -5,13 +5,12 @@ Centralized base for all error handling components including enums, classes, and
 Consolidates overlapping implementations from error_codes.py, error_manager.py, and exceptions.py.
 """
 
-import logging
+from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from http import HTTPStatus
-from typing import Any, Dict, List, Optional
-
-from dataclasses import dataclass
+import logging
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -392,7 +391,7 @@ class ErrorCodeMapping:
     }
 
     @classmethod
-    def get_mapping(cls, error_code: PlexiChatErrorCode) -> Dict[str, Any]:
+    def get_mapping(cls, error_code: PlexiChatErrorCode) -> dict[str, Any]:
         """Get the complete mapping for an error code."""
         return cls._mappings.get(
             error_code,
@@ -441,13 +440,13 @@ class ErrorContext:
 
     error_id: str = ""
     timestamp: datetime = None
-    exception: Optional[Exception] = None
+    exception: Exception | None = None
     severity: ErrorSeverity = ErrorSeverity.MEDIUM
     category: ErrorCategory = ErrorCategory.SYSTEM
     component: str = "unknown"
     user_id: str = "anonymous"
     request_id: str = "no-request"
-    context: Dict[str, Any] = None
+    context: dict[str, Any] = None
     stack_trace: str = ""
 
 
@@ -457,9 +456,9 @@ class ErrorResponse:
     def __init__(
         self,
         error_code: PlexiChatErrorCode,
-        details: Optional[Dict[str, Any]] = None,
-        context: Optional[Dict[str, Any]] = None,
-        correlation_id: Optional[str] = None,
+        details: dict[str, Any] | None = None,
+        context: dict[str, Any] | None = None,
+        correlation_id: str | None = None,
     ):
         self.error_code = error_code
         self.details = details or {}
@@ -467,7 +466,7 @@ class ErrorResponse:
         self.correlation_id = correlation_id
         self.mapping = ErrorCodeMapping.get_mapping(error_code)
 
-    def to_dict(self, include_technical_details: bool = False) -> Dict[str, Any]:
+    def to_dict(self, include_technical_details: bool = False) -> dict[str, Any]:
         """Convert error response to dictionary."""
         response = {
             "success": False,
@@ -500,11 +499,11 @@ class PlexiChatException(Exception):
     def __init__(
         self,
         error_code: PlexiChatErrorCode,
-        details: Optional[Dict[str, Any]] = None,
-        context: Optional[Dict[str, Any]] = None,
-        correlation_id: Optional[str] = None,
-        cause: Optional[Exception] = None,
-        message: Optional[str] = None,
+        details: dict[str, Any] | None = None,
+        context: dict[str, Any] | None = None,
+        correlation_id: str | None = None,
+        cause: Exception | None = None,
+        message: str | None = None,
     ):
         self.error_code = error_code
         self.details = details or {}
@@ -529,10 +528,10 @@ class AuthenticationError(PlexiChatException):
 
     def __init__(
         self,
-        details: Optional[Dict[str, Any]] = None,
-        context: Optional[Dict[str, Any]] = None,
-        correlation_id: Optional[str] = None,
-        cause: Optional[Exception] = None,
+        details: dict[str, Any] | None = None,
+        context: dict[str, Any] | None = None,
+        correlation_id: str | None = None,
+        cause: Exception | None = None,
     ):
         super().__init__(
             PlexiChatErrorCode.AUTH_INVALID_CREDENTIALS,
@@ -548,10 +547,10 @@ class AuthorizationError(PlexiChatException):
 
     def __init__(
         self,
-        details: Optional[Dict[str, Any]] = None,
-        context: Optional[Dict[str, Any]] = None,
-        correlation_id: Optional[str] = None,
-        cause: Optional[Exception] = None,
+        details: dict[str, Any] | None = None,
+        context: dict[str, Any] | None = None,
+        correlation_id: str | None = None,
+        cause: Exception | None = None,
     ):
         super().__init__(
             PlexiChatErrorCode.AUTHZ_INSUFFICIENT_PERMISSIONS,
@@ -567,11 +566,11 @@ class ValidationError(PlexiChatException):
 
     def __init__(
         self,
-        field: Optional[str] = None,
-        details: Optional[Dict[str, Any]] = None,
-        context: Optional[Dict[str, Any]] = None,
-        correlation_id: Optional[str] = None,
-        cause: Optional[Exception] = None,
+        field: str | None = None,
+        details: dict[str, Any] | None = None,
+        context: dict[str, Any] | None = None,
+        correlation_id: str | None = None,
+        cause: Exception | None = None,
     ):
         if field:
             details = details or {}
@@ -590,10 +589,10 @@ class DatabaseError(PlexiChatException):
 
     def __init__(
         self,
-        details: Optional[Dict[str, Any]] = None,
-        context: Optional[Dict[str, Any]] = None,
-        correlation_id: Optional[str] = None,
-        cause: Optional[Exception] = None,
+        details: dict[str, Any] | None = None,
+        context: dict[str, Any] | None = None,
+        correlation_id: str | None = None,
+        cause: Exception | None = None,
     ):
         super().__init__(
             PlexiChatErrorCode.DB_CONNECTION_FAILED,
@@ -609,10 +608,10 @@ class NetworkError(PlexiChatException):
 
     def __init__(
         self,
-        details: Optional[Dict[str, Any]] = None,
-        context: Optional[Dict[str, Any]] = None,
-        correlation_id: Optional[str] = None,
-        cause: Optional[Exception] = None,
+        details: dict[str, Any] | None = None,
+        context: dict[str, Any] | None = None,
+        correlation_id: str | None = None,
+        cause: Exception | None = None,
     ):
         super().__init__(
             PlexiChatErrorCode.NETWORK_CONNECTION_FAILED,
@@ -628,10 +627,10 @@ class FileError(PlexiChatException):
 
     def __init__(
         self,
-        details: Optional[Dict[str, Any]] = None,
-        context: Optional[Dict[str, Any]] = None,
-        correlation_id: Optional[str] = None,
-        cause: Optional[Exception] = None,
+        details: dict[str, Any] | None = None,
+        context: dict[str, Any] | None = None,
+        correlation_id: str | None = None,
+        cause: Exception | None = None,
     ):
         super().__init__(
             PlexiChatErrorCode.FILE_NOT_FOUND,
@@ -647,11 +646,11 @@ class ExternalServiceError(PlexiChatException):
 
     def __init__(
         self,
-        service: Optional[str] = None,
-        details: Optional[Dict[str, Any]] = None,
-        context: Optional[Dict[str, Any]] = None,
-        correlation_id: Optional[str] = None,
-        cause: Optional[Exception] = None,
+        service: str | None = None,
+        details: dict[str, Any] | None = None,
+        context: dict[str, Any] | None = None,
+        correlation_id: str | None = None,
+        cause: Exception | None = None,
     ):
         if service:
             details = details or {}
@@ -670,11 +669,11 @@ class RateLimitError(PlexiChatException):
 
     def __init__(
         self,
-        limit: Optional[int] = None,
-        details: Optional[Dict[str, Any]] = None,
-        context: Optional[Dict[str, Any]] = None,
-        correlation_id: Optional[str] = None,
-        cause: Optional[Exception] = None,
+        limit: int | None = None,
+        details: dict[str, Any] | None = None,
+        context: dict[str, Any] | None = None,
+        correlation_id: str | None = None,
+        cause: Exception | None = None,
     ):
         if limit:
             details = details or {}
@@ -693,10 +692,10 @@ class ConfigurationError(PlexiChatException):
 
     def __init__(
         self,
-        details: Optional[Dict[str, Any]] = None,
-        context: Optional[Dict[str, Any]] = None,
-        correlation_id: Optional[str] = None,
-        cause: Optional[Exception] = None,
+        details: dict[str, Any] | None = None,
+        context: dict[str, Any] | None = None,
+        correlation_id: str | None = None,
+        cause: Exception | None = None,
     ):
         super().__init__(
             PlexiChatErrorCode.CONFIG_INVALID,
@@ -712,10 +711,10 @@ class ProcessLockError(PlexiChatException):
 
     def __init__(
         self,
-        details: Optional[Dict[str, Any]] = None,
-        context: Optional[Dict[str, Any]] = None,
-        correlation_id: Optional[str] = None,
-        cause: Optional[Exception] = None,
+        details: dict[str, Any] | None = None,
+        context: dict[str, Any] | None = None,
+        correlation_id: str | None = None,
+        cause: Exception | None = None,
     ):
         super().__init__(
             PlexiChatErrorCode.SYSTEM_PROCESS_LOCK_ERROR,
@@ -731,10 +730,10 @@ class StartupError(PlexiChatException):
 
     def __init__(
         self,
-        details: Optional[Dict[str, Any]] = None,
-        context: Optional[Dict[str, Any]] = None,
-        correlation_id: Optional[str] = None,
-        cause: Optional[Exception] = None,
+        details: dict[str, Any] | None = None,
+        context: dict[str, Any] | None = None,
+        correlation_id: str | None = None,
+        cause: Exception | None = None,
     ):
         super().__init__(
             PlexiChatErrorCode.SYSTEM_STARTUP_FAILED,
@@ -747,11 +746,11 @@ class StartupError(PlexiChatException):
 
 def create_error_response(
     error_code: PlexiChatErrorCode,
-    details: Optional[Dict[str, Any]] = None,
-    context: Optional[Dict[str, Any]] = None,
-    correlation_id: Optional[str] = None,
+    details: dict[str, Any] | None = None,
+    context: dict[str, Any] | None = None,
+    correlation_id: str | None = None,
     include_technical_details: bool = False,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Create a standardized error response dictionary."""
     error_response = ErrorResponse(error_code, details, context, correlation_id)
     return error_response.to_dict(include_technical_details)
@@ -759,11 +758,11 @@ def create_error_response(
 
 def handle_exception(
     exc: Exception,
-    context: Optional[Dict[str, Any]] = None,
-    component: Optional[str] = None,
-    user_id: Optional[str] = None,
-    request_id: Optional[str] = None,
-) -> Dict[str, Any]:
+    context: dict[str, Any] | None = None,
+    component: str | None = None,
+    user_id: str | None = None,
+    request_id: str | None = None,
+) -> dict[str, Any]:
     """Handle any exception and return error info with logging."""
     try:
         error_id = f"ERR_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
@@ -820,10 +819,10 @@ def handle_exception(
 
 def log_error(
     error_code: PlexiChatErrorCode,
-    details: Optional[Dict[str, Any]] = None,
-    context: Optional[Dict[str, Any]] = None,
-    correlation_id: Optional[str] = None,
-    exception: Optional[Exception] = None,
+    details: dict[str, Any] | None = None,
+    context: dict[str, Any] | None = None,
+    correlation_id: str | None = None,
+    exception: Exception | None = None,
 ) -> None:
     """Log an error with standardized format."""
     mapping = ErrorCodeMapping.get_mapping(error_code)
@@ -860,9 +859,9 @@ def log_error(
 def create_validation_error_response(
     field_name: str,
     field_value: Any = None,
-    validation_rule: Optional[str] = None,
-    correlation_id: Optional[str] = None,
-) -> Dict[str, Any]:
+    validation_rule: str | None = None,
+    correlation_id: str | None = None,
+) -> dict[str, Any]:
     """Create a validation error response with field details."""
     details = {"field": field_name}
     if field_value is not None:
@@ -878,8 +877,8 @@ def create_validation_error_response(
 
 
 def create_authentication_error_response(
-    reason: str = "invalid_credentials", correlation_id: Optional[str] = None
-) -> Dict[str, Any]:
+    reason: str = "invalid_credentials", correlation_id: str | None = None
+) -> dict[str, Any]:
     """Create an authentication error response."""
     error_code_map = {
         "invalid_credentials": PlexiChatErrorCode.AUTH_INVALID_CREDENTIALS,
@@ -896,10 +895,10 @@ def create_authentication_error_response(
 
 
 def create_authorization_error_response(
-    resource: Optional[str] = None,
-    required_permission: Optional[str] = None,
-    correlation_id: Optional[str] = None,
-) -> Dict[str, Any]:
+    resource: str | None = None,
+    required_permission: str | None = None,
+    correlation_id: str | None = None,
+) -> dict[str, Any]:
     """Create an authorization error response."""
     details = {}
     if resource:
@@ -915,8 +914,8 @@ def create_authorization_error_response(
 
 
 def create_system_error_response(
-    error_type: str = "internal_error", correlation_id: Optional[str] = None
-) -> Dict[str, Any]:
+    error_type: str = "internal_error", correlation_id: str | None = None
+) -> dict[str, Any]:
     """Create a system error response."""
     error_code_map = {
         "internal_error": PlexiChatErrorCode.SYSTEM_INTERNAL_ERROR,
@@ -932,7 +931,7 @@ def create_system_error_response(
     return create_error_response(error_code, correlation_id=correlation_id)
 
 
-def get_errors_by_category(category: ErrorCategory) -> List[PlexiChatErrorCode]:
+def get_errors_by_category(category: ErrorCategory) -> list[PlexiChatErrorCode]:
     """Get all error codes for a specific category."""
     return [
         error_code
@@ -941,7 +940,7 @@ def get_errors_by_category(category: ErrorCategory) -> List[PlexiChatErrorCode]:
     ]
 
 
-def get_errors_by_severity(severity: ErrorSeverity) -> List[PlexiChatErrorCode]:
+def get_errors_by_severity(severity: ErrorSeverity) -> list[PlexiChatErrorCode]:
     """Get all error codes for a specific severity level."""
     return [
         error_code
@@ -950,38 +949,38 @@ def get_errors_by_severity(severity: ErrorSeverity) -> List[PlexiChatErrorCode]:
     ]
 
 
-def get_critical_errors() -> List[PlexiChatErrorCode]:
+def get_critical_errors() -> list[PlexiChatErrorCode]:
     """Get all critical error codes."""
     return get_errors_by_severity(ErrorSeverity.CRITICAL)
 
 
 __all__ = [
-    "ErrorCategory",
-    "ErrorSeverity",
-    "PlexiChatErrorCode",
-    "ErrorCodeMapping",
-    "ErrorResponse",
-    "PlexiChatException",
-    "ErrorContext",
     "AuthenticationError",
     "AuthorizationError",
-    "ValidationError",
-    "DatabaseError",
-    "NetworkError",
-    "FileError",
-    "ExternalServiceError",
-    "RateLimitError",
     "ConfigurationError",
+    "DatabaseError",
+    "ErrorCategory",
+    "ErrorCodeMapping",
+    "ErrorContext",
+    "ErrorResponse",
+    "ErrorSeverity",
+    "ExternalServiceError",
+    "FileError",
+    "NetworkError",
+    "PlexiChatErrorCode",
+    "PlexiChatException",
     "ProcessLockError",
+    "RateLimitError",
     "StartupError",
-    "create_error_response",
-    "handle_exception",
-    "log_error",
-    "create_validation_error_response",
+    "ValidationError",
     "create_authentication_error_response",
     "create_authorization_error_response",
+    "create_error_response",
     "create_system_error_response",
+    "create_validation_error_response",
+    "get_critical_errors",
     "get_errors_by_category",
     "get_errors_by_severity",
-    "get_critical_errors",
+    "handle_exception",
+    "log_error",
 ]

@@ -1,8 +1,8 @@
-import logging
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set
+import logging
+from typing import Any
 
 """
 PlexiChat Canary Node Selector
@@ -28,7 +28,7 @@ class CanaryNode:
     region: str = "unknown"
     load_factor: float = 0.0
     health_score: float = 1.0
-    last_deployment: Optional[datetime] = None
+    last_deployment: datetime | None = None
     deployment_success_rate: float = 1.0
 
 
@@ -61,7 +61,7 @@ class NodeMetrics:
     network_latency: float = 0.0
     error_rate: float = 0.0
     uptime_percentage: float = 100.0
-    last_updated: Optional[datetime] = None
+    last_updated: datetime | None = None
 
     @property
     def load_score(self) -> float:
@@ -86,9 +86,9 @@ class CanaryNodeSelector:
     def __init__(self, cluster_manager=None):
         """Initialize the node selector."""
         self.cluster_manager = cluster_manager
-        self.node_metrics: Dict[str, NodeMetrics] = {}
-        self.node_history: Dict[str, List[Dict[str, Any]]] = {}
-        self.blacklisted_nodes: Set[str] = set()
+        self.node_metrics: dict[str, NodeMetrics] = {}
+        self.node_history: dict[str, list[dict[str, Any]]] = {}
+        self.blacklisted_nodes: set[str] = set()
 
         # Selection preferences
         self.min_health_threshold = 0.7
@@ -102,8 +102,8 @@ class CanaryNodeSelector:
         logger.info("Canary node selector initialized")
 
     async def select_nodes(
-        self, strategy: CanaryStrategy, phase_config: Dict[str, Any]
-    ) -> List[CanaryNode]:
+        self, strategy: CanaryStrategy, phase_config: dict[str, Any]
+    ) -> list[CanaryNode]:
         """Select nodes based on strategy and phase configuration."""
         try:
             # Get all available nodes
@@ -136,7 +136,7 @@ class CanaryNodeSelector:
             logger.error(f"Node selection failed: {e}")
             return []
 
-    async def _get_available_nodes(self) -> List[Dict[str, Any]]:
+    async def _get_available_nodes(self) -> list[dict[str, Any]]:
         """Get all available nodes from cluster manager."""
         if self.cluster_manager:
             try:
@@ -167,7 +167,7 @@ class CanaryNodeSelector:
                 }
             ]
 
-    async def _filter_nodes(self, nodes: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    async def _filter_nodes(self, nodes: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """Filter nodes based on health and suitability criteria."""
         filtered = []
 
@@ -206,8 +206,8 @@ class CanaryNodeSelector:
         return filtered
 
     async def _select_by_percentage(
-        self, nodes: List[Dict[str, Any]], config: Dict[str, Any]
-    ) -> List[CanaryNode]:
+        self, nodes: list[dict[str, Any]], config: dict[str, Any]
+    ) -> list[CanaryNode]:
         """Select nodes by percentage."""
         percentage = config.get("percentage", 10)
         target_count = max(1, int(len(nodes) * percentage / 100))
@@ -225,8 +225,8 @@ class CanaryNodeSelector:
         return [self._create_canary_node(node) for node in selected]
 
     async def _select_by_count(
-        self, nodes: List[Dict[str, Any]], config: Dict[str, Any]
-    ) -> List[CanaryNode]:
+        self, nodes: list[dict[str, Any]], config: dict[str, Any]
+    ) -> list[CanaryNode]:
         """Select specific number of nodes."""
         target_count = min(config.get("node_count", 1), len(nodes))
 
@@ -235,8 +235,8 @@ class CanaryNodeSelector:
         return [self._create_canary_node(node) for node in selected]
 
     async def _select_by_geography(
-        self, nodes: List[Dict[str, Any]], config: Dict[str, Any]
-    ) -> List[CanaryNode]:
+        self, nodes: list[dict[str, Any]], config: dict[str, Any]
+    ) -> list[CanaryNode]:
         """Select nodes by geographic regions."""
         target_regions = config.get("regions", [])
 
@@ -260,8 +260,8 @@ class CanaryNodeSelector:
         return [self._create_canary_node(node) for node in selected]
 
     async def _select_by_load(
-        self, nodes: List[Dict[str, Any]], config: Dict[str, Any]
-    ) -> List[CanaryNode]:
+        self, nodes: list[dict[str, Any]], config: dict[str, Any]
+    ) -> list[CanaryNode]:
         """Select nodes with lowest load."""
         target_count = config.get("node_count", max(1, len(nodes) // 10))
 
@@ -275,8 +275,8 @@ class CanaryNodeSelector:
         return [self._create_canary_node(node) for node in selected]
 
     async def _risk_balanced_selection(
-        self, nodes: List[Dict[str, Any]], target_count: int
-    ) -> List[Dict[str, Any]]:
+        self, nodes: list[dict[str, Any]], target_count: int
+    ) -> list[dict[str, Any]]:
         """Select nodes with balanced risk distribution."""
         if len(nodes) <= target_count:
             return nodes
@@ -329,7 +329,7 @@ class CanaryNodeSelector:
         failure_rate = failures / len(recent_deployments)
         return min(failure_rate * 2, 1.0)  # Cap at 100% risk
 
-    def _create_canary_node(self, node_data: Dict[str, Any]) -> CanaryNode:
+    def _create_canary_node(self, node_data: dict[str, Any]) -> CanaryNode:
         """Create CanaryNode from node data."""
         node_id = node_data["node_id"]
         metrics = self.node_metrics.get(node_id, NodeMetrics())

@@ -5,12 +5,13 @@ Provides secure node registration, heartbeat monitoring, and graceful shutdown p
 """
 
 import asyncio
+from collections.abc import Callable
+from dataclasses import asdict, dataclass, field
+from datetime import UTC, datetime
+from enum import Enum
 import logging
 import time
-from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
-from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple
+from typing import Any
 
 import aiohttp
 import psutil
@@ -66,7 +67,7 @@ class NodeCapabilities:
     supports_storage: bool = True
     supports_compute: bool = True
     supports_networking: bool = True
-    custom_capabilities: Dict[str, Any] = field(default_factory=dict)
+    custom_capabilities: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -83,7 +84,7 @@ class NodeMetrics:
     response_time_ms: float = 0.0
     error_rate_percent: float = 0.0
     uptime_seconds: int = 0
-    last_updated: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    last_updated: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass
@@ -102,9 +103,9 @@ class NodeConfiguration:
     health_check_timeout_seconds: int = 10
     max_missed_heartbeats: int = 3
     enable_ssl: bool = True
-    ssl_cert_path: Optional[str] = None
-    ssl_key_path: Optional[str] = None
-    custom_config: Dict[str, Any] = field(default_factory=dict)
+    ssl_cert_path: str | None = None
+    ssl_key_path: str | None = None
+    custom_config: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -114,13 +115,13 @@ class NodeInfo:
     config: NodeConfiguration
     status: NodeStatus = NodeStatus.INITIALIZING
     metrics: NodeMetrics = field(default_factory=NodeMetrics)
-    security_context: Optional[SecurityContext] = None
-    registered_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    last_heartbeat: Optional[datetime] = None
-    last_health_check: Optional[datetime] = None
+    security_context: SecurityContext | None = None
+    registered_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    last_heartbeat: datetime | None = None
+    last_health_check: datetime | None = None
     missed_heartbeats: int = 0
     version: str = "1.0.0"
-    tags: Set[str] = field(default_factory=set)
+    tags: set[str] = field(default_factory=set)
 
 
 class NodeAuthenticator:
@@ -128,12 +129,12 @@ class NodeAuthenticator:
 
     def __init__(self, security_system):
         self.security_system = security_system
-        self.node_tokens: Dict[str, str] = {}
-        self.node_certificates: Dict[str, str] = {}
+        self.node_tokens: dict[str, str] = {}
+        self.node_certificates: dict[str, str] = {}
 
     async def authenticate_node(
         self, node_id: str, auth_token: str
-    ) -> Tuple[bool, Optional[SecurityContext]]:
+    ) -> tuple[bool, SecurityContext | None]:
         """Authenticate a node using its token."""
         try:
             # Verify the token
@@ -209,7 +210,7 @@ class HealthMonitor:
                 network_bytes_sent=network.bytes_sent,
                 network_bytes_received=network.bytes_recv,
                 uptime_seconds=uptime,
-                last_updated=datetime.now(timezone.utc),
+                last_updated=datetime.now(UTC),
             )
 
             return metrics
@@ -218,7 +219,7 @@ class HealthMonitor:
             logger.error(f"Error collecting metrics: {e}")
             return NodeMetrics()
 
-    async def check_health(self) -> Tuple[NodeStatus, List[str]]:
+    async def check_health(self) -> tuple[NodeStatus, list[str]]:
         """Check node health and return status with issues."""
         issues = []
 
@@ -247,7 +248,7 @@ class HealthMonitor:
 
         except Exception as e:
             logger.error(f"Health check error: {e}")
-            return NodeStatus.UNHEALTHY, [f"Health check failed: {str(e)}"]
+            return NodeStatus.UNHEALTHY, [f"Health check failed: {e!s}"]
 
 
 class HeartbeatManager:
@@ -258,11 +259,11 @@ class HeartbeatManager:
     ):
         self.node_config = node_config
         self.authenticator = authenticator
-        self.heartbeat_task: Optional[asyncio.Task] = None
+        self.heartbeat_task: asyncio.Task | None = None
         self.is_running = False
-        self.cluster_endpoints: List[str] = []
+        self.cluster_endpoints: list[str] = []
 
-    async def start_heartbeat(self, cluster_endpoints: List[str]) -> None:
+    async def start_heartbeat(self, cluster_endpoints: list[str]) -> None:
         """Start sending heartbeats to cluster."""
         self.cluster_endpoints = cluster_endpoints
         self.is_running = True
@@ -302,7 +303,7 @@ class HeartbeatManager:
 
         heartbeat_data = {
             "node_id": self.node_config.node_id,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "status": NodeStatus.HEALTHY.value,
             "metrics": {},  # Would include current metrics
         }
@@ -361,17 +362,17 @@ class NodeManager:
         # State management
         self.is_running = False
         self.shutdown_event = asyncio.Event()
-        self.monitoring_task: Optional[asyncio.Task] = None
+        self.monitoring_task: asyncio.Task | None = None
 
         # Event callbacks
-        self.status_change_callbacks: List[Callable[[NodeStatus, NodeStatus], None]] = (
+        self.status_change_callbacks: list[Callable[[NodeStatus, NodeStatus], None]] = (
             []
         )
-        self.metrics_callbacks: List[Callable[[NodeMetrics], None]] = []
+        self.metrics_callbacks: list[Callable[[NodeMetrics], None]] = []
 
         logger.info(f"Node manager initialized for {config.node_id}")
 
-    async def start(self, cluster_endpoints: Optional[List[str]] = None) -> bool:
+    async def start(self, cluster_endpoints: list[str] | None = None) -> bool:
         """Start the node manager."""
         try:
             logger.info(f"Starting node {self.config.node_id}")
@@ -447,7 +448,7 @@ class NodeManager:
             registration_data = {
                 "node_info": asdict(self.node_info),
                 "capabilities": asdict(self.config.capabilities),
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
 
             headers = {
@@ -508,7 +509,7 @@ class NodeManager:
             logger.error(f"Failed to unregister from cluster: {e}")
             return False
 
-    async def update_configuration(self, new_config: Dict[str, Any]) -> bool:
+    async def update_configuration(self, new_config: dict[str, Any]) -> bool:
         """Update node configuration."""
         try:
             # Validate configuration
@@ -527,7 +528,7 @@ class NodeManager:
             logger.error(f"Failed to update configuration: {e}")
             return False
 
-    async def get_status(self) -> Dict[str, Any]:
+    async def get_status(self) -> dict[str, Any]:
         """Get comprehensive node status."""
         return {
             "node_id": self.config.node_id,
@@ -673,18 +674,18 @@ def create_general_node(
 
 
 __all__ = [
-    "NodeManager",
-    "NodeConfiguration",
-    "NodeInfo",
-    "NodeType",
-    "NodeStatus",
-    "NodeRole",
-    "NodeCapabilities",
-    "NodeMetrics",
-    "NodeAuthenticator",
     "HealthMonitor",
     "HeartbeatManager",
-    "create_networking_node",
+    "NodeAuthenticator",
+    "NodeCapabilities",
+    "NodeConfiguration",
+    "NodeInfo",
+    "NodeManager",
+    "NodeMetrics",
+    "NodeRole",
+    "NodeStatus",
+    "NodeType",
     "create_endpoint_node",
     "create_general_node",
+    "create_networking_node",
 ]

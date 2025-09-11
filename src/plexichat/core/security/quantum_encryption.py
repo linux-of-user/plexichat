@@ -7,16 +7,16 @@ for HTTP traffic and integrates with the existing key vault system.
 """
 
 import asyncio
-import json
-import logging
-import secrets
-import time
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
+import json
+import logging
 from pathlib import Path
+import secrets
 from threading import Lock
-from typing import Any, Dict, List, Optional, Tuple
+import time
+from typing import Any
 
 # Standard cryptography library
 from cryptography.fernet import Fernet, MultiFernet
@@ -71,12 +71,12 @@ class EncryptionKey:
     key_type: KeyType
     algorithm: EncryptionAlgorithm
     key_data: bytes
-    public_key: Optional[bytes] = None
+    public_key: bytes | None = None
     created_at: datetime = field(default_factory=datetime.utcnow)
-    expires_at: Optional[datetime] = None
+    expires_at: datetime | None = None
     rotation_interval: timedelta = field(default_factory=lambda: timedelta(hours=24))
     usage_count: int = 0
-    max_usage: Optional[int] = None
+    max_usage: int | None = None
 
 
 @dataclass
@@ -86,8 +86,8 @@ class EncryptionContext:
     algorithm: EncryptionAlgorithm
     key_id: str
     timestamp: datetime = field(default_factory=datetime.utcnow)
-    additional_data: Optional[bytes] = None
-    nonce: Optional[bytes] = None
+    additional_data: bytes | None = None
+    nonce: bytes | None = None
 
 
 class PostQuantumCrypto:
@@ -96,7 +96,7 @@ class PostQuantumCrypto:
     def __init__(self):
         self.pqc_available = PQC_AVAILABLE
 
-    def generate_kyber_keypair(self) -> Tuple[bytes, bytes]:
+    def generate_kyber_keypair(self) -> tuple[bytes, bytes]:
         """Generate Kyber-1024 key pair for key encapsulation"""
         if not self.pqc_available:
             raise RuntimeError("Post-quantum cryptography not available")
@@ -104,7 +104,7 @@ class PostQuantumCrypto:
         public_key, secret_key = kyber.keypair()
         return public_key, secret_key
 
-    def kyber_encapsulate(self, public_key: bytes) -> Tuple[bytes, bytes]:
+    def kyber_encapsulate(self, public_key: bytes) -> tuple[bytes, bytes]:
         """Encapsulate a shared secret using Kyber-1024"""
         if not self.pqc_available:
             raise RuntimeError("Post-quantum cryptography not available")
@@ -120,7 +120,7 @@ class PostQuantumCrypto:
         shared_secret = kyber.dec(secret_key, ciphertext)
         return shared_secret
 
-    def generate_dilithium_keypair(self) -> Tuple[bytes, bytes]:
+    def generate_dilithium_keypair(self) -> tuple[bytes, bytes]:
         """Generate Dilithium-5 key pair for digital signatures"""
         if not self.pqc_available:
             raise RuntimeError("Post-quantum cryptography not available")
@@ -156,7 +156,7 @@ class HybridEncryption:
     def __init__(self, pqc: PostQuantumCrypto):
         self.pqc = pqc
 
-    def generate_hybrid_keypair(self) -> Dict[str, bytes]:
+    def generate_hybrid_keypair(self) -> dict[str, bytes]:
         """Generate hybrid key pair (RSA + Kyber)"""
         # Classical RSA key pair
         rsa_private_key = rsa.generate_private_key(
@@ -190,8 +190,8 @@ class HybridEncryption:
         }
 
     def hybrid_encrypt(
-        self, data: bytes, hybrid_public_key: Dict[str, bytes]
-    ) -> Dict[str, bytes]:
+        self, data: bytes, hybrid_public_key: dict[str, bytes]
+    ) -> dict[str, bytes]:
         """Encrypt data using hybrid approach"""
         # Generate random symmetric key
         symmetric_key = secrets.token_bytes(32)
@@ -227,7 +227,7 @@ class HybridEncryption:
         )
         # XOR the symmetric key with Kyber shared secret for additional protection
         protected_key = bytes(
-            a ^ b for a, b in zip(symmetric_key, kyber_shared_secret[:32])
+            a ^ b for a, b in zip(symmetric_key, kyber_shared_secret[:32], strict=False)
         )
 
         return {
@@ -240,7 +240,7 @@ class HybridEncryption:
         }
 
     def hybrid_decrypt(
-        self, encrypted_data: Dict[str, bytes], hybrid_private_key: Dict[str, bytes]
+        self, encrypted_data: dict[str, bytes], hybrid_private_key: dict[str, bytes]
     ) -> bytes:
         """Decrypt data using hybrid approach"""
         # Decrypt symmetric key with RSA
@@ -271,7 +271,7 @@ class HybridEncryption:
         # Recover symmetric key
         symmetric_key = bytes(
             a ^ b
-            for a, b in zip(encrypted_data["protected_key"], kyber_shared_secret[:32])
+            for a, b in zip(encrypted_data["protected_key"], kyber_shared_secret[:32], strict=False)
         )
 
         # Decrypt data with AES-256-GCM
@@ -293,7 +293,7 @@ class TimeBasedKeyRotation:
 
     def __init__(self, key_manager: "QuantumEncryptionManager"):
         self.key_manager = key_manager
-        self.rotation_tasks: Dict[str, asyncio.Task] = {}
+        self.rotation_tasks: dict[str, asyncio.Task] = {}
         self.lock = Lock()
 
     async def schedule_rotation(self, key_id: str, interval: timedelta):
@@ -333,8 +333,8 @@ class RealTimeEncryption:
     """Enhanced encryption for real-time communications"""
 
     def __init__(self):
-        self.session_keys: Dict[str, bytes] = {}
-        self.key_derivation_cache: Dict[str, bytes] = {}
+        self.session_keys: dict[str, bytes] = {}
+        self.key_derivation_cache: dict[str, bytes] = {}
 
     def derive_session_key(
         self, master_key: bytes, session_id: str, timestamp: int
@@ -366,7 +366,7 @@ class RealTimeEncryption:
 
     def encrypt_realtime_data(
         self, data: bytes, session_id: str, master_key: bytes
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Encrypt real-time data with forward secrecy"""
         timestamp = int(time.time())
         session_key = self.derive_session_key(master_key, session_id, timestamp)
@@ -391,7 +391,7 @@ class RealTimeEncryption:
         }
 
     def decrypt_realtime_data(
-        self, encrypted_data: Dict[str, Any], master_key: bytes
+        self, encrypted_data: dict[str, Any], master_key: bytes
     ) -> bytes:
         """Decrypt real-time data"""
         session_key = self.derive_session_key(
@@ -417,7 +417,7 @@ class HTTPTrafficEncryption:
 
     def __init__(self, quantum_manager: "QuantumEncryptionManager"):
         self.quantum_manager = quantum_manager
-        self.traffic_keys: Dict[str, MultiFernet] = {}
+        self.traffic_keys: dict[str, MultiFernet] = {}
 
     def setup_traffic_encryption(self, endpoint: str) -> str:
         """Setup encryption for specific HTTP endpoint"""
@@ -432,7 +432,7 @@ class HTTPTrafficEncryption:
         return key_id
 
     def encrypt_http_payload(
-        self, payload: bytes, endpoint: str, additional_data: Optional[bytes] = None
+        self, payload: bytes, endpoint: str, additional_data: bytes | None = None
     ) -> bytes:
         """Encrypt HTTP payload with additional layer"""
         if endpoint not in self.traffic_keys:
@@ -452,7 +452,7 @@ class HTTPTrafficEncryption:
 
     def decrypt_http_payload(
         self, encrypted_payload: bytes, endpoint: str
-    ) -> Tuple[bytes, int]:
+    ) -> tuple[bytes, int]:
         """Decrypt HTTP payload and return payload with timestamp"""
         if endpoint not in self.traffic_keys:
             raise ValueError(f"No encryption setup for endpoint: {endpoint}")
@@ -486,7 +486,7 @@ class QuantumEncryptionManager:
     def __init__(
         self,
         key_vault_manager: DistributedKeyManager,
-        config_path: Optional[Path] = None,
+        config_path: Path | None = None,
     ):
         self.key_vault = key_vault_manager
         self.pqc = PostQuantumCrypto()
@@ -495,8 +495,8 @@ class QuantumEncryptionManager:
         self.realtime_crypto = RealTimeEncryption()
         self.http_crypto = HTTPTrafficEncryption(self)
 
-        self.keys: Dict[str, EncryptionKey] = {}
-        self.active_keys: Dict[EncryptionAlgorithm, str] = {}
+        self.keys: dict[str, EncryptionKey] = {}
+        self.active_keys: dict[EncryptionAlgorithm, str] = {}
         self.lock = Lock()
 
         # Load configuration
@@ -505,7 +505,7 @@ class QuantumEncryptionManager:
         # Initialize default keys
         asyncio.create_task(self._initialize_default_keys())
 
-    def _load_config(self, config_path: Optional[Path]) -> Dict[str, Any]:
+    def _load_config(self, config_path: Path | None) -> dict[str, Any]:
         """Load encryption configuration"""
         default_config = {
             "default_algorithm": EncryptionAlgorithm.AES_256_GCM,
@@ -519,7 +519,7 @@ class QuantumEncryptionManager:
 
         if config_path and config_path.exists():
             try:
-                with open(config_path, "r") as f:
+                with open(config_path) as f:
                     user_config = json.load(f)
                 default_config.update(user_config)
             except Exception as e:
@@ -592,18 +592,13 @@ class QuantumEncryptionManager:
         self,
         key_id: str,
         algorithm: EncryptionAlgorithm,
-        rotation_interval: Optional[timedelta] = None,
+        rotation_interval: timedelta | None = None,
     ) -> EncryptionKey:
         """Create a new encryption key"""
         if rotation_interval is None:
             rotation_interval = timedelta(hours=24)
 
-        if algorithm == EncryptionAlgorithm.AES_256_GCM:
-            key_data = secrets.token_bytes(32)
-            key_type = KeyType.SYMMETRIC
-            public_key = None
-
-        elif algorithm == EncryptionAlgorithm.CHACHA20_POLY1305:
+        if algorithm == EncryptionAlgorithm.AES_256_GCM or algorithm == EncryptionAlgorithm.CHACHA20_POLY1305:
             key_data = secrets.token_bytes(32)
             key_type = KeyType.SYMMETRIC
             public_key = None
@@ -707,10 +702,10 @@ class QuantumEncryptionManager:
     def encrypt(
         self,
         data: bytes,
-        algorithm: Optional[EncryptionAlgorithm] = None,
-        key_id: Optional[str] = None,
-        context: Optional[EncryptionContext] = None,
-    ) -> Dict[str, Any]:
+        algorithm: EncryptionAlgorithm | None = None,
+        key_id: str | None = None,
+        context: EncryptionContext | None = None,
+    ) -> dict[str, Any]:
         """Encrypt data using specified algorithm and key"""
         if algorithm is None:
             algorithm = self.config["default_algorithm"]
@@ -745,7 +740,7 @@ class QuantumEncryptionManager:
         else:
             raise ValueError(f"Encryption not supported for algorithm: {algorithm}")
 
-    def decrypt(self, encrypted_data: Dict[str, Any]) -> bytes:
+    def decrypt(self, encrypted_data: dict[str, Any]) -> bytes:
         """Decrypt data"""
         key_id = encrypted_data.get("key_id")
         algorithm = EncryptionAlgorithm(encrypted_data.get("algorithm"))
@@ -768,7 +763,7 @@ class QuantumEncryptionManager:
 
     def _encrypt_aes_gcm(
         self, data: bytes, key: EncryptionKey, context: EncryptionContext
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Encrypt using AES-256-GCM"""
         nonce = context.nonce or secrets.token_bytes(12)
         cipher = Cipher(
@@ -792,7 +787,7 @@ class QuantumEncryptionManager:
         }
 
     def _decrypt_aes_gcm(
-        self, encrypted_data: Dict[str, Any], key: EncryptionKey
+        self, encrypted_data: dict[str, Any], key: EncryptionKey
     ) -> bytes:
         """Decrypt using AES-256-GCM"""
         cipher = Cipher(
@@ -812,7 +807,7 @@ class QuantumEncryptionManager:
 
     def _encrypt_chacha20(
         self, data: bytes, key: EncryptionKey, context: EncryptionContext
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Encrypt using ChaCha20-Poly1305"""
         nonce = context.nonce or secrets.token_bytes(12)
         cipher = Cipher(
@@ -838,7 +833,7 @@ class QuantumEncryptionManager:
         }
 
     def _decrypt_chacha20(
-        self, encrypted_data: Dict[str, Any], key: EncryptionKey
+        self, encrypted_data: dict[str, Any], key: EncryptionKey
     ) -> bytes:
         """Decrypt using ChaCha20-Poly1305"""
         cipher = Cipher(
@@ -858,7 +853,7 @@ class QuantumEncryptionManager:
 
     def _encrypt_fernet(
         self, data: bytes, key: EncryptionKey, context: EncryptionContext
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Encrypt using Fernet"""
         fernet = Fernet(key.key_data)
         ciphertext = fernet.encrypt(data)
@@ -871,7 +866,7 @@ class QuantumEncryptionManager:
         }
 
     def _decrypt_fernet(
-        self, encrypted_data: Dict[str, Any], key: EncryptionKey
+        self, encrypted_data: dict[str, Any], key: EncryptionKey
     ) -> bytes:
         """Decrypt using Fernet"""
         fernet = Fernet(key.key_data)
@@ -880,7 +875,7 @@ class QuantumEncryptionManager:
 
     def _encrypt_hybrid(
         self, data: bytes, key: EncryptionKey, context: EncryptionContext
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Encrypt using hybrid classical/post-quantum approach"""
         # Deserialize hybrid key
         key_data = json.loads(key.key_data.decode())
@@ -903,7 +898,7 @@ class QuantumEncryptionManager:
         return encrypted_data
 
     def _decrypt_hybrid(
-        self, encrypted_data: Dict[str, Any], key: EncryptionKey
+        self, encrypted_data: dict[str, Any], key: EncryptionKey
     ) -> bytes:
         """Decrypt using hybrid classical/post-quantum approach"""
         # Deserialize hybrid key
@@ -918,7 +913,7 @@ class QuantumEncryptionManager:
         return plaintext
 
     # Real-time communication methods
-    def encrypt_realtime(self, data: bytes, session_id: str) -> Dict[str, Any]:
+    def encrypt_realtime(self, data: bytes, session_id: str) -> dict[str, Any]:
         """Encrypt data for real-time communications"""
         if not self.config["realtime_key_derivation"]:
             return self.encrypt(data)
@@ -933,7 +928,7 @@ class QuantumEncryptionManager:
 
         return self.realtime_crypto.encrypt_realtime_data(data, session_id, master_key)
 
-    def decrypt_realtime(self, encrypted_data: Dict[str, Any]) -> bytes:
+    def decrypt_realtime(self, encrypted_data: dict[str, Any]) -> bytes:
         """Decrypt real-time communication data"""
         if not self.config["realtime_key_derivation"]:
             return self.decrypt(encrypted_data)
@@ -950,7 +945,7 @@ class QuantumEncryptionManager:
 
     # HTTP traffic encryption methods
     def encrypt_http_traffic(
-        self, payload: bytes, endpoint: str, additional_data: Optional[bytes] = None
+        self, payload: bytes, endpoint: str, additional_data: bytes | None = None
     ) -> bytes:
         """Encrypt HTTP traffic with additional layer"""
         if not self.config["http_traffic_encryption"]:
@@ -960,7 +955,7 @@ class QuantumEncryptionManager:
 
     def decrypt_http_traffic(
         self, encrypted_payload: bytes, endpoint: str
-    ) -> Tuple[bytes, int]:
+    ) -> tuple[bytes, int]:
         """Decrypt HTTP traffic"""
         if not self.config["http_traffic_encryption"]:
             return encrypted_payload, int(time.time())
@@ -972,7 +967,7 @@ class QuantumEncryptionManager:
         self.http_crypto.rotate_traffic_keys(endpoint)
 
     # Key management methods
-    def get_key_info(self, key_id: str) -> Dict[str, Any]:
+    def get_key_info(self, key_id: str) -> dict[str, Any]:
         """Get information about a key"""
         with self.lock:
             if key_id not in self.keys:
@@ -991,12 +986,12 @@ class QuantumEncryptionManager:
                 "has_public_key": key.public_key is not None,
             }
 
-    def list_keys(self) -> List[Dict[str, Any]]:
+    def list_keys(self) -> list[dict[str, Any]]:
         """List all keys"""
         with self.lock:
             return [self.get_key_info(key_id) for key_id in self.keys.keys()]
 
-    def get_active_keys(self) -> Dict[str, str]:
+    def get_active_keys(self) -> dict[str, str]:
         """Get currently active keys for each algorithm"""
         with self.lock:
             return {alg.value: key_id for alg, key_id in self.active_keys.items()}
@@ -1025,11 +1020,11 @@ class QuantumEncryptionManager:
 
 
 # Convenience functions for easy integration
-_global_manager: Optional[QuantumEncryptionManager] = None
+_global_manager: QuantumEncryptionManager | None = None
 
 
 def initialize_quantum_encryption(
-    key_vault_manager: DistributedKeyManager, config_path: Optional[Path] = None
+    key_vault_manager: DistributedKeyManager, config_path: Path | None = None
 ) -> QuantumEncryptionManager:
     """Initialize global quantum encryption manager"""
     global _global_manager
@@ -1045,22 +1040,22 @@ def get_quantum_manager() -> QuantumEncryptionManager:
 
 
 def quantum_encrypt(
-    data: bytes, algorithm: Optional[EncryptionAlgorithm] = None
-) -> Dict[str, Any]:
+    data: bytes, algorithm: EncryptionAlgorithm | None = None
+) -> dict[str, Any]:
     """Convenience function for quantum encryption"""
     return get_quantum_manager().encrypt(data, algorithm)
 
 
-def quantum_decrypt(encrypted_data: Dict[str, Any]) -> bytes:
+def quantum_decrypt(encrypted_data: dict[str, Any]) -> bytes:
     """Convenience function for quantum decryption"""
     return get_quantum_manager().decrypt(encrypted_data)
 
 
-def encrypt_realtime(data: bytes, session_id: str) -> Dict[str, Any]:
+def encrypt_realtime(data: bytes, session_id: str) -> dict[str, Any]:
     """Convenience function for real-time encryption"""
     return get_quantum_manager().encrypt_realtime(data, session_id)
 
 
-def decrypt_realtime(encrypted_data: Dict[str, Any]) -> bytes:
+def decrypt_realtime(encrypted_data: dict[str, Any]) -> bytes:
     """Convenience function for real-time decryption"""
     return get_quantum_manager().decrypt_realtime(encrypted_data)

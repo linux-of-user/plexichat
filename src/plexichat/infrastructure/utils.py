@@ -4,12 +4,12 @@ Consolidated infrastructure utilities for monitoring, security, and performance.
 """
 
 import asyncio
-import logging
-import time
 from collections import defaultdict, deque
 from contextlib import asynccontextmanager
-from typing import Any, Dict, List, Optional
 from functools import wraps
+import logging
+import time
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -18,8 +18,8 @@ class PerformanceMonitor:
     """Simple performance monitoring."""
 
     def __init__(self):
-        self.metrics: Dict[str, List[float]] = defaultdict(list)
-        self.start_times: Dict[str, float] = {}
+        self.metrics: dict[str, list[float]] = defaultdict(list)
+        self.start_times: dict[str, float] = {}
 
     def start_timer(self, name: str):
         """Start a performance timer."""
@@ -33,7 +33,7 @@ class PerformanceMonitor:
             del self.start_times[name]
             return duration
         return 0.0
-    
+
     @asynccontextmanager
     async def timer(self, name: str):
         """Context manager for timing operations."""
@@ -43,8 +43,8 @@ class PerformanceMonitor:
         finally:
             duration = time.time() - start_time
             self.metrics[name].append(duration)
-    
-    def get_stats(self, name: str) -> Dict[str, float]:
+
+    def get_stats(self, name: str) -> dict[str, float]:
         """Get statistics for a metric."""
         if name not in self.metrics or not self.metrics[name]:
             return {"count": 0, "avg": 0.0, "min": 0.0, "max": 0.0}
@@ -57,8 +57,8 @@ class PerformanceMonitor:
             "max": max(values),
             "total": sum(values)
         }
-    
-    def clear_metrics(self, name: Optional[str] = None):
+
+    def clear_metrics(self, name: str | None = None):
         """Clear metrics for a specific name or all metrics."""
         if name:
             self.metrics.pop(name, None)
@@ -72,25 +72,25 @@ class RateLimiter:
     def __init__(self, max_requests: int = 100, window_seconds: int = 3600):
         self.max_requests = max_requests
         self.window_seconds = window_seconds
-        self.requests: Dict[str, deque] = defaultdict(deque)
+        self.requests: dict[str, deque] = defaultdict(deque)
 
     def is_allowed(self, identifier: str) -> bool:
         """Check if a request is allowed for the given identifier."""
         now = time.time()
         window_start = now - self.window_seconds
-        
+
         # Clean old requests
         request_times = self.requests[identifier]
         while request_times and request_times[0] < window_start:
             request_times.popleft()
-        
+
         # Check if under limit
         if len(request_times) < self.max_requests:
             request_times.append(now)
             return True
-        
+
         return False
-    
+
     def get_remaining(self, identifier: str) -> int:
         """Get remaining requests for identifier."""
         now = time.time()
@@ -142,7 +142,7 @@ class SecurityUtils:
             return False
 
     @staticmethod
-    def validate_file_upload(filename: str, content: bytes, max_size: int = 10*1024*1024) -> Dict[str, Any]:
+    def validate_file_upload(filename: str, content: bytes, max_size: int = 10*1024*1024) -> dict[str, Any]:
         """Validate file upload for security."""
         result = {"valid": True, "errors": [], "warnings": []}
 
@@ -185,7 +185,7 @@ class SecurityUtils:
             return {"valid": False, "errors": ["Validation error"], "warnings": []}
 
     @staticmethod
-    def hash_sensitive_data(data: str, salt: Optional[str] = None) -> str:
+    def hash_sensitive_data(data: str, salt: str | None = None) -> str:
         """Hash sensitive data with salt."""
         import hashlib
         import secrets
@@ -215,21 +215,21 @@ class AsyncUtils:
         """Run a coroutine with timeout."""
         try:
             return await asyncio.wait_for(coro, timeout=timeout_seconds)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             logger.warning(f"Operation timed out after {timeout_seconds} seconds")
             raise
 
     @staticmethod
-    async def gather_with_limit(coroutines: List, limit: int = 10):
+    async def gather_with_limit(coroutines: list, limit: int = 10):
         """Run coroutines with concurrency limit."""
         semaphore = asyncio.Semaphore(limit)
-        
+
         async def limited_coro(coro):
             async with semaphore:
                 return await coro
-        
+
         return await asyncio.gather(*[limited_coro(coro) for coro in coroutines])
-    
+
     @staticmethod
     def retry(max_attempts: int = 3, delay: float = 1.0, backoff: float = 2.0):
         """Retry decorator for async functions."""
@@ -238,7 +238,7 @@ class AsyncUtils:
             async def wrapper(*args, **kwargs):
                 last_exception = None
                 current_delay = delay
-                
+
                 for attempt in range(max_attempts):
                     try:
                         return await func(*args, **kwargs)
@@ -250,7 +250,7 @@ class AsyncUtils:
                             current_delay *= backoff
                         else:
                             logger.error(f"All {max_attempts} attempts failed")
-                
+
                 if last_exception:
                     raise last_exception
                 else:
@@ -263,37 +263,37 @@ class CacheManager:
     """Simple in-memory cache manager."""
 
     def __init__(self, default_ttl: int = 3600):
-        self.cache: Dict[str, Dict[str, Any]] = {}
+        self.cache: dict[str, dict[str, Any]] = {}
         self.default_ttl = default_ttl
-    
-    def set(self, key: str, value: Any, ttl: Optional[int] = None) -> None:
+
+    def set(self, key: str, value: Any, ttl: int | None = None) -> None:
         """Set a cache value with TTL."""
         expires_at = time.time() + (ttl or self.default_ttl)
         self.cache[key] = {
             "value": value,
             "expires_at": expires_at
         }
-    
+
     def get(self, key: str, default: Any = None) -> Any:
         """Get a cache value."""
         if key not in self.cache:
             return default
-        
+
         entry = self.cache[key]
         if time.time() > entry["expires_at"]:
             del self.cache[key]
             return default
-        
+
         return entry["value"]
-    
+
     def delete(self, key: str) -> bool:
         """Delete a cache entry."""
         return self.cache.pop(key, None) is not None
-    
+
     def clear(self) -> None:
         """Clear all cache entries."""
         self.cache.clear()
-    
+
     def cleanup_expired(self) -> int:
         """Remove expired entries and return count removed."""
         now = time.time()
@@ -301,10 +301,10 @@ class CacheManager:
             key for key, entry in self.cache.items()
             if now > entry["expires_at"]
         ]
-        
+
         for key in expired_keys:
             del self.cache[key]
-        
+
         return len(expired_keys)
 
 
@@ -320,7 +320,7 @@ def performance_timer(name: str):
             finally:
                 duration = time.time() - start_time
                 logger.debug(f"{name} took {duration:.3f}s")
-        
+
         @wraps(func)
         def sync_wrapper(*args, **kwargs):
             start_time = time.time()
@@ -330,7 +330,7 @@ def performance_timer(name: str):
             finally:
                 duration = time.time() - start_time
                 logger.debug(f"{name} took {duration:.3f}s")
-        
+
         return async_wrapper if asyncio.iscoroutinefunction(func) else sync_wrapper
     return decorator
 
@@ -342,7 +342,14 @@ security_utils = SecurityUtils()
 async_utils = AsyncUtils()
 
 __all__ = [
-    "PerformanceMonitor", "RateLimiter", "SecurityUtils", "AsyncUtils", "CacheManager",
-    "performance_monitor", "cache_manager", "security_utils", "async_utils",
-    "performance_timer"
+    "AsyncUtils",
+    "CacheManager",
+    "PerformanceMonitor",
+    "RateLimiter",
+    "SecurityUtils",
+    "async_utils",
+    "cache_manager",
+    "performance_monitor",
+    "performance_timer",
+    "security_utils"
 ]

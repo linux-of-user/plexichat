@@ -6,28 +6,30 @@ Uses EXISTING database abstraction and optimization systems.
 """
 
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any
 
+from colorama import Fore, Style
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel
-from colorama import Fore, Style
 
-from plexichat.core.logging import get_logger
 from plexichat.core.auth.fastapi_adapter import require_admin
+from plexichat.core.logging import get_logger
 
 # Use EXISTING database abstraction layer
 try:
-    from plexichat.core.database.manager import database_manager
     from plexichat.core.database import initialize_database_system
+    from plexichat.core.database.manager import database_manager
 except ImportError:
     database_manager = None
     initialize_database_system = None
 
 # Use EXISTING performance optimization engine
 try:
-    from plexichat.core.performance.optimization_engine import PerformanceOptimizationEngine
-    from plexichat.infrastructure.utils.performance import async_track_performance
     from plexichat.core.logging import get_performance_logger
+    from plexichat.core.performance.optimization_engine import (
+        PerformanceOptimizationEngine,
+    )
+    from plexichat.infrastructure.utils.performance import async_track_performance
 except ImportError:
     PerformanceOptimizationEngine = None
     async_track_performance = None
@@ -44,9 +46,9 @@ class DatabaseStatus(BaseModel):
     """Database status information."""
     connected: bool
     database_type: str
-    version: Optional[str] = None
+    version: str | None = None
     tables_count: int
-    last_backup: Optional[datetime] = None
+    last_backup: datetime | None = None
     health_score: float
 
 class DatabaseConfig(BaseModel):
@@ -98,7 +100,7 @@ class DatabaseService:
                 health_score=0.0
             )
 
-    async def initialize_database(self) -> Dict[str, Any]:
+    async def initialize_database(self) -> dict[str, Any]:
         """Initialize database using EXISTING initialization system."""
         try:
             if initialize_database_system:
@@ -118,7 +120,7 @@ class DatabaseService:
             logger.error(f"Error initializing database: {e}")
             return {
                 "success": False,
-                "message": f"Database initialization failed: {str(e)}",
+                "message": f"Database initialization failed: {e!s}",
                 "details": {}
             }
 
@@ -126,7 +128,7 @@ class DatabaseService:
 database_service = DatabaseService()
 
 @router.get("/status", response_model=DatabaseStatus, summary="Get database status")
-async def get_database_status(request: Request, current_user: Dict[str, Any] = Depends(require_admin)):
+async def get_database_status(request: Request, current_user: dict[str, Any] = Depends(require_admin)):
     """Get comprehensive database status (admin only)."""
     client_ip = request.client.host if request.client else "unknown"
     logger.info(Fore.CYAN + f"[DB] Status requested by admin {current_user.get('username')} from {client_ip}" + Style.RESET_ALL)
@@ -139,7 +141,7 @@ async def get_database_status(request: Request, current_user: Dict[str, Any] = D
     return await database_service.get_database_status()
 
 @router.post("/initialize", summary="Initialize database")
-async def initialize_database(request: Request, current_user: Dict[str, Any] = Depends(require_admin)):
+async def initialize_database(request: Request, current_user: dict[str, Any] = Depends(require_admin)):
     """Initialize database schema and tables (admin only)."""
     client_ip = request.client.host if request.client else "unknown"
     logger.info(Fore.CYAN + f"[DB] Initialization requested by admin {current_user.get('username')} from {client_ip}" + Style.RESET_ALL)
@@ -160,7 +162,7 @@ async def initialize_database(request: Request, current_user: Dict[str, Any] = D
     return result
 
 @router.post("/migrate", summary="Run database migrations")
-async def run_migrations(request: Request, current_user: Dict[str, Any] = Depends(require_admin)):
+async def run_migrations(request: Request, current_user: dict[str, Any] = Depends(require_admin)):
     """Run database migrations (admin only)."""
     client_ip = request.client.host if request.client else "unknown"
     logger.info(Fore.CYAN + f"[DB] Migration requested by admin {current_user.get('username')} from {client_ip}" + Style.RESET_ALL)
@@ -191,7 +193,7 @@ async def run_migrations(request: Request, current_user: Dict[str, Any] = Depend
         )
 
 @router.post("/backup", summary="Create database backup")
-async def create_backup(request: Request, current_user: Dict[str, Any] = Depends(require_admin)):
+async def create_backup(request: Request, current_user: dict[str, Any] = Depends(require_admin)):
     """Create database backup (admin only)."""
     client_ip = request.client.host if request.client else "unknown"
     logger.info(Fore.CYAN + f"[DB] Backup requested by admin {current_user.get('username')} from {client_ip}" + Style.RESET_ALL)
@@ -224,7 +226,7 @@ async def create_backup(request: Request, current_user: Dict[str, Any] = Depends
         )
 
 @router.get("/health", summary="Database health check")
-async def database_health_check(request: Request, current_user: Dict[str, Any] = Depends(require_admin)):
+async def database_health_check(request: Request, current_user: dict[str, Any] = Depends(require_admin)):
     """Perform database health check (admin only)."""
     client_ip = request.client.host if request.client else "unknown"
     logger.info(Fore.CYAN + f"[DB] Health check requested by admin {current_user.get('username')} from {client_ip}" + Style.RESET_ALL)

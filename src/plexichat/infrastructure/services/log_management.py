@@ -3,14 +3,14 @@
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
-import json
-import re
-import zipfile
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+import json
 import logging
+from pathlib import Path
+import re
+from typing import Any
+import zipfile
 
 logger = logging.getLogger(__name__)
 
@@ -21,9 +21,9 @@ class LogEntry:
     level: str
     message: str
     module: str
-    line_number: Optional[int] = None
-    function: Optional[str] = None
-    thread: Optional[str] = None
+    line_number: int | None = None
+    function: str | None = None
+    thread: str | None = None
     raw_line: str = ""
 
 
@@ -65,7 +65,7 @@ class LogParser:
             )
         }
 
-    def parse_log_line(self, line: str) -> Optional[LogEntry]:
+    def parse_log_line(self, line: str) -> LogEntry | None:
         """Parse a single log line."""
         line = line.strip()
         if not line:
@@ -121,7 +121,7 @@ class LogManager:
         self.max_log_size_mb = 100
         self.max_archive_days = 30
 
-    def get_log_files(self) -> List[LogFile]:
+    def get_log_files(self) -> list[LogFile]:
         """Get list of all log files."""
         log_files = []
 
@@ -167,11 +167,11 @@ class LogManager:
         filename: str,
         start_line: int = 0,
         max_lines: int = 1000,
-        level_filter: Optional[str] = None,
-        search_term: Optional[str] = None,
-        start_time: Optional[datetime] = None,
-        end_time: Optional[datetime] = None
-    ) -> Tuple[List[LogEntry], int]:
+        level_filter: str | None = None,
+        search_term: str | None = None,
+        start_time: datetime | None = None,
+        end_time: datetime | None = None
+    ) -> tuple[list[LogEntry], int]:
         """Read log entries with filtering."""
 
         log_path = self.log_directory / filename
@@ -190,7 +190,7 @@ class LogManager:
         current_line = 0
 
         try:
-            with open(log_path, 'r', encoding='utf-8', errors='ignore') as f:
+            with open(log_path, encoding='utf-8', errors='ignore') as f:
                 for line in f:
                     total_lines += 1
 
@@ -230,10 +230,10 @@ class LogManager:
     def search_logs(
         self,
         search_term: str,
-        filenames: Optional[List[str]] = None,
-        level_filter: Optional[str] = None,
+        filenames: list[str] | None = None,
+        level_filter: str | None = None,
         max_results: int = 500
-    ) -> List[Tuple[str, LogEntry]]:
+    ) -> list[tuple[str, LogEntry]]:
         """Search across multiple log files."""
 
         results = []
@@ -266,7 +266,7 @@ class LogManager:
 
         return results
 
-    def get_log_statistics(self, filename: str) -> Dict[str, Any]:
+    def get_log_statistics(self, filename: str) -> dict[str, Any]:
         """Get statistics for a log file."""
 
         try:
@@ -303,7 +303,7 @@ class LogManager:
             logger.error(f"Failed to get statistics for {filename}: {e}")
             return {}
 
-    def archive_old_logs(self, days_old: int = 7) -> List[str]:
+    def archive_old_logs(self, days_old: int = 7) -> list[str]:
         """Archive log files older than specified days."""
 
         archived_files = []
@@ -335,7 +335,7 @@ class LogManager:
 
         return archived_files
 
-    def cleanup_old_archives(self, days_old: int = 30) -> List[str]:
+    def cleanup_old_archives(self, days_old: int = 30) -> list[str]:
         """Clean up archive files older than specified days."""
 
         cleaned_files = []
@@ -360,9 +360,9 @@ class LogManager:
 
     def export_logs(
         self,
-        filenames: List[str],
+        filenames: list[str],
         export_format: str = "json",
-        filters: Optional[Dict[str, Any]] = None
+        filters: dict[str, Any] | None = None
     ) -> str:
         """Export logs in specified format."""
 
@@ -409,7 +409,7 @@ class LogManager:
     def _count_log_entries(self, log_path: Path) -> int:
         """Count entries in a log file (approximate)."""
         try:
-            with open(log_path, 'r', encoding='utf-8', errors='ignore') as f:
+            with open(log_path, encoding='utf-8', errors='ignore') as f:
                 return sum(1 for line in f if line.strip())
         except Exception:
             return 0
@@ -419,11 +419,11 @@ class LogManager:
         archive_path: Path,
         start_line: int,
         max_lines: int,
-        level_filter: Optional[str],
-        search_term: Optional[str],
-        start_time: Optional[datetime],
-        end_time: Optional[datetime]
-    ) -> Tuple[List[LogEntry], int]:
+        level_filter: str | None,
+        search_term: str | None,
+        start_time: datetime | None,
+        end_time: datetime | None
+    ) -> tuple[list[LogEntry], int]:
         """Read entries from archived log file."""
 
         entries = []

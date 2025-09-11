@@ -5,14 +5,14 @@ Provides REST endpoints for managing keyboard shortcuts including CRUD operation
 """
 
 import logging
-from typing import List, Optional
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 
 from plexichat.core.auth.fastapi_adapter import get_current_user
 from plexichat.core.services.keyboard_shortcuts_service import (
+    KeyboardShortcut,
     keyboard_shortcuts_service,
-    KeyboardShortcut
 )
 
 router = APIRouter(prefix="/keyboard", tags=["Keyboard Shortcuts"])
@@ -23,14 +23,14 @@ class ShortcutCreate(BaseModel):
     """Model for creating a new shortcut."""
     shortcut_key: str = Field(..., description="The keyboard shortcut key combination")
     action: str = Field(..., description="The action to perform when shortcut is triggered")
-    description: Optional[str] = Field(None, description="Optional description of the shortcut")
+    description: str | None = Field(None, description="Optional description of the shortcut")
 
 
 class ShortcutUpdate(BaseModel):
     """Model for updating an existing shortcut."""
     shortcut_key: str = Field(..., description="The keyboard shortcut key combination")
     action: str = Field(..., description="The action to perform when shortcut is triggered")
-    description: Optional[str] = Field(None, description="Optional description of the shortcut")
+    description: str | None = Field(None, description="Optional description of the shortcut")
 
 
 class ShortcutResponse(BaseModel):
@@ -39,7 +39,7 @@ class ShortcutResponse(BaseModel):
     user_id: str
     shortcut_key: str
     action: str
-    description: Optional[str]
+    description: str | None
     is_custom: bool
     created_at: str
     updated_at: str
@@ -78,7 +78,7 @@ def _shortcut_to_response(shortcut: KeyboardShortcut) -> ShortcutResponse:
     )
 
 
-@router.get("/shortcuts", response_model=List[ShortcutResponse])
+@router.get("/shortcuts", response_model=list[ShortcutResponse])
 async def get_user_shortcuts(current_user: dict = Depends(get_current_user)):
     """
     Get all keyboard shortcuts for the current user.
@@ -240,7 +240,7 @@ async def delete_shortcut(
         )
 
 
-@router.get("/defaults", response_model=List[DefaultShortcutResponse])
+@router.get("/defaults", response_model=list[DefaultShortcutResponse])
 async def get_default_shortcuts():
     """
     Get the default keyboard shortcuts configuration.

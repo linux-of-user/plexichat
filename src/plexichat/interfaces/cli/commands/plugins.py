@@ -1,18 +1,24 @@
-import logging
-from pathlib import Path
-from typing import List, Dict, Any, Optional
 import asyncio
 import datetime
+import logging
+from pathlib import Path
+from typing import Any
 
 # Try to import real managers; fall back to mocks for standalone/CI environments
 try:
-    from plexichat.core.plugins.manager import unified_plugin_manager as real_plugin_manager
+    from plexichat.core.plugins.manager import (
+        unified_plugin_manager as real_plugin_manager,
+    )
 except Exception:
     real_plugin_manager = None
 
 try:
-    from plexichat.core.plugins.security_manager import get_security_manager as real_get_security_manager
-    from plexichat.core.plugins.security_manager import PermissionType as RealPermissionType
+    from plexichat.core.plugins.security_manager import (
+        PermissionType as RealPermissionType,
+    )
+    from plexichat.core.plugins.security_manager import (
+        get_security_manager as real_get_security_manager,
+    )
 except Exception:
     real_get_security_manager = None
     RealPermissionType = None
@@ -38,16 +44,16 @@ class MockPluginManager:
             }
         }
 
-    def get_plugin_dashboard_data(self) -> Dict[str, Any]:
+    def get_plugin_dashboard_data(self) -> dict[str, Any]:
         return {"plugins": list(self._plugins.values())}
 
-    async def install_plugin_from_zip(self, zip_path: Path, source: str) -> Dict[str, Any]:
+    async def install_plugin_from_zip(self, zip_path: Path, source: str) -> dict[str, Any]:
         # naive install simulation
         p_name = zip_path.stem
         self._plugins[p_name] = {"name": p_name, "version": "0.0.1", "enabled": False, "description": f"Installed from {source}"}
         return {"success": True, "message": f"Installed plugin '{p_name}' from {zip_path}"}
 
-    async def uninstall_plugin(self, plugin_name: str, remove_data: bool) -> Dict[str, Any]:
+    async def uninstall_plugin(self, plugin_name: str, remove_data: bool) -> dict[str, Any]:
         if plugin_name in self._plugins:
             del self._plugins[plugin_name]
             return {"success": True, "message": f"Uninstalled plugin '{plugin_name}'"}
@@ -67,36 +73,36 @@ class MockPluginManager:
         p["enabled"] = False
         return True
 
-    async def update_plugin(self, plugin_name: str) -> Dict[str, Any]:
+    async def update_plugin(self, plugin_name: str) -> dict[str, Any]:
         if plugin_name in self._plugins:
             self._plugins[plugin_name]["version"] = "updated"
             return {"success": True, "message": f"Updated plugin '{plugin_name}'"}
         return {"success": False, "message": f"Plugin '{plugin_name}' not found"}
 
-    async def check_for_updates(self, plugin_name: Optional[str] = None) -> Dict[str, Any]:
+    async def check_for_updates(self, plugin_name: str | None = None) -> dict[str, Any]:
         # Always say no updates in mock
         return {"success": True, "updates": {}}
 
-    def get_plugin_info(self, plugin_name: str) -> Optional[Dict[str, Any]]:
+    def get_plugin_info(self, plugin_name: str) -> dict[str, Any] | None:
         return self._plugins.get(plugin_name)
 
 
 class MockSecurityManager:
     def __init__(self):
-        self._approved_permissions: Dict[str, set] = {}
-        self._pending_requests: Dict[str, List[Dict[str, Any]]] = {}
-        self._audit_events: List[Dict[str, Any]] = []
+        self._approved_permissions: dict[str, set] = {}
+        self._pending_requests: dict[str, list[dict[str, Any]]] = {}
+        self._audit_events: list[dict[str, Any]] = []
         self._quarantined: set = set()
-        self._policies: Dict[str, Dict[str, Any]] = {}
+        self._policies: dict[str, dict[str, Any]] = {}
 
-    def get_plugin_permissions(self, plugin_name: str) -> Dict[str, Any]:
+    def get_plugin_permissions(self, plugin_name: str) -> dict[str, Any]:
         return {
             "approved_permissions": list(self._approved_permissions.get(plugin_name, set())),
             "pending_requests": list(self._pending_requests.get(plugin_name, [])),
             "is_quarantined": plugin_name in self._quarantined,
         }
 
-    def approve_permission(self, plugin_name: str, permission_type: Any, approved_by: str, expires_in_days: Optional[int] = None) -> bool:
+    def approve_permission(self, plugin_name: str, permission_type: Any, approved_by: str, expires_in_days: int | None = None) -> bool:
         p_val = permission_type.value if hasattr(permission_type, "value") else str(permission_type)
         self._approved_permissions.setdefault(plugin_name, set()).add(p_val)
         # Remove any pending
@@ -138,13 +144,13 @@ class MockSecurityManager:
         })
         return f"{plugin_name}:{p_val}:{len(self._pending_requests[plugin_name])}"
 
-    def get_pending_permission_requests(self) -> List[Dict[str, Any]]:
+    def get_pending_permission_requests(self) -> list[dict[str, Any]]:
         out = []
         for reqs in self._pending_requests.values():
             out.extend(reqs)
         return out
 
-    def get_security_summary(self) -> Dict[str, Any]:
+    def get_security_summary(self) -> dict[str, Any]:
         return {
             "total_plugins_monitored": 0,
             "quarantined_plugins": len(self._quarantined),
@@ -155,14 +161,14 @@ class MockSecurityManager:
             "last_24h_critical_events": 0,
         }
 
-    def log_audit_event(self, event: Dict[str, Any]):
+    def log_audit_event(self, event: dict[str, Any]):
         self._audit_events.append(event)
         # trim
         if len(self._audit_events) > 1000:
             self._audit_events = self._audit_events[-500:]
         logger.info(f"AUDIT: {event.get('event', 'unknown')} - {event.get('plugin')} - {event}")
 
-    def get_recent_audit_events(self, limit: int = 50) -> List[Dict[str, Any]]:
+    def get_recent_audit_events(self, limit: int = 50) -> list[dict[str, Any]]:
         return list(self._audit_events[-limit:])[::-1]
 
     def quarantine_plugin(self, plugin_name: str, reason: str, quarantined_by: str):
@@ -173,10 +179,10 @@ class MockSecurityManager:
         self._quarantined.discard(plugin_name)
         self.log_audit_event({"event": "plugin_released", "plugin": plugin_name, "by": released_by, "timestamp": datetime.datetime.utcnow().isoformat()})
 
-    def get_security_policy(self, plugin_name: str) -> Dict[str, Any]:
+    def get_security_policy(self, plugin_name: str) -> dict[str, Any]:
         return self._policies.get(plugin_name, {})
 
-    def set_security_policy(self, plugin_name: str, policy: Dict[str, Any]):
+    def set_security_policy(self, plugin_name: str, policy: dict[str, Any]):
         self._policies[plugin_name] = policy
         self.log_audit_event({"event": "policy_set", "plugin": plugin_name, "policy": policy, "timestamp": datetime.datetime.utcnow().isoformat()})
 
@@ -229,7 +235,7 @@ class PluginCLI:
         self.plugin_manager = get_enhanced_plugin_manager()
         self.security_manager = get_security_manager()
 
-    async def cmd_list(self, args: List[str]):
+    async def cmd_list(self, args: list[str]):
         """List all installed plugins."""
         data = self.plugin_manager.get_plugin_dashboard_data()
         plugins = data.get("plugins", [])
@@ -242,7 +248,7 @@ class PluginCLI:
             enabled = plugin.get('enabled', False)
             logger.info(f"- {name} v{version} [{'enabled' if enabled else 'disabled'}] - {plugin.get('description', '')}")
 
-    async def cmd_install(self, args: List[str]):
+    async def cmd_install(self, args: list[str]):
         """Install a plugin from a ZIP file."""
         if not args:
             logger.error("Usage: plugin install <zip_file>")
@@ -254,7 +260,7 @@ class PluginCLI:
         result = await self.plugin_manager.install_plugin_from_zip(zip_path, 'local')
         logger.info(result.get("message"))
 
-    async def cmd_uninstall(self, args: List[str]):
+    async def cmd_uninstall(self, args: list[str]):
         """Uninstall a plugin."""
         if not args:
             logger.error("Usage: plugin uninstall <plugin_name> [--remove-data]")
@@ -264,7 +270,7 @@ class PluginCLI:
         result = await self.plugin_manager.uninstall_plugin(plugin_name, remove_data)
         logger.info(result.get("message"))
 
-    async def cmd_enable(self, args: List[str]):
+    async def cmd_enable(self, args: list[str]):
         """Enable a plugin."""
         if not args:
             logger.error("Usage: plugin enable <plugin_name>")
@@ -278,7 +284,7 @@ class PluginCLI:
         else:
             logger.error(f"Failed to enable plugin '{plugin_name}'.")
 
-    async def cmd_disable(self, args: List[str]):
+    async def cmd_disable(self, args: list[str]):
         """Disable a plugin."""
         if not args:
             logger.error("Usage: plugin disable <plugin_name>")
@@ -292,7 +298,7 @@ class PluginCLI:
         else:
             logger.error(f"Failed to disable plugin '{plugin_name}'.")
 
-    async def cmd_update(self, args: List[str]):
+    async def cmd_update(self, args: list[str]):
         """Update a plugin."""
         if not args:
             logger.error("Usage: plugin update <plugin_name>")
@@ -301,7 +307,7 @@ class PluginCLI:
         result = await self.plugin_manager.update_plugin(plugin_name)
         logger.info(result.get("message"))
 
-    async def cmd_check_updates(self, args: List[str]):
+    async def cmd_check_updates(self, args: list[str]):
         """Check for plugin updates."""
         target = args[0] if args else None
         result = await self.plugin_manager.check_for_updates(target)
@@ -315,7 +321,7 @@ class PluginCLI:
     # Security / Permissions
     # ----------------------
 
-    async def cmd_permissions(self, args: List[str]):
+    async def cmd_permissions(self, args: list[str]):
         """List permissions for a plugin or all pending requests.
         Usage: plugin permissions <plugin_name>
                plugin permissions pending
@@ -345,7 +351,7 @@ class PluginCLI:
         logger.info(f"  Pending: {[p.get('permission_type') for p in perms.get('pending_requests', [])]}")
         logger.info(f"  Quarantined: {perms.get('is_quarantined', False)}")
 
-    async def cmd_request_permission(self, args: List[str]):
+    async def cmd_request_permission(self, args: list[str]):
         """Request a permission for a plugin.
         Usage: plugin request-permission <plugin_name> <permission> [justification...]
         """
@@ -362,7 +368,7 @@ class PluginCLI:
         else:
             logger.error("Security manager does not support permission requests in this environment.")
 
-    async def cmd_approve_permission(self, args: List[str]):
+    async def cmd_approve_permission(self, args: list[str]):
         """Approve a permission request.
         Usage: plugin approve-permission <plugin_name> <permission> [expires_days]
         """
@@ -390,7 +396,7 @@ class PluginCLI:
             except Exception as e:
                 logger.error(f"Security manager cannot approve permissions: {e}")
 
-    async def cmd_deny_permission(self, args: List[str]):
+    async def cmd_deny_permission(self, args: list[str]):
         """Deny a permission request.
         Usage: plugin deny-permission <plugin_name> <permission>
         """
@@ -412,7 +418,7 @@ class PluginCLI:
         else:
             logger.error("Security manager does not support denying permissions in this environment.")
 
-    async def cmd_view_security(self, args: List[str]):
+    async def cmd_view_security(self, args: list[str]):
         """View security summary or plugin-specific security status.
         Usage: plugin view-security [plugin_name]
         """
@@ -439,7 +445,7 @@ class PluginCLI:
         except Exception as e:
             logger.error(f"Failed to get plugin security info: {e}")
 
-    async def cmd_quarantine(self, args: List[str]):
+    async def cmd_quarantine(self, args: list[str]):
         """Quarantine a plugin due to security concerns.
         Usage: plugin quarantine <plugin_name> <reason...>
         """
@@ -454,7 +460,7 @@ class PluginCLI:
         else:
             logger.error("Security manager does not support quarantining in this environment.")
 
-    async def cmd_release(self, args: List[str]):
+    async def cmd_release(self, args: list[str]):
         """Release a plugin from quarantine.
         Usage: plugin release <plugin_name>
         """
@@ -473,7 +479,7 @@ class PluginCLI:
         else:
             logger.error("Security manager does not support release operation in this environment.")
 
-    async def cmd_sandbox_status(self, args: List[str]):
+    async def cmd_sandbox_status(self, args: list[str]):
         """Show sandbox status for a plugin. This will create/inspect the sandbox.
         Usage: plugin sandbox-status <plugin_name>
         """
@@ -501,7 +507,7 @@ class PluginCLI:
         else:
             logger.error("Sandboxing APIs are not available in this environment.")
 
-    async def cmd_set_policy(self, args: List[str]):
+    async def cmd_set_policy(self, args: list[str]):
         """Set a simple security policy for a plugin.
         Usage: plugin set-policy <plugin_name> key=value [key2=value2 ...]
         Example: plugin set-policy example max_memory_bytes=104857600 max_cpu_percent=5.0
@@ -535,7 +541,7 @@ class PluginCLI:
         else:
             logger.error("Security manager does not support policy updates in this environment.")
 
-    async def cmd_audit(self, args: List[str]):
+    async def cmd_audit(self, args: list[str]):
         """Show recent audit events.
         Usage: plugin audit [limit]
         """
@@ -553,7 +559,7 @@ class PluginCLI:
             logger.info(f"- {ev.get('timestamp', ev.get('time', ''))} {ev.get('event', ev.get('event_type', ''))} Plugin: {ev.get('plugin')} Details: {ev}")
 
     # Main dispatcher
-    async def execute_command(self, command: str, args: List[str]):
+    async def execute_command(self, command: str, args: list[str]):
         """Execute a plugin CLI command."""
         commands = {
             "list": self.cmd_list,
@@ -586,7 +592,7 @@ class PluginCLI:
 # Entry point helper
 # ---------------------------------------------------------------------------
 
-async def handle_plugin_command(args: List[str]):
+async def handle_plugin_command(args: list[str]):
     """Handle plugin CLI commands."""
     if not args:
         logger.info("Usage: plugin <command> [args...]")

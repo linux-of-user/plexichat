@@ -1,9 +1,9 @@
-import threading
-import time
 from collections import deque
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Any, Dict, Optional
+import threading
+import time
+from typing import Any
 
 try:
     import keyboard
@@ -48,10 +48,10 @@ class LogEntry:
     module: str
     message: str
     thread_id: str
-    request_id: Optional[str] = None
-    user_id: Optional[str] = None
-    duration: Optional[float] = None
-    extra_data: Optional[Dict[str, Any]] = None
+    request_id: str | None = None
+    user_id: str | None = None
+    duration: float | None = None
+    extra_data: dict[str, Any] | None = None
 
 @dataclass
 class SystemMetrics:
@@ -72,7 +72,7 @@ class EnhancedSplitScreen:
         self.logger = logger or logging.getLogger(__name__)
         self.console = Console() if RICH_AVAILABLE else None
         self.layout = self._create_enhanced_layout() if RICH_AVAILABLE else None
-        self.live_display: Optional[Live] = None
+        self.live_display: Live | None = None
         self.active = False
         self.update_thread = None
         self.log_buffer = deque(maxlen=1000)
@@ -111,7 +111,7 @@ class EnhancedSplitScreen:
             self.live_display.stop()
         self.logger.info("Enhanced split-screen interface stopped.")
 
-    def _create_enhanced_layout(self) -> Optional[Layout]:
+    def _create_enhanced_layout(self) -> Layout | None:
         """Create the enhanced split-screen layout."""
         if not RICH_AVAILABLE:
             return None
@@ -198,7 +198,7 @@ class EnhancedSplitScreen:
         elif level.upper() == 'WARNING':
             self.stats['warnings'] += 1
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get current statistics."""
         self.stats['uptime_seconds'] = (datetime.now() - self.stats['start_time']).total_seconds()
         return self.stats

@@ -3,14 +3,15 @@
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
+from collections.abc import Callable
+from datetime import UTC, datetime, timedelta
 import logging
 import traceback
-from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, Callable
+from typing import Any
 
 try:
-    from apscheduler.schedulers.background import BackgroundScheduler
     from apscheduler.events import EVENT_JOB_ERROR, EVENT_JOB_EXECUTED
+    from apscheduler.schedulers.background import BackgroundScheduler
     APSCHEDULER_AVAILABLE = True
 except ImportError:
     APSCHEDULER_AVAILABLE = False
@@ -108,7 +109,7 @@ class TaskScheduler:
                 logger.error(f"Failed to remove task {task_id}: {e}")
         return False
 
-    def get_task_status(self, task_id: str) -> Dict[str, Any]:
+    def get_task_status(self, task_id: str) -> dict[str, Any]:
         """Get status of a specific task."""
         if not self.scheduler:
             return {"status": "SCHEDULER_NOT_RUNNING"}
@@ -126,7 +127,7 @@ class TaskScheduler:
         except Exception as e:
             return {"status": "ERROR", "error": str(e)}
 
-    def get_all_tasks(self) -> Dict[str, Any]:
+    def get_all_tasks(self) -> dict[str, Any]:
         """Get status of all tasks."""
         if not self.scheduler:
             return {"status": "SCHEDULER_NOT_RUNNING", "tasks": {}}
@@ -156,7 +157,7 @@ def schedule_task(func: Callable, trigger: str = 'interval', minutes: int = 5, *
         return func
     return decorator
 
-def run_comprehensive_self_tests() -> Dict[str, Any]:
+def run_comprehensive_self_tests() -> dict[str, Any]:
     """Run comprehensive self-test suite with enhanced reporting."""
     global _failure_count, _last_success_time
 
@@ -164,7 +165,7 @@ def run_comprehensive_self_tests() -> Dict[str, Any]:
         selftest_logger.info("Self-tests are disabled")
         return {"status": "DISABLED", "message": "Self-tests disabled in configuration"}
 
-    start_time = datetime.now(timezone.utc)
+    start_time = datetime.now(UTC)
     selftest_logger.info("=" * 60)
     selftest_logger.info("STARTING COMPREHENSIVE SELF-TEST SUITE")
     selftest_logger.info("=" * 60)
@@ -265,7 +266,7 @@ def start_scheduler():
             run_comprehensive_self_tests,
             'interval',
             minutes=interval_minutes,
-            next_run_time=datetime.now(timezone.utc) + initial_delay,
+            next_run_time=datetime.now(UTC) + initial_delay,
             id='comprehensive_selftest_job',
             max_instances=1,  # Prevent overlapping executions
             coalesce=True,    # Combine missed executions
@@ -306,7 +307,7 @@ def stop_scheduler():
         except Exception as e:
             logger.error("Error stopping self-test scheduler: %s", e)
 
-def get_scheduler_status() -> Dict[str, Any]:
+def get_scheduler_status() -> dict[str, Any]:
     """Get current scheduler status and statistics."""
     global _scheduler, _failure_count, _last_success_time
 

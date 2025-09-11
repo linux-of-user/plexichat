@@ -4,12 +4,16 @@ Chat Export API Router
 Provides endpoints for exporting chat messages in various formats.
 """
 
+from datetime import UTC, datetime
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
-from datetime import datetime, timezone
-from typing import Optional
 
-from plexichat.core.services.chat_export_service import get_chat_export_service, ExportOptions
+from plexichat.core.services.chat_export_service import (
+    ExportOptions,
+    get_chat_export_service,
+)
+
 
 # Mock user dependency - replace with actual auth
 def get_current_user():
@@ -21,8 +25,8 @@ router = APIRouter(prefix="/export", tags=["Export"])
 async def export_channel_messages(
     channel_id: str,
     format: str = Query(..., description="Export format: json, csv, txt, html"),
-    start_date: Optional[str] = Query(None, description="Start date in ISO format (YYYY-MM-DDTHH:MM:SS)"),
-    end_date: Optional[str] = Query(None, description="End date in ISO format (YYYY-MM-DDTHH:MM:SS)"),
+    start_date: str | None = Query(None, description="Start date in ISO format (YYYY-MM-DDTHH:MM:SS)"),
+    end_date: str | None = Query(None, description="End date in ISO format (YYYY-MM-DDTHH:MM:SS)"),
     include_attachments: bool = Query(False, description="Include attachment information"),
     include_reactions: bool = Query(True, description="Include reaction information"),
     include_threads: bool = Query(False, description="Include thread information"),
@@ -42,7 +46,7 @@ async def export_channel_messages(
             try:
                 start_datetime = datetime.fromisoformat(start_date.replace('Z', '+00:00'))
                 if start_datetime.tzinfo is None:
-                    start_datetime = start_datetime.replace(tzinfo=timezone.utc)
+                    start_datetime = start_datetime.replace(tzinfo=UTC)
             except ValueError:
                 raise HTTPException(status_code=400, detail="Invalid start_date format. Use ISO format: YYYY-MM-DDTHH:MM:SS")
 
@@ -50,7 +54,7 @@ async def export_channel_messages(
             try:
                 end_datetime = datetime.fromisoformat(end_date.replace('Z', '+00:00'))
                 if end_datetime.tzinfo is None:
-                    end_datetime = end_datetime.replace(tzinfo=timezone.utc)
+                    end_datetime = end_datetime.replace(tzinfo=UTC)
             except ValueError:
                 raise HTTPException(status_code=400, detail="Invalid end_date format. Use ISO format: YYYY-MM-DDTHH:MM:SS")
 
@@ -119,7 +123,7 @@ async def export_channel_messages(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Export failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Export failed: {e!s}")
 
 @router.get("/formats")
 async def get_supported_formats():
@@ -211,7 +215,7 @@ async def preview_channel_export(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Preview failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Preview failed: {e!s}")
 
 if __name__ == '__main__':
     # Example of how to run this API with uvicorn

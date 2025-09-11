@@ -10,19 +10,18 @@ This module implements a comprehensive WAF middleware that provides:
 - Pattern matching for common attack vectors
 """
 
+from dataclasses import dataclass, field
+from enum import Enum
 import hashlib
 import ipaddress
 import json
 import re
 import time
-from dataclasses import dataclass, field
-from enum import Enum
-from typing import Dict, List, Optional, Set, Tuple
 from urllib.parse import unquote
 
-import httpx
 from fastapi import Request, Response
 from fastapi.responses import JSONResponse
+import httpx
 
 
 class ThreatLevel(Enum):
@@ -63,9 +62,9 @@ class WAFConfig:
     rate_limit_window: int = 60  # seconds
     block_malicious_ips: bool = True
     log_all_requests: bool = False
-    whitelist_ips: Set[str] = field(default_factory=set)
-    blacklist_ips: Set[str] = field(default_factory=set)
-    threat_intel_api_key: Optional[str] = None
+    whitelist_ips: set[str] = field(default_factory=set)
+    blacklist_ips: set[str] = field(default_factory=set)
+    threat_intel_api_key: str | None = None
     threat_intel_timeout: int = 5  # seconds
     enable_learning_mode: bool = False  # Log but don't block
 
@@ -171,10 +170,10 @@ class IPReputationChecker:
 
     def __init__(self, config: WAFConfig):
         self.config = config
-        self.cache: Dict[str, Tuple[bool, float]] = {}
+        self.cache: dict[str, tuple[bool, float]] = {}
         self.cache_ttl = 3600  # 1 hour
 
-    async def check_ip_reputation(self, ip: str) -> Tuple[bool, int]:
+    async def check_ip_reputation(self, ip: str) -> tuple[bool, int]:
         """
         Check IP reputation against threat intelligence sources
         Returns (is_malicious, confidence_score)
@@ -210,7 +209,7 @@ class IPReputationChecker:
 
         return is_malicious, score
 
-    async def _query_threat_intelligence(self, ip: str) -> Tuple[bool, int]:
+    async def _query_threat_intelligence(self, ip: str) -> tuple[bool, int]:
         """Query external threat intelligence APIs"""
         if not self.config.threat_intel_api_key:
             return False, 0
@@ -238,7 +237,7 @@ class IPReputationChecker:
                     is_malicious = confidence >= self.config.ip_reputation_threshold
                     return is_malicious, confidence
 
-        except Exception as e:
+        except Exception:
             # Log error but don't block on API failure
             pass
 
@@ -250,7 +249,7 @@ class RateLimiter:
 
     def __init__(self, config: WAFConfig):
         self.config = config
-        self.requests: Dict[str, List[float]] = {}
+        self.requests: dict[str, list[float]] = {}
 
     def is_rate_limited(self, ip: str) -> bool:
         """Check if IP is rate limited"""
@@ -364,7 +363,7 @@ class WAFMiddleware:
 
         except Exception as e:
             # Log error and allow request to proceed
-            await self._log_error(f"WAF middleware error: {str(e)}")
+            await self._log_error(f"WAF middleware error: {e!s}")
             return await call_next(request)
 
     def _get_client_ip(self, request: Request) -> str:
@@ -383,7 +382,7 @@ class WAFMiddleware:
         # Fall back to direct client IP
         return request.client.host if request.client else "unknown"
 
-    def _check_suspicious_headers(self, request: Request) -> Optional[ThreatDetection]:
+    def _check_suspicious_headers(self, request: Request) -> ThreatDetection | None:
         """Check for suspicious headers"""
         for header_name in self.attack_patterns.SUSPICIOUS_HEADERS:
             if header_name in request.headers:
@@ -400,7 +399,7 @@ class WAFMiddleware:
 
     async def _analyze_request_content(
         self, request: Request
-    ) -> Optional[ThreatDetection]:
+    ) -> ThreatDetection | None:
         """Analyze request content for attack patterns"""
         try:
             # Get request body
@@ -435,13 +434,13 @@ class WAFMiddleware:
 
         except Exception as e:
             # Log error but don't block request
-            await self._log_error(f"Error analyzing request content: {str(e)}")
+            await self._log_error(f"Error analyzing request content: {e!s}")
 
         return None
 
     def _check_attack_patterns(
         self, content: str, content_type: str
-    ) -> Optional[ThreatDetection]:
+    ) -> ThreatDetection | None:
         """Check content against attack patterns"""
         # SQL Injection
         for pattern in self.attack_patterns.SQL_INJECTION_PATTERNS:
@@ -650,9 +649,9 @@ def create_waf_middleware(
     max_payload_size: int = 10 * 1024 * 1024,
     ip_reputation_enabled: bool = True,
     rate_limiting_enabled: bool = True,
-    threat_intel_api_key: Optional[str] = None,
-    whitelist_ips: Optional[List[str]] = None,
-    blacklist_ips: Optional[List[str]] = None,
+    threat_intel_api_key: str | None = None,
+    whitelist_ips: list[str] | None = None,
+    blacklist_ips: list[str] | None = None,
     enable_learning_mode: bool = False,
 ) -> WAFMiddleware:
     """

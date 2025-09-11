@@ -5,11 +5,11 @@ PlexiChat API v1 Router
 Core API endpoints for user management, messages, files, and admin operations.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from typing import List, Optional
-from pydantic import BaseModel
 import logging
+
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
 
@@ -36,12 +36,12 @@ class Message(BaseModel):
     id: int
     content: str
     sender_id: int
-    recipient_id: Optional[int] = None
+    recipient_id: int | None = None
     timestamp: str
 
 class MessageCreate(BaseModel):
     content: str
-    recipient_id: Optional[int] = None
+    recipient_id: int | None = None
 
 class FileUpload(BaseModel):
     filename: str
@@ -82,7 +82,7 @@ async def get_user(user_id: int):
         raise HTTPException(status_code=404, detail="User not found")
     return user
 
-@v1_router.get("/users", response_model=List[User])
+@v1_router.get("/users", response_model=list[User])
 async def list_users(skip: int = 0, limit: int = 100):
     """List all users."""
     return users_db[skip:skip + limit]
@@ -100,7 +100,7 @@ async def create_user(user: UserCreate):
     return new_user
 
 # Message endpoints
-@v1_router.get("/messages", response_model=List[Message])
+@v1_router.get("/messages", response_model=list[Message])
 async def get_messages(skip: int = 0, limit: int = 100):
     """Get all messages."""
     return messages_db[skip:skip + limit]
@@ -118,7 +118,7 @@ async def create_message(message: MessageCreate, current_user: dict = Depends(ge
     """Create a new message."""
     if not current_user:
         raise HTTPException(status_code=401, detail="Not authenticated")
-    
+
     new_message = {
         "id": len(messages_db) + 1,
         "content": message.content,
@@ -203,7 +203,7 @@ async def get_user_root(user_id: int):
         raise HTTPException(status_code=404, detail="User not found")
     return user
 
-@root_router.get("/users", response_model=List[User])
+@root_router.get("/users", response_model=list[User])
 async def list_users_root(skip: int = 0, limit: int = 100):
     """List all users at root level."""
     return users_db[skip:skip + limit]
@@ -220,7 +220,7 @@ async def create_user_root(user: UserCreate):
     users_db.append(new_user)
     return new_user
 
-@root_router.get("/messages", response_model=List[Message])
+@root_router.get("/messages", response_model=list[Message])
 async def get_messages_root(skip: int = 0, limit: int = 100):
     """Get all messages at root level."""
     return messages_db[skip:skip + limit]
@@ -238,7 +238,7 @@ async def create_message_root(message: MessageCreate, current_user: dict = Depen
     """Create a new message at root level."""
     if not current_user:
         raise HTTPException(status_code=401, detail="Not authenticated")
-    
+
     new_message = {
         "id": len(messages_db) + 1,
         "content": message.content,

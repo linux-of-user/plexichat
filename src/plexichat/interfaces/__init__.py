@@ -5,8 +5,8 @@ PlexiChat Interface Layer - Clean Recreated Version
 - Ensures webui and gui both use the CLI from interfaces/cli
 """
 
-from typing import Dict
 import importlib
+from typing import Dict
 
 from plexichat.core.logging import get_logger
 
@@ -14,7 +14,7 @@ logger = get_logger(__name__)
 
 class InterfaceManager:
     def __init__(self):
-        self.interfaces: Dict[str, bool] = {}
+        self.interfaces: dict[str, bool] = {}
 
     def register_interface(self, name: str, status: bool = True):
         self.interfaces[name] = status
@@ -64,9 +64,9 @@ def webui_available() -> bool:
     return interface_manager.is_available("webui")
 
 __all__ = [
-    "interface_manager",
-    "web_available",
     "cli_available",
     "gui_available",
+    "interface_manager",
+    "web_available",
     "webui_available",
 ]

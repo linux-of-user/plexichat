@@ -3,10 +3,10 @@ Message Threads Service
 Handles database operations and business logic for message threads.
 """
 
-import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Set, Tuple
+from datetime import UTC, datetime
+import logging
+from typing import Any
 from uuid import uuid4
 
 from plexichat.core.database.manager import database_manager
@@ -23,14 +23,14 @@ class Thread:
     title: str
     channel_id: str
     creator_id: str
-    parent_message_id: Optional[str] = None
+    parent_message_id: str | None = None
     is_resolved: bool = False
     participant_count: int = 1
     message_count: int = 0
-    last_message_at: Optional[datetime] = None
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    participants: Set[str] = field(default_factory=set)
+    last_message_at: datetime | None = None
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    participants: set[str] = field(default_factory=set)
 
 
 class MessageThreadsService(BaseService):
@@ -41,8 +41,8 @@ class MessageThreadsService(BaseService):
     def __init__(self):
         super().__init__("message_threads")
         self.dependencies.add("database")
-        self._cache: Dict[str, Thread] = {}
-        self._channel_threads_cache: Dict[str, List[str]] = {}
+        self._cache: dict[str, Thread] = {}
+        self._channel_threads_cache: dict[str, list[str]] = {}
 
     async def start(self) -> bool:
         """Start the message threads service."""
@@ -138,7 +138,7 @@ class MessageThreadsService(BaseService):
 
     async def create_thread(
         self, parent_message_id: str, title: str, creator_id: str
-    ) -> Tuple[bool, str, Optional[Thread]]:
+    ) -> tuple[bool, str, Thread | None]:
         """
         Create a new thread.
 
@@ -147,7 +147,7 @@ class MessageThreadsService(BaseService):
         """
         try:
             thread_id = str(uuid4())
-            now = datetime.now(timezone.utc)
+            now = datetime.now(UTC)
 
             thread = Thread(
                 thread_id=thread_id,
@@ -181,9 +181,9 @@ class MessageThreadsService(BaseService):
 
         except Exception as e:
             logger.error(f"Failed to create thread: {e}")
-            return False, f"Database error: {str(e)}", None
+            return False, f"Database error: {e!s}", None
 
-    async def get_thread(self, thread_id: str) -> Optional[Thread]:
+    async def get_thread(self, thread_id: str) -> Thread | None:
         """Get a thread by ID."""
         # Check cache first
         if thread_id in self._cache:
@@ -208,7 +208,7 @@ class MessageThreadsService(BaseService):
 
     async def add_reply(
         self, thread_id: str, message_content: str, user_id: str
-    ) -> Tuple[bool, str]:
+    ) -> tuple[bool, str]:
         """
         Add a reply to a thread.
 
@@ -217,7 +217,7 @@ class MessageThreadsService(BaseService):
         """
         try:
             reply_id = str(uuid4())
-            now = datetime.now(timezone.utc)
+            now = datetime.now(UTC)
 
             # Insert into thread_replies table
             async with database_manager.get_session() as session:
@@ -252,11 +252,11 @@ class MessageThreadsService(BaseService):
 
         except Exception as e:
             logger.error(f"Failed to add reply to thread {thread_id}: {e}")
-            return False, f"Database error: {str(e)}"
+            return False, f"Database error: {e!s}"
 
     async def get_thread_replies(
         self, thread_id: str, limit: int = 50, offset: int = 0
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Get replies for a thread.
 
@@ -304,7 +304,7 @@ class MessageThreadsService(BaseService):
             Success boolean
         """
         try:
-            now = datetime.now(timezone.utc)
+            now = datetime.now(UTC)
 
             async with database_manager.get_session() as session:
                 await session.execute(
@@ -372,7 +372,7 @@ class MessageThreadsService(BaseService):
             logger.error(f"Failed to delete thread {thread_id}: {e}")
             return False
 
-    async def get_channel_threads(self, channel_id: str) -> List[Thread]:
+    async def get_channel_threads(self, channel_id: str) -> list[Thread]:
         """Get all threads in a channel."""
         try:
             # For now, return all threads since we don't have a messages table
@@ -399,7 +399,7 @@ class MessageThreadsService(BaseService):
     async def resolve_thread(self, thread_id: str) -> bool:
         """Mark a thread as resolved (archived)."""
         try:
-            now = datetime.now(timezone.utc)
+            now = datetime.now(UTC)
             async with database_manager.get_session() as session:
                 await session.execute(
                     """
@@ -425,14 +425,14 @@ class MessageThreadsService(BaseService):
     async def archive_old_threads(self, days_old: int = 30) -> int:
         """Archive threads older than specified days."""
         try:
-            cutoff_date = datetime.now(timezone.utc).replace(
+            cutoff_date = datetime.now(UTC).replace(
                 hour=0, minute=0, second=0, microsecond=0
             )
             cutoff_date = cutoff_date.replace(day=cutoff_date.day - days_old)
 
             async with database_manager.get_session() as session:
                 # Mark old archived threads
-                now = datetime.now(timezone.utc)
+                now = datetime.now(UTC)
                 result = await session.execute(
                     """
                     UPDATE message_threads
@@ -457,7 +457,7 @@ class MessageThreadsService(BaseService):
             logger.error(f"Failed to archive old threads: {e}")
             return 0
 
-    async def get_thread_participants(self, thread_id: str) -> Set[str]:
+    async def get_thread_participants(self, thread_id: str) -> set[str]:
         """Get thread participants from replies."""
         try:
             async with database_manager.get_session() as session:
@@ -494,7 +494,7 @@ class MessageThreadsService(BaseService):
 
     async def search_threads(
         self, channel_id: str, query: str, limit: int = 20
-    ) -> List[Thread]:
+    ) -> list[Thread]:
         """Search threads by title in a channel."""
         try:
             async with database_manager.get_session() as session:
@@ -533,4 +533,4 @@ def get_message_threads_service() -> MessageThreadsService:
     return _message_threads_service
 
 
-__all__ = ["MessageThreadsService", "get_message_threads_service", "Thread"]
+__all__ = ["MessageThreadsService", "Thread", "get_message_threads_service"]

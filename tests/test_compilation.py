@@ -9,7 +9,6 @@ import hashlib
 import time
 from typing import List, Dict, Any
 import pytest
-from pytest_benchmark import fixture, benchmark
 
 import plexichat.core.services.message_service as message_service
 from plexichat.core.clustering.cluster_manager import (

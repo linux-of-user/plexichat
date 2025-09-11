@@ -73,17 +73,17 @@ else:
 
 
 __all__ = [
-    "EventManager",
     "Event",
     "EventHandler",
+    "EventManager",
     "EventPriority",
-    "event_manager",
     "emit_event",
+    "event_handler",
+    "event_manager",
+    "get_events",
+    "global_event_handler",
     "register_event_handler",
     "unregister_event_handler",
-    "get_events",
-    "event_handler",
-    "global_event_handler",
 ]
 
 from plexichat.core.utils.fallbacks import get_module_version

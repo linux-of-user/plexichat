@@ -24,49 +24,49 @@ logger = get_logger(__name__)
 try:
     from plexichat.core.config import get_config
 
-    config: Optional[Any] = get_config()
+    config: Any | None = get_config()
 except ImportError:
-    config: Optional[Any] = None
+    config: Any | None = None
     logger.warning("Configuration system not available")
 
 try:
     from plexichat.core.security import get_security_manager
 
-    security_manager: Optional[Any] = get_security_manager()
+    security_manager: Any | None = get_security_manager()
 except ImportError:
-    security_manager: Optional[Any] = None
+    security_manager: Any | None = None
     logger.warning("Security system not available")
 
 try:
     from plexichat.core.authentication import get_auth_manager
 
-    auth_manager: Optional[Any] = get_auth_manager()
+    auth_manager: Any | None = get_auth_manager()
 except ImportError:
-    auth_manager: Optional[Any] = None
+    auth_manager: Any | None = None
     logger.warning("Authentication system not available")
 
 try:
     from plexichat.core.database import get_database_manager
 
-    database_manager: Optional[Any] = get_database_manager()
+    database_manager: Any | None = get_database_manager()
 except ImportError:
-    database_manager: Optional[Any] = None
+    database_manager: Any | None = None
     logger.warning("Database system not available")
 
 try:
     from plexichat.core.errors.manager import get_error_manager
 
-    error_manager: Optional[Any] = get_error_manager()
+    error_manager: Any | None = get_error_manager()
 except ImportError:
-    error_manager: Optional[Any] = None
+    error_manager: Any | None = None
     logger.warning("Error handling system not available")
 
 try:
     from plexichat.core.services import get_service_manager
 
-    service_manager: Optional[Any] = get_service_manager()
+    service_manager: Any | None = get_service_manager()
 except ImportError:
-    service_manager: Optional[Any] = None
+    service_manager: Any | None = None
     logger.warning("Service management system not available")
 
 
@@ -74,8 +74,8 @@ class CoreManager:
     """Enhanced core manager using consolidated systems."""
 
     def __init__(self):
-        self.components: Dict[str, bool] = {}
-        self.managers: Dict[str, Optional[Any]] = {
+        self.components: dict[str, bool] = {}
+        self.managers: dict[str, Any | None] = {
             "config": config,
             "security": security_manager,
             "auth": auth_manager,
@@ -96,7 +96,7 @@ class CoreManager:
         """Check if component is available."""
         return self.components.get(name, False)
 
-    def get_status(self) -> Dict[str, Any]:
+    def get_status(self) -> dict[str, Any]:
         """Get core status."""
         return {
             "components": self.components.copy(),
@@ -112,7 +112,7 @@ class CoreManager:
             ),
         }
 
-    def get_manager(self, name: str) -> Optional[Any]:
+    def get_manager(self, name: str) -> Any | None:
         """Get a specific manager."""
         return self.managers.get(name)
 
@@ -351,12 +351,12 @@ import_core_modules()
 
 # Export commonly used items
 __all__ = [
-    "core_manager",
-    "config_available",
-    "logging_available",
-    "exceptions_available",
     "auth_available",
+    "config_available",
+    "core_manager",
     "database_available",
+    "exceptions_available",
+    "logging_available",
 ]
 
 # Version info

@@ -4,15 +4,14 @@
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
 import asyncio
+from dataclasses import asdict, dataclass, field
+from datetime import UTC, datetime
+from enum import Enum
 import logging
 import time
-from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
-from enum import Enum
-from typing import Any, Dict, List, Optional, Set
+from typing import Any
 
 import aiohttp
-
 
 """
 PlexiChat Microservices Service Registry
@@ -63,17 +62,17 @@ class ServiceEndpoint:
     version: str = "1.0.0"
     status: ServiceStatus = ServiceStatus.STARTING
     health_check_url: str = "/health"
-    metadata: Dict[str, Any] = field(default_factory=dict)
-    tags: Set[str] = field(default_factory=set)
+    metadata: dict[str, Any] = field(default_factory=dict)
+    tags: set[str] = field(default_factory=set)
 
     # Health monitoring
-    last_health_check: Optional[datetime] = None
+    last_health_check: datetime | None = None
     consecutive_failures: int = 0
     response_time_ms: float = 0.0
 
     # Registration info
-    registered_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    last_heartbeat: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    registered_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    last_heartbeat: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     @property
     def base_url(self) -> str:
@@ -89,7 +88,7 @@ class ServiceEndpoint:
         """Check if service is considered healthy."""
         return self.status == ServiceStatus.HEALTHY and self.consecutive_failures < 3
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         data = asdict(self)
         data["service_type"] = self.service_type.value
@@ -116,8 +115,8 @@ class ServiceRegistry:
     - Distributed consensus for HA
     """
     def __init__(self):
-        self.services: Dict[str, ServiceEndpoint] = {}
-        self.service_groups: Dict[ServiceType, List[str]] = {}
+        self.services: dict[str, ServiceEndpoint] = {}
+        self.service_groups: dict[ServiceType, list[str]] = {}
         self.health_check_interval = 30  # seconds
         self.health_check_timeout = 5  # seconds
         self.max_consecutive_failures = 3
@@ -133,7 +132,7 @@ class ServiceRegistry:
         }
 
         # Event callbacks
-        self.event_callbacks: Dict[str, List[callable]] = {
+        self.event_callbacks: dict[str, list[callable]] = {
             "service_registered": [],
             "service_deregistered": [],
             "service_health_changed": [],
@@ -141,7 +140,7 @@ class ServiceRegistry:
         }
 
         self.running = False
-        self.health_check_task: Optional[asyncio.Task] = None
+        self.health_check_task: asyncio.Task | None = None
 
         # Initialize service groups
         for service_type in ServiceType:
@@ -233,10 +232,10 @@ class ServiceRegistry:
 
     async def discover_services(
         self,
-        service_type: Optional[ServiceType] = None,
-        tags: Optional[Set[str]] = None,
+        service_type: ServiceType | None = None,
+        tags: set[str] | None = None,
         healthy_only: bool = True,
-    ) -> List[ServiceEndpoint]:
+    ) -> list[ServiceEndpoint]:
         """Discover services by type and tags."""
         services = []
 
@@ -260,11 +259,11 @@ class ServiceRegistry:
 
         return services
 
-    async def get_service(self, service_id: str) -> Optional[ServiceEndpoint]:
+    async def get_service(self, service_id: str) -> ServiceEndpoint | None:
         """Get a specific service by ID."""
         return self.services.get(service_id)
 
-    async def get_service_by_name(self, service_name: str) -> Optional[ServiceEndpoint]:
+    async def get_service_by_name(self, service_name: str) -> ServiceEndpoint | None:
         """Get a service by name."""
         for service in self.services.values():
             if service.service_name == service_name:
@@ -274,7 +273,7 @@ class ServiceRegistry:
     async def update_service_heartbeat(self, service_id: str) -> bool:
         """Update service heartbeat."""
         if service_id in self.services:
-            self.services[service_id].last_heartbeat = datetime.now(timezone.utc)
+            self.services[service_id].last_heartbeat = datetime.now(UTC)
             return True
         return False
 
@@ -319,7 +318,7 @@ class ServiceRegistry:
                 async with session.get(service.health_url) as response:
                     response_time = (time.time() - start_time) * 1000  # Convert to ms
                     service.response_time_ms = response_time
-                    service.last_health_check = datetime.now(timezone.utc)
+                    service.last_health_check = datetime.now(UTC)
 
                     if response.status == 200:
                         # Service is healthy
@@ -335,7 +334,7 @@ class ServiceRegistry:
                             service, f"HTTP {response.status}"
                         )
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             await self._handle_service_failure(service, "Health check timeout")
         except Exception as e:
             await self._handle_service_failure(service, str(e))
@@ -345,7 +344,7 @@ class ServiceRegistry:
     async def _handle_service_failure(self, service: ServiceEndpoint, error: str):
         """Handle service health check failure."""
         service.consecutive_failures += 1
-        service.last_health_check = datetime.now(timezone.utc)
+        service.last_health_check = datetime.now(UTC)
 
         old_status = service.status
 
@@ -413,7 +412,7 @@ class ServiceRegistry:
             self.event_callbacks[event_type] = []
         self.event_callbacks[event_type].append(callback)
 
-    def get_registry_status(self) -> Dict[str, Any]:
+    def get_registry_status(self) -> dict[str, Any]:
         """Get comprehensive registry status."""
         service_types_count = {}
         for service_type, service_ids in self.service_groups.items():
@@ -433,7 +432,7 @@ class ServiceRegistry:
             "statistics": self.stats,
             "service_types": service_types_count,
             "health_check_interval": self.health_check_interval,
-            "last_updated": datetime.now(timezone.utc).isoformat(),
+            "last_updated": datetime.now(UTC).isoformat(),
         }
 
 

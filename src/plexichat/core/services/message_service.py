@@ -5,11 +5,12 @@ so features stay consistent across interfaces. No features are removed.
 from __future__ import annotations
 
 import asyncio
-import logging
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+import logging
+from typing import Any
 
 from plexichat.infrastructure.utils.compilation import optimizer
+
 from .message_checksum import calculate_checksum
 
 logger = logging.getLogger(__name__)
@@ -17,10 +18,10 @@ logger = logging.getLogger(__name__)
 @dataclass
 class Message:
     content: str
-    sender: Optional[str] = None
-    channel: Optional[str] = None
+    sender: str | None = None
+    channel: str | None = None
     message_type: str = "text"
-    flags: Optional[List[str]] = None
+    flags: list[str] | None = None
 
     async def checksum(self) -> str:
         """Async wrapper for optimized checksum calculation."""
@@ -48,7 +49,7 @@ class MessageService:
     def __init__(self) -> None:
         self._history_enabled = True
 
-    def format_message(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def format_message(self, data: dict[str, Any]) -> dict[str, Any]:
         content = str(data.get("content", ""))
         sender = data.get("sender")
         channel = data.get("channel")
@@ -66,7 +67,7 @@ class MessageService:
         logger.debug("Formatted message: %s", result)
         return result
 
-    async def save_if_enabled(self, formatted: Dict[str, Any]) -> None:
+    async def save_if_enabled(self, formatted: dict[str, Any]) -> None:
         if not self._history_enabled:
             return
         # Hook for persistence; safe no-op default to avoid feature loss

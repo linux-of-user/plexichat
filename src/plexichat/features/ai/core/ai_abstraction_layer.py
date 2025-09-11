@@ -10,15 +10,15 @@ Provides a unified interface for AI providers with:
 - Configuration management
 """
 
-import hashlib
-import json
-import logging
-import time
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
+import hashlib
+import json
+import logging
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+import time
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -66,15 +66,15 @@ class AIModel:
     id: str
     name: str
     provider: AIProvider
-    capabilities: List[ModelCapability]
+    capabilities: list[ModelCapability]
     max_tokens: int = 4096
     cost_per_token: float = 0.0
-    context_window: Optional[int] = None
-    description: Optional[str] = None
-    version: Optional[str] = None
+    context_window: int | None = None
+    description: str | None = None
+    version: str | None = None
     status: ModelStatus = ModelStatus.AVAILABLE
-    last_updated: Optional[datetime] = None
-    last_checked: Optional[datetime] = None
+    last_updated: datetime | None = None
+    last_checked: datetime | None = None
 
     def __post_init__(self):
         """Post-initialization processing."""
@@ -90,12 +90,12 @@ class AIRequest:
     id: str = field(default_factory=lambda: hashlib.md5(f"{time.time()}".encode()).hexdigest())
     prompt: str = ""
     model_id: str = ""
-    user_id: Optional[str] = None
-    parameters: Optional[Dict[str, Any]] = None
-    context: Optional[str] = None
-    files: Optional[List[Dict]] = None
-    metadata: Optional[Dict[str, Any]] = None
-    timestamp: Optional[str] = None
+    user_id: str | None = None
+    parameters: dict[str, Any] | None = None
+    context: str | None = None
+    files: list[dict] | None = None
+    metadata: dict[str, Any] | None = None
+    timestamp: str | None = None
 
     def __post_init__(self):
         """Post-initialization processing."""
@@ -110,23 +110,23 @@ class AIResponse:
     content: str
     model_id: str
     provider: str
-    usage: Optional[Dict[str, Any]] = None
-    metadata: Optional[Dict[str, Any]] = None
+    usage: dict[str, Any] | None = None
+    metadata: dict[str, Any] | None = None
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
     status: str = "success"
-    error: Optional[str] = None
+    error: str | None = None
 
 
 class AIAccessControl:
     """AI access control and rate limiting."""
-    
+
     def __init__(self):
         """Initialize access control."""
-        self.user_permissions: Dict[str, List[str]] = {}
-        self.rate_limits: Dict[str, Dict] = {}
-        self.usage_tracking: Dict[str, Dict] = {}
+        self.user_permissions: dict[str, list[str]] = {}
+        self.rate_limits: dict[str, dict] = {}
+        self.usage_tracking: dict[str, dict] = {}
 
-    def has_permission(self, user_id: str, model_id: str, capabilities: List[ModelCapability]) -> bool:
+    def has_permission(self, user_id: str, model_id: str, capabilities: list[ModelCapability]) -> bool:
         """Check if user has permission to use model with capabilities."""
         # Simplified permission check
         return True  # Allow all for now
@@ -144,15 +144,15 @@ class AIAccessControl:
 
 class AIAbstractionLayer:
     """Main AI abstraction layer."""
-    
-    def __init__(self, config_path: Optional[str] = None):
+
+    def __init__(self, config_path: str | None = None):
         """Initialize AI abstraction layer."""
         self.config_path = Path(config_path) if config_path else Path("config/ai_config.json")
-        self.models: Dict[str, AIModel] = {}
-        self.providers: Dict[AIProvider, Any] = {}
+        self.models: dict[str, AIModel] = {}
+        self.providers: dict[AIProvider, Any] = {}
         self.access_control = AIAccessControl()
-        self.metrics: Dict = {}
-        
+        self.metrics: dict = {}
+
         # Load configuration
         self._load_configuration()
 
@@ -186,11 +186,11 @@ class AIAbstractionLayer:
             logger.error(f"Failed to register model {model.id}: {e}")
             return False
 
-    def get_model(self, model_id: str) -> Optional[AIModel]:
+    def get_model(self, model_id: str) -> AIModel | None:
         """Get model by ID."""
         return self.models.get(model_id)
 
-    def list_models(self, capability: Optional[ModelCapability] = None) -> List[AIModel]:
+    def list_models(self, capability: ModelCapability | None = None) -> list[AIModel]:
         """List available models, optionally filtered by capability."""
         models = list(self.models.values())
         if capability:
@@ -207,7 +207,7 @@ class AIAbstractionLayer:
             logger.error(f"Failed to register provider {provider.value}: {e}")
             return False
 
-    def get_provider(self, provider: AIProvider) -> Optional[Any]:
+    def get_provider(self, provider: AIProvider) -> Any | None:
         """Get provider instance."""
         return self.providers.get(provider)
 
@@ -274,7 +274,7 @@ class AIAbstractionLayer:
             # Process request with provider
             # This would be implemented by specific providers
             response_content = f"Mock response for: {request.prompt}"
-            
+
             return AIResponse(
                 request_id=request.id,
                 content=response_content,
@@ -295,7 +295,7 @@ class AIAbstractionLayer:
                 error=str(e)
             )
 
-    def get_health_status(self) -> Dict[str, Any]:
+    def get_health_status(self) -> dict[str, Any]:
         """Get health status of AI system."""
         return {
             "status": "healthy",

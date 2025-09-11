@@ -2,14 +2,14 @@
 PlexiChat Shared Exceptions - Minimal working version
 """
 
-from typing import Any, Dict, Optional
+from typing import Any
 
 
 class PlexiChatError(Exception):
     """Base exception for all PlexiChat errors."""
-    
-    def __init__(self, message: str, error_code: Optional[str] = None,
-                 details: Optional[Dict[str, Any]] = None):
+
+    def __init__(self, message: str, error_code: str | None = None,
+                 details: dict[str, Any] | None = None):
         super().__init__(message)
         self.message = message
         self.error_code = error_code
@@ -86,8 +86,8 @@ def get_exception_for_status_code(status_code: int) -> type:
 
 
 def create_exception_from_response(status_code: int, message: str,
-                                error_code: Optional[str] = None,
-                                details: Optional[Dict[str, Any]] = None) -> PlexiChatError:
+                                error_code: str | None = None,
+                                details: dict[str, Any] | None = None) -> PlexiChatError:
     """Create exception from HTTP response."""
     exception_class = get_exception_for_status_code(status_code)
     return exception_class(message, error_code=error_code, details=details)
@@ -95,18 +95,18 @@ def create_exception_from_response(status_code: int, message: str,
 
 # Export all exceptions
 __all__ = [
-    'PlexiChatError',
-    'ValidationError',
     'AuthenticationError',
     'AuthorizationError',
-    'NotFoundError',
-    'ConflictError',
-    'ServiceUnavailableError',
-    'RateLimitError',
     'ConfigurationError',
+    'ConflictError',
     'DatabaseError',
     'NetworkError',
+    'NotFoundError',
+    'PlexiChatError',
+    'RateLimitError',
     'SecurityError',
-    'get_exception_for_status_code',
+    'ServiceUnavailableError',
+    'ValidationError',
     'create_exception_from_response',
+    'get_exception_for_status_code',
 ]

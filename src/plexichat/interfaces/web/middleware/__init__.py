@@ -16,6 +16,7 @@ All FastAPI middleware for security, logging, etc. are located here.
 
 import importlib
 
+
 def import_module(module_name):
     return importlib.import_module(module_name)
 
@@ -25,5 +26,5 @@ __all__ = []
 # Only import unified_security_middleware
 try:
     import_module("unified_security_middleware")
-except ImportError as e:
+except ImportError:
     pass

@@ -11,11 +11,11 @@ This module integrates all security components into a cohesive system with:
 - Comprehensive monitoring and metrics
 """
 
-import re
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set, Tuple
+import re
+from typing import Any
 
 from plexichat.core.logging import get_logger
 
@@ -60,8 +60,8 @@ class SecurityEvent:
     event_type: SecurityEventType
     threat_level: ThreatLevel
     context: SecurityContext
-    details: Dict[str, Any] = field(default_factory=dict)
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    details: dict[str, Any] = field(default_factory=dict)
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
     resolved: bool = False
 
 
@@ -78,11 +78,11 @@ class UnifiedSecurityModule:
     - Comprehensive monitoring and metrics
     """
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, config: dict[str, Any] | None = None):
         self.config = config or self._get_default_config()
-        self.security_events: List[SecurityEvent] = []
-        self.blocked_ips: Set[str] = set()
-        self.failed_login_attempts: Dict[str, List[datetime]] = {}
+        self.security_events: list[SecurityEvent] = []
+        self.blocked_ips: set[str] = set()
+        self.failed_login_attempts: dict[str, list[datetime]] = {}
 
         # Initialize subsystems
         self.rate_limiter = None
@@ -109,7 +109,7 @@ class UnifiedSecurityModule:
 
         logger.info("Unified Security Module initialized with watertight protection")
 
-    def _get_default_config(self) -> Dict[str, Any]:
+    def _get_default_config(self) -> dict[str, Any]:
         """Get default security configuration."""
         return {
             "enabled": True,
@@ -209,7 +209,7 @@ class UnifiedSecurityModule:
 
     async def validate_request(
         self, request_data: Any, context: SecurityContext
-    ) -> Tuple[bool, Optional[str], Optional[SecurityEvent]]:
+    ) -> tuple[bool, str | None, SecurityEvent | None]:
         """
         Validate incoming request with comprehensive security checks.
 
@@ -304,9 +304,9 @@ class UnifiedSecurityModule:
         filename: str,
         content_type: str,
         file_size: int,
-        file_content: Optional[bytes] = None,
-        context: Optional[SecurityContext] = None,
-    ) -> Tuple[bool, str]:
+        file_content: bytes | None = None,
+        context: SecurityContext | None = None,
+    ) -> tuple[bool, str]:
         """
         Validate file upload with comprehensive security checks.
 
@@ -357,7 +357,7 @@ class UnifiedSecurityModule:
 
     async def validate_message_content(
         self, content: str, context: SecurityContext
-    ) -> Tuple[bool, str]:
+    ) -> tuple[bool, str]:
         """
         Validate message content for security threats.
 
@@ -438,7 +438,7 @@ class UnifiedSecurityModule:
         except Exception as e:
             logger.error(f"Error recording security event: {e}")
 
-    def get_security_status(self) -> Dict[str, Any]:
+    def get_security_status(self) -> dict[str, Any]:
         """Get comprehensive security status."""
         return {
             "enabled": self.config["enabled"],
@@ -468,7 +468,7 @@ class UnifiedSecurityModule:
             },
         }
 
-    async def update_configuration(self, new_config: Dict[str, Any]):
+    async def update_configuration(self, new_config: dict[str, Any]):
         """Update security configuration dynamically."""
         try:
             # Validate new configuration
@@ -487,7 +487,7 @@ class UnifiedSecurityModule:
             logger.error(f"Error updating security configuration: {e}")
             raise
 
-    def _validate_config(self, config: Dict[str, Any]) -> bool:
+    def _validate_config(self, config: dict[str, Any]) -> bool:
         """Validate security configuration."""
         try:
             # Basic structure validation
@@ -548,7 +548,7 @@ class UnifiedSecurityModule:
 
 
 # Global security module instance
-_global_security_module: Optional[UnifiedSecurityModule] = None
+_global_security_module: UnifiedSecurityModule | None = None
 
 
 def get_security_module() -> UnifiedSecurityModule:
@@ -560,7 +560,7 @@ def get_security_module() -> UnifiedSecurityModule:
 
 
 async def initialize_security_module(
-    config: Optional[Dict[str, Any]] = None,
+    config: dict[str, Any] | None = None,
 ) -> UnifiedSecurityModule:
     """Initialize the global security module."""
     global _global_security_module
@@ -577,12 +577,12 @@ async def shutdown_security_module():
 
 
 __all__ = [
-    "UnifiedSecurityModule",
-    "SecurityLevel",
-    "ThreatLevel",
-    "SecurityEventType",
     "SecurityContext",
     "SecurityEvent",
+    "SecurityEventType",
+    "SecurityLevel",
+    "ThreatLevel",
+    "UnifiedSecurityModule",
     "get_security_module",
     "initialize_security_module",
     "shutdown_security_module",

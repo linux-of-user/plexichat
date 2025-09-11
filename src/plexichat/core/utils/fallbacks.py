@@ -3,17 +3,17 @@ Fallback implementations for PlexiChat core systems.
 Provides local implementations when shared/distributed systems are unavailable.
 """
 
+from collections.abc import Callable
 import logging
-from typing import Any, Callable, Dict, List, Optional
-
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
 class FallbackManager:
     """Manages fallback implementations for core systems."""
-    
+
     def __init__(self) -> None:
-        self.fallbacks: Dict[str, Callable[..., Any]] = {
+        self.fallbacks: dict[str, Callable[..., Any]] = {
             "database": self._db_fallback,
             "security": self._security_fallback,
             "caching": self._cache_fallback,
@@ -25,52 +25,52 @@ class FallbackManager:
             "errors": self._errors_fallback,
             "migrations": self._migrations_fallback,
         }
-    
+
     def get_fallback(self, system: str) -> Callable[..., Any]:
         """Get fallback implementation for a system."""
         return self.fallbacks.get(system, lambda *args, **kwargs: None)
-    
+
     def _db_fallback(self, operation: str, **kwargs: Any) -> Any:
         logger.warning(f"Database fallback: {operation} not available")
         return None
-    
+
     def _security_fallback(self, action: str, **kwargs: Any) -> bool:
         logger.warning(f"Security fallback: {action} using local check")
         return True  # Allow in fallback mode
-    
-    def _cache_fallback(self, key: str, value: Optional[Any] = None) -> Any:
+
+    def _cache_fallback(self, key: str, value: Any | None = None) -> Any:
         logger.debug(f"Cache fallback: {key} stored in memory")
         if value is not None:
             # Simple in-memory cache simulation
             if not hasattr(self, '_mem_cache'):
-                self._mem_cache: Dict[str, Any] = {}
+                self._mem_cache: dict[str, Any] = {}
             self._mem_cache[key] = value
             return value
         return getattr(self, '_mem_cache', {}).get(key)
-    
+
     def _monitoring_fallback(self, metric: str, value: Any) -> None:
         logger.info(f"Monitoring fallback: {metric} = {value}")
-    
-    def _notifications_fallback(self, message: str, recipients: List[str]) -> bool:
+
+    def _notifications_fallback(self, message: str, recipients: list[str]) -> bool:
         logger.info(f"Notification fallback: {message} to {len(recipients)} recipients")
         return True
-    
-    def _messaging_fallback(self, message: Dict[str, Any], queue: str) -> bool:
+
+    def _messaging_fallback(self, message: dict[str, Any], queue: str) -> bool:
         logger.info(f"Messaging fallback: queued {message} to {queue}")
         return True
-    
+
     def _middleware_fallback(self, request: Any, response: Any) -> Any:
         logger.debug("Middleware fallback: basic processing")
         return response
-    
+
     def _performance_fallback(self, metric: str, duration: float) -> None:
         logger.debug(f"Performance fallback: {metric} took {duration}ms")
-    
-    def _errors_fallback(self, error: Exception, context: Dict[str, Any]) -> str:
-        error_msg = f"Fallback error handling: {str(error)}"
+
+    def _errors_fallback(self, error: Exception, context: dict[str, Any]) -> str:
+        error_msg = f"Fallback error handling: {error!s}"
         logger.error(error_msg, extra=context)
         return error_msg
-    
+
     def _migrations_fallback(self, migration_name: str) -> bool:
         logger.warning(f"Migrations fallback: {migration_name} skipped")
         return False
@@ -94,9 +94,9 @@ def apply_fallback(system: str, *args: Any, **kwargs: Any) -> Any:
 # Export for imports
 __all__ = [
     "FallbackManager",
-    "get_fallback_manager",
     "apply_fallback",
     "fallback_manager",
+    "get_fallback_manager",
 ]
 
 def get_module_version(module_name: str = "unknown") -> str:

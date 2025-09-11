@@ -7,14 +7,16 @@
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
 import asyncio
+from collections.abc import Callable
+from datetime import UTC, datetime
 import hashlib
 import logging
+from pathlib import Path
 import re
 import secrets
 import string
-from datetime import datetime, timezone
-from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any
+
 import bcrypt
 
 logger = logging.getLogger(__name__)
@@ -28,7 +30,7 @@ class ValidationUtils:
         return bool(re.match(pattern, email))
 
     @staticmethod
-    def validate_username(username: str, min_length: int = 3, max_length: int = 20) -> Dict[str, Any]:
+    def validate_username(username: str, min_length: int = 3, max_length: int = 20) -> dict[str, Any]:
         """Validate username format."""
         errors = []
 
@@ -49,7 +51,7 @@ class ValidationUtils:
         }
 
     @staticmethod
-    def validate_password(password: str, min_length: int = 8) -> Dict[str, Any]:
+    def validate_password(password: str, min_length: int = 8) -> dict[str, Any]:
         """Validate password strength."""
         errors = []
 
@@ -82,7 +84,7 @@ class SecurityUtils:
         return secrets.token_urlsafe(length)
 
     @staticmethod
-    def hash_password(password: str, salt: Optional[str] = None) -> Dict[str, str]:
+    def hash_password(password: str, salt: str | None = None) -> dict[str, str]:
         """
         Hash password using secure bcrypt algorithm.
 
@@ -116,7 +118,7 @@ class SecurityUtils:
             }
 
     @staticmethod
-    def verify_password(password: str, hashed: str, salt: Optional[str] = None) -> bool:
+    def verify_password(password: str, hashed: str, salt: str | None = None) -> bool:
         """
         Verify password against secure hash.
 
@@ -139,17 +141,16 @@ class SecurityUtils:
             elif hashed.startswith('$2b$') or hashed.startswith('$2a$') or hashed.startswith('$2y$'):
                 # bcrypt format
                 return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
+            # Legacy format - check if salt is provided
+            elif salt:
+                # Old salted SHA256 format
+                combined = password + salt
+                computed_hash = hashlib.sha256(combined.encode()).hexdigest()
+                return computed_hash == hashed
             else:
-                # Legacy format - check if salt is provided
-                if salt:
-                    # Old salted SHA256 format
-                    combined = password + salt
-                    computed_hash = hashlib.sha256(combined.encode()).hexdigest()
-                    return computed_hash == hashed
-                else:
-                    # Very old unsalted SHA256 format (VERY INSECURE)
-                    logger.warning("Using insecure unsalted SHA256 password verification - MIGRATE IMMEDIATELY")
-                    return hashlib.sha256(password.encode()).hexdigest() == hashed
+                # Very old unsalted SHA256 format (VERY INSECURE)
+                logger.warning("Using insecure unsalted SHA256 password verification - MIGRATE IMMEDIATELY")
+                return hashlib.sha256(password.encode()).hexdigest() == hashed
 
         except (ImportError, ValueError, Exception) as e:
             logger.error(f"Password verification error: {e}")
@@ -180,10 +181,10 @@ class DateTimeUtils:
     @staticmethod
     def now_iso() -> str:
         """Get current datetime in ISO format."""
-        return datetime.now(timezone.utc).isoformat()
+        return datetime.now(UTC).isoformat()
 
     @staticmethod
-    def parse_iso(iso_string: str) -> Optional[datetime]:
+    def parse_iso(iso_string: str) -> datetime | None:
         """Parse ISO datetime string."""
         try:
             return datetime.fromisoformat(iso_string.replace('Z', '+00:00'))
@@ -216,7 +217,7 @@ class DateTimeUtils:
 class FileUtils:
     """Common file utilities."""
     @staticmethod
-    def ensure_directory(path: Union[str, Path]) -> Path:
+    def ensure_directory(path: str | Path) -> Path:
         """Ensure directory exists."""
         path = Path(path)
         path.mkdir(parents=True, exist_ok=True)
@@ -239,7 +240,7 @@ class FileUtils:
         return safe_name or 'unnamed'
 
     @staticmethod
-    def get_file_hash(file_path: Union[str, Path], algorithm: str = 'md5') -> str:
+    def get_file_hash(file_path: str | Path, algorithm: str = 'md5') -> str:
         """Get file hash."""
         hash_func = getattr(hashlib, algorithm)()
 
@@ -266,7 +267,7 @@ class FileUtils:
 class ResponseUtils:
     """Common API response utilities."""
     @staticmethod
-    def success_response(data: Optional[Any] = None, message: str = "Success") -> Dict[str, Any]:
+    def success_response(data: Any | None = None, message: str = "Success") -> dict[str, Any]:
         """Create success response."""
         response = {
             "success": True,
@@ -280,7 +281,7 @@ class ResponseUtils:
         return response
 
     @staticmethod
-    def error_response(message: str, error_code: Optional[str] = None, details: Optional[Any] = None) -> Dict[str, Any]:
+    def error_response(message: str, error_code: str | None = None, details: Any | None = None) -> dict[str, Any]:
         """Create error response."""
         response = {
             "success": False,
@@ -297,7 +298,7 @@ class ResponseUtils:
         return response
 
     @staticmethod
-    def paginated_response(data: List[Any], page: int, per_page: int, total: int, message: str = "Success") -> Dict[str, Any]:
+    def paginated_response(data: list[Any], page: int, per_page: int, total: int, message: str = "Success") -> dict[str, Any]:
         """Create paginated response."""
         total_pages = (total + per_page - 1) // per_page
 
@@ -319,7 +320,7 @@ class ResponseUtils:
 class LoggingUtils:
     """Common logging utilities."""
     @staticmethod
-    def setup_logger(name: str, level: str = "INFO", format_string: Optional[str] = None) -> logging.Logger:
+    def setup_logger(name: str, level: str = "INFO", format_string: str | None = None) -> logging.Logger:
         """Setup logger with common configuration."""
         logger = logging.getLogger(name)
         logger.setLevel(getattr(logging, level.upper()))
@@ -337,7 +338,7 @@ class LoggingUtils:
         return logger
 
     @staticmethod
-    def log_performance(func_name: str, duration: float, logger: Optional[logging.Logger] = None):
+    def log_performance(func_name: str, duration: float, logger: logging.Logger | None = None):
         """Log performance metrics."""
         if logger is None:
             logger = logging.getLogger(__name__)
@@ -354,7 +355,7 @@ class AsyncUtils:
         """Run coroutine with timeout."""
         try:
             return await asyncio.wait_for(coro, timeout=timeout)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             logger.warning(f"Operation timed out after {timeout}s")
             raise
 
@@ -375,7 +376,7 @@ class AsyncUtils:
             raise last_exception
 
     @staticmethod
-    async def gather_with_concurrency(tasks: List, max_concurrent: int = 10):
+    async def gather_with_concurrency(tasks: list, max_concurrent: int = 10):
         """Gather tasks with concurrency limit."""
         semaphore = asyncio.Semaphore(max_concurrent)
 
@@ -385,30 +386,30 @@ class AsyncUtils:
 
         return await asyncio.gather(*[controlled_task(task) for task in tasks])
 
-def monitor_performance(logger: Optional[logging.Logger] = None):
+def monitor_performance(logger: logging.Logger | None = None):
     """Decorator to monitor function performance."""
     def decorator(func):
         def wrapper(*args, **kwargs):
-            start_time = datetime.now(timezone.utc)
+            start_time = datetime.now(UTC)
             try:
                 result = func(*args, **kwargs)
-                duration = (datetime.now(timezone.utc) - start_time).total_seconds()
+                duration = (datetime.now(UTC) - start_time).total_seconds()
                 LoggingUtils.log_performance(func.__name__, duration, logger)
                 return result
             except Exception:
-                duration = (datetime.now(timezone.utc) - start_time).total_seconds()
+                duration = (datetime.now(UTC) - start_time).total_seconds()
                 LoggingUtils.log_performance(f"{func.__name__} (error)", duration, logger)
                 raise
 
         async def async_wrapper(*args, **kwargs):
-            start_time = datetime.now(timezone.utc)
+            start_time = datetime.now(UTC)
             try:
                 result = await func(*args, **kwargs)
-                duration = (datetime.now(timezone.utc) - start_time).total_seconds()
+                duration = (datetime.now(UTC) - start_time).total_seconds()
                 LoggingUtils.log_performance(func.__name__, duration, logger)
                 return result
             except Exception:
-                duration = (datetime.now(timezone.utc) - start_time).total_seconds()
+                duration = (datetime.now(UTC) - start_time).total_seconds()
                 LoggingUtils.log_performance(f"{func.__name__} (error)", duration, logger)
                 raise
 

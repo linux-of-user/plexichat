@@ -4,13 +4,13 @@ Provides comprehensive security controls for all endpoints with advanced threat 
 Watertight security integration like a deep-sea submarine.
 """
 
+from dataclasses import dataclass, field
+from datetime import UTC, datetime, timedelta
+from enum import Enum
 import logging
 import re
 import secrets
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
-from enum import Enum
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any
 
 from .security_context import SecurityContext, SecurityLevel
 
@@ -62,8 +62,8 @@ class SecurityEvent:
     event_type: SecurityEventType
     threat_level: ThreatLevel
     context: SecurityContext
-    details: Dict[str, Any] = field(default_factory=dict)
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    details: dict[str, Any] = field(default_factory=dict)
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
     resolved: bool = False
 
 
@@ -124,13 +124,13 @@ class ComprehensiveSecurityManager:
     - Zero-trust security model
     """
 
-    def __init__(self, config: Optional[SecurityConfig] = None):
+    def __init__(self, config: SecurityConfig | None = None):
         self.config = config or SecurityConfig()
-        self.security_events: List[SecurityEvent] = []
-        self.blocked_ips: Set[str] = set()
-        self.failed_login_attempts: Dict[str, List[datetime]] = {}
-        self.active_sessions: Dict[str, SecurityContext] = {}
-        self.threat_detection_rules: List[ThreatDetectionRule] = []
+        self.security_events: list[SecurityEvent] = []
+        self.blocked_ips: set[str] = set()
+        self.failed_login_attempts: dict[str, list[datetime]] = {}
+        self.active_sessions: dict[str, SecurityContext] = {}
+        self.threat_detection_rules: list[ThreatDetectionRule] = []
 
         # Initialize threat detection rules
         self._initialize_threat_detection_rules()
@@ -209,7 +209,7 @@ class ComprehensiveSecurityManager:
 
     async def validate_request(
         self, request: Any
-    ) -> Tuple[bool, Optional[SecurityContext], Optional[str]]:
+    ) -> tuple[bool, SecurityContext | None, str | None]:
         """
         Validate incoming request with comprehensive security checks.
 
@@ -275,7 +275,7 @@ class ComprehensiveSecurityManager:
             logger.error(f"Error in request validation: {e}")
             return False, None, "Internal security error"
 
-    async def scan_message_content(self, content: str) -> List[Dict[str, Any]]:
+    async def scan_message_content(self, content: str) -> list[dict[str, Any]]:
         """
         Scans a string of content against the threat detection rules.
         Returns a list of found threats.
@@ -294,7 +294,7 @@ class ComprehensiveSecurityManager:
 
     async def _detect_threats(
         self, request: Any, context: SecurityContext
-    ) -> Tuple[bool, Dict[str, Any]]:
+    ) -> tuple[bool, dict[str, Any]]:
         """Detect threats in the request."""
         try:
             # Get request data for analysis
@@ -364,7 +364,7 @@ class ComprehensiveSecurityManager:
 
     async def authenticate_request(
         self, request: Any
-    ) -> Tuple[bool, Optional[SecurityContext]]:
+    ) -> tuple[bool, SecurityContext | None]:
         """Authenticate a request and return security context."""
         try:
             # Extract authentication information
@@ -392,7 +392,7 @@ class ComprehensiveSecurityManager:
             logger.error(f"Error in authentication: {e}")
             return False, None
 
-    def get_security_status(self) -> Dict[str, Any]:
+    def get_security_status(self) -> dict[str, Any]:
         """Get comprehensive security status."""
         return {
             "metrics": self.metrics.copy(),
@@ -402,7 +402,7 @@ class ComprehensiveSecurityManager:
                 [
                     e
                     for e in self.security_events
-                    if e.timestamp > datetime.now(timezone.utc) - timedelta(hours=1)
+                    if e.timestamp > datetime.now(UTC) - timedelta(hours=1)
                 ]
             ),
             "threat_detection_rules_count": len(
@@ -421,7 +421,7 @@ class ComprehensiveSecurityManager:
 
 
 # Global security manager instance
-_global_security_manager: Optional[ComprehensiveSecurityManager] = None
+_global_security_manager: ComprehensiveSecurityManager | None = None
 
 
 def get_security_manager() -> ComprehensiveSecurityManager:
@@ -433,7 +433,7 @@ def get_security_manager() -> ComprehensiveSecurityManager:
 
 
 async def initialize_security_manager(
-    config: Optional[SecurityConfig] = None,
+    config: SecurityConfig | None = None,
 ) -> ComprehensiveSecurityManager:
     """Initialize the global security manager."""
     global _global_security_manager
@@ -451,13 +451,13 @@ async def shutdown_security_manager() -> None:
 
 __all__ = [
     "ComprehensiveSecurityManager",
-    "SecurityLevel",
-    "ThreatLevel",
-    "SecurityEventType",
+    "SecurityConfig",
     "SecurityContext",
     "SecurityEvent",
+    "SecurityEventType",
+    "SecurityLevel",
     "ThreatDetectionRule",
-    "SecurityConfig",
+    "ThreatLevel",
     "get_security_manager",
     "initialize_security_manager",
     "shutdown_security_manager",

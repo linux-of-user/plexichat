@@ -16,16 +16,18 @@ Comprehensive setup wizard supporting all database types with:
 """
 
 import asyncio
-import logging
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
 from enum import Enum
+import logging
+from typing import Any
 
 from plexichat.core.database import DatabaseType
-from plexichat.core.database.manager import DatabaseCategory
-from plexichat.core.database.manager import CassandraAdapter
-from plexichat.core.database.manager import ElasticsearchAdapter
-from plexichat.core.database.manager import RedisAdapter
+from plexichat.core.database.manager import (
+    CassandraAdapter,
+    DatabaseCategory,
+    ElasticsearchAdapter,
+    RedisAdapter,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -57,34 +59,34 @@ class DatabaseTemplate:
     db_type: DatabaseType
     category: DatabaseCategory
     description: str
-    use_cases: List[str]
+    use_cases: list[str]
     complexity: str  # "beginner", "intermediate", "advanced"
-    default_config: Dict[str, Any]
-    required_fields: List[str]
-    optional_fields: List[str]
-    performance_tips: List[str]
-    security_recommendations: List[str]
+    default_config: dict[str, Any]
+    required_fields: list[str]
+    optional_fields: list[str]
+    performance_tips: list[str]
+    security_recommendations: list[str]
 
 
 @dataclass
 class WizardProgress:
     """Enhanced wizard progress tracking."""
     current_step: WizardStep = WizardStep.WELCOME
-    completed_steps: List[WizardStep] = field(default_factory=list)
-    database_type: Optional[DatabaseType] = None
-    database_category: Optional[DatabaseCategory] = None
-    connection_config: Dict[str, Any] = field(default_factory=dict)
-    authentication_config: Dict[str, Any] = field(default_factory=dict)
-    performance_config: Dict[str, Any] = field(default_factory=dict)
-    security_config: Dict[str, Any] = field(default_factory=dict)
-    advanced_config: Dict[str, Any] = field(default_factory=dict)
-    test_results: Dict[str, Any] = field(default_factory=dict)
-    migration_plan: Dict[str, Any] = field(default_factory=dict)
-    optimization_settings: Dict[str, Any] = field(default_factory=dict)
-    backup_config: Dict[str, Any] = field(default_factory=dict)
-    monitoring_config: Dict[str, Any] = field(default_factory=dict)
-    errors: List[str] = field(default_factory=list)
-    warnings: List[str] = field(default_factory=list)
+    completed_steps: list[WizardStep] = field(default_factory=list)
+    database_type: DatabaseType | None = None
+    database_category: DatabaseCategory | None = None
+    connection_config: dict[str, Any] = field(default_factory=dict)
+    authentication_config: dict[str, Any] = field(default_factory=dict)
+    performance_config: dict[str, Any] = field(default_factory=dict)
+    security_config: dict[str, Any] = field(default_factory=dict)
+    advanced_config: dict[str, Any] = field(default_factory=dict)
+    test_results: dict[str, Any] = field(default_factory=dict)
+    migration_plan: dict[str, Any] = field(default_factory=dict)
+    optimization_settings: dict[str, Any] = field(default_factory=dict)
+    backup_config: dict[str, Any] = field(default_factory=dict)
+    monitoring_config: dict[str, Any] = field(default_factory=dict)
+    errors: list[str] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
 
 
 class EnhancedDatabaseWizard:
@@ -94,7 +96,7 @@ class EnhancedDatabaseWizard:
         self.templates = self._load_database_templates()
         self.current_template = None
 
-    def _load_database_templates(self) -> Dict[DatabaseType, DatabaseTemplate]:
+    def _load_database_templates(self) -> dict[DatabaseType, DatabaseTemplate]:
         """Load database configuration templates."""
         templates = {}
 
@@ -226,7 +228,7 @@ class EnhancedDatabaseWizard:
 
         return templates
 
-    async def start_wizard(self) -> Dict[str, Any]:
+    async def start_wizard(self) -> dict[str, Any]:
         """Start the database setup wizard."""
         self.progress = WizardProgress()
         self.progress.current_step = WizardStep.WELCOME
@@ -249,7 +251,7 @@ class EnhancedDatabaseWizard:
             }
         }
 
-    async def select_database(self, database_type: str) -> Dict[str, Any]:
+    async def select_database(self, database_type: str) -> dict[str, Any]:
         """Select database type and load template."""
         try:
             db_type = DatabaseType(database_type)
@@ -293,7 +295,7 @@ class EnhancedDatabaseWizard:
                 "error": f"Invalid database type: {database_type}"
             }
 
-    async def configure_connection(self, config: Dict[str, Any]) -> Dict[str, Any]:
+    async def configure_connection(self, config: dict[str, Any]) -> dict[str, Any]:
         """Configure database connection settings."""
         try:
             if not self.current_template:
@@ -337,10 +339,10 @@ class EnhancedDatabaseWizard:
         except Exception as e:
             return {
                 "success": False,
-                "error": f"Configuration error: {str(e)}"
+                "error": f"Configuration error: {e!s}"
             }
 
-    async def test_connection(self) -> Dict[str, Any]:
+    async def test_connection(self) -> dict[str, Any]:
         """Test database connection with current configuration."""
         try:
             if not self.progress.connection_config:
@@ -390,7 +392,7 @@ class EnhancedDatabaseWizard:
             logger.error(f"Connection test failed: {e}")
             return {
                 "success": False,
-                "error": f"Connection test error: {str(e)}",
+                "error": f"Connection test error: {e!s}",
                 "troubleshooting": self._get_troubleshooting_tips()
             }
 
@@ -405,7 +407,7 @@ class EnhancedDatabaseWizard:
 
         return adapter_map.get(db_type)
 
-    def _get_connection_recommendations(self, health_info: Dict[str, Any]) -> List[str]:
+    def _get_connection_recommendations(self, health_info: dict[str, Any]) -> list[str]:
         """Get recommendations based on connection test results."""
         recommendations = []
 
@@ -420,7 +422,7 @@ class EnhancedDatabaseWizard:
 
         return recommendations
 
-    def _get_troubleshooting_tips(self) -> List[str]:
+    def _get_troubleshooting_tips(self) -> list[str]:
         """Get troubleshooting tips for connection issues."""
         tips = [
             "Verify database server is running",

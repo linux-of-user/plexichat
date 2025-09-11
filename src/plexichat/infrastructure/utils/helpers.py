@@ -4,23 +4,25 @@
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
 import asyncio
+from datetime import datetime
+import hashlib
 import json
 import logging
-import uuid
-from datetime import datetime
-from typing import Any, Dict, List, Optional
-import secrets
-import string
 import math
 import re
-import hashlib
+import secrets
+import string
 import time
+from typing import Any
+import uuid
 
 # Use EXISTING performance optimization engine
 try:
-    from plexichat.core.performance.optimization_engine import PerformanceOptimizationEngine
-    from plexichat.infrastructure.utils.performance import async_track_performance
     from plexichat.core.logging import get_performance_logger
+    from plexichat.core.performance.optimization_engine import (
+        PerformanceOptimizationEngine,
+    )
+    from plexichat.infrastructure.utils.performance import async_track_performance
 except ImportError:
     PerformanceOptimizationEngine = None
     async_track_performance = None
@@ -53,7 +55,7 @@ class HelperUtilities:
             logger.error(f"Datetime formatting error: {e}")
             return str(dt)
 
-    def parse_datetime(self, dt_str: str, format_str: str = "%Y-%m-%d %H:%M:%S") -> Optional[datetime]:
+    def parse_datetime(self, dt_str: str, format_str: str = "%Y-%m-%d %H:%M:%S") -> datetime | None:
         """Parse datetime from string."""
         try:
             return datetime.strptime(dt_str, format_str)
@@ -108,7 +110,7 @@ class HelperUtilities:
             logger.error(f"Slugify error: {e}")
             return str(text).lower().replace(' ', '-')
 
-    def deep_merge_dicts(self, dict1: Dict[str, Any], dict2: Dict[str, Any]) -> Dict[str, Any]:
+    def deep_merge_dicts(self, dict1: dict[str, Any], dict2: dict[str, Any]) -> dict[str, Any]:
         """Deep merge two dictionaries."""
         try:
             result = dict1.copy()
@@ -140,7 +142,7 @@ class HelperUtilities:
             logger.error(f"JSON dumps error: {e}")
             return default
 
-    def extract_mentions(self, text: str) -> List[str]:
+    def extract_mentions(self, text: str) -> list[str]:
         """Extract @mentions from text."""
         try:
             mentions = re.findall(r'@(\w+)', text)
@@ -149,7 +151,7 @@ class HelperUtilities:
             logger.error(f"Mention extraction error: {e}")
             return []
 
-    def extract_hashtags(self, text: str) -> List[str]:
+    def extract_hashtags(self, text: str) -> list[str]:
         """Extract #hashtags from text."""
         try:
             hashtags = re.findall(r'#(\w+)', text)
@@ -158,7 +160,7 @@ class HelperUtilities:
             logger.error(f"Hashtag extraction error: {e}")
             return []
 
-    def extract_urls(self, text: str) -> List[str]:
+    def extract_urls(self, text: str) -> list[str]:
         """Extract URLs from text."""
         try:
             url_pattern = r'https?://[^\s<>"{}|\\^`\[\]]+'
@@ -193,7 +195,7 @@ class HelperUtilities:
             logger.error(f"Color generation error: {e}")
             return "#000000"
 
-    def paginate_list(self, items: List[Any], page: int, per_page: int) -> Dict[str, Any]:
+    def paginate_list(self, items: list[Any], page: int, per_page: int) -> dict[str, Any]:
         """Paginate a list of items."""
         try:
             total_items = len(items)
@@ -302,7 +304,7 @@ def format_datetime(dt: datetime, format_str: str = "%Y-%m-%d %H:%M:%S") -> str:
     """Format datetime to string."""
     return helper_utils.format_datetime(dt, format_str)
 
-def parse_datetime(dt_str: str, format_str: str = "%Y-%m-%d %H:%M:%S") -> Optional[datetime]:
+def parse_datetime(dt_str: str, format_str: str = "%Y-%m-%d %H:%M:%S") -> datetime | None:
     """Parse datetime from string."""
     return helper_utils.parse_datetime(dt_str, format_str)
 
@@ -326,18 +328,18 @@ def safe_json_dumps(data: Any, default: str = "{}") -> str:
     """Safely dump JSON with default fallback."""
     return helper_utils.safe_json_dumps(data, default)
 
-def extract_mentions(text: str) -> List[str]:
+def extract_mentions(text: str) -> list[str]:
     """Extract @mentions from text."""
     return helper_utils.extract_mentions(text)
 
-def extract_hashtags(text: str) -> List[str]:
+def extract_hashtags(text: str) -> list[str]:
     """Extract #hashtags from text."""
     return helper_utils.extract_hashtags(text)
 
-def extract_urls(text: str) -> List[str]:
+def extract_urls(text: str) -> list[str]:
     """Extract URLs from text."""
     return helper_utils.extract_urls(text)
 
-def paginate_list(items: List[Any], page: int, per_page: int) -> Dict[str, Any]:
+def paginate_list(items: list[Any], page: int, per_page: int) -> dict[str, Any]:
     """Paginate a list of items."""
     return helper_utils.paginate_list(items, page, per_page)

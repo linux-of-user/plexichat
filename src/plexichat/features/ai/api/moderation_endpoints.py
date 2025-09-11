@@ -5,17 +5,17 @@ AI Moderation API Endpoints for PlexiChat
 RESTful API endpoints for AI moderation functionality.
 """
 
+from datetime import UTC, datetime
 import logging
+from typing import TYPE_CHECKING, Any
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from fastapi import APIRouter, HTTPException, BackgroundTasks
+    from fastapi import APIRouter, BackgroundTasks, HTTPException
     from pydantic import BaseModel, Field
 
 try:
-    from fastapi import APIRouter, HTTPException, BackgroundTasks
+    from fastapi import APIRouter, BackgroundTasks, HTTPException
     from pydantic import BaseModel, Field
     FASTAPI_AVAILABLE = True
 except ImportError:
@@ -38,20 +38,20 @@ if FASTAPI_AVAILABLE:
     class ModerationRequest(BaseModel):  # type: ignore
         """API model for moderation requests."""
         content: str
-        user_id: Optional[str] = None
-        context: Optional[Dict[str, Any]] = None
+        user_id: str | None = None
+        context: dict[str, Any] | None = None
         severity_threshold: float = Field(default=0.5, ge=0.0, le=1.0)  # type: ignore
-        categories: Optional[List[str]] = None
+        categories: list[str] | None = None
 
     class ModerationResponse(BaseModel):  # type: ignore
         """API model for moderation responses."""
         request_id: str
         is_appropriate: bool
         confidence: float
-        categories: List[str]
+        categories: list[str]
         severity: float
         action: str
-        reason: Optional[str] = None
+        reason: str | None = None
         timestamp: datetime
 
     class FeedbackRequest(BaseModel):  # type: ignore
@@ -59,7 +59,7 @@ if FASTAPI_AVAILABLE:
         moderation_id: str
         user_id: str
         feedback_type: str  # "correct", "incorrect", "partial"
-        comments: Optional[str] = None
+        comments: str | None = None
 
     # Create API router
     router = APIRouter(prefix="/ai/moderation", tags=["AI Moderation"])  # type: ignore
@@ -82,7 +82,7 @@ if FASTAPI_AVAILABLE:
                 severity=result.get("severity", 0.0),
                 action=result.get("action", "none"),
                 reason=result.get("reason"),
-                timestamp=datetime.now(timezone.utc)
+                timestamp=datetime.now(UTC)
             )
 
         except Exception as e:
@@ -126,7 +126,7 @@ if FASTAPI_AVAILABLE:
         moderation_id: str,
         user_id: str,
         feedback_type: str,
-        comments: Optional[str]
+        comments: str | None
     ):
         """Process moderation feedback in background."""
         try:

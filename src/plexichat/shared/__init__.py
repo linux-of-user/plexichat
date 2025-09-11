@@ -20,7 +20,7 @@ Components:
 - validators: Common validation functions
 """
 
-from plexichat.core.logging import get_logger, LogCategory
+from plexichat.core.logging import LogCategory, get_logger
 
 logger = get_logger(__name__)
 

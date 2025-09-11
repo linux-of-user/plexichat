@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 """
 PlexiChat Authentication Exceptions
@@ -13,8 +13,8 @@ class AuthenticationError(Exception):
     def __init__(
         self,
         message: str,
-        error_code: Optional[str] = None,
-        details: Optional[Dict[str, Any]] = None,
+        error_code: str | None = None,
+        details: dict[str, Any] | None = None,
     ) -> None:
         super().__init__(message)
         self.message = message
@@ -28,8 +28,8 @@ class AuthorizationError(Exception):
     def __init__(
         self,
         message: str,
-        error_code: Optional[str] = None,
-        required_level: Optional[str] = None,
+        error_code: str | None = None,
+        required_level: str | None = None,
     ) -> None:
         super().__init__(message)
         self.message = message
@@ -43,8 +43,8 @@ class MFAError(Exception):
     def __init__(
         self,
         message: str,
-        error_code: Optional[str] = None,
-        available_methods: Optional[List[str]] = None,
+        error_code: str | None = None,
+        available_methods: list[str] | None = None,
     ) -> None:
         super().__init__(message)
         self.message = message
@@ -58,8 +58,8 @@ class TokenError(Exception):
     def __init__(
         self,
         message: str,
-        error_code: Optional[str] = None,
-        token_type: Optional[str] = None,
+        error_code: str | None = None,
+        token_type: str | None = None,
     ) -> None:
         super().__init__(message)
         self.message = message
@@ -73,8 +73,8 @@ class SessionError(Exception):
     def __init__(
         self,
         message: str,
-        error_code: Optional[str] = None,
-        session_id: Optional[str] = None,
+        error_code: str | None = None,
+        session_id: str | None = None,
     ) -> None:
         super().__init__(message)
         self.message = message
@@ -88,8 +88,8 @@ class PasswordError(Exception):
     def __init__(
         self,
         message: str,
-        error_code: Optional[str] = None,
-        requirements: Optional[Dict[str, Any]] = None,
+        error_code: str | None = None,
+        requirements: dict[str, Any] | None = None,
     ) -> None:
         super().__init__(message)
         self.message = message
@@ -103,8 +103,8 @@ class BiometricError(Exception):
     def __init__(
         self,
         message: str,
-        error_code: Optional[str] = None,
-        biometric_type: Optional[str] = None,
+        error_code: str | None = None,
+        biometric_type: str | None = None,
     ) -> None:
         super().__init__(message)
         self.message = message
@@ -118,8 +118,8 @@ class DeviceError(Exception):
     def __init__(
         self,
         message: str,
-        error_code: Optional[str] = None,
-        device_id: Optional[str] = None,
+        error_code: str | None = None,
+        device_id: str | None = None,
     ) -> None:
         super().__init__(message)
         self.message = message
@@ -133,8 +133,8 @@ class OAuthError(Exception):
     def __init__(
         self,
         message: str,
-        error_code: Optional[str] = None,
-        provider: Optional[str] = None,
+        error_code: str | None = None,
+        provider: str | None = None,
     ) -> None:
         super().__init__(message)
         self.message = message
@@ -148,8 +148,8 @@ class RateLimitError(Exception):
     def __init__(
         self,
         message: str,
-        error_code: Optional[str] = None,
-        retry_after: Optional[int] = None,
+        error_code: str | None = None,
+        retry_after: int | None = None,
     ) -> None:
         super().__init__(message)
         self.message = message
@@ -163,8 +163,8 @@ class AccountLockError(Exception):
     def __init__(
         self,
         message: str,
-        error_code: Optional[str] = None,
-        locked_until: Optional[str] = None,
+        error_code: str | None = None,
+        locked_until: str | None = None,
     ) -> None:
         super().__init__(message)
         self.message = message

@@ -11,7 +11,7 @@ Uses EXISTING database abstraction and optimization systems.
 """
 
 from datetime import datetime, timedelta
-from typing import Any, Dict, Optional
+from typing import Any
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request, status
 from fastapi.responses import HTMLResponse
@@ -25,9 +25,11 @@ except ImportError:
 
 # Use EXISTING performance optimization engine
 try:
-    from plexichat.core.performance.optimization_engine import PerformanceOptimizationEngine
-    from plexichat.infrastructure.utils.performance import async_track_performance
     from plexichat.core.logging import get_performance_logger, timer
+    from plexichat.core.performance.optimization_engine import (
+        PerformanceOptimizationEngine,
+    )
+    from plexichat.infrastructure.utils.performance import async_track_performance
 except ImportError:
     PerformanceOptimizationEngine = None
     async_track_performance = None
@@ -38,7 +40,7 @@ except ImportError:
 from plexichat.core.auth.fastapi_adapter import get_current_user
 
 # Use Unified Auth Manager for authentication operations
-from plexichat.core.authentication import get_auth_manager, AuthResult
+from plexichat.core.authentication import AuthResult, get_auth_manager
 
 # Configuration imports
 try:
@@ -54,6 +56,7 @@ except ImportError:
 
 # Unified logging
 from plexichat.core.logging import get_logger
+
 logger = get_logger(__name__)
 router = APIRouter(prefix="/login", tags=["login"])
 
@@ -66,7 +69,7 @@ class LoginResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     expires_in: int
-    user: Dict[str, Any]
+    user: dict[str, Any]
 
 class LoginService:
     """Service class for login operations using the UnifiedAuthManager and EXISTING database abstraction layer."""
@@ -79,7 +82,7 @@ class LoginService:
         self.auth_manager = get_auth_manager()
 
     @async_track_performance("user_authentication") if async_track_performance else (lambda f: f)
-    async def authenticate_user(self, username: str, password: str, ip_address: Optional[str] = None, user_agent: Optional[str] = None) -> Optional[AuthResult]:
+    async def authenticate_user(self, username: str, password: str, ip_address: str | None = None, user_agent: str | None = None) -> AuthResult | None:
         """
         Authenticate user using UnifiedAuthManager.
         Returns AuthResult on success/failure.
@@ -384,7 +387,7 @@ async def authenticate(
 @router.post("/logout")
 async def logout(
     request: Request,
-    current_user: Dict[str, Any] = Depends(get_current_user)
+    current_user: dict[str, Any] = Depends(get_current_user)
 ):
     """Logout user (token invalidation would be handled by client)."""
     client_ip = request.client.host if request.client else "unknown"
@@ -399,7 +402,7 @@ async def logout(
 @router.get("/status")
 async def login_status(
     request: Request,
-    current_user: Dict[str, Any] = Depends(get_current_user)
+    current_user: dict[str, Any] = Depends(get_current_user)
 ):
     """Check current login status."""
     client_ip = request.client.host if request.client else "unknown"

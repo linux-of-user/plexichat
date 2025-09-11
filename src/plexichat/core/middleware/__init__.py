@@ -28,19 +28,19 @@ except ImportError as e:
     logger.warning(f"Could not import middleware modules: {e}")
 
 __all__ = [
-    "MiddlewareManager",
-    "BaseMiddleware",
-    "MiddlewareContext",
     "AuthenticationMiddleware",
+    "BaseMiddleware",
+    "LoggingMiddleware",
+    "MiddlewareContext",
+    "MiddlewareManager",
+    "PerformanceMiddleware",
     "RateLimitMiddleware",
     "ValidationMiddleware",
-    "LoggingMiddleware",
-    "PerformanceMiddleware",
+    "get_middleware_stack",
     "middleware_manager",
+    "process_with_middleware",
     "register_middleware",
     "unregister_middleware",
-    "process_with_middleware",
-    "get_middleware_stack",
 ]
 
 from plexichat.core.utils.fallbacks import get_module_version

@@ -10,10 +10,10 @@ Features:
 - Access control enforcement
 """
 
-import hashlib
 from dataclasses import dataclass
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Tuple
+from datetime import UTC, datetime
+import hashlib
+from typing import Any
 
 from plexichat.core.logging import get_logger
 
@@ -25,15 +25,15 @@ class DatabaseQuery:
     """Represents a database query with security context."""
 
     query: str
-    parameters: Tuple[Any, ...]
-    user_id: Optional[str] = None
-    session_id: Optional[str] = None
-    ip_address: Optional[str] = None
+    parameters: tuple[Any, ...]
+    user_id: str | None = None
+    session_id: str | None = None
+    ip_address: str | None = None
     timestamp: datetime = None
 
     def __post_init__(self):
         if self.timestamp is None:
-            self.timestamp = datetime.now(timezone.utc)
+            self.timestamp = datetime.now(UTC)
 
 
 @dataclass
@@ -42,8 +42,8 @@ class AccessControlRule:
 
     table: str
     operation: str  # SELECT, INSERT, UPDATE, DELETE
-    user_roles: List[str]
-    conditions: Optional[str] = None
+    user_roles: list[str]
+    conditions: str | None = None
     enabled: bool = True
 
 
@@ -59,7 +59,7 @@ class DatabaseSecurityLayer:
     - Access control
     """
 
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self, config: dict[str, Any]):
         self.config = config
         self.enabled = config.get("access_control", True)
 
@@ -77,7 +77,7 @@ class DatabaseSecurityLayer:
         self.encryption_algorithm = "AES-256-GCM"
 
         # Access control rules
-        self.access_rules: Dict[str, List[AccessControlRule]] = {}
+        self.access_rules: dict[str, list[AccessControlRule]] = {}
         self._initialize_default_access_rules()
 
         # Query patterns for detection
@@ -150,7 +150,7 @@ class DatabaseSecurityLayer:
             ),
         ]
 
-    async def validate_query(self, query: DatabaseQuery) -> Tuple[bool, str]:
+    async def validate_query(self, query: DatabaseQuery) -> tuple[bool, str]:
         """
         Validate a database query for security.
 
@@ -187,9 +187,9 @@ class DatabaseSecurityLayer:
 
         except Exception as e:
             logger.error(f"Error validating query: {e}")
-            return False, f"Query validation error: {str(e)}"
+            return False, f"Query validation error: {e!s}"
 
-    def _check_dangerous_patterns(self, query: str) -> Dict[str, Any]:
+    def _check_dangerous_patterns(self, query: str) -> dict[str, Any]:
         """Check query for dangerous patterns."""
         query_upper = query.upper()
 
@@ -225,7 +225,7 @@ class DatabaseSecurityLayer:
 
         return {"safe": True, "message": "No dangerous patterns detected"}
 
-    async def _check_access_control(self, query: DatabaseQuery) -> Dict[str, Any]:
+    async def _check_access_control(self, query: DatabaseQuery) -> dict[str, Any]:
         """Check if user has access to perform the query."""
         if not query.user_id:
             return {"allowed": False, "message": "User ID required for access control"}
@@ -263,7 +263,7 @@ class DatabaseSecurityLayer:
             "message": f"Access denied: no matching rule for {operation} on {table}",
         }
 
-    def _parse_query_structure(self, query: str) -> Tuple[Optional[str], Optional[str]]:
+    def _parse_query_structure(self, query: str) -> tuple[str | None, str | None]:
         """Parse table and operation from SQL query."""
         query_upper = query.strip().upper()
 
@@ -294,14 +294,14 @@ class DatabaseSecurityLayer:
         table = match.group(1) if match else None
         return table, operation
 
-    def _user_has_role(self, user_id: str, required_roles: List[str]) -> bool:
+    def _user_has_role(self, user_id: str, required_roles: list[str]) -> bool:
         """Check if user has any of the required roles."""
         # In production, this would query the user database
         # For now, assume basic role checking
         user_roles = self._get_user_roles(user_id)
         return any(role in user_roles for role in required_roles)
 
-    def _get_user_roles(self, user_id: str) -> List[str]:
+    def _get_user_roles(self, user_id: str) -> list[str]:
         """Get user roles (mock implementation)."""
         # In production, this would query the database
         if user_id.startswith("admin"):
@@ -421,7 +421,7 @@ class DatabaseSecurityLayer:
             ]
             logger.info(f"Removed access rules for {table}.{operation}")
 
-    def get_security_status(self) -> Dict[str, Any]:
+    def get_security_status(self) -> dict[str, Any]:
         """Get database security status."""
         if not self.enabled:
             return {"enabled": False}
@@ -439,7 +439,7 @@ class DatabaseSecurityLayer:
             "dangerous_patterns_count": len(self.dangerous_patterns),
         }
 
-    def update_config(self, new_config: Dict[str, Any]):
+    def update_config(self, new_config: dict[str, Any]):
         """Update database security configuration."""
         if not self.enabled:
             return
@@ -460,4 +460,4 @@ class DatabaseSecurityLayer:
         logger.info("Database security layer shut down")
 
 
-__all__ = ["DatabaseSecurityLayer", "DatabaseQuery", "AccessControlRule"]
+__all__ = ["AccessControlRule", "DatabaseQuery", "DatabaseSecurityLayer"]

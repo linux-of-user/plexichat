@@ -4,7 +4,6 @@
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
 import logging
-import asyncio
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -17,7 +16,8 @@ from plexichat.core.performance.multi_tier_cache_manager import (
     get_cache_manager,
 )
 from plexichat.infrastructure.utils.compilation import optimizer
-from .cache_lookup import fast_cache_get, tier_select
+
+from .cache_lookup import fast_cache_get
 
 """
 PlexiChat Multi-Tier Cache API Endpoints
@@ -203,7 +203,7 @@ async def get_cached_value(
         # Use optimized cache lookup
         tier_order = ["L1_MEMORY", "L2_REDIS", "L3_MEMCACHED", "L4_CDN"]
         result = fast_cache_get(key, tier_order)
-        
+
         if result:
             # Found in cache - get actual value from manager
             value = await cache_manager.get(key, default)

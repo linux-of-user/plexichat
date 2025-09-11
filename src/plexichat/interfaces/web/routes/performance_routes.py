@@ -3,15 +3,13 @@
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 # Use the FastAPI auth adapter as the unified dependency provider for authentication
-from plexichat.core.auth.fastapi_adapter import (
-    get_current_user,
-    require_admin
-)
+from plexichat.core.auth.fastapi_adapter import get_current_user, require_admin
 from plexichat.core.logging import get_logger
+
 # from ...services.performance_service import get_performance_service
 
 def get_performance_service():
@@ -67,7 +65,7 @@ async def performance_dashboard(
             "user": current_user,
             "dashboard_data": dashboard_data,
             "page_title": "Performance Dashboard",
-            "current_time": datetime.now(timezone.utc).isoformat()
+            "current_time": datetime.now(UTC).isoformat()
         })
 
         # Log performance metric using unified logging
@@ -85,7 +83,7 @@ async def performance_dashboard(
 
     except Exception as e:
         logger.error(f"Performance dashboard error: {e}")
-        raise HTTPException(status_code=500, detail=f"Dashboard error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Dashboard error: {e!s}")
 
 @router.get("/metrics", response_class=HTMLResponse)
 async def metrics_page(
@@ -107,7 +105,7 @@ async def metrics_page(
             "current_metrics": current_metrics,
             "historical_metrics": historical_metrics,
             "page_title": "Performance Metrics",
-            "current_time": datetime.now(timezone.utc).isoformat()
+            "current_time": datetime.now(UTC).isoformat()
         })
 
         # Log performance metric
@@ -124,7 +122,7 @@ async def metrics_page(
 
     except Exception as e:
         logger.error(f"Metrics page error: {e}")
-        raise HTTPException(status_code=500, detail=f"Metrics error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Metrics error: {e!s}")
 
 @router.get("/alerts", response_class=HTMLResponse)
 async def alerts_page(
@@ -144,7 +142,7 @@ async def alerts_page(
             "user": current_user,
             "active_alerts": active_alerts,
             "page_title": "Performance Alerts",
-            "current_time": datetime.now(timezone.utc).isoformat()
+            "current_time": datetime.now(UTC).isoformat()
         })
 
         # Log performance metric for admin alerts page
@@ -161,7 +159,7 @@ async def alerts_page(
 
     except Exception as e:
         logger.error(f"Alerts page error: {e}")
-        raise HTTPException(status_code=500, detail=f"Alerts error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Alerts error: {e!s}")
 
 @router.get("/health", response_class=HTMLResponse)
 async def health_page(
@@ -193,7 +191,7 @@ async def health_page(
             "component_health": component_health,
             "current_metrics": current_metrics,
             "page_title": "System Health",
-            "current_time": datetime.now(timezone.utc).isoformat()
+            "current_time": datetime.now(UTC).isoformat()
         })
 
         # Log performance metric
@@ -210,7 +208,7 @@ async def health_page(
 
     except Exception as e:
         logger.error(f"Health page error: {e}")
-        raise HTTPException(status_code=500, detail=f"Health error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Health error: {e!s}")
 
 @router.get("/analytics", response_class=HTMLResponse)
 async def analytics_page(
@@ -232,7 +230,7 @@ async def analytics_page(
             "trends": trends,
             "historical_data": historical_data,
             "page_title": "Performance Analytics",
-            "current_time": datetime.now(timezone.utc).isoformat()
+            "current_time": datetime.now(UTC).isoformat()
         })
 
         # Log performance metric
@@ -249,7 +247,7 @@ async def analytics_page(
 
     except Exception as e:
         logger.error(f"Analytics page error: {e}")
-        raise HTTPException(status_code=500, detail=f"Analytics error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Analytics error: {e!s}")
 
 # Helper functions
 def _calculate_component_health(component_metrics):

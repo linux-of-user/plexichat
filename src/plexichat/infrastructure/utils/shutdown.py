@@ -3,11 +3,11 @@
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
+import argparse
 import logging
+from pathlib import Path
 import sys
 import time
-from pathlib import Path
-import argparse
 
 try:
     import psutil
@@ -233,7 +233,7 @@ class CleanShutdown:
         # Clean up temporary files
         temp_patterns = ["*.tmp", "*.temp", "*.cache"]
         for pattern in temp_patterns:
-            for temp_file in Path(".").glob(pattern):
+            for temp_file in Path().glob(pattern):
                 try:
                     temp_file.unlink()
                     print_info(f"Removed temporary file: {temp_file.name}")

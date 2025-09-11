@@ -475,7 +475,13 @@ async def lifespan(app: FastAPI):
                             stats = rl.get_stats()
                             # Basic sanity: keys exist
                             if not isinstance(stats, dict):
-                                from plexichat.core.exceptions import SystemError, ErrorCode`n                                raise SystemError(`n                                    "Rate limiter returned invalid stats format",`n                                    ErrorCode.SYSTEM_INTERNAL_ERROR,`n                                    component="rate_limiter",`n                                    resource_type="stats"`n                                )
+                                from plexichat.core.exceptions import SystemError, ErrorCode
+                                raise SystemError(
+                                    "Rate limiter returned invalid stats format",
+                                    ErrorCode.SYSTEM_INTERNAL_ERROR,
+                                    component="rate_limiter",
+                                    resource_type="stats"
+                                )
                             _register_success('rate_limiter')
                             metrics["modules"]["rate_limiter"] = {"status": "ok", **stats}
                         except Exception as e:
@@ -519,7 +525,12 @@ async def lifespan(app: FastAPI):
                                 logger.warning(f"[SUPERVISOR] WebSocket health check failed: {check_e}")
                                 hc_ok = False
                             if not hc_ok:
-                                from plexichat.core.exceptions import SystemError, ErrorCode`n                                  raise SystemError(`n                                      "WebSocket manager failed health check",`n                                      ErrorCode.SYSTEM_INTERNAL_ERROR,`n                                      component="websocket_manager"`n                                  )
+                                from plexichat.core.exceptions import SystemError, ErrorCode
+                                raise SystemError(
+                                    "WebSocket manager failed health check",
+                                    ErrorCode.SYSTEM_INTERNAL_ERROR,
+                                    component="websocket_manager"
+                                )
                             _register_success('websocket')
                             metrics["modules"]["websocket"] = {"status": "ok", "connections": conn_count}
                         except Exception as e:
@@ -549,7 +560,11 @@ async def lifespan(app: FastAPI):
                             
                             info = pm.get_all_plugins_info()
                             if not info:
-                                from plexichat.core.exceptions import PluginError, ErrorCode`n                                raise PluginError(`n                                    "Plugin info is empty",`n                                    ErrorCode.PLUGIN_CONFIG_INVALID`n                                )
+                                from plexichat.core.exceptions import PluginError, ErrorCode
+                                raise PluginError(
+                                    "Plugin info is empty",
+                                    ErrorCode.PLUGIN_CONFIG_INVALID
+                                )
 
                             loaded_count = len(pm.loaded_plugins)
                             _register_success('plugins')

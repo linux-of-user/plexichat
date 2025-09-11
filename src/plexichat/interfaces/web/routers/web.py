@@ -10,16 +10,16 @@ Enhanced web interface with comprehensive functionality and performance optimiza
 Uses EXISTING database abstraction and optimization systems.
 """
 
-from typing import Any, Dict
+from typing import Any
 
+from colorama import Fore, Style
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse
-from colorama import Fore, Style
 
 # Use EXISTING database abstraction layer
 try:
+    from plexichat.core.database import execute_query, get_session
     from plexichat.core.database.manager import database_manager
-    from plexichat.core.database import get_session, execute_query
 except ImportError:
     database_manager = None
     get_session = None
@@ -27,9 +27,11 @@ except ImportError:
 
 # Use EXISTING performance optimization engine
 try:
-    from plexichat.core.performance.optimization_engine import PerformanceOptimizationEngine
-    from plexichat.infrastructure.utils.performance import async_track_performance
     from plexichat.core.logging import get_performance_logger, timer
+    from plexichat.core.performance.optimization_engine import (
+        PerformanceOptimizationEngine,
+    )
+    from plexichat.infrastructure.utils.performance import async_track_performance
 except ImportError:
     PerformanceOptimizationEngine = None
     async_track_performance = None
@@ -40,8 +42,8 @@ except ImportError:
 from plexichat.core.auth.fastapi_adapter import get_current_user, require_admin
 
 # Model imports
-
 from plexichat.core.logging import get_logger
+
 logger = get_logger(__name__)
 router = APIRouter(prefix="/web", tags=["web"])
 
@@ -58,7 +60,7 @@ class WebService:
         self.performance_logger = performance_logger
 
     @async_track_performance("web_dashboard") if async_track_performance else lambda f: f
-    async def get_dashboard_data(self, user_id: int) -> Dict[str, Any]:
+    async def get_dashboard_data(self, user_id: int) -> dict[str, Any]:
         """Get dashboard data using EXISTING database abstraction layer."""
         try:
             dashboard_data = {
@@ -212,7 +214,7 @@ async def main_page(request: Request):
     return HTMLResponse(content=html_content)
 
 @router.get("/dashboard")
-async def dashboard(request: Request, current_user: Dict[str, Any] = Depends(get_current_user)):
+async def dashboard(request: Request, current_user: dict[str, Any] = Depends(get_current_user)):
     """User dashboard with performance optimization."""
     client_ip = request.client.host if request.client else "unknown"
     logger.info(Fore.CYAN + f"[WEB] Dashboard accessed by user {current_user.get('username')} from {client_ip}" + Style.RESET_ALL)
@@ -281,7 +283,7 @@ async def dashboard(request: Request, current_user: Dict[str, Any] = Depends(get
     return HTMLResponse(content=html_content)
 
 @router.get("/admin")
-async def admin_panel(request: Request, current_user: Dict[str, Any] = Depends(require_admin)):
+async def admin_panel(request: Request, current_user: dict[str, Any] = Depends(require_admin)):
     """Admin panel with performance optimization."""
     client_ip = request.client.host if request.client else "unknown"
     logger.info(Fore.CYAN + f"[WEB] Admin panel accessed by admin {current_user.get('username')} from {client_ip}" + Style.RESET_ALL)

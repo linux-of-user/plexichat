@@ -7,11 +7,10 @@ Defines base PlexiChatError class and specific exception types for different err
 
 from __future__ import annotations
 
-import logging
 from datetime import datetime
 from enum import Enum
-from http import HTTPStatus
-from typing import Any, Dict, List, Optional, Type, TypeVar, Union
+import logging
+from typing import Any, TypeVar, Union
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +20,7 @@ ExceptionType = TypeVar("ExceptionType", bound="PlexiChatError")
 
 class ErrorCode(Enum):
     """Typed error codes for all PlexiChat exceptions."""
-    
+
     # Authentication Errors (1000-1099)
     AUTH_INVALID_CREDENTIALS = "PC1001"
     AUTH_TOKEN_EXPIRED = "PC1002"
@@ -150,11 +149,11 @@ class PlexiChatError(Exception):
         self,
         message: str,
         error_code: ErrorCode,
-        details: Optional[Dict[str, Any]] = None,
-        context: Optional[Dict[str, Any]] = None,
-        cause: Optional[Exception] = None,
-        correlation_id: Optional[str] = None,
-        timestamp: Optional[datetime] = None,
+        details: dict[str, Any] | None = None,
+        context: dict[str, Any] | None = None,
+        cause: Exception | None = None,
+        correlation_id: str | None = None,
+        timestamp: datetime | None = None,
     ) -> None:
         """
         Initialize PlexiChat base exception.
@@ -177,7 +176,7 @@ class PlexiChatError(Exception):
         self.correlation_id = correlation_id
         self.timestamp = timestamp or datetime.utcnow()
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert exception to dictionary representation."""
         return {
             "error_code": self.error_code.value,
@@ -211,8 +210,8 @@ class AuthenticationError(PlexiChatError):
         self,
         message: str,
         error_code: ErrorCode = ErrorCode.AUTH_INVALID_CREDENTIALS,
-        user_id: Optional[str] = None,
-        auth_method: Optional[str] = None,
+        user_id: str | None = None,
+        auth_method: str | None = None,
         **kwargs: Any,
     ) -> None:
         """
@@ -230,7 +229,7 @@ class AuthenticationError(PlexiChatError):
             details["user_id"] = user_id
         if auth_method:
             details["auth_method"] = auth_method
-        
+
         super().__init__(message, error_code, details=details, **kwargs)
 
 
@@ -241,10 +240,10 @@ class AuthorizationError(PlexiChatError):
         self,
         message: str,
         error_code: ErrorCode = ErrorCode.AUTHZ_ACCESS_DENIED,
-        user_id: Optional[str] = None,
-        resource: Optional[str] = None,
-        required_permission: Optional[str] = None,
-        current_permissions: Optional[List[str]] = None,
+        user_id: str | None = None,
+        resource: str | None = None,
+        required_permission: str | None = None,
+        current_permissions: list[str] | None = None,
         **kwargs: Any,
     ) -> None:
         """
@@ -268,7 +267,7 @@ class AuthorizationError(PlexiChatError):
             details["required_permission"] = required_permission
         if current_permissions:
             details["current_permissions"] = current_permissions
-        
+
         super().__init__(message, error_code, details=details, **kwargs)
 
 
@@ -280,9 +279,9 @@ class DatabaseError(PlexiChatError):
         self,
         message: str,
         error_code: ErrorCode = ErrorCode.DB_QUERY_FAILED,
-        table: Optional[str] = None,
-        operation: Optional[str] = None,
-        query: Optional[str] = None,
+        table: str | None = None,
+        operation: str | None = None,
+        query: str | None = None,
         **kwargs: Any,
     ) -> None:
         """
@@ -304,7 +303,7 @@ class DatabaseError(PlexiChatError):
         if query:
             # Only include first 500 chars of query for security/log size
             details["query"] = query[:500] + "..." if len(query) > 500 else query
-        
+
         super().__init__(message, error_code, details=details, **kwargs)
 
 
@@ -316,9 +315,9 @@ class PluginError(PlexiChatError):
         self,
         message: str,
         error_code: ErrorCode = ErrorCode.PLUGIN_EXECUTION_FAILED,
-        plugin_name: Optional[str] = None,
-        plugin_version: Optional[str] = None,
-        plugin_author: Optional[str] = None,
+        plugin_name: str | None = None,
+        plugin_version: str | None = None,
+        plugin_author: str | None = None,
         **kwargs: Any,
     ) -> None:
         """
@@ -339,7 +338,7 @@ class PluginError(PlexiChatError):
             details["plugin_version"] = plugin_version
         if plugin_author:
             details["plugin_author"] = plugin_author
-        
+
         super().__init__(message, error_code, details=details, **kwargs)
 
 
@@ -351,10 +350,10 @@ class NetworkError(PlexiChatError):
         self,
         message: str,
         error_code: ErrorCode = ErrorCode.NET_CONNECTION_FAILED,
-        url: Optional[str] = None,
-        method: Optional[str] = None,
-        status_code: Optional[int] = None,
-        timeout: Optional[float] = None,
+        url: str | None = None,
+        method: str | None = None,
+        status_code: int | None = None,
+        timeout: float | None = None,
         **kwargs: Any,
     ) -> None:
         """
@@ -378,7 +377,7 @@ class NetworkError(PlexiChatError):
             details["status_code"] = status_code
         if timeout:
             details["timeout"] = timeout
-        
+
         super().__init__(message, error_code, details=details, **kwargs)
 
 
@@ -390,10 +389,10 @@ class ValidationError(PlexiChatError):
         self,
         message: str,
         error_code: ErrorCode = ErrorCode.VALIDATION_INVALID_FORMAT,
-        field: Optional[str] = None,
-        value: Optional[Any] = None,
-        expected_type: Optional[str] = None,
-        validation_rules: Optional[Dict[str, Any]] = None,
+        field: str | None = None,
+        value: Any | None = None,
+        expected_type: str | None = None,
+        validation_rules: dict[str, Any] | None = None,
         **kwargs: Any,
     ) -> None:
         """
@@ -415,7 +414,7 @@ class ValidationError(PlexiChatError):
             # Sanitize sensitive values
             if isinstance(value, str) and len(value) > 100:
                 details["value"] = f"<{type(value).__name__}:length={len(value)}>"
-            elif field and any(sensitive in field.lower() for sensitive in 
+            elif field and any(sensitive in field.lower() for sensitive in
                               ["password", "token", "secret", "key", "credential"]):
                 details["value"] = "<sensitive>"
             else:
@@ -424,7 +423,7 @@ class ValidationError(PlexiChatError):
             details["expected_type"] = expected_type
         if validation_rules:
             details["validation_rules"] = validation_rules
-        
+
         super().__init__(message, error_code, details=details, **kwargs)
 
 
@@ -436,9 +435,9 @@ class SystemError(PlexiChatError):
         self,
         message: str,
         error_code: ErrorCode = ErrorCode.SYSTEM_INTERNAL_ERROR,
-        component: Optional[str] = None,
-        resource_type: Optional[str] = None,
-        resource_id: Optional[str] = None,
+        component: str | None = None,
+        resource_type: str | None = None,
+        resource_id: str | None = None,
         **kwargs: Any,
     ) -> None:
         """
@@ -459,7 +458,7 @@ class SystemError(PlexiChatError):
             details["resource_type"] = resource_type
         if resource_id:
             details["resource_id"] = resource_id
-        
+
         super().__init__(message, error_code, details=details, **kwargs)
 
 
@@ -471,9 +470,9 @@ class FileError(PlexiChatError):
         self,
         message: str,
         error_code: ErrorCode = ErrorCode.FILE_NOT_FOUND,
-        file_path: Optional[str] = None,
-        operation: Optional[str] = None,
-        file_size: Optional[int] = None,
+        file_path: str | None = None,
+        operation: str | None = None,
+        file_size: int | None = None,
         **kwargs: Any,
     ) -> None:
         """
@@ -494,7 +493,7 @@ class FileError(PlexiChatError):
             details["operation"] = operation
         if file_size:
             details["file_size"] = file_size
-        
+
         super().__init__(message, error_code, details=details, **kwargs)
 
 
@@ -506,10 +505,10 @@ class RateLimitError(PlexiChatError):
         self,
         message: str,
         error_code: ErrorCode = ErrorCode.RATE_LIMIT_EXCEEDED,
-        limit: Optional[int] = None,
-        window_seconds: Optional[int] = None,
-        retry_after: Optional[int] = None,
-        identifier: Optional[str] = None,
+        limit: int | None = None,
+        window_seconds: int | None = None,
+        retry_after: int | None = None,
+        identifier: str | None = None,
         **kwargs: Any,
     ) -> None:
         """
@@ -533,7 +532,7 @@ class RateLimitError(PlexiChatError):
             details["retry_after"] = retry_after
         if identifier:
             details["identifier"] = identifier
-        
+
         super().__init__(message, error_code, details=details, **kwargs)
 
 
@@ -545,9 +544,9 @@ class ConfigurationError(PlexiChatError):
         self,
         message: str,
         error_code: ErrorCode = ErrorCode.CONFIG_INVALID,
-        config_key: Optional[str] = None,
-        config_file: Optional[str] = None,
-        expected_format: Optional[str] = None,
+        config_key: str | None = None,
+        config_file: str | None = None,
+        expected_format: str | None = None,
         **kwargs: Any,
     ) -> None:
         """
@@ -568,7 +567,7 @@ class ConfigurationError(PlexiChatError):
             details["config_file"] = config_file
         if expected_format:
             details["expected_format"] = expected_format
-        
+
         super().__init__(message, error_code, details=details, **kwargs)
 
 
@@ -590,9 +589,9 @@ ExceptionHandler = Union[
 
 def handle_exception(
     exception: Exception,
-    context: Optional[Dict[str, Any]] = None,
-    correlation_id: Optional[str] = None,
-    logger_instance: Optional[logging.Logger] = None,
+    context: dict[str, Any] | None = None,
+    correlation_id: str | None = None,
+    logger_instance: logging.Logger | None = None,
 ) -> PlexiChatError:
     """
     Convert generic exceptions to typed PlexiChat exceptions.
@@ -607,7 +606,7 @@ def handle_exception(
         Properly typed PlexiChat exception
     """
     log = logger_instance or logger
-    
+
     # If already a PlexiChat exception, just add context if needed
     if isinstance(exception, PlexiChatError):
         if context:
@@ -615,7 +614,7 @@ def handle_exception(
         if correlation_id and not exception.correlation_id:
             exception.correlation_id = correlation_id
         return exception
-    
+
     # Map common Python exceptions to PlexiChat exceptions
     error_mapping = {
         ValueError: (ValidationError, ErrorCode.VALIDATION_INVALID_FORMAT),
@@ -629,7 +628,7 @@ def handle_exception(
         MemoryError: (SystemError, ErrorCode.SYSTEM_MEMORY_ERROR),
         RuntimeError: (SystemError, ErrorCode.SYSTEM_INTERNAL_ERROR),
     }
-    
+
     exception_type = type(exception)
     if exception_type in error_mapping:
         plexichat_cls, error_code = error_mapping[exception_type]
@@ -643,13 +642,13 @@ def handle_exception(
     else:
         # Default to generic system error
         plexichat_exception = SystemError(
-            message=f"Unhandled exception: {str(exception)}",
+            message=f"Unhandled exception: {exception!s}",
             error_code=ErrorCode.SYSTEM_INTERNAL_ERROR,
             context=context,
             correlation_id=correlation_id,
             cause=exception,
         )
-    
+
     log.error(
         "Exception handled",
         extra={
@@ -660,24 +659,24 @@ def handle_exception(
         },
         exc_info=True,
     )
-    
+
     return plexichat_exception
 
 
 # Export all exception classes and utilities
 __all__ = [
-    "ErrorCode",
-    "PlexiChatError",
     "AuthenticationError",
-    "AuthorizationError", 
-    "DatabaseError",
-    "PluginError",
-    "NetworkError",
-    "ValidationError",
-    "SystemError",
-    "FileError",
-    "RateLimitError",
+    "AuthorizationError",
     "ConfigurationError",
+    "DatabaseError",
+    "ErrorCode",
     "ExceptionHandler",
+    "FileError",
+    "NetworkError",
+    "PlexiChatError",
+    "PluginError",
+    "RateLimitError",
+    "SystemError",
+    "ValidationError",
     "handle_exception",
 ]

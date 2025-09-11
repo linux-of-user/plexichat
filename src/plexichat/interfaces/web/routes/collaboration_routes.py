@@ -5,6 +5,7 @@
 # pyright: reportReturnType=false
 # Collaboration Routes - Modular and Integrated
 import logging
+
 from fastapi import APIRouter
 
 # Only import submodules that exist and are non-empty/meaningful

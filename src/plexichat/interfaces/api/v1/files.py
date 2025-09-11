@@ -1,13 +1,12 @@
+from datetime import datetime
 import io
 import logging
 import mimetypes
-from datetime import datetime
-from typing import List, Optional
+from uuid import uuid4
 
-from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, status
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
-from uuid import uuid4
 
 # Use the unified FastAPI auth adapter for authentication and rate limiting
 from plexichat.core.auth.fastapi_adapter import get_current_user, rate_limit
@@ -63,7 +62,7 @@ def _get_max_file_size() -> int:
     return DEFAULT_MAX_FILE_SIZE
 
 
-def _parse_sanitized_filename_from_message(message: str) -> Optional[str]:
+def _parse_sanitized_filename_from_message(message: str) -> str | None:
     """Parse sanitized filename if the security validate_file_upload returned it in the message."""
     if not message:
         return None
@@ -252,10 +251,10 @@ async def download_file(file_id: str, current_user: dict = Depends(get_current_u
         )
 
 
-@router.get("/", response_model=List[FileInfo])
+@router.get("/", response_model=list[FileInfo])
 async def list_my_files(current_user: dict = Depends(get_current_user)):
     """List current user's files. Uses the file manager's database when available."""
-    results: List[FileInfo] = []
+    results: list[FileInfo] = []
 
     # If file_manager exposes a DB manager, try to query files table for this user
     try:
@@ -356,8 +355,9 @@ async def delete_file(file_id: str, current_user: dict = Depends(get_current_use
 
 if __name__ == '__main__':
     # Example of how to run this API with uvicorn
-    from fastapi import FastAPI
     from uuid import uuid4  # used by fallback
+
+    from fastapi import FastAPI
 
     app = FastAPI()
     app.include_router(router)

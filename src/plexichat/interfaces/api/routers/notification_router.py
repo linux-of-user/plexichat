@@ -9,12 +9,12 @@ Provides REST API endpoints for notification management including:
 - Notification analytics
 """
 
-import logging
 from datetime import datetime
-from typing import Dict, List, Any, Optional
+import logging
+from typing import Any
 
 try:
-    from fastapi import APIRouter, HTTPException, Depends, Query, BackgroundTasks
+    from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
     from pydantic import BaseModel, Field
 except ImportError:
     APIRouter = None
@@ -45,12 +45,12 @@ class NotificationResponse(BaseModel):
     message: str
     priority: str
     created_at: str
-    read_at: Optional[str]
-    data: Dict[str, Any]
+    read_at: str | None
+    data: dict[str, Any]
 
 class NotificationListResponse(BaseModel):
     """Response model for notification list."""
-    notifications: List[NotificationResponse]
+    notifications: list[NotificationResponse]
     total_count: int
     unread_count: int
 
@@ -60,25 +60,25 @@ class SendNotificationRequest(BaseModel):
     notification_type: str = Field(..., description="Notification type", examples=["message", "mention", "system"])
     title: str = Field(..., description="Notification title")
     message: str = Field(..., description="Notification message")
-    priority: Optional[str] = Field("normal", description="Notification priority", examples=["low", "normal", "high", "urgent"])
-    data: Optional[Dict[str, Any]] = Field(None, description="Additional notification data")
-    expires_in_hours: Optional[int] = Field(None, description="Expiration time in hours")
+    priority: str | None = Field("normal", description="Notification priority", examples=["low", "normal", "high", "urgent"])
+    data: dict[str, Any] | None = Field(None, description="Additional notification data")
+    expires_in_hours: int | None = Field(None, description="Expiration time in hours")
 
 class MarkReadRequest(BaseModel):
     """Request model for marking notifications as read."""
-    notification_ids: List[str] = Field(..., description="List of notification IDs to mark as read")
+    notification_ids: list[str] = Field(..., description="List of notification IDs to mark as read")
 
 class NotificationPreferencesRequest(BaseModel):
     """Request model for updating notification preferences."""
-    notifications_enabled: Optional[bool] = Field(None, description="Enable/disable all notifications")
-    message_notifications: Optional[bool] = Field(None, description="Enable message notifications")
-    mention_notifications: Optional[bool] = Field(None, description="Enable mention notifications")
-    friend_request_notifications: Optional[bool] = Field(None, description="Enable friend request notifications")
-    system_notifications: Optional[bool] = Field(None, description="Enable system notifications")
-    push_notifications: Optional[bool] = Field(None, description="Enable push notifications")
-    email_notifications: Optional[bool] = Field(None, description="Enable email notifications")
-    min_priority: Optional[str] = Field(None, description="Minimum priority level", examples=["low", "normal", "high", "urgent"])
-    quiet_hours: Optional[Dict[str, Any]] = Field(None, description="Quiet hours configuration")
+    notifications_enabled: bool | None = Field(None, description="Enable/disable all notifications")
+    message_notifications: bool | None = Field(None, description="Enable message notifications")
+    mention_notifications: bool | None = Field(None, description="Enable mention notifications")
+    friend_request_notifications: bool | None = Field(None, description="Enable friend request notifications")
+    system_notifications: bool | None = Field(None, description="Enable system notifications")
+    push_notifications: bool | None = Field(None, description="Enable push notifications")
+    email_notifications: bool | None = Field(None, description="Enable email notifications")
+    min_priority: str | None = Field(None, description="Minimum priority level", examples=["low", "normal", "high", "urgent"])
+    quiet_hours: dict[str, Any] | None = Field(None, description="Quiet hours configuration")
 
 class NotificationPreferencesResponse(BaseModel):
     """Response model for notification preferences."""
@@ -90,7 +90,7 @@ class NotificationPreferencesResponse(BaseModel):
     push_notifications: bool
     email_notifications: bool
     min_priority: str
-    quiet_hours: Dict[str, Any]
+    quiet_hours: dict[str, Any]
 
 class NotificationStatsResponse(BaseModel):
     """Response model for notification statistics."""
@@ -108,7 +108,7 @@ if router:
     async def get_my_notifications(
         limit: int = Query(50, ge=1, le=100, description="Maximum number of notifications to return"),
         unread_only: bool = Query(False, description="Return only unread notifications"),
-        current_user: Dict[str, Any] = Depends(get_current_user)
+        current_user: dict[str, Any] = Depends(get_current_user)
     ):
         """Get current user's notifications."""
         try:
@@ -151,7 +151,7 @@ if router:
     @router.put("/read")
     async def mark_notifications_read(
         request: MarkReadRequest,
-        current_user: Dict[str, Any] = Depends(get_current_user)
+        current_user: dict[str, Any] = Depends(get_current_user)
     ):
         """Mark notifications as read."""
         try:
@@ -172,7 +172,7 @@ if router:
     async def send_notification(
         request: SendNotificationRequest,
         background_tasks: BackgroundTasks,
-        current_user: Dict[str, Any] = Depends(get_current_user)
+        current_user: dict[str, Any] = Depends(get_current_user)
     ):
         """Send a notification to a user."""
         try:
@@ -214,7 +214,7 @@ if router:
             raise HTTPException(status_code=500, detail="Failed to send notification")
 
     @router.get("/preferences", response_model=NotificationPreferencesResponse)
-    async def get_notification_preferences(current_user: Dict[str, Any] = Depends(get_current_user)):
+    async def get_notification_preferences(current_user: dict[str, Any] = Depends(get_current_user)):
         """Get current user's notification preferences."""
         try:
             user_id = current_user["id"]
@@ -229,7 +229,7 @@ if router:
     @router.put("/preferences", response_model=NotificationPreferencesResponse)
     async def update_notification_preferences(
         request: NotificationPreferencesRequest,
-        current_user: Dict[str, Any] = Depends(get_current_user)
+        current_user: dict[str, Any] = Depends(get_current_user)
     ):
         """Update current user's notification preferences."""
         try:
@@ -263,7 +263,7 @@ if router:
     @router.delete("/{notification_id}")
     async def delete_notification(
         notification_id: str,
-        current_user: Dict[str, Any] = Depends(get_current_user)
+        current_user: dict[str, Any] = Depends(get_current_user)
     ):
         """Delete a notification."""
         try:
@@ -285,7 +285,7 @@ if router:
             raise HTTPException(status_code=500, detail="Failed to delete notification")
 
     @router.get("/unread/count")
-    async def get_unread_count(current_user: Dict[str, Any] = Depends(get_current_user)):
+    async def get_unread_count(current_user: dict[str, Any] = Depends(get_current_user)):
         """Get count of unread notifications."""
         try:
             user_id = current_user["id"]
@@ -298,7 +298,7 @@ if router:
             raise HTTPException(status_code=500, detail="Failed to get unread count")
 
     @router.post("/mark-all-read")
-    async def mark_all_notifications_read(current_user: Dict[str, Any] = Depends(get_current_user)):
+    async def mark_all_notifications_read(current_user: dict[str, Any] = Depends(get_current_user)):
         """Mark all notifications as read."""
         try:
             user_id = current_user["id"]
@@ -324,7 +324,7 @@ if router:
             raise HTTPException(status_code=500, detail="Failed to mark all notifications as read")
 
     @router.get("/stats", response_model=NotificationStatsResponse)
-    async def get_notification_stats(current_user: Dict[str, Any] = Depends(get_current_user)):
+    async def get_notification_stats(current_user: dict[str, Any] = Depends(get_current_user)):
         """Get notification statistics for current user."""
         try:
             user_id = current_user["id"]
@@ -349,7 +349,7 @@ if router:
             raise HTTPException(status_code=500, detail="Failed to get notification stats")
 
     @router.post("/test")
-    async def send_test_notification(current_user: Dict[str, Any] = Depends(get_current_user)):
+    async def send_test_notification(current_user: dict[str, Any] = Depends(get_current_user)):
         """Send a test notification to current user."""
         try:
             user_id = current_user["id"]

@@ -1,13 +1,13 @@
-import logging
-import os
-import json
-import hashlib
-import mimetypes
 from datetime import datetime
-from typing import Dict, List, Optional, Any
+import hashlib
+import json
+import logging
+import mimetypes
+import os
 from pathlib import Path
+from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
@@ -19,7 +19,9 @@ router = APIRouter(prefix="/client-settings", tags=["Client Settings"])
 # Attempt to import a real repository/service and config if available in the application.
 # Fall back to local mocks for standalone execution.
 try:
-    from plexichat.infrastructure.services.client_settings_service import client_settings_service as repository  # type: ignore
+    from plexichat.infrastructure.services.client_settings_service import (
+        client_settings_service as repository,  # type: ignore
+    )
 except Exception:
     # Mock repository for standalone execution or tests where the full app isn't available.
     class MockRepository:
@@ -37,7 +39,7 @@ except Exception:
         async def get_user_images(self, user_id): return []
         async def get_user_stats(self, user_id): return {"total_settings": 0, "total_storage_bytes": 0}
         async def initialize_tables(self): return False
-        async def log_audit(self, entry: Dict[str, Any]):
+        async def log_audit(self, entry: dict[str, Any]):
             # simple file-based audit fallback
             try:
                 os.makedirs("logs", exist_ok=True)
@@ -69,7 +71,9 @@ except Exception:
 # Try to import the global security system for validation
 _get_security_system = None
 try:
-    from plexichat.core.security.security_manager import get_security_system  # type: ignore
+    from plexichat.core.security.security_manager import (
+        get_security_system,  # type: ignore
+    )
     _get_security_system = get_security_system
 except Exception:
     _get_security_system = None
@@ -82,16 +86,16 @@ class ClientSettingCreate(BaseModel):
 class ClientSettingResponse(BaseModel):
     setting_key: str
     setting_value: Any
-    setting_type: Optional[str] = "text"
+    setting_type: str | None = "text"
     updated_at: datetime
-    size_bytes: Optional[int] = 0
+    size_bytes: int | None = 0
 
 class ClientSettingsBulkUpdate(BaseModel):
-    settings: Dict[str, Any]
+    settings: dict[str, Any]
 
 class ClientSettingsBulkResponse(BaseModel):
     updated_count: int
-    errors: Optional[List[Dict[str, Any]]] = None
+    errors: list[dict[str, Any]] | None = None
 
 # Known schema for validation of well-known keys.
 KNOWN_KEY_SCHEMAS = {
@@ -192,7 +196,7 @@ async def _ensure_tables():
         # Best-effort; not fatal here.
         pass
 
-async def _log_audit(user_id: str, action: str, setting_key: str, details: Optional[Dict[str, Any]] = None):
+async def _log_audit(user_id: str, action: str, setting_key: str, details: dict[str, Any] | None = None):
     """
     Record audit trail for client settings changes.
     Try to use repository.log_audit if available; otherwise append to a local logfile.
@@ -222,7 +226,7 @@ async def _log_audit(user_id: str, action: str, setting_key: str, details: Optio
 async def _startup_init():
     await _ensure_tables()
 
-@router.get("/", response_model=List[ClientSettingResponse])
+@router.get("/", response_model=list[ClientSettingResponse])
 async def get_all_settings(current_user: dict = Depends(get_current_user)):
     """Get all client settings for the current user."""
     user_id = current_user["user_id"]

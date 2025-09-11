@@ -3,20 +3,26 @@
 Rate Limiting Administration WebUI Router
 """
 
-from fastapi import APIRouter, Request, HTTPException, Form
+import logging
+
+from fastapi import APIRouter, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
-import logging
 
 try:
     # Import security decorators
-    from plexichat.core.security.security_decorators import (
-        require_admin, rate_limit, audit_access
+    from plexichat.core.config.rate_limiting_config import (
+        AccountType,
+        DynamicRateLimitConfig,
+        IPBlacklistConfig,
+        get_rate_limiting_config,
+        update_rate_limit_config,
     )
     from plexichat.core.security import SecurityLevel
-    from plexichat.core.config.rate_limiting_config import (
-        get_rate_limiting_config, AccountType, update_rate_limit_config,
-        DynamicRateLimitConfig, IPBlacklistConfig
+    from plexichat.core.security.security_decorators import (
+        audit_access,
+        rate_limit,
+        require_admin,
     )
 except Exception as e:
     print(f"Import error in rate limiting admin: {e}")
@@ -76,7 +82,7 @@ async def rate_limiting_dashboard(request: Request):
     try:
         config = get_rate_limiting_config()
         config_summary = config.get_config_summary()
-        
+
         if templates:
             return templates.TemplateResponse("rate_limiting_admin.html", {
                 "request": request,
@@ -155,7 +161,7 @@ async def rate_limiting_dashboard(request: Request):
                             </thead>
                             <tbody>
             """
-            
+
             for account_type, limits in config_summary['account_types'].items():
                 status_class = "enabled" if limits['enabled'] else "disabled"
                 status_text = "Enabled" if limits['enabled'] else "Disabled"
@@ -172,7 +178,7 @@ async def rate_limiting_dashboard(request: Request):
                                     </td>
                                 </tr>
                 """
-            
+
             html_content += f"""
                             </tbody>
                         </table>
@@ -256,10 +262,10 @@ async def rate_limiting_dashboard(request: Request):
             </html>
             """
             return HTMLResponse(content=html_content)
-            
+
     except Exception as e:
         logger.error(f"Error in rate limiting dashboard: {e}")
-        raise HTTPException(status_code=500, detail=f"Dashboard error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Dashboard error: {e!s}")
 
 @router.get("/config", response_class=JSONResponse)
 @require_admin()
@@ -289,13 +295,13 @@ async def update_rate_limiting_config_api(
             global_enabled=global_enabled,
             strict_mode=strict_mode
         )
-        
+
         if success:
             # Update dynamic config separately
             config = get_rate_limiting_config()
             config.dynamic_config.enabled = dynamic_enabled
             config.save_config()
-            
+
             return JSONResponse(content={"success": True, "message": "Configuration updated successfully"})
         else:
             raise HTTPException(status_code=500, detail="Failed to update configuration")
@@ -318,7 +324,7 @@ async def update_account_type_limits(
     try:
         account_type_enum = AccountType(account_type)
         config = get_rate_limiting_config()
-        
+
         config.update_account_limit(
             account_type_enum,
             global_requests_per_minute=requests_per_minute,
@@ -326,7 +332,7 @@ async def update_account_type_limits(
             concurrent_requests=concurrent_requests,
             enabled=enabled
         )
-        
+
         return JSONResponse(content={"success": True, "message": f"Updated limits for {account_type}"})
     except ValueError:
         raise HTTPException(status_code=400, detail=f"Invalid account type: {account_type}")
@@ -347,7 +353,7 @@ async def add_to_blacklist(
     try:
         config = get_rate_limiting_config()
         config.add_to_blacklist(ip_address, permanent, duration)
-        
+
         return JSONResponse(content={"success": True, "message": f"Added {ip_address} to blacklist"})
     except Exception as e:
         logger.error(f"Error adding to blacklist: {e}")
@@ -362,7 +368,7 @@ async def remove_from_blacklist(ip_address: str = Form(...)):
     try:
         config = get_rate_limiting_config()
         config.remove_from_blacklist(ip_address)
-        
+
         return JSONResponse(content={"success": True, "message": f"Removed {ip_address} from blacklist"})
     except Exception as e:
         logger.error(f"Error removing from blacklist: {e}")
@@ -396,7 +402,7 @@ async def reset_to_defaults():
         config.dynamic_config = DynamicRateLimitConfig()
         config.ip_blacklist_config = IPBlacklistConfig()
         config.save_config()
-        
+
         return JSONResponse(content={"success": True, "message": "Configuration reset to defaults"})
     except Exception as e:
         logger.error(f"Error resetting configuration: {e}")

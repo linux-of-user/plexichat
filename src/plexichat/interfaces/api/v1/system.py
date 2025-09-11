@@ -9,13 +9,13 @@ System information and health checks:
 - Service status
 """
 
-import psutil
-import platform
 from datetime import datetime
+import logging
+import platform
 
 from fastapi import APIRouter, HTTPException
+import psutil
 from pydantic import BaseModel
-import logging
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/system", tags=["System"])
@@ -45,7 +45,7 @@ class PerformanceMetrics(BaseModel):
 
 # Import mock databases from other modules
 try:
-    from plexichat.interfaces.api.v1.auth import users_db, sessions_db
+    from plexichat.interfaces.api.v1.auth import sessions_db, users_db
 except ImportError:
     users_db = {}
     sessions_db = {}
@@ -99,7 +99,7 @@ async def system_info():
         # Get system info
         memory = psutil.virtual_memory()
         disk = psutil.disk_usage('/')
-        
+
         return SystemInfo(
             platform=f"{platform.system()} {platform.release()}",
             python_version=platform.python_version(),
@@ -107,7 +107,7 @@ async def system_info():
             memory_total=memory.total,
             disk_total=disk.total
         )
-        
+
     except Exception as e:
         logger.error(f"System info error: {e}")
         raise HTTPException(status_code=500, detail="Failed to get system info")
@@ -121,7 +121,7 @@ async def performance_metrics():
         memory = psutil.virtual_memory()
         disk = psutil.disk_usage('/')
         network = psutil.net_io_counters()
-        
+
         return PerformanceMetrics(
             cpu_percent=cpu_percent,
             memory_percent=memory.percent,
@@ -129,7 +129,7 @@ async def performance_metrics():
             network_sent=network.bytes_sent,
             network_recv=network.bytes_recv
         )
-        
+
     except Exception as e:
         logger.error(f"Performance metrics error: {e}")
         raise HTTPException(status_code=500, detail="Failed to get performance metrics")
@@ -141,15 +141,15 @@ async def detailed_status():
         # Calculate uptime
         uptime = datetime.now() - STARTUP_TIME
         uptime_str = str(uptime).split('.')[0]
-        
+
         # Get system metrics
         cpu_percent = psutil.cpu_percent(interval=0.1)
         memory = psutil.virtual_memory()
         disk = psutil.disk_usage('/')
-        
+
         # Calculate application stats
         active_messages = len([m for m in messages_db.values() if not m.get('deleted')])
-        
+
         return {
             "status": "online",
             "timestamp": datetime.now(),
@@ -180,7 +180,7 @@ async def detailed_status():
                 "admin": "online"
             }
         }
-        
+
     except Exception as e:
         logger.error(f"Detailed status error: {e}")
         raise HTTPException(status_code=500, detail="Failed to get detailed status")
@@ -306,7 +306,7 @@ async def stats_summary():
         # Calculate basic stats
         active_messages = len([m for m in messages_db.values() if not m.get('deleted')])
         total_file_size = sum(f.get('size', 0) for f in files_db.values())
-        
+
         return {
             "users": len(users_db),
             "sessions": len(sessions_db),
@@ -316,7 +316,7 @@ async def stats_summary():
             "uptime": str(datetime.now() - STARTUP_TIME).split('.')[0],
             "timestamp": datetime.now()
         }
-        
+
     except Exception as e:
         logger.error(f"Stats summary error: {e}")
         raise HTTPException(status_code=500, detail="Failed to get stats summary")

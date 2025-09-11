@@ -2,7 +2,7 @@ import argparse
 import asyncio
 import logging
 import sys
-from typing import Optional
+
 
 # Mocking dependencies for standalone execution
 class MockUpdateSystem:
@@ -45,7 +45,7 @@ class UpdateCLI:
 
         return parser
 
-    async def run(self, args: Optional[list] = None):
+    async def run(self, args: list | None = None):
         """Runs the update CLI."""
         parsed_args = self.parser.parse_args(args=args or sys.argv[1:])
 

@@ -5,9 +5,10 @@ Enhanced with comprehensive validation and security.
 """
 
 from datetime import datetime
-from typing import Optional, List, Dict, Any
-from pydantic import BaseModel, Field, field_validator
 from enum import Enum
+from typing import Any
+
+from pydantic import BaseModel, Field, field_validator
 
 
 class MessageType(str, Enum):
@@ -44,15 +45,15 @@ class MessageBase(BaseModel):
 class MessageCreate(MessageBase):
     """Message creation schema."""
     recipient_id: int = Field(..., description="Recipient user ID")
-    parent_id: Optional[int] = Field(None, description="Parent message ID for threading")
-    metadata: Optional[Dict[str, Any]] = Field(None, description="Additional message metadata")
+    parent_id: int | None = Field(None, description="Parent message ID for threading")
+    metadata: dict[str, Any] | None = Field(None, description="Additional message metadata")
 
 
 class MessageUpdate(BaseModel):
     """Message update schema."""
-    content: Optional[str] = Field(None, min_length=1, max_length=2000, description="Updated content")
-    priority: Optional[MessagePriority] = Field(None, description="Updated priority")
-    metadata: Optional[Dict[str, Any]] = Field(None, description="Updated metadata")
+    content: str | None = Field(None, min_length=1, max_length=2000, description="Updated content")
+    priority: MessagePriority | None = Field(None, description="Updated priority")
+    metadata: dict[str, Any] | None = Field(None, description="Updated metadata")
 
     @field_validator('content')
     @classmethod
@@ -67,12 +68,12 @@ class MessageResponse(MessageBase):
     id: int = Field(..., description="Message ID")
     sender_id: int = Field(..., description="Sender user ID")
     recipient_id: int = Field(..., description="Recipient user ID")
-    parent_id: Optional[int] = Field(None, description="Parent message ID")
+    parent_id: int | None = Field(None, description="Parent message ID")
     timestamp: datetime = Field(..., description="Message timestamp")
-    updated_at: Optional[datetime] = Field(None, description="Last update timestamp")
+    updated_at: datetime | None = Field(None, description="Last update timestamp")
     is_read: bool = Field(default=False, description="Read status")
     is_edited: bool = Field(default=False, description="Edit status")
-    metadata: Optional[Dict[str, Any]] = Field(None, description="Message metadata")
+    metadata: dict[str, Any] | None = Field(None, description="Message metadata")
 
     class Config:
         from_attributes = True
@@ -80,7 +81,7 @@ class MessageResponse(MessageBase):
 
 class MessageListResponse(BaseModel):
     """Message list response schema."""
-    messages: List[MessageResponse] = Field(..., description="List of messages")
+    messages: list[MessageResponse] = Field(..., description="List of messages")
     total_count: int = Field(..., description="Total number of messages")
     page: int = Field(..., description="Current page number")
     per_page: int = Field(..., description="Items per page")
@@ -91,7 +92,7 @@ class MessageListResponse(BaseModel):
 class MessageThread(BaseModel):
     """Message thread schema."""
     parent_message: MessageResponse = Field(..., description="Parent message")
-    replies: List[MessageResponse] = Field(..., description="Reply messages")
+    replies: list[MessageResponse] = Field(..., description="Reply messages")
     reply_count: int = Field(..., description="Total number of replies")
 
 
@@ -106,18 +107,18 @@ class MessageReaction(BaseModel):
 
 class MessageWithReactions(MessageResponse):
     """Message with reactions schema."""
-    reactions: List[MessageReaction] = Field(default=[], description="Message reactions")
-    reaction_counts: Dict[str, int] = Field(default={}, description="Reaction counts by emoji")
+    reactions: list[MessageReaction] = Field(default=[], description="Message reactions")
+    reaction_counts: dict[str, int] = Field(default={}, description="Reaction counts by emoji")
 
 
 class MessageSearch(BaseModel):
     """Message search schema."""
     query: str = Field(..., min_length=1, max_length=100, description="Search query")
-    sender_id: Optional[int] = Field(None, description="Filter by sender ID")
-    recipient_id: Optional[int] = Field(None, description="Filter by recipient ID")
-    message_type: Optional[MessageType] = Field(None, description="Filter by message type")
-    start_date: Optional[datetime] = Field(None, description="Start date filter")
-    end_date: Optional[datetime] = Field(None, description="End date filter")
+    sender_id: int | None = Field(None, description="Filter by sender ID")
+    recipient_id: int | None = Field(None, description="Filter by recipient ID")
+    message_type: MessageType | None = Field(None, description="Filter by message type")
+    start_date: datetime | None = Field(None, description="Start date filter")
+    end_date: datetime | None = Field(None, description="End date filter")
 
     @field_validator('query')
     @classmethod
@@ -134,5 +135,5 @@ class MessageStats(BaseModel):
     messages_this_week: int = Field(default=0, description="Messages sent this week")
     messages_this_month: int = Field(default=0, description="Messages sent this month")
     average_per_day: float = Field(default=0.0, description="Average messages per day")
-    most_active_hour: Optional[int] = Field(None, description="Most active hour of day")
-    message_types: Dict[str, int] = Field(default={}, description="Message count by type")
+    most_active_hour: int | None = Field(None, description="Most active hour of day")
+    message_types: dict[str, int] = Field(default={}, description="Message count by type")

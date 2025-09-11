@@ -12,21 +12,22 @@ This module provides RESTful API endpoints for P2P shard distribution with:
 - Tamper-resistant blockchain-based audit logging
 """
 
-import logging
-from datetime import datetime, timezone
-from typing import Dict, List, Optional, Any
-from fastapi import APIRouter, Depends, HTTPException, Request, BackgroundTasks
-from pydantic import BaseModel, Field, validator
-import re
+from datetime import UTC, datetime
 import hashlib
+import logging
+import re
+from typing import Any
+
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
+from pydantic import BaseModel, Field, validator
 
 from plexichat.core.auth.fastapi_adapter import get_current_user
 from plexichat.core.logging.pii_redaction import redact_pii
 from plexichat.core.security.unified_audit_system import (
-    get_unified_audit_system,
     SecurityEventType,
     SecuritySeverity,
-    ThreatLevel
+    ThreatLevel,
+    get_unified_audit_system,
 )
 from plexichat.features.backup.backup_engine import BackupEngine
 from plexichat.features.backup.storage_manager import StorageManager
@@ -121,7 +122,7 @@ class ShardResponse(BaseModel):
     verification_status: str
 
 
-def sanitize_log_data(data: Dict[str, Any]) -> Dict[str, Any]:
+def sanitize_log_data(data: dict[str, Any]) -> dict[str, Any]:
     """Sanitize sensitive data for logging."""
     sanitized = data.copy()
 
@@ -153,9 +154,9 @@ def log_security_event(
     event_type: SecurityEventType,
     description: str,
     request: Request,
-    user_id: Optional[str] = None,
-    resource: Optional[str] = None,
-    details: Optional[Dict[str, Any]] = None,
+    user_id: str | None = None,
+    resource: str | None = None,
+    details: dict[str, Any] | None = None,
     severity: SecuritySeverity = SecuritySeverity.INFO,
     threat_level: ThreatLevel = ThreatLevel.LOW
 ):
@@ -346,7 +347,7 @@ async def upload_shard(
                     ThreatLevel.HIGH
                 )
                 raise HTTPException(status_code=400, detail="Checksum verification failed")
-        except Exception as e:
+        except Exception:
             raise HTTPException(status_code=400, detail="Invalid shard data format")
 
         # Store shard
@@ -670,7 +671,7 @@ async def _get_shard_peer_count(backup_id: str, shard_index: int) -> int:
         return 1
 
 
-async def get_shard_info(backup_id: str, shard_index: int) -> Optional[Dict[str, Any]]:
+async def get_shard_info(backup_id: str, shard_index: int) -> dict[str, Any] | None:
     """Get information about a specific shard."""
     try:
         # Get backup metadata from backup engine
@@ -706,7 +707,7 @@ async def get_shard_info(backup_id: str, shard_index: int) -> Optional[Dict[str,
         return None
 
 
-async def store_shard_data(backup_id: str, shard_index: int, data: bytes, checksum: str, user_id: str) -> Dict[str, Any]:
+async def store_shard_data(backup_id: str, shard_index: int, data: bytes, checksum: str, user_id: str) -> dict[str, Any]:
     """Store shard data in the distributed storage system."""
     try:
         # Create shard metadata
@@ -718,7 +719,7 @@ async def store_shard_data(backup_id: str, shard_index: int, data: bytes, checks
             "data": data,
             "size": len(data),
             "checksum": checksum,
-            "created_at": datetime.now(timezone.utc)
+            "created_at": datetime.now(UTC)
         }
 
         # Get backup metadata to determine total shards
@@ -746,7 +747,7 @@ async def store_shard_data(backup_id: str, shard_index: int, data: bytes, checks
         return {'success': False, 'error': str(e)}
 
 
-async def retrieve_shard_data(backup_id: str, shard_index: int, user_id: str) -> Optional[Dict[str, Any]]:
+async def retrieve_shard_data(backup_id: str, shard_index: int, user_id: str) -> dict[str, Any] | None:
     """Retrieve shard data from the distributed storage system."""
     try:
         shard_id = f"{backup_id}_shard_{shard_index:04d}"
@@ -779,7 +780,7 @@ async def retrieve_shard_data(backup_id: str, shard_index: int, user_id: str) ->
         return None
 
 
-async def verify_shard_integrity(backup_id: str, shard_index: int, user_id: str) -> Dict[str, Any]:
+async def verify_shard_integrity(backup_id: str, shard_index: int, user_id: str) -> dict[str, Any]:
     """Verify the integrity of a shard across distributed peers."""
     try:
         shard_id = f"{backup_id}_shard_{shard_index:04d}"
@@ -801,7 +802,7 @@ async def verify_shard_integrity(backup_id: str, shard_index: int, user_id: str)
             'valid': shard_valid,
             'checksum_match': shard_valid,
             'peer_count': verification_result.get('total_shards', 0),
-            'verified_at': datetime.now(timezone.utc).isoformat(),
+            'verified_at': datetime.now(UTC).isoformat(),
             'verification_method': 'storage_manager_verification'
         }
 
@@ -814,7 +815,7 @@ async def verify_shard_integrity(backup_id: str, shard_index: int, user_id: str)
         }
 
 
-async def get_shard_status_list(backup_id: str, user_id: str) -> List[Dict[str, Any]]:
+async def get_shard_status_list(backup_id: str, user_id: str) -> list[dict[str, Any]]:
     """Get status of all shards for a backup."""
     try:
         # Get backup metadata from backup engine
@@ -846,7 +847,7 @@ async def get_shard_status_list(backup_id: str, user_id: str) -> List[Dict[str, 
                 'status': status,
                 'size_bytes': backup_metadata.get('original_size', 0) // max(shard_count, 1),
                 'peer_count': await _get_shard_peer_count(backup_id, i),
-                'last_verified': datetime.now(timezone.utc).isoformat(),
+                'last_verified': datetime.now(UTC).isoformat(),
                 'checksum_valid': checksum_valid
             })
 

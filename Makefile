@@ -90,6 +90,13 @@ help: ## Show this help message
 	@echo "  $(BLUE)docs-dev$(NC)      Build and serve docs in development mode"
 	@echo "  $(BLUE)docs-check$(NC)    Check documentation for issues"
 	@echo ""
+	@echo "Docker targets:"
+	@echo "  $(BLUE)docker-build$(NC)   Build Docker image for development"
+	@echo "  $(BLUE)docker-cythonize$(NC) Run Cython compilation in Docker"
+	@echo "  $(BLUE)docker-test$(NC)    Run tests in Docker container"
+	@echo "  $(BLUE)docker-serve$(NC)   Serve application in Docker"
+	@echo "  $(BLUE)docker-dev$(NC)     Start Docker development environment"
+	@echo ""
 	@echo "Environment variables:"
 	@echo "  PYTHON=$(PYTHON)     Python command to use"
 	@echo "  DOCS_PORT=$(DOCS_PORT)      Port for documentation server"
@@ -378,3 +385,43 @@ docs-stats: ## Show documentation statistics
 	else \
 		echo "  Site directory: not built"; \
 	fi
+
+# Docker targets
+docker-build: ## Build Docker image for development
+$(call log_info,Building Docker image for development...)
+@if ! command -v docker >/dev/null 2>&1; then \
+	$(call log_error,Docker not found. Please install Docker.); \
+	exit 1; \
+fi
+docker build --platform linux/amd64,linux/arm64 -t plexichat-dev:latest . --target dev
+$(call log_success,Docker image built successfully)
+
+docker-cythonize: docker-build ## Run Cython compilation in Docker
+$(call log_info,Running Cython compilation in Docker...)
+docker run --rm -v $(PWD):/app -w /app plexichat-dev:latest make cythonize
+$(call log_success,Cython compilation completed in Docker)
+
+docker-test: docker-build ## Run tests in Docker container
+$(call log_info,Running tests in Docker container...)
+docker run --rm -v $(PWD):/app -w /app plexichat-dev:latest pytest tests/ --cov=src/plexichat --cov-report=term-missing --cov-fail-under=80
+$(call log_success,Tests completed in Docker)
+
+docker-serve: docker-build ## Serve application in Docker
+$(call log_info,Starting application server in Docker...)
+@if [ -f ".env" ]; then \
+	$(call log_info,Using environment from .env file); \
+else \
+	$(call log_warning,No .env file found, using default POSTGRES_URL); \
+fi
+docker run -p 8000:8000 --rm -v $(PWD):/app -w /app \
+	-e POSTGRES_URL=postgresql://postgres:password@host.docker.internal:5432/plexichat \
+	plexichat-dev:latest uvicorn plexichat.main:app --reload --host 0.0.0.0 --port 8000
+$(call log_success,Application server stopped)
+
+docker-dev: docker-build ## Start Docker development environment
+$(call log_info,Starting Docker development environment...)
+docker run -it --rm -p 8000:8000 -v $(PWD):/app -w /app plexichat-dev:latest bash
+$(call log_success,Development environment stopped)
+
+# Update .PHONY list
+.PHONY: help docs docs-serve docs-lint docs-clean docs-install docs-dev docs-check clean install test lint cythonize numba-compile compile-all docs-rebuild docs-quick docs-validate dev-docs watch-docs ci-docs debug-docs docs-stats docker-build docker-cythonize docker-test docker-serve docker-dev

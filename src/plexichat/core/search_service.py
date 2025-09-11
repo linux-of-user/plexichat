@@ -5,11 +5,11 @@ Provides comprehensive search functionality with full-text search, filters,
 search suggestions, and search history tracking.
 """
 
+from dataclasses import dataclass, field
+from datetime import UTC, datetime, timedelta
 import json
 import re
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 from uuid import uuid4
 
 from plexichat.core.database.manager import database_manager
@@ -23,12 +23,12 @@ class SearchFilter:
     """Search filter configuration."""
 
     query: str
-    user_id: Optional[str] = None
-    channel_id: Optional[str] = None
-    date_from: Optional[datetime] = None
-    date_to: Optional[datetime] = None
-    message_type: Optional[str] = None
-    has_attachments: Optional[bool] = None
+    user_id: str | None = None
+    channel_id: str | None = None
+    date_from: datetime | None = None
+    date_to: datetime | None = None
+    message_type: str | None = None
+    has_attachments: bool | None = None
     limit: int = 50
     offset: int = 0
 
@@ -43,8 +43,8 @@ class SearchResult:
     channel_id: str
     created_at: datetime
     score: float
-    highlights: List[str] = field(default_factory=list)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    highlights: list[str] = field(default_factory=list)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -54,7 +54,7 @@ class SearchSuggestion:
     text: str
     type: str  # "query", "user", "channel"
     frequency: int = 0
-    last_used: Optional[datetime] = None
+    last_used: datetime | None = None
 
 
 @dataclass
@@ -64,7 +64,7 @@ class SearchHistory:
     id: str
     user_id: str
     query: str
-    filters: Dict[str, Any]
+    filters: dict[str, Any]
     result_count: int
     timestamp: datetime
     duration_ms: int
@@ -134,7 +134,7 @@ class FullTextSearch:
             logger.error(f"Failed to initialize FTS: {e}")
             return False
 
-    async def search(self, query: str, filters: SearchFilter) -> List[SearchResult]:
+    async def search(self, query: str, filters: SearchFilter) -> list[SearchResult]:
         """Perform full-text search with filters."""
         try:
             async with database_manager.get_session() as session:
@@ -229,7 +229,7 @@ class FullTextSearch:
             logger.error(f"Search failed: {e}")
             return []
 
-    def _expand_query(self, query: str) -> List[str]:
+    def _expand_query(self, query: str) -> list[str]:
         """Expand search query with synonyms and variations."""
         terms = []
 
@@ -289,7 +289,7 @@ class SearchSuggestions:
 
     async def get_suggestions(
         self, prefix: str, limit: int = 10
-    ) -> List[SearchSuggestion]:
+    ) -> list[SearchSuggestion]:
         """Get search suggestions for a prefix."""
         try:
             async with database_manager.get_session() as session:
@@ -328,7 +328,7 @@ class SearchSuggestions:
         """Add or update a search suggestion."""
         try:
             async with database_manager.get_session() as session:
-                now = datetime.now(timezone.utc).isoformat()
+                now = datetime.now(UTC).isoformat()
 
                 # Check if suggestion exists
                 check_query = f"SELECT id, frequency FROM {self.suggestions_table} WHERE text = :text AND type = :type"
@@ -420,7 +420,7 @@ class SearchHistoryService:
                         "result_count": history.result_count,
                         "timestamp": history.timestamp.isoformat(),
                         "duration_ms": history.duration_ms,
-                        "created_at": datetime.now(timezone.utc).isoformat(),
+                        "created_at": datetime.now(UTC).isoformat(),
                     },
                 )
                 await session.commit()
@@ -432,7 +432,7 @@ class SearchHistoryService:
 
     async def get_user_history(
         self, user_id: str, limit: int = 20
-    ) -> List[SearchHistory]:
+    ) -> list[SearchHistory]:
         """Get search history for a user."""
         try:
             async with database_manager.get_session() as session:
@@ -503,20 +503,20 @@ class AdvancedSearchService:
 
     async def search_messages(
         self, filters: SearchFilter, user_id: str
-    ) -> Tuple[List[SearchResult], int]:
+    ) -> tuple[list[SearchResult], int]:
         """Perform advanced message search."""
         if not self._initialized:
             await self.initialize()
 
         try:
-            start_time = datetime.now(timezone.utc)
+            start_time = datetime.now(UTC)
 
             # Perform search
             results = await self.fts.search(filters.query, filters)
 
             # Record search in history
             duration = int(
-                (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+                (datetime.now(UTC) - start_time).total_seconds() * 1000
             )
             history_entry = SearchHistory(
                 id=str(uuid4()),
@@ -550,7 +550,7 @@ class AdvancedSearchService:
 
     async def get_suggestions(
         self, prefix: str, limit: int = 10
-    ) -> List[SearchSuggestion]:
+    ) -> list[SearchSuggestion]:
         """Get search suggestions."""
         if not self._initialized:
             await self.initialize()
@@ -559,14 +559,14 @@ class AdvancedSearchService:
 
     async def get_search_history(
         self, user_id: str, limit: int = 20
-    ) -> List[SearchHistory]:
+    ) -> list[SearchHistory]:
         """Get user's search history."""
         if not self._initialized:
             await self.initialize()
 
         return await self.history.get_user_history(user_id, limit)
 
-    async def get_search_stats(self) -> Dict[str, Any]:
+    async def get_search_stats(self) -> dict[str, Any]:
         """Get search service statistics."""
         try:
             async with database_manager.get_session() as session:
@@ -578,7 +578,7 @@ class AdvancedSearchService:
                 total_searches = total_result["total"] if total_result else 0
 
                 # Get recent searches (last 24 hours)
-                yesterday = (datetime.now(timezone.utc) - timedelta(days=1)).isoformat()
+                yesterday = (datetime.now(UTC) - timedelta(days=1)).isoformat()
                 recent_query = f"""
                 SELECT COUNT(*) as recent FROM {self.history.history_table}
                 WHERE timestamp >= :yesterday
@@ -628,13 +628,13 @@ async def get_search_service() -> AdvancedSearchService:
 
 
 __all__ = [
+    "AdvancedSearchService",
+    "FullTextSearch",
     "SearchFilter",
+    "SearchHistory",
+    "SearchHistoryService",
     "SearchResult",
     "SearchSuggestion",
-    "SearchHistory",
-    "FullTextSearch",
     "SearchSuggestions",
-    "SearchHistoryService",
-    "AdvancedSearchService",
     "get_search_service",
 ]

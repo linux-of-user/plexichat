@@ -3,8 +3,7 @@ User Service Implementation
 Handles user management operations with repository pattern.
 """
 
-from datetime import datetime, timezone
-from typing import List, Optional, Set, Tuple
+from datetime import UTC, datetime
 
 from plexichat.core.authentication import Role
 from plexichat.core.logging import get_logger
@@ -31,9 +30,9 @@ class UserService(IUserService):
         self,
         username: str,
         password: str,
-        permissions: Optional[Set[str]] = None,
-        roles: Optional[Set[Role]] = None,
-    ) -> Tuple[bool, List[str]]:
+        permissions: set[str] | None = None,
+        roles: set[Role] | None = None,
+    ) -> tuple[bool, list[str]]:
         """
         Register a new user with validation and security checks.
 
@@ -122,11 +121,11 @@ class UserService(IUserService):
 
         except Exception as e:
             logger.error(f"Error registering user {username}: {e}")
-            return False, [f"Registration failed: {str(e)}"]
+            return False, [f"Registration failed: {e!s}"]
 
     async def change_password(
         self, user_id: str, old_password: str, new_password: str
-    ) -> Tuple[bool, List[str]]:
+    ) -> tuple[bool, list[str]]:
         """
         Change user password with validation.
 
@@ -193,7 +192,7 @@ class UserService(IUserService):
             old_hash = credentials.password_hash
             credentials.password_hash = password_hash
             credentials.salt = salt
-            credentials.password_changed_at = datetime.now(timezone.utc)
+            credentials.password_changed_at = datetime.now(UTC)
 
             # Add to password history
             if self.config.settings.enable_password_history:
@@ -208,9 +207,9 @@ class UserService(IUserService):
 
         except Exception as e:
             logger.error(f"Error changing password for {user_id}: {e}")
-            return False, [f"Password change failed: {str(e)}"]
+            return False, [f"Password change failed: {e!s}"]
 
-    def get_user_permissions(self, user_id: str) -> Set[str]:
+    def get_user_permissions(self, user_id: str) -> set[str]:
         """Get user permissions."""
         try:
             credentials = self.security_system.user_credentials.get(user_id)
@@ -219,7 +218,7 @@ class UserService(IUserService):
             logger.error(f"Error getting permissions for {user_id}: {e}")
             return set()
 
-    def update_user_permissions(self, user_id: str, permissions: Set[str]) -> bool:
+    def update_user_permissions(self, user_id: str, permissions: set[str]) -> bool:
         """Update user permissions."""
         try:
             credentials = self.security_system.user_credentials.get(user_id)
@@ -296,7 +295,7 @@ class UserService(IUserService):
 
     def _validate_password_policy(
         self, password: str, username: str
-    ) -> Tuple[bool, List[str]]:
+    ) -> tuple[bool, list[str]]:
         """Validate password against policy."""
         issues = []
 
@@ -349,7 +348,7 @@ class UserService(IUserService):
 
         return len(issues) == 0, issues
 
-    def _expand_role_permissions(self, roles: Set[Role]) -> Set[str]:
+    def _expand_role_permissions(self, roles: set[Role]) -> set[str]:
         """Expand roles to their permissions."""
         permissions = set()
 

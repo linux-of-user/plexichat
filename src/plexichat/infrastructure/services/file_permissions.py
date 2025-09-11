@@ -3,14 +3,15 @@
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
-import hashlib
-import secrets
 from datetime import datetime
-from typing import Any, Dict, Optional, Tuple
+import hashlib
 import logging
+import secrets
+from typing import Any
 
-from sqlmodel import Session, select
 from fastapi import HTTPException, status
+from sqlmodel import Session, select
+
 
 # Placeholder imports for dependencies
 class FileAccessLevel:
@@ -37,11 +38,11 @@ class FilePermissionService:
     async def check_file_access(
         self,
         file_id: int,
-        user_id: Optional[int],
+        user_id: int | None,
         permission_type: FilePermissionType,
-        ip_address: Optional[str] = None,
-        user_agent: Optional[str] = None
-    ) -> Tuple[bool, Optional[str], Optional[Dict[str, Any]]]:
+        ip_address: str | None = None,
+        user_agent: str | None = None
+    ) -> tuple[bool, str | None, dict[str, Any] | None]:
         """
         Check if user has access to file with specified permission.
         Returns (has_access, error_message, access_context)
@@ -72,12 +73,7 @@ class FilePermissionService:
 
             # Check public access
             if file_record.access_level == FileAccessLevel.PUBLIC:
-                if permission_type == FilePermissionType.READ and file_record.allow_public_read:
-                    access_context["permission_source"] = "public"
-                    await self._log_access(file_id, user_id, permission_type.value, True,
-                                        ip_address, user_agent, access_context)
-                    return True, None, access_context
-                elif permission_type == FilePermissionType.READ and file_record.allow_public_download:
+                if (permission_type == FilePermissionType.READ and file_record.allow_public_read) or (permission_type == FilePermissionType.READ and file_record.allow_public_download):
                     access_context["permission_source"] = "public"
                     await self._log_access(file_id, user_id, permission_type.value, True,
                                         ip_address, user_agent, access_context)
@@ -100,15 +96,7 @@ class FilePermissionService:
 
                 # Check specific permission type
                 has_permission = False
-                if permission_type == FilePermissionType.READ and permission.can_read:
-                    has_permission = True
-                elif permission_type == FilePermissionType.WRITE and permission.can_write:
-                    has_permission = True
-                elif permission_type == FilePermissionType.DELETE and permission.can_delete:
-                    has_permission = True
-                elif permission_type == FilePermissionType.SHARE and permission.can_share:
-                    has_permission = True
-                elif permission_type == FilePermissionType.ADMIN and permission.can_admin:
+                if (permission_type == FilePermissionType.READ and permission.can_read) or (permission_type == FilePermissionType.WRITE and permission.can_write) or (permission_type == FilePermissionType.DELETE and permission.can_delete) or (permission_type == FilePermissionType.SHARE and permission.can_share) or (permission_type == FilePermissionType.ADMIN and permission.can_admin):
                     has_permission = True
 
                 if has_permission:
@@ -136,9 +124,7 @@ class FilePermissionService:
 
                 # Check share permissions
                 has_share_permission = False
-                if permission_type == FilePermissionType.READ and (share.can_view or share.can_download):
-                    has_share_permission = True
-                elif permission_type == FilePermissionType.SHARE and share.can_share:
+                if (permission_type == FilePermissionType.READ and (share.can_view or share.can_download)) or (permission_type == FilePermissionType.SHARE and share.can_share):
                     has_share_permission = True
 
                 if has_share_permission:
@@ -156,7 +142,7 @@ class FilePermissionService:
         except Exception as e:
             logger.error(f"Error checking file access: {e}")
             await self._log_access(file_id, user_id, permission_type.value, False,
-                                ip_address, user_agent, {}, f"System error: {str(e)}")
+                                ip_address, user_agent, {}, f"System error: {e!s}")
             return False, "System error", None
 
     async def grant_permission(
@@ -164,9 +150,9 @@ class FilePermissionService:
         file_id: int,
         target_user_id: int,
         granted_by_user_id: int,
-        permissions: Dict[str, bool],
-        expires_at: Optional[datetime] = None,
-        max_downloads: Optional[int] = None
+        permissions: dict[str, bool],
+        expires_at: datetime | None = None,
+        max_downloads: int | None = None
     ) -> bool:
         """Grant permissions to a user for a file."""
         try:
@@ -251,12 +237,12 @@ class FilePermissionService:
         file_id: int,
         shared_by_user_id: int,
         shared_with_user_id: int,
-        permissions: Dict[str, bool],
-        expires_at: Optional[datetime] = None,
-        max_downloads: Optional[int] = None,
-        share_message: Optional[str] = None,
+        permissions: dict[str, bool],
+        expires_at: datetime | None = None,
+        max_downloads: int | None = None,
+        share_message: str | None = None,
         require_password: bool = False
-    ) -> Optional[str]:
+    ) -> str | None:
         """Create a share link for a file."""
         try:
             # Check if sharer has share permission
@@ -298,7 +284,7 @@ class FilePermissionService:
             logger.error(f"Error creating share link: {e}")
             return None
 
-    async def _get_user_permission(self, file_id: int, user_id: int) -> Optional[FilePermission]:
+    async def _get_user_permission(self, file_id: int, user_id: int) -> FilePermission | None:
         """Get user's explicit permission for a file."""
         statement = select(FilePermission).where(
             FilePermission.file_id == file_id,
@@ -307,7 +293,7 @@ class FilePermissionService:
         )
         return self.session.exec(statement).first()
 
-    async def _get_user_share(self, file_id: int, user_id: int) -> Optional[FileShare]:
+    async def _get_user_share(self, file_id: int, user_id: int) -> FileShare | None:
         """Get user's share access for a file."""
         statement = select(FileShare).where(
             FileShare.file_id == file_id,
@@ -319,13 +305,13 @@ class FilePermissionService:
     async def _log_access(
         self,
         file_id: int,
-        user_id: Optional[int],
+        user_id: int | None,
         action: str,
         success: bool,
-        ip_address: Optional[str] = None,
-        user_agent: Optional[str] = None,
-        details: Optional[Dict[str, Any]] = None,
-        error_message: Optional[str] = None
+        ip_address: str | None = None,
+        user_agent: str | None = None,
+        details: dict[str, Any] | None = None,
+        error_message: str | None = None
     ):
         """Log file access attempt."""
         try:

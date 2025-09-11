@@ -5,13 +5,13 @@ and compliance with security.txt requirements.
 """
 
 import asyncio
+from dataclasses import dataclass, field
+from datetime import UTC, datetime
+from enum import Enum
 import hashlib
 import logging
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +47,7 @@ class UpdatePlan:
     description: str
     download_url: str
     checksum: str
-    signatures: List[str] = field(default_factory=list)
+    signatures: list[str] = field(default_factory=list)
     security_level: str = "high"
     requires_restart: bool = True
 
@@ -60,14 +60,14 @@ class UpdateResult:
     success: bool = False
     status: UpdateStatus = UpdateStatus.PENDING
     message: str = ""
-    logs: List[str] = field(default_factory=list)
-    verification_results: Dict[str, bool] = field(default_factory=dict)
-    start_time: Optional[datetime] = None
-    end_time: Optional[datetime] = None
+    logs: list[str] = field(default_factory=list)
+    verification_results: dict[str, bool] = field(default_factory=dict)
+    start_time: datetime | None = None
+    end_time: datetime | None = None
 
     def add_log(self, message: str, level: str = "INFO"):
         """Add log entry."""
-        timestamp = datetime.now(timezone.utc).isoformat()
+        timestamp = datetime.now(UTC).isoformat()
         log_entry = f"[{timestamp}] {level}: {message}"
         self.logs.append(log_entry)
         logger.info(log_entry)
@@ -99,11 +99,11 @@ class SimpleUpdateSystem:
         }
 
         # Active updates tracking
-        self.active_updates: Dict[str, UpdateResult] = {}
+        self.active_updates: dict[str, UpdateResult] = {}
 
         logger.info("Simple Update System initialized with security compliance")
 
-    async def check_for_updates(self) -> List[Dict[str, Any]]:
+    async def check_for_updates(self) -> list[dict[str, Any]]:
         """Check for available updates."""
         try:
             # This would normally check a remote server
@@ -118,7 +118,7 @@ class SimpleUpdateSystem:
     async def execute_update(self, plan: UpdatePlan) -> UpdateResult:
         """Execute an update with full security compliance."""
         result = UpdateResult(
-            update_id=plan.update_id, start_time=datetime.now(timezone.utc)
+            update_id=plan.update_id, start_time=datetime.now(UTC)
         )
 
         try:
@@ -153,7 +153,7 @@ class SimpleUpdateSystem:
             result.add_log(f"Update failed: {e}", "ERROR")
 
         finally:
-            result.end_time = datetime.now(timezone.utc)
+            result.end_time = datetime.now(UTC)
             self.active_updates[plan.update_id] = result
 
         return result
@@ -232,7 +232,7 @@ class SimpleUpdateSystem:
     async def rollback_update(self, update_id: str) -> UpdateResult:
         """Rollback an update."""
         result = UpdateResult(
-            update_id=f"{update_id}_rollback", start_time=datetime.now(timezone.utc)
+            update_id=f"{update_id}_rollback", start_time=datetime.now(UTC)
         )
 
         try:
@@ -253,15 +253,15 @@ class SimpleUpdateSystem:
             result.add_log(f"Rollback failed: {e}", "ERROR")
 
         finally:
-            result.end_time = datetime.now(timezone.utc)
+            result.end_time = datetime.now(UTC)
 
         return result
 
-    def get_update_status(self, update_id: str) -> Optional[UpdateResult]:
+    def get_update_status(self, update_id: str) -> UpdateResult | None:
         """Get status of an update."""
         return self.active_updates.get(update_id)
 
-    def list_updates(self) -> List[UpdateResult]:
+    def list_updates(self) -> list[UpdateResult]:
         """List all updates."""
         return list(self.active_updates.values())
 

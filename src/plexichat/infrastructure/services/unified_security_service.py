@@ -3,16 +3,20 @@
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
-import logging
-import random
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
+import logging
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+import random
+from typing import Any
 
-from plexichat.infrastructure.services.advanced_ddos_service import enhanced_ddos_service
-from plexichat.core.security.comprehensive_security_manager import ComprehensiveSecurityManager
+from plexichat.core.security.comprehensive_security_manager import (
+    ComprehensiveSecurityManager,
+)
+from plexichat.infrastructure.services.advanced_ddos_service import (
+    enhanced_ddos_service,
+)
 from plugins.advanced_antivirus.core.message_scanner import MessageAntivirusScanner
 
 """
@@ -54,7 +58,7 @@ class SecurityAssessment:
     """Comprehensive security assessment result."""
     request_id: str
     client_ip: str
-    user_id: Optional[str]
+    user_id: str | None
     endpoint: str
     method: str
     timestamp: datetime
@@ -67,22 +71,22 @@ class SecurityAssessment:
     recommended_action: SecurityAction
 
     # Individual system results
-    sql_injection_result: Optional[Dict[str, Any]] = None
-    antivirus_result: Optional[Dict[str, Any]] = None
-    rate_limit_result: Optional[Dict[str, Any]] = None
-    ddos_result: Optional[Dict[str, Any]] = None
-    input_validation_result: Optional[Dict[str, Any]] = None
+    sql_injection_result: dict[str, Any] | None = None
+    antivirus_result: dict[str, Any] | None = None
+    rate_limit_result: dict[str, Any] | None = None
+    ddos_result: dict[str, Any] | None = None
+    input_validation_result: dict[str, Any] | None = None
 
     # Response information
-    witty_response: Optional[str] = None
-    security_headers: Dict[str, str] = field(default_factory=dict)
-    block_duration: Optional[int] = None
-    retry_after: Optional[int] = None
+    witty_response: str | None = None
+    security_headers: dict[str, str] = field(default_factory=dict)
+    block_duration: int | None = None
+    retry_after: int | None = None
 
     # Metadata
     scan_duration_ms: int = 0
-    systems_checked: List[str] = field(default_factory=list)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    systems_checked: list[str] = field(default_factory=list)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 class UnifiedSecurityService:
     """
@@ -212,8 +216,8 @@ class UnifiedSecurityService:
             self.rate_limiter = None
 
     async def assess_request_security(self,
-                                    request_data: Dict[str, Any],
-                                    content: Optional[str] = None) -> SecurityAssessment:
+                                    request_data: dict[str, Any],
+                                    content: str | None = None) -> SecurityAssessment:
         """
         Perform comprehensive security assessment of a request.
 
@@ -224,7 +228,7 @@ class UnifiedSecurityService:
         Returns:
             SecurityAssessment with comprehensive results
         """
-        start_time = datetime.now(timezone.utc)
+        start_time = datetime.now(UTC)
 
         # Extract request information
         client_ip = request_data.get('client_ip', 'unknown')
@@ -261,7 +265,7 @@ class UnifiedSecurityService:
         self._correlate_threats(assessment)
 
         # Calculate scan duration
-        end_time = datetime.now(timezone.utc)
+        end_time = datetime.now(UTC)
         assessment.scan_duration_ms = int((end_time - start_time).total_seconds() * 1000)
 
         # Log assessment if threat detected
@@ -273,7 +277,7 @@ class UnifiedSecurityService:
         return assessment
 
     async def _check_ddos_protection(self, assessment: SecurityAssessment,
-                                request_data: Dict[str, Any]):
+                                request_data: dict[str, Any]):
         """Check DDoS protection."""
         if not self.security_policy["ddos_protection"]["enabled"] or not self.ddos_service:
             return
@@ -307,7 +311,7 @@ class UnifiedSecurityService:
             logger.error(f"DDoS protection check failed: {e}")
 
     async def _check_rate_limiting(self, assessment: SecurityAssessment,
-                                request_data: Dict[str, Any]):
+                                request_data: dict[str, Any]):
         """Check rate limiting."""
         if not self.security_policy["rate_limiting"]["enabled"] or not self.rate_limiter:
             return
@@ -368,7 +372,7 @@ class UnifiedSecurityService:
             logger.error(f"SQL injection check failed: {e}")
 
     async def _check_antivirus(self, assessment: SecurityAssessment,
-                            content: str, request_data: Dict[str, Any]):
+                            content: str, request_data: dict[str, Any]):
         """Check antivirus scanning."""
         if not self.security_policy["antivirus"]["enabled"] or not self.message_scanner:
             return
@@ -460,7 +464,7 @@ class UnifiedSecurityService:
         responses = self.witty_responses.get(threat_type, ["Security violation detected!"])
         return random.choice(responses)
 
-    def get_security_status(self) -> Dict[str, Any]:
+    def get_security_status(self) -> dict[str, Any]:
         """Get overall security system status."""
         return {
             "enabled": self.enabled,
@@ -471,10 +475,10 @@ class UnifiedSecurityService:
                 "rate_limiter": self.rate_limiter is not None
             },
             "policy": self.security_policy,
-            "timestamp": datetime.now(timezone.utc).isoformat()
+            "timestamp": datetime.now(UTC).isoformat()
         }
 
-    async def handle_security_response(self, assessment: SecurityAssessment) -> Dict[str, Any]:
+    async def handle_security_response(self, assessment: SecurityAssessment) -> dict[str, Any]:
         """
         Generate appropriate response based on security assessment.
 

@@ -13,9 +13,9 @@ Common data models and schemas used across the application.
 """
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 from uuid import uuid4
 
 # Import Pydantic BaseModel for compatibility
@@ -58,13 +58,13 @@ class LogLevel(Enum):
 class BaseDataModel:
     """Base data model with common fields."""
     id: str = field(default_factory=lambda: str(uuid4()))
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    metadata: dict[str, Any] = field(default_factory=dict)
 
     def update_timestamp(self):
         """Update the updated_at timestamp."""
-        self.updated_at = datetime.now(timezone.utc)
+        self.updated_at = datetime.now(UTC)
 
 
 @dataclass
@@ -75,13 +75,13 @@ class User(BaseDataModel):
     display_name: str = ""
     is_active: bool = True
     is_admin: bool = False
-    last_login: Optional[datetime] = None
-    preferences: Dict[str, Any] = field(default_factory=dict)
+    last_login: datetime | None = None
+    preferences: dict[str, Any] = field(default_factory=dict)
     # Profile enhancement fields
-    bio: Optional[str] = None
-    avatar_url: Optional[str] = None
+    bio: str | None = None
+    avatar_url: str | None = None
     status: str = "online"
-    timezone: Optional[str] = None
+    timezone: str | None = None
     language: str = "en"
     theme: str = "dark"
 
@@ -93,12 +93,12 @@ class Message(BaseDataModel):
     user_id: str = ""
     channel_id: str = ""
     message_type: str = "text"
-    attachments: List[str] = field(default_factory=list)
-    reactions: Dict[str, List[str]] = field(default_factory=dict)
-    thread_id: Optional[str] = None
-    reply_to: Optional[str] = None
-    edited_at: Optional[datetime] = None
-    deleted_at: Optional[datetime] = None
+    attachments: list[str] = field(default_factory=list)
+    reactions: dict[str, list[str]] = field(default_factory=dict)
+    thread_id: str | None = None
+    reply_to: str | None = None
+    edited_at: datetime | None = None
+    deleted_at: datetime | None = None
 
 
 @dataclass
@@ -108,8 +108,8 @@ class Channel(BaseDataModel):
     description: str = ""
     channel_type: str = "public"
     owner_id: str = ""
-    members: List[str] = field(default_factory=list)
-    settings: Dict[str, Any] = field(default_factory=dict)
+    members: list[str] = field(default_factory=list)
+    settings: dict[str, Any] = field(default_factory=dict)
     is_archived: bool = False
 
 
@@ -122,9 +122,9 @@ class Plugin(BaseDataModel):
     author: str = ""
     status: Status = Status.PENDING
     priority: Priority = Priority.NORMAL
-    config: Dict[str, Any] = field(default_factory=dict)
-    dependencies: List[str] = field(default_factory=list)
-    permissions: List[str] = field(default_factory=list)
+    config: dict[str, Any] = field(default_factory=dict)
+    dependencies: list[str] = field(default_factory=list)
+    permissions: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -132,11 +132,11 @@ class Event(BaseDataModel):
     """Event model."""
     event_type: str = ""
     source: str = ""
-    target: Optional[str] = None
-    data: Dict[str, Any] = field(default_factory=dict)
+    target: str | None = None
+    data: dict[str, Any] = field(default_factory=dict)
     priority: Priority = Priority.NORMAL
     processed: bool = False
-    processed_at: Optional[datetime] = None
+    processed_at: datetime | None = None
 
 
 @dataclass
@@ -147,11 +147,11 @@ class Task(BaseDataModel):
     task_type: str = "generic"
     status: Status = Status.PENDING
     priority: Priority = Priority.NORMAL
-    scheduled_at: Optional[datetime] = None
-    started_at: Optional[datetime] = None
-    completed_at: Optional[datetime] = None
-    result: Optional[Any] = None
-    error_message: Optional[str] = None
+    scheduled_at: datetime | None = None
+    started_at: datetime | None = None
+    completed_at: datetime | None = None
+    result: Any | None = None
+    error_message: str | None = None
     retry_count: int = 0
     max_retries: int = 3
 
@@ -160,10 +160,10 @@ class Task(BaseDataModel):
 class Metric(BaseDataModel):
     """Metric model."""
     name: str = ""
-    value: Union[int, float] = 0
+    value: int | float = 0
     metric_type: str = "gauge"
-    tags: Dict[str, str] = field(default_factory=dict)
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    tags: dict[str, str] = field(default_factory=dict)
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass
@@ -174,10 +174,10 @@ class Alert(BaseDataModel):
     severity: str = "info"
     source: str = ""
     resolved: bool = False
-    resolved_at: Optional[datetime] = None
+    resolved_at: datetime | None = None
     acknowledged: bool = False
-    acknowledged_by: Optional[str] = None
-    acknowledged_at: Optional[datetime] = None
+    acknowledged_by: str | None = None
+    acknowledged_at: datetime | None = None
 
 
 @dataclass
@@ -189,7 +189,7 @@ class Configuration(BaseDataModel):
     description: str = ""
     is_secret: bool = False
     is_readonly: bool = False
-    validation_rules: Dict[str, Any] = field(default_factory=dict)
+    validation_rules: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -197,11 +197,11 @@ class Session(BaseDataModel):
     """Session model."""
     user_id: str = ""
     session_token: str = ""
-    expires_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    expires_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     ip_address: str = ""
     user_agent: str = ""
     is_active: bool = True
-    last_activity: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    last_activity: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass
@@ -211,7 +211,7 @@ class Permission(BaseDataModel):
     description: str = ""
     resource: str = ""
     action: str = ""
-    conditions: Dict[str, Any] = field(default_factory=dict)
+    conditions: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -219,7 +219,7 @@ class Role(BaseDataModel):
     """Role model."""
     name: str = ""
     description: str = ""
-    permissions: List[str] = field(default_factory=list)
+    permissions: list[str] = field(default_factory=list)
     is_system_role: bool = False
 
 
@@ -228,24 +228,24 @@ class ApiResponse:
     """Standard API response model."""
     success: bool = True
     message: str = "Success"
-    data: Optional[Any] = None
-    error_code: Optional[str] = None
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    data: Any | None = None
+    error_code: str | None = None
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
-        result: Dict[str, Any] = {
+        result: dict[str, Any] = {
             "success": self.success,
             "message": self.message,
             "timestamp": self.timestamp.isoformat()
         }
-    
+
         if self.data is not None:
             result["data"] = self.data
-    
+
         if self.error_code:
             result["error_code"] = self.error_code
-    
+
         return result
 
 

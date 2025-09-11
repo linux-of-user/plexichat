@@ -2,10 +2,10 @@
 Recovery Service - Flexible restoration from distributed shards
 """
 
+from datetime import UTC, datetime
 import json
 import logging
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from plexichat.features.backup.encryption_service import EncryptionService
 from plexichat.features.backup.storage_manager import StorageManager
@@ -34,7 +34,7 @@ class RecoveryService:
         self.logger = logger
 
     async def recover_backup(self, backup_id: str, recovery_type: str = "full",
-                        target_location: Optional[str] = None) -> Dict[str, Any]:
+                        target_location: str | None = None) -> dict[str, Any]:
         """
         Recover a backup from distributed shards.
 
@@ -79,7 +79,7 @@ class RecoveryService:
                 "backup_id": backup_id,
                 "recovery_type": recovery_type,
                 "status": "success",
-                "recovered_at": datetime.now(timezone.utc).isoformat(),
+                "recovered_at": datetime.now(UTC).isoformat(),
                 "data_size": len(reconstructed_data),
                 "shards_used": len(shards),
                 "target_location": target_location,
@@ -93,10 +93,10 @@ class RecoveryService:
                 "recovery_type": recovery_type,
                 "status": "failed",
                 "error": str(e),
-                "recovered_at": datetime.now(timezone.utc).isoformat()
+                "recovered_at": datetime.now(UTC).isoformat()
             }
 
-    async def _reconstruct_from_shards(self, shards: List[Dict[str, Any]]) -> bytes:
+    async def _reconstruct_from_shards(self, shards: list[dict[str, Any]]) -> bytes:
         """
         Reconstruct original data from shards.
 
@@ -152,7 +152,7 @@ class RecoveryService:
             self.logger.error(f"Data verification failed: {e}")
             return False
 
-    async def _perform_full_recovery(self, data: bytes, target_location: Optional[str]) -> Dict[str, Any]:
+    async def _perform_full_recovery(self, data: bytes, target_location: str | None) -> dict[str, Any]:
         """
         Perform full recovery of all data.
 
@@ -199,7 +199,7 @@ class RecoveryService:
             self.logger.error(f"Full recovery failed: {e}")
             raise
 
-    async def _perform_partial_recovery(self, data: bytes, target_location: Optional[str]) -> Dict[str, Any]:
+    async def _perform_partial_recovery(self, data: bytes, target_location: str | None) -> dict[str, Any]:
         """
         Perform partial recovery of specific data types.
 
@@ -250,7 +250,7 @@ class RecoveryService:
             self.logger.error(f"Partial recovery failed: {e}")
             raise
 
-    async def _perform_emergency_recovery(self, data: bytes, target_location: Optional[str]) -> Dict[str, Any]:
+    async def _perform_emergency_recovery(self, data: bytes, target_location: str | None) -> dict[str, Any]:
         """
         Perform emergency recovery with minimal processing.
 
@@ -295,7 +295,7 @@ class RecoveryService:
             self.logger.error(f"Emergency recovery failed: {e}")
             raise
 
-    def _is_recent_message(self, message: Dict[str, Any]) -> bool:
+    def _is_recent_message(self, message: dict[str, Any]) -> bool:
         """Check if a message is recent (within last 30 days)."""
         try:
             # Simplified check - in production would parse timestamp
@@ -303,7 +303,7 @@ class RecoveryService:
         except:
             return False
 
-    def _is_active_user(self, user: Dict[str, Any]) -> bool:
+    def _is_active_user(self, user: dict[str, Any]) -> bool:
         """Check if a user is active."""
         try:
             # Simplified check - in production would check last activity

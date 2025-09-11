@@ -164,8 +164,8 @@ def get_logging_manager(name: str = "plexichat", level: str = "INFO") -> logging
 
 # Make utilities available at module level
 __all__ = [
-    "ColoredFormatter",
     "DEFAULT_PII_PATTERNS",
+    "ColoredFormatter",
     "LogCategory",
     "StructuredFormatter",
     "get_handler_factory",

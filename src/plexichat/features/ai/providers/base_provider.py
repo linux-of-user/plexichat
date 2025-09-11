@@ -6,12 +6,12 @@ Abstract base class for all AI providers in PlexiChat.
 Provides common interface and functionality.
 """
 
-import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional
+import logging
+from typing import Any
 
 from plexichat.features.ai.core.ai_abstraction_layer import (
     AIModel,
@@ -35,25 +35,25 @@ class ProviderStatus(Enum):
 @dataclass
 class ProviderConfig:
     """Base configuration for AI providers."""
-    api_key: Optional[str] = None
-    base_url: Optional[str] = None
+    api_key: str | None = None
+    base_url: str | None = None
     timeout: int = 30
     max_retries: int = 3
-    rate_limit: Optional[int] = None
+    rate_limit: int | None = None
     enabled: bool = True
 
 
 class BaseAIProvider(ABC):
     """Abstract base class for AI providers."""
-    
+
     def __init__(self, config: ProviderConfig):
         """Initialize the provider."""
         self.config = config
         self.status = ProviderStatus.UNAVAILABLE
-        self.models: Dict[str, AIModel] = {}
-        self.metrics: Dict = {}
-        self.last_health_check: Optional[datetime] = None
-        
+        self.models: dict[str, AIModel] = {}
+        self.metrics: dict = {}
+        self.last_health_check: datetime | None = None
+
         # Initialize provider
         self._initialize()
 
@@ -76,7 +76,7 @@ class BaseAIProvider(ABC):
         pass
 
     @abstractmethod
-    def get_available_models(self) -> List[AIModel]:
+    def get_available_models(self) -> list[AIModel]:
         """Get list of available models."""
         pass
 
@@ -85,7 +85,7 @@ class BaseAIProvider(ABC):
         """Check if a specific model is available."""
         pass
 
-    def get_model_info(self, model_id: str) -> Optional[AIModel]:
+    def get_model_info(self, model_id: str) -> AIModel | None:
         """Get information about a specific model."""
         return self.models.get(model_id)
 
@@ -94,10 +94,10 @@ class BaseAIProvider(ABC):
         model = self.get_model_info(model_id)
         if not model:
             return ModelStatus.UNAVAILABLE
-        
+
         if not self.is_model_available(model_id):
             return ModelStatus.UNAVAILABLE
-        
+
         if self.status == ProviderStatus.RATE_LIMITED:
             return ModelStatus.RATE_LIMITED
         elif self.status == ProviderStatus.ERROR:
@@ -121,7 +121,7 @@ class BaseAIProvider(ABC):
         try:
             result = await self.test_connection()
             self.last_health_check = datetime.now()
-            
+
             if result:
                 if self.status == ProviderStatus.ERROR:
                     self.status = ProviderStatus.AVAILABLE
@@ -129,13 +129,13 @@ class BaseAIProvider(ABC):
             else:
                 self.status = ProviderStatus.ERROR
                 return False
-                
+
         except Exception as e:
             logger.error(f"Health check failed for {self.__class__.__name__}: {e}")
             self.status = ProviderStatus.ERROR
             return False
 
-    def get_metrics(self) -> Dict[str, Any]:
+    def get_metrics(self) -> dict[str, Any]:
         """Get provider metrics."""
         return {
             "status": self.status.value,

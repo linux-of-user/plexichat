@@ -5,13 +5,13 @@
 # pyright: reportReturnType=false
 
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Protocol, runtime_checkable
+from typing import Any, Protocol, runtime_checkable
 
 from ...core.logging import get_logger
-
 
 """
 PlexiChat Module Interfaces and Contracts - SINGLE SOURCE OF TRUTH
@@ -99,7 +99,7 @@ class ModuleState(Enum):
 @dataclass
 class ModulePermissions:
     """Module permission requirements."""
-    capabilities: List[ModuleCapability] = field(default_factory=list)
+    capabilities: list[ModuleCapability] = field(default_factory=list)
     network_access: bool = False
     file_system_access: bool = False
     database_access: bool = False
@@ -120,18 +120,18 @@ class ModulePermissions:
 @dataclass
 class ModuleMetrics:
     """Module performance and usage metrics."""
-    load_time: Optional[float] = None
-    initialization_time: Optional[float] = None
+    load_time: float | None = None
+    initialization_time: float | None = None
     memory_usage_mb: float = 0.0
     cpu_usage_percent: float = 0.0
     api_calls_count: int = 0
     error_count: int = 0
-    last_activity: Optional[datetime] = None
+    last_activity: datetime | None = None
     uptime_seconds: float = 0.0
 
     def record_activity(self):
         """Record module activity."""
-        self.last_activity = datetime.now(timezone.utc)
+        self.last_activity = datetime.now(UTC)
         self.api_calls_count += 1
 
     def record_error(self):
@@ -151,7 +151,7 @@ class ModuleConfiguration:
     restart_on_failure: bool = True
     max_restart_attempts: int = 3
     health_check_interval: int = 60
-    custom_config: Dict[str, Any] = field(default_factory=dict)
+    custom_config: dict[str, Any] = field(default_factory=dict)
 
 
 @runtime_checkable
@@ -187,7 +187,7 @@ class IModuleLifecycle(Protocol):
             return await self.stop()
         return False
 
-    async def health_check(self) -> Dict[str, Any]:
+    async def health_check(self) -> dict[str, Any]:
         """Perform health check. Return status information."""
         ...
 
@@ -195,19 +195,19 @@ class IModuleLifecycle(Protocol):
 @runtime_checkable
 class IModuleConfiguration(Protocol):
     """Module configuration interface."""
-    def get_config_schema(self) -> Dict[str, Any]:
+    def get_config_schema(self) -> dict[str, Any]:
         """Get configuration schema for validation."""
         ...
 
-    def validate_config(self, config: Dict[str, Any]) -> bool:
+    def validate_config(self, config: dict[str, Any]) -> bool:
         """Validate configuration. Return True if valid."""
         ...
 
-    def apply_config(self, config: Dict[str, Any]) -> bool:
+    def apply_config(self, config: dict[str, Any]) -> bool:
         """Apply configuration. Return True if successful."""
         ...
 
-    def get_current_config(self) -> Dict[str, Any]:
+    def get_current_config(self) -> dict[str, Any]:
         """Get current configuration."""
         ...
 
@@ -219,7 +219,7 @@ class IModuleAPI(Protocol):
         """Get API version."""
         ...
 
-    def get_available_methods(self) -> List[str]:
+    def get_available_methods(self) -> list[str]:
         """Get available API methods."""
         return [
             "initialize",
@@ -262,11 +262,11 @@ class IModuleSecurity(Protocol):
         """Validate if granted permissions are sufficient."""
         ...
 
-    def get_security_context(self) -> Dict[str, Any]:
+    def get_security_context(self) -> dict[str, Any]:
         """Get current security context."""
         ...
 
-    async def security_scan(self) -> Dict[str, Any]:
+    async def security_scan(self) -> dict[str, Any]:
         """Perform security self-scan."""
         ...
 
@@ -285,21 +285,21 @@ class BaseModule(ABC):
         self.logger = get_logger(f"module.{name}")
 
         # Core properties
-        self.manager: Optional[Any] = None
+        self.manager: Any | None = None
         self.configuration = ModuleConfiguration()
         self.permissions = ModulePermissions()
         self.metrics = ModuleMetrics()
 
         # Event system
-        self.event_handlers: Dict[str, List[Callable]] = {}
+        self.event_handlers: dict[str, list[Callable]] = {}
 
         # Error tracking
-        self.last_error: Optional[Exception] = None
+        self.last_error: Exception | None = None
         self.restart_count = 0
 
         # Lifecycle timestamps
-        self.loaded_at: Optional[datetime] = None
-        self.started_at: Optional[datetime] = None
+        self.loaded_at: datetime | None = None
+        self.started_at: datetime | None = None
 
     # Abstract methods that must be implemented
     @abstractmethod
@@ -307,7 +307,7 @@ class BaseModule(ABC):
         """Initialize the module."""
 
     @abstractmethod
-    def get_metadata(self) -> Dict[str, Any]:
+    def get_metadata(self) -> dict[str, Any]:
         """Get module metadata."""
 
     @abstractmethod
@@ -319,7 +319,7 @@ class BaseModule(ABC):
         """Start the module."""
         try:
             self.state = ModuleState.LOADING
-            self.started_at = datetime.now(timezone.utc)
+            self.started_at = datetime.now(UTC)
 
             # Perform startup logic
             success = await self._on_start()
@@ -386,7 +386,7 @@ class BaseModule(ABC):
             return await self.stop()
         return False
 
-    async def health_check(self) -> Dict[str, Any]:
+    async def health_check(self) -> dict[str, Any]:
         """Perform health check."""
         return {
             "name": self.name,
@@ -394,7 +394,7 @@ class BaseModule(ABC):
             "state": self.state.value,
             "healthy": self.state == ModuleState.ACTIVE,
             "uptime": (
-                (datetime.now(timezone.utc) - self.started_at).total_seconds()
+                (datetime.now(UTC) - self.started_at).total_seconds()
                 if self.started_at
                 else 0
             ),
@@ -408,7 +408,7 @@ class BaseModule(ABC):
         }
 
     # Configuration interface
-    def get_config_schema(self) -> Dict[str, Any]:
+    def get_config_schema(self) -> dict[str, Any]:
         """Get configuration schema."""
         return {
             "type": "object",
@@ -420,7 +420,7 @@ class BaseModule(ABC):
             },
         }
 
-    def validate_config(self, config: Dict[str, Any]) -> bool:
+    def validate_config(self, config: dict[str, Any]) -> bool:
         """Validate configuration."""
         try:
             # Basic validation - can be extended by subclasses
@@ -438,7 +438,7 @@ class BaseModule(ABC):
         except Exception:
             return False
 
-    def apply_config(self, config: Dict[str, Any]) -> bool:
+    def apply_config(self, config: dict[str, Any]) -> bool:
         """Apply configuration."""
         try:
             if not self.validate_config(config):
@@ -456,7 +456,7 @@ class BaseModule(ABC):
             self.logger.error(f"Failed to apply config: {e}")
             return False
 
-    def get_current_config(self) -> Dict[str, Any]:
+    def get_current_config(self) -> dict[str, Any]:
         """Get current configuration."""
         return {
             "enabled": self.configuration.enabled,
@@ -512,7 +512,7 @@ class BaseModule(ABC):
         """Get API version."""
         return "1.0"
 
-    def get_available_methods(self) -> List[str]:
+    def get_available_methods(self) -> list[str]:
         """Get available API methods."""
         return [
             "initialize",
@@ -528,15 +528,15 @@ class BaseModule(ABC):
 
 # Export interfaces and base classes
 __all__ = [
+    "BaseModule",
+    "IModuleAPI",
+    "IModuleConfiguration",
+    "IModuleLifecycle",
+    "IModuleSecurity",
     "ModuleCapability",
+    "ModuleConfiguration",
+    "ModuleMetrics",
+    "ModulePermissions",
     "ModulePriority",
     "ModuleState",
-    "ModulePermissions",
-    "ModuleMetrics",
-    "ModuleConfiguration",
-    "IModuleLifecycle",
-    "IModuleConfiguration",
-    "IModuleAPI",
-    "IModuleSecurity",
-    "BaseModule",
 ]

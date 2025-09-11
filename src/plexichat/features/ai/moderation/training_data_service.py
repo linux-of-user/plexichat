@@ -1,4 +1,5 @@
-from typing import Any, Dict, List, Optional
+from typing import Any
+
 
 class TrainingDataService:
     def __init__(self):
@@ -8,16 +9,16 @@ class TrainingDataService:
         except ImportError:
             self.db_manager = None
 
-    async def add_training_data(self, training_data: Dict[str, Any]):
+    async def add_training_data(self, training_data: dict[str, Any]):
         if self.db_manager:
             await self.db_manager.add_training_data(training_data)
 
-    async def get_training_data(self, filters: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
+    async def get_training_data(self, filters: dict[str, Any] | None = None) -> list[dict[str, Any]]:
         if self.db_manager:
             return await self.db_manager.get_training_data(filters)
         return []
 
-    async def update_training_data(self, training_id: int, updates: Dict[str, Any]):
+    async def update_training_data(self, training_id: int, updates: dict[str, Any]):
         if self.db_manager:
             await self.db_manager.update_training_data(training_id, updates)
 
@@ -25,7 +26,7 @@ class TrainingDataService:
         if self.db_manager:
             await self.db_manager.delete_training_data(training_id)
 
-    async def get_training_stats(self) -> Dict[str, Any]:
+    async def get_training_stats(self) -> dict[str, Any]:
         """Get training statistics."""
         if self.db_manager:
             return await self.db_manager.get_training_stats()  # type: ignore

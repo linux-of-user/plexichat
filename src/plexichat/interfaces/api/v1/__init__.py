@@ -14,24 +14,29 @@ Structure:
 - router.py: Main router that combines all endpoints
 """
 
-from fastapi import APIRouter
 import logging
+
+from fastapi import APIRouter
 
 logger = logging.getLogger(__name__)
 
 # Import all routers
-from plexichat.interfaces.api.v1 import auth
-from plexichat.interfaces.api.v1 import users
-from plexichat.interfaces.api.v1 import messages
-from plexichat.interfaces.api.v1 import files
-from plexichat.interfaces.api.v1 import admin
-from plexichat.interfaces.api.v1 import system
-from plexichat.interfaces.api.v1 import rate_limits
-from plexichat.interfaces.api.v1 import threads
+from plexichat.interfaces.api.v1 import (
+    admin,
+    auth,
+    files,
+    messages,
+    rate_limits,
+    system,
+    threads,
+    users,
+)
 
 # Import Easter eggs router
 try:
-    from plexichat.interfaces.api.routers.easter_eggs import router as easter_eggs_router
+    from plexichat.interfaces.api.routers.easter_eggs import (
+        router as easter_eggs_router,
+    )
     easter_eggs_available = True
 except ImportError as e:
     logger.warning(f"Easter eggs router not available: {e}")

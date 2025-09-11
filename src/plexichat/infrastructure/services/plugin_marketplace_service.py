@@ -9,16 +9,16 @@
 # Enhanced user experience with progress indicators
 
 import asyncio
+from dataclasses import dataclass, field
+from datetime import UTC, datetime, timedelta
+from enum import Enum
 import hashlib
 import hmac
 import json
-import secrets
-import uuid
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
-from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+import secrets
+from typing import Any
+import uuid
 
 import aiofiles
 import aiohttp
@@ -55,10 +55,10 @@ class WebhookEndpoint:
     endpoint_id: str
     url: str
     secret: str
-    events: List[WebhookEvent]
+    events: list[WebhookEvent]
     is_active: bool = True
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    last_triggered: Optional[datetime] = None
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    last_triggered: datetime | None = None
     success_count: int = 0
     failure_count: int = 0
 
@@ -69,12 +69,12 @@ class WebhookDelivery:
     delivery_id: str
     endpoint_id: str
     event: WebhookEvent
-    payload: Dict[str, Any]
-    status_code: Optional[int] = None
-    response_body: Optional[str] = None
-    error_message: Optional[str] = None
-    delivered_at: Optional[datetime] = None
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    payload: dict[str, Any]
+    status_code: int | None = None
+    response_body: str | None = None
+    error_message: str | None = None
+    delivered_at: datetime | None = None
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 class PluginCategory(Enum):
@@ -112,9 +112,9 @@ class PluginMarketplaceInfo:
     author: str
     author_email: str
     category: PluginCategory
-    tags: List[str] = field(default_factory=list)
-    homepage: Optional[str] = None
-    repository: Optional[str] = None
+    tags: list[str] = field(default_factory=list)
+    homepage: str | None = None
+    repository: str | None = None
     license: str = "Unknown"
     price: float = 0.0  # 0.0 for free plugins
     currency: str = "USD"
@@ -129,25 +129,25 @@ class PluginMarketplaceInfo:
 
     # Compatibility
     min_plexichat_version: str = "3.0.0"
-    max_plexichat_version: Optional[str] = None
-    supported_platforms: List[str] = field(default_factory=lambda: ["windows", "linux", "macos"])
+    max_plexichat_version: str | None = None
+    supported_platforms: list[str] = field(default_factory=lambda: ["windows", "linux", "macos"])
 
     # Metadata
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    last_download: Optional[datetime] = None
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    last_download: datetime | None = None
 
     # Files
     download_url: str = ""
-    icon_url: Optional[str] = None
-    screenshots: List[str] = field(default_factory=list)
+    icon_url: str | None = None
+    screenshots: list[str] = field(default_factory=list)
     changelog: str = ""
 
     # Security
     checksum: str = ""
-    signature: Optional[str] = None
+    signature: str | None = None
     security_scan_passed: bool = False
-    security_scan_date: Optional[datetime] = None
+    security_scan_date: datetime | None = None
 
 
 @dataclass
@@ -161,8 +161,8 @@ class PluginReview:
     title: str
     content: str
     helpful_count: int = 0
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     verified_purchase: bool = False
 
 
@@ -173,19 +173,19 @@ class PluginDeveloper:
     username: str
     email: str
     display_name: str
-    bio: Optional[str] = None
-    website: Optional[str] = None
-    avatar_url: Optional[str] = None
+    bio: str | None = None
+    website: str | None = None
+    avatar_url: str | None = None
     verified: bool = False
     plugins_count: int = 0
     total_downloads: int = 0
     average_rating: float = 0.0
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 class PluginMarketplaceService:
     """Comprehensive plugin marketplace service."""
-    def __init__(self, config: Dict[str, Any] = None):
+    def __init__(self, config: dict[str, Any] = None):
         self.config = config or self._load_default_config()
         self.data_dir = Path(self.config.get("data_dir", "data/plugin_marketplace"))
         self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cache"))
@@ -195,17 +195,17 @@ class PluginMarketplaceService:
         self.cache_dir.mkdir(parents=True, exist_ok=True)
 
         # Data storage
-        self.plugins: Dict[str, PluginMarketplaceInfo] = {}
-        self.reviews: Dict[str, List[PluginReview]] = {}
-        self.developers: Dict[str, PluginDeveloper] = {}
+        self.plugins: dict[str, PluginMarketplaceInfo] = {}
+        self.reviews: dict[str, list[PluginReview]] = {}
+        self.developers: dict[str, PluginDeveloper] = {}
 
         # Webhook system
-        self.webhook_endpoints: Dict[str, WebhookEndpoint] = {}
-        self.webhook_deliveries: List[WebhookDelivery] = []
+        self.webhook_endpoints: dict[str, WebhookEndpoint] = {}
+        self.webhook_deliveries: list[WebhookDelivery] = []
 
         # Cache
-        self.search_cache: Dict[str, Any] = {}
-        self.category_cache: Dict[str, List[str]] = {}
+        self.search_cache: dict[str, Any] = {}
+        self.category_cache: dict[str, list[str]] = {}
 
         # External services
         self.external_repositories = self.config.get("external_repositories", [])
@@ -221,7 +221,7 @@ class PluginMarketplaceService:
 
         logger.info("Plugin Marketplace Service initialized")
 
-    def _load_default_config(self) -> Dict[str, Any]:
+    def _load_default_config(self) -> dict[str, Any]:
         """Load default marketplace configuration."""
         return {
             "data_dir": "data/plugin_marketplace",
@@ -275,9 +275,9 @@ class PluginMarketplaceService:
             logger.error(f"Failed to initialize Plugin Marketplace: {e}")
             return False
 
-    async def search_plugins(self, query: str = "", category: Optional[PluginCategory] = None,
-                        tags: Optional[List[str]] = None, sort_by: str = "relevance",
-                        limit: int = 20, offset: int = 0) -> Dict[str, Any]:
+    async def search_plugins(self, query: str = "", category: PluginCategory | None = None,
+                        tags: list[str] | None = None, sort_by: str = "relevance",
+                        limit: int = 20, offset: int = 0) -> dict[str, Any]:
         """Search plugins in the marketplace."""
         try:
             # Create cache key
@@ -288,7 +288,7 @@ class PluginMarketplaceService:
             # Check cache
             if cache_key in self.search_cache:
                 cached_result = self.search_cache[cache_key]
-                if datetime.now(timezone.utc) - cached_result["timestamp"] < timedelta(seconds=self.config["cache_ttl"]):
+                if datetime.now(UTC) - cached_result["timestamp"] < timedelta(seconds=self.config["cache_ttl"]):
                     return cached_result["data"]
 
             # Perform search
@@ -320,7 +320,7 @@ class PluginMarketplaceService:
             # Cache result
             self.search_cache[cache_key] = {
                 "data": response,
-                "timestamp": datetime.now(timezone.utc)
+                "timestamp": datetime.now(UTC)
             }
 
             return response
@@ -333,7 +333,7 @@ class PluginMarketplaceService:
                 "error": str(e)
             }
 
-    async def get_plugin_details(self, plugin_id: str) -> Optional[Dict[str, Any]]:
+    async def get_plugin_details(self, plugin_id: str) -> dict[str, Any] | None:
         """Get detailed information about a specific plugin."""
         try:
             if plugin_id not in self.plugins:
@@ -362,7 +362,7 @@ class PluginMarketplaceService:
             logger.error(f"Failed to get plugin details for {plugin_id}: {e}")
             return None
 
-    async def get_featured_plugins(self, limit: int = 10) -> List[Dict[str, Any]]:
+    async def get_featured_plugins(self, limit: int = 10) -> list[dict[str, Any]]:
         """Get featured plugins for the marketplace homepage."""
         try:
             featured = [
@@ -385,7 +385,7 @@ class PluginMarketplaceService:
             logger.error(f"Failed to get featured plugins: {e}")
             return []
 
-    async def get_categories(self) -> Dict[str, Any]:
+    async def get_categories(self) -> dict[str, Any]:
         """Get plugin categories with counts."""
         try:
             categories = {}
@@ -410,7 +410,7 @@ class PluginMarketplaceService:
     # Remote plugin installation removed - plugins managed locally through WebUI
 
     async def add_review(self, plugin_id: str, user_id: str, username: str,
-                        rating: PluginRating, title: str, content: str) -> Dict[str, Any]:
+                        rating: PluginRating, title: str, content: str) -> dict[str, Any]:
         """Add a review for a plugin."""
         try:
             if plugin_id not in self.plugins:
@@ -461,7 +461,7 @@ class PluginMarketplaceService:
             logger.error(f"Failed to add review: {e}")
             return {"success": False, "error": str(e)}
 
-    async def get_marketplace_statistics(self) -> Dict[str, Any]:
+    async def get_marketplace_statistics(self) -> dict[str, Any]:
         """Get marketplace statistics."""
         await self._update_statistics()
         return {
@@ -473,7 +473,7 @@ class PluginMarketplaceService:
         }
 
     def _matches_search_criteria(self, plugin: PluginMarketplaceInfo, query: str,
-                                category: Optional[PluginCategory], tags: Optional[List[str]]) -> bool:
+                                category: PluginCategory | None, tags: list[str] | None) -> bool:
         """Check if plugin matches search criteria."""
         # Category filter
         if category and plugin.category != category:
@@ -493,7 +493,7 @@ class PluginMarketplaceService:
 
         return True
 
-    def _sort_search_results(self, results: List[PluginMarketplaceInfo], sort_by: str) -> List[PluginMarketplaceInfo]:
+    def _sort_search_results(self, results: list[PluginMarketplaceInfo], sort_by: str) -> list[PluginMarketplaceInfo]:
         """Sort search results by specified criteria."""
         if sort_by == "name":
             return sorted(results, key=lambda p: p.name.lower())
@@ -508,7 +508,7 @@ class PluginMarketplaceService:
         else:  # relevance (default)
             return sorted(results, key=lambda p: (p.featured, p.rating_average, p.download_count), reverse=True)
 
-    def _plugin_to_dict(self, plugin: PluginMarketplaceInfo) -> Dict[str, Any]:
+    def _plugin_to_dict(self, plugin: PluginMarketplaceInfo) -> dict[str, Any]:
         """Convert plugin info to dictionary."""
         return {
             "plugin_id": plugin.plugin_id,
@@ -544,7 +544,7 @@ class PluginMarketplaceService:
             "security_scan_date": plugin.security_scan_date.isoformat() if plugin.security_scan_date else None
         }
 
-    def _review_to_dict(self, review: PluginReview) -> Dict[str, Any]:
+    def _review_to_dict(self, review: PluginReview) -> dict[str, Any]:
         """Convert review to dictionary."""
         return {
             "review_id": review.review_id,
@@ -560,7 +560,7 @@ class PluginMarketplaceService:
             "verified_purchase": review.verified_purchase
         }
 
-    def _developer_to_dict(self, developer: PluginDeveloper) -> Dict[str, Any]:
+    def _developer_to_dict(self, developer: PluginDeveloper) -> dict[str, Any]:
         """Convert developer to dictionary."""
         return {
             "developer_id": developer.developer_id,
@@ -576,7 +576,7 @@ class PluginMarketplaceService:
             "created_at": developer.created_at.isoformat()
         }
 
-    def _find_developer_by_plugin(self, plugin_id: str) -> Optional[PluginDeveloper]:
+    def _find_developer_by_plugin(self, plugin_id: str) -> PluginDeveloper | None:
         """Find developer by plugin ID."""
         if plugin_id not in self.plugins:
             return None
@@ -606,7 +606,7 @@ class PluginMarketplaceService:
         }
         return icons.get(category, "")
 
-    async def _get_related_plugins(self, plugin_id: str, limit: int = 5) -> List[Dict[str, Any]]:
+    async def _get_related_plugins(self, plugin_id: str, limit: int = 5) -> list[dict[str, Any]]:
         """Get plugins related to the specified plugin."""
         try:
             if plugin_id not in self.plugins:
@@ -668,12 +668,12 @@ class PluginMarketplaceService:
             plugin.rating_average = total_rating / len(reviews)
             plugin.rating_count = len(reviews)
             plugin.reviews_count = len(reviews)
-            plugin.updated_at = datetime.now(timezone.utc)
+            plugin.updated_at = datetime.now(UTC)
 
         except Exception as e:
             logger.error(f"Failed to update plugin rating: {e}")
 
-    async def _download_plugin(self, plugin: PluginMarketplaceInfo) -> Dict[str, Any]:
+    async def _download_plugin(self, plugin: PluginMarketplaceInfo) -> dict[str, Any]:
         """Download plugin file from repository."""
         try:
             if not plugin.download_url:
@@ -721,7 +721,7 @@ class PluginMarketplaceService:
             logger.error(f"Failed to calculate checksum: {e}")
             return ""
 
-    async def _send_webhook_notification(self, event_type: str, data: Dict[str, Any]):
+    async def _send_webhook_notification(self, event_type: str, data: dict[str, Any]):
         """Send webhook notification."""
         try:
             if event_type not in self.config.get("webhook_endpoints", {}):
@@ -730,7 +730,7 @@ class PluginMarketplaceService:
             webhook_url = self.config["webhook_endpoints"][event_type]
             payload = {
                 "event": event_type,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "data": data
             }
 
@@ -757,7 +757,7 @@ class PluginMarketplaceService:
         except Exception as e:
             logger.error(f"Failed to update statistics: {e}")
 
-    async def _get_recent_plugins(self, limit: int = 5) -> List[Dict[str, Any]]:
+    async def _get_recent_plugins(self, limit: int = 5) -> list[dict[str, Any]]:
         """Get recently added plugins."""
         try:
             recent = sorted(
@@ -770,7 +770,7 @@ class PluginMarketplaceService:
             logger.error(f"Failed to get recent plugins: {e}")
             return []
 
-    async def _get_top_rated_plugins(self, limit: int = 5) -> List[Dict[str, Any]]:
+    async def _get_top_rated_plugins(self, limit: int = 5) -> list[dict[str, Any]]:
         """Get top-rated plugins."""
         try:
             top_rated = sorted(
@@ -783,7 +783,7 @@ class PluginMarketplaceService:
             logger.error(f"Failed to get top-rated plugins: {e}")
             return []
 
-    async def _get_most_downloaded_plugins(self, limit: int = 5) -> List[Dict[str, Any]]:
+    async def _get_most_downloaded_plugins(self, limit: int = 5) -> list[dict[str, Any]]:
         """Get most downloaded plugins."""
         try:
             most_downloaded = sorted(
@@ -802,7 +802,7 @@ class PluginMarketplaceService:
             # Load plugins
             plugins_file = self.data_dir / "plugins.json"
             if plugins_file.exists():
-                async with aiofiles.open(plugins_file, 'r') as f:
+                async with aiofiles.open(plugins_file) as f:
                     plugins_data = json.loads(await f.read())
 
                 for plugin_data in plugins_data:
@@ -812,7 +812,7 @@ class PluginMarketplaceService:
             # Load reviews
             reviews_file = self.data_dir / "reviews.json"
             if reviews_file.exists():
-                async with aiofiles.open(reviews_file, 'r') as f:
+                async with aiofiles.open(reviews_file) as f:
                     reviews_data = json.loads(await f.read())
 
                 for plugin_id, plugin_reviews in reviews_data.items():
@@ -824,7 +824,7 @@ class PluginMarketplaceService:
             # Load developers
             developers_file = self.data_dir / "developers.json"
             if developers_file.exists():
-                async with aiofiles.open(developers_file, 'r') as f:
+                async with aiofiles.open(developers_file) as f:
                     developers_data = json.loads(await f.read())
 
                 for dev_data in developers_data:
@@ -834,7 +834,7 @@ class PluginMarketplaceService:
             # Load webhooks
             webhooks_file = self.data_dir / "webhooks.json"
             if webhooks_file.exists():
-                async with aiofiles.open(webhooks_file, 'r') as f:
+                async with aiofiles.open(webhooks_file) as f:
                     webhooks_data = json.loads(await f.read())
                 for webhook_data in webhooks_data:
                     endpoint = self._dict_to_webhook(webhook_data)
@@ -884,7 +884,7 @@ class PluginMarketplaceService:
         except Exception as e:
             logger.error(f"Failed to save marketplace data: {e}")
 
-    def _dict_to_plugin(self, data: Dict[str, Any]) -> PluginMarketplaceInfo:
+    def _dict_to_plugin(self, data: dict[str, Any]) -> PluginMarketplaceInfo:
         """Convert dictionary to plugin info."""
         return PluginMarketplaceInfo(
             plugin_id=data["plugin_id"],
@@ -922,7 +922,7 @@ class PluginMarketplaceService:
             security_scan_date=datetime.fromisoformat(data["security_scan_date"]) if data.get("security_scan_date") else None
         )
 
-    def _dict_to_review(self, data: Dict[str, Any]) -> PluginReview:
+    def _dict_to_review(self, data: dict[str, Any]) -> PluginReview:
         """Convert dictionary to review."""
         return PluginReview(
             review_id=data["review_id"],
@@ -938,7 +938,7 @@ class PluginMarketplaceService:
             verified_purchase=data.get("verified_purchase", False)
         )
 
-    def _dict_to_developer(self, data: Dict[str, Any]) -> PluginDeveloper:
+    def _dict_to_developer(self, data: dict[str, Any]) -> PluginDeveloper:
         """Convert dictionary to developer."""
         return PluginDeveloper(
             developer_id=data["developer_id"],
@@ -955,7 +955,7 @@ class PluginMarketplaceService:
             created_at=datetime.fromisoformat(data["created_at"]) if isinstance(data["created_at"], str) else data["created_at"]
         )
 
-    def _dict_to_webhook(self, data: Dict[str, Any]) -> WebhookEndpoint:
+    def _dict_to_webhook(self, data: dict[str, Any]) -> WebhookEndpoint:
         """Convert dictionary to webhook endpoint."""
         return WebhookEndpoint(
             endpoint_id=data['endpoint_id'],
@@ -969,7 +969,7 @@ class PluginMarketplaceService:
             failure_count=data['failure_count']
         )
 
-    def _webhook_to_dict(self, endpoint: WebhookEndpoint) -> Dict[str, Any]:
+    def _webhook_to_dict(self, endpoint: WebhookEndpoint) -> dict[str, Any]:
         """Convert webhook endpoint to dictionary."""
         return {
             "endpoint_id": endpoint.endpoint_id,
@@ -1014,7 +1014,7 @@ class PluginMarketplaceService:
         except Exception as e:
             logger.error(f"Failed to sync external repositories: {e}")
 
-    async def _sync_external_plugin(self, plugin_data: Dict[str, Any], repo: Dict[str, Any]):
+    async def _sync_external_plugin(self, plugin_data: dict[str, Any], repo: dict[str, Any]):
         """Sync a single plugin from external repository."""
         try:
             plugin_id = plugin_data.get("plugin_id") or plugin_data.get("id")
@@ -1062,7 +1062,7 @@ class PluginMarketplaceService:
             logger.error(f"Failed to sync external plugin: {e}")
 
     # Webhook System Methods
-    async def register_webhook(self, url: str, events: List[str], secret: Optional[str] = None) -> Dict[str, Any]:
+    async def register_webhook(self, url: str, events: list[str], secret: str | None = None) -> dict[str, Any]:
         """Register a new webhook endpoint."""
         try:
             # Validate events
@@ -1101,7 +1101,7 @@ class PluginMarketplaceService:
             logger.error(f"Failed to register webhook: {e}")
             return {"success": False, "error": str(e)}
 
-    async def trigger_webhook(self, event: WebhookEvent, payload: Dict[str, Any]):
+    async def trigger_webhook(self, event: WebhookEvent, payload: dict[str, Any]):
         """Trigger webhook notifications for an event."""
         try:
             # Find matching endpoints
@@ -1125,7 +1125,7 @@ class PluginMarketplaceService:
         except Exception as e:
             logger.error(f"Failed to trigger webhooks: {e}")
 
-    async def _send_single_webhook(self, endpoint: WebhookEndpoint, event: WebhookEvent, payload: Dict[str, Any]):
+    async def _send_single_webhook(self, endpoint: WebhookEndpoint, event: WebhookEvent, payload: dict[str, Any]):
         """Send a single webhook notification."""
         delivery_id = f"delivery_{secrets.token_urlsafe(16)}"
 
@@ -1133,7 +1133,7 @@ class PluginMarketplaceService:
             # Prepare webhook payload
             webhook_payload = {
                 "event": event.value,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "data": payload
             }
 
@@ -1169,13 +1169,13 @@ class PluginMarketplaceService:
                         payload=webhook_payload,
                         status_code=response.status,
                         response_body=response_body[:1000],  # Limit response body size
-                        delivered_at=datetime.now(timezone.utc)
+                        delivered_at=datetime.now(UTC)
                     )
 
                     self.webhook_deliveries.append(delivery)
 
                     # Update endpoint statistics
-                    endpoint.last_triggered = datetime.now(timezone.utc)
+                    endpoint.last_triggered = datetime.now(UTC)
                     if 200 <= response.status < 300:
                         endpoint.success_count += 1
                         logger.debug(f"Webhook delivered: {endpoint.url} ({response.status})")
@@ -1207,14 +1207,14 @@ class PluginMarketplaceService:
         ).hexdigest()
         return f"sha256={signature}"
 
-    async def get_webhook_endpoints(self) -> List[Dict[str, Any]]:
+    async def get_webhook_endpoints(self) -> list[dict[str, Any]]:
         """Get all registered webhook endpoints."""
         return [
             self._webhook_to_dict(endpoint)
             for endpoint in self.webhook_endpoints.values()
         ]
 
-    async def get_webhook_deliveries(self, endpoint_id: Optional[str] = None, limit: int = 50) -> List[Dict[str, Any]]:
+    async def get_webhook_deliveries(self, endpoint_id: str | None = None, limit: int = 50) -> list[dict[str, Any]]:
         """Get webhook delivery history."""
         deliveries = self.webhook_deliveries
 
@@ -1239,7 +1239,7 @@ class PluginMarketplaceService:
 
 
 # Global service instance
-_marketplace_service: Optional[PluginMarketplaceService] = None
+_marketplace_service: PluginMarketplaceService | None = None
 
 
 def get_plugin_marketplace_service() -> PluginMarketplaceService:

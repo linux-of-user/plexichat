@@ -1,16 +1,15 @@
 import argparse
 import asyncio
 import logging
-from typing import List, Set
 
 # Integrate with the real cluster manager implementation
 from plexichat.core.clustering.cluster_manager import (
-    get_cluster_manager,
-    ClusterNode,
-    NodeType,
-    NodeMetrics,
     ClusterConfiguration,
+    ClusterNode,
+    NodeMetrics,
     NodeStatus,
+    NodeType,
+    get_cluster_manager,
 )
 
 logger = logging.getLogger(__name__)
@@ -97,7 +96,7 @@ class ClusterCLI:
 
         return parser
 
-    async def run(self, args: List[str]):
+    async def run(self, args: list[str]):
         """Runs the cluster CLI."""
         parsed_args = self.parser.parse_args(args)
 
@@ -208,7 +207,7 @@ class ClusterCLI:
 
     async def handle_add_node(self, args: argparse.Namespace):
         """Add/register a new node to the cluster."""
-        caps: Set[str] = set()
+        caps: set[str] = set()
         if getattr(args, "capabilities", ""):
             caps = set(c.strip() for c in args.capabilities.split(",") if c.strip())
 
@@ -354,7 +353,7 @@ class ClusterCLI:
             # Update timestamp if present
             if hasattr(cfg, "updated_at"):
                 import datetime
-                cfg.updated_at = datetime.datetime.now(datetime.timezone.utc)
+                cfg.updated_at = datetime.datetime.now(datetime.UTC)
             logger.info(f"Configuration '{key}' updated to '{new_value}'.")
             # Optionally sync immediately
             if hasattr(self.cluster_manager, "_sync_config_to_all_nodes"):
@@ -396,7 +395,7 @@ class ClusterCLI:
         logger.info("Cluster manager stopped.")
 
 
-async def handle_cluster_command(args: List[str]):
+async def handle_cluster_command(args: list[str]):
     """Handle cluster CLI commands."""
     cli = ClusterCLI()
     await cli.run(args)

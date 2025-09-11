@@ -4,17 +4,17 @@ Thread Component for PlexiChat
 Provides frontend components for thread management and navigation.
 """
 
-from typing import Dict, List, Optional
 from datetime import datetime
+
 
 class ThreadComponent:
     """Thread component for managing thread UI elements."""
 
     def __init__(self):
-        self.active_threads: Dict[str, Dict] = {}
-        self.current_thread: Optional[str] = None
+        self.active_threads: dict[str, dict] = {}
+        self.current_thread: str | None = None
 
-    def render_thread_list(self, threads: List[Dict]) -> str:
+    def render_thread_list(self, threads: list[dict]) -> str:
         """Render the thread list sidebar."""
         html = """
         <div class="thread-sidebar">
@@ -50,7 +50,7 @@ class ThreadComponent:
         """
         return html
 
-    def render_thread_view(self, thread: Dict, messages: List[Dict]) -> str:
+    def render_thread_view(self, thread: dict, messages: list[dict]) -> str:
         """Render the main thread view."""
         html = f"""
         <div class="thread-view" id="thread-{thread['thread_id']}">
@@ -98,7 +98,7 @@ class ThreadComponent:
         """
         return html
 
-    def render_thread_message(self, message: Dict) -> str:
+    def render_thread_message(self, message: dict) -> str:
         """Render a single thread message."""
         timestamp = datetime.fromisoformat(message['timestamp'].replace('Z', '+00:00'))
         formatted_time = timestamp.strftime("%H:%M")
@@ -120,7 +120,7 @@ class ThreadComponent:
         """
         return html
 
-    def render_message_reactions(self, reactions: Dict[str, List[str]]) -> str:
+    def render_message_reactions(self, reactions: dict[str, list[str]]) -> str:
         """Render message reactions."""
         if not reactions:
             return ""

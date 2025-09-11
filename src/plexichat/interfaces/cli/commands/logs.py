@@ -1,7 +1,7 @@
 import argparse
 import logging
 import sys
-from typing import List
+
 
 # Mock for standalone execution
 class MockLogManager:
@@ -37,7 +37,7 @@ class LogCLI:
 
         return parser
 
-    def run(self, args: List[str]):
+    def run(self, args: list[str]):
         """Run CLI command."""
         parsed_args = self.parser.parse_args(args)
 

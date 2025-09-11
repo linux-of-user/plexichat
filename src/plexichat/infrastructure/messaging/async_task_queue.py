@@ -6,13 +6,14 @@ task scheduling, retry mechanisms, and monitoring.
 """
 
 import asyncio
-import logging
-import uuid
 from collections import defaultdict, deque
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional
+import logging
+from typing import Any
+import uuid
 
 logger = logging.getLogger(__name__)
 
@@ -49,12 +50,12 @@ class TaskResult:
     task_id: str
     status: TaskStatus
     result: Any = None
-    error: Optional[str] = None
-    start_time: Optional[datetime] = None
-    end_time: Optional[datetime] = None
+    error: str | None = None
+    start_time: datetime | None = None
+    end_time: datetime | None = None
     duration: float = 0.0
     retry_count: int = 0
-    worker_id: Optional[str] = None
+    worker_id: str | None = None
 
 
 @dataclass
@@ -63,16 +64,16 @@ class Task:
     id: str
     function_name: str
     args: tuple = field(default_factory=tuple)
-    kwargs: Dict[str, Any] = field(default_factory=dict)
+    kwargs: dict[str, Any] = field(default_factory=dict)
     priority: TaskPriority = TaskPriority.NORMAL
     max_retries: int = 3
     retry_delay: float = 1.0
-    timeout: Optional[float] = None
-    scheduled_time: Optional[datetime] = None
+    timeout: float | None = None
+    scheduled_time: datetime | None = None
     created_at: datetime = field(default_factory=datetime.now)
     queue_name: str = "default"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert task to dictionary for serialization."""
         return {
             "id": self.id,
@@ -89,7 +90,7 @@ class Task:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "Task":
+    def from_dict(cls, data: dict[str, Any]) -> "Task":
         """Create task from dictionary."""
         task = cls(
             id=data["id"],
@@ -119,7 +120,7 @@ class TaskWorker:
         self.worker_id = worker_id
         self.queue = queue
         self.is_running = False
-        self.current_task: Optional[Task] = None
+        self.current_task: Task | None = None
         self.processed_count = 0
         self.error_count = 0
 
@@ -220,16 +221,16 @@ class TaskWorker:
 class AsyncTaskQueue:
     """Asynchronous task queue with Redis backend."""
 
-    def __init__(self, redis_url: Optional[str] = None, max_workers: int = 4):
+    def __init__(self, redis_url: str | None = None, max_workers: int = 4):
         self.redis_url = redis_url
         self.max_workers = max_workers
-        self.redis: Optional[Any] = None
-        self.workers: List[TaskWorker] = []
-        self.worker_tasks: List[asyncio.Task] = []
-        self.registered_functions: Dict[str, Callable] = {}
-        self.task_results: Dict[str, TaskResult] = {}
-        self.task_queues: Dict[str, deque] = defaultdict(deque)
-        self.scheduled_tasks: List[Task] = []
+        self.redis: Any | None = None
+        self.workers: list[TaskWorker] = []
+        self.worker_tasks: list[asyncio.Task] = []
+        self.registered_functions: dict[str, Callable] = {}
+        self.task_results: dict[str, TaskResult] = {}
+        self.task_queues: dict[str, deque] = defaultdict(deque)
+        self.scheduled_tasks: list[Task] = []
         self.is_running = False
 
         # Metrics
@@ -301,7 +302,7 @@ class AsyncTaskQueue:
         self.registered_functions[name] = func
         logger.info(f"Registered function: {name}")
 
-    def get_registered_function(self, name: str) -> Optional[Callable]:
+    def get_registered_function(self, name: str) -> Callable | None:
         """Get a registered function."""
         return self.registered_functions.get(name)
 
@@ -322,7 +323,7 @@ class AsyncTaskQueue:
         logger.info(f"Submitted task {task_id} ({function_name})")
         return task_id
 
-    async def get_next_task(self) -> Optional[Task]:
+    async def get_next_task(self) -> Task | None:
         """Get the next task to process."""
         # Check all queues for tasks
         for queue_name, queue in self.task_queues.items():
@@ -377,11 +378,11 @@ class AsyncTaskQueue:
 task_queue = None
 
 __all__ = [
-    "TaskStatus",
+    "AsyncTaskQueue",
+    "Task",
     "TaskPriority",
     "TaskResult",
-    "Task",
+    "TaskStatus",
     "TaskWorker",
-    "AsyncTaskQueue",
     "task_queue"
 ]

@@ -1,11 +1,17 @@
 #!/usr/bin/env python3
 """Standalone test script for logging refactor verification."""
-import sys
-import io
 import json
 import logging
-from contextlib import redirect_stdout
-from plexichat.core.logging import get_logger, redact_pii, sanitize_for_logging, ColoredFormatter, StructuredFormatter, get_handler_factory
+
+from plexichat.core.logging import (
+    ColoredFormatter,
+    StructuredFormatter,
+    get_handler_factory,
+    get_logger,
+    redact_pii,
+    sanitize_for_logging,
+)
+
 
 def test_redact_pii():
     message = "User john.doe@example.com SSN 123-45-6789"
@@ -26,7 +32,7 @@ def test_colored_formatter():
     output = formatter.format(record)
     assert "\033[32m" in output  # Green for INFO
     assert "\033[0m" in output  # Reset
-    print(f"PASS: ColoredFormatter applies colors")
+    print("PASS: ColoredFormatter applies colors")
 
 def test_structured_formatter():
     formatter = StructuredFormatter()
@@ -35,18 +41,18 @@ def test_structured_formatter():
     log_dict = json.loads(output)
     assert log_dict["level"] == "INFO"
     assert log_dict["message"] == "Test message"
-    print(f"PASS: StructuredFormatter produces valid JSON")
+    print("PASS: StructuredFormatter produces valid JSON")
 
 def test_get_logger():
     logger = get_logger("test")
     assert logger.level == logging.INFO
     assert len(logger.handlers) > 0
-    print(f"PASS: get_logger configures handlers correctly")
+    print("PASS: get_logger configures handlers correctly")
 
 def test_handler_factory():
     handler = get_handler_factory(format_type="structured", log_file="test.log")
     assert hasattr(handler, 'setLevel')
-    print(f"PASS: Handler factory creates configured handler")
+    print("PASS: Handler factory creates configured handler")
 
 if __name__ == "__main__":
     test_redact_pii()

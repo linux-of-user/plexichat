@@ -4,9 +4,10 @@ Simplified system orchestration and module management.
 """
 
 import asyncio
+from collections.abc import Callable
 import importlib
 import logging
-from typing import Any, Callable, Dict, List, Optional, Set
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -15,9 +16,9 @@ class ModuleManager:
     """Manages module loading and initialization."""
 
     def __init__(self):
-        self.loaded_modules: Set[str] = set()
-        self.failed_modules: Set[str] = set()
-        self.module_registry: Dict[str, Any] = {}
+        self.loaded_modules: set[str] = set()
+        self.failed_modules: set[str] = set()
+        self.module_registry: dict[str, Any] = {}
 
     def load_module(self, module_name: str) -> bool:
         """Load a single module."""
@@ -36,7 +37,7 @@ class ModuleManager:
             logger.error(f"Error loading module {module_name}: {e}")
             return False
 
-    def load_modules(self, module_names: List[str]) -> Dict[str, Any]:
+    def load_modules(self, module_names: list[str]) -> dict[str, Any]:
         """Load multiple modules and return results."""
         results = {"successful": [], "failed": []}
 
@@ -48,7 +49,7 @@ class ModuleManager:
 
         return results
 
-    def get_module(self, module_name: str) -> Optional[Any]:
+    def get_module(self, module_name: str) -> Any | None:
         """Get a loaded module."""
         return self.module_registry.get(module_name)
 
@@ -56,7 +57,7 @@ class ModuleManager:
         """Check if a module is loaded."""
         return module_name in self.loaded_modules
 
-    def get_status(self) -> Dict[str, Any]:
+    def get_status(self) -> dict[str, Any]:
         """Get module loading status."""
         return {
             "loaded_count": len(self.loaded_modules),
@@ -71,8 +72,8 @@ class SystemOrchestrator:
 
     def __init__(self):
         self.module_manager = ModuleManager()
-        self.startup_hooks: List[Callable] = []
-        self.shutdown_hooks: List[Callable] = []
+        self.startup_hooks: list[Callable] = []
+        self.shutdown_hooks: list[Callable] = []
         self.is_running = False
 
     def add_startup_hook(self, hook: Callable):
@@ -153,7 +154,7 @@ class SystemOrchestrator:
             logger.error(f"System shutdown failed: {e}")
             return False
 
-    def get_system_status(self) -> Dict[str, Any]:
+    def get_system_status(self) -> dict[str, Any]:
         """Get overall system status."""
         return {
             "is_running": self.is_running,
@@ -167,8 +168,8 @@ class ComponentRegistry:
     """Registry for system components."""
 
     def __init__(self):
-        self.components: Dict[str, Any] = {}
-        self.component_types: Dict[str, str] = {}
+        self.components: dict[str, Any] = {}
+        self.component_types: dict[str, str] = {}
 
     def register(self, name: str, component: Any, component_type: str = "unknown"):
         """Register a component."""
@@ -176,11 +177,11 @@ class ComponentRegistry:
         self.component_types[name] = component_type
         logger.debug(f"Registered component: {name} ({component_type})")
 
-    def get(self, name: str) -> Optional[Any]:
+    def get(self, name: str) -> Any | None:
         """Get a component by name."""
         return self.components.get(name)
 
-    def get_by_type(self, component_type: str) -> Dict[str, Any]:
+    def get_by_type(self, component_type: str) -> dict[str, Any]:
         """Get all components of a specific type."""
         return {
             name: component
@@ -197,7 +198,7 @@ class ComponentRegistry:
             return True
         return False
 
-    def list_components(self) -> Dict[str, str]:
+    def list_components(self) -> dict[str, str]:
         """List all registered components with their types."""
         return self.component_types.copy()
 
@@ -214,7 +215,7 @@ def register_component(name: str, component: Any, component_type: str = "unknown
     component_registry.register(name, component, component_type)
 
 
-def get_component(name: str) -> Optional[Any]:
+def get_component(name: str) -> Any | None:
     """Get a component from the global registry."""
     return component_registry.get(name)
 
@@ -235,15 +236,15 @@ async def shutdown_system() -> bool:
 
 
 __all__ = [
+    "ComponentRegistry",
     "ModuleManager",
     "SystemOrchestrator",
-    "ComponentRegistry",
-    "module_manager",
-    "system_orchestrator",
     "component_registry",
-    "register_component",
     "get_component",
     "load_module",
-    "startup_system",
+    "module_manager",
+    "register_component",
     "shutdown_system",
+    "startup_system",
+    "system_orchestrator",
 ]

@@ -3,16 +3,16 @@
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
-from plexichat.core.auth.fastapi_adapter import get_current_user, require_admin
-from plexichat.core.logging import get_logger
 # from ...services.performance_service import get_performance_service
-
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
+
+from plexichat.core.auth.fastapi_adapter import get_current_user, require_admin
+from plexichat.core.logging import get_logger
 
 """
 PlexiChat Main Dashboard Web Routes
@@ -52,12 +52,12 @@ async def main_dashboard(
             "user": current_user,
             "overview": overview_data,
             "page_title": "PlexiChat Dashboard",
-            "current_time": datetime.now(timezone.utc).isoformat()
+            "current_time": datetime.now(UTC).isoformat()
         })
 
     except Exception as e:
         logger.error(f"Main dashboard error: {e}")
-        raise HTTPException(status_code=500, detail=f"Dashboard error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Dashboard error: {e!s}")
 
 @router.get("/admin", response_class=HTMLResponse)
 async def admin_dashboard(
@@ -83,12 +83,12 @@ async def admin_dashboard(
             "user": current_user,
             "admin_data": admin_data,
             "page_title": "Admin Dashboard",
-            "current_time": datetime.now(timezone.utc).isoformat()
+            "current_time": datetime.now(UTC).isoformat()
         })
 
     except Exception as e:
         logger.error(f"Admin dashboard error: {e}")
-        raise HTTPException(status_code=500, detail=f"Admin dashboard error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Admin dashboard error: {e!s}")
 
 # Helper functions
 def _get_quick_stats(performance_service):

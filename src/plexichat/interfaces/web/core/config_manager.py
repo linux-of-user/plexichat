@@ -6,16 +6,16 @@
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
+from dataclasses import asdict, dataclass
+from datetime import datetime
 import json
 import logging
 import os
-from dataclasses import asdict, dataclass
-from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
-import yaml
 from cryptography.fernet import Fernet
+import yaml
 
 logger = logging.getLogger(__name__)
 
@@ -23,20 +23,20 @@ logger = logging.getLogger(__name__)
 class WebUIPortConfig:
     """WebUI port configuration."""
     primary_port: int = 8000
-    admin_port: Optional[int] = None  # If None, uses primary_port
-    api_port: Optional[int] = None    # If None, uses primary_port
-    docs_port: Optional[int] = None   # If None, uses primary_port
-    websocket_port: Optional[int] = None  # If None, uses primary_port
+    admin_port: int | None = None  # If None, uses primary_port
+    api_port: int | None = None    # If None, uses primary_port
+    docs_port: int | None = None   # If None, uses primary_port
+    websocket_port: int | None = None  # If None, uses primary_port
     ssl_enabled: bool = False
-    ssl_cert_path: Optional[str] = None
-    ssl_key_path: Optional[str] = None
+    ssl_cert_path: str | None = None
+    ssl_key_path: str | None = None
     auto_redirect_http: bool = True
 
 @dataclass
 class MFAConfig:
     """Multi-Factor Authentication configuration."""
     enabled: bool = True
-    methods: Optional[List[str]] = None  # ['totp', 'sms', 'email', 'backup_codes']
+    methods: list[str] | None = None  # ['totp', 'sms', 'email', 'backup_codes']
     totp_issuer: str = "PlexiChat"
     backup_codes_count: int = 10
     recovery_email_required: bool = True
@@ -56,8 +56,8 @@ class SelfTestConfig:
     """Self-test configuration for WebUI."""
     enabled: bool = True
     auto_run_on_startup: bool = False
-    scheduled_runs: Optional[List[str]] = None  # Cron-like schedule
-    test_categories: Optional[List[str]] = None
+    scheduled_runs: list[str] | None = None  # Cron-like schedule
+    test_categories: list[str] | None = None
     notification_on_failure: bool = True
     detailed_reporting: bool = True
     export_results: bool = True
@@ -74,11 +74,11 @@ class SelfTestConfig:
 @dataclass
 class FeatureToggleConfig:
     """Feature toggle configuration."""
-    enabled_features: Optional[List[str]] = None
-    disabled_features: Optional[List[str]] = None
-    beta_features: Optional[List[str]] = None
-    admin_only_features: Optional[List[str]] = None
-    feature_permissions: Optional[Dict[str, List[str]]] = None
+    enabled_features: list[str] | None = None
+    disabled_features: list[str] | None = None
+    beta_features: list[str] | None = None
+    admin_only_features: list[str] | None = None
+    feature_permissions: dict[str, list[str]] | None = None
 
     def __post_init__(self):
         if self.enabled_features is None:
@@ -121,7 +121,7 @@ class WebUIConfigManager:
         # Configuration objects (legacy support)
         self.port_config = WebUIPortConfig()
         self.mfa_config = MFAConfig()
-        
+
         self.self_test_config = SelfTestConfig()
         self.feature_toggle_config = FeatureToggleConfig()
 
@@ -189,7 +189,7 @@ class WebUIConfigManager:
         """Load configuration from legacy files."""
         # Load main configuration
         if self.config_file and self.config_file.exists():
-            with open(self.config_file, 'r') as f:
+            with open(self.config_file) as f:
                 config_data = yaml.safe_load(f)
 
             if config_data:
@@ -197,7 +197,7 @@ class WebUIConfigManager:
 
         # Load authentication configuration
         if self.auth_config_file and self.auth_config_file.exists():
-            with open(self.auth_config_file, 'r') as f:
+            with open(self.auth_config_file) as f:
                 auth_data = yaml.safe_load(f)
 
             if auth_data:
@@ -205,7 +205,7 @@ class WebUIConfigManager:
 
         logger.info("WebUI configuration loaded from legacy files")
 
-    def _update_config_objects(self, config_data: Dict[str, Any]):
+    def _update_config_objects(self, config_data: dict[str, Any]):
         """Update configuration objects from loaded data."""
         if 'ports' in config_data:
             self.port_config = WebUIPortConfig(**config_data['ports'])
@@ -213,7 +213,7 @@ class WebUIConfigManager:
         if 'mfa' in config_data:
             self.mfa_config = MFAConfig(**config_data['mfa'])
 
-        
+
 
         if 'self_tests' in config_data:
             self.self_test_config = SelfTestConfig(**config_data['self_tests'])
@@ -221,7 +221,7 @@ class WebUIConfigManager:
         if 'feature_toggles' in config_data:
             self.feature_toggle_config = FeatureToggleConfig(**config_data['feature_toggles'])
 
-    def _update_auth_config(self, auth_data: Dict[str, Any]):
+    def _update_auth_config(self, auth_data: dict[str, Any]):
         """Update authentication configuration from loaded data."""
         # Handle encrypted authentication data
         if 'encrypted_data' in auth_data:
@@ -242,7 +242,7 @@ class WebUIConfigManager:
                 'last_updated': datetime.now(datetime.timezone.utc).isoformat(),
                 'ports': asdict(self.port_config),
                 'mfa': asdict(self.mfa_config),
-                
+
                 'self_tests': asdict(self.self_test_config),
                 'feature_toggles': asdict(self.feature_toggle_config)
             }
@@ -255,7 +255,7 @@ class WebUIConfigManager:
             auth_data = {
                 'version': '1.0.0',
                 'last_updated': datetime.now(datetime.timezone.utc).isoformat(),
-                
+
             }
 
             # Encrypt sensitive authentication data
@@ -314,7 +314,7 @@ class WebUIConfigManager:
 
         return False
 
-    def get_mfa_methods_for_user(self, user_role: str = "user") -> List[str]:
+    def get_mfa_methods_for_user(self, user_role: str = "user") -> list[str]:
         """Get available MFA methods for a user."""
         if not self.mfa_config:
             return []
@@ -364,7 +364,7 @@ class WebUIConfigManager:
 
         self.save_configuration()
 
-    def get_self_test_schedule(self) -> List[str]:
+    def get_self_test_schedule(self) -> list[str]:
         """Get self-test schedule."""
         return self.self_test_config.scheduled_runs
 
@@ -372,9 +372,9 @@ class WebUIConfigManager:
         """Check if self-tests are enabled."""
         return self.self_test_config.enabled
 
-    
 
-    def validate_configuration(self) -> Dict[str, Any]:
+
+    def validate_configuration(self) -> dict[str, Any]:
         """Validate current configuration and return status."""
         validation_results = {
             'valid': True,
@@ -398,7 +398,7 @@ class WebUIConfigManager:
             validation_results['errors'].append("MFA enabled but no methods configured")
             validation_results['valid'] = False
 
-        
+
 
         return validation_results
 

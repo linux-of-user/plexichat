@@ -4,11 +4,12 @@ PlexiChat Middleware Manager
 Middleware management with threading and performance optimization.
 """
 
+from abc import ABC, abstractmethod
+from collections.abc import Awaitable, Callable
+from dataclasses import dataclass
 import logging
 import time
-from abc import ABC, abstractmethod
-from dataclasses import dataclass
-from typing import Any, Callable, Dict, List, Optional, Union, Awaitable
+from typing import Any
 
 try:
     from plexichat.core.threading.thread_manager import async_thread_manager
@@ -41,11 +42,11 @@ class MiddlewareContext:
 
     request_id: str
     middleware_type: str
-    data: Dict[str, Any]
-    metadata: Dict[str, Any]
+    data: dict[str, Any]
+    metadata: dict[str, Any]
     start_time: float
-    user_id: Optional[int] = None
-    session_id: Optional[str] = None
+    user_id: int | None = None
+    session_id: str | None = None
 
 
 class BaseMiddleware(ABC):
@@ -108,7 +109,7 @@ class AuthenticationMiddleware(BaseMiddleware):
             logger.error(f"Authentication error: {e}")
             raise
 
-    async def _verify_token(self, token: str) -> Optional[int]:
+    async def _verify_token(self, token: str) -> int | None:
         """Verify authentication token."""
         try:
             # Placeholder implementation
@@ -124,7 +125,7 @@ class RateLimitMiddleware(BaseMiddleware):
 
     def __init__(self, priority: int = 20) -> None:
         super().__init__("rate_limit", priority)
-        self.rate_limits: Dict[str, List[float]] = {}
+        self.rate_limits: dict[str, list[float]] = {}
         self.rate_limit_config = {"requests_per_minute": 60}
 
     async def process(
@@ -218,7 +219,7 @@ class LoggingMiddleware(BaseMiddleware):
 class PerformanceMiddleware(BaseMiddleware):
     """Performance tracking middleware."""
 
-    def __init__(self, performance_logger: Optional[logging.Logger] = None, priority: int = 50) -> None:
+    def __init__(self, performance_logger: logging.Logger | None = None, priority: int = 50) -> None:
         super().__init__("performance", priority)
         self.performance_logger = performance_logger or logger
 
@@ -262,7 +263,7 @@ class PerformanceMiddleware(BaseMiddleware):
 
         except Exception as e:
             duration = time.perf_counter() - context.start_time
-            
+
             try:
                 if hasattr(self.performance_logger, 'increment_counter'):
                     self.performance_logger.increment_counter(
@@ -292,10 +293,10 @@ class MiddlewareManager:
         self.lock = threading.Lock()
 
         # Middleware storage
-        self.middleware_stacks: Dict[str, List[BaseMiddleware]] = {}
+        self.middleware_stacks: dict[str, list[BaseMiddleware]] = {}
 
         # Statistics
-        self.stats: Dict[str, int] = {
+        self.stats: dict[str, int] = {
             "total_requests": 0,
             "successful_requests": 0,
             "failed_requests": 0,
@@ -343,7 +344,7 @@ class MiddlewareManager:
         self,
         middleware_type: str,
         request_id: str,
-        data: Dict[str, Any],
+        data: dict[str, Any],
         **kwargs: Any
     ) -> Any:
         """Process request through middleware stack."""
@@ -383,7 +384,7 @@ class MiddlewareManager:
     async def _execute_middleware_stack(
         self,
         context: MiddlewareContext,
-        middleware_stack: List[BaseMiddleware],
+        middleware_stack: list[BaseMiddleware],
         index: int
     ) -> Any:
         """Execute middleware stack recursively."""
@@ -414,7 +415,7 @@ class MiddlewareManager:
             logger.error(f"Middleware execution error at index {index}: {e}")
             raise
 
-    def get_middleware_stack(self, middleware_type: str) -> List[Dict[str, Any]]:
+    def get_middleware_stack(self, middleware_type: str) -> list[dict[str, Any]]:
         """Get middleware stack for a type."""
         try:
             stack = self.middleware_stacks.get(middleware_type, [])
@@ -459,7 +460,7 @@ class MiddlewareManager:
             logger.error(f"Error disabling middleware: {e}")
             return False
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get middleware manager statistics."""
         try:
             middleware_counts = {
@@ -500,12 +501,12 @@ def unregister_middleware(middleware_type: str, middleware_name: str) -> bool:
 
 
 async def process_with_middleware(
-    middleware_type: str, request_id: str, data: Dict[str, Any], **kwargs: Any
+    middleware_type: str, request_id: str, data: dict[str, Any], **kwargs: Any
 ) -> Any:
     """Process request with middleware using global manager."""
     return await middleware_manager.process(middleware_type, request_id, data, **kwargs)
 
 
-def get_middleware_stack(middleware_type: str) -> List[Dict[str, Any]]:
+def get_middleware_stack(middleware_type: str) -> list[dict[str, Any]]:
     """Get middleware stack using global manager."""
     return middleware_manager.get_middleware_stack(middleware_type)

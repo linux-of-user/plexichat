@@ -4,15 +4,16 @@
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
 import asyncio
+from collections.abc import Callable
+from dataclasses import dataclass, field
+from datetime import UTC, datetime, timedelta
+from enum import Enum
 import hashlib
 import json
 import logging
-import uuid
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
-from enum import Enum
-from typing import Any, Callable, Dict, List, Optional
 import re
+from typing import Any
+import uuid
 
 # Placeholder imports for dependencies
 enhanced_db_manager = None
@@ -61,18 +62,18 @@ class PipelineConfig:
 
     # Source configuration
     source_type: str = "lakehouse"  # lakehouse, database, api, file
-    source_config: Dict[str, Any] = field(default_factory=dict)
+    source_config: dict[str, Any] = field(default_factory=dict)
 
     # Target configuration
     target_type: str = "analytics_warehouse"  # analytics_warehouse, database, file
-    target_config: Dict[str, Any] = field(default_factory=dict)
+    target_config: dict[str, Any] = field(default_factory=dict)
 
     # Transformation configuration
-    transformations: List[Dict[str, Any]] = field(default_factory=list)
+    transformations: list[dict[str, Any]] = field(default_factory=list)
 
     # Scheduling
-    schedule_cron: Optional[str] = None  # Cron expression for scheduled pipelines
-    trigger_events: List[str] = field(default_factory=list)
+    schedule_cron: str | None = None  # Cron expression for scheduled pipelines
+    trigger_events: list[str] = field(default_factory=list)
 
     # Performance settings
     batch_size: int = 1000
@@ -87,7 +88,7 @@ class PipelineConfig:
 
     # Data quality
     validation_enabled: bool = True
-    quality_checks: List[Dict[str, Any]] = field(default_factory=list)
+    quality_checks: list[dict[str, Any]] = field(default_factory=list)
 
     # Monitoring
     metrics_enabled: bool = True
@@ -100,8 +101,8 @@ class PipelineRun:
     run_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     pipeline_name: str = ""
     status: PipelineStatus = PipelineStatus.PENDING
-    start_time: Optional[datetime] = None
-    end_time: Optional[datetime] = None
+    start_time: datetime | None = None
+    end_time: datetime | None = None
 
     # Execution metrics
     records_processed: int = 0
@@ -109,14 +110,14 @@ class PipelineRun:
     bytes_processed: int = 0
 
     # Error information
-    error_message: Optional[str] = None
-    error_details: Dict[str, Any] = field(default_factory=dict)
+    error_message: str | None = None
+    error_details: dict[str, Any] = field(default_factory=dict)
 
     # Metadata
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
     @property
-    def duration_seconds(self) -> Optional[float]:
+    def duration_seconds(self) -> float | None:
         """Calculate run duration."""
         if self.start_time and self.end_time:
             return (self.end_time - self.start_time).total_seconds()
@@ -126,7 +127,7 @@ class PipelineRun:
 class DataTransformer:
     """Data transformation engine."""
     def __init__(self):
-        self.transformations: Dict[TransformationType, Callable] = {
+        self.transformations: dict[TransformationType, Callable] = {
             TransformationType.FILTER: self._filter_transform,
             TransformationType.MAP: self._map_transform,
             TransformationType.AGGREGATE: self._aggregate_transform,
@@ -137,8 +138,8 @@ class DataTransformer:
         }
 
     async def apply_transformations(
-        self, data: List[Dict[str, Any]], transformations: List[Dict[str, Any]]
-    ) -> List[Dict[str, Any]]:
+        self, data: list[dict[str, Any]], transformations: list[dict[str, Any]]
+    ) -> list[dict[str, Any]]:
         """Apply a series of transformations to data."""
         result = data
 
@@ -154,8 +155,8 @@ class DataTransformer:
         return result
 
     async def _filter_transform(
-        self, data: List[Dict[str, Any]], config: Dict[str, Any]
-    ) -> List[Dict[str, Any]]:
+        self, data: list[dict[str, Any]], config: dict[str, Any]
+    ) -> list[dict[str, Any]]:
         """Filter data based on conditions."""
         condition = config.get("condition", "")
 
@@ -178,8 +179,8 @@ class DataTransformer:
         return filtered_data
 
     async def _map_transform(
-        self, data: List[Dict[str, Any]], config: Dict[str, Any]
-    ) -> List[Dict[str, Any]]:
+        self, data: list[dict[str, Any]], config: dict[str, Any]
+    ) -> list[dict[str, Any]]:
         """Map/transform fields in data."""
         field_mappings = config.get("mappings", {})
 
@@ -226,8 +227,8 @@ class DataTransformer:
         return mapped_data
 
     async def _aggregate_transform(
-        self, data: List[Dict[str, Any]], config: Dict[str, Any]
-    ) -> List[Dict[str, Any]]:
+        self, data: list[dict[str, Any]], config: dict[str, Any]
+    ) -> list[dict[str, Any]]:
         """Aggregate data by grouping and applying functions."""
         group_by = config.get("group_by", [])
         aggregations = config.get("aggregations", {})
@@ -289,8 +290,8 @@ class DataTransformer:
         return aggregated_data
 
     async def _join_transform(
-        self, data: List[Dict[str, Any]], config: Dict[str, Any]
-    ) -> List[Dict[str, Any]]:
+        self, data: list[dict[str, Any]], config: dict[str, Any]
+    ) -> list[dict[str, Any]]:
         """Join data with another dataset."""
         # This is a simplified implementation
         # In production, you'd load the join dataset from the specified source
@@ -319,8 +320,8 @@ class DataTransformer:
         return joined_data
 
     async def _window_transform(
-        self, data: List[Dict[str, Any]], config: Dict[str, Any]
-    ) -> List[Dict[str, Any]]:
+        self, data: list[dict[str, Any]], config: dict[str, Any]
+    ) -> list[dict[str, Any]]:
         """Apply window functions to data."""
         # Simplified window function implementation
         window_field = config.get("window_field", "timestamp")
@@ -362,8 +363,8 @@ class DataTransformer:
         return windowed_data
 
     async def _validate_transform(
-        self, data: List[Dict[str, Any]], config: Dict[str, Any]
-    ) -> List[Dict[str, Any]]:
+        self, data: list[dict[str, Any]], config: dict[str, Any]
+    ) -> list[dict[str, Any]]:
         """Validate data quality."""
         validations = config.get("validations", [])
 
@@ -383,18 +384,9 @@ class DataTransformer:
 
                 value = record[field]
 
-                if rule == "not_null" and value is None:
-                    is_valid = False
-                    break
-                elif rule == "min_length" and len(str(value)) < validation.get("value", 0):
-                    is_valid = False
-                    break
-                elif rule == "max_length" and len(str(value)) > validation.get("value", 0):
-                    is_valid = False
-                    break
-                elif rule == "regex" and not re.match(
+                if (rule == "not_null" and value is None) or (rule == "min_length" and len(str(value)) < validation.get("value", 0)) or (rule == "max_length" and len(str(value)) > validation.get("value", 0)) or (rule == "regex" and not re.match(
                     validation.get("pattern", ""), str(value)
-                ):
+                )):
                     is_valid = False
                     break
 
@@ -404,8 +396,8 @@ class DataTransformer:
         return valid_data
 
     async def _enrich_transform(
-        self, data: List[Dict[str, Any]], config: Dict[str, Any]
-    ) -> List[Dict[str, Any]]:
+        self, data: list[dict[str, Any]], config: dict[str, Any]
+    ) -> list[dict[str, Any]]:
         """Enrich data with additional information."""
         enrichment_type = config.get("type", "timestamp")
 
@@ -414,7 +406,7 @@ class DataTransformer:
             enriched_record = record.copy()
 
             if enrichment_type == "timestamp":
-                enriched_record["processed_at"] = datetime.now(timezone.utc).isoformat()
+                enriched_record["processed_at"] = datetime.now(UTC).isoformat()
             elif enrichment_type == "uuid":
                 enriched_record["processing_id"] = str(uuid.uuid4())
             elif enrichment_type == "hash":
@@ -431,13 +423,13 @@ class DataTransformer:
 class ETLPipelineService:
     """Main ETL/ELT pipeline service."""
     def __init__(self):
-        self.pipelines: Dict[str, PipelineConfig] = {}
-        self.active_runs: Dict[str, PipelineRun] = {}
+        self.pipelines: dict[str, PipelineConfig] = {}
+        self.active_runs: dict[str, PipelineRun] = {}
         self.transformer = DataTransformer()
         self.is_running = False
 
         # Background tasks
-        self.background_tasks: List[asyncio.Task] = []
+        self.background_tasks: list[asyncio.Task] = []
 
         # Metrics
         self.metrics = {
@@ -482,7 +474,7 @@ class ETLPipelineService:
         logger.info(f" Registered pipeline: {config.name}")
 
     async def execute_pipeline(
-        self, pipeline_name: str, trigger_data: Dict[str, Any] = None
+        self, pipeline_name: str, trigger_data: dict[str, Any] = None
     ) -> PipelineRun:
         """Execute a specific pipeline."""
         if pipeline_name not in self.pipelines:
@@ -491,7 +483,7 @@ class ETLPipelineService:
         config = self.pipelines[pipeline_name]
         run = PipelineRun(
             pipeline_name=pipeline_name,
-            start_time=datetime.now(timezone.utc),
+            start_time=datetime.now(UTC),
             status=PipelineStatus.RUNNING,
         )
 
@@ -515,7 +507,7 @@ class ETLPipelineService:
 
             # Complete run
             run.status = PipelineStatus.COMPLETED
-            run.end_time = datetime.now(timezone.utc)
+            run.end_time = datetime.now(UTC)
 
             # Update metrics
             self.metrics["pipelines_executed"] += 1
@@ -529,7 +521,7 @@ class ETLPipelineService:
 
         except Exception as e:
             run.status = PipelineStatus.FAILED
-            run.end_time = datetime.now(timezone.utc)
+            run.end_time = datetime.now(UTC)
             run.error_message = str(e)
 
             self.metrics["failed_pipelines"] += 1
@@ -538,8 +530,8 @@ class ETLPipelineService:
         return run
 
     async def _extract_data(
-        self, config: PipelineConfig, trigger_data: Dict[str, Any] = None
-    ) -> List[Dict[str, Any]]:
+        self, config: PipelineConfig, trigger_data: dict[str, Any] = None
+    ) -> list[dict[str, Any]]:
         """Extract data from source."""
         source_type = config.source_type
         source_config = config.source_config
@@ -574,7 +566,7 @@ class ETLPipelineService:
 
         return []
 
-    async def _load_data(self, config: PipelineConfig, data: List[Dict[str, Any]]):
+    async def _load_data(self, config: PipelineConfig, data: list[dict[str, Any]]):
         """Load data to target."""
         target_type = config.target_type
         target_config = config.target_config
@@ -607,7 +599,7 @@ class ETLPipelineService:
                 await asyncio.sleep(60)  # Check every minute
 
                 # Check for scheduled pipelines
-                now = datetime.now(timezone.utc)
+                now = datetime.now(UTC)
 
                 for pipeline_name, config in self.pipelines.items():
                     if config.schedule_cron:
@@ -619,11 +611,11 @@ class ETLPipelineService:
             except Exception as e:
                 logger.error(f" Pipeline scheduler error: {e}")
 
-    def get_pipeline_status(self, run_id: str) -> Optional[PipelineRun]:
+    def get_pipeline_status(self, run_id: str) -> PipelineRun | None:
         """Get pipeline run status."""
         return self.active_runs.get(run_id)
 
-    def get_metrics(self) -> Dict[str, Any]:
+    def get_metrics(self) -> dict[str, Any]:
         """Get pipeline service metrics."""
         return {
             **self.metrics,

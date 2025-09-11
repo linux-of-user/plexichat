@@ -5,15 +5,15 @@ This module serves as a foundation for future development of these services.
 """
 
 import asyncio
-import logging
-from typing import Any, Dict, List, Optional, Callable
+from collections.abc import Callable
 from dataclasses import dataclass
-from enum import Enum
-import json
-import hashlib
-import time
 from datetime import datetime, timedelta
-
+from enum import Enum
+import hashlib
+import json
+import logging
+import time
+from typing import Any
 
 # =============================================================================
 # Database Service
@@ -43,13 +43,13 @@ class DatabaseConfig:
 
 class DatabaseService:
     """Database service for handling database operations."""
-    
-    def __init__(self, config: Optional[DatabaseConfig] = None):
+
+    def __init__(self, config: DatabaseConfig | None = None):
         self.config = config or DatabaseConfig()
         self.connection_pool = None
         self.is_connected = False
         self.logger = logging.getLogger(__name__)
-    
+
     async def connect(self) -> bool:
         """Connect to the database."""
         try:
@@ -60,17 +60,17 @@ class DatabaseService:
         except Exception as e:
             self.logger.error(f"Database connection failed: {e}")
             raise DatabaseConnectionError(f"Failed to connect: {e}")
-    
+
     async def disconnect(self) -> None:
         """Disconnect from the database."""
         self.is_connected = False
         self.logger.info("Database connection closed")
-    
-    async def execute_query(self, query: str, params: Optional[Dict] = None) -> List[Dict]:
+
+    async def execute_query(self, query: str, params: dict | None = None) -> list[dict]:
         """Execute a database query."""
         if not self.is_connected:
             raise DatabaseConnectionError("Not connected to database")
-        
+
         try:
             # Stub implementation - would execute actual query
             self.logger.debug(f"Executing query: {query}")
@@ -78,12 +78,12 @@ class DatabaseService:
         except Exception as e:
             self.logger.error(f"Query execution failed: {e}")
             raise DatabaseQueryError(f"Query failed: {e}")
-    
-    async def execute_transaction(self, queries: List[str]) -> bool:
+
+    async def execute_transaction(self, queries: list[str]) -> bool:
         """Execute multiple queries in a transaction."""
         if not self.is_connected:
             raise DatabaseConnectionError("Not connected to database")
-        
+
         try:
             # Stub implementation - would execute transaction
             self.logger.debug(f"Executing transaction with {len(queries)} queries")
@@ -91,7 +91,7 @@ class DatabaseService:
         except Exception as e:
             self.logger.error(f"Transaction failed: {e}")
             return False
-    
+
     async def health_check(self) -> bool:
         """Check database health."""
         try:
@@ -126,23 +126,23 @@ class ServiceInfo:
     """Service information."""
     name: str
     status: ServiceStatus
-    instance: Optional[Any] = None
-    config: Optional[Dict] = None
-    dependencies: Optional[List[str]] = None
-    start_time: Optional[datetime] = None
-    error_message: Optional[str] = None
+    instance: Any | None = None
+    config: dict | None = None
+    dependencies: list[str] | None = None
+    start_time: datetime | None = None
+    error_message: str | None = None
 
 
 class ServiceLoader:
     """Service loader for managing application services."""
-    
+
     def __init__(self):
-        self.services: Dict[str, ServiceInfo] = {}
-        self.service_registry: Dict[str, type] = {}
+        self.services: dict[str, ServiceInfo] = {}
+        self.service_registry: dict[str, type] = {}
         self.logger = logging.getLogger(__name__)
-    
-    def register_service(self, name: str, service_class: type, 
-                        dependencies: Optional[List[str]] = None) -> None:
+
+    def register_service(self, name: str, service_class: type,
+                        dependencies: list[str] | None = None) -> None:
         """Register a service class."""
         self.service_registry[name] = service_class
         self.services[name] = ServiceInfo(
@@ -151,90 +151,90 @@ class ServiceLoader:
             dependencies=dependencies or []
         )
         self.logger.info(f"Registered service: {name}")
-    
-    async def load_service(self, name: str, config: Optional[Dict] = None) -> Any:
+
+    async def load_service(self, name: str, config: dict | None = None) -> Any:
         """Load and start a service."""
         if name not in self.service_registry:
             raise ServiceLoadError(f"Service not registered: {name}")
-        
+
         service_info = self.services[name]
-        
+
         if service_info.status == ServiceStatus.RUNNING:
             return service_info.instance
-        
+
         try:
             # Load dependencies first
             for dep in service_info.dependencies:
                 if dep not in self.services or self.services[dep].status != ServiceStatus.RUNNING:
                     await self.load_service(dep)
-            
+
             service_info.status = ServiceStatus.STARTING
             service_class = self.service_registry[name]
-            
+
             # Create service instance
             if config:
                 service_info.instance = service_class(config)
             else:
                 service_info.instance = service_class()
-            
+
             # Initialize service if it has an async init method
             if hasattr(service_info.instance, 'initialize'):
                 await service_info.instance.initialize()
-            
+
             service_info.status = ServiceStatus.RUNNING
             service_info.start_time = datetime.now()
             service_info.config = config
-            
+
             self.logger.info(f"Service loaded successfully: {name}")
             return service_info.instance
-            
+
         except Exception as e:
             service_info.status = ServiceStatus.ERROR
             service_info.error_message = str(e)
             self.logger.error(f"Failed to load service {name}: {e}")
             raise ServiceLoadError(f"Failed to load service {name}: {e}")
-    
+
     async def unload_service(self, name: str) -> None:
         """Unload a service."""
         if name not in self.services:
             return
-        
+
         service_info = self.services[name]
-        
+
         if service_info.status != ServiceStatus.RUNNING:
             return
-        
+
         try:
             service_info.status = ServiceStatus.STOPPING
-            
+
             # Call cleanup method if available
             if hasattr(service_info.instance, 'cleanup'):
                 await service_info.instance.cleanup()
-            
+
             service_info.instance = None
             service_info.status = ServiceStatus.STOPPED
             service_info.start_time = None
-            
+
             self.logger.info(f"Service unloaded: {name}")
-            
+
         except Exception as e:
             service_info.status = ServiceStatus.ERROR
             service_info.error_message = str(e)
             self.logger.error(f"Failed to unload service {name}: {e}")
-    
-    def get_service(self, name: str) -> Optional[Any]:
+
+    def get_service(self, name: str) -> Any | None:
         """Get a running service instance."""
         if name in self.services and self.services[name].status == ServiceStatus.RUNNING:
             return self.services[name].instance
         return None
-    
-    def get_service_status(self, name: str) -> Optional[ServiceStatus]:
+
+    def get_service_status(self, name: str) -> ServiceStatus | None:
         """Get service status."""
         if name in self.services:
             return self.services[name].status
         return None
-    
-    def list_services(self) -> List[ServiceInfo]:
+
+    def list_services(self) -> list[ServiceInfo]:
         """List all registered services."""
         return list(self.services.values())
 
@@ -245,29 +245,29 @@ class ServiceLoader:
 
 class SecurityService:
     """Security service for authentication and authorization."""
-    
+
     def __init__(self):
         self.logger = logging.getLogger(__name__)
-    
-    async def authenticate_user(self, username: str, password: str) -> Optional[Dict]:
+
+    async def authenticate_user(self, username: str, password: str) -> dict | None:
         """Authenticate a user."""
         # Stub implementation
         self.logger.debug(f"Authenticating user: {username}")
         return {"user_id": "stub_user", "username": username}
-    
+
     async def authorize_action(self, user_id: str, action: str, resource: str) -> bool:
         """Authorize a user action."""
         # Stub implementation
         self.logger.debug(f"Authorizing action: {action} on {resource} for user {user_id}")
         return True
-    
-    def generate_token(self, user_data: Dict) -> str:
+
+    def generate_token(self, user_data: dict) -> str:
         """Generate an authentication token."""
         # Stub implementation
         token_data = json.dumps(user_data)
         return hashlib.sha256(token_data.encode()).hexdigest()
-    
-    def validate_token(self, token: str) -> Optional[Dict]:
+
+    def validate_token(self, token: str) -> dict | None:
         """Validate an authentication token."""
         # Stub implementation
         if token:
@@ -277,22 +277,22 @@ class SecurityService:
 
 class EncryptionService:
     """Encryption service for data protection."""
-    
+
     def __init__(self):
         self.logger = logging.getLogger(__name__)
-    
-    def encrypt_data(self, data: str, key: Optional[str] = None) -> str:
+
+    def encrypt_data(self, data: str, key: str | None = None) -> str:
         """Encrypt data."""
         # Stub implementation - would use actual encryption
         self.logger.debug("Encrypting data")
         return hashlib.sha256(data.encode()).hexdigest()
-    
-    def decrypt_data(self, encrypted_data: str, key: Optional[str] = None) -> str:
+
+    def decrypt_data(self, encrypted_data: str, key: str | None = None) -> str:
         """Decrypt data."""
         # Stub implementation - would use actual decryption
         self.logger.debug("Decrypting data")
         return "decrypted_data"
-    
+
     def generate_key(self) -> str:
         """Generate an encryption key."""
         # Stub implementation
@@ -305,13 +305,13 @@ class EncryptionService:
 
 class CacheService:
     """Cache service for data caching."""
-    
+
     def __init__(self):
-        self.cache: Dict[str, Any] = {}
-        self.expiry: Dict[str, datetime] = {}
+        self.cache: dict[str, Any] = {}
+        self.expiry: dict[str, datetime] = {}
         self.logger = logging.getLogger(__name__)
-    
-    async def get(self, key: str) -> Optional[Any]:
+
+    async def get(self, key: str) -> Any | None:
         """Get value from cache."""
         if key in self.cache:
             if key in self.expiry and datetime.now() > self.expiry[key]:
@@ -319,26 +319,26 @@ class CacheService:
                 return None
             return self.cache[key]
         return None
-    
-    async def set(self, key: str, value: Any, ttl: Optional[int] = None) -> None:
+
+    async def set(self, key: str, value: Any, ttl: int | None = None) -> None:
         """Set value in cache."""
         self.cache[key] = value
         if ttl:
             self.expiry[key] = datetime.now() + timedelta(seconds=ttl)
         self.logger.debug(f"Cached value for key: {key}")
-    
+
     async def delete(self, key: str) -> None:
         """Delete value from cache."""
         self.cache.pop(key, None)
         self.expiry.pop(key, None)
         self.logger.debug(f"Deleted cache key: {key}")
-    
+
     async def clear(self) -> None:
         """Clear all cache."""
         self.cache.clear()
         self.expiry.clear()
         self.logger.debug("Cache cleared")
-    
+
     async def exists(self, key: str) -> bool:
         """Check if key exists in cache."""
         return await self.get(key) is not None
@@ -350,21 +350,21 @@ class CacheService:
 
 class MessageService:
     """Message service for handling chat messages."""
-    
+
     def __init__(self):
         self.logger = logging.getLogger(__name__)
-    
+
     async def send_message(self, sender_id: str, recipient_id: str, content: str) -> str:
         """Send a message."""
         message_id = hashlib.sha256(f"{sender_id}{recipient_id}{content}{time.time()}".encode()).hexdigest()
         self.logger.info(f"Message sent: {message_id}")
         return message_id
-    
-    async def get_messages(self, user_id: str, limit: int = 50) -> List[Dict]:
+
+    async def get_messages(self, user_id: str, limit: int = 50) -> list[dict]:
         """Get messages for a user."""
         # Stub implementation
         return []
-    
+
     async def delete_message(self, message_id: str, user_id: str) -> bool:
         """Delete a message."""
         self.logger.info(f"Message deleted: {message_id}")
@@ -377,20 +377,20 @@ class MessageService:
 
 class NotificationService:
     """Notification service for sending notifications."""
-    
+
     def __init__(self):
         self.logger = logging.getLogger(__name__)
-    
+
     async def send_notification(self, user_id: str, title: str, message: str) -> bool:
         """Send a notification."""
         self.logger.info(f"Notification sent to {user_id}: {title}")
         return True
-    
+
     async def send_email(self, to_email: str, subject: str, body: str) -> bool:
         """Send an email notification."""
         self.logger.info(f"Email sent to {to_email}: {subject}")
         return True
-    
+
     async def send_push_notification(self, device_token: str, title: str, body: str) -> bool:
         """Send a push notification."""
         self.logger.info(f"Push notification sent: {title}")
@@ -403,22 +403,22 @@ class NotificationService:
 
 class FileService:
     """File service for file operations."""
-    
+
     def __init__(self):
         self.logger = logging.getLogger(__name__)
-    
+
     async def upload_file(self, file_data: bytes, filename: str, user_id: str) -> str:
         """Upload a file."""
         file_id = hashlib.sha256(f"{filename}{user_id}{time.time()}".encode()).hexdigest()
         self.logger.info(f"File uploaded: {file_id}")
         return file_id
-    
-    async def download_file(self, file_id: str) -> Optional[bytes]:
+
+    async def download_file(self, file_id: str) -> bytes | None:
         """Download a file."""
         # Stub implementation
         self.logger.info(f"File downloaded: {file_id}")
         return b"file_content"
-    
+
     async def delete_file(self, file_id: str, user_id: str) -> bool:
         """Delete a file."""
         self.logger.info(f"File deleted: {file_id}")
@@ -431,12 +431,12 @@ class FileService:
 
 class AnalyticsService:
     """Analytics service for tracking events and metrics."""
-    
+
     def __init__(self):
-        self.events: List[Dict] = []
+        self.events: list[dict] = []
         self.logger = logging.getLogger(__name__)
-    
-    async def track_event(self, event_name: str, user_id: str, properties: Optional[Dict] = None) -> None:
+
+    async def track_event(self, event_name: str, user_id: str, properties: dict | None = None) -> None:
         """Track an analytics event."""
         event = {
             "event_name": event_name,
@@ -446,8 +446,8 @@ class AnalyticsService:
         }
         self.events.append(event)
         self.logger.debug(f"Event tracked: {event_name}")
-    
-    async def get_metrics(self, metric_name: str, start_date: datetime, end_date: datetime) -> Dict:
+
+    async def get_metrics(self, metric_name: str, start_date: datetime, end_date: datetime) -> dict:
         """Get analytics metrics."""
         # Stub implementation
         return {"metric_name": metric_name, "value": 0, "count": 0}
@@ -459,25 +459,25 @@ class AnalyticsService:
 
 class ConfigurationService:
     """Configuration service for managing application settings."""
-    
+
     def __init__(self):
-        self.config: Dict[str, Any] = {}
+        self.config: dict[str, Any] = {}
         self.logger = logging.getLogger(__name__)
-    
+
     def get(self, key: str, default: Any = None) -> Any:
         """Get configuration value."""
         return self.config.get(key, default)
-    
+
     def set(self, key: str, value: Any) -> None:
         """Set configuration value."""
         self.config[key] = value
         self.logger.debug(f"Configuration set: {key}")
-    
+
     def load_from_file(self, file_path: str) -> None:
         """Load configuration from file."""
         # Stub implementation
         self.logger.info(f"Configuration loaded from: {file_path}")
-    
+
     def save_to_file(self, file_path: str) -> None:
         """Save configuration to file."""
         # Stub implementation
@@ -490,17 +490,17 @@ class ConfigurationService:
 
 class HealthCheckService:
     """Health check service for monitoring system health."""
-    
+
     def __init__(self):
-        self.checks: Dict[str, Callable] = {}
+        self.checks: dict[str, Callable] = {}
         self.logger = logging.getLogger(__name__)
-    
+
     def register_check(self, name: str, check_func: Callable) -> None:
         """Register a health check."""
         self.checks[name] = check_func
         self.logger.info(f"Health check registered: {name}")
-    
-    async def run_checks(self) -> Dict[str, bool]:
+
+    async def run_checks(self) -> dict[str, bool]:
         """Run all health checks."""
         results = {}
         for name, check_func in self.checks.items():
@@ -513,12 +513,12 @@ class HealthCheckService:
                 self.logger.error(f"Health check failed {name}: {e}")
                 results[name] = False
         return results
-    
-    async def get_system_status(self) -> Dict:
+
+    async def get_system_status(self) -> dict:
         """Get overall system status."""
         check_results = await self.run_checks()
         all_healthy = all(check_results.values())
-        
+
         return {
             "status": "healthy" if all_healthy else "unhealthy",
             "checks": check_results,
@@ -639,12 +639,12 @@ def get_health_check_service() -> HealthCheckService:
 async def initialize_services() -> None:
     """Initialize all services."""
     logger = logging.getLogger(__name__)
-    
+
     try:
         # Initialize database service
         db_service = get_database_service()
         await db_service.connect()
-        
+
         # Register services with service loader
         service_loader = get_service_loader()
         service_loader.register_service("database", DatabaseService)
@@ -657,13 +657,13 @@ async def initialize_services() -> None:
         service_loader.register_service("analytics", AnalyticsService)
         service_loader.register_service("configuration", ConfigurationService)
         service_loader.register_service("health_check", HealthCheckService)
-        
+
         # Register health checks
         health_service = get_health_check_service()
         health_service.register_check("database", db_service.health_check)
-        
+
         logger.info("All services initialized successfully")
-        
+
     except Exception as e:
         logger.error(f"Service initialization failed: {e}")
         raise
@@ -676,18 +676,18 @@ async def initialize_services() -> None:
 async def cleanup_services() -> None:
     """Cleanup all services."""
     logger = logging.getLogger(__name__)
-    
+
     try:
         # Cleanup database service
         if _database_service:
             await _database_service.disconnect()
-        
+
         # Cleanup cache service
         if _cache_service:
             await _cache_service.clear()
-        
+
         logger.info("All services cleaned up successfully")
-        
+
     except Exception as e:
         logger.error(f"Service cleanup failed: {e}")
 
@@ -709,7 +709,7 @@ __all__ = [
     'AnalyticsService',
     'ConfigurationService',
     'HealthCheckService',
-    
+
     # Service getters
     'get_database_service',
     'get_service_loader',
@@ -722,16 +722,16 @@ __all__ = [
     'get_analytics_service',
     'get_configuration_service',
     'get_health_check_service',
-    
+
     # Utility functions
     'initialize_services',
     'cleanup_services',
-    
+
     # Exceptions
     'DatabaseConnectionError',
     'DatabaseQueryError',
     'ServiceLoadError',
-    
+
     # Enums and data classes
     'ServiceStatus',
     'ServiceInfo',

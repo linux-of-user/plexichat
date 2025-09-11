@@ -7,13 +7,14 @@
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
 import asyncio
-import logging
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta, timezone
 from enum import Enum
+import logging
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Type, Union
 import time
+from typing import Any, Dict, List, Optional, Type, Union
 
 """
 PlexiChat Enhanced Services System
@@ -66,13 +67,13 @@ class ServiceMetadata:
     version: str
     service_type: ServiceType
     priority: ServicePriority
-    dependencies: List[str] = field(default_factory=list)
+    dependencies: list[str] = field(default_factory=list)
     security_level: str = "STANDARD"
-    resource_requirements: Dict[str, Any] = field(default_factory=dict)
-    configuration: Dict[str, Any] = field(default_factory=dict)
-    endpoints: List[str] = field(default_factory=list)
-    permissions: List[str] = field(default_factory=list)
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    resource_requirements: dict[str, Any] = field(default_factory=dict)
+    configuration: dict[str, Any] = field(default_factory=dict)
+    endpoints: list[str] = field(default_factory=list)
+    permissions: list[str] = field(default_factory=list)
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass
@@ -85,10 +86,10 @@ class ServiceHealth:
     error_count: int = 0
     warning_count: int = 0
     performance_score: float = 100.0
-    resource_usage: Dict[str, float] = field(default_factory=dict)
-    response_times: List[float] = field(default_factory=list)
+    resource_usage: dict[str, float] = field(default_factory=dict)
+    response_times: list[float] = field(default_factory=list)
     throughput: float = 0.0
-    last_error: Optional[str] = None
+    last_error: str | None = None
 
 
 class SecureService:
@@ -110,12 +111,12 @@ class SecureService:
             service_id=metadata.service_id,
             status=ServiceStatus.STOPPED,
             uptime=timedelta(0),
-            last_heartbeat=datetime.now(timezone.utc),
+            last_heartbeat=datetime.now(UTC),
         )
 
         # Service state
-        self.start_time: Optional[datetime] = None
-        self.stop_time: Optional[datetime] = None
+        self.start_time: datetime | None = None
+        self.stop_time: datetime | None = None
         self.restart_count = 0
 
         # Security integration
@@ -123,11 +124,11 @@ class SecureService:
         # self.service_key = None
 
         # Performance tracking
-        self.performance_metrics: List[Dict[str, Any]] = []
+        self.performance_metrics: list[dict[str, Any]] = []
         self.cache_enabled = True
 
         # Event handlers
-        self.event_handlers: Dict[str, List[Callable]] = {}
+        self.event_handlers: dict[str, list[Callable]] = {}
 
         # Initialize service
         asyncio.create_task(self._initialize_service())
@@ -234,9 +235,9 @@ class SecureService:
     async def _update_health_metrics(self):
         """Update service health metrics."""
         if self.start_time:
-            self.health.uptime = datetime.now(timezone.utc) - self.start_time
+            self.health.uptime = datetime.now(UTC) - self.start_time
 
-        self.health.last_heartbeat = datetime.now(timezone.utc)
+        self.health.last_heartbeat = datetime.now(UTC)
 
         # Calculate performance score based on various factors
         error_penalty = min(self.health.error_count * 5, 50)
@@ -294,7 +295,7 @@ class SecureService:
 
             self.status = ServiceStatus.RUNNING
             self.health.status = ServiceStatus.RUNNING
-            self.start_time = datetime.now(timezone.utc)
+            self.start_time = datetime.now(UTC)
 
             logger.info(f"Service started: {self.metadata.name}")
             await self._emit_event("service_started")
@@ -321,7 +322,7 @@ class SecureService:
 
             self.status = ServiceStatus.STOPPED
             self.health.status = ServiceStatus.STOPPED
-            self.stop_time = datetime.now(timezone.utc)
+            self.stop_time = datetime.now(UTC)
 
             logger.info(f"Service stopped: {self.metadata.name}")
             await self._emit_event("service_stopped")
@@ -359,7 +360,7 @@ class SecureService:
         """Override for custom resume logic."""
         pass
 
-    async def _emit_event(self, event_name: str, data: Optional[Dict[str, Any]] = None):
+    async def _emit_event(self, event_name: str, data: dict[str, Any] | None = None):
         """Emit service event to registered handlers."""
         if event_name in self.event_handlers:
             for handler in self.event_handlers[event_name]:
@@ -377,7 +378,7 @@ class SecureService:
             self.event_handlers[event_name] = []
         self.event_handlers[event_name].append(handler)
 
-    def get_status(self) -> Dict[str, Any]:
+    def get_status(self) -> dict[str, Any]:
         """Get service status information."""
         return {
             "service_id": self.metadata.service_id,
@@ -402,8 +403,8 @@ class SecureService:
 
 __all__ = [
     "SecureService",
-    "ServiceMetadata",
     "ServiceHealth",
+    "ServiceMetadata",
     "ServicePriority",
     "ServiceStatus",
     "ServiceType",

@@ -5,14 +5,14 @@
 # pyright: reportReturnType=false
 import asyncio
 import base64
-import hashlib
-import secrets
-import json
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List, Optional, Tuple, Set
-import time
+from datetime import UTC, datetime, timedelta
+import hashlib
+import json
 import logging
+import secrets
+import time
+from typing import Any
 
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding, rsa
@@ -41,8 +41,8 @@ class CallInvitation:
     inviter_id: int
     invitee_id: int
     status: str = "pending"
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    expires_at: Optional[datetime] = None
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    expires_at: datetime | None = None
 
 
 @dataclass
@@ -52,11 +52,11 @@ class CallParticipant:
     peer_id: str
     connection_id: str
     status: str
-    public_key: Optional[str] = None
-    session_key_encrypted: Optional[str] = None
-    joined_at: Optional[datetime] = None
-    left_at: Optional[datetime] = None
-    metrics: Dict[str, Any] = field(default_factory=dict)
+    public_key: str | None = None
+    session_key_encrypted: str | None = None
+    joined_at: datetime | None = None
+    left_at: datetime | None = None
+    metrics: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -65,32 +65,32 @@ class CallSession:
     call_id: str
     call_type: str
     initiator_id: int
-    participants: List[int]
+    participants: list[int]
     max_participants: int
     encryption_method: str
     master_key_hash: str
-    ice_servers: List[Dict[str, Any]]
+    ice_servers: list[dict[str, Any]]
     video_quality: str
     audio_quality: str
     status: str
-    media_server_id: Optional[str] = None
-    started_at: Optional[datetime] = None
-    ended_at: Optional[datetime] = None
-    duration_seconds: Optional[int] = None
+    media_server_id: str | None = None
+    started_at: datetime | None = None
+    ended_at: datetime | None = None
+    duration_seconds: int | None = None
     # New fields for DTLS & key rotation management
-    session_key: Optional[str] = None
+    session_key: str | None = None
     key_rotation_interval_seconds: int = 300
-    _rotation_task: Optional[Any] = None
-    dtls_fingerprint: Optional[str] = None
-    dtls_private_key_b64: Optional[str] = None
-    dtls_public_key_b64: Optional[str] = None
+    _rotation_task: Any | None = None
+    dtls_fingerprint: str | None = None
+    dtls_private_key_b64: str | None = None
+    dtls_public_key_b64: str | None = None
 
 
 @dataclass
 class CallOffer:
     call_id: str
     offer_sdp: str
-    ice_candidates: List[Dict[str, Any]]
+    ice_candidates: list[dict[str, Any]]
     encryption_key: str
     public_key: str
 
@@ -99,7 +99,7 @@ class CallOffer:
 class CallAnswer:
     call_id: str
     answer_sdp: str
-    ice_candidates: List[Dict[str, Any]]
+    ice_candidates: list[dict[str, Any]]
     encryption_key: str
     public_key: str
 
@@ -143,7 +143,7 @@ class EncryptionManager:
     """Manages end-to-end encryption for calls with graceful quantum manager integration."""
 
     @staticmethod
-    def generate_key_pair() -> Tuple[str, str]:
+    def generate_key_pair() -> tuple[str, str]:
         """Generate RSA key pair for key exchange (base64 PEMs)."""
         private_key = rsa.generate_private_key(
             public_exponent=65537,
@@ -177,7 +177,9 @@ class EncryptionManager:
         """Encrypt session key with RSA public key. If quantum manager is available, prefer it for additional wrapping."""
         # Try to use quantum encryption manager if present for an additional layer
         try:
-            from plexichat.core.security.quantum_encryption import get_quantum_manager  # type: ignore
+            from plexichat.core.security.quantum_encryption import (
+                get_quantum_manager,  # type: ignore
+            )
             qm = get_quantum_manager()
         except Exception:
             qm = None
@@ -216,7 +218,9 @@ class EncryptionManager:
         """Decrypt session key with RSA private key, with fallback to quantum manager decryption if applicable."""
         # Try quantum manager first (it may have been used to encrypt)
         try:
-            from plexichat.core.security.quantum_encryption import get_quantum_manager  # type: ignore
+            from plexichat.core.security.quantum_encryption import (
+                get_quantum_manager,  # type: ignore
+            )
             qm = get_quantum_manager()
         except Exception:
             qm = None
@@ -259,10 +263,10 @@ class EncryptionManager:
 @dataclass
 class TurnServer:
     url: str
-    username: Optional[str] = None
-    credential: Optional[str] = None
+    username: str | None = None
+    credential: str | None = None
     healthy: bool = True
-    last_checked: Optional[float] = None
+    last_checked: float | None = None
 
 
 # ---------------------------
@@ -277,10 +281,10 @@ class WebRTCManager:
             {"urls": "stun:stun1.l.google.com:19302"},
             {"urls": "stun:stun2.l.google.com:19302"}
         ]
-        self.turn_servers: List[TurnServer] = []  # ideally loaded from config
+        self.turn_servers: list[TurnServer] = []  # ideally loaded from config
         self.ice_candidate_seq = 0
 
-    def get_ice_configuration(self) -> Dict[str, Any]:
+    def get_ice_configuration(self) -> dict[str, Any]:
         """Get ICE server configuration for WebRTC clients, including TURN servers that are healthy."""
         turn_entries = []
         for t in self.turn_servers:
@@ -296,7 +300,7 @@ class WebRTCManager:
             "iceCandidatePoolSize": 10
         }
 
-    def add_turn_server(self, url: str, username: Optional[str] = None, credential: Optional[str] = None):
+    def add_turn_server(self, url: str, username: str | None = None, credential: str | None = None):
         self.turn_servers.append(TurnServer(url=url, username=username, credential=credential))
 
     def validate_sdp(self, sdp: str) -> bool:
@@ -315,16 +319,15 @@ class WebRTCManager:
             return False
         return True
 
-    def enhance_sdp_security(self, sdp: str, dtls_fingerprint: Optional[str] = None) -> str:
+    def enhance_sdp_security(self, sdp: str, dtls_fingerprint: str | None = None) -> str:
         """Enhance SDP with security features such as DTLS fingerprint and setup lines."""
         if dtls_fingerprint:
             # ensure given fingerprint is present
             if "a=fingerprint:" not in sdp:
                 sdp += f"\na=fingerprint:sha-256 {dtls_fingerprint}"
-        else:
-            if "a=fingerprint:" not in sdp:
-                # In production, compute real certificate fingerprint
-                sdp += "\na=fingerprint:sha-256 AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99"
+        elif "a=fingerprint:" not in sdp:
+            # In production, compute real certificate fingerprint
+            sdp += "\na=fingerprint:sha-256 AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99"
         if "a=setup:" not in sdp:
             sdp += "\na=setup:actpass"
         # Add SRTP setup hint
@@ -336,7 +339,7 @@ class WebRTCManager:
             sdp += f"\na=crypto:1 AES_CM_128_HMAC_SHA1_80 inline:{crypto_key}"
         return sdp
 
-    def create_simulated_ice_candidates(self, count: int = 2) -> List[Dict[str, Any]]:
+    def create_simulated_ice_candidates(self, count: int = 2) -> list[dict[str, Any]]:
         """Produce simulated ICE candidates (useful for environments without full ICE)."""
         candidates = []
         for _ in range(count):
@@ -364,7 +367,7 @@ class WebRTCManager:
                 patched_lines.append(f"b=AS:{max(128, int(bandwidth_kbps * 0.7))}")
         return "\n".join(patched_lines)
 
-    def prefer_codecs(self, sdp: str, audio_codecs: List[str] = None, video_codecs: List[str] = None) -> str:
+    def prefer_codecs(self, sdp: str, audio_codecs: list[str] = None, video_codecs: list[str] = None) -> str:
         """Simple heuristic to place preferred codecs first in SDP"""
         # This is a best-effort, not a full SDP parser
         # If no preferences provided, return original
@@ -383,7 +386,7 @@ class MediaServerManager:
 
     def __init__(self):
         # server_id -> info
-        self.servers: Dict[str, Dict[str, Any]] = {}
+        self.servers: dict[str, dict[str, Any]] = {}
         # Seed with a local lightweight mock media server for single-node setups
         local_id = "media_local_1"
         self.servers[local_id] = {
@@ -396,7 +399,7 @@ class MediaServerManager:
             "healthy": True
         }
 
-    async def allocate_server_for_call(self, call_id: str) -> Optional[str]:
+    async def allocate_server_for_call(self, call_id: str) -> str | None:
         """Pick a healthy media server with available capacity."""
         # Basic load-based allocation
         candidates = sorted(self.servers.values(), key=lambda s: (not s["healthy"], s["current_load"]))
@@ -449,7 +452,7 @@ class WebSocketManager:
     def __init__(self, calling_service: "CallingService"):
         self.calling_service = calling_service
         # user_id -> set of websocket connections
-        self.connections: Dict[int, Set[Any]] = {}
+        self.connections: dict[int, set[Any]] = {}
         # store per-connection metadata if needed
         self._lock = asyncio.Lock()
 
@@ -470,7 +473,7 @@ class WebSocketManager:
         if user_id not in self.connections:
             await self.calling_service._broadcast_presence(user_id, "offline")
 
-    async def broadcast_to_user(self, user_id: int, message: Dict[str, Any]):
+    async def broadcast_to_user(self, user_id: int, message: dict[str, Any]):
         conns = list(self.connections.get(user_id, []))
         for ws in conns:
             try:
@@ -479,7 +482,7 @@ class WebSocketManager:
                 # ignore send errors, remote will cleanup
                 pass
 
-    async def broadcast_to_all(self, message: Dict[str, Any]):
+    async def broadcast_to_all(self, message: dict[str, Any]):
         # send to all connected users
         for user_id in list(self.connections.keys()):
             await self.broadcast_to_user(user_id, message)
@@ -495,9 +498,9 @@ class CallingService:
         self.encryption_manager = EncryptionManager()
         self.webrtc_manager = WebRTCManager()
         self.media_manager = MediaServerManager()
-        self.active_calls: Dict[str, CallSession] = {}
-        self.call_participants: Dict[str, List[CallParticipant]] = {}
-        self.metrics: Dict[str, Any] = {
+        self.active_calls: dict[str, CallSession] = {}
+        self.call_participants: dict[str, list[CallParticipant]] = {}
+        self.metrics: dict[str, Any] = {
             "calls_initiated": 0,
             "calls_connected": 0,
             "calls_ended": 0,
@@ -507,7 +510,7 @@ class CallingService:
             "quality_samples": 0
         }
         # Rate limiting: user_id -> list of initiation timestamps
-        self._initiation_attempts: Dict[int, List[float]] = {}
+        self._initiation_attempts: dict[int, list[float]] = {}
         # Configurable rate limits (per minute) by tier; in production read from config_manager
         self._tier_limits = {
             "anonymous": 10,
@@ -526,7 +529,7 @@ class CallingService:
         # Recording storage path fallback
         self._recordings_path = "/tmp/plexichat_recordings"
         # Recording handles: call_id -> recording metadata
-        self._recordings: Dict[str, Dict[str, Any]] = {}
+        self._recordings: dict[str, dict[str, Any]] = {}
 
     # -----------------------
     # Public API
@@ -534,11 +537,11 @@ class CallingService:
     async def initiate_call(
         self,
         initiator_id: int,
-        target_user_ids: List[int],
+        target_user_ids: list[int],
         call_type: str,
         video_quality: str = "720p",
         audio_quality: str = "high",
-        requester_token: Optional[str] = None
+        requester_token: str | None = None
     ) -> CallSession:
         """Initiate a new encrypted call with media server allocation and signaling envelope.
 
@@ -591,7 +594,7 @@ class CallingService:
                 audio_quality=audio_quality,
                 status=CallStatus.INITIATING,
                 media_server_id=media_server_id,
-                started_at=datetime.now(timezone.utc),
+                started_at=datetime.now(UTC),
                 session_key=master_key,
                 dtls_fingerprint=dtls_fingerprint,
                 dtls_private_key_b64=dtls_priv_b64,
@@ -615,7 +618,7 @@ class CallingService:
                 status=CallStatus.CONNECTING,
                 public_key=initiator_public_key,
                 session_key_encrypted=encrypted_key_for_initiator,
-                joined_at=datetime.now(timezone.utc),
+                joined_at=datetime.now(UTC),
                 metrics={}
             )
 
@@ -644,8 +647,8 @@ class CallingService:
         self,
         call_id: str,
         user_id: int,
-        offer_sdp: Optional[str] = None,
-        token: Optional[str] = None
+        offer_sdp: str | None = None,
+        token: str | None = None
     ) -> CallOffer:
         """Join an existing call: register participant, provide ICE and encrypted session key, generate offer SDP.
 
@@ -688,7 +691,7 @@ class CallingService:
                 status=CallStatus.CONNECTING,
                 public_key=public_key,
                 session_key_encrypted=encrypted_session_key,
-                joined_at=datetime.now(timezone.utc),
+                joined_at=datetime.now(UTC),
                 metrics={}
             )
 
@@ -725,7 +728,7 @@ class CallingService:
         call_id: str,
         user_id: int,
         answer_sdp: str,
-        token: Optional[str] = None
+        token: str | None = None
     ) -> CallAnswer:
         """Answer a call: validate, secure the SDP, and return encrypted key for signaling."""
         try:
@@ -756,7 +759,7 @@ class CallingService:
                 raise ValueError(f"Participant {user_id} not found in call {call_id}")
 
             participant.status = CallStatus.CONNECTED
-            participant.joined_at = participant.joined_at or datetime.now(timezone.utc)
+            participant.joined_at = participant.joined_at or datetime.now(UTC)
 
             # Optionally add bandwidth hints based on current measured metrics
             participant_metrics = participant.metrics or {}
@@ -791,7 +794,7 @@ class CallingService:
             call_session = self.active_calls[call_id]
 
             call_session.status = CallStatus.ENDED
-            call_session.ended_at = datetime.now(timezone.utc)
+            call_session.ended_at = datetime.now(UTC)
 
             if call_session.started_at:
                 duration = (call_session.ended_at - call_session.started_at).total_seconds()
@@ -801,7 +804,7 @@ class CallingService:
             for participant in list(self.call_participants.get(call_id, [])):
                 if participant.status == CallStatus.CONNECTED:
                     participant.status = CallStatus.ENDED
-                    participant.left_at = datetime.now(timezone.utc)
+                    participant.left_at = datetime.now(UTC)
 
             # Cancel key rotation task if running
             try:
@@ -916,7 +919,7 @@ class CallingService:
     # -----------------------
     # Recording support
     # -----------------------
-    async def start_recording(self, call_id: str, initiator_user_id: int, encrypt_with_qm: bool = True) -> Dict[str, Any]:
+    async def start_recording(self, call_id: str, initiator_user_id: int, encrypt_with_qm: bool = True) -> dict[str, Any]:
         """Start optional recording for a call. Recording is simulated; in production this would be media server driven."""
         if call_id not in self.active_calls:
             raise ValueError("Call not found")
@@ -932,7 +935,7 @@ class CallingService:
             "id": recording_id,
             "call_id": call_id,
             "initiator": initiator_user_id,
-            "started_at": datetime.now(timezone.utc),
+            "started_at": datetime.now(UTC),
             "active": True,
             "filename": filename,
             "encrypted_with_qm": False
@@ -940,7 +943,9 @@ class CallingService:
 
         # Try to reserve recording with backup manager if available
         try:
-            from plexichat.features.backup.backup_manager import get_backup_manager  # type: ignore
+            from plexichat.features.backup.backup_manager import (
+                get_backup_manager,  # type: ignore
+            )
             bm = get_backup_manager()
             # notify backup system (best-effort)
             try:
@@ -957,7 +962,9 @@ class CallingService:
         # If encryption requested, attempt quantum manager usage if available
         if encrypt_with_qm:
             try:
-                from plexichat.core.security.quantum_encryption import get_quantum_manager  # type: ignore
+                from plexichat.core.security.quantum_encryption import (
+                    get_quantum_manager,  # type: ignore
+                )
                 qm = get_quantum_manager()
                 # Just mark as using QM; actual streaming encryption would be done in media pipeline
                 rec_meta["encrypted_with_qm"] = True
@@ -974,7 +981,7 @@ class CallingService:
         logger.info(f"Started recording for call {call_id} -> {recording_id}")
         return rec_meta
 
-    async def stop_recording(self, call_id: str) -> Optional[Dict[str, Any]]:
+    async def stop_recording(self, call_id: str) -> dict[str, Any] | None:
         """Stop a recording and finalize storage and optional backup integration."""
         if call_id not in self._recordings or not self._recordings[call_id].get("active"):
             return None
@@ -993,7 +1000,7 @@ class CallingService:
 
         # Simulate cleanup and mark ended
         rec_meta["active"] = False
-        rec_meta["ended_at"] = datetime.now(timezone.utc)
+        rec_meta["ended_at"] = datetime.now(UTC)
 
         # Simulate encryption of final blob using QM if marked
         encrypted_payload = b"simulated media data for " + call_id.encode("utf-8")
@@ -1001,7 +1008,9 @@ class CallingService:
 
         try:
             if rec_meta.get("encrypted_with_qm"):
-                from plexichat.core.security.quantum_encryption import get_quantum_manager  # type: ignore
+                from plexichat.core.security.quantum_encryption import (
+                    get_quantum_manager,  # type: ignore
+                )
                 qm = get_quantum_manager()
                 # Use QM's HTTP traffic encryption as a pragmatic wrapper for recorded blobs
                 try:
@@ -1029,7 +1038,9 @@ class CallingService:
 
             # Hand off to backup manager if available
             try:
-                from plexichat.features.backup.backup_manager import get_backup_manager  # type: ignore
+                from plexichat.features.backup.backup_manager import (
+                    get_backup_manager,  # type: ignore
+                )
                 bm = get_backup_manager()
                 # store object (best-effort)
                 try:
@@ -1076,7 +1087,7 @@ class CallingService:
             inviter_id=inviter_id,
             invitee_id=invitee_id,
             status="pending",
-            expires_at=datetime.now(timezone.utc) + timedelta(minutes=2)
+            expires_at=datetime.now(UTC) + timedelta(minutes=2)
         )
         # In real system, push notification / websocket message should be sent.
         # If invitee connected via websocket, send directly
@@ -1130,7 +1141,9 @@ a=rtpmap:96 VP8/90000"""
         """Generate a new master session key. In production this would be stored in a secure key vault."""
         # Try to register key with quantum manager for stronger handling, but fallback to local generation
         try:
-            from plexichat.core.security.quantum_encryption import get_quantum_manager  # type: ignore
+            from plexichat.core.security.quantum_encryption import (
+                get_quantum_manager,  # type: ignore
+            )
             qm = get_quantum_manager()
             # We create a symmetric key and let QM manage traffic encryption contexts
             key_b64 = self.encryption_manager.generate_session_key()
@@ -1303,7 +1316,9 @@ a=rtpmap:96 VP8/90000"""
         # Try quantum manager path
         encrypted_b64 = ""
         try:
-            from plexichat.core.security.quantum_encryption import get_quantum_manager  # type: ignore
+            from plexichat.core.security.quantum_encryption import (
+                get_quantum_manager,  # type: ignore
+            )
             qm = get_quantum_manager()
             try:
                 encrypted_payload = qm.encrypt_http_traffic(payload, endpoint=call_id)
@@ -1345,7 +1360,7 @@ a=rtpmap:96 VP8/90000"""
     # -----------------------
     # WebSocket signaling helper (framework-agnostic entrypoint)
     # -----------------------
-    async def websocket_signaling_handler(self, websocket: Any, path: Optional[str] = None):
+    async def websocket_signaling_handler(self, websocket: Any, path: str | None = None):
         """Framework-agnostic websocket handler for signaling.
 
         Expected message format (JSON):
@@ -1503,7 +1518,7 @@ a=rtpmap:96 VP8/90000"""
                 "type": "presence_update",
                 "user_id": user_id,
                 "status": status,
-                "timestamp": datetime.now(timezone.utc).isoformat()
+                "timestamp": datetime.now(UTC).isoformat()
             }
             await self.ws_manager.broadcast_to_all(payload)
         except Exception as e:
@@ -1512,11 +1527,13 @@ a=rtpmap:96 VP8/90000"""
     # -----------------------
     # Security & rate limiting helpers
     # -----------------------
-    async def _verify_token_async(self, token: str) -> Tuple[bool, Optional[Dict[str, Any]]]:
+    async def _verify_token_async(self, token: str) -> tuple[bool, dict[str, Any] | None]:
         """Verify JWT token using the SecuritySystem TokenManager if available."""
         try:
             # Prefer the centralized security manager API if available
-            from plexichat.core.security.security_manager import get_security_system  # type: ignore
+            from plexichat.core.security.security_manager import (
+                get_security_system,  # type: ignore
+            )
             sec = get_security_system()
             ok, payload = sec.token_manager.verify_token(token)
             return ok, payload
@@ -1534,7 +1551,7 @@ a=rtpmap:96 VP8/90000"""
                 pass
         return False, None
 
-    async def _allow_initiation(self, user_id: int, token: Optional[str]) -> bool:
+    async def _allow_initiation(self, user_id: int, token: str | None) -> bool:
         """Decide if a user is allowed to initiate a call based on simple rate-limiting and tier detection."""
         # determine tier from token if possible
         tier = "authenticated"
@@ -1570,7 +1587,7 @@ a=rtpmap:96 VP8/90000"""
     # -----------------------
     # Key rotation & DTLS helpers
     # -----------------------
-    def _generate_dtls_keypair(self) -> Tuple[str, str]:
+    def _generate_dtls_keypair(self) -> tuple[str, str]:
         """Generate a lightweight RSA keypair for DTLS fingerprint simulation and return base64 PEMs."""
         priv_b64, pub_b64 = EncryptionManager.generate_key_pair()
         return priv_b64, pub_b64
@@ -1631,7 +1648,9 @@ a=rtpmap:96 VP8/90000"""
             call_session.session_key = new_key
             # If quantum manager present, ask it to rotate keys for the call endpoint
             try:
-                from plexichat.core.security.quantum_encryption import get_quantum_manager  # type: ignore
+                from plexichat.core.security.quantum_encryption import (
+                    get_quantum_manager,  # type: ignore
+                )
                 qm = get_quantum_manager()
                 try:
                     # rotate any internal http keys used for this session
@@ -1654,7 +1673,7 @@ a=rtpmap:96 VP8/90000"""
                                 "type": "key_rotation",
                                 "call_id": call_id,
                                 "payload": {
-                                    "rotated_at": datetime.now(timezone.utc).isoformat(),
+                                    "rotated_at": datetime.now(UTC).isoformat(),
                                     "note": "Session key rotated for forward secrecy"
                                 }
                             })

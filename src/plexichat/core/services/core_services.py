@@ -3,12 +3,12 @@ PlexiChat Service Manager
 Consolidated service management for the entire application.
 """
 
-import asyncio
-import logging
 from abc import ABC, abstractmethod
+import asyncio
 from collections import defaultdict, deque
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set
+import logging
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -29,8 +29,8 @@ class BaseService(ABC):
     def __init__(self, name: str):
         self.name = name
         self.status = ServiceStatus.STOPPED
-        self.dependencies: Set[str] = set()
-        self.dependents: Set[str] = set()
+        self.dependencies: set[str] = set()
+        self.dependents: set[str] = set()
 
     @abstractmethod
     async def start(self) -> bool:
@@ -52,13 +52,13 @@ class ServiceManager:
     """Manages all services in the application."""
 
     def __init__(self):
-        self.services: Dict[str, BaseService] = {}
-        self.startup_order: List[str] = []
-        self.shutdown_order: List[str] = []
+        self.services: dict[str, BaseService] = {}
+        self.startup_order: list[str] = []
+        self.shutdown_order: list[str] = []
         self._lock = asyncio.Lock()
 
     def register_service(
-        self, service: BaseService, dependencies: Optional[List[str]] = None
+        self, service: BaseService, dependencies: list[str] | None = None
     ):
         """Register a service with optional dependencies."""
         self.services[service.name] = service
@@ -192,7 +192,7 @@ class ServiceManager:
             logger.error(f"Error restarting service {service_name}: {e}")
             return False
 
-    async def health_check_all(self) -> Dict[str, bool]:
+    async def health_check_all(self) -> dict[str, bool]:
         """Run health checks on all services."""
         results = {}
 
@@ -208,7 +208,7 @@ class ServiceManager:
 
         return results
 
-    def get_service_status(self) -> Dict[str, Dict[str, Any]]:
+    def get_service_status(self) -> dict[str, dict[str, Any]]:
         """Get status of all services."""
         return {
             name: {
@@ -219,7 +219,7 @@ class ServiceManager:
             for name, service in self.services.items()
         }
 
-    def get_service(self, name: str) -> Optional[BaseService]:
+    def get_service(self, name: str) -> BaseService | None:
         """Get a service by name."""
         return self.services.get(name)
 
@@ -289,11 +289,11 @@ class ServiceLoader:
     """Service loader for dynamic service loading."""
 
     def __init__(self):
-        self.loaded_services: Dict[str, BaseService] = {}
+        self.loaded_services: dict[str, BaseService] = {}
 
     def load_service(
         self, service_name: str, service_class: type
-    ) -> Optional[BaseService]:
+    ) -> BaseService | None:
         """Load a service by name and class."""
         try:
             service = service_class()
@@ -303,7 +303,7 @@ class ServiceLoader:
             logger.error(f"Failed to load service {service_name}: {e}")
             return None
 
-    def get_service(self, service_name: str) -> Optional[BaseService]:
+    def get_service(self, service_name: str) -> BaseService | None:
         """Get a loaded service by name."""
         return self.loaded_services.get(service_name)
 
@@ -325,13 +325,13 @@ _service_loader = ServiceLoader()
 
 
 __all__ = [
-    "ServiceStatus",
     "BaseService",
-    "ServiceManager",
-    "service_manager",
     "DatabaseService",
+    "ServiceLoader",
+    "ServiceManager",
+    "ServiceStatus",
     "WebService",
     "get_database_service",
-    "ServiceLoader",
     "load_services",
+    "service_manager",
 ]

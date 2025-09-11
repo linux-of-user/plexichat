@@ -20,17 +20,17 @@ from .token_service import TokenService
 from .user_service import UserService
 
 __all__ = [
-    "IAuthenticationService",
-    "IUserService",
-    "ISessionService",
-    "ITokenService",
-    "IMFAProvider",
-    "IAuditService",
-    "AuthenticationService",
-    "UserService",
-    "SessionService",
-    "TokenService",
-    "MFAService",
     "AuditService",
     "AuthServiceContainer",
+    "AuthenticationService",
+    "IAuditService",
+    "IAuthenticationService",
+    "IMFAProvider",
+    "ISessionService",
+    "ITokenService",
+    "IUserService",
+    "MFAService",
+    "SessionService",
+    "TokenService",
+    "UserService",
 ]

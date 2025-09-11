@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import sys
-from typing import Any, Dict, List
+from typing import Any
 
 try:
     import click
@@ -10,8 +10,8 @@ except ImportError:
 
 try:
     from rich.console import Console
-    from rich.table import Table
     from rich.panel import Panel
+    from rich.table import Table
 except ImportError:
     Console = Table = Panel = None
 
@@ -35,7 +35,7 @@ def print_message(message: str, style: str = "info"):
     else:
         print(f"{style.upper()}: {message}")
 
-def print_table(data: List[Dict[str, Any]], title: str = "Results"):
+def print_table(data: list[dict[str, Any]], title: str = "Results"):
     """Prints data in a table format."""
     if not data:
         print_message("No data to display.", "warning")

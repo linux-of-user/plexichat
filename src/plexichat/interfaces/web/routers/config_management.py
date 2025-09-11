@@ -6,16 +6,17 @@ Provides a comprehensive web interface for managing all PlexiChat configuration
 settings through the unified configuration system.
 """
 
+from pathlib import Path
 from typing import Any
-from fastapi import APIRouter, HTTPException, Request, Depends
+
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
-from pathlib import Path
 from pydantic import BaseModel
 
 # Import unified config system
 try:
-    from plexichat.core.config_manager import get_config, ConfigCategory
+    from plexichat.core.config_manager import ConfigCategory, get_config
     CONFIG_AVAILABLE = True
 except ImportError:
     CONFIG_AVAILABLE = False
@@ -25,6 +26,7 @@ from plexichat.core.auth.fastapi_adapter import require_admin
 
 # Unified logging
 from plexichat.core.logging import get_logger
+
 logger = get_logger(__name__)
 
 # Create router
@@ -47,15 +49,15 @@ async def config_dashboard(request: Request, current_user: dict = Depends(requir
     """Main configuration dashboard."""
     if not CONFIG_AVAILABLE:
         raise HTTPException(status_code=503, detail="Configuration system not available")
-    
+
     config = get_config()
-    
+
     # Get configuration sections for WebUI
     config_sections = config.get_webui_config_sections()
-    
+
     # Validation results
     validation = config.validate_config()
-    
+
     if templates:
         return templates.TemplateResponse(
             "admin/config_management.html",
@@ -67,7 +69,7 @@ async def config_dashboard(request: Request, current_user: dict = Depends(requir
                 "current_user": current_user
             }
         )
-    
+
     # Fallback HTML
     html_content = f"""
     <!DOCTYPE html>
@@ -129,10 +131,10 @@ async def get_config_sections(current_user: dict = Depends(require_admin)):
     """Get all configuration sections."""
     if not CONFIG_AVAILABLE:
         raise HTTPException(status_code=503, detail="Configuration system not available")
-    
+
     config = get_config()
     sections = config.get_webui_config_sections()
-    
+
     # Convert ConfigField objects to dictionaries
     serialized_sections = {}
     for section_name, fields in sections.items():
@@ -153,7 +155,7 @@ async def get_config_sections(current_user: dict = Depends(require_admin)):
                 "webui_editable": field.webui_editable,
                 "webui_section": field.webui_section
             })
-    
+
     return JSONResponse(content=serialized_sections)
 
 @router.get("/api/category/{category}")
@@ -161,15 +163,15 @@ async def get_config_by_category(category: str, current_user: dict = Depends(req
     """Get configuration fields by category."""
     if not CONFIG_AVAILABLE:
         raise HTTPException(status_code=503, detail="Configuration system not available")
-    
+
     try:
         config_category = ConfigCategory(category)
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid category")
-    
+
     config = get_config()
     fields = config.get_config_fields(config_category)
-    
+
     # Serialize fields
     serialized_fields = {}
     for field_name, field in fields.items():
@@ -188,7 +190,7 @@ async def get_config_by_category(category: str, current_user: dict = Depends(req
             "webui_editable": field.webui_editable,
             "webui_section": field.webui_section
         }
-    
+
     return JSONResponse(content=serialized_fields)
 
 @router.post("/api/update")
@@ -199,24 +201,24 @@ async def update_config_value(
     """Update a configuration value."""
     if not CONFIG_AVAILABLE:
         raise HTTPException(status_code=503, detail="Configuration system not available")
-    
+
     config = get_config()
-    
+
     # Update the configuration value
     success = config.update_config_value(update_request.field_path, update_request.value)
-    
+
     if not success:
         raise HTTPException(status_code=400, detail="Failed to update configuration value")
-    
+
     # Save configuration
     save_success = config.save()
-    
+
     if not save_success:
         raise HTTPException(status_code=500, detail="Failed to save configuration")
-    
+
     username = current_user.get("username") or current_user.get("id") or "unknown"
     logger.info(f"Configuration updated by {username}: {update_request.field_path} = {update_request.value}")
-    
+
     return JSONResponse(content={
         "success": True,
         "message": "Configuration updated successfully",
@@ -228,10 +230,10 @@ async def validate_config(current_user: dict = Depends(require_admin)):
     """Validate current configuration."""
     if not CONFIG_AVAILABLE:
         raise HTTPException(status_code=503, detail="Configuration system not available")
-    
+
     config = get_config()
     validation_results = config.validate_config()
-    
+
     return JSONResponse(content=validation_results)
 
 @router.get("/api/export")
@@ -242,13 +244,13 @@ async def export_config(
     """Export configuration for backup."""
     if not CONFIG_AVAILABLE:
         raise HTTPException(status_code=503, detail="Configuration system not available")
-    
+
     config = get_config()
     exported_config = config.export_config(include_sensitive=include_sensitive)
-    
+
     username = current_user.get("username") or current_user.get("id") or "unknown"
     logger.info(f"Configuration exported by {username} (include_sensitive={include_sensitive})")
-    
+
     return JSONResponse(content=exported_config)
 
 @router.post("/api/reload")
@@ -256,14 +258,14 @@ async def reload_config(current_user: dict = Depends(require_admin)):
     """Reload configuration from file."""
     if not CONFIG_AVAILABLE:
         raise HTTPException(status_code=503, detail="Configuration system not available")
-    
+
     try:
         config = get_config()
         config.load()
-        
+
         username = current_user.get("username") or current_user.get("id") or "unknown"
         logger.info(f"Configuration reloaded by {username}")
-        
+
         return JSONResponse(content={
             "success": True,
             "message": "Configuration reloaded successfully"

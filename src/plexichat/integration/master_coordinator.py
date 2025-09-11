@@ -7,14 +7,15 @@
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
 import asyncio
-import logging
 from dataclasses import dataclass
-from datetime import datetime, timezone
-from typing import Any, Dict, Optional
+from datetime import UTC, datetime
+import logging
+from typing import Any
 
-from plexichat.features.ai.ai_coordinator import ai_coordinator
 from plexichat.core.security.security_manager import unified_security_manager
+from plexichat.features.ai.ai_coordinator import ai_coordinator
 from plexichat.infrastructure.scalability.coordinator import scalability_coordinator
+
 # from ..core_system.resilience.manager import get_system_resilience # This import is broken
 
 """
@@ -72,7 +73,7 @@ class PlexiChatMasterCoordinator:
 
         # System metrics
         self.metrics = SystemMetrics()
-        self.start_time: Optional[datetime] = None
+        self.start_time: datetime | None = None
 
         # System configuration
         self.config = {
@@ -102,8 +103,8 @@ class PlexiChatMasterCoordinator:
         }
 
         # Background tasks
-        self.monitoring_task: Optional[asyncio.Task] = None
-        self.health_check_task: Optional[asyncio.Task] = None
+        self.monitoring_task: asyncio.Task | None = None
+        self.health_check_task: asyncio.Task | None = None
 
     async def initialize_system(self):
         """Initialize the complete PlexiChat system."""
@@ -111,7 +112,7 @@ class PlexiChatMasterCoordinator:
             logger.warning("System already initialized")
             return
 
-        start_time = datetime.now(timezone.utc)
+        start_time = datetime.now(UTC)
         self.start_time = start_time
 
         logger.info(f" Initializing {self.system_name} v{self.version}")
@@ -157,7 +158,7 @@ class PlexiChatMasterCoordinator:
             self.running = True
 
             initialization_time = (
-                datetime.now(timezone.utc) - start_time
+                datetime.now(UTC) - start_time
             ).total_seconds()
             self.stats["initialization_time"] = initialization_time
 
@@ -208,7 +209,7 @@ class PlexiChatMasterCoordinator:
         """Collect system-wide metrics."""
         try:
             if self.start_time:
-                uptime = (datetime.now(timezone.utc) - self.start_time).total_seconds()
+                uptime = (datetime.now(UTC) - self.start_time).total_seconds()
                 self.metrics.system_uptime = uptime
                 self.stats["total_uptime"] = uptime
 
@@ -245,7 +246,7 @@ class PlexiChatMasterCoordinator:
         """Perform comprehensive system health check."""
         try:
             health_status = {
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "overall_status": "healthy",
                 "phases": {},
                 "resilience": None,
@@ -281,7 +282,7 @@ class PlexiChatMasterCoordinator:
                 health_status["overall_status"] = "degraded"
                 logger.warning(f" System health degraded: {unhealthy_phases}")
 
-            self.stats["last_health_check"] = datetime.now(timezone.utc)
+            self.stats["last_health_check"] = datetime.now(UTC)
 
         except Exception as e:
             logger.error(f"Health check failed: {e}")
@@ -326,7 +327,7 @@ class PlexiChatMasterCoordinator:
         for line in status_lines:
             logger.info(line)
 
-    def get_system_status(self) -> Dict[str, Any]:
+    def get_system_status(self) -> dict[str, Any]:
         """Get comprehensive system status."""
         return {
             "system_info": {
@@ -345,7 +346,7 @@ class PlexiChatMasterCoordinator:
                 "phase3_ai": self.phase3_ai.get_ai_status() if self.config.get("enable_phase3_ai") and hasattr(self, "phase3_ai") else None,
                 "phase4_database": self.phase4_database.get_database_status() if self.config.get("enable_phase4_database") and hasattr(self, "phase4_database") else None,
             },
-            "last_updated": datetime.now(timezone.utc).isoformat(),
+            "last_updated": datetime.now(UTC).isoformat(),
         }
 
     async def restart_phase(self, phase_name: str) -> bool:

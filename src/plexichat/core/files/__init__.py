@@ -54,11 +54,11 @@ else:
 __all__ = [
     "FileManager",
     "FileMetadata",
-    "file_manager",
-    "upload_file",
-    "get_file_metadata",
-    "get_file_data",
     "delete_file",
+    "file_manager",
+    "get_file_data",
+    "get_file_metadata",
+    "upload_file",
 ]
 
 from plexichat.core.utils.fallbacks import get_module_version

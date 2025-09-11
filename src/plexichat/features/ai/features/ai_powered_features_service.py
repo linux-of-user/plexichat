@@ -5,14 +5,14 @@ Comprehensive AI-powered features including smart summarization, content suggest
 sentiment analysis, semantic search, and automated moderation with multiple AI providers.
 """
 
+from dataclasses import dataclass, field
+from datetime import UTC, datetime
+from enum import Enum
 import hashlib
 import json
 import time
+from typing import Any
 import uuid
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from enum import Enum
-from typing import Any, Dict, List, Optional
 
 try:
     import numpy as np
@@ -36,7 +36,10 @@ except ImportError:
         return logging.getLogger(name)
 
 try:
-    from plexichat.infrastructure.services.base_service import BaseService, ServiceState  # type: ignore
+    from plexichat.infrastructure.services.base_service import (  # type: ignore
+        BaseService,
+        ServiceState,
+    )
 except ImportError:
     # Fallback base service
     class ServiceState:
@@ -56,7 +59,10 @@ except ImportError:
         async def stop(self):
             self.state = ServiceState.STOPPING
 
-from plexichat.features.ai.core.ai_abstraction_layer import AIAbstractionLayer, AIRequest
+from plexichat.features.ai.core.ai_abstraction_layer import (
+    AIAbstractionLayer,
+    AIRequest,
+)
 
 logger = get_logger(__name__)
 
@@ -97,9 +103,9 @@ class SummarizationResult:
     summary: str
     summary_type: str
     compression_ratio: float
-    key_points: List[str] = field(default_factory=list)
+    key_points: list[str] = field(default_factory=list)
     processing_time_ms: float = 0.0
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass
@@ -109,9 +115,9 @@ class ContentSuggestion:
     content: str
     suggestion_type: str
     confidence_score: float
-    context: Optional[str] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    context: str | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass
@@ -121,10 +127,10 @@ class SentimentAnalysisResult:
     text: str
     sentiment: SentimentType
     confidence_score: float
-    emotion_scores: Dict[str, float] = field(default_factory=dict)
-    key_phrases: List[str] = field(default_factory=list)
+    emotion_scores: dict[str, float] = field(default_factory=dict)
+    key_phrases: list[str] = field(default_factory=list)
     processing_time_ms: float = 0.0
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass
@@ -133,8 +139,8 @@ class SemanticSearchResult:
     result_id: str
     content: str
     similarity_score: float
-    metadata: Dict[str, Any] = field(default_factory=dict)
-    highlighted_text: Optional[str] = None
+    metadata: dict[str, Any] = field(default_factory=dict)
+    highlighted_text: str | None = None
 
 
 @dataclass
@@ -144,29 +150,29 @@ class ModerationResult:
     content: str
     action: ModerationAction
     confidence_score: float
-    violation_categories: List[str] = field(default_factory=list)
+    violation_categories: list[str] = field(default_factory=list)
     severity_score: float = 0.0
-    explanation: Optional[str] = None
+    explanation: str | None = None
     processing_time_ms: float = 0.0
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 class AIPoweredFeaturesService(BaseService):  # type: ignore
     """AI-powered features service for PlexiChat."""
-    
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+
+    def __init__(self, config: dict[str, Any] | None = None):
         """Initialize the AI features service."""
         super().__init__()
         self.config = config or {}
         self.ai_layer = AIAbstractionLayer()
-        self.cache: Dict[str, Any] = {}
-        self.vectorizer: Optional[Any] = None
-        self.document_vectors: Optional[Any] = None
-        self.documents: List[str] = []
-        
+        self.cache: dict[str, Any] = {}
+        self.vectorizer: Any | None = None
+        self.document_vectors: Any | None = None
+        self.documents: list[str] = []
+
         # Initialize components
         self._initialize_vectorizer()
-        
+
     def _initialize_vectorizer(self):
         """Initialize the text vectorizer for semantic search."""
         if SKLEARN_AVAILABLE and TfidfVectorizer:
@@ -177,7 +183,7 @@ class AIPoweredFeaturesService(BaseService):  # type: ignore
             )
         else:
             logger.warning("scikit-learn not available, semantic search will be limited")
-    
+
     async def start(self) -> None:
         """Start the AI features service."""
         try:
@@ -191,7 +197,7 @@ class AIPoweredFeaturesService(BaseService):  # type: ignore
             logger.error(f"Failed to start AI Features Service: {e}")
             self.state = ServiceState.ERROR
             raise
-    
+
     async def stop(self) -> None:
         """Stop the AI features service."""
         try:
@@ -206,33 +212,33 @@ class AIPoweredFeaturesService(BaseService):  # type: ignore
             logger.error(f"Failed to stop AI Features Service: {e}")
             self.state = ServiceState.ERROR
             raise
-    
+
     async def smart_summarization(
         self,
         text: str,
         summary_type: str = "brief",
-        max_length: Optional[int] = None,
-        user_id: Optional[str] = None
+        max_length: int | None = None,
+        user_id: str | None = None
     ) -> SummarizationResult:
         """Generate intelligent summaries using AI."""
         start_time = time.time()
-        
+
         try:
             # Validate input
             if not text or len(text.strip()) < 10:
                 raise ValueError("Text too short for summarization")
-            
+
             # Create cache key
             cache_key = hashlib.md5(f"{text}_{summary_type}_{max_length}".encode()).hexdigest()
-            
+
             # Check cache
             if cache_key in self.cache:
                 logger.debug("Returning cached summarization result")
                 return self.cache[cache_key]
-            
+
             # Prepare AI request
             prompt = self._build_summarization_prompt(text, summary_type, max_length)
-            
+
             ai_request = AIRequest(
                 prompt=prompt,
                 model_id=self.config.get("summarization_model", "gpt-3.5-turbo"),
@@ -242,14 +248,14 @@ class AIPoweredFeaturesService(BaseService):  # type: ignore
                     "temperature": 0.3
                 }
             )
-            
+
             # Process with AI
             response = await self.ai_layer.process_request(ai_request)
-            
+
             if not getattr(response, 'success', True):
                 error_msg = getattr(response, 'error', 'Unknown error')
                 raise Exception(f"AI request failed: {error_msg}")
-            
+
             # Create result
             result = SummarizationResult(
                 summary_id=str(uuid.uuid4()),
@@ -259,45 +265,45 @@ class AIPoweredFeaturesService(BaseService):  # type: ignore
                 compression_ratio=len(response.content) / len(text),
                 processing_time_ms=(time.time() - start_time) * 1000
             )
-            
+
             # Cache result
             self.cache[cache_key] = result
-            
+
             return result
-            
+
         except Exception as e:
             logger.error(f"Summarization failed: {e}")
             raise
-    
-    def _build_summarization_prompt(self, text: str, summary_type: str, max_length: Optional[int]) -> str:
+
+    def _build_summarization_prompt(self, text: str, summary_type: str, max_length: int | None) -> str:
         """Build the summarization prompt."""
         length_instruction = f" in approximately {max_length} words" if max_length else ""
-        
+
         prompts = {
             "brief": f"Provide a brief summary of the following text{length_instruction}:\n\n{text}",
             "detailed": f"Provide a detailed summary of the following text{length_instruction}:\n\n{text}",
             "bullet": f"Summarize the following text as bullet points{length_instruction}:\n\n{text}",
             "executive": f"Provide an executive summary of the following text{length_instruction}:\n\n{text}"
         }
-        
+
         return prompts.get(summary_type, prompts["brief"])
-    
+
     async def analyze_sentiment(
         self,
         text: str,
-        user_id: Optional[str] = None
+        user_id: str | None = None
     ) -> SentimentAnalysisResult:
         """Analyze sentiment of text using AI."""
         start_time = time.time()
-        
+
         try:
             # Validate input
             if not text or len(text.strip()) < 3:
                 raise ValueError("Text too short for sentiment analysis")
-            
+
             # Prepare AI request
             prompt = f"Analyze the sentiment of this text and respond with JSON containing 'sentiment' (positive/negative/neutral/mixed), 'confidence' (0-1), and 'emotions' (dict of emotion scores):\n\n{text}"
-            
+
             ai_request = AIRequest(
                 prompt=prompt,
                 model_id=self.config.get("sentiment_model", "gpt-3.5-turbo"),
@@ -307,14 +313,14 @@ class AIPoweredFeaturesService(BaseService):  # type: ignore
                     "temperature": 0.1
                 }
             )
-            
+
             # Process with AI
             response = await self.ai_layer.process_request(ai_request)
-            
+
             if not getattr(response, 'success', True):
                 error_msg = getattr(response, 'error', 'Unknown error')
                 raise Exception(f"AI request failed: {error_msg}")
-            
+
             # Parse response
             try:
                 result_data = json.loads(response.content)
@@ -326,7 +332,7 @@ class AIPoweredFeaturesService(BaseService):  # type: ignore
                 sentiment = SentimentType.NEUTRAL
                 confidence = 0.5
                 emotions = {}
-            
+
             # Create result
             result = SentimentAnalysisResult(
                 analysis_id=str(uuid.uuid4()),
@@ -336,9 +342,9 @@ class AIPoweredFeaturesService(BaseService):  # type: ignore
                 emotion_scores=emotions,
                 processing_time_ms=(time.time() - start_time) * 1000
             )
-            
+
             return result
-            
+
         except Exception as e:
             logger.error(f"Sentiment analysis failed: {e}")
             raise

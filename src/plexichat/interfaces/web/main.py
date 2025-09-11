@@ -5,8 +5,8 @@ This module provides the main entry point for the PlexiChat WebUI server.
 """
 
 import logging
-import sys
 from pathlib import Path
+import sys
 
 # Add the src directory to the Python path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
@@ -34,7 +34,7 @@ def create_webui_app():
     if app is None:
         logger.error("Failed to import WebUI app")
         return None
-    
+
     logger.info("WebUI application created successfully")
     return app
 
@@ -43,14 +43,14 @@ def run_webui_server(host: str = "0.0.0.0", port: int = 8080, reload: bool = Fal
     if not uvicorn:
         logger.error("uvicorn not available - install with: pip install uvicorn")
         return False
-    
+
     webui_app = create_webui_app()
     if not webui_app:
         logger.error("Failed to create WebUI application")
         return False
-    
+
     logger.info(f"Starting PlexiChat WebUI server on {host}:{port}")
-    
+
     try:
         uvicorn.run(
             webui_app,

@@ -5,7 +5,7 @@ Enhanced with comprehensive validation and security.
 """
 
 from datetime import datetime
-from typing import Optional
+
 from pydantic import BaseModel, Field, validator
 
 
@@ -26,7 +26,7 @@ class TokenResponse(BaseModel):
     access_token: str = Field(..., description="JWT access token")
     token_type: str = Field(default="bearer", description="Token type")
     expires_in: int = Field(..., description="Token expiration time in seconds")
-    refresh_token: Optional[str] = Field(None, description="Refresh token")
+    refresh_token: str | None = Field(None, description="Refresh token")
 
 
 class UserInfo(BaseModel):
@@ -37,7 +37,7 @@ class UserInfo(BaseModel):
     is_active: bool = Field(..., description="User active status")
     is_admin: bool = Field(default=False, description="Admin status")
     created_at: datetime = Field(..., description="Account creation timestamp")
-    last_login: Optional[datetime] = Field(None, description="Last login timestamp")
+    last_login: datetime | None = Field(None, description="Last login timestamp")
 
 
 class RefreshTokenRequest(BaseModel):

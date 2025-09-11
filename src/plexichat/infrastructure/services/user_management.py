@@ -3,7 +3,7 @@
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
-from typing import Any, Dict, List, Optional, Tuple, Set
+from typing import Any
 
 try:
     from PIL import Image  # type: ignore
@@ -11,11 +11,11 @@ except ImportError:
     Image = None
 from fastapi import HTTPException, status
 
-# Use the centralized logging compatibility shim which re-exports the unified logger.
-from plexichat.core.logging import get_logger
-
 # Use only the unified auth manager getter; delegate all operations to it.
 from plexichat.core.authentication import get_auth_manager
+
+# Use the centralized logging compatibility shim which re-exports the unified logger.
+from plexichat.core.logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -32,12 +32,12 @@ class UserManagementService:
         username: str,
         email: str,
         password: str,
-        display_name: Optional[str] = None,
-        first_name: Optional[str] = None,
-        last_name: Optional[str] = None,
-        bio: Optional[str] = None,
-        tags: Optional[List[str]] = None
-    ) -> Dict[str, Any]:
+        display_name: str | None = None,
+        first_name: str | None = None,
+        last_name: str | None = None,
+        bio: str | None = None,
+        tags: list[str] | None = None
+    ) -> dict[str, Any]:
         """Create a new user by delegating to UnifiedAuthManager.register_user.
 
         The UnifiedAuthManager currently exposes register_user(username, password, permissions).
@@ -85,8 +85,8 @@ class UserManagementService:
         self,
         username: str,
         password: str,
-        ip_address: Optional[str] = None,
-        user_agent: Optional[str] = None
+        ip_address: str | None = None,
+        user_agent: str | None = None
     ) -> Any:
         """Authenticate a user using UnifiedAuthManager.authenticate_user.
 
@@ -113,10 +113,10 @@ class UserManagementService:
         owner_id: Any,
         bot_name: str,
         bot_description: str,
-        bot_type: Optional[Any] = None,
-        permissions: Optional[Dict[str, Any]] = None,
-        rate_limits: Optional[Dict[str, Any]] = None
-    ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+        bot_type: Any | None = None,
+        permissions: dict[str, Any] | None = None,
+        rate_limits: dict[str, Any] | None = None
+    ) -> tuple[dict[str, Any], dict[str, Any]]:
         """Create a new bot account.
 
         If the UnifiedAuthManager exposes bot management APIs, delegate to them. Otherwise,
@@ -147,8 +147,8 @@ class UserManagementService:
         self,
         bot_id: Any,
         owner_id: Any,
-        permissions: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        permissions: dict[str, Any]
+    ) -> dict[str, Any]:
         """Update bot permissions with owner verification by delegating to UnifiedAuthManager."""
         if hasattr(self.auth_manager, "update_bot_permissions"):
             try:
@@ -162,7 +162,7 @@ class UserManagementService:
         else:
             raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED, detail="Bot permission management is not supported")
 
-    async def get_user_bots(self, owner_id: Any) -> List[Dict[str, Any]]:
+    async def get_user_bots(self, owner_id: Any) -> list[dict[str, Any]]:
         """Get all bots owned by a user via UnifiedAuthManager, if supported."""
         if hasattr(self.auth_manager, "get_user_bots"):
             result = self.auth_manager.get_user_bots(owner_id)
@@ -183,8 +183,8 @@ class UserManagementService:
     async def update_user_profile(
         self,
         user_id: Any,
-        updates: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        updates: dict[str, Any]
+    ) -> dict[str, Any]:
         """Update user profile information by delegating to UnifiedAuthManager if supported."""
         if hasattr(self.auth_manager, "update_user_profile"):
             result = self.auth_manager.update_user_profile(user_id=user_id, updates=updates)
@@ -231,7 +231,7 @@ class UserManagementService:
         file_data: bytes,
         filename: str,
         mime_type: str
-    ) -> Optional[str]:
+    ) -> str | None:
         """Upload and set user profile picture via UnifiedAuthManager if supported."""
         if hasattr(self.auth_manager, "upload_profile_picture"):
             result = self.auth_manager.upload_profile_picture(user_id, file_data, filename, mime_type)
@@ -260,7 +260,7 @@ class UserManagementService:
         self,
         user_id: Any,
         include_private: bool = False
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """Get user profile information via UnifiedAuthManager if supported."""
         if hasattr(self.auth_manager, "get_user_profile"):
             result = self.auth_manager.get_user_profile(user_id, include_private)
@@ -271,7 +271,7 @@ class UserManagementService:
             raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED, detail="Profile retrieval not supported")
 
     # Permission Management
-    async def get_user_permissions(self, user_id: Any) -> Set[str]:
+    async def get_user_permissions(self, user_id: Any) -> set[str]:
         """Get user permissions from UnifiedAuthManager.get_user_permissions()."""
         try:
             perms = self.auth_manager.get_user_permissions(user_id)
@@ -291,7 +291,7 @@ class UserManagementService:
             logger.error(f"Error getting permissions for user {user_id}: {e}")
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Could not retrieve permissions")
 
-    async def update_user_permissions(self, user_id: Any, permissions: Set[str]) -> bool:
+    async def update_user_permissions(self, user_id: Any, permissions: set[str]) -> bool:
         """Update user permissions via UnifiedAuthManager.update_user_permissions()."""
         try:
             result = self.auth_manager.update_user_permissions(user_id, permissions)
@@ -307,7 +307,7 @@ class UserManagementService:
         self,
         requester_id: Any,
         addressee_id: Any,
-        message: Optional[str] = None
+        message: str | None = None
     ) -> bool:
         """Send a friend request via UnifiedAuthManager if supported."""
         if hasattr(self.auth_manager, "send_friend_request"):
@@ -364,7 +364,7 @@ class UserManagementService:
     async def get_friends_list(
         self,
         user_id: Any
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Get user's friends list via UnifiedAuthManager if supported."""
         if hasattr(self.auth_manager, "get_friends_list"):
             result = self.auth_manager.get_friends_list(user_id)
@@ -378,7 +378,7 @@ class UserManagementService:
         self,
         user_id: Any,
         sent: bool = False
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Get pending friend requests via UnifiedAuthManager if supported."""
         if hasattr(self.auth_manager, "get_pending_friend_requests"):
             result = self.auth_manager.get_pending_friend_requests(user_id, sent)
@@ -392,8 +392,8 @@ class UserManagementService:
         self,
         query: str,
         limit: int = 20,
-        exclude_user_id: Optional[Any] = None
-    ) -> List[Dict[str, Any]]:
+        exclude_user_id: Any | None = None
+    ) -> list[dict[str, Any]]:
         """Search for users by username or display name via UnifiedAuthManager if supported."""
         if hasattr(self.auth_manager, "search_users"):
             result = self.auth_manager.search_users(query, limit, exclude_user_id)
@@ -406,7 +406,7 @@ class UserManagementService:
     async def get_user_statistics(
         self,
         user_id: Any
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """Get user statistics and activity metrics via UnifiedAuthManager if supported."""
         if hasattr(self.auth_manager, "get_user_statistics"):
             result = self.auth_manager.get_user_statistics(user_id)

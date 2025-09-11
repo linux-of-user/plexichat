@@ -3,14 +3,13 @@
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
-from datetime import datetime, timezone
-import logging
-from typing import List, Optional, Any
+from datetime import UTC, datetime
 import json
+import logging
+from typing import Any
 
 # Use the unified authentication manager and Role enum
-from plexichat.core.authentication import get_auth_manager, Role
-
+from plexichat.core.authentication import Role, get_auth_manager
 from plexichat.core.middleware.rate_limiting import (
     ComprehensiveRateLimiter,
     RateLimitAction,
@@ -26,11 +25,11 @@ except Exception:
 
 try:
     from plexichat.core.plugins.security_manager import (
-        plugin_security_manager,
+        PermissionStatus,
         PermissionType,
         SecurityPolicy,
-        PermissionStatus,
         get_security_manager,
+        plugin_security_manager,
     )
 except Exception:
     plugin_security_manager = None
@@ -102,7 +101,7 @@ class SecurityCLI:
             if getattr(rule, "endpoints", None):
                 logger.info(f"   Endpoints: {', '.join(rule.endpoints)}")
 
-    async def create_rate_limit_rule(self, args: List[str]) -> None:
+    async def create_rate_limit_rule(self, args: list[str]) -> None:
         """Create a new rate limiting rule."""
         if len(args) < 5:
             self.print_colored("Usage: create-rule <name> <type> <max_requests> <time_window> <action>", "red")
@@ -153,7 +152,7 @@ class SecurityCLI:
             logger.warning(f"Could not persist rate limiter config: {e}")
         self.print_colored(f" Deleted rate limiting rule: {rule_name}", "green")
 
-    async def show_rate_limit_status(self, client_ip: str, user_id: Optional[str] = None) -> None:
+    async def show_rate_limit_status(self, client_ip: str, user_id: str | None = None) -> None:
         """Show rate limit status for a client."""
         self.print_colored(f" Rate Limit Status for {client_ip}", "cyan")
         if user_id:
@@ -334,7 +333,7 @@ class SecurityCLI:
             for f in findings:
                 logger.info(f" - {f}")
 
-    async def list_audit_events(self, hours: int = 24, threat_level: Optional[str] = None) -> None:
+    async def list_audit_events(self, hours: int = 24, threat_level: str | None = None) -> None:
         """List audit events from plugin security manager."""
         if not self.plugin_sec:
             self.print_colored("Plugin security manager not available.", "red")
@@ -345,7 +344,7 @@ class SecurityCLI:
             summary = self.plugin_sec.get_security_summary()
             # Access the internal list if present
             internal = getattr(self.plugin_sec, "_audit_events", [])
-            cutoff = datetime.now(timezone.utc).timestamp() - (hours * 3600)
+            cutoff = datetime.now(UTC).timestamp() - (hours * 3600)
             for e in internal:
                 ts = e.timestamp.timestamp() if hasattr(e.timestamp, "timestamp") else 0
                 if ts >= cutoff:
@@ -373,7 +372,7 @@ class SecurityCLI:
 
         try:
             internal = getattr(self.plugin_sec, "_audit_events", [])
-            cutoff = datetime.now(timezone.utc).timestamp() - (hours * 3600)
+            cutoff = datetime.now(UTC).timestamp() - (hours * 3600)
             export = []
             for e in internal:
                 ts = e.timestamp.timestamp() if hasattr(e.timestamp, "timestamp") else 0
@@ -413,7 +412,7 @@ class SecurityCLI:
             logger.error(f"Error listing pending permissions: {e}")
             self.print_colored(f"Failed to fetch pending permissions: {e}", "red")
 
-    async def approve_plugin_permission(self, plugin_name: str, permission: str, approved_by: str, expires_in_days: Optional[int] = None) -> None:
+    async def approve_plugin_permission(self, plugin_name: str, permission: str, approved_by: str, expires_in_days: int | None = None) -> None:
         """Approve a plugin permission."""
         if not self.plugin_sec:
             self.print_colored("Plugin security manager not available.", "red")
@@ -637,7 +636,7 @@ class SecurityCLI:
             for perm in sorted(perms):
                 logger.info(f"    {perm}")
 
-    async def create_role(self, args: List[str]) -> None:
+    async def create_role(self, args: list[str]) -> None:
         """Create a new role.
 
         Note: Creating new Role enum members at runtime is not supported by the unified auth manager.
@@ -655,7 +654,7 @@ class SecurityCLI:
         self.print_colored("Deleting roles is not supported via the unified auth manager CLI.", "red")
         self.print_colored("Remove or change role definitions in code/config and restart the service.", "yellow")
 
-    async def assign_role(self, user_id: str, role_name: str, scope: str = "global", scope_id: Optional[str] = None) -> None:
+    async def assign_role(self, user_id: str, role_name: str, scope: str = "global", scope_id: str | None = None) -> None:
         """Assign a role to a user using unified auth manager."""
         # Resolve role_name to Role enum
         role_enum = None
@@ -675,7 +674,7 @@ class SecurityCLI:
         else:
             self.print_colored(" Failed to assign role", "red")
 
-    async def revoke_role(self, user_id: str, role_name: str, scope: str = "global", scope_id: Optional[str] = None) -> None:
+    async def revoke_role(self, user_id: str, role_name: str, scope: str = "global", scope_id: str | None = None) -> None:
         """Revoke a role from a user using unified auth manager."""
         role_enum = None
         try:
@@ -694,7 +693,7 @@ class SecurityCLI:
         else:
             self.print_colored(" Failed to revoke role", "red")
 
-    async def check_permission(self, user_id: str, permission: str, scope: str = "global", scope_id: Optional[str] = None) -> None:
+    async def check_permission(self, user_id: str, permission: str, scope: str = "global", scope_id: str | None = None) -> None:
         """Check if a user has a specific permission using unified auth manager."""
         try:
             # UnifiedAuthManager expects a permission string
@@ -747,7 +746,7 @@ class SecurityCLI:
             self.print_colored(f"Failed to show user permissions: {e}", "red")
 
 
-async def handle_security_command(args: List[str]) -> None:
+async def handle_security_command(args: list[str]) -> None:
     """Handle security management commands."""
     if not args:
         logger.info(" Security Management Commands:")

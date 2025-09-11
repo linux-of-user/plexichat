@@ -11,12 +11,12 @@ Features:
 - Plugin extensibility
 """
 
+from dataclasses import dataclass, field
 import hashlib
+from pathlib import Path
 import re
 import time
-from dataclasses import dataclass, field
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Set
+from typing import Any
 
 from plexichat.core.logging import get_logger
 
@@ -32,7 +32,7 @@ class ValidationRule:
     threat_level: str
     description: str
     enabled: bool = True
-    compiled_pattern: Optional[re.Pattern] = None
+    compiled_pattern: re.Pattern | None = None
 
     def __post_init__(self):
         """Compile regex pattern."""
@@ -53,7 +53,7 @@ class FileHashEntry:
     filename: str
     threat_level: str
     description: str
-    reported_by: Optional[str] = None
+    reported_by: str | None = None
     timestamp: float = field(default_factory=time.time)
 
 
@@ -70,7 +70,7 @@ class ContentValidationSystem:
     - Configurable security rules
     """
 
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self, config: dict[str, Any]):
         self.config = config
         self.enabled = config.get("enabled", True)
 
@@ -85,7 +85,7 @@ class ContentValidationSystem:
         self.path_traversal_rules = self._initialize_path_traversal_rules()
 
         # File hash database
-        self.file_hash_db: Dict[str, FileHashEntry] = {}
+        self.file_hash_db: dict[str, FileHashEntry] = {}
         self._load_file_hash_database()
 
         # Content type mappings
@@ -104,7 +104,7 @@ class ContentValidationSystem:
 
         logger.info("Content validation system initialized")
 
-    def _initialize_sql_rules(self) -> List[ValidationRule]:
+    def _initialize_sql_rules(self) -> list[ValidationRule]:
         """Initialize SQL injection detection rules."""
         return [
             ValidationRule(
@@ -145,7 +145,7 @@ class ContentValidationSystem:
             ),
         ]
 
-    def _initialize_xss_rules(self) -> List[ValidationRule]:
+    def _initialize_xss_rules(self) -> list[ValidationRule]:
         """Initialize XSS detection rules."""
         return [
             ValidationRule(
@@ -186,7 +186,7 @@ class ContentValidationSystem:
             ),
         ]
 
-    def _initialize_command_rules(self) -> List[ValidationRule]:
+    def _initialize_command_rules(self) -> list[ValidationRule]:
         """Initialize command injection detection rules."""
         return [
             ValidationRule(
@@ -215,7 +215,7 @@ class ContentValidationSystem:
             ),
         ]
 
-    def _initialize_path_traversal_rules(self) -> List[ValidationRule]:
+    def _initialize_path_traversal_rules(self) -> list[ValidationRule]:
         """Initialize path traversal detection rules."""
         return [
             ValidationRule(
@@ -238,7 +238,7 @@ class ContentValidationSystem:
             ),
         ]
 
-    def _initialize_content_type_mappings(self) -> Dict[str, Set[str]]:
+    def _initialize_content_type_mappings(self) -> dict[str, set[str]]:
         """Initialize content type to extension mappings."""
         return {
             "text/plain": {".txt", ".md", ".log"},
@@ -275,7 +275,7 @@ class ContentValidationSystem:
             )
         }
 
-    async def validate_content(self, content: Any, context: Any) -> Dict[str, Any]:
+    async def validate_content(self, content: Any, context: Any) -> dict[str, Any]:
         """
         Validate content for security threats.
 
@@ -334,7 +334,7 @@ class ContentValidationSystem:
             logger.error(f"Error in content validation: {e}")
             return {
                 "valid": False,
-                "message": f"Validation error: {str(e)}",
+                "message": f"Validation error: {e!s}",
                 "threat_level": "unknown",
             }
 
@@ -345,7 +345,7 @@ class ContentValidationSystem:
 
     async def _detect_threats(
         self, content: str, sql_in_code_block: bool = False
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Detect security threats in content."""
         threats = []
 
@@ -426,7 +426,7 @@ class ContentValidationSystem:
 
     async def validate_message_content(
         self, content: str, context: Any
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Validate message content specifically.
 
@@ -455,7 +455,7 @@ class ContentValidationSystem:
 
     async def check_file_hash(
         self, file_content: bytes, filename: str
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Check file hash against malicious file database.
 
@@ -494,9 +494,9 @@ class ContentValidationSystem:
 
         except Exception as e:
             logger.error(f"Error checking file hash: {e}")
-            return {"allowed": True, "message": f"Hash check error: {str(e)}"}
+            return {"allowed": True, "message": f"Hash check error: {e!s}"}
 
-    def validate_content_type(self, filename: str, content_type: str) -> Dict[str, Any]:
+    def validate_content_type(self, filename: str, content_type: str) -> dict[str, Any]:
         """
         Validate content type against filename extension.
 
@@ -557,7 +557,7 @@ class ContentValidationSystem:
             logger.error(f"Error validating content type: {e}")
             return {
                 "valid": False,
-                "message": f"Content type validation error: {str(e)}",
+                "message": f"Content type validation error: {e!s}",
             }
 
     def add_malicious_file_hash(
@@ -566,7 +566,7 @@ class ContentValidationSystem:
         filename: str,
         threat_level: str,
         description: str,
-        reported_by: Optional[str] = None,
+        reported_by: str | None = None,
     ):
         """Add a malicious file hash to the database."""
         entry = FileHashEntry(
@@ -586,7 +586,7 @@ class ContentValidationSystem:
             del self.file_hash_db[file_hash]
             logger.info(f"Removed malicious file hash: {file_hash}")
 
-    def get_validation_stats(self) -> Dict[str, Any]:
+    def get_validation_stats(self) -> dict[str, Any]:
         """Get content validation statistics."""
         if not self.enabled:
             return {"enabled": False}
@@ -610,7 +610,7 @@ class ContentValidationSystem:
             "content_types_supported": len(self.content_type_mappings),
         }
 
-    def update_config(self, new_config: Dict[str, Any]):
+    def update_config(self, new_config: dict[str, Any]):
         """Update content validation configuration."""
         if not self.enabled:
             return
@@ -623,4 +623,4 @@ class ContentValidationSystem:
         logger.info("Content validation system shut down")
 
 
-__all__ = ["ContentValidationSystem", "ValidationRule", "FileHashEntry"]
+__all__ = ["ContentValidationSystem", "FileHashEntry", "ValidationRule"]

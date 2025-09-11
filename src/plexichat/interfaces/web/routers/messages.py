@@ -7,16 +7,26 @@ Optimized for performance using EXISTING database abstraction and optimization s
 """
 
 import asyncio
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Callable, Optional, Set
+from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime, timedelta
 import importlib
+from typing import Any
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Request, status
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    HTTPException,
+    Query,
+    Request,
+    status,
+)
 from pydantic import BaseModel, Field
 
 # Unified logging
 from plexichat.core.logging import get_logger
+
 logger = get_logger(__name__)
 
 # Use EXISTING database abstraction layer
@@ -49,7 +59,8 @@ except Exception:
 
 # Authentication and Security imports - use unified FastAPI adapter and security manager
 from plexichat.core.auth.fastapi_adapter import get_current_user_with_permissions
-from plexichat.core.security.security_manager import get_security_system, ThreatLevel
+from plexichat.core.security.security_manager import ThreatLevel, get_security_system
+
 
 # Model imports - Updated for Pydantic v2 compatibility
 class Message(BaseModel):
@@ -102,7 +113,9 @@ optimization_engine = PerformanceOptimizationEngine() if PerformanceOptimization
 
 # Import security decorators from unified security system
 from plexichat.core.security.security_decorators import (
-    secure_endpoint, SecurityLevel, RequiredPermission
+    RequiredPermission,
+    SecurityLevel,
+    secure_endpoint,
 )
 
 executor = ThreadPoolExecutor(max_workers=8)
@@ -133,7 +146,7 @@ class MessageService:
         self.db_manager = database_manager
         self.performance_logger = performance_logger
 
-    async def validate_recipient(self, recipient_id: int, user_permissions: Optional[Set[str]] = None) -> bool:
+    async def validate_recipient(self, recipient_id: int, user_permissions: set[str] | None = None) -> bool:
         if not self.db_manager:
             return True # Assume valid if no DB manager
         try:
@@ -185,7 +198,7 @@ class MessageService:
         return True
 
     @_track("message_creation")
-    async def create_message(self, data: MessageCreate, sender_id: int, user_permissions: Optional[Set[str]] = None) -> Message:
+    async def create_message(self, data: MessageCreate, sender_id: int, user_permissions: set[str] | None = None) -> Message:
         if not self.db_manager:
             raise HTTPException(status_code=503, detail="Database service not available.")
 
@@ -223,7 +236,7 @@ message_service = MessageService()
     rate_limit_rpm=30,
     audit_action="send_message"
 )
-async def send_message(request: Request, data: MessageCreate, background_tasks: BackgroundTasks, current_user: Dict[str, Any] = Depends(get_current_user_with_permissions)):
+async def send_message(request: Request, data: MessageCreate, background_tasks: BackgroundTasks, current_user: dict[str, Any] = Depends(get_current_user_with_permissions)):
     user_id = current_user.get("id", 0)
     user_permissions = current_user.get("permissions")
     security_manager = get_security_system()
@@ -283,8 +296,8 @@ def _process_message_sync(message_id: int, sender_id: int, recipient_id: int) ->
     logger.info(f"Processing message {message_id} from {sender_id} to {recipient_id}")
     pass
 
-@router.get("/list", response_model=List[MessageRead], responses={400: {"model": ValidationErrorResponse}, 403: {"description": "Permission Denied"}})
-async def list_messages(_request: Request, limit: int = Query(50, ge=1, le=100), offset: int = Query(0, ge=0), sort_order: str = Query("desc", pattern="^(asc|desc)$"), current_user: Dict[str, Any] = Depends(get_current_user_with_permissions)) -> List[MessageRead]:
+@router.get("/list", response_model=list[MessageRead], responses={400: {"model": ValidationErrorResponse}, 403: {"description": "Permission Denied"}})
+async def list_messages(_request: Request, limit: int = Query(50, ge=1, le=100), offset: int = Query(0, ge=0), sort_order: str = Query("desc", pattern="^(asc|desc)$"), current_user: dict[str, Any] = Depends(get_current_user_with_permissions)) -> list[MessageRead]:
     if not message_service.db_manager:
         return []
 

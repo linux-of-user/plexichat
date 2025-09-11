@@ -12,16 +12,16 @@ Enhanced WebSocket handling with comprehensive validation, security, and perform
 Uses EXISTING database abstraction and optimization systems.
 """
 
-import json
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+import json
+from typing import Any
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, status
 
 # Use EXISTING database abstraction layer
 try:
+    from plexichat.core.database import execute_query, get_session
     from plexichat.core.database.manager import database_manager
-    from plexichat.core.database import get_session, execute_query
 except ImportError:
     database_manager = None
     get_session = None
@@ -29,9 +29,11 @@ except ImportError:
 
 # Use EXISTING performance optimization engine
 try:
-    from plexichat.core.performance.optimization_engine import PerformanceOptimizationEngine
-    from plexichat.infrastructure.utils.performance import async_track_performance
     from plexichat.core.logging import get_performance_logger, timer
+    from plexichat.core.performance.optimization_engine import (
+        PerformanceOptimizationEngine,
+    )
+    from plexichat.infrastructure.utils.performance import async_track_performance
 except ImportError:
     PerformanceOptimizationEngine = None
     async_track_performance = None
@@ -72,6 +74,7 @@ except ImportError:
 
 # Unified logging
 from plexichat.core.logging import get_logger
+
 logger = get_logger(__name__)
 router = APIRouter(prefix="/ws", tags=["websocket"])
 
@@ -83,8 +86,8 @@ class ConnectionManager:
     """WebSocket connection manager with performance optimization."""
 
     def __init__(self):
-        self.active_connections: List[WebSocket] = []
-        self.user_connections: Dict[int, WebSocket] = {}
+        self.active_connections: list[WebSocket] = []
+        self.user_connections: dict[int, WebSocket] = {}
         self.performance_logger = performance_logger
 
     async def connect(self, websocket: WebSocket, user_id: int):
@@ -175,7 +178,7 @@ class WebSocketService:
         self.auth_adapter = get_auth_adapter()
 
     @async_track_performance("websocket_user_validation") if async_track_performance else (lambda f: f)
-    async def validate_user_token(self, token: str) -> Optional[Dict[str, Any]]:
+    async def validate_user_token(self, token: str) -> dict[str, Any] | None:
         """Validate user token using UnifiedAuthManager via FastAPI auth adapter."""
         try:
             if not token:
@@ -373,7 +376,7 @@ async def websocket_endpoint(websocket: WebSocket, token: str = None):
         except Exception as e:
             logger.error(f"Error during WebSocket cleanup: {e}")
 
-async def handle_websocket_message(websocket: WebSocket, user_id: int, message_data: Dict[str, Any]):
+async def handle_websocket_message(websocket: WebSocket, user_id: int, message_data: dict[str, Any]):
     """Handle different types of WebSocket messages."""
     message_type = message_data.get("type", "unknown")
 
@@ -425,7 +428,7 @@ async def handle_websocket_message(websocket: WebSocket, user_id: int, message_d
         }
         await websocket.send_text(json.dumps(error_response))
 
-async def get_system_status() -> Dict[str, Any]:
+async def get_system_status() -> dict[str, Any]:
     """Get system status information with performance optimization."""
     try:
         status_info = {

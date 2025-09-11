@@ -3,23 +3,23 @@ Enhanced Encryption Service - Military-grade encryption with advanced key manage
 """
 
 import base64
+from dataclasses import dataclass, field
+from datetime import UTC, datetime, timedelta
+from enum import Enum
 import hashlib
 import logging
 import secrets
 import time
-from datetime import datetime, timezone, timedelta
-from typing import Any, Dict, List, Optional, Tuple
-from dataclasses import dataclass, field
-from enum import Enum
+from typing import Any
 
 # Try to import cryptography for real encryption, fallback to base64 for demo
 try:
+    from cryptography.hazmat.backends import default_backend
+    from cryptography.hazmat.primitives import hashes, serialization
+    from cryptography.hazmat.primitives.asymmetric import padding, rsa
     from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
     from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
     from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
-    from cryptography.hazmat.primitives import hashes, serialization
-    from cryptography.hazmat.primitives.asymmetric import rsa, padding
-    from cryptography.hazmat.backends import default_backend
     CRYPTOGRAPHY_AVAILABLE = True
 except ImportError:
     # Create dummy objects to avoid NameError
@@ -61,15 +61,15 @@ class EncryptionKey:
     algorithm: EncryptionAlgorithm
     key_data: bytes
     salt: bytes
-    iv: Optional[bytes] = None
+    iv: bytes | None = None
     kdf: KeyDerivationFunction = KeyDerivationFunction.SCRYPT
     iterations: int = 100000
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    expires_at: Optional[datetime] = None
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    expires_at: datetime | None = None
     usage_count: int = 0
-    max_usage: Optional[int] = None
+    max_usage: int | None = None
     status: str = "active"
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -79,8 +79,8 @@ class EncryptionResult:
     key_id: str
     algorithm: EncryptionAlgorithm
     iv: bytes
-    tag: Optional[bytes] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    tag: bytes | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 class EncryptionService:
@@ -97,7 +97,7 @@ class EncryptionService:
     - FIPS 140-2 Level 3 compliance ready
     """
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, config: dict[str, Any] | None = None):
         self.logger = logger
         self.config = config or {}
 
@@ -112,8 +112,8 @@ class EncryptionService:
         self.max_key_usage = self.config.get("max_key_usage", 10000)
 
         # Key storage
-        self.active_keys: Dict[str, EncryptionKey] = {}
-        self.key_history: List[EncryptionKey] = []
+        self.active_keys: dict[str, EncryptionKey] = {}
+        self.key_history: list[EncryptionKey] = []
 
         # Performance metrics
         self.encryption_stats = {
@@ -138,7 +138,7 @@ class EncryptionService:
             self.master_key = master_key
             self.logger.info("Master encryption key initialized")
         except Exception as e:
-            self.logger.error(f"Failed to initialize master key: {str(e)}")
+            self.logger.error(f"Failed to initialize master key: {e!s}")
             raise
 
     def _generate_master_key(self) -> EncryptionKey:
@@ -166,7 +166,7 @@ class EncryptionService:
                     key_data=key_data,
                     salt=salt,
                     kdf=self.default_kdf,
-                    expires_at=datetime.now(timezone.utc) + timedelta(days=self.key_rotation_days)
+                    expires_at=datetime.now(UTC) + timedelta(days=self.key_rotation_days)
                 )
             # In production, derive from user password or HSM
             master_password = secrets.token_bytes(64)
@@ -181,11 +181,11 @@ class EncryptionService:
             key_data=key_data,
             salt=salt,
             kdf=self.default_kdf,
-            expires_at=datetime.now(timezone.utc) + timedelta(days=self.key_rotation_days)
+            expires_at=datetime.now(UTC) + timedelta(days=self.key_rotation_days)
         )
 
     async def encrypt_data_async(self, data: bytes,
-                               security_level: str = "standard") -> Tuple[bytes, Dict[str, Any]]:
+                               security_level: str = "standard") -> tuple[bytes, dict[str, Any]]:
         """Encrypt data with specified security level."""
         try:
             start_time = time.time()
@@ -215,7 +215,7 @@ class EncryptionService:
                 "algorithm": result.algorithm.value,
                 "iv": base64.b64encode(result.iv).decode() if result.iv else None,
                 "tag": base64.b64encode(result.tag).decode() if result.tag else None,
-                "encrypted_at": datetime.now(timezone.utc).isoformat(),
+                "encrypted_at": datetime.now(UTC).isoformat(),
                 "security_level": security_level
             }
 
@@ -223,7 +223,7 @@ class EncryptionService:
 
         except Exception as e:
             self.encryption_stats["failed_operations"] += 1
-            self.logger.error(f"Encryption failed: {str(e)}")
+            self.logger.error(f"Encryption failed: {e!s}")
             raise
 
     def _select_algorithm_for_security_level(self, security_level: str) -> EncryptionAlgorithm:
@@ -243,7 +243,7 @@ class EncryptionService:
         for key in self.active_keys.values():
             if (key.algorithm == algorithm and
                 key.status == "active" and
-                (not key.expires_at or key.expires_at > datetime.now(timezone.utc)) and
+                (not key.expires_at or key.expires_at > datetime.now(UTC)) and
                 (not key.max_usage or key.usage_count < key.max_usage)):
                 key.usage_count += 1
                 return key
@@ -258,9 +258,7 @@ class EncryptionService:
         key_id = f"key_{algorithm.value}_{int(time.time())}_{secrets.token_hex(6)}"
         salt = secrets.token_bytes(32)
 
-        if algorithm in [EncryptionAlgorithm.AES_256_GCM, EncryptionAlgorithm.AES_256_CBC]:
-            key_data = secrets.token_bytes(32)  # 256-bit key
-        elif algorithm == EncryptionAlgorithm.CHACHA20_POLY1305:
+        if algorithm in [EncryptionAlgorithm.AES_256_GCM, EncryptionAlgorithm.AES_256_CBC] or algorithm == EncryptionAlgorithm.CHACHA20_POLY1305:
             key_data = secrets.token_bytes(32)  # 256-bit key
         elif algorithm == EncryptionAlgorithm.RSA_4096:
             if CRYPTOGRAPHY_AVAILABLE and rsa and serialization and default_backend:
@@ -288,7 +286,7 @@ class EncryptionService:
             key_data=key_data,
             salt=salt,
             kdf=self.default_kdf,
-            expires_at=datetime.now(timezone.utc) + timedelta(days=self.key_rotation_days),
+            expires_at=datetime.now(UTC) + timedelta(days=self.key_rotation_days),
             max_usage=self.max_key_usage
         )
 
@@ -316,7 +314,7 @@ class EncryptionService:
                 tag=encryptor.tag
             )
         except (Exception, NameError, AttributeError) as e:
-            self.logger.error(f"AES-GCM encryption failed: {str(e)}")
+            self.logger.error(f"AES-GCM encryption failed: {e!s}")
             return self._encrypt_fallback(data, key)
 
     def _encrypt_chacha20(self, data: bytes, key: EncryptionKey) -> EncryptionResult:
@@ -350,7 +348,7 @@ class EncryptionService:
                 tag=None  # ChaCha20-Poly1305 includes tag in ciphertext
             )
         except Exception as e:
-            self.logger.error(f"ChaCha20-Poly1305 encryption failed: {str(e)}")
+            self.logger.error(f"ChaCha20-Poly1305 encryption failed: {e!s}")
             raise
 
     def _update_encryption_stats(self, data_size: int, duration: float, is_encryption: bool):
@@ -374,7 +372,7 @@ class EncryptionService:
             current_avg = self.encryption_stats["average_decryption_speed"]
             self.encryption_stats["average_decryption_speed"] = ((current_avg * (total_ops - 1)) + current_speed) / total_ops
 
-    def generate_key(self) -> Dict[str, Any]:
+    def generate_key(self) -> dict[str, Any]:
         """
         Generate a new encryption key with metadata.
 
@@ -390,7 +388,7 @@ class EncryptionService:
                 "key_id": key_id,
                 "key": base64.b64encode(key).decode(),
                 "algorithm": "AES-256-GCM",
-                "created_at": datetime.now(timezone.utc),
+                "created_at": datetime.now(UTC),
                 "key_size": 256,
                 "status": "active"
             }
@@ -402,7 +400,7 @@ class EncryptionService:
             self.logger.error(f"Failed to generate encryption key: {e}")
             raise
 
-    def encrypt_data(self, data: bytes, key_info: Dict[str, Any]) -> Dict[str, Any]:
+    def encrypt_data(self, data: bytes, key_info: dict[str, Any]) -> dict[str, Any]:
         """
         Encrypt data using the provided key with AEAD.
 
@@ -437,7 +435,7 @@ class EncryptionService:
                 "algorithm": "AES-256-GCM",
                 "checksum": checksum,
                 "size": len(data),
-                "encrypted_at": datetime.now(timezone.utc)
+                "encrypted_at": datetime.now(UTC)
             }
 
             self.logger.debug(f"Encrypted {len(data)} bytes with key {key_info['key_id']} using AES-256-GCM")
@@ -447,7 +445,7 @@ class EncryptionService:
             self.logger.error(f"AEAD encryption failed: {e}")
             raise
 
-    def decrypt_data(self, encrypted_info: Dict[str, Any], key_info: Dict[str, Any]) -> bytes:
+    def decrypt_data(self, encrypted_info: dict[str, Any], key_info: dict[str, Any]) -> bytes:
         """
         Decrypt data using the provided key with AEAD.
 
@@ -536,7 +534,7 @@ class EncryptionService:
             self.logger.error(f"Checksum verification failed: {e}")
             return False
 
-    async def rotate_key(self, key_id: str) -> Dict[str, Any]:
+    async def rotate_key(self, key_id: str) -> dict[str, Any]:
         """
         Rotate an encryption key and re-encrypt associated data.
 
@@ -558,7 +556,7 @@ class EncryptionService:
 
             # Mark old key as rotated
             old_key.status = "rotated"
-            old_key.metadata["rotated_at"] = datetime.now(timezone.utc)
+            old_key.metadata["rotated_at"] = datetime.now(UTC)
             old_key.metadata["rotated_to"] = new_key.key_id
 
             # Move old key to history
@@ -574,7 +572,7 @@ class EncryptionService:
                 "old_key_id": key_id,
                 "new_key_id": new_key.key_id,
                 "algorithm": new_key.algorithm.value,
-                "rotated_at": datetime.now(timezone.utc).isoformat()
+                "rotated_at": datetime.now(UTC).isoformat()
             }
 
         except Exception as e:
@@ -608,7 +606,7 @@ class EncryptionService:
             True if key is fresh, False otherwise
         """
         try:
-            now = datetime.now(timezone.utc)
+            now = datetime.now(UTC)
 
             # Check expiration
             if key.expires_at and now > key.expires_at:

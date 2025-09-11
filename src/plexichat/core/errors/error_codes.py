@@ -8,13 +8,15 @@ This module provides a comprehensive error code management system with:
 - Helper functions for consistent error responses
 """
 
-import logging
 from http import HTTPStatus
-from typing import Any, Dict, List, Optional
+import logging
+from typing import Any
 
 from .base import (
     ErrorCategory,
     ErrorSeverity,
+)
+from .base import (
     PlexiChatErrorCode as BasePlexiChatErrorCode,
 )
 
@@ -218,7 +220,7 @@ class ErrorCodeMapping:
     }
 
     @classmethod
-    def get_mapping(cls, error_code: PlexiChatErrorCode) -> Dict[str, Any]:
+    def get_mapping(cls, error_code: PlexiChatErrorCode) -> dict[str, Any]:
         """Get the complete mapping for an error code."""
         return cls._mappings.get(
             error_code,
@@ -261,7 +263,7 @@ class ErrorCodeMapping:
         )
 
 
-def get_errors_by_category(category: ErrorCategory) -> List[PlexiChatErrorCode]:
+def get_errors_by_category(category: ErrorCategory) -> list[PlexiChatErrorCode]:
     """Get all error codes for a specific category."""
     return [
         error_code
@@ -270,7 +272,7 @@ def get_errors_by_category(category: ErrorCategory) -> List[PlexiChatErrorCode]:
     ]
 
 
-def get_errors_by_severity(severity: ErrorSeverity) -> List[PlexiChatErrorCode]:
+def get_errors_by_severity(severity: ErrorSeverity) -> list[PlexiChatErrorCode]:
     """Get all error codes for a specific severity level."""
     return [
         error_code
@@ -279,17 +281,17 @@ def get_errors_by_severity(severity: ErrorSeverity) -> List[PlexiChatErrorCode]:
     ]
 
 
-def get_critical_errors() -> List[PlexiChatErrorCode]:
+def get_critical_errors() -> list[PlexiChatErrorCode]:
     """Get all critical error codes."""
     return get_errors_by_severity(ErrorSeverity.CRITICAL)
 
 
 def log_error(
     error_code: PlexiChatErrorCode,
-    details: Optional[Dict[str, Any]] = None,
-    context: Optional[Dict[str, Any]] = None,
-    correlation_id: Optional[str] = None,
-    exception: Optional[Exception] = None,
+    details: dict[str, Any] | None = None,
+    context: dict[str, Any] | None = None,
+    correlation_id: str | None = None,
+    exception: Exception | None = None,
 ) -> None:
     """Log an error with standardized format."""
     mapping = ErrorCodeMapping.get_mapping(error_code)
@@ -325,10 +327,10 @@ def log_error(
 
 # Export all public classes and functions
 __all__ = [
-    "PlexiChatErrorCode",
     "ErrorCodeMapping",
+    "PlexiChatErrorCode",
+    "get_critical_errors",
     "get_errors_by_category",
     "get_errors_by_severity",
-    "get_critical_errors",
     "log_error",
 ]

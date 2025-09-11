@@ -1,6 +1,7 @@
-from typing import Optional
-from pydantic import BaseModel, EmailStr
 from enum import Enum
+
+from pydantic import BaseModel, EmailStr
+
 
 class UserRole(str, Enum):
     USER = "user"
@@ -21,10 +22,10 @@ class UserCreate(BaseModel):
 
 class UserUpdate(BaseModel):
     """Schema for updating a user."""
-    username: Optional[str] = None
-    email: Optional[EmailStr] = None
-    role: Optional[UserRole] = None
-    status: Optional[UserStatus] = None
+    username: str | None = None
+    email: EmailStr | None = None
+    role: UserRole | None = None
+    status: UserStatus | None = None
 
 class UserResponse(BaseModel):
     """Schema for user API responses."""
@@ -34,24 +35,24 @@ class UserResponse(BaseModel):
     role: UserRole
     status: UserStatus
     created_at: str
-    last_login: Optional[str] = None
-    display_name: Optional[str] = None
-    bio: Optional[str] = None
-    avatar_url: Optional[str] = None
-    user_status: Optional[str] = None
-    timezone: Optional[str] = None
-    language: Optional[str] = None
-    theme: Optional[str] = None
+    last_login: str | None = None
+    display_name: str | None = None
+    bio: str | None = None
+    avatar_url: str | None = None
+    user_status: str | None = None
+    timezone: str | None = None
+    language: str | None = None
+    theme: str | None = None
 
 class UserProfileUpdate(BaseModel):
     """Schema for updating user profile."""
-    display_name: Optional[str] = None
-    bio: Optional[str] = Field(None, max_length=500, description="User biography")
-    avatar_url: Optional[str] = Field(None, description="Avatar image URL")
-    status: Optional[str] = Field(None, description="User status (online, away, busy, offline)")
-    timezone: Optional[str] = Field(None, description="User timezone")
-    language: Optional[str] = Field(None, description="Preferred language")
-    theme: Optional[str] = Field(None, description="UI theme preference")
+    display_name: str | None = None
+    bio: str | None = Field(None, max_length=500, description="User biography")
+    avatar_url: str | None = Field(None, description="Avatar image URL")
+    status: str | None = Field(None, description="User status (online, away, busy, offline)")
+    timezone: str | None = Field(None, description="User timezone")
+    language: str | None = Field(None, description="Preferred language")
+    theme: str | None = Field(None, description="UI theme preference")
 
 class Config:
     orm_mode = True

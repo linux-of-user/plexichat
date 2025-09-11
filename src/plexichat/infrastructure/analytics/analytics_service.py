@@ -5,13 +5,12 @@ Provides comprehensive analytics and metrics collection for the PlexiChat platfo
 """
 
 import asyncio
-import json
 from collections import defaultdict, deque
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Dict, List, Optional
-
+import json
+from typing import Any
 
 try:
     import redis.asyncio as redis
@@ -30,7 +29,14 @@ except ImportError:
     logger = None
 
 try:
-    from plexichat.shared.models import Channel, FileRecord, Message, Guild, GuildMember, User
+    from plexichat.shared.models import (
+        Channel,
+        FileRecord,
+        Guild,
+        GuildMember,
+        Message,
+        User,
+    )
 except ImportError:
     Channel = None
     FileRecord = None
@@ -80,9 +86,9 @@ class Metric:
     type: MetricType
     value: float
     timestamp: datetime
-    tags: Optional[Dict[str, str]] = None
+    tags: dict[str, str] | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             'name': self.name,
             'type': self.type,
@@ -94,15 +100,15 @@ class Metric:
 
 class AnalyticsService:
     """Comprehensive analytics service."""
-    
+
     def __init__(self):
         self.metrics_buffer = deque(maxlen=METRICS_BUFFER_SIZE)
         self.real_time_stats = defaultdict(float)
         self.redis_client = None
-        
+
         # Initialize Redis connection
         asyncio.create_task(self._initialize_redis())
-        
+
         # Start background tasks
         asyncio.create_task(self._metrics_processor())
         asyncio.create_task(self._real_time_updater())
@@ -124,7 +130,7 @@ class AnalyticsService:
 
     async def record_metric(self, name: str, value: float,
                           metric_type: MetricType = MetricType.COUNTER,
-                          tags: Optional[Dict[str, str]] = None):
+                          tags: dict[str, str] | None = None):
         """Record a metric."""
         metric = Metric(
             name=name,
@@ -162,7 +168,7 @@ class AnalyticsService:
                 if logger:
                     logger.error(f"Metrics processor error: {e}")
 
-    async def _store_metrics(self, metrics: List[Metric]):
+    async def _store_metrics(self, metrics: list[Metric]):
         """Store metrics in database and cache."""
         try:
             # Store in Redis for fast access
@@ -183,7 +189,7 @@ class AnalyticsService:
             if logger:
                 logger.error(f"Failed to store metrics: {e}")
 
-    async def _store_aggregated_metrics(self, metrics: List[Metric]):
+    async def _store_aggregated_metrics(self, metrics: list[Metric]):
         """Store aggregated metrics in database."""
         # Group metrics by name and hour
         aggregated = defaultdict(lambda: {'count': 0, 'sum': 0, 'min': float('inf'), 'max': float('-inf')})
@@ -244,7 +250,7 @@ class AnalyticsService:
             if logger:
                 logger.error(f"Failed to update real-time stats: {e}")
 
-    async def get_dashboard_stats(self, user_id: int) -> Dict[str, Any]:
+    async def get_dashboard_stats(self, user_id: int) -> dict[str, Any]:
         """Get dashboard statistics for a user."""
         try:
             if db_cluster and select and func and GuildMember and Message:
@@ -268,7 +274,7 @@ class AnalyticsService:
                         'messages_count': messages_count,
                         'real_time_stats': dict(self.real_time_stats)
                     }
-            
+
             return {'real_time_stats': dict(self.real_time_stats)}
 
         except Exception as e:
@@ -276,7 +282,7 @@ class AnalyticsService:
                 logger.error(f"Failed to get dashboard stats: {e}")
             return {}
 
-    def get_real_time_stats(self) -> Dict[str, Any]:
+    def get_real_time_stats(self) -> dict[str, Any]:
         """Get current real-time statistics."""
         return dict(self.real_time_stats)
 

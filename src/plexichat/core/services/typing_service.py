@@ -4,10 +4,10 @@ Typing Service
 Manages typing indicators with database persistence and real-time broadcasting.
 """
 
-import logging
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List, Optional
+from datetime import UTC, datetime, timedelta
+import logging
+from typing import Any
 from uuid import uuid4
 
 from plexichat.core.config import get_setting
@@ -31,7 +31,7 @@ class TypingStatus:
     expires_at: datetime
     created_at: datetime
     updated_at: datetime
-    metadata: Dict[str, Any]
+    metadata: dict[str, Any]
 
     def __post_init__(self):
         if isinstance(self.started_at, str):
@@ -53,9 +53,9 @@ class TypingStatus:
 
     def is_expired(self) -> bool:
         """Check if typing status has expired."""
-        return datetime.now(timezone.utc) > self.expires_at
+        return datetime.now(UTC) > self.expires_at
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
             "id": self.id,
@@ -97,7 +97,7 @@ class TypingService:
                 )
                 return False
 
-            current_time = datetime.now(timezone.utc)
+            current_time = datetime.now(UTC)
             expires_at = current_time + timedelta(seconds=self.typing_timeout)
 
             # Check if user is already typing in this channel
@@ -151,7 +151,7 @@ class TypingService:
                 if success:
                     # Broadcast typing stop
                     await self._broadcast_typing_stop(
-                        user_id, channel_id, datetime.now(timezone.utc)
+                        user_id, channel_id, datetime.now(UTC)
                     )
                     logger.info(
                         f"Stopped typing for user {user_id} in channel {channel_id}"
@@ -164,7 +164,7 @@ class TypingService:
             logger.error(f"Error stopping typing for user {user_id}: {e}")
             return False
 
-    async def get_typing_users(self, channel_id: str) -> List[str]:
+    async def get_typing_users(self, channel_id: str) -> list[str]:
         """Get list of users currently typing in channel."""
         try:
             # Validate input
@@ -181,7 +181,7 @@ class TypingService:
                 WHERE channel_id = ? AND expires_at > ?
                 ORDER BY started_at ASC
             """
-            current_time = datetime.now(timezone.utc).isoformat()
+            current_time = datetime.now(UTC).isoformat()
             result = await self.db_manager.execute_query(
                 query, (channel_id, current_time)
             )
@@ -198,7 +198,7 @@ class TypingService:
     async def cleanup_expired_states(self) -> int:
         """Clean up expired typing states from database."""
         try:
-            current_time = datetime.now(timezone.utc).isoformat()
+            current_time = datetime.now(UTC).isoformat()
 
             # Get expired records
             query = """
@@ -222,7 +222,7 @@ class TypingService:
                 channel_id = row.get("channel_id")
                 if user_id and channel_id:
                     await self._broadcast_typing_stop(
-                        user_id, channel_id, datetime.now(timezone.utc)
+                        user_id, channel_id, datetime.now(UTC)
                     )
 
             logger.info(f"Cleaned up {expired_count} expired typing states")
@@ -234,7 +234,7 @@ class TypingService:
 
     async def _get_user_typing_status(
         self, user_id: str, channel_id: str
-    ) -> Optional[TypingStatus]:
+    ) -> TypingStatus | None:
         """Get typing status for user in channel."""
         try:
             query = """
@@ -242,7 +242,7 @@ class TypingService:
                 WHERE user_id = ? AND channel_id = ? AND expires_at > ?
                 LIMIT 1
             """
-            current_time = datetime.now(timezone.utc).isoformat()
+            current_time = datetime.now(UTC).isoformat()
             result = await self.db_manager.execute_query(
                 query, (user_id, channel_id, current_time)
             )
@@ -290,7 +290,7 @@ class TypingService:
                 SET expires_at = ?, updated_at = ?
                 WHERE id = ?
             """
-            current_time = datetime.now(timezone.utc).isoformat()
+            current_time = datetime.now(UTC).isoformat()
             params = (expires_at.isoformat(), current_time, typing_id)
 
             result = await self.db_manager.execute_query(query, params)
@@ -391,7 +391,7 @@ async def stop_typing(user_id: str, channel_id: str) -> bool:
     return await typing_service.stop_typing(user_id, channel_id)
 
 
-async def get_typing_users(channel_id: str) -> List[str]:
+async def get_typing_users(channel_id: str) -> list[str]:
     """Get typing users via global service."""
     return await typing_service.get_typing_users(channel_id)
 
@@ -416,7 +416,7 @@ async def stop_typing(user_id: str, channel_id: str) -> bool:
     return await typing_service.stop_typing(user_id, channel_id)
 
 
-async def get_typing_users(channel_id: str) -> List[str]:
+async def get_typing_users(channel_id: str) -> list[str]:
     """Get typing users via global service."""
     return await typing_service.get_typing_users(channel_id)
 

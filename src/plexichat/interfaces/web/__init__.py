@@ -5,8 +5,8 @@ Enhanced web interface with comprehensive functionality and performance optimiza
 Uses EXISTING database abstraction and optimization systems.
 """
 
-from typing import Any, Optional
 import logging
+from typing import Any, Optional
 
 # Setup basic logging
 logger = logging.getLogger(__name__)

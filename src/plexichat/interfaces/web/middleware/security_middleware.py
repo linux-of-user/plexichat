@@ -3,25 +3,32 @@
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
+import asyncio
+from collections.abc import Awaitable, Callable
+from concurrent.futures import ThreadPoolExecutor
+from datetime import UTC, datetime
 import ipaddress
 import re
-from datetime import datetime, timezone
-from typing import Any, Dict, Optional, Awaitable, Callable
-from concurrent.futures import ThreadPoolExecutor
-import asyncio
+from typing import Any
 
 from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.responses import JSONResponse
 from starlette.requests import Request
-from starlette.responses import Response
+from starlette.responses import JSONResponse, Response
 
+from plexichat.core.authentication import get_auth_manager as get_unified_auth_manager
 from plexichat.core.config import get_config
 from plexichat.core.logging import get_logger
-from plexichat.core.security import get_input_validator, InputType, ValidationLevel
+from plexichat.core.security import (
+    InputType,
+    RateLimitRequest,
+    SecurityEventType,
+    ThreatLevel,
+    ValidationLevel,
+    get_input_validator,
+    get_network_protection,
+)
+from plexichat.core.security import Severity as SecuritySeverity
 from plexichat.core.security.unified_audit_system import get_unified_audit_system
-from plexichat.core.authentication import get_auth_manager as get_unified_auth_manager
-from plexichat.core.security import get_network_protection, RateLimitRequest
-from plexichat.core.security import SecurityEventType, Severity as SecuritySeverity, ThreatLevel
 
 logger = get_logger(__name__)
 
@@ -37,7 +44,7 @@ class SecurityLevel:
     ADMIN = 5
 
 class SecurityMiddleware(BaseHTTPMiddleware):
-    def __init__(self, app: Any, config: Optional[Dict[str, Any]] = None) -> None:
+    def __init__(self, app: Any, config: dict[str, Any] | None = None) -> None:
         super().__init__(app)
         self.config = config or get_config().get("security_middleware", {})
         self.enabled = self.config.get("enabled", True)
@@ -192,7 +199,7 @@ class SecurityMiddleware(BaseHTTPMiddleware):
             except Exception as e:
                 logger.debug(f"Failed to initialize component {name}: {e}")
 
-    async def _extract_request_info(self, request: Request) -> Dict[str, Any]:
+    async def _extract_request_info(self, request: Request) -> dict[str, Any]:
         client_ip = self._get_client_ip(request)
         body = None
         if request.method in ['POST', 'PUT', 'PATCH']:
@@ -212,7 +219,7 @@ class SecurityMiddleware(BaseHTTPMiddleware):
             'content_type': request.headers.get('content-type', ''),
             'content_length': request.headers.get('content-length', 0),
             'body': body,
-            'timestamp': datetime.now(timezone.utc)
+            'timestamp': datetime.now(UTC)
         }
 
     def _get_client_ip(self, request: Request) -> str:
@@ -231,7 +238,7 @@ class SecurityMiddleware(BaseHTTPMiddleware):
             return self.endpoint_security_levels[path] == SecurityLevel.PUBLIC
         return False
 
-    async def _check_ip_security(self, request_info: Dict[str, Any]) -> Dict[str, Any]:
+    async def _check_ip_security(self, request_info: dict[str, Any]) -> dict[str, Any]:
         client_ip = request_info['client_ip']
         try:
             ipaddress.ip_address(client_ip)
@@ -268,7 +275,7 @@ class SecurityMiddleware(BaseHTTPMiddleware):
                 logger.debug(f"Network protection check failed: {e}")
         return {'allowed': True}
 
-    async def _check_rate_limits(self, request_info: Dict[str, Any]) -> Dict[str, Any]:
+    async def _check_rate_limits(self, request_info: dict[str, Any]) -> dict[str, Any]:
         path = request_info['path']
         client_ip = request_info['client_ip']
         if self.network_protection:
@@ -299,7 +306,7 @@ class SecurityMiddleware(BaseHTTPMiddleware):
                 logger.debug(f"Rate limit check failed: {e}")
         return {'allowed': True}
 
-    async def _validate_input_security(self, request: Request, request_info: Dict[str, Any]) -> Dict[str, Any]:
+    async def _validate_input_security(self, request: Request, request_info: dict[str, Any]) -> dict[str, Any]:
         threats_detected = []
         for key, value in request_info['query_params'].items():
             if self._detect_sql_injection(str(value)):
@@ -348,7 +355,7 @@ class SecurityMiddleware(BaseHTTPMiddleware):
             return {'allowed': False, 'reason': 'Input validation failed', 'action': 'blocked', 'threats': threats_detected}
         return {'allowed': True}
 
-    async def _check_authentication_authorization(self, request: Request, request_info: Dict[str, Any]) -> Dict[str, Any]:
+    async def _check_authentication_authorization(self, request: Request, request_info: dict[str, Any]) -> dict[str, Any]:
         """
         Use UnifiedAuthManager for token and API key validation.
         Returns a dict with keys:
@@ -437,7 +444,7 @@ class SecurityMiddleware(BaseHTTPMiddleware):
                             resource=request_info.get('path'))
             self.stats['auth_failures'] += 1
             await self._log_security_event(SecurityEventType.AUTHENTICATION,
-                                          f"Authentication validation error: {str(e)}",
+                                          f"Authentication validation error: {e!s}",
                                           SecuritySeverity.ERROR,
                                           ThreatLevel.HIGH,
                                           request_info)
@@ -445,7 +452,7 @@ class SecurityMiddleware(BaseHTTPMiddleware):
         # If we reach here, not authenticated
         return {'authenticated': False, 'reason': 'Authentication failed'}
 
-    async def _validate_csrf_token(self, request: Request) -> Dict[str, Any]:
+    async def _validate_csrf_token(self, request: Request) -> dict[str, Any]:
         """Validate CSRF token for state-changing requests."""
         try:
             # Skip CSRF for API endpoints with proper authentication
@@ -532,11 +539,11 @@ class SecurityMiddleware(BaseHTTPMiddleware):
             return False
 
         result = 0
-        for x, y in zip(a, b):
+        for x, y in zip(a, b, strict=False):
             result |= ord(x) ^ ord(y)
         return result == 0
 
-    async def _validate_session_security(self, request: Request, auth_check: Dict[str, Any]) -> Dict[str, Any]:
+    async def _validate_session_security(self, request: Request, auth_check: dict[str, Any]) -> dict[str, Any]:
         """
         Validate session using UnifiedAuthManager.validate_session if session id is available.
         If only token-based auth is used and no session_id exists, allow by default (token already validated).
@@ -585,7 +592,7 @@ class SecurityMiddleware(BaseHTTPMiddleware):
             logger.security(f"Error validating session: {e}", component="session_validation")
             return {'valid': False, 'reason': 'Session validation error'}
 
-    async def _risk_based_authentication(self, request: Request, request_info: Dict[str, Any], auth_check: Dict[str, Any]) -> Dict[str, Any]:
+    async def _risk_based_authentication(self, request: Request, request_info: dict[str, Any], auth_check: dict[str, Any]) -> dict[str, Any]:
         """Perform risk-based authentication for admin/critical endpoints."""
         # Example risk factors
         risk_score = 0.0
@@ -654,7 +661,7 @@ class SecurityMiddleware(BaseHTTPMiddleware):
             }
         return {'allowed': True}
 
-    def _extract_token(self, request: Request) -> Optional[str]:
+    def _extract_token(self, request: Request) -> str | None:
         auth_header = request.headers.get('authorization')
         if auth_header and auth_header.startswith('Bearer '):
             return auth_header[7:]
@@ -694,7 +701,7 @@ class SecurityMiddleware(BaseHTTPMiddleware):
                 return True
         return False
 
-    def _create_security_response(self, check_result: Dict[str, Any], status_code: int) -> JSONResponse:
+    def _create_security_response(self, check_result: dict[str, Any], status_code: int) -> JSONResponse:
         return JSONResponse({
             'success': False,
             'reason': check_result.get('reason', 'Security check failed'),
@@ -777,14 +784,14 @@ class SecurityMiddleware(BaseHTTPMiddleware):
             # Ensure any errors in logging are captured in unified logs
             logger.debug(f"Failed to log security event: {e}")
 
-    def get_security_stats(self) -> Dict[str, Any]:
+    def get_security_stats(self) -> dict[str, Any]:
         return self.stats
 
-    async def get_security_status(self) -> Dict[str, Any]:
+    async def get_security_status(self) -> dict[str, Any]:
         # Use audit system's get_status if available
         try:
             if self.audit_system and hasattr(self.audit_system, 'get_status'):
-                get_status = getattr(self.audit_system, 'get_status')
+                get_status = self.audit_system.get_status
                 if asyncio.iscoroutinefunction(get_status):
                     return await get_status()
                 else:

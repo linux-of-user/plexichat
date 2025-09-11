@@ -3,11 +3,11 @@ Audit Service
 Provides comprehensive audit logging for authentication events.
 """
 
-import json
 from dataclasses import dataclass, field
-from datetime import datetime, timezone, timedelta
+from datetime import UTC, datetime, timedelta
 from enum import Enum
-from typing import Any, Dict, List, Optional
+import json
+from typing import Any
 
 from plexichat.core.auth.services.interfaces import IAuditService
 from plexichat.core.logging import get_logger
@@ -38,11 +38,11 @@ class AuditEvent:
 
     event_id: str
     event_type: AuditEventType
-    user_id: Optional[str]
+    user_id: str | None
     timestamp: datetime
-    ip_address: Optional[str]
-    user_agent: Optional[str]
-    details: Dict[str, Any] = field(default_factory=dict)
+    ip_address: str | None
+    user_agent: str | None
+    details: dict[str, Any] = field(default_factory=dict)
     severity: str = "info"
     source: str = "authentication"
 
@@ -52,17 +52,17 @@ class AuditService(IAuditService):
 
     def __init__(self):
         super().__init__()
-        self.events: List[AuditEvent] = []
+        self.events: list[AuditEvent] = []
         self.max_events = 10000  # Keep last 10k events in memory
         self.retention_days = 90
 
     async def log_event(
         self,
         event_type: AuditEventType,
-        user_id: Optional[str] = None,
-        ip_address: Optional[str] = None,
-        user_agent: Optional[str] = None,
-        details: Optional[Dict[str, Any]] = None,
+        user_id: str | None = None,
+        ip_address: str | None = None,
+        user_agent: str | None = None,
+        details: dict[str, Any] | None = None,
         severity: str = "info",
     ) -> str:
         """Log an audit event."""
@@ -72,7 +72,7 @@ class AuditService(IAuditService):
             event_id=event_id,
             event_type=event_type,
             user_id=user_id,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             ip_address=ip_address,
             user_agent=user_agent,
             details=details or {},
@@ -102,9 +102,9 @@ class AuditService(IAuditService):
     async def get_user_events(
         self,
         user_id: str,
-        event_type: Optional[AuditEventType] = None,
+        event_type: AuditEventType | None = None,
         limit: int = 100,
-    ) -> List[AuditEvent]:
+    ) -> list[AuditEvent]:
         """Get audit events for a specific user."""
         user_events = [event for event in self.events if event.user_id == user_id]
 
@@ -118,7 +118,7 @@ class AuditService(IAuditService):
 
     async def get_events_by_type(
         self, event_type: AuditEventType, limit: int = 100
-    ) -> List[AuditEvent]:
+    ) -> list[AuditEvent]:
         """Get audit events by type."""
         type_events = [event for event in self.events if event.event_type == event_type]
 
@@ -126,7 +126,7 @@ class AuditService(IAuditService):
 
     async def get_events_by_ip(
         self, ip_address: str, limit: int = 100
-    ) -> List[AuditEvent]:
+    ) -> list[AuditEvent]:
         """Get audit events by IP address."""
         ip_events = [event for event in self.events if event.ip_address == ip_address]
 
@@ -134,9 +134,9 @@ class AuditService(IAuditService):
 
     async def get_suspicious_events(
         self, hours: int = 24, limit: int = 100
-    ) -> List[AuditEvent]:
+    ) -> list[AuditEvent]:
         """Get suspicious audit events within time window."""
-        cutoff_time = datetime.now(timezone.utc) - timedelta(hours=hours)
+        cutoff_time = datetime.now(UTC) - timedelta(hours=hours)
 
         suspicious_events = [
             event
@@ -157,7 +157,7 @@ class AuditService(IAuditService):
             :limit
         ]
 
-    async def search_events(self, query: str, limit: int = 100) -> List[AuditEvent]:
+    async def search_events(self, query: str, limit: int = 100) -> list[AuditEvent]:
         """Search audit events by query string."""
         query_lower = query.lower()
 
@@ -175,7 +175,7 @@ class AuditService(IAuditService):
 
     async def cleanup_old_events(self) -> int:
         """Clean up events older than retention period."""
-        cutoff_date = datetime.now(timezone.utc) - timedelta(days=self.retention_days)
+        cutoff_date = datetime.now(UTC) - timedelta(days=self.retention_days)
 
         old_events = [event for event in self.events if event.timestamp < cutoff_date]
 
@@ -187,9 +187,9 @@ class AuditService(IAuditService):
 
         return len(old_events)
 
-    async def get_event_statistics(self, hours: int = 24) -> Dict[str, Any]:
+    async def get_event_statistics(self, hours: int = 24) -> dict[str, Any]:
         """Get audit event statistics."""
-        cutoff_time = datetime.now(timezone.utc) - timedelta(hours=hours)
+        cutoff_time = datetime.now(UTC) - timedelta(hours=hours)
 
         recent_events = [
             event for event in self.events if event.timestamp > cutoff_time

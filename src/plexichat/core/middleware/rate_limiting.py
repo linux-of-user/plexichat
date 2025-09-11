@@ -5,14 +5,10 @@ PlexiChat Rate Limiting Middleware
 Comprehensive rate limiting system to protect against abuse and DoS attacks.
 """
 
-import asyncio
+from collections import defaultdict, deque
 import logging
 import time
-from collections import defaultdict, deque
-from datetime import datetime, timedelta
-from typing import Dict, Optional, Any, Callable, Awaitable
 
-from fastapi import HTTPException, Request
 from fastapi.responses import JSONResponse
 
 logger = logging.getLogger(__name__)
@@ -39,8 +35,8 @@ class SlidingWindowRateLimiter:
 
     def __init__(self, config: RateLimitConfig) -> None:
         self.config = config
-        self.requests: Dict[str, deque] = defaultdict(deque)
-        self.blocked_ips: Dict[str, float] = {}
+        self.requests: dict[str, deque] = defaultdict(deque)
+        self.blocked_ips: dict[str, float] = {}
 
     def _clean_old_requests(self, client_id: str, current_time: float):
         """Remove old requests outside the window."""
@@ -83,7 +79,7 @@ class SlidingWindowRateLimiter:
         current_time = time.time()
         self.requests[client_id].append(current_time)
 
-    def get_rate_limit_info(self, client_id: str) -> Dict[str, int]:
+    def get_rate_limit_info(self, client_id: str) -> dict[str, int]:
         """Get rate limit information for client."""
         current_time = time.time()
         self._clean_old_requests(client_id, current_time)
@@ -106,8 +102,8 @@ class TokenBucketRateLimiter:
     def __init__(self, capacity: int = 60, refill_rate: float = 1.0):
         self.capacity = capacity
         self.refill_rate = refill_rate
-        self.tokens: Dict[str, float] = defaultdict(float)
-        self.last_refill: Dict[str, float] = defaultdict(float)
+        self.tokens: dict[str, float] = defaultdict(float)
+        self.last_refill: dict[str, float] = defaultdict(float)
 
     def _refill_tokens(self, client_id: str, current_time: float):
         """Refill tokens based on elapsed time."""
@@ -135,7 +131,7 @@ class TokenBucketRateLimiter:
 
         return False
 
-    def get_token_info(self, client_id: str) -> Dict[str, float]:
+    def get_token_info(self, client_id: str) -> dict[str, float]:
         """Get token information for client."""
         current_time = time.time()
         self._refill_tokens(client_id, current_time)
@@ -150,7 +146,7 @@ class TokenBucketRateLimiter:
 class RateLimitMiddleware:
     """FastAPI middleware for rate limiting."""
 
-    def __init__(self, config: Optional[RateLimitConfig] = None):
+    def __init__(self, config: RateLimitConfig | None = None):
         self.config = config or RateLimitConfig()
         self.sliding_limiter = SlidingWindowRateLimiter(self.config)
         self.token_limiter = TokenBucketRateLimiter()
@@ -221,4 +217,4 @@ async def check_rate_limit(client_id: str) -> bool:
 
 
 # Export the middleware
-__all__ = ["RateLimitMiddleware", "rate_limiter", "check_rate_limit"]
+__all__ = ["RateLimitMiddleware", "check_rate_limit", "rate_limiter"]

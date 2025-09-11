@@ -8,7 +8,6 @@ Uses EXISTING database abstraction and optimization systems.
 import logging
 from typing import Any, Dict, List, Optional
 
-
 logger = logging.getLogger(__name__)
 
 # Performance logger placeholder (will be implemented when performance_logger.py is fixed)
@@ -20,10 +19,10 @@ class FeatureManager:
 
     def __init__(self):
         self.performance_logger = performance_logger
-        self.enabled_features: Dict[str, bool] = {}
-        self.feature_configs: Dict[str, Dict[str, Any]] = {}
+        self.enabled_features: dict[str, bool] = {}
+        self.feature_configs: dict[str, dict[str, Any]] = {}
 
-    def register_feature(self, name: str, enabled: bool = True, config: Optional[Dict[str, Any]] = None):
+    def register_feature(self, name: str, enabled: bool = True, config: dict[str, Any] | None = None):
         """Register a feature."""
         try:
             self.enabled_features[name] = enabled
@@ -38,7 +37,7 @@ class FeatureManager:
         """Check if feature is enabled."""
         return self.enabled_features.get(name, False)
 
-    def get_config(self, name: str) -> Dict[str, Any]:
+    def get_config(self, name: str) -> dict[str, Any]:
         """Get feature configuration."""
         return self.feature_configs.get(name, {})
 
@@ -54,7 +53,7 @@ class FeatureManager:
             self.enabled_features[name] = False
             logger.info(f"Disabled feature: {name}")
 
-    def get_enabled_features(self) -> List[str]:
+    def get_enabled_features(self) -> list[str]:
         """Get list of enabled features."""
         return [name for name, enabled in self.enabled_features.items() if enabled]
 
@@ -106,8 +105,8 @@ import_feature_modules()
 
 # Export commonly used items
 __all__ = [
-    "feature_manager",
     "backup_enabled",
+    "feature_manager",
 ]
 
 # Version info

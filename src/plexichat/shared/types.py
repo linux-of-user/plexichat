@@ -11,19 +11,18 @@ Comprehensive type definitions with advanced features:
 - Edge computing and distributed system types
 """
 
-from typing import (
-    Any, Dict, List, Optional, Union, TypeVar,
-    Protocol, runtime_checkable, TypedDict, Awaitable
-)
-from enum import Enum, IntEnum, IntFlag
+from collections.abc import Awaitable
 from datetime import datetime
+from enum import Enum, IntEnum, IntFlag
+from typing import Any, Protocol, TypedDict, TypeVar, Union, runtime_checkable
+
 # Removed unused imports: dataclass, field, Path
 
 # Basic type aliases
-JSON = Union[Dict[str, Any], List[Any], str, int, float, bool, None]
-JSONObject = Dict[str, Any]
-JSONArray = List[Any]
-ConfigDict = Dict[str, Any]
+JSON = Union[dict[str, Any], list[Any], str, int, float, bool, None]
+JSONObject = dict[str, Any]
+JSONArray = list[Any]
+ConfigDict = dict[str, Any]
 
 # ID types
 UserId = str
@@ -42,12 +41,12 @@ V = TypeVar('V')
 class Serializable(Protocol):
     """Protocol for objects that can be serialized."""
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert object to dictionary."""
         ...
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'Serializable':
+    def from_dict(cls, data: dict[str, Any]) -> 'Serializable':
         """Create object from dictionary."""
         ...
 
@@ -90,7 +89,7 @@ class Lifecycle(Protocol):
 class Healthcheck(Protocol):
     """Protocol for objects that can report health status."""
 
-    async def health_check(self) -> Dict[str, Any]:
+    async def health_check(self) -> dict[str, Any]:
         """Perform health check and return status."""
         ...
 
@@ -112,7 +111,7 @@ class Cacheable(Protocol):
 class Validatable(Protocol):
     """Protocol for validatable objects."""
 
-    def validate(self) -> List[str]:
+    def validate(self) -> list[str]:
         """Validate object and return list of errors."""
         ...
 
@@ -125,7 +124,7 @@ class Validatable(Protocol):
 class Auditable(Protocol):
     """Protocol for auditable objects."""
 
-    def audit_info(self) -> Dict[str, Any]:
+    def audit_info(self) -> dict[str, Any]:
         """Get audit information."""
         ...
 
@@ -143,9 +142,9 @@ class Encryptable(Protocol):
 class DatabaseEntity(Protocol):
     """Protocol for database entities."""
 
-    def to_db_dict(self) -> Dict[str, Any]: ...
+    def to_db_dict(self) -> dict[str, Any]: ...
     @classmethod
-    def from_db_dict(cls, data: Dict[str, Any]) -> 'DatabaseEntity': ...
+    def from_db_dict(cls, data: dict[str, Any]) -> 'DatabaseEntity': ...
     def primary_key(self) -> str: ...
 
 @runtime_checkable
@@ -161,15 +160,15 @@ class PluginInterface(Protocol):
 class AIModelInterface(Protocol):
     """Protocol for AI model interfaces."""
 
-    def predict(self, input_data: Any) -> Awaitable[Dict[str, Any]]: ...
-    def train(self, training_data: List[Dict[str, Any]]) -> Awaitable[bool]: ...
-    def evaluate(self, test_data: List[Dict[str, Any]]) -> Awaitable[Dict[str, float]]: ...
+    def predict(self, input_data: Any) -> Awaitable[dict[str, Any]]: ...
+    def train(self, training_data: list[dict[str, Any]]) -> Awaitable[bool]: ...
+    def evaluate(self, test_data: list[dict[str, Any]]) -> Awaitable[dict[str, float]]: ...
 
 @runtime_checkable
 class SecurityProvider(Protocol):
     """Protocol for security providers."""
 
-    def authenticate(self, credentials: JSONObject) -> Awaitable[Optional[UserId]]: ...
+    def authenticate(self, credentials: JSONObject) -> Awaitable[UserId | None]: ...
     def authorize(self, user_id: UserId, resource: str, action: str) -> Awaitable[bool]: ...
     def encrypt_data(self, data: bytes, context: JSONObject) -> Awaitable[bytes]: ...
     def decrypt_data(self, encrypted_data: bytes, context: JSONObject) -> Awaitable[bytes]: ...
@@ -265,16 +264,16 @@ class UserProfileData(TypedDict):
     user_id: UserId
     username: str
     email: str
-    display_name: Optional[str]
-    avatar_url: Optional[str]
+    display_name: str | None
+    avatar_url: str | None
     created_at: datetime
     last_active: datetime
     status: str
     role: str
-    permissions: List[str]
+    permissions: list[str]
     preferences: JSONObject
     security_settings: JSONObject
-    verification_status: Dict[str, bool]
+    verification_status: dict[str, bool]
 
 class MessageData(TypedDict):
     """Typed dictionary for message data."""
@@ -284,11 +283,11 @@ class MessageData(TypedDict):
     content: str
     message_type: str
     timestamp: datetime
-    edited_at: Optional[datetime]
-    attachments: List[str]
-    mentions: List[UserId]
+    edited_at: datetime | None
+    attachments: list[str]
+    mentions: list[UserId]
     metadata: JSONObject
-    encryption_info: Optional[JSONObject]
+    encryption_info: JSONObject | None
 
 # Export all types
 __all__ = [

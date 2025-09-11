@@ -4,10 +4,11 @@ Security Decorators
 Decorators for authentication, authorization, rate limiting, and security enforcement.
 """
 
+from collections.abc import Callable
+from enum import Enum
 import functools
 import logging
-from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any
 
 from fastapi import HTTPException, Request, status
 from itsdangerous import BadSignature, SignatureExpired
@@ -46,7 +47,7 @@ class RequiredPermission(Enum):
     SYSTEM = "system"
 
 
-def _find_request_in_args(args: tuple, kwargs: dict) -> Optional[Request]:
+def _find_request_in_args(args: tuple, kwargs: dict) -> Request | None:
     """Helper to locate a FastAPI Request object in args or kwargs."""
     # Check kwargs first
     if kwargs:
@@ -67,7 +68,7 @@ def _find_request_in_args(args: tuple, kwargs: dict) -> Optional[Request]:
     return None
 
 
-def _get_token_from_request(request: Request) -> Optional[str]:
+def _get_token_from_request(request: Request) -> str | None:
     """Extract Bearer token from request Authorization header."""
     if not request:
         return None
@@ -144,7 +145,7 @@ def require_auth(func: Callable) -> Callable:
             )
 
         # Normalize payload into session_data structure for downstream decorators/handlers
-        session_data: Dict[str, Any] = {}
+        session_data: dict[str, Any] = {}
         # Payload may already contain user_id and permissions
         user_id = (
             payload.get("user_id") or payload.get("sub") or payload.get("username")
@@ -185,7 +186,7 @@ def require_auth(func: Callable) -> Callable:
         # Also attach to request.state if available for frameworks that prefer that access pattern
         try:
             if request:
-                setattr(request.state, "session_data", session_data)
+                request.state.session_data = session_data
         except Exception:
             # Non-fatal if request has no state
             pass
@@ -253,7 +254,7 @@ def require_permission(permission: RequiredPermission):
     return decorator
 
 
-def require_security_level(level: Union[str, int]):
+def require_security_level(level: str | int):
     """Decorator to require minimum security level."""
 
     def decorator(func: Callable) -> Callable:
@@ -309,7 +310,7 @@ def require_security_level(level: Union[str, int]):
     return decorator
 
 
-def rate_limit(requests_per_minute: int = 60, account_type: Optional[Any] = None):
+def rate_limit(requests_per_minute: int = 60, account_type: Any | None = None):
     """Decorator to apply rate limiting. Uses UnifiedAuthManager metrics and best-effort checks."""
 
     def decorator(func: Callable) -> Callable:
@@ -429,7 +430,7 @@ def audit_access(action: str, resource: str = ""):
     return decorator
 
 
-def sanitize_input(fields: List[str]):
+def sanitize_input(fields: list[str]):
     """Decorator to sanitize input fields."""
 
     def decorator(func: Callable) -> Callable:
@@ -522,7 +523,7 @@ def audit_access(action: str, resource: str = ""):
     return decorator
 
 
-def sanitize_input(fields: List[str]):
+def sanitize_input(fields: list[str]):
     """Decorator to sanitize input fields."""
 
     def decorator(func: Callable) -> Callable:
@@ -571,11 +572,11 @@ def validate_csrf():
 
 def secure_endpoint(
     auth_required: bool = True,
-    permission: Optional[RequiredPermission] = None,
-    security_level: Optional[Union[str, int]] = None,
+    permission: RequiredPermission | None = None,
+    security_level: str | int | None = None,
     rate_limit_rpm: int = 60,
     audit_action: str = "",
-    sanitize_fields: Optional[List[str]] = None,
+    sanitize_fields: list[str] | None = None,
     csrf_protection: bool = False,
 ):
     """Comprehensive security decorator combining multiple security measures."""
@@ -678,7 +679,7 @@ def protect_from_replay(max_age_seconds: int = 60):
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         async def wrapper(*args, **kwargs):
-            request: Optional[Request] = None
+            request: Request | None = None
             for arg in args:
                 if isinstance(arg, Request):
                     request = arg
@@ -735,21 +736,21 @@ def protect_from_replay(max_age_seconds: int = 60):
 
                 if payload_bytes != request_body:
                     logger.warning(
-                        f"Replay protection failed: signature payload does not match request body."
+                        "Replay protection failed: signature payload does not match request body."
                     )
                     raise HTTPException(
                         status_code=400, detail="Signature does not match request body."
                     )
 
             except SignatureExpired:
-                logger.warning(f"Replay protection failed: signature expired.")
+                logger.warning("Replay protection failed: signature expired.")
                 raise HTTPException(status_code=400, detail="Signature has expired.")
             except BadSignature:
-                logger.warning(f"Replay protection failed: invalid signature.")
+                logger.warning("Replay protection failed: invalid signature.")
                 raise HTTPException(status_code=400, detail="Invalid signature.")
             except HTTPException:
                 raise
-            except Exception as e:
+            except Exception:
                 logger.exception("Unexpected error during replay protection")
                 raise HTTPException(status_code=400, detail="Invalid signature format.")
 

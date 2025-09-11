@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-import sys
-import click
-import logging
-import json
-from typing import Dict, List, Any, Callable
+from collections.abc import Callable
 from datetime import datetime
+import json
+import logging
+import sys
+from typing import Any
+
+import click
 
 # pyright: reportArgumentType=false
 # pyright: reportCallIssue=false
@@ -219,7 +221,7 @@ class UnifiedCLIDefault:
             except Exception as e:
                 print(f"Error: {e}")
 
-    def execute_command(self, command: str, args: List[str], context: Dict[str, Any]) -> Dict[str, Any]:
+    def execute_command(self, command: str, args: list[str], context: dict[str, Any]) -> dict[str, Any]:
         """Execute a command."""
         if command not in self.commands:
             return {
@@ -234,7 +236,7 @@ class UnifiedCLIDefault:
         handler = getattr(self, handler_name, self.execute_default_command)
         return handler(command, args, context)
 
-    def get_suggestions(self, partial_command: str) -> List[str]:
+    def get_suggestions(self, partial_command: str) -> list[str]:
         """Get command suggestions for partial input."""
         suggestions = [cmd for cmd in self.commands.keys() if cmd.startswith(partial_command)]
         return suggestions[:5]
@@ -263,7 +265,7 @@ class UnifiedCLIDefault:
         print("  ai chat              - Start AI chat")
         print()
 
-    def execute_default_command(self, command: str, args: List[str], context: Dict[str, Any]) -> Dict[str, Any]:
+    def execute_default_command(self, command: str, args: list[str], context: dict[str, Any]) -> dict[str, Any]:
         """Default command executor."""
         category = self.commands.get(command, {}).get("category", "unknown")
         return {
@@ -275,7 +277,7 @@ class UnifiedCLIDefault:
             "args": args
         }
 
-    def __getattr__(self, name: str) -> Callable[..., Dict[str, Any]]:
+    def __getattr__(self, name: str) -> Callable[..., dict[str, Any]]:
         if name.startswith("execute_") and name.endswith("_command"):
             return self.execute_default_command
         raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
@@ -284,7 +286,7 @@ class UnifiedCLIDefault:
         """Get total number of commands."""
         return len(self.commands)
 
-    def get_category_info(self) -> Dict[str, Any]:
+    def get_category_info(self) -> dict[str, Any]:
         """Get information about all categories."""
         return {
             "total_commands": self.get_command_count(),

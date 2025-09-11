@@ -5,16 +5,19 @@ Provides comprehensive dashboard with advanced options and features
 
 import logging
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Any
 
-from fastapi import APIRouter, Request, HTTPException, Depends
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from starlette.status import HTTP_200_OK, HTTP_500_INTERNAL_SERVER_ERROR
 
 from plexichat.core.config import get_settings
 from plexichat.core.security import get_current_user_optional
-from plexichat.interfaces.web.middleware.security_middleware import rate_limit, audit_access
+from plexichat.interfaces.web.middleware.security_middleware import (
+    audit_access,
+    rate_limit,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +35,7 @@ if templates_path.exists():
 @audit_access("view", "ultimate_webui")
 async def ultimate_dashboard(
     request: Request,
-    current_user: Optional[Dict] = Depends(get_current_user_optional)
+    current_user: dict | None = Depends(get_current_user_optional)
 ):
     """Ultimate dashboard with comprehensive features."""
     if not templates:
@@ -40,17 +43,17 @@ async def ultimate_dashboard(
             content=get_fallback_dashboard(),
             status_code=HTTP_200_OK
         )
-    
+
     try:
         # Get system statistics
         stats = await get_system_stats()
-        
+
         # Get user activity data
         activity_data = await get_activity_data()
-        
+
         # Get security status
         security_status = await get_security_status()
-        
+
         return templates.TemplateResponse(
             "management.html",
             {
@@ -73,7 +76,7 @@ async def ultimate_dashboard(
 @router.get("/api/stats", response_class=JSONResponse)
 @rate_limit(requests_per_minute=120)
 async def get_dashboard_stats(
-    current_user: Optional[Dict] = Depends(get_current_user_optional)
+    current_user: dict | None = Depends(get_current_user_optional)
 ):
     """Get real-time dashboard statistics."""
     try:
@@ -90,7 +93,7 @@ async def get_dashboard_stats(
 @rate_limit(requests_per_minute=60)
 async def get_activity_feed(
     limit: int = 50,
-    current_user: Optional[Dict] = Depends(get_current_user_optional)
+    current_user: dict | None = Depends(get_current_user_optional)
 ):
     """Get recent activity feed."""
     try:
@@ -106,7 +109,7 @@ async def get_activity_feed(
 @router.get("/api/security", response_class=JSONResponse)
 @rate_limit(requests_per_minute=30)
 async def get_security_info(
-    current_user: Optional[Dict] = Depends(get_current_user_optional)
+    current_user: dict | None = Depends(get_current_user_optional)
 ):
     """Get security status and alerts."""
     try:
@@ -124,7 +127,7 @@ async def get_security_info(
 async def execute_action(
     action_type: str,
     request: Request,
-    current_user: Optional[Dict] = Depends(get_current_user_optional)
+    current_user: dict | None = Depends(get_current_user_optional)
 ):
     """Execute dashboard actions."""
     try:
@@ -143,7 +146,7 @@ async def execute_action(
 @audit_access("view", "admin_panel")
 async def admin_panel(
     request: Request,
-    current_user: Optional[Dict] = Depends(get_current_user_optional)
+    current_user: dict | None = Depends(get_current_user_optional)
 ):
     """Ultimate admin panel with comprehensive management features."""
     if not templates:
@@ -173,7 +176,7 @@ async def admin_panel(
 @audit_access("view", "settings_dashboard")
 async def settings_dashboard(
     request: Request,
-    current_user: Optional[Dict] = Depends(get_current_user_optional)
+    current_user: dict | None = Depends(get_current_user_optional)
 ):
     """Comprehensive settings dashboard."""
     if not templates:
@@ -202,7 +205,7 @@ async def settings_dashboard(
 @rate_limit(requests_per_minute=60)
 async def enhanced_documentation(
     request: Request,
-    current_user: Optional[Dict] = Depends(get_current_user_optional)
+    current_user: dict | None = Depends(get_current_user_optional)
 ):
     """Enhanced documentation with comprehensive guides."""
     if not templates:
@@ -227,7 +230,7 @@ async def enhanced_documentation(
             detail="Documentation loading error"
         )
 
-async def get_system_stats() -> Dict[str, Any]:
+async def get_system_stats() -> dict[str, Any]:
     """Get comprehensive system statistics."""
     return {
         "users": {
@@ -262,7 +265,7 @@ async def get_system_stats() -> Dict[str, Any]:
         }
     }
 
-async def get_activity_data(limit: int = 50) -> Dict[str, Any]:
+async def get_activity_data(limit: int = 50) -> dict[str, Any]:
     """Get recent activity data."""
     activities = [
         {
@@ -298,13 +301,13 @@ async def get_activity_data(limit: int = 50) -> Dict[str, Any]:
             "icon": "fas fa-shield"
         }
     ]
-    
+
     return {
         "activities": activities[:limit],
         "total_count": len(activities)
     }
 
-async def get_security_status() -> Dict[str, Any]:
+async def get_security_status() -> dict[str, Any]:
     """Get security status and alerts."""
     return {
         "overall_score": "A+",
@@ -335,7 +338,7 @@ async def get_security_status() -> Dict[str, Any]:
         }
     }
 
-async def handle_dashboard_action(action_type: str, data: Dict, user: Optional[Dict]) -> Dict[str, Any]:
+async def handle_dashboard_action(action_type: str, data: dict, user: dict | None) -> dict[str, Any]:
     """Handle various dashboard actions."""
     actions = {
         "newMessage": handle_new_message,
@@ -345,13 +348,13 @@ async def handle_dashboard_action(action_type: str, data: Dict, user: Optional[D
         "securityScan": handle_security_scan,
         "aiAssistant": handle_ai_assistant
     }
-    
+
     if action_type not in actions:
         raise ValueError(f"Unknown action type: {action_type}")
-    
+
     return await actions[action_type](data, user)
 
-async def handle_new_message(data: Dict, user: Optional[Dict]) -> Dict[str, Any]:
+async def handle_new_message(data: dict, user: dict | None) -> dict[str, Any]:
     """Handle new message creation."""
     return {
         "success": True,
@@ -359,7 +362,7 @@ async def handle_new_message(data: Dict, user: Optional[Dict]) -> Dict[str, Any]
         "action": "newMessage"
     }
 
-async def handle_add_user(data: Dict, user: Optional[Dict]) -> Dict[str, Any]:
+async def handle_add_user(data: dict, user: dict | None) -> dict[str, Any]:
     """Handle user addition."""
     return {
         "success": True,
@@ -367,7 +370,7 @@ async def handle_add_user(data: Dict, user: Optional[Dict]) -> Dict[str, Any]:
         "action": "addUser"
     }
 
-async def handle_upload_file(data: Dict, user: Optional[Dict]) -> Dict[str, Any]:
+async def handle_upload_file(data: dict, user: dict | None) -> dict[str, Any]:
     """Handle file upload."""
     return {
         "success": True,
@@ -375,7 +378,7 @@ async def handle_upload_file(data: Dict, user: Optional[Dict]) -> Dict[str, Any]
         "action": "uploadFile"
     }
 
-async def handle_system_backup(data: Dict, user: Optional[Dict]) -> Dict[str, Any]:
+async def handle_system_backup(data: dict, user: dict | None) -> dict[str, Any]:
     """Handle system backup."""
     return {
         "success": True,
@@ -383,7 +386,7 @@ async def handle_system_backup(data: Dict, user: Optional[Dict]) -> Dict[str, An
         "action": "systemBackup"
     }
 
-async def handle_security_scan(data: Dict, user: Optional[Dict]) -> Dict[str, Any]:
+async def handle_security_scan(data: dict, user: dict | None) -> dict[str, Any]:
     """Handle security scan."""
     return {
         "success": True,
@@ -396,7 +399,7 @@ async def handle_security_scan(data: Dict, user: Optional[Dict]) -> Dict[str, An
         }
     }
 
-async def handle_ai_assistant(data: Dict, user: Optional[Dict]) -> Dict[str, Any]:
+async def handle_ai_assistant(data: dict, user: dict | None) -> dict[str, Any]:
     """Handle AI assistant interaction."""
     return {
         "success": True,
