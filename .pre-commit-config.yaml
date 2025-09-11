@@ -1,4 +1,4 @@
-default_stages: [commit]
+default_stages: [pre-commit]
 
 repos:
   - repo: https://github.com/psf/black
@@ -6,21 +6,21 @@ repos:
     hooks:
       - id: black
         args: [--line-length=88]
-        files: ['\.py$', '\.pyx$']
+        files: '^(\.py$|\.pyx$)'
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.6.8
     hooks:
       - id: ruff
         args: [--fix]
-        files: ['\.py$', '\.pyx$']
+        files: '^(\.py$|\.pyx$)'
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.11.1
     hooks:
       - id: mypy
         args: [--strict, --install-types, --non-interactive]
-        files: ['\.py$', '\.pyx$']
-  - repo: https://github.com/astral-sh/trailing-whitespace
+        files: '^(\.py$|\.pyx$)'
+  - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0
     hooks:
       - id: trailing-whitespace
-        files: ['\.py$', '\.pyx$']
+        files: '^(\.py$|\.pyx$)'
