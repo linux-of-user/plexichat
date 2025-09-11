@@ -58,6 +58,7 @@ class MFAService(IMFAProvider):
     """Multi-factor authentication service."""
 
     def __init__(self):
+        super().__init__()
         self.challenges: Dict[str, MFAChallenge] = {}
         self.enrollments: Dict[str, MFAEnrollment] = {}
         self.challenge_timeout = 300  # 5 minutes

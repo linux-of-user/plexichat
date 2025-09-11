@@ -59,6 +59,7 @@ class AuthenticationService(IAuthenticationService):
     """
 
     def __init__(self):
+        super().__init__()
         self.config = get_auth_config()
         self.security_system = get_security_system()
 

@@ -24,6 +24,7 @@ class UserService(IUserService):
     """
 
     def __init__(self, security_system=None):
+        super().__init__()
         self.config = get_auth_config()
         self.security_system = security_system or get_security_system()
 

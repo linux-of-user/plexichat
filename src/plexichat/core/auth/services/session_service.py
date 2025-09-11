@@ -65,6 +65,7 @@ class SessionService(ISessionService):
     """Advanced session management service."""
 
     def __init__(self):
+        super().__init__()
         self.session_store = SessionStore()
         self.cleanup_interval = 300  # 5 minutes
         self.max_concurrent_sessions = 5

@@ -36,6 +36,7 @@ class TokenService(ITokenService):
     """Advanced JWT token management service."""
 
     def __init__(self, secret_key: Optional[str] = None):
+        super().__init__()
         self.secret_key = secret_key or secrets.token_hex(32)
         self.algorithm = "HS256"
         self.access_token_expiry = 3600  # 1 hour

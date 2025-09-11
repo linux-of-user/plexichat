@@ -52,6 +52,7 @@ class AuditService(IAuditService):
     """Comprehensive audit logging service."""
 
     def __init__(self):
+        super().__init__()
         self.events: List[AuditEvent] = []
         self.max_events = 10000  # Keep last 10k events in memory
         self.retention_days = 90
