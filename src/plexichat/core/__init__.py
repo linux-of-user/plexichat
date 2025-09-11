@@ -14,7 +14,7 @@ Uses EXISTING database abstraction and optimization systems.
 """
 
 import importlib
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 # Import consolidated systems
 from plexichat.core.logging import get_logger
@@ -24,49 +24,49 @@ logger = get_logger(__name__)
 try:
     from plexichat.core.config import get_config
 
-    config = get_config()
+    config: Optional[Any] = get_config()
 except ImportError:
-    config = None
+    config: Optional[Any] = None
     logger.warning("Configuration system not available")
 
 try:
     from plexichat.core.security import get_security_manager
 
-    security_manager = get_security_manager()
+    security_manager: Optional[Any] = get_security_manager()
 except ImportError:
-    security_manager = None
+    security_manager: Optional[Any] = None
     logger.warning("Security system not available")
 
 try:
     from plexichat.core.authentication import get_auth_manager
 
-    auth_manager = get_auth_manager()
+    auth_manager: Optional[Any] = get_auth_manager()
 except ImportError:
-    auth_manager = None
+    auth_manager: Optional[Any] = None
     logger.warning("Authentication system not available")
 
 try:
     from plexichat.core.database import get_database_manager
 
-    database_manager = get_database_manager()
+    database_manager: Optional[Any] = get_database_manager()
 except ImportError:
-    database_manager = None
+    database_manager: Optional[Any] = None
     logger.warning("Database system not available")
 
 try:
     from plexichat.core.errors.manager import get_error_manager
 
-    error_manager = get_error_manager()
+    error_manager: Optional[Any] = get_error_manager()
 except ImportError:
-    error_manager = None
+    error_manager: Optional[Any] = None
     logger.warning("Error handling system not available")
 
 try:
     from plexichat.core.services import get_service_manager
 
-    service_manager = get_service_manager()
+    service_manager: Optional[Any] = get_service_manager()
 except ImportError:
-    service_manager = None
+    service_manager: Optional[Any] = None
     logger.warning("Service management system not available")
 
 
@@ -75,7 +75,7 @@ class CoreManager:
 
     def __init__(self):
         self.components: Dict[str, bool] = {}
-        self.managers = {
+        self.managers: Dict[str, Optional[Any]] = {
             "config": config,
             "security": security_manager,
             "auth": auth_manager,
@@ -112,7 +112,7 @@ class CoreManager:
             ),
         }
 
-    def get_manager(self, name: str):
+    def get_manager(self, name: str) -> Optional[Any]:
         """Get a specific manager."""
         return self.managers.get(name)
 
@@ -126,7 +126,7 @@ class CoreManager:
 
 
 # Global core manager
-core_manager = CoreManager()
+core_manager: CoreManager = CoreManager()
 
 # Import new core modules
 try:
@@ -362,4 +362,4 @@ __all__ = [
 # Version info
 from plexichat.core.config import settings
 
-__version__ = settings.version
+__version__: str = settings.version

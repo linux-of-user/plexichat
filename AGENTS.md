@@ -1,53 +1,54 @@
 # PlexiChat Development Guide
 
-## Setup Commands
-
-### Initial Setup
+## Initial Setup
 ```bash
-# Create and activate virtual environment
 python -m venv .venv
-.venv\Scripts\activate   # Windows
+.venv\Scripts\activate  # Windows
 source .venv/bin/activate  # Linux/Mac
-
-# Install dependencies
-pip install -r requirements.txt
-# Or use the custom installer: python run.py setup --level full
+pip install -e ".[dev,test]"
 ```
 
-### Build & Quality
+## Commands
+
+### Build
 ```bash
-# Run linting
-ruff check src/
-black --check src/
-isort --check-only src/
+python -m build
+```
 
-# Run type checking
-pyright src/
+### Lint
+```bash
+ruff check src tests
+black --check src tests
+pyright src
+```
 
-# Run tests
+### Tests
+```bash
 pytest
 ```
 
-### Development Server
+### Dev Server
 ```bash
-# Start development server
 python run.py
-
-# Or build documentation
-make docs-serve
 ```
 
-## Tech Stack & Architecture
+## Tech Stack
+- **Framework**: FastAPI with async/await
+- **Database**: SQLAlchemy with asyncpg (PostgreSQL)
+- **Plugin System**: Dynamic plugin loading with sandboxing
+- **Authentication**: JWT with passlib/bcrypt
+- **Monitoring**: Prometheus metrics, structured logging
 
-- **Backend**: FastAPI + SQLAlchemy (async) + Pydantic
-- **Database**: SQLite (default), PostgreSQL (production)
-- **Plugin System**: Dynamic loading with sandboxing
-- **Architecture**: Layered (core, infrastructure, interfaces, plugins)
-- **Key directories**: `src/plexichat/` (main code), `core/` (business logic), `plugins/` (extensions)
+## Architecture
+- `src/plexichat/core/` - Core business logic and domain models
+- `src/plexichat/infrastructure/` - External dependencies (database, cache, etc.)
+- `src/plexichat/interfaces/` - API endpoints and external interfaces
+- `src/plexichat/plugins/` - Plugin system and built-in plugins
+- `src/plexichat/features/` - Feature modules
+- `src/plexichat/shared/` - Shared utilities and common code
 
 ## Code Style
-
-- **Formatting**: Black (88 chars), isort for imports
-- **Linting**: Ruff + Pyright for type checking
-- **Testing**: pytest with asyncio support, 80%+ coverage required
-- **Docstrings**: Google style, type hints mandatory
+- Line length: 88 characters
+- Type hints required for all public APIs
+- Use async/await for I/O operations
+- Follow existing naming conventions (snake_case)
