@@ -31,11 +31,11 @@ if USE_SHARED_FALLBACKS:
 else:
     # Local fallbacks (preserved for compatibility)
     class NotificationManager:  # type: ignore
-        def __init__(self):
+        def __init__(self) -> None:
             pass
 
     class Notification:  # type: ignore
-        def __init__(self, **kwargs):
+        def __init__(self, **kwargs: Any) -> None:
             self.__dict__.update(kwargs)
 
     class NotificationType:  # type: ignore
@@ -52,31 +52,34 @@ else:
 
     notification_manager = None
 
-    def send_notification(*args, **kwargs):  # type: ignore
+    def send_notification(*args: Any, **kwargs: Any) -> None:  # type: ignore
         return None
 
-    def mark_notification_read(*args, **kwargs):  # type: ignore
+    def mark_notification_read(*args: Any, **kwargs: Any) -> bool:  # type: ignore
         return False
 
-    def get_notifications(*args, **kwargs):  # type: ignore
+    def get_notifications(*args: Any, **kwargs: Any) -> list[Any]:  # type: ignore
         return []
 
-    def get_unread_notification_count(*args, **kwargs):  # type: ignore
+    def get_unread_notification_count(*args: Any, **kwargs: Any) -> int:  # type: ignore
         return 0
 
 
 __all__ = [
-    "NotificationManager",
     "Notification",
-    "NotificationType",
+    "NotificationManager",
     "NotificationPriority",
-    "notification_manager",
-    "send_notification",
-    "mark_notification_read",
+    "NotificationType",
     "get_notifications",
     "get_unread_notification_count",
+    "mark_notification_read",
+    "notification_manager",
+    "send_notification",
 ]
 
-from plexichat.core.utils.fallbacks import get_module_version
+try:
+    from plexichat.core.utils.fallbacks import get_module_version
 
-__version__ = get_module_version()
+    __version__ = get_module_version()
+except ImportError:
+    __version__ = "1.0.0"

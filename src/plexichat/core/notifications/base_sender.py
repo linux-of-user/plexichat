@@ -1,8 +1,8 @@
+from abc import ABC, abstractmethod
 import asyncio
 import logging
 import os
-from abc import ABC, abstractmethod
-from typing import Any, Dict
+from typing import Any
 
 from jinja2 import Environment, FileSystemLoader
 
@@ -14,13 +14,15 @@ class NotificationSender(ABC):
     Abstract base class for notification senders, handling shared rendering and sending logic.
     """
 
-    def __init__(self, templates_dir: str = "templates"):
-        self.templates_dir = os.path.join(os.path.dirname(__file__), templates_dir)
-        self.env = Environment(loader=FileSystemLoader(self.templates_dir))
-        self.max_retries = 3
-        self.retry_delay = 1  # seconds
+    def __init__(self, templates_dir: str = "templates") -> None:
+        self.templates_dir: str = os.path.join(os.path.dirname(__file__), templates_dir)
+        self.env: Environment = Environment(loader=FileSystemLoader(self.templates_dir))
+        self.max_retries: int = 3
+        self.retry_delay: float = 1.0  # seconds
 
-    async def _render_template(self, template_name: str, context: Dict[str, Any]) -> str:
+    async def _render_template(
+        self, template_name: str, context: dict[str, Any]
+    ) -> str:
         """Render a template with the given context."""
         try:
             template = self.env.get_template(template_name)
@@ -29,7 +31,7 @@ class NotificationSender(ABC):
             logger.error(f"Failed to render template {template_name}: {e}")
             raise
 
-    async def _send_notification(self, notification_data: Dict[str, Any]) -> bool:
+    async def _send_notification(self, notification_data: dict[str, Any]) -> bool:
         """Generic sending method with error handling and retries."""
         rendered_content = await self._render_template(
             notification_data["template"], notification_data["context"]
@@ -54,11 +56,11 @@ class NotificationSender(ABC):
 
     @abstractmethod
     async def _send_via_platform(
-        self, rendered_content: str, recipient: str, notification_data: Dict[str, Any]
+        self, rendered_content: str, recipient: str, notification_data: dict[str, Any]
     ) -> bool:
         """Abstract method to be overridden by subclasses for platform-specific sending."""
         raise NotImplementedError
 
-    async def send_notification(self, notification_data: Dict[str, Any]) -> bool:
+    async def send_notification(self, notification_data: dict[str, Any]) -> bool:
         """Public method to send a notification."""
         return await self._send_notification(notification_data)

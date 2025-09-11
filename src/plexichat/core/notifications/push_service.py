@@ -1,4 +1,3 @@
-
 """
 PlexiChat Push Notification Service
 
@@ -7,11 +6,11 @@ Supports Firebase Cloud Messaging (FCM), Apple Push Notification Service (APNS),
 """
 
 import asyncio
-import json
-import logging
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Union
+import json
+import logging
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -20,14 +19,14 @@ logger = logging.getLogger(__name__)
 class PushConfig:
     """Push notification service configuration."""
 
-    fcm_server_key: Optional[str] = None
-    fcm_project_id: Optional[str] = None
-    apns_key_id: Optional[str] = None
-    apns_team_id: Optional[str] = None
-    apns_bundle_id: Optional[str] = None
-    apns_private_key: Optional[str] = None
-    vapid_private_key: Optional[str] = None
-    vapid_email: Optional[str] = None
+    fcm_server_key: str | None = None
+    fcm_project_id: str | None = None
+    apns_key_id: str | None = None
+    apns_team_id: str | None = None
+    apns_bundle_id: str | None = None
+    apns_private_key: str | None = None
+    vapid_private_key: str | None = None
+    vapid_email: str | None = None
 
 
 @dataclass
@@ -39,7 +38,7 @@ class PushToken:
     user_id: int
     device_id: str
     subscribed_at: datetime
-    last_used: Optional[datetime] = None
+    last_used: datetime | None = None
 
 
 @dataclass
@@ -48,27 +47,27 @@ class PushMessage:
 
     title: str
     body: str
-    data: Optional[Dict[str, Any]] = None
-    badge: Optional[int] = None
-    sound: Optional[str] = None
-    icon: Optional[str] = None
-    image: Optional[str] = None
-    click_action: Optional[str] = None
+    data: dict[str, Any] | None = None
+    badge: int | None = None
+    sound: str | None = None
+    icon: str | None = None
+    image: str | None = None
+    click_action: str | None = None
     ttl: int = 86400  # 24 hours
 
 
 class PushService:
     """Push notification service supporting multiple platforms."""
 
-    def __init__(self, config: PushConfig):
-        self.config = config
-        self.tokens: Dict[str, PushToken] = {}  # token -> PushToken
-        self.user_tokens: Dict[int, List[str]] = {}  # user_id -> [tokens]
+    def __init__(self, config: PushConfig) -> None:
+        self.config: PushConfig = config
+        self.tokens: dict[str, PushToken] = {}  # token -> PushToken
+        self.user_tokens: dict[int, list[str]] = {}  # user_id -> [tokens]
 
         # Initialize platform clients
-        self.fcm_available = bool(config.fcm_server_key)
-        self.apns_available = bool(config.apns_key_id and config.apns_private_key)
-        self.web_push_available = bool(config.vapid_private_key)
+        self.fcm_available: bool = bool(config.fcm_server_key)
+        self.apns_available: bool = bool(config.apns_key_id and config.apns_private_key)
+        self.web_push_available: bool = bool(config.vapid_private_key)
 
         if self.fcm_available:
             self._init_fcm()
@@ -77,7 +76,7 @@ class PushService:
         if self.web_push_available:
             self._init_web_push()
 
-    def _init_fcm(self):
+    def _init_fcm(self) -> None:
         """Initialize Firebase Cloud Messaging client."""
         try:
             import firebase_admin
@@ -88,8 +87,8 @@ class PushService:
                     {
                         "type": "service_account",
                         "project_id": self.config.fcm_project_id,
-                        "private_key": self.config.fcm_server_key.replace("\\n", "\n"),
-                        "client_email": f"firebase-adminsdk-@firebaseapp.com",
+                        "private_key": self.config.fcm_server_key.replace("\\n", "\n"),  # type: ignore
+                        "client_email": f"firebase-adminsdk-@{self.config.fcm_project_id}.iam.gserviceaccount.com",
                     }
                 )
                 firebase_admin.initialize_app(cred)
@@ -103,7 +102,7 @@ class PushService:
             logger.error(f"Failed to initialize FCM: {e}")
             self.fcm_available = False
 
-    def _init_apns(self):
+    def _init_apns(self) -> None:
         """Initialize Apple Push Notification Service client."""
         try:
             import base64
@@ -112,7 +111,7 @@ class PushService:
             from cryptography.hazmat.primitives import serialization
 
             # Decode private key
-            private_key_data = base64.b64decode(self.config.apns_private_key)
+            private_key_data = base64.b64decode(self.config.apns_private_key)  # type: ignore
             private_key = serialization.load_pem_private_key(
                 private_key_data, password=None
             )
@@ -134,7 +133,7 @@ class PushService:
             logger.error(f"Failed to initialize APNS: {e}")
             self.apns_available = False
 
-    def _init_web_push(self):
+    def _init_web_push(self) -> None:
         """Initialize web push client."""
         try:
             from pywebpush import webpush
@@ -153,7 +152,9 @@ class PushService:
             logger.error(f"Failed to initialize web push: {e}")
             self.web_push_available = False
 
-    def register_token(self, token: str, platform: str, user_id: int, device_id: str):
+    def register_token(
+        self, token: str, platform: str, user_id: int, device_id: str
+    ) -> None:
         """Register a push notification token for a user."""
         push_token = PushToken(
             token=token,
@@ -172,7 +173,7 @@ class PushService:
 
         logger.info(f"Registered push token for user {user_id} on {platform}")
 
-    def unregister_token(self, token: str):
+    def unregister_token(self, token: str) -> None:
         """Unregister a push notification token."""
         if token in self.tokens:
             push_token = self.tokens[token]
@@ -189,7 +190,7 @@ class PushService:
 
             logger.info(f"Unregistered push token for user {user_id}")
 
-    def get_user_tokens(self, user_id: int) -> List[PushToken]:
+    def get_user_tokens(self, user_id: int) -> list[PushToken]:
         """Get all push tokens for a user."""
         tokens = []
         if user_id in self.user_tokens:
@@ -198,7 +199,7 @@ class PushService:
                     tokens.append(self.tokens[token])
         return tokens
 
-    async def send_to_user(self, user_id: int, message: PushMessage) -> Dict[str, bool]:
+    async def send_to_user(self, user_id: int, message: PushMessage) -> dict[str, bool]:
         """
         Send push notification to all devices of a user.
 
@@ -236,8 +237,8 @@ class PushService:
         return results
 
     async def _send_fcm(
-        self, tokens: List[PushToken], message: PushMessage
-    ) -> Dict[str, bool]:
+        self, tokens: list[PushToken], message: PushMessage
+    ) -> dict[str, bool]:
         """Send push notification via Firebase Cloud Messaging."""
         if not self.fcm_available:
             return {token.token: False for token in tokens}
@@ -245,6 +246,9 @@ class PushService:
         results = {}
 
         try:
+            # Import required modules
+            from firebase_admin import messaging
+
             # Create FCM message
             fcm_message = messaging.Message(
                 notification=messaging.Notification(
@@ -273,4 +277,184 @@ class PushService:
             )
 
             # Send to multiple tokens
-            token_strings
+            token_strings = [token.token for token in tokens]
+            response = messaging.send_multicast(
+                messaging.MulticastMessage(
+                    tokens=token_strings,
+                    notification=fcm_message.notification,
+                    data=fcm_message.data,
+                    android=fcm_message.android,
+                    apns=fcm_message.apns,
+                )
+            )
+
+            # Process results
+            for i, resp in enumerate(response.responses):
+                token_string = token_strings[i]
+                if resp.success:
+                    results[token_string] = True
+                    logger.info(
+                        f"FCM message sent successfully to token {token_string[:10]}..."
+                    )
+                else:
+                    results[token_string] = False
+                    logger.error(
+                        f"FCM failed for token {token_string[:10]}...: {resp.exception}"
+                    )
+
+        except Exception as e:
+            logger.error(f"FCM send failed: {e}")
+            for token in tokens:
+                results[token.token] = False
+
+        return results
+
+    async def _send_apns(
+        self, tokens: list[PushToken], message: PushMessage
+    ) -> dict[str, bool]:
+        """Send push notification via Apple Push Notification Service."""
+        if not self.apns_available:
+            return {token.token: False for token in tokens}
+
+        results = {}
+
+        try:
+            import apns2
+
+            # Create APNS payload
+            payload = apns2.Payload(
+                alert=apns2.PayloadAlert(title=message.title, body=message.body),
+                badge=message.badge,
+                sound=message.sound or "default",
+                custom=message.data or {},
+            )
+
+            # Send to each token
+            for token in tokens:
+                try:
+                    request = apns2.APNSRequest(
+                        device_token=token.token,
+                        message=payload,
+                        priority=apns2.PRIORITY_HIGH,
+                    )
+
+                    response = self.apns_client.send_notification(request)
+
+                    if response.is_successful:
+                        results[token.token] = True
+                        logger.info(
+                            f"APNS message sent successfully to token {token.token[:10]}..."
+                        )
+                    else:
+                        results[token.token] = False
+                        logger.error(
+                            f"APNS failed for token {token.token[:10]}...: {response.description}"
+                        )
+
+                except Exception as e:
+                    results[token.token] = False
+                    logger.error(
+                        f"APNS send failed for token {token.token[:10]}...: {e}"
+                    )
+
+        except Exception as e:
+            logger.error(f"APNS send failed: {e}")
+            for token in tokens:
+                results[token.token] = False
+
+        return results
+
+    async def _send_web_push(
+        self, tokens: list[PushToken], message: PushMessage
+    ) -> dict[str, bool]:
+        """Send web push notification."""
+        if not self.web_push_available:
+            return {token.token: False for token in tokens}
+
+        results = {}
+
+        try:
+            # Create web push payload
+            payload_data = {
+                "title": message.title,
+                "body": message.body,
+                "icon": message.icon,
+                "image": message.image,
+                "data": message.data or {},
+            }
+            payload = json.dumps(payload_data)
+
+            # Send to each token
+            for token in tokens:
+                try:
+                    # Parse subscription info from token
+                    subscription_info = json.loads(token.token)
+
+                    response = self.webpush_client(
+                        subscription_info=subscription_info,
+                        data=payload,
+                        vapid_private_key=self.config.vapid_private_key,
+                        vapid_claims=self.vapid_claims,
+                        ttl=message.ttl,
+                    )
+
+                    if response.status_code < 400:
+                        results[token.token] = True
+                        logger.info(
+                            f"Web push sent successfully to token {token.token[:10]}..."
+                        )
+                    else:
+                        results[token.token] = False
+                        logger.error(
+                            f"Web push failed for token {token.token[:10]}...: {response.reason}"
+                        )
+
+                except Exception as e:
+                    results[token.token] = False
+                    logger.error(
+                        f"Web push send failed for token {token.token[:10]}...: {e}"
+                    )
+
+        except Exception as e:
+            logger.error(f"Web push send failed: {e}")
+            for token in tokens:
+                results[token.token] = False
+
+        return results
+
+    async def send_bulk_notifications(
+        self, user_messages: list[tuple[int, PushMessage]]
+    ) -> dict[int, dict[str, bool]]:
+        """
+        Send push notifications to multiple users concurrently.
+
+        Args:
+            user_messages: List of (user_id, PushMessage) tuples
+
+        Returns:
+            Dict mapping user_id to token results
+        """
+        tasks = []
+        user_ids = []
+
+        for user_id, message in user_messages:
+            task = self.send_to_user(user_id, message)
+            tasks.append(task)
+            user_ids.append(user_id)
+
+        results = await asyncio.gather(*tasks, return_exceptions=False)
+
+        return dict(zip(user_ids, results, strict=False))
+
+
+# Module-level functions for backward compatibility
+async def send_push_notification(
+    push_service: PushService,
+    user_id: int,
+    title: str,
+    body: str,
+    data: dict[str, Any] | None = None,
+) -> dict[str, bool]:
+    """Send push notification (backward compatibility function)."""
+    message = PushMessage(title=title, body=body, data=data)
+    return await push_service.send_to_user(user_id, message)

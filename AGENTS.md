@@ -1,40 +1,41 @@
-# PlexiChat Development Guide
-
-## Setup
-```bash
-# Create and activate virtual environment
-python -m venv .venv
-.venv\Scripts\activate  # Windows
-# or source .venv/bin/activate  # macOS/Linux
-
-# Install dependencies
-pip install -r requirements.txt
-pip install -e .[dev,test]
-```
+# PlexiChat Agent Guide
 
 ## Commands
-- **Build**: `python -m build` or `make docs`
-- **Lint**: `ruff check src tests && pyright src` 
-- **Test**: `pytest` or `pytest tests/`
-- **Dev Server**: `uvicorn plexichat.main:app --reload --host 0.0.0.0 --port 8000`
+
+### Setup
+```bash
+python -m venv .venv                  # Create virtual environment
+.venv\Scripts\activate               # Activate virtual environment (Windows)
+pip install -e ".[dev]"             # Install with development dependencies
+```
+
+### Development
+```bash
+make docs-serve                      # Serve documentation (port 8000)
+ruff check src/ --fix               # Run linter with fixes
+black src/                          # Format code
+pytest tests/                       # Run tests
+uvicorn plexichat.main:app --reload # Run dev server
+```
 
 ## Tech Stack
-- **Backend**: FastAPI, SQLAlchemy, Redis, PostgreSQL
-- **Auth**: JWT with passlib/bcrypt  
-- **Plugins**: Custom plugin system with sandboxing
-- **Monitoring**: Prometheus, structlog
+- **Backend**: FastAPI with async/await, SQLAlchemy 2.0
+- **Database**: PostgreSQL (production), SQLite (development)
 - **Testing**: pytest with asyncio support
+- **Code Quality**: Ruff (linting), Black (formatting), MyPy (types)
 
 ## Architecture
-- `src/plexichat/core/` - Core business logic
-- `src/plexichat/infrastructure/` - External integrations
-- `src/plexichat/interfaces/` - API endpoints
-- `src/plexichat/plugins/` - Plugin system
-- `src/plexichat/features/` - Feature modules
+```
+src/plexichat/
+├── core/           # Core business logic
+├── infrastructure/ # Database, external services
+├── interfaces/     # API endpoints, CLI
+├── plugins/        # Plugin system
+└── shared/         # Shared utilities
+```
 
-## Code Style
-- Line length: 88 chars
-- Type hints required
-- Use ruff, black, isort for formatting
-- Async/await for I/O operations
-- Pydantic models for data validation
+## Conventions
+- Use `async def` for all I/O operations
+- Type hints required for all functions
+- Follow Black formatting (88 char line length)
+- Test coverage minimum 80%
