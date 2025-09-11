@@ -1,56 +1,42 @@
 # PlexiChat Development Guide
 
 ## Setup Commands
+
 ```bash
-# Create and activate virtual environment
-python -m venv .venv
-.\.venv\Scripts\activate  # Windows PowerShell
-# source .venv/bin/activate  # Linux/macOS
+# Virtual environment setup
+python -m venv .venv                    # Create virtual environment
+.venv\Scripts\activate                  # Activate (Windows)
+source .venv/bin/activate              # Activate (Unix)
 
 # Install dependencies
-pip install -r requirements.txt
-pip install -e .[dev]  # Install with dev dependencies
+pip install -r requirements.txt        # Core dependencies
+pip install -e ".[dev]"               # Development dependencies
 ```
 
 ## Development Commands
+
 ```bash
-# Build
-python -m build
+# Build & Lint
+ruff check .                          # Linting
+black .                              # Code formatting
+pyright                              # Type checking
+make lint                            # Run all linting tasks
 
-# Lint
-ruff check src/ tests/
-black --check src/ tests/
-isort --check-only src/ tests/
+# Testing
+pytest                               # Run tests
+pytest --cov                         # Run with coverage
 
-# Format
-ruff check --fix src/ tests/
-black src/ tests/
-isort src/ tests/
-
-# Tests
-pytest
-
-# Dev server
-python -m uvicorn plexichat.main:app --reload --port 8000
+# Development Server
+python run.py                        # Start full application
+python run.py --nowebui --nocli      # API server only
+uvicorn plexichat.main:app --reload  # FastAPI dev server
 ```
 
 ## Tech Stack
-- **Backend**: FastAPI with async support
-- **Database**: SQLAlchemy with AsyncPG (PostgreSQL)
-- **Authentication**: JWT with passlib/bcrypt
-- **Caching**: Redis
-- **Testing**: pytest with async support
-- **Code Quality**: ruff, black, isort, pyright
+- **Backend**: FastAPI, SQLAlchemy, Redis
+- **Database**: PostgreSQL (async via asyncpg)
+- **Testing**: pytest, pytest-asyncio, pytest-cov
+- **Code Quality**: ruff, black, pyright, pre-commit
 
 ## Architecture
-Plugin-based architecture with modular core system. Main directories:
-- `src/plexichat/core/` - Core functionality (auth, db, logging, etc.)
-- `src/plexichat/plugins/` - Plugin system
-- `src/plexichat/interfaces/` - API interfaces
-- `src/plexichat/infrastructure/` - Infrastructure components
-
-## Code Style
-- Line length: 88 characters
-- Import sorting: isort with black profile
-- Type hints required for public APIs
-- Async/await patterns for I/O operations
+Plugin-based architecture with core modules in `src/plexichat/core/` and plugins in `src/plexichat/plugins/`. Follows async patterns with FastAPI and SQLAlchemy.

@@ -7,7 +7,7 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Set
 
-from plexichat.core.authentication import DeviceInfo, Role, SessionInfo
+from plexichat.core.authentication import DeviceInfo, SessionInfo
 
 
 class IUserRepository(ABC):

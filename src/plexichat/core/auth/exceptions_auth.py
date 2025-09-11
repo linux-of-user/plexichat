@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 """
 PlexiChat Authentication Exceptions
@@ -15,7 +15,7 @@ class AuthenticationError(Exception):
         message: str,
         error_code: Optional[str] = None,
         details: Optional[Dict[str, Any]] = None,
-    ):
+    ) -> None:
         super().__init__(message)
         self.message = message
         self.error_code = error_code or "AUTH_ERROR"
@@ -30,7 +30,7 @@ class AuthorizationError(Exception):
         message: str,
         error_code: Optional[str] = None,
         required_level: Optional[str] = None,
-    ):
+    ) -> None:
         super().__init__(message)
         self.message = message
         self.error_code = error_code or "AUTHZ_ERROR"
@@ -44,8 +44,8 @@ class MFAError(Exception):
         self,
         message: str,
         error_code: Optional[str] = None,
-        available_methods: Optional[list] = None,
-    ):
+        available_methods: Optional[List[str]] = None,
+    ) -> None:
         super().__init__(message)
         self.message = message
         self.error_code = error_code or "MFA_ERROR"
@@ -60,7 +60,7 @@ class TokenError(Exception):
         message: str,
         error_code: Optional[str] = None,
         token_type: Optional[str] = None,
-    ):
+    ) -> None:
         super().__init__(message)
         self.message = message
         self.error_code = error_code or "TOKEN_ERROR"
@@ -75,7 +75,7 @@ class SessionError(Exception):
         message: str,
         error_code: Optional[str] = None,
         session_id: Optional[str] = None,
-    ):
+    ) -> None:
         super().__init__(message)
         self.message = message
         self.error_code = error_code or "SESSION_ERROR"
@@ -90,7 +90,7 @@ class PasswordError(Exception):
         message: str,
         error_code: Optional[str] = None,
         requirements: Optional[Dict[str, Any]] = None,
-    ):
+    ) -> None:
         super().__init__(message)
         self.message = message
         self.error_code = error_code or "PASSWORD_ERROR"
@@ -105,7 +105,7 @@ class BiometricError(Exception):
         message: str,
         error_code: Optional[str] = None,
         biometric_type: Optional[str] = None,
-    ):
+    ) -> None:
         super().__init__(message)
         self.message = message
         self.error_code = error_code or "BIOMETRIC_ERROR"
@@ -120,7 +120,7 @@ class DeviceError(Exception):
         message: str,
         error_code: Optional[str] = None,
         device_id: Optional[str] = None,
-    ):
+    ) -> None:
         super().__init__(message)
         self.message = message
         self.error_code = error_code or "DEVICE_ERROR"
@@ -135,7 +135,7 @@ class OAuthError(Exception):
         message: str,
         error_code: Optional[str] = None,
         provider: Optional[str] = None,
-    ):
+    ) -> None:
         super().__init__(message)
         self.message = message
         self.error_code = error_code or "OAUTH_ERROR"
@@ -150,7 +150,7 @@ class RateLimitError(Exception):
         message: str,
         error_code: Optional[str] = None,
         retry_after: Optional[int] = None,
-    ):
+    ) -> None:
         super().__init__(message)
         self.message = message
         self.error_code = error_code or "RATE_LIMIT_ERROR"
@@ -165,7 +165,7 @@ class AccountLockError(Exception):
         message: str,
         error_code: Optional[str] = None,
         locked_until: Optional[str] = None,
-    ):
+    ) -> None:
         super().__init__(message)
         self.message = message
         self.error_code = error_code or "ACCOUNT_LOCKED"

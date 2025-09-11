@@ -31,7 +31,7 @@ class PermissionError(Exception):
     pass
 
 
-def check_permission(required_permission: str, user_permissions: Set[str]):
+def check_permission(required_permission: str, user_permissions: Set[str]) -> None:
     """
     Checks if a user has the required permission.
     Raises PermissionError if the check fails.
