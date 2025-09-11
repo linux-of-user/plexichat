@@ -1,42 +1,55 @@
-# PlexiChat Agent Guide
+# PlexiChat Development Guide
 
 ## Setup Commands
+
 ```bash
-# Create and activate virtual environment
-python -m venv venv
-# Windows: venv\Scripts\activate
-# Linux/Mac: source venv/bin/activate
+# Create and activate virtual environment (.venv preferred based on .gitignore)
+python -m venv .venv
+# Activate: .venv\Scripts\activate (Windows) or source .venv/bin/activate (Unix)
 
 # Install dependencies
-pip install -r requirements.txt
-pip install -e ".[dev]"  # For development dependencies
+pip install -e .                    # Install project in editable mode  
+pip install -e ".[dev]"            # Install with dev dependencies
+# Alternative: python run.py setup --level developer
 ```
 
-## Build & Development
+## Build & Quality Commands
+
 ```bash
-python -m build           # Build package
-make docs                 # Build documentation
-python run.py             # Run application (API server, WebUI, CLI)
-python run.py --nowebui   # API server only
+# Build documentation
+make docs
+
+# Linting
+ruff check src tests               # Fast Python linter
+black --check src tests           # Code formatting check
+isort --check-only src tests      # Import sorting check
+
+# Type checking
+pyright                           # Static type analysis
+
+# Testing  
+pytest                           # Run all tests
+pytest --cov=src/plexichat       # With coverage
 ```
 
-## Quality Checks
+## Development Server
+
 ```bash
-ruff check src/           # Lint code
-black src/                # Format code
-mypy src/                 # Type checking
-pytest                    # Run tests
-pytest -m "not slow"      # Run tests excluding slow ones
+python run.py                    # Start all services (API, WebUI, CLI)
+python run.py --nowebui --nocli  # API server only
+uvicorn plexichat.main:app --reload  # Alternative FastAPI dev server
 ```
 
-## Tech Stack
-- **Backend**: FastAPI + Pydantic + SQLAlchemy + Redis
-- **Architecture**: Plugin-based modular system with core/features/infrastructure layers
-- **Database**: PostgreSQL with async support (asyncpg)
-- **Security**: Distributed key management, JWT auth, passlib for hashing
+## Tech Stack & Architecture
+
+- **Backend**: FastAPI + SQLAlchemy + Alembic + Redis + AsyncPG
+- **Structure**: Clean architecture with core/features/infrastructure/plugins
+- **Security**: Distributed key management, JWT auth, bcrypt passwords
+- **Database**: PostgreSQL with async support
+- **Monitoring**: Prometheus metrics, structured logging (structlog)
 
 ## Code Style
-- Line length: 88 characters (Black)
-- Type hints required (`mypy --strict`)
-- Imports organized with isort
-- Follow existing patterns in `src/plexichat/` structure
+
+- **Format**: Black (88 chars), isort for imports
+- **Quality**: Ruff linter, Pyright type checker  
+- **Standards**: Python 3.11+, async/await patterns, Pydantic models

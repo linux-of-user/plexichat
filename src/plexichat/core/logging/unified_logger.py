@@ -129,25 +129,43 @@ def get_handler_factory(
     return handler
 
 
-def get_logger(name: str = "plexichat", level: str = "INFO") -> logging.Logger:
-    """Get configured logger with sanitization."""
+class EnhancedLogger:
+    """Enhanced logger with security, audit, and other specialized methods."""
+    
+    def __init__(self, logger: logging.Logger):
+        self._logger = logger
+    
+    def __getattr__(self, name):
+        # Delegate all standard logging methods to the underlying logger
+        return getattr(self._logger, name)
+    
+    def security(self, message: str, *args, **kwargs):
+        """Log security-related messages."""
+        self._logger.warning(f"[SECURITY] {message}", *args, **kwargs)
+    
+    def audit(self, message: str, *args, **kwargs):
+        """Log audit-related messages."""  
+        self._logger.info(f"[AUDIT] {message}", *args, **kwargs)
+
+
+def get_logger(name: str = "plexichat", level: str = "INFO") -> EnhancedLogger:
+    """Get configured logger with sanitization and enhanced methods."""
     logger = logging.getLogger(name)
-    if logger.handlers:  # Avoid duplicate handlers
-        return logger
-    logger.setLevel(getattr(logging, level.upper()))
+    if not logger.handlers:  # Avoid duplicate handlers
+        logger.setLevel(getattr(logging, level.upper()))
 
-    # Default to structured file + colored console
-    handlers = get_handler_factory(
-        level=level, format_type="structured", sanitize_func=sanitize_for_logging
-    )
-    if isinstance(handlers, list):
-        for h in handlers:
-            logger.addHandler(h)
-    else:
-        logger.addHandler(handlers)
+        # Default to structured file + colored console
+        handlers = get_handler_factory(
+            level=level, format_type="structured", sanitize_func=sanitize_for_logging
+        )
+        if isinstance(handlers, list):
+            for h in handlers:
+                logger.addHandler(h)
+        else:
+            logger.addHandler(handlers)
 
-    # For plugins, extensible: e.g., logger.addHandler(get_handler_factory(plugin_mode='analytics'))
-    return logger
+    # Return enhanced logger wrapper
+    return EnhancedLogger(logger)
 
 
 # Make utilities available at module level
@@ -160,10 +178,11 @@ __all__ = [
     "get_handler_factory",
     "LogCategory",
     "DEFAULT_PII_PATTERNS",
+    "EnhancedLogger",
 ]
 
 
-def get_logging_manager(name: str = "plexichat", level: str = "INFO") -> logging.Logger:
+def get_logging_manager(name: str = "plexichat", level: str = "INFO") -> EnhancedLogger:
     """
     Get the unified logging manager instance for the application.
     Returns a configured logger with sanitization and handlers.
