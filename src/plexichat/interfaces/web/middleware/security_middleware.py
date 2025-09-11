@@ -7,7 +7,7 @@ import ipaddress
 import re
 import time
 from datetime import datetime, timezone
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Awaitable, Callable
 from concurrent.futures import ThreadPoolExecutor
 import asyncio
 
@@ -38,7 +38,7 @@ class SecurityLevel:
     ADMIN = 5
 
 class SecurityMiddleware(BaseHTTPMiddleware):
-    def __init__(self, app, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, app: Any, config: Optional[Dict[str, Any]] = None) -> None:
         super().__init__(app)
         self.config = config or get_config().get("security_middleware", {})
         self.enabled = self.config.get("enabled", True)
@@ -103,7 +103,7 @@ class SecurityMiddleware(BaseHTTPMiddleware):
         }
         logger.info("Security Middleware initialized")
 
-    async def dispatch(self, request: Request, call_next):
+    async def dispatch(self, request: Request, call_next: Callable[..., Awaitable[Response]]) -> Response:
         if not self.enabled:
             return await call_next(request)
         self.stats['total_requests'] += 1

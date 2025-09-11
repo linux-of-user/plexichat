@@ -7,7 +7,7 @@ import asyncio
 import json
 import time
 from datetime import datetime, timezone
-from typing import Any, Dict, Optional, Callable, Tuple
+from typing import Any, Dict, Optional, Callable, Tuple, Awaitable
 from dataclasses import dataclass
 from fastapi import Request, HTTPException, status
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -42,7 +42,7 @@ class PerformanceMetrics:
 
 class EnhancedSecurityMiddleware(BaseHTTPMiddleware):
     """Enhanced security middleware with comprehensive protection."""
-    def __init__(self, app, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, app: Any, config: Optional[Dict[str, Any]] = None) -> None:
         super().__init__(app)
         self.config = config or {}
         self.enabled = self.config.get("enabled", True)

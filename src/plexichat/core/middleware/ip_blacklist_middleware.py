@@ -13,7 +13,7 @@ import time
 from collections import defaultdict, deque
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import Any, Callable, Dict, List, Optional, Set
+from typing import Any, Callable, Dict, List, Optional, Set, Awaitable
 
 from fastapi import HTTPException, Request, Response
 from fastapi.responses import JSONResponse
@@ -68,7 +68,7 @@ class RequestPattern:
 class IPBlacklistMiddleware(BaseHTTPMiddleware):
     """Comprehensive IP blacklist and threat detection middleware."""
 
-    def __init__(self, app):
+    def __init__(self, app: Any) -> None:
         super().__init__(app)
 
         # Configuration
@@ -170,7 +170,7 @@ class IPBlacklistMiddleware(BaseHTTPMiddleware):
         if self.config:
             self.config.save_config()
 
-    async def dispatch(self, request: Request, call_next: Callable) -> Response:
+    async def dispatch(self, request: Request, call_next: Callable[..., Awaitable[Response]]) -> Response:
         """Main middleware dispatch method."""
         if not self.enabled:
             return await call_next(request)
@@ -594,7 +594,7 @@ class IPBlacklistMiddleware(BaseHTTPMiddleware):
 
 
 # Utility function to add middleware to FastAPI app
-def add_ip_blacklist_middleware(app):
+def add_ip_blacklist_middleware(app: Any) -> None:
     """Add IP blacklist middleware to FastAPI app."""
     app.add_middleware(IPBlacklistMiddleware)
     logger.info("IP blacklist middleware added to FastAPI app")

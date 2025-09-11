@@ -10,7 +10,7 @@ import logging
 import time
 from collections import defaultdict, deque
 from datetime import datetime, timedelta
-from typing import Dict, Optional
+from typing import Dict, Optional, Any, Callable, Awaitable
 
 from fastapi import HTTPException, Request
 from fastapi.responses import JSONResponse
@@ -37,7 +37,7 @@ class RateLimitConfig:
 class SlidingWindowRateLimiter:
     """Sliding window rate limiter implementation."""
 
-    def __init__(self, config: RateLimitConfig):
+    def __init__(self, config: RateLimitConfig) -> None:
         self.config = config
         self.requests: Dict[str, deque] = defaultdict(deque)
         self.blocked_ips: Dict[str, float] = {}

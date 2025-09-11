@@ -9,6 +9,7 @@ import logging
 import time
 import uuid
 from contextlib import asynccontextmanager
+from typing import Callable, Awaitable
 try:
     from fastapi import FastAPI, Request, HTTPException
     from fastapi.middleware.cors import CORSMiddleware
@@ -165,7 +166,7 @@ else:
     app = None
 
 # Middleware for performance tracking
-async def performance_middleware(request: Request, call_next):
+async def performance_middleware(request: Request, call_next: Callable[[Request], Awaitable[JSONResponse]]) -> JSONResponse:
     """Performance tracking middleware."""
     start_time = time.time()
 
@@ -196,7 +197,7 @@ async def performance_middleware(request: Request, call_next):
     return response
 
 # Comprehensive logging middleware
-async def logging_middleware(request: Request, call_next):
+async def logging_middleware(request: Request, call_next: Callable[[Request], Awaitable[JSONResponse]]) -> JSONResponse:
     """Comprehensive request/response logging middleware with correlation ID tracking."""
     # Generate correlation ID
     correlation_id = str(uuid.uuid4())
