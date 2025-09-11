@@ -12,13 +12,14 @@ import time
 import unicodedata
 import uuid
 from contextlib import contextmanager
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import (
     Any,
     Callable,
     Dict,
     Iterable,
+    Iterator,
     List,
     Optional,
     Sequence,
@@ -280,7 +281,7 @@ class HashUtils:
     def hash_password(password: str) -> str:
         """Hash a password with salt."""
         try:
-            import bcrypt  # type: ignore
+            import bcrypt
 
             return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode(
                 "utf-8"
@@ -300,7 +301,7 @@ class HashUtils:
                     hashlib.sha256((salt + password).encode()).hexdigest() == hash_value
                 )
             else:
-                import bcrypt  # type: ignore
+                import bcrypt
 
                 return bcrypt.checkpw(password.encode("utf-8"), hashed.encode("utf-8"))
         except Exception:
@@ -494,7 +495,7 @@ def format_error(exc: Exception, include_type: bool = False) -> Dict[str, Any]:
 
 # Simple timing utilities for performance logging
 @contextmanager
-def timed_operation(name: str, level: int = logging.DEBUG):
+def timed_operation(name: str, level: int = logging.DEBUG) -> Iterator[None]:
     """Context manager to time an operation and log its duration."""
     start = time.perf_counter()
     try:
@@ -534,7 +535,7 @@ def safe_cast(
 ) -> Optional[T]:
     """Attempt to cast value to target type, return default on failure."""
     try:
-        return to_type(value)  # type: ignore
+        return to_type(value)
     except Exception:
         return default
 

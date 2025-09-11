@@ -4,16 +4,16 @@ Provides local implementations when shared/distributed systems are unavailable.
 """
 
 import logging
-from typing import Any, Dict, Optional
-from datetime import datetime
+from typing import Any, Callable, Dict, List, Optional
+
 
 logger = logging.getLogger(__name__)
 
 class FallbackManager:
     """Manages fallback implementations for core systems."""
     
-    def __init__(self):
-        self.fallbacks = {
+    def __init__(self) -> None:
+        self.fallbacks: Dict[str, Callable[..., Any]] = {
             "database": self._db_fallback,
             "security": self._security_fallback,
             "caching": self._cache_fallback,
@@ -26,15 +26,15 @@ class FallbackManager:
             "migrations": self._migrations_fallback,
         }
     
-    def get_fallback(self, system: str) -> callable:
+    def get_fallback(self, system: str) -> Callable[..., Any]:
         """Get fallback implementation for a system."""
-        return self.fallbacks.get(system, lambda: None)
+        return self.fallbacks.get(system, lambda *args, **kwargs: None)
     
-    def _db_fallback(self, operation: str, **kwargs) -> Any:
+    def _db_fallback(self, operation: str, **kwargs: Any) -> Any:
         logger.warning(f"Database fallback: {operation} not available")
         return None
     
-    def _security_fallback(self, action: str, **kwargs) -> bool:
+    def _security_fallback(self, action: str, **kwargs: Any) -> bool:
         logger.warning(f"Security fallback: {action} using local check")
         return True  # Allow in fallback mode
     
@@ -43,7 +43,7 @@ class FallbackManager:
         if value is not None:
             # Simple in-memory cache simulation
             if not hasattr(self, '_mem_cache'):
-                self._mem_cache = {}
+                self._mem_cache: Dict[str, Any] = {}
             self._mem_cache[key] = value
             return value
         return getattr(self, '_mem_cache', {}).get(key)
@@ -51,11 +51,11 @@ class FallbackManager:
     def _monitoring_fallback(self, metric: str, value: Any) -> None:
         logger.info(f"Monitoring fallback: {metric} = {value}")
     
-    def _notifications_fallback(self, message: str, recipients: list) -> bool:
+    def _notifications_fallback(self, message: str, recipients: List[str]) -> bool:
         logger.info(f"Notification fallback: {message} to {len(recipients)} recipients")
         return True
     
-    def _messaging_fallback(self, message: Dict, queue: str) -> bool:
+    def _messaging_fallback(self, message: Dict[str, Any], queue: str) -> bool:
         logger.info(f"Messaging fallback: queued {message} to {queue}")
         return True
     
@@ -66,7 +66,7 @@ class FallbackManager:
     def _performance_fallback(self, metric: str, duration: float) -> None:
         logger.debug(f"Performance fallback: {metric} took {duration}ms")
     
-    def _errors_fallback(self, error: Exception, context: Dict) -> str:
+    def _errors_fallback(self, error: Exception, context: Dict[str, Any]) -> str:
         error_msg = f"Fallback error handling: {str(error)}"
         logger.error(error_msg, extra=context)
         return error_msg
@@ -82,7 +82,7 @@ def get_fallback_manager() -> FallbackManager:
     """Get the global fallback manager."""
     return fallback_manager
 
-def apply_fallback(system: str, *args, **kwargs) -> Any:
+def apply_fallback(system: str, *args: Any, **kwargs: Any) -> Any:
     """Apply fallback for a system."""
     manager = get_fallback_manager()
     fallback = manager.get_fallback(system)
