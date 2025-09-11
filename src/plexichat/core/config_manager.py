@@ -854,7 +854,12 @@ class UnifiedConfigManager:
         # Add more checks as needed...
 
         if errors:
-            raise ValueError("Configuration validation errors: " + "; ".join(errors))
+            from plexichat.core.exceptions import ConfigurationError, ErrorCode
+            raise ConfigurationError(
+                "Configuration validation failed",
+                ErrorCode.CONFIG_VALIDATION_FAILED,
+                details={"validation_errors": errors}
+            )
 
     def _validate_single_key(self, dotted_key: str, value: Any) -> None:
         """Validate a single key based on simple rules."""
@@ -868,10 +873,10 @@ class UnifiedConfigManager:
         # Example per-key validations
         if dotted_key == "network.port":
             if not (1 <= int(value) <= 65535):
-                raise ValueError("network.port must be between 1 and 65535")
+                from plexichat.core.exceptions import ConfigurationError, ErrorCode`n                raise ConfigurationError(`n                    "Network port must be between 1 and 65535",`n                    ErrorCode.CONFIG_VALIDATION_FAILED,`n                    config_key="network.port"`n                )
         if dotted_key == "plugin_security.max_cpu_seconds":
             if float(value) <= 0:
-                raise ValueError("plugin_security.max_cpu_seconds must be > 0")
+                from plexichat.core.exceptions import ConfigurationError, ErrorCode`n                raise ConfigurationError(`n                    "Plugin security max CPU seconds must be greater than 0",`n                    ErrorCode.CONFIG_VALIDATION_FAILED,`n                    config_key="plugin_security.max_cpu_seconds"`n                )
 
     # ----------------------
     # Hot reload support

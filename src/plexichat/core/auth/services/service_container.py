@@ -82,7 +82,7 @@ class AuthServiceContainer:
                     self._singletons[interface] = instance
                 return instance
 
-            raise ValueError(f"No registration found for service: {interface.__name__}")
+            from plexichat.core.exceptions import SystemError, ErrorCode`n            raise SystemError(`n                f"No registration found for service: {interface.__name__}",`n                ErrorCode.SYSTEM_INTERNAL_ERROR,`n                component="service_container",`n                resource_type="service_registration",`n                resource_id=interface.__name__`n            )
 
     async def _create_instance_with_factory(self, interface: Type[T]) -> T:
         """Create instance using factory function."""

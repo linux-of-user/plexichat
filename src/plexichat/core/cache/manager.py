@@ -270,7 +270,7 @@ class QuantumSecureCache:
         if enc == "none":
             return encrypted_data
         if enc != "aes-gcm":
-            raise ValueError(f"Unsupported encryption type: {enc}")
+            from plexichat.core.exceptions import ValidationError, ErrorCode`n            raise ValidationError(`n                f"Unsupported encryption type: {enc}",`n                ErrorCode.VALIDATION_INVALID_FORMAT,`n                field="encryption_type",`n                value=enc`n            )
         key = self.encryption_cache_keys.get(security_level.name)
         if not key:
             raise ValueError(
@@ -278,7 +278,7 @@ class QuantumSecureCache:
             )
         nonce_hex = metadata.get("nonce")
         if not nonce_hex:
-            raise ValueError("Missing nonce in cache metadata")
+            from plexichat.core.exceptions import ValidationError, ErrorCode`n            raise ValidationError(`n                "Missing nonce in cache metadata",`n                ErrorCode.VALIDATION_REQUIRED_FIELD,`n                field="nonce"`n            )
         nonce = bytes.fromhex(nonce_hex)
         aead = AESGCM(key)
         return aead.decrypt(

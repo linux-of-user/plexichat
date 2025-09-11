@@ -476,7 +476,7 @@ async def lifespan(app: FastAPI):
                             stats = rl.get_stats()
                             # Basic sanity: keys exist
                             if not isinstance(stats, dict):
-                                raise RuntimeError("invalid stats")
+                                from plexichat.core.exceptions import SystemError, ErrorCode`n                                raise SystemError(`n                                    "Rate limiter returned invalid stats format",`n                                    ErrorCode.SYSTEM_INTERNAL_ERROR,`n                                    component="rate_limiter",`n                                    resource_type="stats"`n                                )
                             _register_success('rate_limiter')
                             metrics["modules"]["rate_limiter"] = {"status": "ok", **stats}
                         except Exception as e:
@@ -520,7 +520,7 @@ async def lifespan(app: FastAPI):
                                 logger.warning(f"[SUPERVISOR] WebSocket health check failed: {check_e}")
                                 hc_ok = False
                             if not hc_ok:
-                                raise RuntimeError("websocket manager failed health check")
+                                from plexichat.core.exceptions import SystemError, ErrorCode`n                                  raise SystemError(`n                                      "WebSocket manager failed health check",`n                                      ErrorCode.SYSTEM_INTERNAL_ERROR,`n                                      component="websocket_manager"`n                                  )
                             _register_success('websocket')
                             metrics["modules"]["websocket"] = {"status": "ok", "connections": conn_count}
                         except Exception as e:
@@ -546,11 +546,11 @@ async def lifespan(app: FastAPI):
                             
                             # More robust health check from the now-deleted check_plugin_health function
                             if not hasattr(pm, 'loaded_plugins') or len(pm.loaded_plugins) == 0:
-                                raise ValueError("No loaded plugins found")
+                                from plexichat.core.exceptions import PluginError, ErrorCode`n                                raise PluginError(`n                                    "No loaded plugins found",`n                                    ErrorCode.PLUGIN_NOT_FOUND`n                                )
                             
                             info = pm.get_all_plugins_info()
                             if not info:
-                                raise ValueError("Plugin info is empty")
+                                from plexichat.core.exceptions import PluginError, ErrorCode`n                                raise PluginError(`n                                    "Plugin info is empty",`n                                    ErrorCode.PLUGIN_CONFIG_INVALID`n                                )
 
                             loaded_count = len(pm.loaded_plugins)
                             _register_success('plugins')

@@ -1,54 +1,49 @@
-# PlexiChat Development Guide
-
-## Initial Setup
-```bash
-python -m venv .venv
-.venv\Scripts\activate  # Windows
-source .venv/bin/activate  # Linux/Mac
-pip install -e ".[dev,test]"
-```
+# PlexiChat - Agent Development Guide
 
 ## Commands
 
-### Build
+### Initial Setup
 ```bash
-python -m build
+python -m venv venv                    # Create virtual environment
+source venv/bin/activate               # Activate (Linux/Mac)
+# OR venv\Scripts\activate             # Activate (Windows)
+pip install -e .                      # Install package in editable mode
+pip install -e .[dev,test]             # Install with dev/test dependencies
 ```
 
-### Lint
+### Build & Test
 ```bash
-ruff check src tests
-black --check src tests
-pyright src
+make docs                              # Build documentation
+make docs-serve                       # Serve docs locally (port 8000)
+python -m pytest                      # Run tests
+python -m pytest --cov=src/plexichat  # Run tests with coverage
+ruff check src/                       # Run linter
+black src/                            # Format code
 ```
 
-### Tests
+### Development Server
 ```bash
-pytest
+python run.py                         # Start full stack (API + WebUI + CLI)
+python run.py --nowebui --nocli       # API server only
+python run.py --noserver --nocli      # WebUI only
 ```
 
-### Dev Server
-```bash
-python run.py
-```
+## Tech Stack & Architecture
 
-## Tech Stack
-- **Framework**: FastAPI with async/await
-- **Database**: SQLAlchemy with asyncpg (PostgreSQL)
-- **Plugin System**: Dynamic plugin loading with sandboxing
-- **Authentication**: JWT with passlib/bcrypt
-- **Monitoring**: Prometheus metrics, structured logging
+**Backend**: FastAPI, SQLAlchemy, Alembic, Redis, asyncpg  
+**Frontend**: WebUI components (details in `/interfaces`)  
+**Database**: PostgreSQL with Redis caching  
+**Security**: Cryptography, PassLib, python-jose  
+**Monitoring**: Prometheus, structlog  
 
-## Architecture
-- `src/plexichat/core/` - Core business logic and domain models
-- `src/plexichat/infrastructure/` - External dependencies (database, cache, etc.)
-- `src/plexichat/interfaces/` - API endpoints and external interfaces
-- `src/plexichat/plugins/` - Plugin system and built-in plugins
-- `src/plexichat/features/` - Feature modules
-- `src/plexichat/shared/` - Shared utilities and common code
+**Structure**: Clean architecture with `/src/plexichat` containing `core/`, `features/`, `infrastructure/`, `interfaces/`, and `plugins/`
 
 ## Code Style
-- Line length: 88 characters
-- Type hints required for all public APIs
-- Use async/await for I/O operations
-- Follow existing naming conventions (snake_case)
+
+- **Python 3.11+** required
+- **Black** formatter (88 char line length)
+- **Ruff** linter with comprehensive rules
+- **Type hints** required (pyright/mypy)
+- **Async/await** patterns preferred
+- Import order: stdlib, third-party, first-party
+
