@@ -25,6 +25,9 @@ COPY . .
 # Build Cython extensions
 RUN make cythonize
 
+# Run static analysis checks
+RUN make install-pre-commit && make static-check
+
 # Stage 3: Production stage
 FROM base as prod
 
