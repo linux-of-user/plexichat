@@ -11,6 +11,7 @@ Comprehensive monitoring and analytics system providing:
 
 # Use shared fallback implementations
 import logging
+from typing import Any, Dict, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -42,52 +43,52 @@ else:
     # Local fallbacks (preserved for compatibility)
     performance_monitor = None
 
-    def start_performance_monitoring():  # type: ignore
+    def start_performance_monitoring() -> None:
         pass
 
-    def stop_performance_monitoring():  # type: ignore
+    def stop_performance_monitoring() -> None:
         pass
 
-    def get_performance_dashboard():  # type: ignore
+    def get_performance_dashboard() -> dict[str, Any]:
         return {}
 
-    def get_system_health_status():  # type: ignore
+    def get_system_health_status() -> dict[str, Any]:
         return {}
 
-    def record_performance_metric(*args, **kwargs):  # type: ignore
+    def record_performance_metric(*args: Any, **kwargs: Any) -> None:
         pass
 
-    class MetricType:  # type: ignore
+    class MetricType:
         pass
 
-    class AlertLevel:  # type: ignore
+    class AlertLevel:
         pass
 
-    class PerformanceMetric:  # type: ignore
-        def __init__(self, **kwargs):
+    class PerformanceMetric:
+        def __init__(self, **kwargs: Any) -> None:
             self.__dict__.update(kwargs)
 
-    class SystemHealthStatus:  # type: ignore
-        def __init__(self, **kwargs):
+    class SystemHealthStatus:
+        def __init__(self, **kwargs: Any) -> None:
             self.__dict__.update(kwargs)
 
-    class PerformanceAlert:  # type: ignore
-        def __init__(self, **kwargs):
+    class PerformanceAlert:
+        def __init__(self, **kwargs: Any) -> None:
             self.__dict__.update(kwargs)
 
 
 __all__ = [
-    "performance_monitor",
-    "start_performance_monitoring",
-    "stop_performance_monitoring",
-    "get_performance_dashboard",
-    "get_system_health_status",
-    "record_performance_metric",
-    "MetricType",
     "AlertLevel",
+    "MetricType",
+    "PerformanceAlert",
     "PerformanceMetric",
     "SystemHealthStatus",
-    "PerformanceAlert",
+    "get_performance_dashboard",
+    "get_system_health_status",
+    "performance_monitor",
+    "record_performance_metric",
+    "start_performance_monitoring",
+    "stop_performance_monitoring",
 ]
 
 from plexichat.core.utils.fallbacks import get_module_version

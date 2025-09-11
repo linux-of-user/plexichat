@@ -21,17 +21,17 @@ Features:
 """
 
 import asyncio
+from collections import deque
+from dataclasses import dataclass, field
+from datetime import UTC, datetime, timedelta
+from enum import Enum
 import gzip
 import hashlib
 import json
 import logging
 import pickle
 import time
-from collections import defaultdict, deque
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
-from enum import Enum
-from typing import Any, Dict, List, Optional, Set, Tuple, Union
+from typing import Any
 
 # Security integration
 try:
@@ -127,14 +127,14 @@ class CacheEntry:
     key: str
     value: Any
     tier: CacheTier
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    expires_at: Optional[datetime] = None
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    expires_at: datetime | None = None
     access_count: int = 0
-    last_accessed: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    last_accessed: datetime = field(default_factory=lambda: datetime.now(UTC))
     size_bytes: int = 0
     compressed: bool = False
     encrypted: bool = False
-    checksum: Optional[str] = None
+    checksum: str | None = None
 
 
 @dataclass
@@ -166,8 +166,8 @@ class CacheConfig:
     enable_checksums: bool = True
     cache_strategy: CacheStrategy = CacheStrategy.WRITE_THROUGH
     redis_url: str = "redis://localhost:6379"
-    memcached_servers: List[str] = field(default_factory=lambda: ["localhost:11211"])
-    cdn_endpoints: List[str] = field(default_factory=list)
+    memcached_servers: list[str] = field(default_factory=lambda: ["localhost:11211"])
+    cdn_endpoints: list[str] = field(default_factory=list)
 
 
 class CacheSerializer:
@@ -221,24 +221,24 @@ class L1MemoryCache:
 
     def __init__(self, max_size: int = 1000):
         self.max_size = max_size
-        self.cache: Dict[str, CacheEntry] = {}
+        self.cache: dict[str, CacheEntry] = {}
         self.access_order: deque = deque()
         self.stats = CacheStats(CacheTier.L1_MEMORY)
 
-    async def get(self, key: str) -> Optional[CacheEntry]:
+    async def get(self, key: str) -> CacheEntry | None:
         """Get entry from L1 cache."""
         if key in self.cache:
             entry = self.cache[key]
 
             # Check expiration
-            if entry.expires_at and datetime.now(timezone.utc) > entry.expires_at:
+            if entry.expires_at and datetime.now(UTC) > entry.expires_at:
                 await self.delete(key)
                 self.stats.misses += 1
                 return None
 
             # Update access info
             entry.access_count += 1
-            entry.last_accessed = datetime.now(timezone.utc)
+            entry.last_accessed = datetime.now(UTC)
 
             # Move to end of access order (LRU)
             if key in self.access_order:
@@ -310,7 +310,7 @@ class L2RedisCache:
 
     def __init__(self, redis_url: str = "redis://localhost:6379"):
         self.redis_url = redis_url
-        self.redis_client: Optional[Any] = None
+        self.redis_client: Any | None = None
         self.stats = CacheStats(CacheTier.L2_REDIS)
         self.serializer = CacheSerializer()
 
@@ -325,7 +325,7 @@ class L2RedisCache:
                 logger.error(f"Redis connection error: {e}")
                 self.redis_client = None
 
-    async def get(self, key: str) -> Optional[CacheEntry]:
+    async def get(self, key: str) -> CacheEntry | None:
         """Get entry from Redis cache."""
         if not self.redis_client:
             self.stats.misses += 1
@@ -341,7 +341,7 @@ class L2RedisCache:
                     # Check expiration
                     if (
                         entry.expires_at
-                        and datetime.now(timezone.utc) > entry.expires_at
+                        and datetime.now(UTC) > entry.expires_at
                     ):
                         await self.delete(key)
                         self.stats.misses += 1
@@ -431,7 +431,7 @@ class MultiTierCacheManager:
     - Messaging system integration
     """
 
-    def __init__(self, config: Optional[CacheConfig] = None):
+    def __init__(self, config: CacheConfig | None = None):
         self.config = config or CacheConfig()
 
         # Initialize cache tiers
@@ -474,7 +474,7 @@ class MultiTierCacheManager:
         }
 
         # Background tasks
-        self.cleanup_task: Optional[asyncio.Task] = None
+        self.cleanup_task: asyncio.Task | None = None
         self.is_running = False
 
         logger.info("Multi-Tier Cache Manager initialized with watertight security")
@@ -516,8 +516,8 @@ class MultiTierCacheManager:
             logger.error(f"Cache manager initialization error: {e}")
 
     async def get(
-        self, key: str, user_context: Optional[Dict[str, Any]] = None
-    ) -> Optional[Any]:
+        self, key: str, user_context: dict[str, Any] | None = None
+    ) -> Any | None:
         """
         Get value from cache with security validation and tier optimization.
 
@@ -571,8 +571,8 @@ class MultiTierCacheManager:
         self,
         key: str,
         value: Any,
-        ttl_seconds: Optional[int] = None,
-        user_context: Optional[Dict[str, Any]] = None,
+        ttl_seconds: int | None = None,
+        user_context: dict[str, Any] | None = None,
     ) -> bool:
         """
         Set value in cache with security validation and tier distribution.
@@ -614,7 +614,7 @@ class MultiTierCacheManager:
             # Create cache entry
             expires_at = None
             if ttl_seconds:
-                expires_at = datetime.now(timezone.utc) + timedelta(seconds=ttl_seconds)
+                expires_at = datetime.now(UTC) + timedelta(seconds=ttl_seconds)
 
             entry = CacheEntry(
                 key=key,
@@ -650,7 +650,7 @@ class MultiTierCacheManager:
             return False
 
     async def delete(
-        self, key: str, user_context: Optional[Dict[str, Any]] = None
+        self, key: str, user_context: dict[str, Any] | None = None
     ) -> bool:
         """Delete key from all cache tiers."""
         try:
@@ -673,7 +673,7 @@ class MultiTierCacheManager:
             logger.error(f"Cache delete error for key {key}: {e}")
             return False
 
-    async def clear_all(self, user_context: Optional[Dict[str, Any]] = None) -> bool:
+    async def clear_all(self, user_context: dict[str, Any] | None = None) -> bool:
         """Clear all cache tiers."""
         try:
             # Security validation (admin only)
@@ -714,7 +714,7 @@ class MultiTierCacheManager:
                 logger.error(f"Cleanup loop error: {e}")
                 await asyncio.sleep(60)
 
-    def get_cache_stats(self) -> Dict[str, Any]:
+    def get_cache_stats(self) -> dict[str, Any]:
         """Get comprehensive cache statistics."""
         hit_ratio = 0.0
         total_requests = (
@@ -766,7 +766,7 @@ class MultiTierCacheManager:
 
 
 # Global cache manager instance
-_global_cache_manager: Optional[MultiTierCacheManager] = None
+_global_cache_manager: MultiTierCacheManager | None = None
 
 
 def get_cache_manager() -> MultiTierCacheManager:
@@ -778,7 +778,7 @@ def get_cache_manager() -> MultiTierCacheManager:
 
 
 async def initialize_cache_manager(
-    config: Optional[CacheConfig] = None,
+    config: CacheConfig | None = None,
 ) -> MultiTierCacheManager:
     """Initialize the global cache manager."""
     global _global_cache_manager
@@ -796,16 +796,16 @@ async def shutdown_cache_manager() -> None:
 
 
 __all__ = [
-    "MultiTierCacheManager",
-    "CacheEntry",
-    "CacheStats",
     "CacheConfig",
-    "CacheTier",
-    "CacheStrategy",
-    "CompressionType",
+    "CacheEntry",
     "CacheSerializer",
+    "CacheStats",
+    "CacheStrategy",
+    "CacheTier",
+    "CompressionType",
     "L1MemoryCache",
     "L2RedisCache",
+    "MultiTierCacheManager",
     "get_cache_manager",
     "initialize_cache_manager",
     "shutdown_cache_manager",

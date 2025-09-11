@@ -4,14 +4,15 @@
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
 import asyncio
+from collections.abc import Callable
+from dataclasses import dataclass
+from datetime import UTC, datetime, timedelta
+from enum import Enum
 import json
 import logging
 import time
+from typing import Any
 import uuid
-from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
-from enum import Enum
-from typing import Any, Callable, Dict, List, Optional
 
 import aio_pika
 
@@ -89,16 +90,16 @@ class Message:
     id: str
     topic: str
     payload: Any
-    headers: Dict[str, Any]
+    headers: dict[str, Any]
     priority: MessagePriority = MessagePriority.NORMAL
-    created_at: Optional[datetime] = None
-    expires_at: Optional[datetime] = None
+    created_at: datetime | None = None
+    expires_at: datetime | None = None
     retry_count: int = 0
     max_retries: int = 3
 
     def __post_init__(self):
         if self.created_at is None:
-            self.created_at = datetime.now(timezone.utc)
+            self.created_at = datetime.now(UTC)
         if self.id is None:
             self.id = str(uuid.uuid4())
 
@@ -106,13 +107,13 @@ class Message:
         """Check if message is expired."""
         if not self.expires_at:
             return False
-        return datetime.now(timezone.utc) >= self.expires_at
+        return datetime.now(UTC) >= self.expires_at
 
     def can_retry(self) -> bool:
         """Check if message can be retried."""
         return self.retry_count < self.max_retries
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert message to dictionary."""
         return {
             "id": self.id,
@@ -127,7 +128,7 @@ class Message:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "Message":
+    def from_dict(cls, data: dict[str, Any]) -> "Message":
         """Create message from dictionary."""
         return cls(
             id=data["id"],
@@ -175,17 +176,17 @@ class MessageQueueManager:
     message routing, consumer groups, and performance monitoring.
     """
 
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self, config: dict[str, Any]):
         """Initialize message queue manager."""
         self.config = config
         self.initialized = False
 
         # Broker connections
-        self.rabbitmq_connection: Optional[aio_pika.Connection] = None
-        self.rabbitmq_channel: Optional[aio_pika.Channel] = None
-        self.kafka_producer: Optional[AIOKafkaProducer] = None
-        self.kafka_consumers: Dict[str, AIOKafkaConsumer] = {}
-        self.redis_client: Optional[redis.Redis] = None
+        self.rabbitmq_connection: aio_pika.Connection | None = None
+        self.rabbitmq_channel: aio_pika.Channel | None = None
+        self.kafka_producer: AIOKafkaProducer | None = None
+        self.kafka_consumers: dict[str, AIOKafkaConsumer] = {}
+        self.redis_client: redis.Redis | None = None
 
         # Configuration
         self.primary_broker = MessageBroker(
@@ -199,19 +200,19 @@ class MessageQueueManager:
         self.retry_delay_seconds = config.get("retry_delay_seconds", 5)
 
         # Message handlers and consumers
-        self.message_handlers: Dict[str, Callable] = {}
-        self.consumer_tasks: List[asyncio.Task] = []
+        self.message_handlers: dict[str, Callable] = {}
+        self.consumer_tasks: list[asyncio.Task] = []
 
         # Statistics
-        self.stats_by_topic: Dict[str, QueueStats] = {}
+        self.stats_by_topic: dict[str, QueueStats] = {}
         self.global_stats = QueueStats()
 
         # Dead letter queue
-        self.dead_letter_queue: List[Message] = []
+        self.dead_letter_queue: list[Message] = []
 
         logger.info(" Message Queue Manager initialized")
 
-    async def initialize(self) -> Dict[str, Any]:
+    async def initialize(self) -> dict[str, Any]:
         """Initialize message queue connections."""
         try:
             results = {
@@ -335,9 +336,9 @@ class MessageQueueManager:
         self,
         topic: str,
         payload: Any,
-        headers: Optional[Dict[str, Any]] = None,
+        headers: dict[str, Any] | None = None,
         priority: MessagePriority = MessagePriority.NORMAL,
-        ttl_seconds: Optional[int] = None,
+        ttl_seconds: int | None = None,
     ) -> bool:
         """Publish message to topic."""
         try:
@@ -355,7 +356,7 @@ class MessageQueueManager:
                 headers=headers,
                 priority=priority,
                 expires_at=(
-                    datetime.now(timezone.utc) + timedelta(seconds=ttl_seconds)
+                    datetime.now(UTC) + timedelta(seconds=ttl_seconds)
                     if ttl_seconds > 0
                     else None
                 ),
@@ -430,7 +431,7 @@ class MessageQueueManager:
                 expiration=(
                     int(
                         (
-                            message.expires_at - datetime.now(timezone.utc)
+                            message.expires_at - datetime.now(UTC)
                         ).total_seconds()
                         * 1000
                     )
@@ -502,7 +503,7 @@ class MessageQueueManager:
             # Set TTL on stream if configured
             if message.expires_at:
                 ttl_seconds = int(
-                    (message.expires_at - datetime.now(timezone.utc)).total_seconds()
+                    (message.expires_at - datetime.now(UTC)).total_seconds()
                 )
                 if ttl_seconds > 0:
                     await self.redis_client.expire(stream_key, ttl_seconds)
@@ -517,7 +518,7 @@ class MessageQueueManager:
         self,
         topic: str,
         handler: Callable[[Message], Any],
-        consumer_group: Optional[str] = None,
+        consumer_group: str | None = None,
     ) -> bool:
         """Subscribe to topic with message handler."""
         try:
@@ -541,7 +542,7 @@ class MessageQueueManager:
             return False
 
     async def _start_consumer(
-        self, broker: MessageBroker, topic: str, consumer_group: Optional[str]
+        self, broker: MessageBroker, topic: str, consumer_group: str | None
     ):
         """Start consumer for specific broker and topic."""
         try:
@@ -588,7 +589,7 @@ class MessageQueueManager:
         except Exception as e:
             logger.error(f" RabbitMQ consumer error for topic {topic}: {e}")
 
-    async def _consume_kafka(self, topic: str, consumer_group: Optional[str]):
+    async def _consume_kafka(self, topic: str, consumer_group: str | None):
         """Consume messages from Kafka."""
         consumer = None
         try:
@@ -643,7 +644,7 @@ class MessageQueueManager:
         except Exception as e:
             logger.error(f" Kafka consumer error for topic {topic}: {e}")
 
-    async def _consume_redis(self, topic: str, consumer_group: Optional[str]):
+    async def _consume_redis(self, topic: str, consumer_group: str | None):
         """Consume messages from Redis Streams."""
         try:
             stream_key = f"plexichat:stream:{topic}"
@@ -707,20 +708,19 @@ class MessageQueueManager:
                                     await self.redis_client.xack(
                                         stream_key, group_name, message_id
                                     )
+                                # Handle retry
+                                elif message.can_retry():
+                                    message.retry_count += 1
+                                    await self._publish_redis(message)
+                                    await self.redis_client.xack(
+                                        stream_key, group_name, message_id
+                                    )
                                 else:
-                                    # Handle retry
-                                    if message.can_retry():
-                                        message.retry_count += 1
-                                        await self._publish_redis(message)
-                                        await self.redis_client.xack(
-                                            stream_key, group_name, message_id
-                                        )
-                                    else:
-                                        # Move to dead letter queue
-                                        self.dead_letter_queue.append(message)
-                                        await self.redis_client.xack(
-                                            stream_key, group_name, message_id
-                                        )
+                                    # Move to dead letter queue
+                                    self.dead_letter_queue.append(message)
+                                    await self.redis_client.xack(
+                                        stream_key, group_name, message_id
+                                    )
 
                             except Exception as e:
                                 logger.error(f" Redis message processing error: {e}")
@@ -800,7 +800,7 @@ class MessageQueueManager:
             logger.error(f" Message processing failed for topic {message.topic}: {e}")
             return False
 
-    async def get_stats(self) -> Dict[str, Any]:
+    async def get_stats(self) -> dict[str, Any]:
         """Get comprehensive message queue statistics."""
         try:
             # Topic-specific stats
@@ -1070,10 +1070,10 @@ class MessageQueueManager:
 
 
 # Global message queue manager instance
-_queue_manager: Optional[MessageQueueManager] = None
+_queue_manager: MessageQueueManager | None = None
 
 
-def get_queue_manager(config: Optional[Dict[str, Any]] = None) -> MessageQueueManager:
+def get_queue_manager(config: dict[str, Any] | None = None) -> MessageQueueManager:
     """Get or create global message queue manager instance."""
     global _queue_manager
 

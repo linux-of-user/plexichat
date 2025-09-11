@@ -5,21 +5,16 @@ Specialized caching layer for authentication operations to improve response time
 Integrates with QuantumSecureCache and SecuritySystem to reduce redundant cryptographic operations.
 """
 
-import asyncio
+from dataclasses import dataclass, field
+from datetime import UTC, datetime
+from enum import Enum
 import hashlib
 import logging
 import time
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
-from enum import Enum
-from typing import Any, Dict, List, Optional, Set, Tuple, Union
-
-import jwt
+from typing import Any
 
 from plexichat.core.cache import CacheLevel, QuantumSecureCache, secure_cache
 from plexichat.core.security.security_manager import (
-    SecurityContext,
-    SecurityToken,
     get_security_system,
 )
 
@@ -42,12 +37,12 @@ class CachedTokenData:
     """Cached token verification result."""
 
     is_valid: bool
-    user_id: Optional[str] = None
-    permissions: Set[str] = field(default_factory=set)
-    token_type: Optional[str] = None
-    expires_at: Optional[datetime] = None
-    jti: Optional[str] = None
-    cached_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    user_id: str | None = None
+    permissions: set[str] = field(default_factory=set)
+    token_type: str | None = None
+    expires_at: datetime | None = None
+    jti: str | None = None
+    cached_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass
@@ -55,9 +50,9 @@ class CachedUserPermissions:
     """Cached user permissions data."""
 
     user_id: str
-    permissions: Set[str]
+    permissions: set[str]
     security_level: str
-    last_updated: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    last_updated: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass
@@ -65,11 +60,11 @@ class CachedAPIKeyData:
     """Cached API key validation result."""
 
     is_valid: bool
-    user_id: Optional[str] = None
-    permissions: Set[str] = field(default_factory=set)
-    rate_limit: Optional[int] = None
-    expires_at: Optional[datetime] = None
-    cached_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    user_id: str | None = None
+    permissions: set[str] = field(default_factory=set)
+    rate_limit: int | None = None
+    expires_at: datetime | None = None
+    cached_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass
@@ -104,7 +99,7 @@ class AuthenticationCache:
 
     def __init__(
         self,
-        cache_instance: Optional[QuantumSecureCache] = None,
+        cache_instance: QuantumSecureCache | None = None,
         default_token_cache_ttl: int = 300,  # 5 minutes
         default_permission_cache_ttl: int = 600,  # 10 minutes
         default_api_key_cache_ttl: int = 900,
@@ -120,16 +115,16 @@ class AuthenticationCache:
 
         # Performance tracking
         self.stats = AuthCacheStats()
-        self.performance_metrics: List[Dict[str, Any]] = []
+        self.performance_metrics: list[dict[str, Any]] = []
 
         # Cache warming configuration
         self.warm_cache_enabled = True
-        self.frequently_accessed_users: Set[str] = set()
-        self.frequently_accessed_tokens: Set[str] = set()
+        self.frequently_accessed_users: set[str] = set()
+        self.frequently_accessed_tokens: set[str] = set()
 
         # Cache invalidation tracking
-        self.revoked_token_jtis: Set[str] = set()
-        self.invalidated_users: Set[str] = set()
+        self.revoked_token_jtis: set[str] = set()
+        self.invalidated_users: set[str] = set()
 
         logger.info("[SECURE] Authentication Cache System initialized")
 
@@ -140,14 +135,14 @@ class AuthenticationCache:
         key_hash = hashlib.sha256(key_data.encode()).hexdigest()[:32]
         return f"auth_cache:{cache_type.value}:{key_hash}"
 
-    def _calculate_token_ttl(self, token_payload: Dict[str, Any]) -> int:
+    def _calculate_token_ttl(self, token_payload: dict[str, Any]) -> int:
         """Calculate appropriate TTL based on token expiration."""
         try:
             if "exp" in token_payload:
                 exp_timestamp = token_payload["exp"]
                 if isinstance(exp_timestamp, (int, float)):
-                    expires_at = datetime.fromtimestamp(exp_timestamp, tz=timezone.utc)
-                    now = datetime.now(timezone.utc)
+                    expires_at = datetime.fromtimestamp(exp_timestamp, tz=UTC)
+                    now = datetime.now(UTC)
                     remaining_seconds = int((expires_at - now).total_seconds())
 
                     # Use the minimum of remaining time and default TTL
@@ -159,7 +154,7 @@ class AuthenticationCache:
         return self.default_token_cache_ttl
 
     async def cache_token_verification(
-        self, token: str, verification_result: Tuple[bool, Optional[Dict[str, Any]]]
+        self, token: str, verification_result: tuple[bool, dict[str, Any] | None]
     ) -> bool:
         """Cache JWT token verification result."""
         try:
@@ -178,7 +173,7 @@ class AuthenticationCache:
 
                 if "exp" in payload:
                     cached_data.expires_at = datetime.fromtimestamp(
-                        payload["exp"], tz=timezone.utc
+                        payload["exp"], tz=UTC
                     )
 
             # Generate cache key
@@ -224,7 +219,7 @@ class AuthenticationCache:
 
     async def get_cached_token_verification(
         self, token: str
-    ) -> Optional[CachedTokenData]:
+    ) -> CachedTokenData | None:
         """Retrieve cached token verification result."""
         try:
             start_time = time.time()
@@ -266,7 +261,7 @@ class AuthenticationCache:
             return None
 
     async def cache_user_permissions(
-        self, user_id: str, permissions: Set[str], security_level: str = "AUTHENTICATED"
+        self, user_id: str, permissions: set[str], security_level: str = "AUTHENTICATED"
     ) -> bool:
         """Cache user permissions data."""
         try:
@@ -303,7 +298,7 @@ class AuthenticationCache:
 
     async def get_cached_user_permissions(
         self, user_id: str
-    ) -> Optional[CachedUserPermissions]:
+    ) -> CachedUserPermissions | None:
         """Retrieve cached user permissions."""
         try:
             start_time = time.time()
@@ -343,7 +338,7 @@ class AuthenticationCache:
             return None
 
     async def cache_api_key_validation(
-        self, api_key: str, validation_result: Tuple[bool, Optional[Dict[str, Any]]]
+        self, api_key: str, validation_result: tuple[bool, dict[str, Any] | None]
     ) -> bool:
         """Cache API key validation result."""
         try:
@@ -383,7 +378,7 @@ class AuthenticationCache:
 
     async def get_cached_api_key_validation(
         self, api_key: str
-    ) -> Optional[CachedAPIKeyData]:
+    ) -> CachedAPIKeyData | None:
         """Retrieve cached API key validation result."""
         try:
             start_time = time.time()
@@ -404,7 +399,7 @@ class AuthenticationCache:
                 # Check if API key has expired
                 if (
                     cached_data.expires_at
-                    and datetime.now(timezone.utc) > cached_data.expires_at
+                    and datetime.now(UTC) > cached_data.expires_at
                 ):
                     logger.debug("[SECURE] Cached API key has expired, invalidating")
                     await self.cache.delete(cache_key)
@@ -527,7 +522,7 @@ class AuthenticationCache:
         metric = {
             "operation": operation,
             "duration_ms": duration_ms,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
 
         self.performance_metrics.append(metric)
@@ -559,7 +554,7 @@ class AuthenticationCache:
             logger.error(f"Failed to clear authentication cache: {e}")
             return False
 
-    def get_cache_stats(self) -> Dict[str, Any]:
+    def get_cache_stats(self) -> dict[str, Any]:
         """Get comprehensive authentication cache statistics."""
         total_cache_operations = (
             self.stats.token_cache_hits
@@ -636,7 +631,7 @@ class AuthenticationCache:
 
 
 # Global authentication cache instance
-_global_auth_cache: Optional[AuthenticationCache] = None
+_global_auth_cache: AuthenticationCache | None = None
 
 
 def get_auth_cache() -> AuthenticationCache:
@@ -648,7 +643,7 @@ def get_auth_cache() -> AuthenticationCache:
 
 
 async def initialize_auth_cache(
-    cache_instance: Optional[QuantumSecureCache] = None, **kwargs
+    cache_instance: QuantumSecureCache | None = None, **kwargs
 ) -> AuthenticationCache:
     """Initialize the global authentication cache."""
     global _global_auth_cache
@@ -670,12 +665,12 @@ async def shutdown_auth_cache() -> None:
 
 
 __all__ = [
-    "AuthenticationCache",
+    "AuthCacheStats",
     "AuthCacheType",
+    "AuthenticationCache",
+    "CachedAPIKeyData",
     "CachedTokenData",
     "CachedUserPermissions",
-    "CachedAPIKeyData",
-    "AuthCacheStats",
     "get_auth_cache",
     "initialize_auth_cache",
     "shutdown_auth_cache",

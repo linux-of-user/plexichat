@@ -5,12 +5,12 @@ Provides common functionality for monitoring components including
 collection loops, alert checking, and database persistence.
 """
 
-import asyncio
-import logging
 from abc import ABC, abstractmethod
-from datetime import datetime
-from typing import Any, Dict, List, Optional
+import asyncio
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta
+import logging
+from typing import Any
 
 from plexichat.core.database.manager import database_manager
 
@@ -29,13 +29,13 @@ class AlertRule:
     cooldown: int = 300  # seconds
     severity: str = "warning"  # info, warning, error, critical
     description: str = ""
-    conditions: List[Dict[str, Any]] = field(default_factory=list)
+    conditions: list[dict[str, Any]] = field(default_factory=list)
     time_window: int = 0  # Time window for trend analysis (seconds)
     trend_type: str = "instant"  # instant, average, trend_up, trend_down
-    notification_channels: List[str] = field(default_factory=lambda: ["log"])
-    escalation_policy: Dict[str, Any] = field(default_factory=dict)
+    notification_channels: list[str] = field(default_factory=lambda: ["log"])
+    escalation_policy: dict[str, Any] = field(default_factory=dict)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Initialize default values."""
         if not self.conditions:
             self.conditions = []
@@ -53,22 +53,22 @@ class MetricData:
     value: float
     unit: str
     timestamp: datetime = field(default_factory=datetime.now)
-    tags: Dict[str, str] = field(default_factory=dict)
+    tags: dict[str, str] = field(default_factory=dict)
 
 
 class MonitorBase(ABC):
     """Base class for all monitoring components with shared functionality."""
 
     def __init__(
-        self, interval_seconds: int = 60, config: Optional[Dict[str, Any]] = None
-    ):
+        self, interval_seconds: int = 60, config: dict[str, Any] | None = None
+    ) -> None:
         self.interval_seconds = interval_seconds
         self.config = config or {}
         self.running = False
-        self.task: Optional[asyncio.Task] = None
-        self.metrics: Dict[str, List[MetricData]] = {}
-        self.alert_rules: Dict[str, AlertRule] = {}
-        self.last_alerts: Dict[str, datetime] = {}
+        self.task: asyncio.Task[None] | None = None
+        self.metrics: dict[str, list[MetricData]] = {}
+        self.alert_rules: dict[str, AlertRule] = {}
+        self.last_alerts: dict[str, datetime] = {}
         self.initialized = False
 
         # Setup default alerts
@@ -86,7 +86,7 @@ class MonitorBase(ABC):
             logger.error(f"Failed to initialize {self.__class__.__name__}: {e}")
             return False
 
-    def _setup_default_alerts(self):
+    def _setup_default_alerts(self) -> None:
         """Set up default alert rules."""
         default_rules = [
             AlertRule("high_cpu", "cpu_usage_percent", 90.0, ">"),
@@ -97,7 +97,7 @@ class MonitorBase(ABC):
         for rule in default_rules:
             self.alert_rules[rule.name] = rule
 
-    async def start(self):
+    async def start(self) -> None:
         """Start the monitoring service."""
         if self.running:
             logger.warning(f"{self.__class__.__name__} is already running")
@@ -107,7 +107,7 @@ class MonitorBase(ABC):
         self.task = asyncio.create_task(self._collection_loop())
         logger.info(f"{self.__class__.__name__} started")
 
-    async def stop(self):
+    async def stop(self) -> None:
         """Stop the monitoring service."""
         if not self.running:
             return
@@ -122,7 +122,7 @@ class MonitorBase(ABC):
 
         logger.info(f"{self.__class__.__name__} stopped")
 
-    async def _collection_loop(self):
+    async def _collection_loop(self) -> None:
         """Generic collection loop calling abstract _collect_metrics."""
         while self.running:
             try:
@@ -133,11 +133,11 @@ class MonitorBase(ABC):
             await asyncio.sleep(self.interval_seconds)
 
     @abstractmethod
-    async def _collect_metrics(self):
+    async def _collect_metrics(self) -> None:
         """Abstract method to be overridden by subclasses for specific metric collection."""
         pass
 
-    async def _save_metric_to_db(self, metric: MetricData):
+    async def _save_metric_to_db(self, metric: MetricData) -> None:
         """Save a metric to the database."""
         try:
             data = {
@@ -160,7 +160,7 @@ class MonitorBase(ABC):
         except Exception as e:
             logger.error(f"Failed to save metric to database: {e}")
 
-    def _check_alerts(self, metric: MetricData):
+    def _check_alerts(self, metric: MetricData) -> None:
         """Check if metric triggers any alerts."""
         for rule_name, rule in self.alert_rules.items():
             if not rule.enabled or rule.metric != metric.name:
@@ -190,7 +190,7 @@ class MonitorBase(ABC):
             if triggered:
                 self._trigger_alert(rule, metric)
 
-    def _trigger_alert(self, rule: AlertRule, metric: MetricData):
+    def _trigger_alert(self, rule: AlertRule, metric: MetricData) -> None:
         """Trigger an alert."""
         self.last_alerts[rule.name] = datetime.now()
         message = f"ALERT: {rule.name} - {metric.name} {rule.operator} {rule.threshold} (current: {metric.value})"
@@ -201,7 +201,7 @@ class MonitorBase(ABC):
 
     async def _save_alert_to_db(
         self, rule: AlertRule, metric: MetricData, message: str
-    ):
+    ) -> None:
         """Save an alert to the database."""
         try:
             data = {
@@ -211,7 +211,7 @@ class MonitorBase(ABC):
                 "metric_value": metric.value,
                 "threshold": rule.threshold,
                 "operator": rule.operator,
-                "severity": getattr(rule, "severity", "warning"),
+                "severity": rule.severity,
                 "message": message,
                 "status": "active",
                 "acknowledged": False,
@@ -233,8 +233,8 @@ class MonitorBase(ABC):
         name: str,
         value: float,
         unit: str = "",
-        tags: Optional[Dict[str, str]] = None,
-    ):
+        tags: dict[str, str] | None = None,
+    ) -> None:
         """Record a metric value."""
         metric = MetricData(name=name, value=value, unit=unit, tags=tags or {})
 
@@ -254,8 +254,8 @@ class MonitorBase(ABC):
         self._check_alerts(metric)
 
     def get_metrics(
-        self, name: str, since: Optional[datetime] = None
-    ) -> List[MetricData]:
+        self, name: str, since: datetime | None = None
+    ) -> list[MetricData]:
         """Get metrics by name."""
         if name not in self.metrics:
             return []
@@ -267,38 +267,40 @@ class MonitorBase(ABC):
 
         return metrics
 
-    def get_latest_metric(self, name: str) -> Optional[MetricData]:
+    def get_latest_metric(self, name: str) -> MetricData | None:
         """Get the latest metric value."""
         if name not in self.metrics or not self.metrics[name]:
             return None
 
         return self.metrics[name][-1]
 
-    def add_alert_rule(self, rule: AlertRule):
+    def add_alert_rule(self, rule: AlertRule) -> None:
         """Add an alert rule."""
         self.alert_rules[rule.name] = rule
         logger.info(f"Added alert rule: {rule.name}")
 
-    def remove_alert_rule(self, name: str):
+    def remove_alert_rule(self, name: str) -> None:
         """Remove an alert rule."""
         if name in self.alert_rules:
             del self.alert_rules[name]
             logger.info(f"Removed alert rule: {name}")
 
-    def get_system_status(self) -> Dict[str, Any]:
+    def get_system_status(self) -> dict[str, Any]:
         """Get overall system status."""
+        recent_alerts = len(
+            [
+                alert_time
+                for alert_time in self.last_alerts.values()
+                if datetime.now() - alert_time < timedelta(hours=1)
+            ]
+        )
+
         status = {
             "initialized": self.initialized,
             "total_metrics": sum(len(metrics) for metrics in self.metrics.values()),
             "metric_types": len(self.metrics),
             "alert_rules": len(self.alert_rules),
-            "recent_alerts": len(
-                [
-                    alert_time
-                    for alert_time in self.last_alerts.values()
-                    if datetime.now() - alert_time < timedelta(hours=1)
-                ]
-            ),
+            "recent_alerts": recent_alerts,
         }
 
         return status

@@ -6,18 +6,16 @@ and automatic optimization for optimal performance.
 """
 
 import asyncio
+from collections import defaultdict, deque
+from dataclasses import dataclass, field
+from datetime import datetime
 import gc
 import logging
 import os
-import sys
 import threading
-import time
 import tracemalloc
+from typing import Any
 import weakref
-from collections import defaultdict, deque
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Set, Type
 
 import psutil
 
@@ -57,15 +55,15 @@ class ObjectPool:
 
     def __init__(
         self,
-        object_class: Type,
+        object_class: type,
         max_size: int = 100,
-        factory_func: Optional[callable] = None,
+        factory_func: callable | None = None,
     ):
         self.object_class = object_class
         self.max_size = max_size
         self.factory_func = factory_func or object_class
         self.pool: deque = deque()
-        self.active_objects: Set[Any] = set()
+        self.active_objects: set[Any] = set()
         self.stats = ObjectPoolStats(
             pool_name=f"{object_class.__name__}Pool", object_type=object_class.__name__
         )
@@ -104,13 +102,12 @@ class ObjectPool:
                             # Don't add to pool if reset fails
                             return
                     self.pool.append(obj)
-                else:
-                    # Pool is full, properly dispose of object
-                    if hasattr(obj, "close"):
-                        try:
-                            obj.close()
-                        except Exception as e:
-                            logger.warning(f"Failed to close object: {e}")
+                # Pool is full, properly dispose of object
+                elif hasattr(obj, "close"):
+                    try:
+                        obj.close()
+                    except Exception as e:
+                        logger.warning(f"Failed to close object: {e}")
 
                 self._update_stats()
 
@@ -157,8 +154,8 @@ class MemoryLeakDetector:
 
     def __init__(self, check_interval: int = 300):
         self.check_interval = check_interval
-        self.object_counts: Dict[str, deque] = defaultdict(lambda: deque(maxlen=10))
-        self.weak_refs: Set[weakref.ref] = set()
+        self.object_counts: dict[str, deque] = defaultdict(lambda: deque(maxlen=10))
+        self.weak_refs: set[weakref.ref] = set()
         self.leak_threshold = 1.5  # 50% increase threshold
         self.running = False
         self._task = None
@@ -234,12 +231,12 @@ class MemoryLeakDetector:
 class MemoryManager:
     """Advanced memory management system."""
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, config: dict[str, Any] | None = None):
         self.config = config or {}
         self.metrics = MemoryMetrics()
 
         # Object pools
-        self.object_pools: Dict[str, ObjectPool] = {}
+        self.object_pools: dict[str, ObjectPool] = {}
 
         # Memory monitoring
         self.leak_detector = MemoryLeakDetector(
@@ -303,9 +300,9 @@ class MemoryManager:
     def create_object_pool(
         self,
         name: str,
-        object_class: Type,
+        object_class: type,
         max_size: int = 100,
-        factory_func: Optional[callable] = None,
+        factory_func: callable | None = None,
     ) -> ObjectPool:
         """Create a new object pool."""
         pool = ObjectPool(object_class, max_size, factory_func)
@@ -313,7 +310,7 @@ class MemoryManager:
         logger.info(f"[PACKAGE] Created object pool: {name} (max_size: {max_size})")
         return pool
 
-    def get_object_pool(self, name: str) -> Optional[ObjectPool]:
+    def get_object_pool(self, name: str) -> ObjectPool | None:
         """Get an existing object pool."""
         return self.object_pools.get(name)
 
@@ -405,7 +402,7 @@ class MemoryManager:
 
         logger.info("[DELETE] Garbage collection configured")
 
-    async def force_garbage_collection(self) -> Dict[str, int]:
+    async def force_garbage_collection(self) -> dict[str, int]:
         """Force garbage collection and return statistics."""
         try:
             before_objects = len(gc.get_objects())
@@ -438,7 +435,7 @@ class MemoryManager:
             logger.error(f"Error during garbage collection: {e}")
             return {}
 
-    def get_memory_stats(self) -> Dict[str, Any]:
+    def get_memory_stats(self) -> dict[str, Any]:
         """Get comprehensive memory statistics."""
         return {
             "system_memory": {
@@ -471,7 +468,7 @@ class MemoryManager:
             },
         }
 
-    def optimize_memory_usage(self) -> Dict[str, Any]:
+    def optimize_memory_usage(self) -> dict[str, Any]:
         """Optimize memory usage and return optimization results."""
         try:
             results = {}

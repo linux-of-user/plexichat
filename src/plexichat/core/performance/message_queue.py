@@ -4,7 +4,7 @@
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
@@ -46,21 +46,21 @@ class PublishMessageRequest(BaseModel):
 
     topic: str = Field(..., description="Topic to publish to")
     payload: Any = Field(..., description="Message payload")
-    headers: Optional[Dict[str, Any]] = Field(
+    headers: dict[str, Any] | None = Field(
         default_factory=dict, description="Message headers"
     )
-    priority: Optional[str] = Field(
+    priority: str | None = Field(
         "normal", description="Message priority (low, normal, high, critical)"
     )
-    ttl_seconds: Optional[int] = Field(None, description="Time to live in seconds")
+    ttl_seconds: int | None = Field(None, description="Time to live in seconds")
 
 
 class SubscribeRequest(BaseModel):
     """Request model for subscribing to topics."""
 
     topic: str = Field(..., description="Topic to subscribe to")
-    consumer_group: Optional[str] = Field(None, description="Consumer group name")
-    handler_config: Optional[Dict[str, Any]] = Field(
+    consumer_group: str | None = Field(None, description="Consumer group name")
+    handler_config: dict[str, Any] | None = Field(
         default_factory=dict, description="Handler configuration"
     )
 
@@ -70,7 +70,7 @@ class QueueResponse(BaseModel):
 
     success: bool = Field(..., description="Operation success status")
     message: str = Field(..., description="Response message")
-    data: Optional[Any] = Field(None, description="Response data")
+    data: Any | None = Field(None, description="Response data")
     timestamp: str = Field(..., description="Response timestamp")
 
 
@@ -82,8 +82,8 @@ class PurgeTopicRequest(BaseModel):
     )
 
 
-@router.get("/status", response_model=Dict[str, Any])
-async def get_queue_status(current_user: Dict = Depends(get_current_user)):
+@router.get("/status", response_model=dict[str, Any])
+async def get_queue_status(current_user: dict = Depends(get_current_user)):
     """
     Get comprehensive message queue system status.
 
@@ -123,15 +123,15 @@ async def get_queue_status(current_user: Dict = Depends(get_current_user)):
     except Exception as e:
         logger.error(f" Queue status error: {e}")
         raise HTTPException(
-            status_code=500, detail=f"Failed to get queue status: {str(e)}"
+            status_code=500, detail=f"Failed to get queue status: {e!s}"
         )
 
 
-@router.get("/stats", response_model=Dict[str, Any])
+@router.get("/stats", response_model=dict[str, Any])
 async def get_queue_stats(
-    topic: Optional[str] = Query(None, description="Specific topic to get stats for"),
+    topic: str | None = Query(None, description="Specific topic to get stats for"),
     detailed: bool = Query(False, description="Include detailed statistics"),
-    current_user: Dict = Depends(get_current_user),
+    current_user: dict = Depends(get_current_user),
 ):
     """
     Get detailed message queue statistics.
@@ -183,13 +183,13 @@ async def get_queue_stats(
     except Exception as e:
         logger.error(f" Queue stats error: {e}")
         raise HTTPException(
-            status_code=500, detail=f"Failed to get queue statistics: {str(e)}"
+            status_code=500, detail=f"Failed to get queue statistics: {e!s}"
         )
 
 
 @router.post("/publish", response_model=QueueResponse)
 async def publish_message(
-    request: PublishMessageRequest, current_user: Dict = Depends(get_current_user)
+    request: PublishMessageRequest, current_user: dict = Depends(get_current_user)
 ):
     """
     Publish message to topic.
@@ -242,13 +242,13 @@ async def publish_message(
     except Exception as e:
         logger.error(f" Message publish error: {e}")
         raise HTTPException(
-            status_code=500, detail=f"Failed to publish message: {str(e)}"
+            status_code=500, detail=f"Failed to publish message: {e!s}"
         )
 
 
 @router.post("/subscribe", response_model=QueueResponse)
 async def subscribe_to_topic(
-    request: SubscribeRequest, current_user: Dict = Depends(require_admin)
+    request: SubscribeRequest, current_user: dict = Depends(require_admin)
 ):
     """
     Subscribe to topic.
@@ -293,13 +293,13 @@ async def subscribe_to_topic(
     except Exception as e:
         logger.error(f" Topic subscription error: {e}")
         raise HTTPException(
-            status_code=500, detail=f"Failed to subscribe to topic: {str(e)}"
+            status_code=500, detail=f"Failed to subscribe to topic: {e!s}"
         )
 
 
 @router.delete("/subscribe/{topic}", response_model=QueueResponse)
 async def unsubscribe_from_topic(
-    topic: str, current_user: Dict = Depends(require_admin)
+    topic: str, current_user: dict = Depends(require_admin)
 ):
     """
     Unsubscribe from topic.
@@ -334,12 +334,12 @@ async def unsubscribe_from_topic(
     except Exception as e:
         logger.error(f" Topic unsubscription error: {e}")
         raise HTTPException(
-            status_code=500, detail=f"Failed to unsubscribe from topic: {str(e)}"
+            status_code=500, detail=f"Failed to unsubscribe from topic: {e!s}"
         )
 
 
-@router.get("/topics", response_model=Dict[str, Any])
-async def list_topics(current_user: Dict = Depends(get_current_user)):
+@router.get("/topics", response_model=dict[str, Any])
+async def list_topics(current_user: dict = Depends(get_current_user)):
     """
     List all topics.
 
@@ -378,12 +378,12 @@ async def list_topics(current_user: Dict = Depends(get_current_user)):
 
     except Exception as e:
         logger.error(f" List topics error: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to list topics: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to list topics: {e!s}")
 
 
 @router.post("/purge/{topic}", response_model=QueueResponse)
 async def purge_topic(
-    topic: str, request: PurgeTopicRequest, current_user: Dict = Depends(require_admin)
+    topic: str, request: PurgeTopicRequest, current_user: dict = Depends(require_admin)
 ):
     """
     Purge topic messages.
@@ -423,11 +423,11 @@ async def purge_topic(
         raise
     except Exception as e:
         logger.error(f" Topic purge error: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to purge topic: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to purge topic: {e!s}")
 
 
-@router.get("/health", response_model=Dict[str, Any])
-async def get_queue_health(current_user: Dict = Depends(get_current_user)):
+@router.get("/health", response_model=dict[str, Any])
+async def get_queue_health(current_user: dict = Depends(get_current_user)):
     """
     Get message queue system health status.
 
@@ -468,14 +468,14 @@ async def get_queue_health(current_user: Dict = Depends(get_current_user)):
     except Exception as e:
         logger.error(f" Queue health check error: {e}")
         raise HTTPException(
-            status_code=500, detail=f"Failed to get queue health: {str(e)}"
+            status_code=500, detail=f"Failed to get queue health: {e!s}"
         )
 
 
-@router.get("/dead-letter", response_model=Dict[str, Any])
+@router.get("/dead-letter", response_model=dict[str, Any])
 async def get_dead_letter_queue(
     limit: int = Query(10, description="Maximum number of messages to return"),
-    current_user: Dict = Depends(require_admin),
+    current_user: dict = Depends(require_admin),
 ):
     """
     Get dead letter queue messages.
@@ -508,16 +508,16 @@ async def get_dead_letter_queue(
     except Exception as e:
         logger.error(f" Dead letter queue error: {e}")
         raise HTTPException(
-            status_code=500, detail=f"Failed to get dead letter queue: {str(e)}"
+            status_code=500, detail=f"Failed to get dead letter queue: {e!s}"
         )
 
 
 @router.post("/dead-letter/reprocess", response_model=QueueResponse)
 async def reprocess_dead_letter_messages(
-    message_ids: Optional[List[str]] = Body(
+    message_ids: list[str] | None = Body(
         None, description="Specific message IDs to reprocess"
     ),
-    current_user: Dict = Depends(require_admin),
+    current_user: dict = Depends(require_admin),
 ):
     """
     Reprocess dead letter messages.
@@ -549,5 +549,5 @@ async def reprocess_dead_letter_messages(
         logger.error(f" Dead letter reprocessing error: {e}")
         raise HTTPException(
             status_code=500,
-            detail=f"Failed to reprocess dead letter messages: {str(e)}",
+            detail=f"Failed to reprocess dead letter messages: {e!s}",
         )

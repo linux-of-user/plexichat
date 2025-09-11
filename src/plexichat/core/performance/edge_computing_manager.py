@@ -12,16 +12,15 @@ Features:
 """
 
 import asyncio
+from collections import defaultdict, deque
+from dataclasses import dataclass, field
+from datetime import UTC, datetime, timedelta
+from enum import Enum
 import logging
 import math
 import random
 import statistics
-import time
-from collections import defaultdict, deque
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
-from enum import Enum
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any
 
 # Security integration
 try:
@@ -111,7 +110,7 @@ class EdgeNodeMetrics:
     requests_per_second: float = 0.0
     error_rate: float = 0.0
     uptime: float = 0.0
-    last_updated: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    last_updated: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass
@@ -125,9 +124,9 @@ class EdgeNode:
     capacity: int
     status: EdgeNodeStatus = EdgeNodeStatus.ACTIVE
     metrics: EdgeNodeMetrics = field(default_factory=lambda: EdgeNodeMetrics(""))
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     last_health_check: datetime = field(
-        default_factory=lambda: datetime.now(timezone.utc)
+        default_factory=lambda: datetime.now(UTC)
     )
 
     def __post_init__(self):
@@ -186,8 +185,8 @@ class GeographicCalculator:
 
     @staticmethod
     def find_nearest_nodes(
-        user_lat: float, user_lon: float, nodes: List[EdgeNode], count: int = 3
-    ) -> List[EdgeNode]:
+        user_lat: float, user_lon: float, nodes: list[EdgeNode], count: int = 3
+    ) -> list[EdgeNode]:
         """Find the nearest edge nodes to a user location."""
         distances = []
         for node in nodes:
@@ -206,7 +205,7 @@ class PerformanceMonitor:
     """Monitors performance of edge nodes."""
 
     def __init__(self):
-        self.metrics_history: Dict[str, deque] = defaultdict(lambda: deque(maxlen=100))
+        self.metrics_history: dict[str, deque] = defaultdict(lambda: deque(maxlen=100))
 
     def record_metrics(self, node_id: str, metrics: EdgeNodeMetrics):
         """Record metrics for a node."""
@@ -223,12 +222,12 @@ class PerformanceMonitor:
 
     def get_average_metrics(
         self, node_id: str, window_minutes: int = 5
-    ) -> Optional[Dict[str, float]]:
+    ) -> dict[str, float] | None:
         """Get average metrics for a node over a time window."""
         if node_id not in self.metrics_history:
             return None
 
-        cutoff_time = datetime.now(timezone.utc) - timedelta(minutes=window_minutes)
+        cutoff_time = datetime.now(UTC) - timedelta(minutes=window_minutes)
         recent_metrics = [
             m for m in self.metrics_history[node_id] if m["timestamp"] > cutoff_time
         ]
@@ -256,15 +255,15 @@ class LoadBalancer:
 
     def __init__(self, config: LoadBalancingConfig):
         self.config = config
-        self.node_connections: Dict[str, int] = defaultdict(int)
+        self.node_connections: dict[str, int] = defaultdict(int)
         self.round_robin_index = 0
 
     def select_node(
         self,
-        available_nodes: List[EdgeNode],
-        user_lat: Optional[float] = None,
-        user_lon: Optional[float] = None,
-    ) -> Optional[EdgeNode]:
+        available_nodes: list[EdgeNode],
+        user_lat: float | None = None,
+        user_lon: float | None = None,
+    ) -> EdgeNode | None:
         """Select the best node based on the configured strategy."""
         if not available_nodes:
             return None
@@ -294,21 +293,21 @@ class LoadBalancer:
         else:
             return healthy_nodes[0]
 
-    def _round_robin_select(self, nodes: List[EdgeNode]) -> EdgeNode:
+    def _round_robin_select(self, nodes: list[EdgeNode]) -> EdgeNode:
         """Round-robin selection."""
         node = nodes[self.round_robin_index % len(nodes)]
         self.round_robin_index += 1
         return node
 
-    def _least_connections_select(self, nodes: List[EdgeNode]) -> EdgeNode:
+    def _least_connections_select(self, nodes: list[EdgeNode]) -> EdgeNode:
         """Select node with least connections."""
         return min(nodes, key=lambda n: self.node_connections[n.node_id])
 
     def _geographic_select(
         self,
-        nodes: List[EdgeNode],
-        user_lat: Optional[float],
-        user_lon: Optional[float],
+        nodes: list[EdgeNode],
+        user_lat: float | None,
+        user_lon: float | None,
     ) -> EdgeNode:
         """Select geographically closest node."""
         if user_lat is None or user_lon is None:
@@ -321,9 +320,9 @@ class LoadBalancer:
 
     def _performance_based_select(
         self,
-        nodes: List[EdgeNode],
-        user_lat: Optional[float],
-        user_lon: Optional[float],
+        nodes: list[EdgeNode],
+        user_lat: float | None,
+        user_lon: float | None,
     ) -> EdgeNode:
         """Select node based on performance and geography."""
         scores = []
@@ -372,12 +371,12 @@ class AutoScaler:
 
     def __init__(self, config: AutoScalingConfig):
         self.config = config
-        self.last_scale_up: Dict[str, datetime] = {}
-        self.last_scale_down: Dict[str, datetime] = {}
+        self.last_scale_up: dict[str, datetime] = {}
+        self.last_scale_down: dict[str, datetime] = {}
 
     def evaluate_scaling_decision(
-        self, nodes: List[EdgeNode]
-    ) -> Tuple[ScalingAction, str]:
+        self, nodes: list[EdgeNode]
+    ) -> tuple[ScalingAction, str]:
         """Evaluate whether scaling action is needed."""
         if not self.config.enabled:
             return ScalingAction.MAINTAIN, "Auto-scaling disabled"
@@ -400,7 +399,7 @@ class AutoScaler:
         avg_cpu = statistics.mean(n.metrics.cpu_usage for n in active_nodes)
         avg_memory = statistics.mean(n.metrics.memory_usage for n in active_nodes)
 
-        current_time = datetime.now(timezone.utc)
+        current_time = datetime.now(UTC)
 
         # Check for scale up conditions
         if (
@@ -451,7 +450,7 @@ class AutoScaler:
 
     def record_scaling_action(self, action: ScalingAction):
         """Record a scaling action for cooldown tracking."""
-        current_time = datetime.now(timezone.utc)
+        current_time = datetime.now(UTC)
 
         if action == ScalingAction.SCALE_UP:
             self.last_scale_up["global"] = current_time
@@ -474,8 +473,8 @@ class EdgeComputingManager:
 
     def __init__(
         self,
-        load_balancing_config: Optional[LoadBalancingConfig] = None,
-        auto_scaling_config: Optional[AutoScalingConfig] = None,
+        load_balancing_config: LoadBalancingConfig | None = None,
+        auto_scaling_config: AutoScalingConfig | None = None,
     ):
 
         # Configuration
@@ -483,7 +482,7 @@ class EdgeComputingManager:
         self.auto_scaling_config = auto_scaling_config or AutoScalingConfig()
 
         # Core components
-        self.nodes: Dict[str, EdgeNode] = {}
+        self.nodes: dict[str, EdgeNode] = {}
         self.load_balancer = LoadBalancer(self.load_balancing_config)
         self.auto_scaler = AutoScaler(self.auto_scaling_config)
         self.performance_monitor = PerformanceMonitor()
@@ -519,7 +518,7 @@ class EdgeComputingManager:
         }
 
         # Background tasks
-        self.monitoring_task: Optional[asyncio.Task] = None
+        self.monitoring_task: asyncio.Task | None = None
         self.is_running = False
 
         logger.info("Edge Computing Manager initialized with watertight security")
@@ -567,7 +566,7 @@ class EdgeComputingManager:
                 node.metrics.network_latency = random.uniform(10, 100)
                 node.metrics.requests_per_second = random.uniform(50, 500)
                 node.metrics.error_rate = random.uniform(0, 5)
-                node.metrics.last_updated = datetime.now(timezone.utc)
+                node.metrics.last_updated = datetime.now(UTC)
 
                 # Record metrics for analysis
                 self.performance_monitor.record_metrics(node.node_id, node.metrics)
@@ -637,7 +636,7 @@ class EdgeComputingManager:
                     node.status = EdgeNodeStatus.FAILED
                     logger.warning(f"Node {node.node_id} failed health check")
                 else:
-                    node.last_health_check = datetime.now(timezone.utc)
+                    node.last_health_check = datetime.now(UTC)
 
     def add_edge_node(
         self,
@@ -669,8 +668,8 @@ class EdgeComputingManager:
         return False
 
     async def route_request(
-        self, user_lat: Optional[float] = None, user_lon: Optional[float] = None
-    ) -> Optional[EdgeNode]:
+        self, user_lat: float | None = None, user_lon: float | None = None
+    ) -> EdgeNode | None:
         """Route a request to the best available edge node."""
         try:
             self.metrics["total_requests"] += 1
@@ -707,7 +706,7 @@ class EdgeComputingManager:
             self.metrics["failed_requests"] += 1
             return None
 
-    def get_system_status(self) -> Dict[str, Any]:
+    def get_system_status(self) -> dict[str, Any]:
         """Get comprehensive edge computing system status."""
         active_nodes = [
             n for n in self.nodes.values() if n.status == EdgeNodeStatus.ACTIVE
@@ -730,7 +729,7 @@ class EdgeComputingManager:
 
 
 # Global edge computing manager instance
-_global_edge_manager: Optional[EdgeComputingManager] = None
+_global_edge_manager: EdgeComputingManager | None = None
 
 
 def get_edge_computing_manager() -> EdgeComputingManager:
@@ -742,8 +741,8 @@ def get_edge_computing_manager() -> EdgeComputingManager:
 
 
 async def initialize_edge_computing_manager(
-    load_balancing_config: Optional[LoadBalancingConfig] = None,
-    auto_scaling_config: Optional[AutoScalingConfig] = None,
+    load_balancing_config: LoadBalancingConfig | None = None,
+    auto_scaling_config: AutoScalingConfig | None = None,
 ) -> EdgeComputingManager:
     """Initialize the global edge computing manager."""
     global _global_edge_manager
@@ -763,18 +762,18 @@ async def shutdown_edge_computing_manager() -> None:
 
 
 __all__ = [
+    "AutoScaler",
+    "AutoScalingConfig",
     "EdgeComputingManager",
     "EdgeNode",
     "EdgeNodeMetrics",
     "EdgeNodeStatus",
-    "LoadBalancingStrategy",
-    "LoadBalancingConfig",
-    "AutoScalingConfig",
-    "ScalingAction",
     "GeographicCalculator",
-    "PerformanceMonitor",
     "LoadBalancer",
-    "AutoScaler",
+    "LoadBalancingConfig",
+    "LoadBalancingStrategy",
+    "PerformanceMonitor",
+    "ScalingAction",
     "get_edge_computing_manager",
     "initialize_edge_computing_manager",
     "shutdown_edge_computing_manager",

@@ -12,10 +12,10 @@
 __all__ = [
     "EdgeComputingManager",
     "EdgeNode",
-    "NodeType",
     "LoadLevel",
-    "ScalingAction",
     "LoadMetrics",
+    "NodeType",
+    "ScalingAction",
     "ScalingDecision",
     "get_edge_computing_manager",
 ]

@@ -25,24 +25,18 @@ Features:
 """
 
 import asyncio
+from collections import defaultdict, deque
+from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor
+from dataclasses import dataclass
+from enum import Enum
 import gc
 import json
 import logging
-import math
-import mmap
 import os
-import sys
 import threading
 import time
-import weakref
-from array import array
-from collections import defaultdict, deque
-from concurrent.futures import ThreadPoolExecutor
-from ctypes import c_double, c_uint64, c_void_p
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any
 
 # Security integration
 try:
@@ -227,7 +221,7 @@ class MemoryPool:
         except Exception as e:
             logger.error(f"Memory pool initialization error: {e}")
 
-    def allocate(self) -> Optional[memoryview]:
+    def allocate(self) -> memoryview | None:
         """Allocate an aligned memory block."""
         if self.free_blocks:
             block = self.free_blocks.popleft()
@@ -262,7 +256,7 @@ class LockFreeQueue:
         except Exception:
             return False
 
-    def dequeue(self) -> Optional[Any]:
+    def dequeue(self) -> Any | None:
         """Dequeue item in lock-free manner."""
         try:
             with self._lock:  # Simplified implementation
@@ -283,34 +277,34 @@ class VectorizedOperations:
     def __init__(self):
         self.use_numpy = NUMPY_AVAILABLE
 
-    def vector_add(self, a: List[float], b: List[float]) -> List[float]:
+    def vector_add(self, a: list[float], b: list[float]) -> list[float]:
         """Vectorized addition."""
         if self.use_numpy and np:
             return (np.array(a) + np.array(b)).tolist()
         else:
-            return [x + y for x, y in zip(a, b)]
+            return [x + y for x, y in zip(a, b, strict=False)]
 
-    def vector_multiply(self, a: List[float], scalar: float) -> List[float]:
+    def vector_multiply(self, a: list[float], scalar: float) -> list[float]:
         """Vectorized scalar multiplication."""
         if self.use_numpy and np:
             return (np.array(a) * scalar).tolist()
         else:
             return [x * scalar for x in a]
 
-    def vector_dot_product(self, a: List[float], b: List[float]) -> float:
+    def vector_dot_product(self, a: list[float], b: list[float]) -> float:
         """Vectorized dot product."""
         if self.use_numpy and np:
             return float(np.dot(a, b))
         else:
-            return sum(x * y for x, y in zip(a, b))
+            return sum(x * y for x, y in zip(a, b, strict=False))
 
 
 class BranchPredictor:
     """Branch prediction optimizer."""
 
     def __init__(self):
-        self.branch_history: Dict[str, deque] = defaultdict(lambda: deque(maxlen=1000))
-        self.prediction_accuracy: Dict[str, float] = defaultdict(float)
+        self.branch_history: dict[str, deque] = defaultdict(lambda: deque(maxlen=1000))
+        self.prediction_accuracy: dict[str, float] = defaultdict(float)
 
     def predict_branch(self, branch_id: str, condition: bool) -> bool:
         """Predict branch outcome based on history."""
@@ -358,13 +352,13 @@ class AdvancedMicrosecondOptimizer:
     - System integration
     """
 
-    def __init__(self, config: Optional[OptimizationConfig] = None):
+    def __init__(self, config: OptimizationConfig | None = None):
         self.config = config or OptimizationConfig()
 
         # Performance tracking
         self.metrics_history: deque = deque(maxlen=10000)
-        self.operation_cache: Dict[str, Any] = {}
-        self.precomputed_responses: Dict[str, bytes] = {}
+        self.operation_cache: dict[str, Any] = {}
+        self.precomputed_responses: dict[str, bytes] = {}
 
         # High-performance components
         self.memory_pool = MemoryPool(
@@ -397,8 +391,8 @@ class AdvancedMicrosecondOptimizer:
         }
 
         # Background tasks
-        self.monitoring_task: Optional[asyncio.Task] = None
-        self.optimization_task: Optional[asyncio.Task] = None
+        self.monitoring_task: asyncio.Task | None = None
+        self.optimization_task: asyncio.Task | None = None
         self.is_running = False
 
         logger.info(
@@ -577,7 +571,7 @@ class AdvancedMicrosecondOptimizer:
             except Exception as e:
                 logger.error(f"Optimization execution error: {e}")
 
-    async def _execute_optimization(self, operation: Dict[str, Any]):
+    async def _execute_optimization(self, operation: dict[str, Any]):
         """Execute a specific optimization operation."""
         operation_type = operation.get("type", "unknown")
 
@@ -590,7 +584,7 @@ class AdvancedMicrosecondOptimizer:
 
         self.optimization_stats["operations_optimized"] += 1
 
-    async def _precompute_operation(self, operation: Dict[str, Any]):
+    async def _precompute_operation(self, operation: dict[str, Any]):
         """Precompute operation results."""
         key = operation.get("key", "")
         computation = operation.get("computation")
@@ -602,7 +596,7 @@ class AdvancedMicrosecondOptimizer:
             except Exception as e:
                 logger.error(f"Precomputation error: {e}")
 
-    async def _vectorize_operation(self, operation: Dict[str, Any]):
+    async def _vectorize_operation(self, operation: dict[str, Any]):
         """Vectorize mathematical operations."""
         data = operation.get("data", [])
         operation_type = operation.get("operation", "add")
@@ -614,7 +608,7 @@ class AdvancedMicrosecondOptimizer:
 
         return None
 
-    async def _warm_cache_operation(self, operation: Dict[str, Any]):
+    async def _warm_cache_operation(self, operation: dict[str, Any]):
         """Warm cache with predicted data."""
         if self.cache_manager:
             key = operation.get("key", "")
@@ -663,7 +657,7 @@ class AdvancedMicrosecondOptimizer:
 
     async def optimize_operation(
         self, operation_name: str, operation_func: Callable, *args, **kwargs
-    ) -> Tuple[Any, NanosecondMetrics]:
+    ) -> tuple[Any, NanosecondMetrics]:
         """
         Optimize a specific operation with comprehensive performance tracking.
 
@@ -759,7 +753,7 @@ class AdvancedMicrosecondOptimizer:
 
             raise
 
-    def get_optimization_stats(self) -> Dict[str, Any]:
+    def get_optimization_stats(self) -> dict[str, Any]:
         """Get comprehensive optimization statistics."""
         # Calculate branch prediction accuracy
         branch_accuracy = 0.0
@@ -838,7 +832,7 @@ class AdvancedMicrosecondOptimizer:
 
 
 # Global optimizer instance
-_global_optimizer: Optional[AdvancedMicrosecondOptimizer] = None
+_global_optimizer: AdvancedMicrosecondOptimizer | None = None
 
 
 def get_microsecond_optimizer() -> AdvancedMicrosecondOptimizer:
@@ -850,7 +844,7 @@ def get_microsecond_optimizer() -> AdvancedMicrosecondOptimizer:
 
 
 async def initialize_microsecond_optimizer(
-    config: Optional[OptimizationConfig] = None,
+    config: OptimizationConfig | None = None,
 ) -> AdvancedMicrosecondOptimizer:
     """Initialize the global microsecond optimizer."""
     global _global_optimizer
@@ -869,16 +863,16 @@ async def shutdown_microsecond_optimizer() -> None:
 
 __all__ = [
     "AdvancedMicrosecondOptimizer",
+    "BranchPredictor",
+    "CPUArchitecture",
+    "LockFreeQueue",
+    "MemoryPool",
     "NanosecondMetrics",
     "OptimizationConfig",
-    "PerformanceSnapshot",
     "OptimizationLevel",
     "PerformanceProfile",
-    "CPUArchitecture",
-    "MemoryPool",
-    "LockFreeQueue",
+    "PerformanceSnapshot",
     "VectorizedOperations",
-    "BranchPredictor",
     "get_microsecond_optimizer",
     "initialize_microsecond_optimizer",
     "shutdown_microsecond_optimizer",

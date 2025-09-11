@@ -6,13 +6,12 @@ failover, load balancing, and consistency management.
 """
 
 import asyncio
+from dataclasses import dataclass, field
+from datetime import datetime
 import hashlib
-import json
 import logging
 import time
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Set
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +25,7 @@ class CacheNode:
     port: int
     weight: float = 1.0
     is_healthy: bool = True
-    last_health_check: Optional[datetime] = None
+    last_health_check: datetime | None = None
     response_time_ms: float = 0.0
     error_count: int = 0
     total_requests: int = 0
@@ -48,10 +47,10 @@ class ClusterMetrics:
 class CacheClusterManager:
     """Manages distributed cache cluster with automatic failover."""
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, config: dict[str, Any] | None = None):
         self.config = config or {}
-        self.nodes: Dict[str, CacheNode] = {}
-        self.healthy_nodes: Set[str] = set()
+        self.nodes: dict[str, CacheNode] = {}
+        self.healthy_nodes: set[str] = set()
         self.metrics = ClusterMetrics()
 
         # Configuration
@@ -61,7 +60,7 @@ class CacheClusterManager:
         self.consistency_level = self.config.get("consistency_level", "eventual")
 
         # Consistent hashing ring
-        self.hash_ring: Dict[int, str] = {}
+        self.hash_ring: dict[int, str] = {}
         self.virtual_nodes = self.config.get("virtual_nodes", 150)
 
         # Background tasks
@@ -71,7 +70,7 @@ class CacheClusterManager:
 
         logger.info("[LINK] Cache Cluster Manager initialized")
 
-    async def initialize(self, nodes: List[Dict[str, Any]]) -> bool:
+    async def initialize(self, nodes: list[dict[str, Any]]) -> bool:
         """Initialize cluster with node configurations."""
         try:
             # Add nodes to cluster
@@ -139,7 +138,7 @@ class CacheClusterManager:
             logger.error(f"Error removing node {node_id}: {e}")
             return False
 
-    def get_node_for_key(self, key: str) -> Optional[str]:
+    def get_node_for_key(self, key: str) -> str | None:
         """Get the appropriate node for a given key using consistent hashing."""
         if not self.healthy_nodes:
             return None
@@ -163,7 +162,7 @@ class CacheClusterManager:
 
         return None
 
-    def get_replica_nodes(self, key: str, replica_count: int = 2) -> List[str]:
+    def get_replica_nodes(self, key: str, replica_count: int = 2) -> list[str]:
         """Get replica nodes for a key for redundancy."""
         if not self.healthy_nodes or replica_count <= 0:
             return []
@@ -338,7 +337,7 @@ class CacheClusterManager:
         except Exception as e:
             logger.error(f"Error collecting cluster metrics: {e}")
 
-    def get_cluster_status(self) -> Dict[str, Any]:
+    def get_cluster_status(self) -> dict[str, Any]:
         """Get comprehensive cluster status."""
         return {
             "cluster_health": {
@@ -385,7 +384,7 @@ class CacheClusterManager:
             },
         }
 
-    def _get_hash_ring_distribution(self) -> Dict[str, int]:
+    def _get_hash_ring_distribution(self) -> dict[str, int]:
         """Get distribution of keys across nodes in hash ring."""
         distribution = {}
         for node_id in self.hash_ring.values():

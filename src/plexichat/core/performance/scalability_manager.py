@@ -24,20 +24,15 @@ Features:
 """
 
 import asyncio
-import gc
-import json
-import logging
-import math
-import os
-import statistics
-import threading
-import time
-import weakref
 from collections import defaultdict, deque
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Union
+import logging
+import statistics
+import time
+from typing import Any
 
 # Security integration
 try:
@@ -176,7 +171,7 @@ class NodeMetrics:
     gc_pressure: float = 0.0
     thread_count: int = 0
     file_descriptors: int = 0
-    last_updated: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    last_updated: datetime = field(default_factory=lambda: datetime.now(UTC))
     status: NodeStatus = NodeStatus.HEALTHY
     region: str = "default"
     availability_zone: str = "default"
@@ -303,7 +298,7 @@ class PredictiveScaler:
             logger.error(f"Model training error: {e}")
             return False
 
-    def predict_load(self, current_metrics: NodeMetrics) -> Optional[float]:
+    def predict_load(self, current_metrics: NodeMetrics) -> float | None:
         """Predict future load based on current metrics."""
         if not ML_AVAILABLE or not np or not self.model or not self.scaler:
             return None
@@ -339,12 +334,12 @@ class CircuitBreaker:
         self.failure_threshold = failure_threshold
         self.timeout_seconds = timeout_seconds
         self.failure_count = 0
-        self.last_failure_time: Optional[datetime] = None
+        self.last_failure_time: datetime | None = None
         self.state = "closed"  # closed, open, half_open
 
-    def call(self, func: Callable, *args, **kwargs) -> Tuple[Any, bool]:
+    def call(self, func: Callable, *args, **kwargs) -> tuple[Any, bool]:
         """Execute function with circuit breaker protection."""
-        current_time = datetime.now(timezone.utc)
+        current_time = datetime.now(UTC)
 
         # Check if circuit should be half-open
         if (
@@ -386,15 +381,15 @@ class LoadBalancer:
 
     def __init__(self, config: LoadBalancerConfig):
         self.config = config
-        self.nodes: Dict[str, NodeMetrics] = {}
-        self.request_counts: Dict[str, int] = defaultdict(int)
-        self.response_times: Dict[str, deque] = defaultdict(lambda: deque(maxlen=1000))
-        self.circuit_breakers: Dict[str, CircuitBreaker] = {}
+        self.nodes: dict[str, NodeMetrics] = {}
+        self.request_counts: dict[str, int] = defaultdict(int)
+        self.response_times: dict[str, deque] = defaultdict(lambda: deque(maxlen=1000))
+        self.circuit_breakers: dict[str, CircuitBreaker] = {}
         self.round_robin_index = 0
-        self.session_affinity: Dict[str, str] = {}
+        self.session_affinity: dict[str, str] = {}
 
         # Rate limiting
-        self.rate_limiter: Dict[str, deque] = defaultdict(lambda: deque(maxlen=1000))
+        self.rate_limiter: dict[str, deque] = defaultdict(lambda: deque(maxlen=1000))
 
     def add_node(self, node_metrics: NodeMetrics):
         """Add a node to the load balancer."""
@@ -426,8 +421,8 @@ class LoadBalancer:
             logger.info(f"Removed node {node_id} from load balancer")
 
     def select_node(
-        self, client_ip: Optional[str] = None, session_id: Optional[str] = None
-    ) -> Optional[str]:
+        self, client_ip: str | None = None, session_id: str | None = None
+    ) -> str | None:
         """Select the best node using the configured algorithm."""
         healthy_nodes = [
             node_id
@@ -484,17 +479,17 @@ class LoadBalancer:
 
         return False
 
-    def _round_robin_select(self, nodes: List[str]) -> str:
+    def _round_robin_select(self, nodes: list[str]) -> str:
         """Round-robin selection."""
         node = nodes[self.round_robin_index % len(nodes)]
         self.round_robin_index += 1
         return node
 
-    def _least_connections_select(self, nodes: List[str]) -> str:
+    def _least_connections_select(self, nodes: list[str]) -> str:
         """Select node with least connections."""
         return min(nodes, key=lambda n: self.nodes[n].active_connections)
 
-    def _weighted_round_robin_select(self, nodes: List[str]) -> str:
+    def _weighted_round_robin_select(self, nodes: list[str]) -> str:
         """Weighted round-robin based on node health scores."""
         weights = [self.nodes[node].health_score for node in nodes]
         total_weight = sum(weights)
@@ -514,7 +509,7 @@ class LoadBalancer:
 
         return nodes[0]
 
-    def _ip_hash_select(self, nodes: List[str], client_ip: Optional[str]) -> str:
+    def _ip_hash_select(self, nodes: list[str], client_ip: str | None) -> str:
         """IP hash-based selection for session affinity."""
         if not client_ip:
             return nodes[0]
@@ -522,7 +517,7 @@ class LoadBalancer:
         hash_value = hash(client_ip) % len(nodes)
         return nodes[hash_value]
 
-    def _least_response_time_select(self, nodes: List[str]) -> str:
+    def _least_response_time_select(self, nodes: list[str]) -> str:
         """Select node with lowest average response time."""
 
         def avg_response_time(node_id: str) -> float:
@@ -531,7 +526,7 @@ class LoadBalancer:
 
         return min(nodes, key=avg_response_time)
 
-    def _resource_based_select(self, nodes: List[str]) -> str:
+    def _resource_based_select(self, nodes: list[str]) -> str:
         """Select node based on resource utilization."""
 
         def resource_score(node_id: str) -> float:
@@ -541,7 +536,7 @@ class LoadBalancer:
 
         return min(nodes, key=resource_score)
 
-    def _ai_optimized_select(self, nodes: List[str]) -> str:
+    def _ai_optimized_select(self, nodes: list[str]) -> str:
         """AI-optimized node selection."""
 
         # Comprehensive scoring algorithm
@@ -601,8 +596,8 @@ class UltraAdvancedScalabilityManager:
 
     def __init__(
         self,
-        load_balancer_config: Optional[LoadBalancerConfig] = None,
-        auto_scaling_config: Optional[AutoScalingConfig] = None,
+        load_balancer_config: LoadBalancerConfig | None = None,
+        auto_scaling_config: AutoScalingConfig | None = None,
     ):
 
         # Configuration
@@ -614,9 +609,9 @@ class UltraAdvancedScalabilityManager:
         self.predictive_scaler = PredictiveScaler()
 
         # Node management
-        self.nodes: Dict[str, NodeMetrics] = {}
+        self.nodes: dict[str, NodeMetrics] = {}
         self.scaling_events: deque = deque(maxlen=1000)
-        self.last_scale_action: Optional[datetime] = None
+        self.last_scale_action: datetime | None = None
 
         # System integrations
         self.security_system = None
@@ -638,9 +633,9 @@ class UltraAdvancedScalabilityManager:
         }
 
         # Background tasks
-        self.monitoring_task: Optional[asyncio.Task] = None
-        self.scaling_task: Optional[asyncio.Task] = None
-        self.training_task: Optional[asyncio.Task] = None
+        self.monitoring_task: asyncio.Task | None = None
+        self.scaling_task: asyncio.Task | None = None
+        self.training_task: asyncio.Task | None = None
         self.is_running = False
 
         logger.info(
@@ -770,7 +765,7 @@ class UltraAdvancedScalabilityManager:
                     except Exception:
                         pass
 
-                node.last_updated = datetime.now(timezone.utc)
+                node.last_updated = datetime.now(UTC)
                 self.metrics_history.append(node)
         except Exception as e:
             logger.error(f"Metrics collection error: {e}")
@@ -841,7 +836,7 @@ class UltraAdvancedScalabilityManager:
             )
 
             # Check scaling conditions
-            current_time = datetime.now(timezone.utc)
+            current_time = datetime.now(UTC)
 
             # Scale up conditions
             if (
@@ -927,7 +922,7 @@ class UltraAdvancedScalabilityManager:
 
             # Record scaling event
             event = ScalingEvent(
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
                 action=ScalingAction.SCALE_UP,
                 reason=reason,
                 nodes_before=len(self.nodes) - 1,
@@ -939,7 +934,7 @@ class UltraAdvancedScalabilityManager:
                 cost_impact=0.0,
             )
             self.scaling_events.append(event)
-            self.last_scale_action = datetime.now(timezone.utc)
+            self.last_scale_action = datetime.now(UTC)
             self.performance_stats["scaling_actions"] += 1
 
             logger.info(f"Scaled up: Added node {new_node_id}. Reason: {reason}")
@@ -969,7 +964,7 @@ class UltraAdvancedScalabilityManager:
 
             # Record scaling event
             event = ScalingEvent(
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
                 action=ScalingAction.SCALE_DOWN,
                 reason=reason,
                 nodes_before=len(self.nodes) + 1,
@@ -981,7 +976,7 @@ class UltraAdvancedScalabilityManager:
                 cost_impact=0.0,
             )
             self.scaling_events.append(event)
-            self.last_scale_action = datetime.now(timezone.utc)
+            self.last_scale_action = datetime.now(UTC)
             self.performance_stats["scaling_actions"] += 1
 
             logger.info(
@@ -990,7 +985,7 @@ class UltraAdvancedScalabilityManager:
         except Exception as e:
             logger.error(f"Scale down error: {e}")
 
-    def get_scalability_stats(self) -> Dict[str, Any]:
+    def get_scalability_stats(self) -> dict[str, Any]:
         """Get comprehensive scalability statistics."""
         return {
             "performance_stats": self.performance_stats.copy(),
@@ -1030,7 +1025,7 @@ class UltraAdvancedScalabilityManager:
 
 
 # Global scalability manager instance
-_global_scalability_manager: Optional[UltraAdvancedScalabilityManager] = None
+_global_scalability_manager: UltraAdvancedScalabilityManager | None = None
 
 
 def get_scalability_manager() -> UltraAdvancedScalabilityManager:
@@ -1042,8 +1037,8 @@ def get_scalability_manager() -> UltraAdvancedScalabilityManager:
 
 
 async def initialize_scalability_manager(
-    load_balancer_config: Optional[LoadBalancerConfig] = None,
-    auto_scaling_config: Optional[AutoScalingConfig] = None,
+    load_balancer_config: LoadBalancerConfig | None = None,
+    auto_scaling_config: AutoScalingConfig | None = None,
 ) -> UltraAdvancedScalabilityManager:
     """Initialize the global scalability manager."""
     global _global_scalability_manager
@@ -1063,18 +1058,18 @@ async def shutdown_scalability_manager() -> None:
 
 
 __all__ = [
-    "UltraAdvancedScalabilityManager",
-    "NodeMetrics",
-    "LoadBalancerConfig",
     "AutoScalingConfig",
-    "ScalingEvent",
-    "PredictiveScaler",
     "CircuitBreaker",
     "LoadBalancer",
-    "ScalingStrategy",
+    "LoadBalancerConfig",
     "LoadBalancingAlgorithm",
+    "NodeMetrics",
     "NodeStatus",
+    "PredictiveScaler",
     "ScalingAction",
+    "ScalingEvent",
+    "ScalingStrategy",
+    "UltraAdvancedScalabilityManager",
     "get_scalability_manager",
     "initialize_scalability_manager",
     "shutdown_scalability_manager",

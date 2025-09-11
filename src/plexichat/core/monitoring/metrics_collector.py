@@ -5,17 +5,14 @@ Collects system performance metrics at regular intervals and stores them.
 """
 
 import asyncio
-import logging
-import time
 from dataclasses import dataclass
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from datetime import datetime
+import logging
+from typing import Any
 
 import psutil
 
-from plexichat.core.database.manager import database_manager
-
-from .base_monitor import MetricData, MonitorBase
+from .base_monitor import MonitorBase
 
 logger = logging.getLogger(__name__)
 
@@ -36,15 +33,15 @@ class CollectionConfig:
 class MetricsCollector(MonitorBase):
     """Real-time metrics collection service."""
 
-    def __init__(self, config: Optional[CollectionConfig] = None):
+    def __init__(self, config: CollectionConfig | None = None) -> None:
         self.config = config or CollectionConfig()
         self.running = False
-        self.task: Optional[asyncio.Task] = None
+        self.task: asyncio.Task[None] | None = None
         self.last_collection = datetime.now()
 
         logger.info("Metrics collector initialized")
 
-    async def start(self):
+    async def start(self) -> None:
         """Start the metrics collection service."""
         if self.running:
             logger.warning("Metrics collector is already running")
@@ -53,7 +50,7 @@ class MetricsCollector(MonitorBase):
         await super().start()
         logger.info("Metrics collector started")
 
-    async def stop(self):
+    async def stop(self) -> None:
         """Stop the metrics collection service."""
         if not self.running:
             return
@@ -62,7 +59,7 @@ class MetricsCollector(MonitorBase):
 
         logger.info("Metrics collector stopped")
 
-    async def _collect_metrics(self):
+    async def _collect_metrics(self) -> None:
         """Override to collect specific metrics."""
         timestamp = datetime.now()
 
@@ -88,9 +85,7 @@ class MetricsCollector(MonitorBase):
 
         self.last_collection = datetime.now()
 
-    # _collect_metrics overridden above
-
-    async def _collect_cpu_metrics(self, timestamp: datetime):
+    async def _collect_cpu_metrics(self, timestamp: datetime) -> None:
         """Collect CPU usage metrics."""
         try:
             # Overall CPU usage
@@ -137,7 +132,7 @@ class MetricsCollector(MonitorBase):
         except Exception as e:
             logger.error(f"Failed to collect CPU metrics: {e}")
 
-    async def _collect_memory_metrics(self, timestamp: datetime):
+    async def _collect_memory_metrics(self, timestamp: datetime) -> None:
         """Collect memory usage metrics."""
         try:
             memory = psutil.virtual_memory()
@@ -175,7 +170,7 @@ class MetricsCollector(MonitorBase):
         except Exception as e:
             logger.error(f"Failed to collect memory metrics: {e}")
 
-    async def _collect_disk_metrics(self, timestamp: datetime):
+    async def _collect_disk_metrics(self, timestamp: datetime) -> None:
         """Collect disk usage metrics."""
         try:
             # Overall disk usage
@@ -204,7 +199,7 @@ class MetricsCollector(MonitorBase):
         except Exception as e:
             logger.error(f"Failed to collect disk metrics: {e}")
 
-    async def _collect_network_metrics(self, timestamp: datetime):
+    async def _collect_network_metrics(self, timestamp: datetime) -> None:
         """Collect network usage metrics."""
         try:
             network = psutil.net_io_counters()
@@ -249,7 +244,7 @@ class MetricsCollector(MonitorBase):
         except Exception as e:
             logger.error(f"Failed to collect network metrics: {e}")
 
-    async def _collect_process_metrics(self, timestamp: datetime):
+    async def _collect_process_metrics(self, timestamp: datetime) -> None:
         """Collect process-related metrics."""
         try:
             # Process count
@@ -277,7 +272,7 @@ class MetricsCollector(MonitorBase):
         except Exception as e:
             logger.error(f"Failed to collect process metrics: {e}")
 
-    def get_status(self) -> Dict[str, Any]:
+    def get_status(self) -> dict[str, Any]:
         """Get collector status."""
         return {
             "running": self.running,
@@ -299,29 +294,29 @@ class MetricsCollector(MonitorBase):
 metrics_collector = MetricsCollector()
 
 
-async def start_metrics_collection(interval_seconds: int = 60):
+async def start_metrics_collection(interval_seconds: int = 60) -> None:
     """Start the metrics collection service."""
     global metrics_collector
     metrics_collector.config.interval_seconds = interval_seconds
     await metrics_collector.start()
 
 
-async def stop_metrics_collection():
+async def stop_metrics_collection() -> None:
     """Stop the metrics collection service."""
     global metrics_collector
     await metrics_collector.stop()
 
 
-def get_metrics_collector_status() -> Dict[str, Any]:
+def get_metrics_collector_status() -> dict[str, Any]:
     """Get the status of the metrics collector."""
     return metrics_collector.get_status()
 
 
 __all__ = [
-    "MetricsCollector",
     "CollectionConfig",
+    "MetricsCollector",
+    "get_metrics_collector_status",
     "metrics_collector",
     "start_metrics_collection",
     "stop_metrics_collection",
-    "get_metrics_collector_status",
 ]

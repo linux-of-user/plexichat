@@ -4,15 +4,15 @@
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
 import asyncio
+from dataclasses import dataclass, field
+from datetime import UTC, datetime
+from enum import Enum
 import hashlib
 import logging
 import pickle
 import time
+from typing import Any
 import zlib
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from enum import Enum
-from typing import Any, Dict, List, Optional
 
 import aioredis
 
@@ -56,8 +56,8 @@ class CacheNode:
     max_memory: int = 1024 * 1024 * 1024  # 1GB default
     current_load: float = 0.0
     status: str = "healthy"
-    last_ping: Optional[datetime] = None
-    connection: Optional[aioredis.Redis] = None
+    last_ping: datetime | None = None
+    connection: aioredis.Redis | None = None
 
     @property
     def address(self) -> str:
@@ -69,7 +69,7 @@ class CacheNode:
         if self.status != "healthy":
             return False
         if self.last_ping:
-            return (datetime.now(timezone.utc) - self.last_ping).total_seconds() < 60
+            return (datetime.now(UTC) - self.last_ping).total_seconds() < 60
         return False
 
 
@@ -79,22 +79,22 @@ class CacheEntry:
 
     key: str
     value: Any
-    ttl: Optional[int] = None
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    accessed_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    ttl: int | None = None
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    accessed_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     access_count: int = 0
     size_bytes: int = 0
-    tags: List[str] = field(default_factory=list)
+    tags: list[str] = field(default_factory=list)
 
     def is_expired(self) -> bool:
         """Check if entry is expired."""
         if not self.ttl:
             return False
-        return (datetime.now(timezone.utc) - self.created_at).total_seconds() > self.ttl
+        return (datetime.now(UTC) - self.created_at).total_seconds() > self.ttl
 
     def update_access(self):
         """Update access metadata."""
-        self.accessed_at = datetime.now(timezone.utc)
+        self.accessed_at = datetime.now(UTC)
         self.access_count += 1
 
 
@@ -114,18 +114,18 @@ class DistributedCacheManager:
     """
 
     def __init__(self):
-        self.nodes: Dict[str, CacheNode] = {}
+        self.nodes: dict[str, CacheNode] = {}
         self.strategy = CacheStrategy.CONSISTENT_HASHING
         self.replication_factor = 2
         self.compression_enabled = True
         self.encryption_enabled = True
 
         # L1 Memory Cache
-        self.l1_cache: Dict[str, CacheEntry] = {}
+        self.l1_cache: dict[str, CacheEntry] = {}
         self.l1_max_size = 1000  # Max entries in L1
 
         # Consistent hashing ring
-        self.hash_ring: Dict[int, str] = {}
+        self.hash_ring: dict[int, str] = {}
         self.virtual_nodes = 150  # Virtual nodes per physical node
 
         # Statistics
@@ -143,8 +143,8 @@ class DistributedCacheManager:
         }
 
         # Background tasks
-        self.health_check_task: Optional[asyncio.Task] = None
-        self.cleanup_task: Optional[asyncio.Task] = None
+        self.health_check_task: asyncio.Task | None = None
+        self.cleanup_task: asyncio.Task | None = None
         self.running = False
 
     async def start(self):
@@ -193,7 +193,7 @@ class DistributedCacheManager:
             # Test connection
             await node.connection.ping()
             node.status = "healthy"
-            node.last_ping = datetime.now(timezone.utc)
+            node.last_ping = datetime.now(UTC)
 
             # Add to nodes
             self.nodes[node.node_id] = node
@@ -249,7 +249,7 @@ class DistributedCacheManager:
 
         logger.debug(f"Rebuilt hash ring with {len(self.hash_ring)} virtual nodes")
 
-    def _get_nodes_for_key(self, key: str) -> List[str]:
+    def _get_nodes_for_key(self, key: str) -> list[str]:
         """Get nodes responsible for a key using consistent hashing."""
         if not self.hash_ring:
             return []
@@ -281,7 +281,7 @@ class DistributedCacheManager:
 
         return nodes
 
-    async def get(self, key: str, default: Optional[Any] = None) -> Any:
+    async def get(self, key: str, default: Any | None = None) -> Any:
         """Get value from distributed cache."""
         start_time = time.time()
         self.stats["total_requests"] += 1
@@ -341,7 +341,7 @@ class DistributedCacheManager:
             response_time = (time.time() - start_time) * 1000
             self._update_response_time(response_time)
 
-    async def set(self, key: str, value: Any, ttl: Optional[int] = None) -> bool:
+    async def set(self, key: str, value: Any, ttl: int | None = None) -> bool:
         """Set value in distributed cache."""
         try:
             # Serialize value
@@ -415,7 +415,7 @@ class DistributedCacheManager:
             self.stats["errors"] += 1
             return False
 
-    async def _store_l1(self, key: str, value: Any, ttl: Optional[int] = None):
+    async def _store_l1(self, key: str, value: Any, ttl: int | None = None):
         """Store value in L1 cache."""
         # Evict if L1 cache is full
         if len(self.l1_cache) >= self.l1_max_size:
@@ -485,7 +485,7 @@ class DistributedCacheManager:
                 if node.connection:
                     await node.connection.ping()
                     node.status = "healthy"
-                    node.last_ping = datetime.now(timezone.utc)
+                    node.last_ping = datetime.now(UTC)
                 else:
                     node.status = "disconnected"
             except Exception as e:
@@ -530,7 +530,7 @@ class DistributedCacheManager:
         ) / total_requests
         self.stats["average_response_time_ms"] = new_avg
 
-    def get_cache_statistics(self) -> Dict[str, Any]:
+    def get_cache_statistics(self) -> dict[str, Any]:
         """Get comprehensive cache statistics."""
         hit_rate = (
             self.stats["cache_hits"] / max(self.stats["total_requests"], 1)

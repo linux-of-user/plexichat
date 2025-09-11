@@ -6,14 +6,14 @@ monitoring, and CDN integration for optimal performance.
 """
 
 import asyncio
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
 import gzip
 import json
 import logging
 import ssl
 import time
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 import aiohttp
 
@@ -53,7 +53,7 @@ class NetworkConfig:
 
     # SSL/TLS
     ssl_verify: bool = True
-    ssl_context: Optional[ssl.SSLContext] = None
+    ssl_context: ssl.SSLContext | None = None
 
     # CDN
     cdn_enabled: bool = False
@@ -68,13 +68,13 @@ class NetworkConfig:
 class NetworkOptimizer:
     """Advanced network optimization manager."""
 
-    def __init__(self, config: Optional[NetworkConfig] = None):
+    def __init__(self, config: NetworkConfig | None = None):
         self.config = config or NetworkConfig()
         self.metrics = ConnectionMetrics()
 
         # Connection pools
-        self.http_session: Optional[aiohttp.ClientSession] = None
-        self.connection_pools: Dict[str, aiohttp.TCPConnector] = {}
+        self.http_session: aiohttp.ClientSession | None = None
+        self.connection_pools: dict[str, aiohttp.TCPConnector] = {}
 
         # Compression tracking
         self.compression_stats = {
@@ -84,12 +84,12 @@ class NetworkOptimizer:
         }
 
         # CDN integration
-        self.cdn_session: Optional[aiohttp.ClientSession] = None
-        self.cdn_cache: Dict[str, Any] = {}
+        self.cdn_session: aiohttp.ClientSession | None = None
+        self.cdn_cache: dict[str, Any] = {}
 
         # Background tasks
-        self._monitoring_task: Optional[asyncio.Task] = None
-        self._cleanup_task: Optional[asyncio.Task] = None
+        self._monitoring_task: asyncio.Task | None = None
+        self._cleanup_task: asyncio.Task | None = None
         self._running = False
 
         logger.info("[WEB] Network Optimizer initialized")
@@ -176,10 +176,10 @@ class NetworkOptimizer:
         self,
         method: str,
         url: str,
-        data: Optional[Union[str, bytes, Dict]] = None,
-        headers: Optional[Dict[str, str]] = None,
+        data: str | bytes | dict | None = None,
+        headers: dict[str, str] | None = None,
         compress: bool = True,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Make optimized HTTP request with compression and monitoring."""
         start_time = time.time()
         if not self.http_session:
@@ -232,7 +232,7 @@ class NetworkOptimizer:
             logger.error(f"Request failed: {e}")
             raise
 
-    async def _compress_data(self, data: Union[str, bytes, Dict]) -> Optional[bytes]:
+    async def _compress_data(self, data: str | bytes | dict) -> bytes | None:
         """Compress data if beneficial."""
         try:
             # Convert to bytes if needed
@@ -396,7 +396,7 @@ class NetworkOptimizer:
                 logger.error(f"Cleanup loop error: {e}")
                 await asyncio.sleep(60)
 
-    def get_network_stats(self) -> Dict[str, Any]:
+    def get_network_stats(self) -> dict[str, Any]:
         """Get comprehensive network statistics."""
         return {
             "connections": {

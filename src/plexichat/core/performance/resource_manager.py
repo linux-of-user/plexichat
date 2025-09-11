@@ -6,18 +6,16 @@ and intelligent resource allocation for optimal system performance.
 """
 
 import asyncio
-import gc
-import logging
-import os
-import shutil
-import tempfile
-import threading
-import time
-import weakref
 from collections import defaultdict, deque
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import Any, Callable, Dict, List, Optional, Set, Type
+import logging
+import os
+import tempfile
+import threading
+from typing import Any
+import weakref
 
 import psutil
 
@@ -59,11 +57,11 @@ class ResourcePool:
 class FileResourceManager:
     """Manages file resources and temporary files."""
 
-    def __init__(self, temp_dir: Optional[str] = None, max_temp_size_mb: int = 1024):
+    def __init__(self, temp_dir: str | None = None, max_temp_size_mb: int = 1024) -> None:
         self.temp_dir = temp_dir or tempfile.gettempdir()
         self.max_temp_size_mb = max_temp_size_mb
-        self.temp_files: Dict[str, Dict[str, Any]] = {}
-        self.file_handles: Set[Any] = set()
+        self.temp_files: dict[str, dict[str, Any]] = {}
+        self.file_handles: set[weakref.ref[Any]] = set()
         self.lock = threading.Lock()
 
     def create_temp_file(self, prefix: str = "plexichat_", suffix: str = ".tmp") -> str:
@@ -88,20 +86,20 @@ class FileResourceManager:
             logger.error(f"Failed to create temp file: {e}")
             raise
 
-    def register_file_handle(self, file_handle: Any):
+    def register_file_handle(self, file_handle: Any) -> None:
         """Register a file handle for tracking."""
         with self.lock:
             self.file_handles.add(weakref.ref(file_handle, self._cleanup_file_ref))
 
-    def _cleanup_file_ref(self, ref):
+    def _cleanup_file_ref(self, ref: weakref.ref[Any]) -> None:
         """Cleanup callback for file handle weak references."""
         with self.lock:
             self.file_handles.discard(ref)
 
-    def cleanup_temp_files(self, max_age_hours: int = 24) -> Dict[str, int]:
+    def cleanup_temp_files(self, max_age_hours: int = 24) -> dict[str, Any]:
         """Clean up old temporary files."""
         cleaned_files = 0
-        freed_space_mb = 0
+        freed_space_mb = 0.0
         cutoff_time = datetime.now() - timedelta(hours=max_age_hours)
 
         with self.lock:
@@ -129,7 +127,7 @@ class FileResourceManager:
         )
         return {"files_cleaned": cleaned_files, "space_freed_mb": freed_space_mb}
 
-    def get_temp_usage(self) -> Dict[str, Any]:
+    def get_temp_usage(self) -> dict[str, Any]:
         """Get temporary file usage statistics."""
         total_size = 0
         total_files = 0
@@ -148,449 +146,367 @@ class FileResourceManager:
         return {
             "total_files": total_files,
             "total_size_mb": total_size / (1024 * 1024),
-            "max_size_mb": self.max_temp_size_mb,
-            "usage_percent": (
-                (total_size / (1024 * 1024)) / self.max_temp_size_mb * 100
-                if self.max_temp_size_mb > 0
-                else 0
-            ),
-            "open_handles": len(self.file_handles),
+            "max_allowed_mb": self.max_temp_size_mb,
+            "usage_percent": (total_size / (1024 * 1024)) / self.max_temp_size_mb * 100,
+            "temp_dir": self.temp_dir,
         }
 
 
-class ConnectionResourceManager:
-    """Manages network connections and database connections."""
+class MemoryResourceManager:
+    """Manages memory resources and performs cleanup."""
 
-    def __init__(self, max_connections: int = 1000):
-        self.max_connections = max_connections
-        self.active_connections: Dict[str, Dict[str, Any]] = {}
-        self.connection_pools: Dict[str, List[Any]] = defaultdict(list)
+    def __init__(self, cleanup_threshold_mb: int = 512) -> None:
+        self.cleanup_threshold_mb = cleanup_threshold_mb
+        self.object_registry: dict[str, list[weakref.ref[Any]]] = defaultdict(list)
+        self.gc_stats = {"collections": 0, "freed_objects": 0, "freed_mb": 0.0}
         self.lock = threading.Lock()
 
-    def register_connection(
-        self, conn_id: str, connection_type: str, metadata: Dict[str, Any] = None
-    ):
-        """Register an active connection."""
+    def register_object(self, obj: Any, category: str = "default") -> None:
+        """Register an object for memory tracking."""
         with self.lock:
-            self.active_connections[conn_id] = {
-                "type": connection_type,
-                "created": datetime.now(),
-                "last_used": datetime.now(),
-                "metadata": metadata or {},
-            }
+            self.object_registry[category].append(
+                weakref.ref(obj, self._cleanup_object_ref)
+            )
 
-    def unregister_connection(self, conn_id: str):
-        """Unregister a connection."""
+    def _cleanup_object_ref(self, ref: weakref.ref[Any]) -> None:
+        """Cleanup callback for object weak references."""
         with self.lock:
-            self.active_connections.pop(conn_id, None)
+            for category, refs in self.object_registry.items():
+                if ref in refs:
+                    refs.remove(ref)
+                    break
 
-    def update_connection_usage(self, conn_id: str):
-        """Update connection last used time."""
+    def force_gc(self) -> dict[str, Any]:
+        """Force garbage collection and return statistics."""
+        import gc as gc_module
+
+        before_mem = psutil.Process().memory_info().rss / (1024 * 1024)
+
+        # Force full garbage collection
+        collected = []
+        for generation in range(3):
+            collected.append(gc_module.collect(generation))
+
+        after_mem = psutil.Process().memory_info().rss / (1024 * 1024)
+        freed_mb = before_mem - after_mem
+
+        stats = {
+            "collections_performed": len(collected),
+            "objects_collected": collected,
+            "memory_freed_mb": freed_mb,
+            "memory_before_mb": before_mem,
+            "memory_after_mb": after_mem,
+        }
+
         with self.lock:
-            if conn_id in self.active_connections:
-                self.active_connections[conn_id]["last_used"] = datetime.now()
+            self.gc_stats["collections"] += 1
+            self.gc_stats["freed_objects"] += sum(collected)
+            self.gc_stats["freed_mb"] += freed_mb
 
-    def cleanup_stale_connections(self, max_idle_minutes: int = 30) -> int:
-        """Clean up stale connections."""
-        cutoff_time = datetime.now() - timedelta(minutes=max_idle_minutes)
-        cleaned_count = 0
+        logger.info(
+            f"[GC] Freed {freed_mb:.1f}MB, collected {sum(collected)} objects"
+        )
+        return stats
+
+    def get_memory_usage(self) -> dict[str, Any]:
+        """Get current memory usage statistics."""
+        process = psutil.Process()
+        memory_info = process.memory_info()
 
         with self.lock:
-            stale_connections = [
-                conn_id
-                for conn_id, info in self.active_connections.items()
-                if info["last_used"] < cutoff_time
-            ]
+            tracked_objects = sum(
+                len([ref for ref in refs if ref() is not None])
+                for refs in self.object_registry.values()
+            )
 
-            for conn_id in stale_connections:
-                try:
-                    # In a real implementation, this would close the actual connection
-                    del self.active_connections[conn_id]
-                    cleaned_count += 1
-                except Exception as e:
-                    logger.warning(f"Failed to cleanup connection {conn_id}: {e}")
+        return {
+            "rss_mb": memory_info.rss / (1024 * 1024),
+            "vms_mb": memory_info.vms / (1024 * 1024),
+            "percent": process.memory_percent(),
+            "tracked_objects": tracked_objects,
+            "gc_stats": self.gc_stats.copy(),
+            "cleanup_threshold_mb": self.cleanup_threshold_mb,
+        }
 
-        if cleaned_count > 0:
-            logger.info(f"[PLUGIN] Cleaned up {cleaned_count} stale connections")
+    def should_cleanup(self) -> bool:
+        """Check if memory cleanup should be performed."""
+        current_mb = psutil.Process().memory_info().rss / (1024 * 1024)
+        return current_mb > self.cleanup_threshold_mb
 
-        return cleaned_count
 
-    def get_connection_stats(self) -> Dict[str, Any]:
-        """Get connection statistics."""
+class ConnectionPoolManager:
+    """Manages connection pools for various resources."""
+
+    def __init__(self, default_max_size: int = 20) -> None:
+        self.pools: dict[str, ResourcePool] = {}
+        self.connections: dict[str, deque[Any]] = defaultdict(lambda: deque())
+        self.active_connections: dict[str, set[Any]] = defaultdict(set)
+        self.default_max_size = default_max_size
+        self.lock = threading.Lock()
+
+    def create_pool(
+        self,
+        pool_name: str,
+        resource_type: str,
+        max_size: int = 0,
+        factory: Callable[[], Any] | None = None,
+    ) -> ResourcePool:
+        """Create a new resource pool."""
         with self.lock:
-            connection_types = defaultdict(int)
-            for info in self.active_connections.values():
-                connection_types[info["type"]] += 1
+            if max_size == 0:
+                max_size = self.default_max_size
 
+            pool = ResourcePool(
+                name=pool_name,
+                resource_type=resource_type,
+                max_size=max_size,
+            )
+            self.pools[pool_name] = pool
+
+            logger.info(f"Created resource pool '{pool_name}' (max_size: {max_size})")
+            return pool
+
+    def get_resource(self, pool_name: str) -> Any | None:
+        """Get a resource from the pool."""
+        with self.lock:
+            if pool_name not in self.pools:
+                return None
+
+            pool = self.pools[pool_name]
+            connections = self.connections[pool_name]
+
+            if connections:
+                resource = connections.popleft()
+                self.active_connections[pool_name].add(resource)
+                pool.total_reused += 1
+                return resource
+
+            # No available resources and at capacity
+            if pool.current_size >= pool.max_size:
+                return None
+
+            # Create new resource (placeholder - would be implemented per resource type)
+            resource = self._create_resource(pool.resource_type)
+            if resource:
+                self.active_connections[pool_name].add(resource)
+                pool.current_size += 1
+                pool.total_created += 1
+                pool.active_resources += 1
+
+            return resource
+
+    def return_resource(self, pool_name: str, resource: Any) -> bool:
+        """Return a resource to the pool."""
+        with self.lock:
+            if pool_name not in self.pools:
+                return False
+
+            self.active_connections[pool_name].discard(resource)
+            self.connections[pool_name].append(resource)
+            self.pools[pool_name].active_resources -= 1
+
+            return True
+
+    def _create_resource(self, resource_type: str) -> Any | None:
+        """Create a new resource (placeholder implementation)."""
+        # This would be implemented based on the resource type
+        return {"type": resource_type, "created": datetime.now()}
+
+    def cleanup_pool(self, pool_name: str, max_idle_time: int = 300) -> dict[str, Any]:
+        """Clean up idle resources in a pool."""
+        if pool_name not in self.pools:
+            return {"error": "Pool not found"}
+
+        with self.lock:
+            pool = self.pools[pool_name]
+            connections = self.connections[pool_name]
+            cutoff = datetime.now() - timedelta(seconds=max_idle_time)
+
+            cleaned = 0
+            # Simple cleanup - in real implementation, would track creation times
+            while connections and cleaned < len(connections) // 2:
+                connections.popleft()
+                pool.current_size -= 1
+                cleaned += 1
+
+            pool.last_cleanup = datetime.now()
+
+        logger.info(f"[POOL] Cleaned {cleaned} idle connections from '{pool_name}'")
+        return {"cleaned_connections": cleaned, "remaining": len(connections)}
+
+    def get_pool_stats(self) -> dict[str, dict[str, Any]]:
+        """Get statistics for all pools."""
+        with self.lock:
             return {
-                "total_connections": len(self.active_connections),
-                "max_connections": self.max_connections,
-                "usage_percent": (
-                    len(self.active_connections) / self.max_connections * 100
-                    if self.max_connections > 0
-                    else 0
-                ),
-                "by_type": dict(connection_types),
+                name: {
+                    "resource_type": pool.resource_type,
+                    "max_size": pool.max_size,
+                    "current_size": pool.current_size,
+                    "active_resources": pool.active_resources,
+                    "available_resources": len(self.connections[name]),
+                    "total_created": pool.total_created,
+                    "total_reused": pool.total_reused,
+                    "last_cleanup": pool.last_cleanup.isoformat(),
+                }
+                for name, pool in self.pools.items()
             }
 
 
 class ResourceManager:
-    """Main resource management system."""
+    """Central resource management system."""
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
-        self.config = config or {}
-        self.metrics = ResourceMetrics()
+    def __init__(
+        self,
+        temp_dir: str | None = None,
+        max_temp_size_mb: int = 1024,
+        memory_threshold_mb: int = 512,
+        cleanup_interval_seconds: int = 300,
+    ) -> None:
+        self.file_manager = FileResourceManager(temp_dir, max_temp_size_mb)
+        self.memory_manager = MemoryResourceManager(memory_threshold_mb)
+        self.connection_manager = ConnectionPoolManager()
 
-        # Resource managers
-        self.file_manager = FileResourceManager(
-            temp_dir=self.config.get("temp_dir"),
-            max_temp_size_mb=self.config.get("max_temp_size_mb", 1024),
-        )
-        self.connection_manager = ConnectionResourceManager(
-            max_connections=self.config.get("max_connections", 1000)
-        )
+        self.cleanup_interval = cleanup_interval_seconds
+        self.running = False
+        self.cleanup_task: asyncio.Task[None] | None = None
 
-        # Resource pools
-        self.resource_pools: Dict[str, ResourcePool] = {}
+        logger.info("Resource manager initialized")
 
-        # Configuration
-        self.monitoring_interval = self.config.get("monitoring_interval", 60)
-        self.cleanup_interval = self.config.get("cleanup_interval", 300)
-        self.resource_thresholds = self.config.get(
-            "resource_thresholds",
-            {
-                "cpu_percent": 80,
-                "memory_percent": 85,
-                "disk_percent": 90,
-                "connections_percent": 90,
-            },
-        )
-
-        # Background tasks
-        self._monitoring_task: Optional[asyncio.Task] = None
-        self._cleanup_task: Optional[asyncio.Task] = None
-        self._running = False
-
-        logger.info("[CONFIG] Resource Manager initialized")
-
-    async def initialize(self) -> bool:
-        """Initialize resource management system."""
-        try:
-            # Start monitoring
-            await self.start_monitoring()
-
-            # Create default resource pools
-            self.create_resource_pool("database_connections", "connection", 50)
-            self.create_resource_pool("http_sessions", "session", 20)
-            self.create_resource_pool("file_handles", "file", 100)
-
-            logger.info("[START] Resource management system initialized")
-            return True
-
-        except Exception as e:
-            logger.error(f"Resource management initialization failed: {e}")
-            return False
-
-    async def shutdown(self):
-        """Shutdown resource management system."""
-        try:
-            self._running = False
-
-            # Stop monitoring tasks
-            if self._monitoring_task:
-                self._monitoring_task.cancel()
-            if self._cleanup_task:
-                self._cleanup_task.cancel()
-
-            # Cleanup all resources
-            await self.cleanup_all_resources()
-
-            logger.info("[STOP] Resource management shutdown complete")
-
-        except Exception as e:
-            logger.error(f"Error during resource management shutdown: {e}")
-
-    def create_resource_pool(
-        self, name: str, resource_type: str, max_size: int
-    ) -> ResourcePool:
-        """Create a new resource pool."""
-        pool = ResourcePool(name=name, resource_type=resource_type, max_size=max_size)
-        self.resource_pools[name] = pool
-        logger.info(
-            f"[PACKAGE] Created resource pool: {name} (type: {resource_type}, max: {max_size})"
-        )
-        return pool
-
-    async def start_monitoring(self):
-        """Start resource monitoring."""
-        if self._running:
+    async def start(self) -> None:
+        """Start the resource manager and cleanup tasks."""
+        if self.running:
             return
 
-        self._running = True
-        self._monitoring_task = asyncio.create_task(self._monitoring_loop())
-        self._cleanup_task = asyncio.create_task(self._cleanup_loop())
+        self.running = True
+        self.cleanup_task = asyncio.create_task(self._cleanup_loop())
+        logger.info("Resource manager started")
 
-        logger.info("[METRICS] Resource monitoring started")
+    async def stop(self) -> None:
+        """Stop the resource manager."""
+        if not self.running:
+            return
 
-    async def _monitoring_loop(self):
-        """Background monitoring loop."""
-        while self._running:
+        self.running = False
+        if self.cleanup_task:
+            self.cleanup_task.cancel()
             try:
-                await self._collect_resource_metrics()
-                await self._check_resource_thresholds()
-                await asyncio.sleep(self.monitoring_interval)
-
+                await self.cleanup_task
             except asyncio.CancelledError:
-                break
-            except Exception as e:
-                logger.error(f"Resource monitoring error: {e}")
-                await asyncio.sleep(30)
+                pass
 
-    async def _collect_resource_metrics(self):
-        """Collect system resource metrics."""
-        try:
-            # CPU and memory
-            self.metrics.cpu_usage = psutil.cpu_percent(interval=1)
-            memory = psutil.virtual_memory()
-            self.metrics.memory_usage_mb = memory.used / (1024 * 1024)
+        logger.info("Resource manager stopped")
 
-            # Disk usage
-            disk = psutil.disk_usage("/")
-            self.metrics.disk_usage_mb = disk.used / (1024 * 1024)
-
-            # Network I/O
-            network = psutil.net_io_counters()
-            if network:
-                self.metrics.network_io_mb = (
-                    network.bytes_sent + network.bytes_recv
-                ) / (1024 * 1024)
-
-            # Process info
-            process = psutil.Process()
-            self.metrics.open_files = (
-                process.num_fds() if hasattr(process, "num_fds") else 0
-            )
-            self.metrics.thread_count = process.num_threads()
-
-            # Connection stats
-            conn_stats = self.connection_manager.get_connection_stats()
-            self.metrics.active_connections = conn_stats["total_connections"]
-
-            # Temp file stats
-            temp_stats = self.file_manager.get_temp_usage()
-            self.metrics.temp_files_count = temp_stats["total_files"]
-            self.metrics.temp_files_size_mb = temp_stats["total_size_mb"]
-
-            self.metrics.last_updated = datetime.now()
-
-        except Exception as e:
-            logger.error(f"Error collecting resource metrics: {e}")
-
-    async def _check_resource_thresholds(self):
-        """Check if resource usage exceeds thresholds."""
-        try:
-            # Check CPU usage
-            if self.metrics.cpu_usage > self.resource_thresholds["cpu_percent"]:
-                logger.warning(f"[ALERT] High CPU usage: {self.metrics.cpu_usage:.1f}%")
-                await self._trigger_resource_optimization("cpu")
-
-            # Check memory usage
-            memory_percent = (
-                self.metrics.memory_usage_mb
-                / (psutil.virtual_memory().total / (1024 * 1024))
-            ) * 100
-            if memory_percent > self.resource_thresholds["memory_percent"]:
-                logger.warning(f"[ALERT] High memory usage: {memory_percent:.1f}%")
-                await self._trigger_resource_optimization("memory")
-
-            # Check connection usage
-            conn_stats = self.connection_manager.get_connection_stats()
-            if (
-                conn_stats["usage_percent"]
-                > self.resource_thresholds["connections_percent"]
-            ):
-                logger.warning(
-                    f"[ALERT] High connection usage: {conn_stats['usage_percent']:.1f}%"
-                )
-                await self._trigger_resource_optimization("connections")
-
-        except Exception as e:
-            logger.error(f"Error checking resource thresholds: {e}")
-
-    async def _trigger_resource_optimization(self, resource_type: str):
-        """Trigger resource optimization for specific resource type."""
-        try:
-            if resource_type == "memory":
-                # Force garbage collection
-                gc.collect()
-                logger.info(
-                    "[DELETE] Triggered garbage collection for memory optimization"
-                )
-
-            elif resource_type == "connections":
-                # Cleanup stale connections
-                cleaned = self.connection_manager.cleanup_stale_connections(
-                    max_idle_minutes=15
-                )
-                logger.info(f"[PLUGIN] Cleaned {cleaned} stale connections")
-
-            elif resource_type == "cpu":
-                # Reduce background task frequency temporarily
-                logger.info(
-                    "[TIMER] Reducing background task frequency for CPU optimization"
-                )
-
-        except Exception as e:
-            logger.error(f"Error during resource optimization: {e}")
-
-    async def _cleanup_loop(self):
+    async def _cleanup_loop(self) -> None:
         """Background cleanup loop."""
-        while self._running:
+        while self.running:
             try:
-                await self.cleanup_all_resources()
-                await asyncio.sleep(self.cleanup_interval)
-
-            except asyncio.CancelledError:
-                break
+                await self.perform_cleanup()
             except Exception as e:
-                logger.error(f"Cleanup loop error: {e}")
-                await asyncio.sleep(60)
+                logger.error(f"Error in cleanup loop: {e}")
 
-    async def cleanup_all_resources(self) -> Dict[str, Any]:
+            await asyncio.sleep(self.cleanup_interval)
+
+    async def perform_cleanup(self) -> dict[str, Any]:
         """Perform comprehensive resource cleanup."""
+        cleanup_stats = {}
+
         try:
-            results = {}
+            # File cleanup
+            file_stats = self.file_manager.cleanup_temp_files()
+            cleanup_stats["files"] = file_stats
 
-            # Cleanup temporary files
-            temp_cleanup = self.file_manager.cleanup_temp_files()
-            results["temp_files"] = temp_cleanup
+            # Memory cleanup if needed
+            if self.memory_manager.should_cleanup():
+                memory_stats = self.memory_manager.force_gc()
+                cleanup_stats["memory"] = memory_stats
 
-            # Cleanup stale connections
-            conn_cleanup = self.connection_manager.cleanup_stale_connections()
-            results["connections"] = conn_cleanup
-
-            # Force garbage collection
-            collected = gc.collect()
-            results["garbage_collection"] = {"objects_collected": collected}
-
-            # Cleanup resource pools
-            pool_cleanup = await self._cleanup_resource_pools()
-            results["resource_pools"] = pool_cleanup
-
-            logger.info(f"[CLEAN] Resource cleanup completed: {results}")
-            return results
+            # Connection pool cleanup
+            pool_stats = {}
+            for pool_name in self.connection_manager.pools:
+                stats = self.connection_manager.cleanup_pool(pool_name)
+                pool_stats[pool_name] = stats
+            cleanup_stats["pools"] = pool_stats
 
         except Exception as e:
-            logger.error(f"Error during resource cleanup: {e}")
-            return {"error": str(e)}
+            logger.error(f"Error during cleanup: {e}")
+            cleanup_stats["error"] = str(e)
 
-    async def _cleanup_resource_pools(self) -> Dict[str, int]:
-        """Cleanup resource pools."""
-        cleaned_pools = 0
+        return cleanup_stats
 
-        for pool_name, pool in self.resource_pools.items():
-            try:
-                # Simple cleanup logic - in real implementation would be more sophisticated
-                if pool.current_size > pool.max_size * pool.cleanup_threshold:
-                    # Reduce pool size
-                    target_size = int(pool.max_size * 0.7)
-                    pool.current_size = target_size
-                    pool.last_cleanup = datetime.now()
-                    cleaned_pools += 1
-
-            except Exception as e:
-                logger.warning(f"Failed to cleanup pool {pool_name}: {e}")
-
-        return {"pools_cleaned": cleaned_pools}
-
-    def get_resource_stats(self) -> Dict[str, Any]:
-        """Get comprehensive resource statistics."""
+    def get_resource_status(self) -> dict[str, Any]:
+        """Get comprehensive resource status."""
         return {
-            "system_resources": {
-                "cpu_usage_percent": self.metrics.cpu_usage,
-                "memory_usage_mb": self.metrics.memory_usage_mb,
-                "disk_usage_mb": self.metrics.disk_usage_mb,
-                "network_io_mb": self.metrics.network_io_mb,
-                "open_files": self.metrics.open_files,
-                "thread_count": self.metrics.thread_count,
-            },
-            "connections": self.connection_manager.get_connection_stats(),
-            "temp_files": self.file_manager.get_temp_usage(),
-            "resource_pools": {
-                name: {
-                    "type": pool.resource_type,
-                    "current_size": pool.current_size,
-                    "max_size": pool.max_size,
-                    "active_resources": pool.active_resources,
-                    "utilization_percent": (
-                        (pool.current_size / pool.max_size) * 100
-                        if pool.max_size > 0
-                        else 0
-                    ),
-                    "total_created": pool.total_created,
-                    "total_reused": pool.total_reused,
-                    "reuse_rate": (
-                        (pool.total_reused / (pool.total_created + pool.total_reused))
-                        if (pool.total_created + pool.total_reused) > 0
-                        else 0
-                    ),
-                }
-                for name, pool in self.resource_pools.items()
-            },
-            "thresholds": self.resource_thresholds,
-            "last_updated": self.metrics.last_updated.isoformat(),
+            "file_resources": self.file_manager.get_temp_usage(),
+            "memory_resources": self.memory_manager.get_memory_usage(),
+            "connection_pools": self.connection_manager.get_pool_stats(),
+            "system_metrics": self._get_system_metrics(),
         }
 
-    async def optimize_resources(self) -> Dict[str, Any]:
-        """Optimize resource usage and return optimization results."""
+    def _get_system_metrics(self) -> ResourceMetrics:
+        """Get current system resource metrics."""
         try:
-            results = {}
+            process = psutil.Process()
+            memory_info = process.memory_info()
 
-            # Perform cleanup
-            cleanup_results = await self.cleanup_all_resources()
-            results["cleanup"] = cleanup_results
+            # Get file descriptor count if available
+            try:
+                open_files = process.num_fds() if hasattr(process, 'num_fds') else len(process.open_files())
+            except (psutil.AccessDenied, AttributeError):
+                open_files = 0
 
-            # Optimize resource pools
-            for pool_name, pool in self.resource_pools.items():
-                if (
-                    pool.current_size < pool.max_size * 0.5
-                    and pool.total_reused > pool.total_created
-                ):
-                    # Pool is underutilized, consider reducing size
-                    old_size = pool.max_size
-                    pool.max_size = max(10, int(pool.max_size * 0.8))
-                    results[f"pool_{pool_name}"] = (
-                        f"Reduced max size from {old_size} to {pool.max_size}"
-                    )
-
-            # Generate optimization suggestions
-            suggestions = []
-            stats = self.get_resource_stats()
-
-            if stats["system_resources"]["cpu_usage_percent"] > 70:
-                suggestions.append("Consider reducing background task frequency")
-
-            if stats["system_resources"]["memory_usage_mb"] > 1024:
-                suggestions.append(
-                    "High memory usage detected, consider implementing memory pooling"
-                )
-
-            if stats["connections"]["usage_percent"] > 80:
-                suggestions.append(
-                    "High connection usage, consider connection pooling optimization"
-                )
-
-            results["suggestions"] = suggestions
-
-            logger.info(
-                f"[CONFIG] Resource optimization completed: {len(suggestions)} suggestions"
+            return ResourceMetrics(
+                cpu_usage=psutil.cpu_percent(),
+                memory_usage_mb=memory_info.rss / (1024 * 1024),
+                disk_usage_mb=0.0,  # Could be implemented if needed
+                network_io_mb=0.0,  # Could be implemented if needed
+                open_files=open_files,
+                active_connections=sum(
+                    len(conns) for conns in self.connection_manager.active_connections.values()
+                ),
+                thread_count=threading.active_count(),
+                process_count=len(psutil.pids()),
+                temp_files_count=len(self.file_manager.temp_files),
+                temp_files_size_mb=self.file_manager.get_temp_usage()["total_size_mb"],
             )
-            return results
-
         except Exception as e:
-            logger.error(f"Error during resource optimization: {e}")
-            return {"error": str(e)}
+            logger.error(f"Error getting system metrics: {e}")
+            return ResourceMetrics()
 
 
-# Global resource manager instance
+# Global instance
 resource_manager = ResourceManager()
+
+# Convenience functions
+async def start_resource_management() -> None:
+    """Start the global resource manager."""
+    await resource_manager.start()
+
+
+async def stop_resource_management() -> None:
+    """Stop the global resource manager."""
+    await resource_manager.stop()
+
+
+def get_resource_status() -> dict[str, Any]:
+    """Get resource status from the global manager."""
+    return resource_manager.get_resource_status()
+
+
+async def perform_resource_cleanup() -> dict[str, Any]:
+    """Perform resource cleanup via the global manager."""
+    return await resource_manager.perform_cleanup()
+
+
+__all__ = [
+    "ConnectionPoolManager",
+    "FileResourceManager",
+    "MemoryResourceManager",
+    "ResourceManager",
+    "ResourceMetrics",
+    "ResourcePool",
+    "get_resource_status",
+    "perform_resource_cleanup",
+    "resource_manager",
+    "start_resource_management",
+    "stop_resource_management",
+]
