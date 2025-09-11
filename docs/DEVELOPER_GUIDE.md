@@ -525,6 +525,111 @@ except:
 # Format code with Black
 black .
 
+# Static Analysis Setup
+
+PlexiChat uses comprehensive static analysis to maintain code quality. The system includes pre-commit hooks, CI checks, and a custom analysis reporter.
+
+#### Local Setup
+
+1. **Install pre-commit hooks:**
+   ```bash
+   make install-pre-commit
+   # or manually:
+   pipx install pre-commit
+   pre-commit install
+   ```
+
+2. **Run static analysis:**
+   ```bash
+   make static-check
+   ```
+
+#### Git Hooks
+
+Pre-commit hooks automatically run on git commit:
+- **Black:** Code formatting (line-length=88)
+- **Ruff:** Linting and fixing (E, F, I, ASYNC, C4, N rules)
+- **MyPy:** Strict type checking with Cython/Numba support
+- **Trailing whitespace:** Clean up whitespace
+
+#### CI Integration
+
+Static analysis runs in CI/CD pipeline:
+- **Docker build:** Static checks during dev stage
+- **GitHub Actions:** Dedicated `static-check` job before tests
+- **Failure thresholds:** 0 errors (E/F), 5 warnings allowed
+
+#### Custom Reporter
+
+The `static_analysis_reporter.py` parses Ruff/MyPy JSON output:
+
+**Features:**
+- Counts errors/warnings by severity
+- Structured logging with file-level details
+- Threshold-based failure (0 errors, 5 warnings)
+- Top error file reporting
+
+**Usage:**
+```bash
+python -m plexichat.infrastructure.utils.static_analysis_reporter ruff.json mypy.json
+```
+
+**Configuration:**
+- Error threshold: 0 (fail on any E/F errors)
+- Warning threshold: 5 (log if exceeded)
+- Cython/Numba support via mypy-stubs/
+
+#### Analysis Categories
+
+**Ruff Rules:**
+- E: pycodestyle errors (fail)
+- F: pyflakes imports (fail)
+- I: isort imports (info)
+- ASYNC: async/await patterns (warning)
+- C4: comprehensions (warning)
+- N: Numba/Cython (warning)
+
+**MyPy Configuration:**
+- Strict mode enabled
+- SQLAlchemy/FastAPI/Cython plugins
+- mypy_path: ./mypy-stubs
+- ignore_missing_imports for compiled modules
+
+#### Troubleshooting
+
+**Pre-commit issues:**
+```bash
+# Update hooks
+pre-commit autoupdate
+
+# Run manually
+pre-commit run --all-files
+
+# Skip temporarily (not recommended)
+git commit --no-verify
+```
+
+**MyPy Cython errors:**
+- Check mypy-stubs/cython.pyi and numba.pyi
+- Add type hints to .pyx files
+- Use `cdef` types in Cython code
+
+**CI failures:**
+- Review GitHub Actions logs
+- Check ruff.json/mypy.json outputs
+- Fix E/F errors first, then warnings
+
+#### Best Practices
+
+1. **Run locally first:** Always run `make static-check` before commit
+2. **Fix errors immediately:** E/F errors must be 0
+3. **Cython typing:** Use type annotations in .pyx files
+4. **Async patterns:** Follow Ruff ASYNC rules for coroutines
+5. **Numba stubs:** Use typed.jit() with explicit types
+6. **Review thresholds:** Custom reporter logs top error files
+
+The static analysis system ensures 100% pass rate and catches issues early, maintaining PlexiChat's high code quality standards.
+
 # Check code style with Flake8
 flake8 . --max-line-length=88 --extend-ignore=E203,W503
 
