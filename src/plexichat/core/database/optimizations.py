@@ -5,8 +5,7 @@ Provides optimized database schemas, indexes, and query optimizations
 for improved performance and scalability.
 """
 
-import logging
-from typing import Any, Dict, List
+from typing import Any
 
 from plexichat.core.logging import get_logger
 
@@ -86,7 +85,7 @@ class DatabaseOptimizer:
         self.logger = get_logger(__name__)
 
     async def create_optimized_indexes(
-        self, table_name: str, indexes: List[str]
+        self, table_name: str, indexes: list[str]
     ) -> bool:
         """Create optimized indexes for a table."""
         try:
@@ -110,7 +109,7 @@ class DatabaseOptimizer:
             )
             return False
 
-    async def analyze_table_performance(self, table_name: str) -> Dict[str, Any]:
+    async def analyze_table_performance(self, table_name: str) -> dict[str, Any]:
         """Analyze table performance and provide optimization recommendations."""
         try:
             from plexichat.core.database import execute_query
@@ -199,9 +198,9 @@ async def optimize_database() -> bool:
 
 
 __all__ = [
-    "OPTIMIZED_KEYBOARD_SHORTCUTS_SCHEMA",
     "KEYBOARD_SHORTCUTS_INDEXES",
     "OPTIMIZED_KEYBOARD_SHORTCUTS_QUERIES",
+    "OPTIMIZED_KEYBOARD_SHORTCUTS_SCHEMA",
     "DatabaseOptimizer",
     "database_optimizer",
     "optimize_database",

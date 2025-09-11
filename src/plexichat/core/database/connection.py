@@ -5,11 +5,25 @@ Connection pooling and management utilities.
 """
 
 import asyncio
-import logging
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any, Protocol, runtime_checkable
 
-logger = logging.getLogger(__name__)
+from plexichat.core.logging import get_logger
+
+logger = get_logger(__name__)
+
+
+@runtime_checkable
+class ConnectionProtocol(Protocol):
+    """Protocol for database connections."""
+
+    async def execute(self, query: str, params: dict[str, Any] | tuple | None = None) -> Any:
+        """Execute a query."""
+        ...
+
+    async def close(self) -> None:
+        """Close the connection."""
+        ...
 
 
 @dataclass
@@ -27,14 +41,14 @@ class ConnectionConfig:
 class DatabaseConnection:
     """Database connection wrapper."""
 
-    def __init__(self, connection, config: Optional[ConnectionConfig] = None):
+    def __init__(self, connection: ConnectionProtocol, config: ConnectionConfig | None = None):
         self.connection = connection
         self.config = config or ConnectionConfig()
         self.is_active = True
         self.last_used = asyncio.get_event_loop().time()
-        self.logger = logging.getLogger(__name__)
+        self.logger = get_logger(__name__)
 
-    async def execute(self, query: str, params: Optional[Dict[str, Any]] = None):
+    async def execute(self, query: str, params: dict[str, Any] | tuple | None = None) -> Any:
         """Execute a query on this connection."""
         self.last_used = asyncio.get_event_loop().time()
 
@@ -43,7 +57,7 @@ class DatabaseConnection:
         else:
             return await self.connection.execute(query)
 
-    async def close(self):
+    async def close(self) -> None:
         """Close the connection."""
         if self.connection and self.is_active:
             await self.connection.close()
@@ -58,14 +72,14 @@ class DatabaseConnection:
 class ConnectionPool:
     """Database connection pool."""
 
-    def __init__(self, config: Optional[ConnectionConfig] = None):
+    def __init__(self, config: ConnectionConfig | None = None):
         self.config = config or ConnectionConfig()
-        self.connections: List[DatabaseConnection] = []
+        self.connections: list[DatabaseConnection] = []
         self.active_connections = 0
         self.lock = asyncio.Lock()
-        self.logger = logging.getLogger(__name__)
+        self.logger = get_logger(__name__)
 
-    async def get_connection(self) -> Optional[DatabaseConnection]:
+    async def get_connection(self) -> DatabaseConnection | None:
         """Get a connection from the pool."""
         async with self.lock:
             # Try to reuse an existing connection
@@ -92,18 +106,18 @@ class ConnectionPool:
             self.logger.warning("No database connections available")
             return None
 
-    async def _create_connection(self) -> Optional[DatabaseConnection]:
+    async def _create_connection(self) -> DatabaseConnection | None:
         """Create a new database connection."""
         # This would be implemented based on the database type
         # For now, return None as a placeholder
         return None
 
-    async def return_connection(self, connection: DatabaseConnection):
+    async def return_connection(self, connection: DatabaseConnection) -> None:
         """Return a connection to the pool."""
         # Connection is automatically returned when not in use
         pass
 
-    async def close_all(self):
+    async def close_all(self) -> None:
         """Close all connections in the pool."""
         async with self.lock:
             for conn in self.connections:
@@ -111,7 +125,7 @@ class ConnectionPool:
             self.connections.clear()
             self.active_connections = 0
 
-    async def health_check(self) -> Dict[str, Any]:
+    async def health_check(self) -> dict[str, Any]:
         """Get pool health information."""
         async with self.lock:
             active = sum(1 for conn in self.connections if conn.is_active)
@@ -136,7 +150,8 @@ connection_pool = ConnectionPool()
 
 __all__ = [
     "ConnectionConfig",
-    "DatabaseConnection",
     "ConnectionPool",
+    "ConnectionProtocol",
+    "DatabaseConnection",
     "connection_pool",
 ]

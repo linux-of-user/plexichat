@@ -14,8 +14,7 @@ Created: 2024-01-01
 
 import asyncio
 import logging
-from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 logger = logging.getLogger(__name__)
 from .base import Migration
@@ -25,13 +24,13 @@ class AddPluginPermissionsMigration(Migration):
     MIGRATION_VERSION = "001_add_plugin_permissions"
     MIGRATION_DESCRIPTION = "Add Plugin Permissions"
 
-    def _get_tables(self) -> Dict[str, Dict[str, Any]]:
+    def _get_tables(self) -> dict[str, dict[str, Any]]:
         # Extract and convert dialect-specific schemas to base format
         tables = {}
         # plugin_permissions from model
         plugin_permissions_schema = PLUGIN_PERMISSIONS_SCHEMA
 
-        def convert_schema(schema_dict: Dict[str, str]) -> Dict[str, Any]:
+        def convert_schema(schema_dict: dict[str, str]) -> dict[str, Any]:
             columns = []
             unique_constraints = []
             for col, dtype_str in schema_dict.items():
@@ -105,7 +104,7 @@ class AddPluginPermissionsMigration(Migration):
         }
         return tables
 
-    def _get_indexes(self) -> Dict[str, List[Tuple[str, List[str], bool]]]:
+    def _get_indexes(self) -> dict[str, list[tuple[str, list[str], bool]]]:
         indexes = {
             "plugin_permissions": [
                 ("idx_plugin_permissions_plugin_name", ["plugin_name"], False),
@@ -139,10 +138,10 @@ class AddPluginPermissionsMigration(Migration):
         }
         return indexes
 
-    def _get_foreign_keys(self) -> Dict[str, List[Tuple[str, str, str, str, str, str]]]:
+    def _get_foreign_keys(self) -> dict[str, list[tuple[str, str, str, str, str, str]]]:
         return {}  # No FKs in this migration
 
-    def _get_check_constraints(self) -> Dict[str, List[Tuple[str, str]]]:
+    def _get_check_constraints(self) -> dict[str, list[tuple[str, str]]]:
         return {}  # No check constraints in this migration
 
     async def up(self):

@@ -7,8 +7,7 @@ cluster nodes, and backup metadata with proper indexing and constraints.
 
 import asyncio
 import logging
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from plexichat.core.database.manager import database_manager
 from plexichat.core.database.models import (
@@ -191,8 +190,8 @@ class AddNewSchemasMigration(Migration):
     MIGRATION_VERSION = "001_add_new_schemas"
     MIGRATION_DESCRIPTION = "Add client settings, plugin permissions, cluster nodes, and backup metadata schemas"
 
-    def _get_tables(self) -> Dict[str, Dict[str, Any]]:
-        def convert_schema(schema_dict: Dict[str, str]) -> Dict[str, Any]:
+    def _get_tables(self) -> dict[str, dict[str, Any]]:
+        def convert_schema(schema_dict: dict[str, str]) -> dict[str, Any]:
             columns = []
             unique_constraints = []
             for col, dtype_str in schema_dict.items():
@@ -220,13 +219,13 @@ class AddNewSchemasMigration(Migration):
             tables[table] = convert_schema(schema)
         return tables
 
-    def _get_indexes(self) -> Dict[str, List[Tuple[str, List[str], bool]]]:
+    def _get_indexes(self) -> dict[str, list[tuple[str, list[str], bool]]]:
         return INDEXES
 
-    def _get_foreign_keys(self) -> Dict[str, List[Tuple[str, str, str, str, str, str]]]:
+    def _get_foreign_keys(self) -> dict[str, list[tuple[str, str, str, str, str, str]]]:
         return FOREIGN_KEYS
 
-    def _get_check_constraints(self) -> Dict[str, List[Tuple[str, str]]]:
+    def _get_check_constraints(self) -> dict[str, list[tuple[str, str]]]:
         return CHECK_CONSTRAINTS
 
     async def up(self):

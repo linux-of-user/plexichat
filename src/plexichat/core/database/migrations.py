@@ -4,13 +4,18 @@ Database Migrations
 Migration system for database schema changes.
 """
 
-import logging
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING
 
-from plexichat.core.database.manager import database_manager
+from plexichat.core.logging import get_logger
 
-logger = logging.getLogger(__name__)
+# Import database_manager with proper type checking
+if TYPE_CHECKING:
+    pass
+else:
+    from plexichat.core.database.manager import database_manager
+
+logger = get_logger(__name__)
 
 
 class Migration:
@@ -21,7 +26,7 @@ class Migration:
         self.description = description
         self.up_sql = up_sql
         self.down_sql = down_sql
-        self.created_at = datetime.now(timezone.utc)
+        self.created_at = datetime.now(UTC)
 
     async def apply(self) -> bool:
         """Apply the migration."""
@@ -74,9 +79,9 @@ class Migration:
 class MigrationManager:
     """Manages database migrations."""
 
-    def __init__(self):
-        self.migrations: List[Migration] = []
-        self.logger = logging.getLogger(__name__)
+    def __init__(self) -> None:
+        self.migrations: list[Migration] = []
+        self.logger = get_logger(__name__)
 
     async def initialize(self) -> bool:
         """Initialize migration system."""
@@ -96,12 +101,12 @@ class MigrationManager:
             self.logger.error(f"Failed to initialize migration system: {e}")
             return False
 
-    def add_migration(self, migration: Migration):
+    def add_migration(self, migration: Migration) -> None:
         """Add a migration."""
         self.migrations.append(migration)
         self.migrations.sort(key=lambda m: m.version)
 
-    async def get_applied_migrations(self) -> List[str]:
+    async def get_applied_migrations(self) -> list[str]:
         """Get list of applied migration versions."""
         try:
             async with database_manager.get_session() as session:
@@ -112,7 +117,7 @@ class MigrationManager:
         except Exception:
             return []
 
-    async def get_pending_migrations(self) -> List[Migration]:
+    async def get_pending_migrations(self) -> list[Migration]:
         """Get list of pending migrations."""
         applied = await self.get_applied_migrations()
         return [m for m in self.migrations if m.version not in applied]
@@ -210,9 +215,9 @@ create_migration(
 __all__ = [
     "Migration",
     "MigrationManager",
+    "create_migration",
     "migration_manager",
     "run_migrations",
-    "create_migration",
 ]
 
 # Import additional typing optimization migrations

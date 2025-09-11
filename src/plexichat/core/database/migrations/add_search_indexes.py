@@ -5,9 +5,6 @@ Adds database indexes to improve search performance for messages, users, and cha
 """
 
 import logging
-from typing import Dict, List, Tuple
-
-from plexichat.core.database.manager import database_manager
 
 from .base import Migration
 
@@ -18,10 +15,10 @@ class AddSearchIndexesMigration(Migration):
     MIGRATION_VERSION = "add_search_indexes"
     MIGRATION_DESCRIPTION = "Add database indexes for improved search performance"
 
-    def _get_tables(self) -> Dict[str, Dict[str, Any]]:
+    def _get_tables(self) -> dict[str, dict[str, Any]]:
         return {}
 
-    def _get_indexes(self) -> Dict[str, List[Tuple[str, List[str], bool]]]:
+    def _get_indexes(self) -> dict[str, list[tuple[str, list[str], bool]]]:
         return {
             "messages": [
                 ("idx_messages_user_id", ["user_id"], False),
@@ -57,10 +54,10 @@ class AddSearchIndexesMigration(Migration):
             ],
         }
 
-    def _get_foreign_keys(self) -> Dict[str, List[Tuple[str, str, str, str, str, str]]]:
+    def _get_foreign_keys(self) -> dict[str, list[tuple[str, str, str, str, str, str]]]:
         return {}
 
-    def _get_check_constraints(self) -> Dict[str, List[Tuple[str, str]]]:
+    def _get_check_constraints(self) -> dict[str, list[tuple[str, str]]]:
         return {}
 
     async def up(self):

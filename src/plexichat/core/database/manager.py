@@ -5,13 +5,16 @@ Unified database management system with support for multiple database types,
 connection pooling, transactions, and performance optimization.
 """
 
-import asyncio
-import inspect
-import logging
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, AsyncGenerator, Dict, List, Optional, Set, Union
+import inspect
+from typing import (
+    Any,
+    Protocol,
+    runtime_checkable,
+)
 
 # Unified logging imports
 from plexichat.core.logging import LogCategory, get_logger
@@ -28,40 +31,70 @@ except ImportError:
 try:
     from plexichat.core.auth.permissions import (  # type: ignore
         DBOperation,
-        PermissionError,
         ResourceType,
         check_permission,
         format_permission,
     )
+    from plexichat.core.auth.permissions import (
+        PermissionError as AuthPermissionError,
+    )
+
+    # Type aliases to avoid naming conflicts
+    DatabasePermissionError = AuthPermissionError
+    DatabaseOperation = DBOperation
+    DatabaseResourceType = ResourceType
+
+    local_check_permission = check_permission
+    local_format_permission = format_permission
+
 except ImportError:
     # Define dummy classes and functions for type hinting and to avoid runtime errors.
-    from typing import Set
 
-    def check_permission(required: str, user_permissions: Set[str]) -> None:
+    def check_permission(required: str, user_permissions: set[str]) -> None:
         """Fallback permission check - always allows."""
         pass
 
-    def format_permission(rt, op, rn: str = "any") -> str:
+    def format_permission(rt: "DatabaseResourceType", op: "DatabaseOperation", rn: str = "any") -> str:
         """Fallback permission formatting."""
-        return f"{rt}:{op}:{rn}"
+        return f"{rt.value}:{op.value}:{rn}"
 
-    class DBOperation(Enum):
+    class DatabaseOperation(Enum):
         READ = "read"
         WRITE = "write"
         DELETE = "delete"
         EXECUTE_RAW = "execute_raw"
 
-    class ResourceType(Enum):
+    class DatabaseResourceType(Enum):
         TABLE = "table"
         DATABASE = "db"
 
-    class PermissionError(Exception):
+    class DatabasePermissionError(Exception):
         """Fallback permission error."""
-
         pass
 
 
 logger = get_logger(__name__)
+
+
+@runtime_checkable
+class DatabaseConnection(Protocol):
+    """Protocol for database connections."""
+
+    async def execute(self, query: str, params: dict[str, Any] | None = None) -> Any:
+        """Execute a query."""
+        ...
+
+    async def close(self) -> None:
+        """Close the connection."""
+        ...
+
+    async def commit(self) -> None:
+        """Commit the connection transaction."""
+        ...
+
+    async def rollback(self) -> None:
+        """Rollback the connection transaction."""
+        ...
 
 
 class DatabaseType(Enum):
@@ -96,30 +129,36 @@ class DatabaseSession:
     Database session wrapper with fine-grained access control.
     """
 
-    def __init__(self, connection, user_permissions: Optional[Set[str]] = None):
+    def __init__(self, connection: DatabaseConnection, user_permissions: set[str] | None = None):
         self.connection = connection
         self._transaction = None
         self.user_permissions = user_permissions
         self._in_transaction = False
 
-    def _check_permission(self, operation: DBOperation, resource_name: str):
+    def _check_permission(self, operation: DatabaseOperation, resource_name: str) -> None:
         """Checks if the user has permission to perform the operation on the resource."""
         # If no permissions are passed, we assume system-level access and allow the operation.
         if self.user_permissions is None:
             return
 
-        required_permission = format_permission(
-            ResourceType.TABLE, operation, resource_name
+        required_permission = local_format_permission(
+            DatabaseResourceType.TABLE, operation, resource_name
         )
-        check_permission(required_permission, self.user_permissions)
+        try:
+            local_check_permission(required_permission, self.user_permissions)
+        except Exception as e:
+            raise DatabasePermissionError(f"Permission denied: {required_permission}") from e
 
-    async def execute(self, query: str, params: Optional[Dict[str, Any]] = None) -> Any:
+    async def execute(self, query: str, params: dict[str, Any] | None = None) -> Any:
         """Execute a raw SQL query. Requires special permission."""
         if self.user_permissions is not None:
-            required_permission = format_permission(
-                ResourceType.DATABASE, DBOperation.EXECUTE_RAW, "any"
+            required_permission = local_format_permission(
+                DatabaseResourceType.DATABASE, DatabaseOperation.EXECUTE_RAW, "any"
             )
-            check_permission(required_permission, self.user_permissions)
+            try:
+                local_check_permission(required_permission, self.user_permissions)
+            except Exception as e:
+                raise DatabasePermissionError(f"Permission denied: {required_permission}") from e
 
         try:
             return await self.connection.execute(query, params or {})
@@ -128,47 +167,49 @@ class DatabaseSession:
             raise
 
     async def fetchall(
-        self, query: str, params: Optional[Dict[str, Any]] = None
-    ) -> List[Dict[str, Any]]:
+        self, query: str, params: dict[str, Any] | None = None
+    ) -> list[dict[str, Any]]:
         """Fetch all results from a query. Requires raw execution permission."""
         result = await self.execute(query, params)
         return [dict(row) for row in await result.fetchall()]
 
     async def fetchone(
-        self, query: str, params: Optional[Dict[str, Any]] = None
-    ) -> Optional[Dict[str, Any]]:
+        self, query: str, params: dict[str, Any] | None = None
+    ) -> dict[str, Any] | None:
         """Fetch one result from a query. Requires raw execution permission."""
         result = await self.execute(query, params)
         row = await result.fetchone()
         return dict(row) if row else None
 
-    async def insert(self, table: str, data: Dict[str, Any]) -> Any:
+    async def insert(self, table: str, data: dict[str, Any]) -> Any:
         """Insert data into a table after a permission check."""
-        self._check_permission(DBOperation.WRITE, table)
+        self._check_permission(DatabaseOperation.WRITE, table)
         columns = ", ".join(data.keys())
-        placeholders = ", ".join(["?" for _ in data.keys()])
+        placeholders = ", ".join(["?" for _ in data])
         query = f"INSERT INTO {table} ({columns}) VALUES ({placeholders})"
-        return await self.connection.execute(query, tuple(data.values()))
+        # Convert dict values to tuple for compatibility with database connections
+        values = tuple(data.values())
+        return await self.connection.execute(query, values)
 
     async def update(
-        self, table: str, data: Dict[str, Any], where: Dict[str, Any]
+        self, table: str, data: dict[str, Any], where: dict[str, Any]
     ) -> Any:
         """Update data in a table after a permission check."""
-        self._check_permission(DBOperation.WRITE, table)
-        set_clause = ", ".join([f"{key} = :{key}" for key in data.keys()])
-        where_clause = " AND ".join([f"{key} = :where_{key}" for key in where.keys()])
+        self._check_permission(DatabaseOperation.WRITE, table)
+        set_clause = ", ".join([f"{key} = :{key}" for key in data])
+        where_clause = " AND ".join([f"{key} = :where_{key}" for key in where])
         query = f"UPDATE {table} SET {set_clause} WHERE {where_clause}"
         params = {**data, **{f"where_{k}": v for k, v in where.items()}}
         return await self.connection.execute(query, params)
 
-    async def delete(self, table: str, where: Dict[str, Any]) -> Any:
+    async def delete(self, table: str, where: dict[str, Any]) -> Any:
         """Delete data from a table after a permission check."""
-        self._check_permission(DBOperation.DELETE, table)
-        where_clause = " AND ".join([f"{key} = :{key}" for key in where.keys()])
+        self._check_permission(DatabaseOperation.DELETE, table)
+        where_clause = " AND ".join([f"{key} = :{key}" for key in where])
         query = f"DELETE FROM {table} WHERE {where_clause}"
         return await self.connection.execute(query, where)
 
-    async def commit(self):
+    async def commit(self) -> None:
         """Commit the current transaction."""
         if self.connection:
             try:
@@ -180,12 +221,12 @@ class DatabaseSession:
                         await result
                     logger.debug(
                         "Transaction committed successfully",
-                        category=LogCategory.DATABASE,
+                        extra={"category": LogCategory.DATABASE},
                     )
                 else:
                     logger.warning(
                         "Connection does not have commit method",
-                        category=LogCategory.DATABASE,
+                        extra={"category": LogCategory.DATABASE},
                     )
             except Exception as e:
                 logger.error(
@@ -193,7 +234,7 @@ class DatabaseSession:
                 )
                 raise
 
-    async def rollback(self):
+    async def rollback(self) -> None:
         """Rollback the current transaction."""
         if self.connection:
             try:
@@ -205,21 +246,21 @@ class DatabaseSession:
                         await result
                     logger.debug(
                         "Transaction rolled back successfully",
-                        category=LogCategory.DATABASE,
+                        extra={"category": LogCategory.DATABASE},
                     )
                 else:
                     logger.warning(
                         "Connection does not have rollback method",
-                        category=LogCategory.DATABASE,
+                        extra={"category": LogCategory.DATABASE},
                     )
             except Exception as e:
                 logger.error(
                     f"Failed to rollback transaction: {e}",
-                    category=LogCategory.DATABASE,
+                    extra={"category": LogCategory.DATABASE},
                 )
                 raise
 
-    async def close(self):
+    async def close(self) -> None:
         """Close the session."""
         if self.connection:
             try:
@@ -237,7 +278,7 @@ class DatabaseSession:
 class DatabaseManager:
     """Unified database manager."""
 
-    def __init__(self, config: Optional[DatabaseConfig] = None):
+    def __init__(self, config: DatabaseConfig | None = None):
         self.config = config or self._get_default_config()
         self.engine = None
         self.session_factory = None
@@ -295,18 +336,18 @@ class DatabaseManager:
                 await create_tables()
                 self.logger.info(
                     "All standard tables created successfully",
-                    category=LogCategory.DATABASE,
+                    extra={"category": LogCategory.DATABASE},
                 )
             except Exception as e:
                 self.logger.error(
                     f"Failed to create standard tables: {e}",
-                    category=LogCategory.DATABASE,
+                    extra={"category": LogCategory.DATABASE},
                 )
                 raise
 
             self.logger.info(
                 "Database manager initialized successfully",
-                category=LogCategory.DATABASE,
+                extra={"category": LogCategory.DATABASE},
             )
             return True
 
@@ -317,7 +358,7 @@ class DatabaseManager:
             self._initialized = False  # Reset on failure
             return False
 
-    async def _initialize_sqlite(self):
+    async def _initialize_sqlite(self) -> None:
         """Initialize SQLite database."""
         try:
             try:
@@ -325,7 +366,7 @@ class DatabaseManager:
             except ImportError:
                 self.logger.error(
                     "aiosqlite not available. Install with: pip install aiosqlite",
-                    category=LogCategory.DATABASE,
+                    extra={"category": LogCategory.DATABASE},
                 )
                 raise
 
@@ -342,7 +383,7 @@ class DatabaseManager:
 
             self.logger.info(
                 f"SQLite database initialized at {self.config.path}",
-                category=LogCategory.DATABASE,
+                extra={"category": LogCategory.DATABASE},
             )
 
         except Exception as e:
@@ -351,7 +392,7 @@ class DatabaseManager:
             )
             raise
 
-    async def _initialize_postgresql(self):
+    async def _initialize_postgresql(self) -> None:
         """Initialize PostgreSQL database."""
         try:
             try:
@@ -360,7 +401,7 @@ class DatabaseManager:
             except ImportError:
                 self.logger.error(
                     "asyncpg not available. Install with: pip install asyncpg",
-                    category=LogCategory.DATABASE,
+                    extra={"category": LogCategory.DATABASE},
                 )
                 raise
 
@@ -376,7 +417,7 @@ class DatabaseManager:
 
             self.logger.info(
                 f"PostgreSQL database initialized at {self.config.host}:{self.config.port}",
-                category=LogCategory.DATABASE,
+                extra={"category": LogCategory.DATABASE},
             )
 
         except Exception as e:
@@ -385,7 +426,7 @@ class DatabaseManager:
             )
             raise
 
-    async def _initialize_mysql(self):
+    async def _initialize_mysql(self) -> None:
         """Initialize MySQL database."""
         try:
             try:
@@ -393,7 +434,7 @@ class DatabaseManager:
             except ImportError:
                 self.logger.error(
                     "aiomysql not available. Install with: pip install aiomysql",
-                    category=LogCategory.DATABASE,
+                    extra={"category": LogCategory.DATABASE},
                 )
                 raise
 
@@ -409,7 +450,7 @@ class DatabaseManager:
 
             self.logger.info(
                 f"MySQL database initialized at {self.config.host}:{self.config.port}",
-                category=LogCategory.DATABASE,
+                extra={"category": LogCategory.DATABASE},
             )
 
         except Exception as e:
@@ -418,7 +459,7 @@ class DatabaseManager:
             )
             raise
 
-    async def _create_essential_tables(self):
+    async def _create_essential_tables(self) -> None:
         """Create essential tables after database initialization."""
         try:
             # Create plugin_data table
@@ -467,13 +508,13 @@ class DatabaseManager:
 
     @asynccontextmanager
     async def get_session(
-        self, user_permissions: Optional[Set[str]] = None
+        self, user_permissions: set[str] | None = None
     ) -> AsyncGenerator[DatabaseSession, None]:
         """Get a database session, optionally with user permissions for access control."""
         if not self._initialized:
             await self.initialize()
 
-        session: Optional[DatabaseSession] = None
+        session: DatabaseSession | None = None
         try:
             if self.config.db_type == "sqlite":
                 session = await self._get_sqlite_session(user_permissions)
@@ -489,7 +530,7 @@ class DatabaseManager:
             # If we get here, no exception was raised - commit the transaction
             logger.debug(
                 "Committing transaction on successful exit",
-                category=LogCategory.DATABASE,
+                extra={"category": LogCategory.DATABASE},
             )
             await session.commit()
 
@@ -498,7 +539,7 @@ class DatabaseManager:
             if session is not None:
                 logger.debug(
                     f"Rolling back transaction due to exception: {type(e).__name__}: {e}",
-                    category=LogCategory.DATABASE,
+                    extra={"category": LogCategory.DATABASE},
                 )
                 await session.rollback()
             raise
@@ -507,7 +548,7 @@ class DatabaseManager:
                 await session.close()
 
     async def _get_sqlite_session(
-        self, user_permissions: Optional[Set[str]] = None
+        self, user_permissions: set[str] | None = None
     ) -> DatabaseSession:
         """Get SQLite session."""
         try:
@@ -520,7 +561,7 @@ class DatabaseManager:
         return DatabaseSession(conn, user_permissions)
 
     async def _get_postgresql_session(
-        self, user_permissions: Optional[Set[str]] = None
+        self, user_permissions: set[str] | None = None
     ) -> DatabaseSession:
         """Get PostgreSQL session."""
         try:
@@ -539,7 +580,7 @@ class DatabaseManager:
         return DatabaseSession(conn, user_permissions)
 
     async def _get_mysql_session(
-        self, user_permissions: Optional[Set[str]] = None
+        self, user_permissions: set[str] | None = None
     ) -> DatabaseSession:
         """Get MySQL session."""
         try:
@@ -556,99 +597,123 @@ class DatabaseManager:
         )
         return DatabaseSession(conn, user_permissions)
 
-    async def ensure_table_exists(
-        self, table_name: str, schema: Dict[str, str]
-    ) -> bool:
+    async def table_exists(self, table_name: str) -> bool:
+        """Check if a table exists."""
+        try:
+            async with self.get_session() as session:
+                if self.config.db_type == "sqlite":
+                    result = await session.fetchone(
+                        "SELECT name FROM sqlite_master WHERE type='table' AND name=?",
+                        (table_name,)
+                    )
+                else:
+                    # PostgreSQL/MySQL
+                    result = await session.fetchone(
+                        "SELECT table_name FROM information_schema.tables WHERE table_name = ?",
+                        (table_name,)
+                    )
+                return result is not None
+        except Exception as e:
+            self.logger.error(
+                f"Failed to check if table exists: {e}",
+                extra={"category": LogCategory.DATABASE},
+            )
+            return False
+
+    async def ensure_table_exists(self, table_name: str, schema: dict[str, str]) -> bool:
         """Ensure a table exists with the given schema."""
         try:
-            async with self.get_session() as session:
-                # Check if table exists
-                if self.config.db_type == "sqlite":
-                    check_query = (
-                        "SELECT name FROM sqlite_master WHERE type='table' AND name=?"
-                    )
-                    result = await session.fetchone(check_query, (table_name,))
+            if await self.table_exists(table_name):
+                return True
+
+            # Create table
+            columns = []
+            primary_keys = []
+
+            for column_name, column_type in schema.items():
+                if column_name.upper() == "PRIMARY KEY":
+                    primary_keys.append(column_type)
                 else:
-                    check_query = "SELECT table_name FROM information_schema.tables WHERE table_name = :name"
-                    result = await session.fetchone(check_query, {"name": table_name})
+                    columns.append(f"{column_name} {column_type}")
 
-                if not result:
-                    # Create table
-                    columns = ", ".join(
-                        [f"{col} {dtype}" for col, dtype in schema.items()]
-                    )
-                    create_query = f"CREATE TABLE {table_name} ({columns})"
-                    await session.execute(create_query)
-                    await session.commit()
-                    self.logger.info(
-                        f"Created table: {table_name}"
-                    )
+            if primary_keys:
+                columns.append(f"PRIMARY KEY {primary_keys[0]}")
 
-                return True
+            create_sql = f"CREATE TABLE {table_name} ({', '.join(columns)})"
 
-        except Exception as e:
-            self.logger.error(
-                f"Failed to ensure table {table_name} exists: {e}",
-                category=LogCategory.DATABASE,
-            )
-            return False
-
-    async def health_check(self) -> bool:
-        """Check database health."""
-        try:
             async with self.get_session() as session:
-                await session.execute("SELECT 1")
-                return True
+                await session.execute(create_sql)
+
+            self.logger.info(
+                f"Created table: {table_name}",
+                extra={"category": LogCategory.DATABASE},
+            )
+            return True
+
         except Exception as e:
             self.logger.error(
-                f"Database health check failed: {e}"
+                f"Failed to create table {table_name}: {e}",
+                extra={"category": LogCategory.DATABASE},
             )
             return False
+
+    async def execute_query(
+        self, query: str, params: dict[str, Any] | None = None
+    ) -> Any:
+        """Execute a query and return the result."""
+        async with self.get_session() as session:
+            return await session.execute(query, params)
+
+    async def execute_transaction(
+        self, queries: list[dict[str, Any]]
+    ) -> list[Any]:
+        """Execute multiple queries in a transaction."""
+        results = []
+        async with self.get_session() as session:
+            for query_dict in queries:
+                query = query_dict.get("query", "")
+                params = query_dict.get("params")
+                result = await session.execute(query, params)
+                results.append(result)
+
+        return results
+
+    async def get_connection_info(self) -> dict[str, Any]:
+        """Get database connection information."""
+        return {
+            "db_type": self.config.db_type,
+            "host": self.config.host if self.config.db_type != "sqlite" else None,
+            "port": self.config.port if self.config.db_type != "sqlite" else None,
+            "database": self.config.name if self.config.db_type != "sqlite" else self.config.path,
+            "initialized": self._initialized,
+        }
 
 
 # Global database manager instance
 database_manager = DatabaseManager()
 
-
-# Convenience functions
-def get_session(user_permissions: Optional[Set[str]] = None):
-    """Get a database session, optionally with user permissions."""
-    return database_manager.get_session(user_permissions)
-
-
-async def execute_query(
-    query: str,
-    params: Optional[Dict[str, Any]] = None,
-    user_permissions: Optional[Set[str]] = None,
-) -> List[Dict[str, Any]]:
-    """Execute a query and return results. Requires raw execution permissions."""
-    async with database_manager.get_session(
-        user_permissions=user_permissions
-    ) as session:
-        return await session.fetchall(query, params)
+# Convenience functions that use the global manager
+async def execute_query(query: str, params: dict[str, Any] | None = None) -> Any:
+    """Execute a query using the global database manager."""
+    return await database_manager.execute_query(query, params)
 
 
-async def execute_transaction(
-    operations: List[Dict[str, Any]], user_permissions: Optional[Set[str]] = None
-) -> bool:
-    """Execute multiple operations in a transaction, with permission checks."""
-    try:
-        async with database_manager.get_session(
-            user_permissions=user_permissions
-        ) as session:
-            for op in operations:
-                op_type = op.get("type")
-                if op_type == "query":
-                    await session.execute(op["query"], op.get("params"))
-                elif op_type == "insert":
-                    await session.insert(op["table"], op["data"])
-                elif op_type == "update":
-                    await session.update(op["table"], op["data"], op["where"])
-                elif op_type == "delete":
-                    await session.delete(op["table"], op["where"])
+async def execute_transaction(queries: list[dict[str, Any]]) -> list[Any]:
+    """Execute multiple queries in a transaction using the global database manager."""
+    return await database_manager.execute_transaction(queries)
 
-            await session.commit()
-            return True
-    except Exception as e:
-        logger.error(f"Transaction failed: {e}")
-        return False
+
+# Exports
+__all__ = [
+    "DatabaseConfig",
+    "DatabaseConnection",
+    "DatabaseManager",
+    "DatabaseOperation",
+    "DatabasePermissionError",
+    "DatabaseResourceType",
+    "DatabaseSession",
+    "DatabaseType",
+    "database_manager",
+    "execute_query",
+    "execute_transaction",
+]

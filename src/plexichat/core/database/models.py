@@ -4,15 +4,23 @@ Database Models
 Base model classes and table management utilities.
 """
 
-import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING, Any, TypeVar
 from uuid import uuid4
 
-from plexichat.core.database.manager import database_manager
+from plexichat.core.logging import get_logger
 
-logger = logging.getLogger(__name__)
+# Import database_manager with proper type checking
+# We use TYPE_CHECKING to avoid circular imports during type checking
+if TYPE_CHECKING:
+    pass
+else:
+    from plexichat.core.database.manager import database_manager
+
+logger = get_logger(__name__)
+
+T = TypeVar('T', bound='BaseModel')
 
 
 @dataclass
@@ -20,16 +28,16 @@ class BaseModel:
     """Base model for database entities."""
 
     id: str = field(default_factory=lambda: str(uuid4()))
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
-    def update_timestamp(self):
+    def update_timestamp(self) -> None:
         """Update the updated_at timestamp."""
-        self.updated_at = datetime.now(timezone.utc)
+        self.updated_at = datetime.now(UTC)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert model to dictionary."""
-        result = {}
+        result: dict[str, Any] = {}
         for key, value in self.__dict__.items():
             if isinstance(value, datetime):
                 result[key] = value.isoformat()
@@ -38,21 +46,25 @@ class BaseModel:
         return result
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]):
+    def from_dict(cls: type[T], data: dict[str, Any]) -> T:
         """Create model from dictionary."""
         # Convert datetime strings back to datetime objects
+        processed_data = data.copy()
         for key, value in data.items():
             if key.endswith("_at") and isinstance(value, str):
                 try:
-                    data[key] = datetime.fromisoformat(value.replace("Z", "+00:00"))
+                    processed_data[key] = datetime.fromisoformat(value.replace("Z", "+00:00"))
                 except ValueError:
                     pass
 
-        return cls(**data)
+        return cls(**processed_data)
 
+
+# Schema type definitions
+SchemaDict = dict[str, str]
 
 # Common table schemas
-USER_SCHEMA = {
+USER_SCHEMA: SchemaDict = {
     "id": "TEXT PRIMARY KEY",
     "username": "TEXT UNIQUE NOT NULL",
     "email": "TEXT UNIQUE NOT NULL",
@@ -70,7 +82,7 @@ USER_SCHEMA = {
     "metadata": "TEXT DEFAULT '{}'",
 }
 
-MESSAGE_SCHEMA = {
+MESSAGE_SCHEMA: SchemaDict = {
     "id": "TEXT PRIMARY KEY",
     "content": "TEXT NOT NULL",
     "user_id": "TEXT NOT NULL",
@@ -86,7 +98,8 @@ MESSAGE_SCHEMA = {
     "deleted_at": "TEXT",
     "metadata": "TEXT DEFAULT '{}'",
 }
-THREAD_SCHEMA = {
+
+THREAD_SCHEMA: SchemaDict = {
     "id": "TEXT PRIMARY KEY",
     "title": "TEXT NOT NULL",
     "channel_id": "TEXT NOT NULL",
@@ -101,7 +114,7 @@ THREAD_SCHEMA = {
     "metadata": "TEXT DEFAULT '{}'",
 }
 
-MESSAGE_THREADS_SCHEMA = {
+MESSAGE_THREADS_SCHEMA: SchemaDict = {
     "id": "TEXT PRIMARY KEY",
     "parent_message_id": "TEXT",
     "title": "TEXT NOT NULL",
@@ -112,7 +125,7 @@ MESSAGE_THREADS_SCHEMA = {
     "is_archived": "BOOLEAN DEFAULT FALSE",
 }
 
-THREAD_REPLIES_SCHEMA = {
+THREAD_REPLIES_SCHEMA: SchemaDict = {
     "id": "TEXT PRIMARY KEY",
     "thread_id": "TEXT NOT NULL",
     "message_content": "TEXT NOT NULL",
@@ -121,8 +134,7 @@ THREAD_REPLIES_SCHEMA = {
     "is_edited": "BOOLEAN DEFAULT FALSE",
 }
 
-
-CHANNEL_SCHEMA = {
+CHANNEL_SCHEMA: SchemaDict = {
     "id": "TEXT PRIMARY KEY",
     "name": "TEXT NOT NULL",
     "description": "TEXT",
@@ -136,7 +148,7 @@ CHANNEL_SCHEMA = {
     "metadata": "TEXT DEFAULT '{}'",
 }
 
-SESSION_SCHEMA = {
+SESSION_SCHEMA: SchemaDict = {
     "id": "TEXT PRIMARY KEY",
     "user_id": "TEXT NOT NULL",
     "session_token": "TEXT UNIQUE NOT NULL",
@@ -156,7 +168,7 @@ SESSION_SCHEMA = {
     "risk_score": "REAL DEFAULT 0.0",
 }
 
-DEVICE_SCHEMA = {
+DEVICE_SCHEMA: SchemaDict = {
     "id": "TEXT PRIMARY KEY",
     "device_id": "TEXT UNIQUE NOT NULL",
     "user_id": "TEXT NOT NULL",
@@ -172,7 +184,7 @@ DEVICE_SCHEMA = {
     "metadata": "TEXT DEFAULT '{}'",
 }
 
-MFA_CHALLENGE_SCHEMA = {
+MFA_CHALLENGE_SCHEMA: SchemaDict = {
     "id": "TEXT PRIMARY KEY",
     "challenge_id": "TEXT UNIQUE NOT NULL",
     "user_id": "TEXT NOT NULL",
@@ -187,7 +199,7 @@ MFA_CHALLENGE_SCHEMA = {
     "metadata": "TEXT DEFAULT '{}'",
 }
 
-PLUGIN_SCHEMA = {
+PLUGIN_SCHEMA: SchemaDict = {
     "id": "TEXT PRIMARY KEY",
     "name": "TEXT UNIQUE NOT NULL",
     "version": "TEXT NOT NULL",
@@ -206,7 +218,7 @@ PLUGIN_SCHEMA = {
     "metadata": "TEXT DEFAULT '{}'",
 }
 
-EVENT_SCHEMA = {
+EVENT_SCHEMA: SchemaDict = {
     "id": "TEXT PRIMARY KEY",
     "event_type": "TEXT NOT NULL",
     "source": "TEXT NOT NULL",
@@ -222,8 +234,7 @@ EVENT_SCHEMA = {
 }
 
 # New Schemas
-
-CLIENT_SETTINGS_SCHEMA = {
+CLIENT_SETTINGS_SCHEMA: SchemaDict = {
     "id": "TEXT PRIMARY KEY",
     "user_id": "TEXT NOT NULL",
     "setting_key": "TEXT NOT NULL",
@@ -237,7 +248,7 @@ CLIENT_SETTINGS_SCHEMA = {
     "metadata": "TEXT DEFAULT '{}'",
 }
 
-PLUGIN_PERMISSIONS_SCHEMA = {
+PLUGIN_PERMISSIONS_SCHEMA: SchemaDict = {
     "id": "TEXT PRIMARY KEY",
     "plugin_id": "TEXT NOT NULL",
     "permission": "TEXT NOT NULL",
@@ -253,7 +264,7 @@ PLUGIN_PERMISSIONS_SCHEMA = {
     "metadata": "TEXT DEFAULT '{}'",
 }
 
-CLUSTER_NODES_SCHEMA = {
+CLUSTER_NODES_SCHEMA: SchemaDict = {
     "id": "TEXT PRIMARY KEY",
     "node_id": "TEXT UNIQUE NOT NULL",
     "hostname": "TEXT",
@@ -270,7 +281,7 @@ CLUSTER_NODES_SCHEMA = {
     "metadata": "TEXT DEFAULT '{}'",
 }
 
-BACKUP_METADATA_SCHEMA = {
+BACKUP_METADATA_SCHEMA: SchemaDict = {
     "id": "TEXT PRIMARY KEY",
     "backup_id": "TEXT UNIQUE NOT NULL",
     "node_id": "TEXT",
@@ -290,8 +301,9 @@ BACKUP_METADATA_SCHEMA = {
     "updated_at": "TEXT NOT NULL",
     "metadata": "TEXT DEFAULT '{}'",
 }
+
 # Performance Monitoring Schemas
-PERFORMANCE_METRICS_SCHEMA = {
+PERFORMANCE_METRICS_SCHEMA: SchemaDict = {
     "id": "TEXT PRIMARY KEY",
     "metric_name": "TEXT NOT NULL",
     "metric_value": "REAL NOT NULL",
@@ -305,7 +317,7 @@ PERFORMANCE_METRICS_SCHEMA = {
     "metadata": "TEXT DEFAULT '{}'",
 }
 
-ALERT_RULES_SCHEMA = {
+ALERT_RULES_SCHEMA: SchemaDict = {
     "id": "TEXT PRIMARY KEY",
     "rule_name": "TEXT UNIQUE NOT NULL",
     "metric_name": "TEXT NOT NULL",
@@ -321,7 +333,7 @@ ALERT_RULES_SCHEMA = {
     "metadata": "TEXT DEFAULT '{}'",
 }
 
-ALERTS_SCHEMA = {
+ALERTS_SCHEMA: SchemaDict = {
     "id": "TEXT PRIMARY KEY",
     "rule_id": "TEXT NOT NULL",
     "rule_name": "TEXT NOT NULL",
@@ -342,7 +354,7 @@ ALERTS_SCHEMA = {
     "metadata": "TEXT DEFAULT '{}'",
 }
 
-PERFORMANCE_DASHBOARDS_SCHEMA = {
+PERFORMANCE_DASHBOARDS_SCHEMA: SchemaDict = {
     "id": "TEXT PRIMARY KEY",
     "dashboard_name": "TEXT UNIQUE NOT NULL",
     "description": "TEXT",
@@ -355,7 +367,7 @@ PERFORMANCE_DASHBOARDS_SCHEMA = {
     "metadata": "TEXT DEFAULT '{}'",
 }
 
-RESOURCE_TRACKING_SCHEMA = {
+RESOURCE_TRACKING_SCHEMA: SchemaDict = {
     "id": "TEXT PRIMARY KEY",
     "resource_type": "TEXT NOT NULL",
     "resource_name": "TEXT NOT NULL",
@@ -372,7 +384,7 @@ RESOURCE_TRACKING_SCHEMA = {
 }
 
 # Typing Status Schema
-TYPING_STATUS_SCHEMA = {
+TYPING_STATUS_SCHEMA: SchemaDict = {
     "id": "TEXT PRIMARY KEY",
     "user_id": "TEXT NOT NULL",
     "channel_id": "TEXT NOT NULL",
@@ -382,8 +394,9 @@ TYPING_STATUS_SCHEMA = {
     "updated_at": "TEXT NOT NULL",
     "metadata": "TEXT DEFAULT '{}'",
 }
+
 # Keyboard Shortcuts Schema
-KEYBOARD_SHORTCUTS_SCHEMA = {
+KEYBOARD_SHORTCUTS_SCHEMA: SchemaDict = {
     "id": "TEXT PRIMARY KEY",
     "user_id": "TEXT NOT NULL",
     "shortcut_key": "TEXT NOT NULL",
@@ -398,7 +411,7 @@ KEYBOARD_SHORTCUTS_SCHEMA = {
 
 async def create_tables() -> bool:
     """Create all standard tables."""
-    tables = {
+    tables: dict[str, SchemaDict] = {
         "users": USER_SCHEMA,
         "messages": MESSAGE_SCHEMA,
         "threads": THREAD_SCHEMA,
@@ -422,7 +435,6 @@ async def create_tables() -> bool:
         "resource_tracking": RESOURCE_TRACKING_SCHEMA,
         "backup_metadata": BACKUP_METADATA_SCHEMA,
         # Typing status table
-        # Keyboard shortcuts table
         "keyboard_shortcuts": KEYBOARD_SHORTCUTS_SCHEMA,
         "typing_status": TYPING_STATUS_SCHEMA,
     }
@@ -442,7 +454,7 @@ async def create_tables() -> bool:
         return False
 
 
-async def drop_tables(table_names: Optional[List[str]] = None) -> bool:
+async def drop_tables(table_names: list[str] | None = None) -> bool:
     """Drop specified tables or all tables."""
     if table_names is None:
         table_names = [
@@ -483,37 +495,33 @@ async def drop_tables(table_names: Optional[List[str]] = None) -> bool:
     except Exception as e:
         logger.error(f"Failed to drop tables: {e}")
         return False
-    "CLIENT_SETTINGS_SCHEMA",
-    "PLUGIN_PERMISSIONS_SCHEMA",
-    "CLUSTER_NODES_SCHEMA",
-    "BACKUP_METADATA_SCHEMA",
-    "PERFORMANCE_METRICS_SCHEMA",
-    "ALERT_RULES_SCHEMA",
-    "ALERTS_SCHEMA",
-    "PERFORMANCE_DASHBOARDS_SCHEMA",
-    "RESOURCE_TRACKING_SCHEMA",
 
 
 __all__ = [
-    "BaseModel",
-    "THREAD_SCHEMA",
-    "MESSAGE_THREADS_SCHEMA",
-    "THREAD_REPLIES_SCHEMA",
-    "USER_SCHEMA",
-    "MESSAGE_SCHEMA",
-    "CHANNEL_SCHEMA",
-    "SESSION_SCHEMA",
-    "DEVICE_SCHEMA",
-    "MFA_CHALLENGE_SCHEMA",
-    "PLUGIN_SCHEMA",
-    "EVENT_SCHEMA",
-    "CLIENT_SETTINGS_SCHEMA",
-    "PLUGIN_PERMISSIONS_SCHEMA",
-    "TYPING_STATUS_SCHEMA",
-    "KEYBOARD_SHORTCUTS_SCHEMA",
-    "CLUSTER_NODES_SCHEMA",
+    "ALERTS_SCHEMA",
+    "ALERT_RULES_SCHEMA",
     "BACKUP_METADATA_SCHEMA",
+    "CHANNEL_SCHEMA",
+    "CLIENT_SETTINGS_SCHEMA",
+    "CLUSTER_NODES_SCHEMA",
+    "DEVICE_SCHEMA",
+    "EVENT_SCHEMA",
+    "KEYBOARD_SHORTCUTS_SCHEMA",
+    "MESSAGE_SCHEMA",
+    "MESSAGE_THREADS_SCHEMA",
+    "MFA_CHALLENGE_SCHEMA",
+    "PERFORMANCE_DASHBOARDS_SCHEMA",
+    "PERFORMANCE_METRICS_SCHEMA",
+    "PLUGIN_PERMISSIONS_SCHEMA",
+    "PLUGIN_SCHEMA",
+    "RESOURCE_TRACKING_SCHEMA",
+    "SESSION_SCHEMA",
+    "THREAD_REPLIES_SCHEMA",
+    "THREAD_SCHEMA",
     "TYPING_STATUS_SCHEMA",
+    "USER_SCHEMA",
+    "BaseModel",
+    "SchemaDict",
     "create_tables",
     "drop_tables",
 ]
