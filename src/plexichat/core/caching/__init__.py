@@ -1,11 +1,17 @@
-"""PlexiChat Caching"""
+"""PlexiChat Caching System with Type Safety and Proper Integration"""
 
 import logging
+from typing import Any, Dict, List, Optional, TypeVar, Union
 
-# Typing imports not used
+# Import proper types
+from plexichat.core.logging import get_logger
 
-# Use shared fallback implementations
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
+
+# Type definitions for better type safety
+CacheKeyType = Union[str, int, tuple]
+CacheValueType = TypeVar("CacheValueType")
+CacheExpirationTime = Optional[int | float]
 
 try:
     from plexichat.core.utils.fallbacks import (
@@ -33,61 +39,167 @@ if USE_SHARED_FALLBACKS:
     cache_manager = get_fallback_instance("CacheManager")
     distributed_cache_manager = get_fallback_instance("DistributedCacheManager")
 else:
-    # Local fallbacks (preserved for compatibility)
-    class CacheManager:  # type: ignore
-        def __init__(self):
-            self._cache = {}
+    # Local fallbacks with proper type hints
+    class CacheManager:
+        """Local cache manager with type safety."""
 
-        def get(self, key):
-            return self._cache.get(key)
+        def __init__(self) -> None:
+            self._cache: dict[CacheKeyType, Any] = {}
 
-        def set(self, key, value, ttl=None):
-            self._cache[key] = value
+        def get(
+            self, key: CacheKeyType, default: CacheValueType = None
+        ) -> CacheValueType | None:
+            """Get value from cache."""
+            return self._cache.get(key, default)
 
-        def delete(self, key):
-            self._cache.pop(key, None)
+        def set(
+            self,
+            key: CacheKeyType,
+            value: CacheValueType,
+            ttl: CacheExpirationTime = None,
+        ) -> bool:
+            """Set value in cache."""
+            try:
+                self._cache[key] = value
+                return True
+            except Exception as e:
+                logger.error(f"Failed to set cache key {key}: {e}")
+                return False
 
-    class DistributedCacheManager:  # type: ignore
-        def __init__(self):
-            self._cache = {}
+        def delete(self, key: CacheKeyType) -> bool:
+            """Delete key from cache."""
+            try:
+                self._cache.pop(key, None)
+                return True
+            except Exception as e:
+                logger.error(f"Failed to delete cache key {key}: {e}")
+                return False
 
-        def get(self, key):
-            return self._cache.get(key)
+        def clear(self) -> bool:
+            """Clear all cache entries."""
+            try:
+                self._cache.clear()
+                return True
+            except Exception as e:
+                logger.error(f"Failed to clear cache: {e}")
+                return False
 
-        def set(self, key, value, ttl=None):
-            self._cache[key] = value
+        def get_stats(self) -> dict[str, Any]:
+            """Get cache statistics."""
+            return {
+                "total_entries": len(self._cache),
+                "total_size": sum(len(str(v)) for v in self._cache.values()),
+            }
 
-    class CacheEntry:  # type: ignore
-        def __init__(self, **kwargs):
+    class DistributedCacheManager:
+        """Distributed cache manager with type safety."""
+
+        def __init__(self) -> None:
+            self._cache: dict[CacheKeyType, Any] = {}
+
+        def get(
+            self, key: CacheKeyType, default: CacheValueType = None
+        ) -> CacheValueType | None:
+            """Get value from distributed cache."""
+            return self._cache.get(key, default)
+
+        def set(
+            self,
+            key: CacheKeyType,
+            value: CacheValueType,
+            ttl: CacheExpirationTime = None,
+        ) -> bool:
+            """Set value in distributed cache."""
+            try:
+                self._cache[key] = value
+                return True
+            except Exception as e:
+                logger.error(f"Failed to set distributed cache key {key}: {e}")
+                return False
+
+        def delete(self, key: CacheKeyType) -> bool:
+            """Delete key from distributed cache."""
+            try:
+                self._cache.pop(key, None)
+                return True
+            except Exception as e:
+                logger.error(f"Failed to delete distributed cache key {key}: {e}")
+                return False
+
+    class CacheEntry:
+        """Cache entry with metadata."""
+
+        def __init__(self, **kwargs: Any) -> None:
             self.__dict__.update(kwargs)
 
     cache_manager = CacheManager()
     distributed_cache_manager = DistributedCacheManager()
 
-    def cache_get(key):  # type: ignore
-        return cache_manager.get(key)
+    def cache_get(
+        key: CacheKeyType, default: CacheValueType = None
+    ) -> CacheValueType | None:
+        """Get value from global cache manager."""
+        return cache_manager.get(key, default)
 
-    def cache_set(key, value, ttl=None):  # type: ignore
+    def cache_set(
+        key: CacheKeyType, value: CacheValueType, ttl: CacheExpirationTime = None
+    ) -> bool:
+        """Set value in global cache manager."""
         return cache_manager.set(key, value, ttl)
 
-    def cache_delete(key):  # type: ignore
+    def cache_delete(key: CacheKeyType) -> bool:
+        """Delete key from global cache manager."""
         return cache_manager.delete(key)
 
-    async def cache_get_async(key):  # type: ignore
-        return cache_manager.get(key)
+    async def cache_get_async(
+        key: CacheKeyType, default: CacheValueType = None
+    ) -> CacheValueType | None:
+        """Async get value from global cache manager."""
+        return cache_manager.get(key, default)
 
-    async def cache_set_async(key, value, ttl=None):  # type: ignore
+    async def cache_set_async(
+        key: CacheKeyType, value: CacheValueType, ttl: CacheExpirationTime = None
+    ) -> bool:
+        """Async set value in global cache manager."""
         return cache_manager.set(key, value, ttl)
 
-    def cached(*args, **kwargs):  # type: ignore
+    def cached(ttl: CacheExpirationTime = None):
+        """Decorator for caching function results."""
+
         def decorator(func):
-            return func
+            def wrapper(*args, **kwargs):
+                cache_key = (
+                    f"{func.__name__}:{hash(str(args) + str(sorted(kwargs.items())))}"
+                )
+                result = cache_get(cache_key)
+                if result is not None:
+                    return result
+
+                result = func(*args, **kwargs)
+                cache_set(cache_key, result, ttl)
+                return result
+
+            return wrapper
 
         return decorator
 
-    def async_cached_decorator(*args, **kwargs):  # type: ignore
+    def async_cached_decorator(ttl: CacheExpirationTime = None):
+        """Async decorator for caching function results."""
+
         def decorator(func):
-            return func
+            async def wrapper(*args, **kwargs):
+                cache_key = (
+                    f"{func.__name__}:{hash(str(args) + str(sorted(kwargs.items())))}"
+                )
+                result = await cache_get_async(cache_key)
+                if result is not None:
+                    return result
+
+                result = await func(*args, **kwargs)
+                await cache_set_async(cache_key, result, ttl)
+                return result
+
+            return wrapper
 
         return decorator
 
@@ -105,8 +217,16 @@ __all__ = [
     "cache_set_async",
     "cached",
     "async_cached_decorator",
+    # Type exports
+    "CacheKeyType",
+    "CacheValueType",
+    "CacheExpirationTime",
 ]
 
-from plexichat.core.utils.fallbacks import get_module_version
+# Version information
+try:
+    from plexichat.core.utils.fallbacks import get_module_version
 
-__version__ = get_module_version()
+    __version__ = get_module_version()
+except ImportError:
+    __version__ = "1.0.0"
