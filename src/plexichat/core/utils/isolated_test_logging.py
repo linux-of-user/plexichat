@@ -3,7 +3,7 @@
 import json
 import logging
 import re
-from src.plexichat.core.logging.unified_logger import (
+from plexichat.core.logging.unified_logger import (
     redact_pii,
     sanitize_for_logging,
     DEFAULT_PII_PATTERNS,

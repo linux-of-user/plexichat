@@ -5,7 +5,7 @@ import io
 import json
 import logging
 from contextlib import redirect_stdout
-from src.plexichat.core.logging import get_logger, redact_pii, sanitize_for_logging, ColoredFormatter, StructuredFormatter, get_handler_factory
+from plexichat.core.logging import get_logger, redact_pii, sanitize_for_logging, ColoredFormatter, StructuredFormatter, get_handler_factory
 
 def test_redact_pii():
     message = "User john.doe@example.com SSN 123-45-6789"
