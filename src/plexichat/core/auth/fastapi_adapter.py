@@ -4,22 +4,27 @@ Provides FastAPI dependencies that integrate with UnifiedAuthManager.
 This is the single point where FastAPI integrates with the unified authentication system.
 """
 
-import inspect
-import logging
+from collections.abc import Awaitable, Callable
 from datetime import timedelta
 from functools import wraps
-from typing import Any, Callable, Dict, Optional, Set, Union
+import inspect
+import logging
+from typing import Any
 
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
-from plexichat.core.authentication import get_auth_manager
-from plexichat.core.security import RateLimitRequest, get_network_protection
+from src.plexichat.core.authentication import get_auth_manager
+from src.plexichat.core.security import (
+    NetworkProtection,
+    RateLimitRequest,
+    get_network_protection,
+)
 
-logger = logging.getLogger(__name__)
+logger: logging.Logger = logging.getLogger(__name__)
 
 # Security scheme for FastAPI
-security = HTTPBearer()
+security: HTTPBearer = HTTPBearer()
 
 
 class FastAPIAuthAdapter:
@@ -28,12 +33,14 @@ class FastAPIAuthAdapter:
     All authentication operations delegate to UnifiedAuthManager.
     """
 
+    auth_manager: Any
+
     def __init__(self) -> None:
         self.auth_manager = get_auth_manager()
 
     async def get_current_user(
         self, credentials: HTTPAuthorizationCredentials = Depends(security)
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Get current authenticated user from JWT token.
 
@@ -72,7 +79,7 @@ class FastAPIAuthAdapter:
             permissions = self.auth_manager.get_user_permissions(user_id)
 
             # Build user context
-            user_context: Dict[str, Any] = {
+            user_context = {
                 "id": user_id,
                 "user_id": user_id,
                 "permissions": permissions,
@@ -98,10 +105,10 @@ class FastAPIAuthAdapter:
 
     async def get_optional_user(
         self,
-        credentials: Optional[HTTPAuthorizationCredentials] = Depends(
+        credentials: HTTPAuthorizationCredentials | None = Depends(
             HTTPBearer(auto_error=False)
         ),
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """
         Get current user if token is provided, otherwise return None.
         Useful for endpoints that can work with or without authentication.
@@ -130,8 +137,12 @@ class FastAPIAuthAdapter:
 
     async def require_admin(
         self,
-        current_user: Dict[str, Any] = Depends(get_current_user),
-    ) -> Dict[str, Any]:
+        current_user: dict[str, Any] = Depends(
+            lambda adapter=None: (
+                adapter.get_current_user() if adapter else get_current_user()
+            )
+        ),
+    ) -> dict[str, Any]:
         """
         Require admin privileges for the current user.
 
@@ -156,8 +167,8 @@ class FastAPIAuthAdapter:
         return current_user
 
     def require_user_or_admin(
-        self, target_user_id: Union[str, int]
-    ) -> Callable[[Dict[str, Any]], Dict[str, Any]]:
+        self, target_user_id: str | int
+    ) -> Callable[..., Any]:
         """
         Create a dependency that requires user to be the target user or an admin.
 
@@ -169,8 +180,8 @@ class FastAPIAuthAdapter:
         """
 
         async def _require_user_or_admin(
-            current_user: Dict[str, Any] = Depends(get_current_user),
-        ) -> Dict[str, Any]:
+            current_user: dict[str, Any] = Depends(lambda: self.get_current_user()),
+        ) -> dict[str, Any]:
             current_user_id = current_user.get("id") or current_user.get("user_id")
 
             # Convert to string for comparison
@@ -188,8 +199,12 @@ class FastAPIAuthAdapter:
 
     async def get_user_permissions(
         self,
-        current_user: Dict[str, Any] = Depends(get_current_user),
-    ) -> Set[str]:
+        current_user: dict[str, Any] = Depends(
+            lambda adapter=None: (
+                adapter.get_current_user() if adapter else get_current_user()
+            )
+        ),
+    ) -> set[str]:
         """
         Get permissions for the current user.
 
@@ -201,7 +216,7 @@ class FastAPIAuthAdapter:
         """
         return current_user.get("permissions", set())
 
-    async def validate_api_key(self, api_key: str) -> Optional[Dict[str, Any]]:
+    async def validate_api_key(self, api_key: str) -> dict[str, Any] | None:
         """
         Validate API key using UnifiedAuthManager.
 
@@ -233,7 +248,7 @@ class FastAPIAuthAdapter:
 
     def rate_limit(
         self, action: str, limit: int, window_seconds: int = 60
-    ) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
+    ) -> Callable[..., Any]:
         """
         Rate limiting decorator that integrates with NetworkProtection.
 
@@ -250,7 +265,7 @@ class FastAPIAuthAdapter:
             @wraps(func)
             async def wrapper(*args: Any, **kwargs: Any) -> Any:
                 # Extract Request object from function arguments
-                request: Optional[Request] = None
+                request: Request | None = None
                 for arg in args:
                     if isinstance(arg, Request):
                         request = arg
@@ -265,20 +280,14 @@ class FastAPIAuthAdapter:
                     logger.warning(
                         "Rate limiting decorator could not find Request object. Skipping rate limit check."
                     )
-                    if inspect.iscoroutinefunction(func):
-                        return await func(*args, **kwargs)
-                    else:
-                        return func(*args, **kwargs)
+                    return await func(*args, **kwargs)
 
-                network_protection = get_network_protection()
+                network_protection: NetworkProtection = get_network_protection()
                 if not network_protection:
                     logger.warning(
                         "Network protection not available for rate limiting. Skipping rate limit check."
                     )
-                    if inspect.iscoroutinefunction(func):
-                        return await func(*args, **kwargs)
-                    else:
-                        return func(*args, **kwargs)
+                    return await func(*args, **kwargs)
 
                 rate_request = RateLimitRequest()
                 rate_request.ip_address = (
@@ -292,7 +301,9 @@ class FastAPIAuthAdapter:
                 rate_request.limit = limit
                 rate_request.window_seconds = window_seconds
 
-                allowed, _ = await network_protection.check_request(rate_request)
+                allowed: bool
+                threat: dict[str, Any] | None
+                allowed, threat = await network_protection.check_request(rate_request)
 
                 if not allowed:
                     raise HTTPException(
@@ -314,8 +325,8 @@ class FastAPIAuthAdapter:
     async def create_access_token(
         self,
         user_id: str,
-        permissions: Set[str],
-        expires_delta: Optional[timedelta] = None,
+        permissions: set[str],
+        expires_delta: timedelta | None = None,
     ) -> str:
         """
         Create access token using UnifiedAuthManager.
@@ -386,7 +397,7 @@ class FastAPIAuthAdapter:
 
 
 # Global adapter instance
-_auth_adapter: Optional[FastAPIAuthAdapter] = None
+_auth_adapter: FastAPIAuthAdapter | None = None
 
 
 def get_auth_adapter() -> FastAPIAuthAdapter:
@@ -400,49 +411,45 @@ def get_auth_adapter() -> FastAPIAuthAdapter:
 # Convenience dependency functions that use the global adapter
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """FastAPI dependency to get current authenticated user."""
     adapter = get_auth_adapter()
     return await adapter.get_current_user(credentials)
 
 
 async def get_optional_user(
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(
+    credentials: HTTPAuthorizationCredentials | None = Depends(
         HTTPBearer(auto_error=False)
     ),
-) -> Optional[Dict[str, Any]]:
+) -> dict[str, Any] | None:
     """FastAPI dependency to get optional authenticated user."""
     adapter = get_auth_adapter()
     return await adapter.get_optional_user(credentials)
 
 
 async def require_admin(
-    current_user: Dict[str, Any] = Depends(get_current_user),
-) -> Dict[str, Any]:
+    current_user: dict[str, Any] = Depends(get_current_user),
+) -> dict[str, Any]:
     """FastAPI dependency that requires admin privileges."""
     adapter = get_auth_adapter()
     return await adapter.require_admin(current_user)
 
 
-def require_user_or_admin(
-    target_user_id: Union[str, int]
-) -> Callable[[Dict[str, Any]], Dict[str, Any]]:
+def require_user_or_admin(target_user_id: str | int) -> Callable[..., Awaitable[dict[str, Any]]]:
     """Create FastAPI dependency that requires user to be target user or admin."""
     adapter = get_auth_adapter()
     return adapter.require_user_or_admin(target_user_id)
 
 
 async def get_user_permissions(
-    current_user: Dict[str, Any] = Depends(get_current_user),
-) -> Set[str]:
+    current_user: dict[str, Any] = Depends(get_current_user),
+) -> set[str]:
     """FastAPI dependency to get current user permissions."""
     adapter = get_auth_adapter()
     return await adapter.get_user_permissions(current_user)
 
 
-def rate_limit(
-    action: str, limit: int, window_seconds: int = 60
-) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
+def rate_limit(action: str, limit: int, window_seconds: int = 60) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     """Rate limiting decorator for FastAPI endpoints."""
     adapter = get_auth_adapter()
     return adapter.rate_limit(action, limit, window_seconds)
@@ -451,7 +458,7 @@ def rate_limit(
 # Additional utility functions
 async def get_current_user_with_permissions(
     credentials: HTTPAuthorizationCredentials = Depends(security),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Get current user with permissions included in the response.
     Useful for endpoints that need both user info and permissions.
@@ -461,7 +468,7 @@ async def get_current_user_with_permissions(
     return user
 
 
-async def validate_api_key_dependency(api_key: str) -> Dict[str, Any]:
+async def validate_api_key_dependency(api_key: str) -> dict[str, Any]:
     """
     FastAPI dependency for API key validation.
 
@@ -489,11 +496,11 @@ __all__ = [
     "FastAPIAuthAdapter",
     "get_auth_adapter",
     "get_current_user",
+    "get_current_user_with_permissions",
     "get_optional_user",
+    "get_user_permissions",
+    "rate_limit",
     "require_admin",
     "require_user_or_admin",
-    "get_user_permissions",
-    "get_current_user_with_permissions",
     "validate_api_key_dependency",
-    "rate_limit",
 ]

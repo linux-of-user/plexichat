@@ -190,7 +190,7 @@ pgcli>=4.0.1
 mycli>=1.27.0
 
 # API documentation
-flasgger>=0.9.7.1
+# flasgger>=0.9.7.1
 swagger-ui-bundle>=0.0.9
 
 # Environment management
